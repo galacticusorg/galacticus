@@ -1529,64 +1529,6 @@ Currently defined merger tree construction methods are:
  \item [{\normalfont \ttfamily fullySpecified}] Intended primarily for constructing test cases, this method allows the full state of the merger tree (and all components of nodes) to be specified via an XML document. See \S\ref{sec:TreeConstructFullySpecified} for details of how to use this method.
 \end{description}
 
-\subsubsection{Chemical Reaction Rates}
-
-Additional methods for chemical species reaction rates can be added using the {\normalfont \ttfamily chemicalReactionRatesMethods} directive. Note that more than one method can be specified in which cases rates are cumulative over all selected methods. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily hydrogenNetwork} method is described by a directive:
-\begin{verbatim}
-  !# <chemicalReactionRatesMethods>
-  !#  <unitName>Chemical_Hydrogen_Rates_Initialize</unitName>
-  !# </chemicalReactionRatesMethods>
-\end{verbatim}
-Here, {\normalfont \ttfamily Chemical\_Hydrogen\_Rates\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(chemicalReactionRatesMethods)
-    implicit none
-    type(varying_string), intent(in) :: chemicalReactionRatesMethods
-    
-    if (chemicalReactionRatesMethods == 'myMethod') then
-       ratesSelected = .true.
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily chemicalReactionRatesMethods} input parameter. The {\normalfont \ttfamily ratesSelected} variable is set to true if the method is active and will be checked on all subsequent calls to the module such that rates are computed only if {\normalfont \ttfamily ratesSelected} is true. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The method must provide a subroutine to compute the chemical reaction rates. This subroutine is specified by the {\normalfont \ttfamily chemicalRatesCompute} directive. The directive should contain a single argument, giving the name of a subroutine to be called to compute rates. For example, the {\normalfont \ttfamily hydrogenNetwork} method uses:
-\begin{verbatim}
-  !# <chemicalRatesCompute>
-  !#  <unitName>Chemical_Hydrogen_Rates_Compute</unitName>
-  !# </chemicalRatesCompute> 
-\end{verbatim}
-Here, {\normalfont \ttfamily Chemical\_Hydrogen\_Rates\_Compute} is the name of a subroutine which will be called to compute the rates. The rates subroutine must have the following form:
-\begin{verbatim}
-  subroutine Compute_Rates(temperature,chemicalDensity,radiation,chemicalRates)
-    implicit none
-    type(chemicalAbundancesStructure), intent(in)    :: chemicalDensity
-    double precision,                  intent(in)    :: temperature
-    type(radiationStructure),          intent(in)    :: radiation
-    type(chemicalAbundancesStructure), intent(inout) :: chemicalRates
-
-    ! Exit immediately if this method is not active.
-    if (.not.ratesSelected) return
-
-    ! Compute rates for all species present.
-    .
-    .
-    .
-    return
-  end subroutine Compute_Rates
-\end{verbatim}
-Here, {\normalfont \ttfamily temperature} is the temperature of the gas, {\normalfont \ttfamily chemicalDensity} provides the densities (in cm$^{-3}$) of all chemicals, the radiation field is described by the {\normalfont \ttfamily radiation} object and any reaction rates should be \emph{added to} the {\normalfont \ttfamily chemicalRates} object in units of cm$^{-3}$ s$^{-1}$.
-
-Currently defined chemical reaction rate methods are:
-\begin{description}
- \item [{\normalfont \ttfamily null}] A null method which does not affect any rates.
- \item [{\normalfont \ttfamily hydrogenNetwork}] Computes rates using the network of reactions and fitting functions from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.
-\end{description}
-
 \subsubsection{Population III Supernovae}
 
 Additional methods for Population III supernovae can be added using the {\normalfont \ttfamily supernovaePopIIIMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Heger-Woosley2002} method is described by a directive:

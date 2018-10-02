@@ -939,6 +939,7 @@ contains
     class           (hotHaloMassDistributionClass)                          , pointer :: hotHaloMassDistribution_
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
     class           (accretionHaloClass          )                          , pointer :: accretionHalo_
+    class           (chemicalReactionRateClass   )                          , pointer :: chemicalReactionRate_
     type            (chemicalAbundances          ), save                              :: chemicalDensitiesRates      , chemicalMasses         , &
          &                                                                               chemicalMassesRates         , chemicalsCoolingRate   , &
          &                                                                               chemicalDensities
@@ -1017,7 +1018,8 @@ contains
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
           ! Compute the chemical reaction rates.
-          call Chemical_Reaction_Rate(chemicalDensitiesRates,temperature,chemicalDensities,radiation)
+          chemicalReactionRate_ => chemicalReactionRate()
+          call chemicalReactionRate_%rates(temperature,chemicalDensities,radiation,chemicalDensitiesRates)
           ! Convert to mass change rates.
           call chemicalDensitiesRates%numberToMass(chemicalMassesRates)
           chemicalMassesRates=chemicalMassesRates*gigaYear/massToDensityConversion

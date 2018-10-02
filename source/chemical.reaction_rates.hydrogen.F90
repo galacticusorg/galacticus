@@ -16,175 +16,222 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of chemical reaction rates for hydrogen using the fits from
-!% \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.
-
-module Chemical_Hydrogen_Rates
-  !% Implements calculations of chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and
+  !% An implementation of calculations of chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and
   !% \cite{tegmark_small_1997}.
-  use Chemical_Abundances_Structure
-  implicit none
-  private
-  public :: Chemical_Hydrogen_Rates_Initialize, Chemical_Hydrogen_Rates_Compute
+  
+  use Atomic_Rates_Ionization_Collisional
+  use Atomic_Rates_Recombination_Radiative
+  use Atomic_Cross_Sections_Ionization_Photo
+  
+  !# <chemicalReactionRate name="chemicalReactionRateHydrogenNetwork">
+  !#  <description>A chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.</description>
+  !# </chemicalReactionRate>
+  type, extends(chemicalReactionRateClass) :: chemicalReactionRateHydrogenNetwork
+     !% A chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.
+     private
+     class           (atomicIonizationRateCollisionalClass  ), pointer :: atomicIonizationRateCollisional_
+     class           (atomicRecombinationRateRadiativeClass ), pointer :: atomicRecombinationRateRadiative_
+     class           (atomicCrossSectionIonizationPhotoClass), pointer :: atomicCrossSectionIonizationPhoto_
+     logical                                                           :: fast                             , radiationCMBOnly
+     integer                                                           :: atomicHydrogenAnionIndex         , atomicHydrogenCationIndex, &
+          &                                                               atomicHydrogenIndex               , electronIndex
+     double precision                                                  :: densityAtomicHydrogenAnion
+   contains
+     final     ::                                        hydrogenNetworkDestructor
+     procedure :: rates                               => hydrogenNetworkRates
+     procedure :: rateH_Electron_to_Hplus_2Electron   => hydrogenNetworkRateH_Electron_to_Hplus_2Electron  
+     procedure :: rateHplus_Electron_to_H_Photon      => hydrogenNetworkRateHplus_Electron_to_H_Photon     
+     procedure :: rateH_Electron_to_Hminus_Photon     => hydrogenNetworkRateH_Electron_to_Hminus_Photon    
+     procedure :: rateH_Hminus_to_H2_Electron         => hydrogenNetworkRateH_Hminus_to_H2_Electron        
+     procedure :: rateH_Hplus_to_H2plus_Photon        => hydrogenNetworkRateH_Hplus_to_H2plus_Photon       
+     procedure :: rateH2plus_H_to_H2_Hplus            => hydrogenNetworkRateH2plus_H_to_H2_Hplus           
+     procedure :: rateH2_Hplus_to_H2plus_H            => hydrogenNetworkRateH2_Hplus_to_H2plus_H           
+     procedure :: rateH2_Electron_to_2H_Electron      => hydrogenNetworkRateH2_Electron_to_2H_Electron     
+     procedure :: rateH2_H_to_3H                      => hydrogenNetworkRateH2_H_to_3H                     
+     procedure :: rateHminus_Electron_to_H_2Electron  => hydrogenNetworkRateHminus_Electron_to_H_2Electron 
+     procedure :: rateHminus_H_to_2H_Electron         => hydrogenNetworkRateHminus_H_to_2H_Electron        
+     procedure :: rateHminus_Hplus_to_2H              => hydrogenNetworkRateHminus_Hplus_to_2H             
+     procedure :: rateHminus_Hplus_to_H2plus_Electron => hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron
+     procedure :: rateH2plus_Electron_to_2H           => hydrogenNetworkRateH2plus_Electron_to_2H          
+     procedure :: rateH2plus_Hminus_to_H2_H           => hydrogenNetworkRateH2plus_Hminus_to_H2_H          
+     procedure :: rateH_Gamma_to_Hplus_Electron       => hydrogenNetworkRateH_Gamma_to_Hplus_Electron      
+     procedure :: rateHminus_Gamma_to_H_Electron      => hydrogenNetworkRateHminus_Gamma_to_H_Electron     
+     procedure :: rateH2_Gamma_to_H2plus_Electron     => hydrogenNetworkRateH2_Gamma_to_H2plus_Electron    
+     procedure :: rateH2plus_Gamma_to_H_Hplus         => hydrogenNetworkRateH2plus_Gamma_to_H_Hplus        
+     procedure :: rateH2plus_Gamma_to_2Hplus_Electron => hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron
+     procedure :: rateH2_Gamma_to_H2star_to_2H        => hydrogenNetworkRateH2_Gamma_to_H2star_to_2H       
+     procedure :: rateH2_Gamma_to_2H                  => hydrogenNetworkRateH2_Gamma_to_2H                 
+  end type chemicalReactionRateHydrogenNetwork
 
-  ! Flag indicating if these rates have been selected.
-  logical          :: ratesSelected             =.false.
+  interface chemicalReactionRateHydrogenNetwork
+     !% Constructors for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class.
+     module procedure hydrogenNetworkConstructorParameters
+     module procedure hydrogenNetworkConstructorInternal
+  end interface chemicalReactionRateHydrogenNetwork
 
-  ! Flag indicating whether fast rate calculations should be used.
-  logical          :: hydrogenNetworkFast
-
-  ! Flag indicating whether to use CMB only when computing rates for some radiative processes.
-  logical          :: hydrogenNetworkCMBOnly
-
-  ! Indices of chemicals.
-  integer          :: atomicHydrogenAnionIndex          , atomicHydrogenCationIndex, &
-       &              atomicHydrogenIndex               , electronIndex
-
-  ! Density of atomic hydrogen anion to use in all rate calculations.
-  double precision :: densityAtomicHydrogenAnion
-  !$omp threadprivate(densityAtomicHydrogenAnion)
+  ! Module-scope pointer to self used in integrations.
+  class(chemicalReactionRateHydrogenNetwork), pointer :: hydrogenNetworkSelf
+  !$omp threadprivate(hydrogenNetworkSelf)
+  
 contains
 
-  !# <chemicalReactionRates>
-  !#  <unitName>Chemical_Hydrogen_Rates_Initialize</unitName>
-  !# </chemicalReactionRates>
-  subroutine Chemical_Hydrogen_Rates_Initialize(chemicalReactionRatesMethods)
-    !% Initializes the chemical hydrogen reaction network module.
-    use ISO_Varying_String
+  function hydrogenNetworkConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
+    !% input.
     use Input_Parameters
+    implicit none
+    type   (chemicalReactionRateHydrogenNetwork   )                :: self
+    type   (inputParameters                       ), intent(inout) :: parameters
+    class  (atomicIonizationRateCollisionalClass  ), pointer       :: atomicIonizationRateCollisional_
+    class  (atomicRecombinationRateRadiativeClass ), pointer       :: atomicRecombinationRateRadiative_
+    class  (atomicCrossSectionIonizationPhotoClass), pointer       :: atomicCrossSectionIonizationPhoto_
+    logical                                                        :: fast                             , radiationCMBOnly
+
+    !# <inputParameter>
+    !#   <name>fast</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether or not to use simplifying assumptions to speed the hydrogen network calculation. If true, H$^-$
+    !#     is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see
+    !#     \citealt{abel_modeling_1997}).</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>radiationCMBOnly</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether or not to use the cosmic microwave background only when computed certain radiative rates.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <objectBuilder class="atomicIonizationRateCollisional"   name="atomicIonizationRateCollisional_"   source="parameters"/>
+    !# <objectBuilder class="atomicRecombinationRateRadiative"  name="atomicRecombinationRateRadiative_"  source="parameters"/>
+    !# <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
+    self=chemicalReactionRateHydrogenNetwork(fast,radiationCMBOnly,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function hydrogenNetworkConstructorParameters
+
+  function hydrogenNetworkConstructorInternal(fast,radiationCMBOnly,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_) result(self)
+    !% Constructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class which takes a parameter set as
+    !% input.
     use Galacticus_Error
     implicit none
-    type(varying_string), intent(in   ) :: chemicalReactionRatesMethods(:)
-
-    ! Check if this cooling function has been selected.
-    if (any(chemicalReactionRatesMethods == 'hydrogenNetwork')) then
-       ! Flag that these rates have been selected.
-       ratesSelected=.true.
-
-       ! Get parameters controlling implementation.
-       !# <inputParameter>
-       !#   <name>hydrogenNetworkFast</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>.true.</defaultValue>
-       !#   <description>Specifies whether or not to use simplifying assumptions to speed the hydrogen network calculation. If true, H$^-$
-       !#     is assumed to be at equilibrium abundance, H$_2^+$ reactions are ignored and other slow reactions are ignored (see
-       !#     \citealt{abel_modeling_1997}).</description>
-       !#   <source>globalParameters</source>
-       !#   <type>boolean</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>hydrogenNetworkCMBOnly</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>.true.</defaultValue>
-       !#   <description>Specifies whether or not to use the cosmic microwave background only when computed certain radiative rates.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>boolean</type>
-       !# </inputParameter>
-
-       ! Get indices for chemicals as necessary.
-       if (hydrogenNetworkFast) then
-          ! Get indices of chemicals needed for equilbrium hydrogen anion calculation.
-          atomicHydrogenIndex      =Chemicals_Index("AtomicHydrogen"      )
-          atomicHydrogenCationIndex=Chemicals_Index("AtomicHydrogenCation")
-          electronIndex            =Chemicals_Index("Electron"            )
-          if (atomicHydrogenIndex       <= 0) call Galacticus_Error_Report('atomic hydrogen must be included for fast hydrogen network calculation'//{introspection:location})
-          if (atomicHydrogenCationIndex <= 0) call Galacticus_Error_Report('hydrogen cation must be included for fast hydrogen network calculation'//{introspection:location})
-          if (electronIndex             <= 0) call Galacticus_Error_Report('electrons must be included for fast hydrogen network calculation'      //{introspection:location})
-       else
-          ! Get actual hydrogen anion index.
-          atomicHydrogenAnionIndex =Chemicals_Index("AtomicHydrogenAnion")
-       end if
-
+    type   (chemicalReactionRateHydrogenNetwork   )                        :: self
+    logical                                        , intent(in   )         :: fast                              , radiationCMBOnly
+    class  (atomicIonizationRateCollisionalClass  ), intent(in   ), target :: atomicIonizationRateCollisional_
+    class  (atomicRecombinationRateRadiativeClass ), intent(in   ), target :: atomicRecombinationRateRadiative_
+    class  (atomicCrossSectionIonizationPhotoClass), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
+    !# <constructorAssign variables="fast, radiationCMBOnly, *atomicIonizationRateCollisional_, *atomicRecombinationRateRadiative_, *atomicCrossSectionIonizationPhoto_"/>
+    
+    ! Get indices for chemicals as necessary.
+    if (self%fast) then
+       ! Get indices of chemicals needed for equilbrium hydrogen anion calculation.
+       self%atomicHydrogenIndex      =Chemicals_Index("AtomicHydrogen"      )
+       self%atomicHydrogenCationIndex=Chemicals_Index("AtomicHydrogenCation")
+       self%electronIndex            =Chemicals_Index("Electron"            )
+       if (self%atomicHydrogenIndex       <= 0) call Galacticus_Error_Report('atomic hydrogen must be included for fast hydrogen network calculation'//{introspection:location})
+       if (self%atomicHydrogenCationIndex <= 0) call Galacticus_Error_Report('hydrogen cation must be included for fast hydrogen network calculation'//{introspection:location})
+       if (self%electronIndex             <= 0) call Galacticus_Error_Report('electrons must be included for fast hydrogen network calculation'      //{introspection:location})
+    else
+       ! Get actual hydrogen anion index.
+       self%atomicHydrogenAnionIndex =Chemicals_Index("AtomicHydrogenAnion")
     end if
-
     return
-  end subroutine Chemical_Hydrogen_Rates_Initialize
+  end function hydrogenNetworkConstructorInternal
 
-  !# <chemicalRatesCompute>
-  !#  <unitName>Chemical_Hydrogen_Rates_Compute</unitName>
-  !# </chemicalRatesCompute>
-  subroutine Chemical_Hydrogen_Rates_Compute(temperature,chemicalDensity,radiation,chemicalRates)
+  subroutine hydrogenNetworkDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily hydrogenNetwork} chemical reaction rates class.
+    implicit none
+    type(chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+
+    !# <objectDestructor name="self%atomicIonizationRateCollisional_"  />
+    !# <objectDestructor name="self%atomicRecombinationRateRadiative_" />
+    !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
+    return
+  end subroutine hydrogenNetworkDestructor
+  
+  subroutine hydrogenNetworkRates(self,temperature,chemicalDensity,radiation,chemicalRates)
     !% Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
     use Radiation_Structure
     use Galacticus_Error
     implicit none
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensity
-    double precision                    , intent(in   ) :: temperature
-    type            (radiationStructure), intent(in   ) :: radiation
-    type            (chemicalAbundances), intent(inout) :: chemicalRates
-    double precision                                    :: creationTerm   , destructionTerm
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    double precision                                                     :: creationTerm   , destructionTerm
 
-    ! Return if not selected.
-    if (.not.ratesSelected) return
-
+    ! Reset rates to zero initially.
+    call chemicalRates%reset()
     ! Determine the atomic hydrogen anion density to use.
-    if (hydrogenNetworkFast) then
+    if (self%fast) then
        ! For the fast network, assume the hydrogen anion is always at equilibrium density. (Following eqn. 24 of Abel et al. 1997.)
-       creationTerm   = H_Electron_to_Hminus_Photon_Rate_Coefficient   (temperature)*chemicalDensity%abundance(atomicHydrogenIndex      ) &
-            &                                                                       *chemicalDensity%abundance(electronIndex            )
-       destructionTerm= H_Hminus_to_H2_Electron_Rate_Coefficient       (temperature)*chemicalDensity%abundance(atomicHydrogenIndex      ) &
-            &          +Hminus_Hplus_to_2H_Rate_Coefficient            (temperature)*chemicalDensity%abundance(atomicHydrogenCationIndex) &
-            &          +Hminus_Electron_to_H_2Electron_Rate_Coefficient(temperature)*chemicalDensity%abundance(electronIndex            )
+       creationTerm   =+hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient   (temperature)*chemicalDensity%abundance(self%atomicHydrogenIndex      ) &
+            &                                                                                      *chemicalDensity%abundance(self%electronIndex            )
+       destructionTerm=+hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient       (temperature)*chemicalDensity%abundance(self%atomicHydrogenIndex      ) &
+            &          +hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient            (temperature)*chemicalDensity%abundance(self%atomicHydrogenCationIndex) &
+            &          +hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient(temperature)*chemicalDensity%abundance(self%electronIndex            )
        if (destructionTerm /= 0.0d0) then
-          densityAtomicHydrogenAnion=creationTerm/destructionTerm
+          self%densityAtomicHydrogenAnion=creationTerm/destructionTerm
        else
           if (creationTerm > 0.0d0) call Galacticus_Error_Report('hydrogen anion equilibrium density is infinite'//{introspection:location})
-          densityAtomicHydrogenAnion=0.0d0
+          self%densityAtomicHydrogenAnion=0.0d0
        end if
-    else if (atomicHydrogenAnionIndex > 0) then
+    else if (self%atomicHydrogenAnionIndex > 0) then
        ! For the slow network, if we have the hydrogen anion then use its density directly.
-       densityAtomicHydrogenAnion=chemicalDensity%abundance(atomicHydrogenAnionIndex)
+       self%densityAtomicHydrogenAnion=chemicalDensity%abundance(self%atomicHydrogenAnionIndex)
     else
        ! Otherwise, we have no way to compute the hydrogen anion density, so set it to zero.
-       densityAtomicHydrogenAnion=0.0d0
+       self%densityAtomicHydrogenAnion=0.0d0
     end if
-
     ! Compute rates. References after each call refer to the rate coefficient in Tegmark et al. (1997) and the equation number in
     ! Abel et al. (1997) respectively.
-    call Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron  (temperature,radiation,chemicalDensity,chemicalRates) !    ;  1
-    call Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon     (temperature,radiation,chemicalDensity,chemicalRates) ! k_1;  2
-    call Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon    (temperature,radiation,chemicalDensity,chemicalRates) ! k_2;  7
-    call Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron        (temperature,radiation,chemicalDensity,chemicalRates) ! k_3;  8
-    call Chemical_Hydrogen_Rate_H_Hplus_to_H2plus_Photon       (temperature,radiation,chemicalDensity,chemicalRates) ! k_5;  9
-    call Chemical_Hydrogen_Rate_H2plus_H_to_H2_Hplus           (temperature,radiation,chemicalDensity,chemicalRates) ! k_6; 10
-    call Chemical_Hydrogen_Rate_H2_Hplus_to_H2plus_H           (temperature,radiation,chemicalDensity,chemicalRates) !    ; 11
-    call Chemical_Hydrogen_Rate_H2_Electron_to_2H_Electron     (temperature,radiation,chemicalDensity,chemicalRates) !    ; 12
-    call Chemical_Hydrogen_Rate_H2_H_to_3H                     (temperature,radiation,chemicalDensity,chemicalRates) !    ; 13
-    call Chemical_Hydrogen_Rate_Hminus_Electron_to_H_2Electron (temperature,radiation,chemicalDensity,chemicalRates) !    ; 14
-    call Chemical_Hydrogen_Rate_Hminus_H_to_2H_Electron        (temperature,radiation,chemicalDensity,chemicalRates) !    ; 15
-    call Chemical_Hydrogen_Rate_Hminus_Hplus_to_2H             (temperature,radiation,chemicalDensity,chemicalRates) !    ; 16
-    call Chemical_Hydrogen_Rate_Hminus_Hplus_to_H2plus_Electron(temperature,radiation,chemicalDensity,chemicalRates) !    ; 17
-    call Chemical_Hydrogen_Rate_H2plus_Electron_to_2H          (temperature,radiation,chemicalDensity,chemicalRates) !    ; 18
-    call Chemical_Hydrogen_Rate_H2plus_Hminus_to_H2_H          (temperature,radiation,chemicalDensity,chemicalRates) !    ; 19
-    call Chemical_Hydrogen_Rate_H_Gamma_to_Hplus_Electron      (temperature,radiation,chemicalDensity,chemicalRates) !    ; 20
-    call Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron     (temperature,radiation,chemicalDensity,chemicalRates) ! k_4; 23
-    call Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron    (temperature,radiation,chemicalDensity,chemicalRates) !    ; 24
-    call Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus        (temperature,radiation,chemicalDensity,chemicalRates) ! k_7; 25
-    call Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron(temperature,radiation,chemicalDensity,chemicalRates) !    ; 26
-    call Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H       (temperature,radiation,chemicalDensity,chemicalRates) !    ; 27
-    call Chemical_Hydrogen_Rate_H2_Gamma_to_2H                 (temperature,radiation,chemicalDensity,chemicalRates) !    ; 28
+    call self%rateH_Electron_to_Hplus_2Electron  (temperature,radiation,chemicalDensity,chemicalRates) !    ;  1
+    call self%rateHplus_Electron_to_H_Photon     (temperature,radiation,chemicalDensity,chemicalRates) ! k_1;  2
+    call self%rateH_Electron_to_Hminus_Photon    (temperature,radiation,chemicalDensity,chemicalRates) ! k_2;  7
+    call self%rateH_Hminus_to_H2_Electron        (temperature,radiation,chemicalDensity,chemicalRates) ! k_3;  8
+    call self%rateH_Hplus_to_H2plus_Photon       (temperature,radiation,chemicalDensity,chemicalRates) ! k_5;  9
+    call self%rateH2plus_H_to_H2_Hplus           (temperature,radiation,chemicalDensity,chemicalRates) ! k_6; 10
+    call self%rateH2_Hplus_to_H2plus_H           (temperature,radiation,chemicalDensity,chemicalRates) !    ; 11
+    call self%rateH2_Electron_to_2H_Electron     (temperature,radiation,chemicalDensity,chemicalRates) !    ; 12
+    call self%rateH2_H_to_3H                     (temperature,radiation,chemicalDensity,chemicalRates) !    ; 13
+    call self%rateHminus_Electron_to_H_2Electron (temperature,radiation,chemicalDensity,chemicalRates) !    ; 14
+    call self%rateHminus_H_to_2H_Electron        (temperature,radiation,chemicalDensity,chemicalRates) !    ; 15
+    call self%rateHminus_Hplus_to_2H             (temperature,radiation,chemicalDensity,chemicalRates) !    ; 16
+    call self%rateHminus_Hplus_to_H2plus_Electron(temperature,radiation,chemicalDensity,chemicalRates) !    ; 17
+    call self%rateH2plus_Electron_to_2H          (temperature,radiation,chemicalDensity,chemicalRates) !    ; 18
+    call self%rateH2plus_Hminus_to_H2_H          (temperature,radiation,chemicalDensity,chemicalRates) !    ; 19
+    call self%rateH_Gamma_to_Hplus_Electron      (temperature,radiation,chemicalDensity,chemicalRates) !    ; 20
+    call self%rateHminus_Gamma_to_H_Electron     (temperature,radiation,chemicalDensity,chemicalRates) ! k_4; 23
+    call self%rateH2_Gamma_to_H2plus_Electron    (temperature,radiation,chemicalDensity,chemicalRates) !    ; 24
+    call self%rateH2plus_Gamma_to_H_Hplus        (temperature,radiation,chemicalDensity,chemicalRates) ! k_7; 25
+    call self%rateH2plus_Gamma_to_2Hplus_Electron(temperature,radiation,chemicalDensity,chemicalRates) !    ; 26
+    call self%rateH2_Gamma_to_H2star_to_2H       (temperature,radiation,chemicalDensity,chemicalRates) !    ; 27
+    call self%rateH2_Gamma_to_2H                 (temperature,radiation,chemicalDensity,chemicalRates) !    ; 28
     return
-  end subroutine Chemical_Hydrogen_Rates_Compute
+  end subroutine hydrogenNetworkRates
 
-  subroutine Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Electron_to_Hplus_2Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^+ + 2\hbox{e}^-$.
     use Radiation_Structure
-    use Atomic_Rates_Ionization_Collisional
     implicit none
-    double precision                                      , intent(in   ) :: temperature
-    type            (radiationStructure                  ), intent(in   ) :: radiation
-    type            (chemicalAbundances                  ), intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances                  ), intent(inout) :: chemicalRates
-    class           (atomicIonizationRateCollisionalClass), pointer       :: atomicIonizationRateCollisional_
-    logical                                               , save          :: reactionActive                   =.false., reactionInitialized        =.false.
-    integer                                               , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
-         &                                                                   electronChemicalIndex
-    double precision                                                      :: rate                                     , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                   =.false., reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
+         &                                                                  electronChemicalIndex
+    double precision                                                     :: rate                                     , rateCoefficient
+    !GCC$ attributes unused :: self, radiation
     
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
+       !$omp critical(hydrogenNetworkRateH_Electron_to_Hplus_2Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -195,18 +242,14 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron_Init)
+       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hplus_2Electron_Init)
     end if
-
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Get the rate coefficient.
-       atomicIonizationRateCollisional_ => atomicIonizationRateCollisional      (               )
-       rateCoefficient                  =  atomicIonizationRateCollisional_%rate(1,1,temperature)
-
+       rateCoefficient                  =self%atomicIonizationRateCollisional_%rate(1,1,temperature)
        ! Compute the rate.
        rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex) &
@@ -219,27 +262,26 @@ contains
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H_Electron_to_Hplus_2Electron
+  end subroutine hydrogenNetworkRateH_Electron_to_Hplus_2Electron
 
-  subroutine Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHplus_Electron_to_H_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^+ + \hbox{e}^- \rightarrow \hbox{H} + \gamma$.
     use Radiation_Structure
-    use Atomic_Rates_Recombination_Radiative
     implicit none
-    double precision                                       , intent(in   ) :: temperature
-    type            (radiationStructure                   ), intent(in   ) :: radiation
-    type            (chemicalAbundances                   ), intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances                   ), intent(inout) :: chemicalRates
-    class           (atomicRecombinationRateRadiativeClass), pointer       :: atomicRecombinationRateRadiative_
-    logical                                                , save          :: reactionActive                   =.false., reactionInitialized        =.false.
-    integer                                                , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
-         &                                                                    electronChemicalIndex
-    double precision                                                       :: rate                                     , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                   =.false., reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenCationChemicalIndex        , atomicHydrogenChemicalIndex        , &
+         &                                                                  electronChemicalIndex
+    double precision                                                     :: rate                                     , rateCoefficient
+    !GCC$ attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon_Init)
+       !$omp critical(hydrogenNetworkRateHplus_Electron_to_H_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -250,17 +292,14 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateHplus_Electron_to_H_Photon_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
        ! Get the rate coefficient.
-       atomicRecombinationRateRadiative_ => atomicRecombinationRateRadiative()
-       rateCoefficient=atomicRecombinationRateRadiative_%rate(1,1,temperature)
-
+       rateCoefficient=self%atomicRecombinationRateRadiative_%rate(1,1,temperature)
        ! Compute the rate.
        rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex) &
@@ -273,28 +312,28 @@ contains
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_Hplus_Electron_to_H_Photon
+  end subroutine hydrogenNetworkRateHplus_Electron_to_H_Photon
 
-  subroutine Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Electron_to_Hminus_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$.
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                  =.false., reactionInitialized        =.false.
-    integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
-         &                                                       electronChemicalIndex
-    double precision                                          :: rate                                    , rateCoefficient
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                  =.false., reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
+         &                                                                  electronChemicalIndex
+    double precision                                                     :: rate                                    , rateCoefficient
     !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
@@ -305,17 +344,14 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Get the rate coefficient.
-       rateCoefficient=H_Electron_to_Hminus_Photon_Rate_Coefficient(temperature)
-
+       rateCoefficient=hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient(temperature)
        ! Compute the rate.
        rate=rateCoefficient*chemicalDensity%abundance(electronChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
@@ -328,9 +364,9 @@ contains
             & -rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon
+  end subroutine hydrogenNetworkRateH_Electron_to_Hminus_Photon
 
-  double precision function H_Electron_to_Hminus_Photon_Rate_Coefficient(temperature)
+  double precision function hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient(temperature)
     !% Computes the rate coefficient (in units of cm$^3$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{e}^- \rightarrow \hbox{H}^- + \gamma$.
     implicit none
     double precision, intent(in   ) :: temperature
@@ -342,87 +378,81 @@ contains
     if (temperature /= temperaturePrevious) then
        ! Store the new temperature.
        temperaturePrevious=temperature
-
        ! Compute base 10 logarithm of temperature.
        log10Temperature=log10(temperature)
-
        ! Compute rate coefficient.
        if      (temperature <=    1.0d0) then
           rateCoefficientStored=1.429d-18
        else if (temperature <= 6000.0d0) then
-          rateCoefficientStored=1.429d-18*(temperature**0.7620d0)*(temperature**(0.1523d0*log10Temperature))*(temperature**(-3.274d-2&
-               &*(log10Temperature**2)))
+          rateCoefficientStored=1.429d-18*(temperature**0.7620d0)*(temperature**(0.1523d0*log10Temperature))*(temperature**(-3.274d-2*(log10Temperature**2)))
        else
           rateCoefficientStored=3.802d-17*(temperature**(0.1998d0*log10Temperature))*(10.0d0**((4.0415d-5*(log10Temperature**2)-5.447d-3)*(log10Temperature**4)))
        end if
     end if
-
     ! Return the store rate coefficient.
-    H_Electron_to_Hminus_Photon_Rate_Coefficient=rateCoefficientStored
+    hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient=rateCoefficientStored
     return
-  end function H_Electron_to_Hminus_Photon_Rate_Coefficient
+  end function hydrogenNetworkH_Electron_to_Hminus_Photon_RateCoefficient
 
-  subroutine Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Hminus_to_H2_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$.
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                  =.false., reactionInitialized        =.false.
-    integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
-         &                                                       chemicalHydrogenChemicalIndex           , electronChemicalIndex
-    double precision                                          :: rate                                    , rateCoefficient
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                  =.false., reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
+         &                                                                  chemicalHydrogenChemicalIndex           , electronChemicalIndex
+    double precision                                                     :: rate                                    , rateCoefficient
     !GCC$ attributes unused :: radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron_Init)
+       !$omp critical(hydrogenNetworkRateH_Hminus_to_H2_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
-          chemicalHydrogenChemicalIndex  =Chemicals_Index("ChemicalHydrogen"  )
+          chemicalHydrogenChemicalIndex   =Chemicals_Index("ChemicalHydrogen"   )
           electronChemicalIndex           =Chemicals_Index("Electron"           )
           ! This reaction is active if all species were found.
-          reactionActive=       atomicHydrogenChemicalIndex      > 0                           &
-               &         .and.  chemicalHydrogenChemicalIndex   > 0                           &
-               &         .and.  electronChemicalIndex            > 0                           &
-               &         .and. (atomicHydrogenAnionChemicalIndex > 0 .or. hydrogenNetworkFast)
+          reactionActive=       atomicHydrogenChemicalIndex      > 0                 &
+               &         .and.  chemicalHydrogenChemicalIndex    > 0                 &
+               &         .and.  electronChemicalIndex            > 0                 &
+               &         .and. (atomicHydrogenAnionChemicalIndex > 0 .or. self%fast)
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron_Init)
+       !$omp end critical(hydrogenNetworkRateH_Hminus_to_H2_Electron_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Get the rate coefficient.
-       rateCoefficient=H_Hminus_to_H2_Electron_Rate_Coefficient(temperature)
-
+       rateCoefficient=hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient(temperature)
        ! Compute the rate.
-       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*densityAtomicHydrogenAnion
-
+       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*self%densityAtomicHydrogenAnion
        ! Record rate.
-       if (.not.hydrogenNetworkFast) &
-    &  call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
-            & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
-            & -rate                     )
+       if (.not.self%fast) &
+            & call  chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
+            &       chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
+            &      -rate                     )
        call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex     , &
             & chemicalRates%abundance   (atomicHydrogenChemicalIndex     ) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex  , &
-            & chemicalRates%abundance   (chemicalHydrogenChemicalIndex  ) &
+       call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex   , &
+            & chemicalRates%abundance   (chemicalHydrogenChemicalIndex   ) &
             & +rate                     )
        call   chemicalRates%abundanceSet(electronChemicalIndex           , &
             & chemicalRates%abundance   (electronChemicalIndex           ) &
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H_Hminus_to_H2_Electron
+  end subroutine hydrogenNetworkRateH_Hminus_to_H2_Electron
 
-  double precision function H_Hminus_to_H2_Electron_Rate_Coefficient(temperature)
+  double precision function hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient(temperature)
     !% Computes the rate coefficient (in units of c$^3$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{e}^-$.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
@@ -432,13 +462,11 @@ contains
 
     ! Compute the temperature in electron volts.
     temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
-
     ! Compute the rate coefficient.
     if (temperatureElectronVolts >= 0.1d0) then
        ! Get the natural logarithm of the temperature in electron volts.
        logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
-
-       H_Hminus_to_H2_Electron_Rate_Coefficient=exp(               &
+       hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient=exp(  &
             &                                      -20.069138970d0  &
             & +logNaturalTemperatureElectronVolts*(+ 0.228980000d0  &
             & +logNaturalTemperatureElectronVolts*(+ 3.599837700d-2 &
@@ -450,180 +478,173 @@ contains
             &                                     )))))))           &
             &                                      )
     else
-       H_Hminus_to_H2_Electron_Rate_Coefficient=1.428d-9
+       hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient=1.428d-9
     end if
     return
-  end function H_Hminus_to_H2_Electron_Rate_Coefficient
+  end function hydrogenNetworkH_Hminus_to_H2_Electron_RateCoefficient
 
-  subroutine Chemical_Hydrogen_Rate_H_Hplus_to_H2plus_Photon(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Hplus_to_H2plus_Photon(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \gamma$.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                     =.false., reactionInitialized        =.false.
-    integer                             , save                :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex        , &
-         &                                                       chemicalHydrogenCationChemicalIndex
-    double precision                                          :: rate                                       , rateCoefficient                    , &
-         &                                                       temperatureElectronVolts
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                     =.false., reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex        , &
+         &                                                                  chemicalHydrogenCationChemicalIndex
+    double precision                                                     :: rate                                       , rateCoefficient                    , &
+         &                                                                  temperatureElectronVolts
     !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-    
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
-          atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation"   )
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
           ! This reaction is active if all species were found.
           reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute the temperature in electron volts.
        temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
-
        ! Compute the rate coefficient.
        if (temperatureElectronVolts < 0.577d0) then
           rateCoefficient=3.833d-16*(temperatureElectronVolts**1.8d0)
        else
           rateCoefficient=5.810d-16*((0.20651d0*temperatureElectronVolts)**(-0.2891d0*log(0.20651d0*temperatureElectronVolts)))
        end if
-
        ! Compute the rate.
        rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
-
        ! Record rate.
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex         , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex         ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex        , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex        ) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex  ) &
             & -rate                     )
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H_Hplus_to_H2plus_Photon
+  end subroutine hydrogenNetworkRateH_Hplus_to_H2plus_Photon
 
-  subroutine Chemical_Hydrogen_Rate_H2plus_H_to_H2_Hplus(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2plus_H_to_H2_Hplus(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     use Radiation_Structure
     implicit none
-    double precision                               , intent(in   ) :: temperature
-    type            (radiationStructure)           , intent(in   ) :: radiation
-    type            (chemicalAbundances)           , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)           , intent(inout) :: chemicalRates
-    logical                             , save                     :: reactionActive                     =.false., reactionInitialized          =.false.
-    integer                             , save                     :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , &
-         &                                                            chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
-    double precision                    , parameter                :: rateCoefficient                    =6.4d-10
-    double precision                                               :: rate
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                                              :: reactionActive                     =.false., reactionInitialized          =.false.
+    integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , &
+         &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
+    double precision                                     , parameter     :: rateCoefficient                    =6.4d-10
+    double precision                                                     :: rate
     !GCC$ attributes unused :: radiation, temperature
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H2plus_H_to_H2_Hplus_Init)
+       !$omp critical(hydrogenNetworkRateH2plus_H_to_H2_Hplus_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
-          atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation"   )
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
           chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
           ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0 .and.&
-               & chemicalHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
+          reactionActive=atomicHydrogenChemicalIndex   > 0 .and. atomicHydrogenCationChemicalIndex   > 0 .and. &
+               &         chemicalHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H2plus_H_to_H2_Hplus_Init)
+       !$omp end critical(hydrogenNetworkRateH2plus_H_to_H2_Hplus_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute the rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex         , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex         ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex        , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex        ) &
             & -rate                     )
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex      , &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex      ) &
             & +rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex  ) &
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2plus_H_to_H2_Hplus
+  end subroutine hydrogenNetworkRateH2plus_H_to_H2_Hplus
 
-  subroutine Chemical_Hydrogen_Rate_H2_Hplus_to_H2plus_H(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_Hplus_to_H2plus_H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{H}$.
     use Radiation_Structure
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                     =.false., reactionInitialized          =.false.
-    integer                             , save                :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , &
-         &                                                       chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
-    double precision                                          :: logNaturalTemperatureElectronVolts         , rate                                 , &
-         &                                                       rateCoefficient                            , temperatureElectronVolts
-    !GCC$ attributes unused :: radiation
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                     =.false., reactionInitialized          =.false.
+    integer                                              , save          :: atomicHydrogenCationChemicalIndex          , atomicHydrogenChemicalIndex          , &
+         &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
+    double precision                                                     :: logNaturalTemperatureElectronVolts         , rate                                 , &
+         &                                                                  rateCoefficient                            , temperatureElectronVolts
+    !GCC$ attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
-          atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation"   )
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
           chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
           ! This reaction is active if all species were found.
-          reactionActive=atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0 .and.&
-               & chemicalHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
+          reactionActive=atomicHydrogenChemicalIndex   > 0 .and. atomicHydrogenCationChemicalIndex   > 0 .and. &
+               &         chemicalHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute the temperature in electron volts.
        temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
        logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
-
        ! Compute rate coefficient.
        if (temperature < 1000.0d0) then
           rateCoefficient=0.0d0
        else
-          rateCoefficient=exp(                                          &
+          rateCoefficient=exp(                                           &
                & -24.24914687d0                                          &
                & +3.400824440d0 * logNaturalTemperatureElectronVolts     &
                & -3.898003960d0 *(logNaturalTemperatureElectronVolts**2) &
@@ -635,164 +656,154 @@ contains
                & -9.363458880d-6*(logNaturalTemperatureElectronVolts**8) &
                &                     )
        end if
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex      , &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex      ) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex  ) &
             & -rate                     )
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & +rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex         , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex         ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex        , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex        ) &
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2_Hplus_to_H2plus_H
+  end subroutine hydrogenNetworkRateH2_Hplus_to_H2plus_H
 
-  subroutine Chemical_Hydrogen_Rate_H2_Electron_to_2H_Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_Electron_to_2H_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{e}^- \rightarrow 2\hbox{H} + \hbox{e}^-$.
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive             =.false., reactionInitialized          =.false.
-    integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex        , &
-         &                                                       electronChemicalIndex
-    double precision                                          :: rate                               , rateCoefficient
-    !GCC$ attributes unused :: radiation
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive             =.false., reactionInitialized          =.false.
+    integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex        , &
+         &                                                                  electronChemicalIndex
+    double precision                                                     :: rate                               , rateCoefficient
+    !GCC$ attributes unused :: self, radiation
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex   =Chemicals_Index("AtomicHydrogen"   )
+          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"  )
           chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
-          electronChemicalIndex         =Chemicals_Index("Electron"         )
+          electronChemicalIndex        =Chemicals_Index("Electron"        )
           ! This reaction is active if both species were found.
           reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
        if (temperature < 1000.0d0) then
           rateCoefficient=0.0d0
        else
           rateCoefficient=5.6d-11*sqrt(temperature)*exp(-102124.0d0/temperature)
        end if
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex  ) &
             & +rate*2.0d0               )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2_Electron_to_2H_Electron
+  end subroutine hydrogenNetworkRateH2_Electron_to_2H_Electron
 
-  subroutine Chemical_Hydrogen_Rate_H2_H_to_3H(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_H_to_3H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \hbox{H} \rightarrow 3\hbox{H}$.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive             =.false., reactionInitialized          =.false.
-    integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex
-    double precision                                          :: log10Temperature                   , rate                                 , &
-         &                                                       rateCoefficient                    , temperatureElectronVolts
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive             =.false., reactionInitialized          =.false.
+    integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenChemicalIndex
+    double precision                                                     :: log10Temperature                   , rate                                 , &
+         &                                                                  rateCoefficient                    , temperatureElectronVolts
     !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex   =Chemicals_Index("AtomicHydrogen"   )
+          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"  )
           chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
           ! This reaction is active if both species were found.
           reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute the temperature in electron volts.
        temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
-
        ! Compute base 10 logarithm of temperature.
        log10Temperature=log10(temperature)
-
        ! Compute the rate coefficient.
        if (log10Temperature < 3.0d0 .or. log10Temperature > 5.4d0) then
           rateCoefficient=0.0d0
        else
-          rateCoefficient=1.067d-10*(temperatureElectronVolts**2.012d0)*exp(-(4.463d0/temperatureElectronVolts)*((1.0d0+0.2472d0&
-               &*temperatureElectronVolts)**3.512d0))
+          rateCoefficient=1.067d-10*(temperatureElectronVolts**2.012d0)*exp(-(4.463d0/temperatureElectronVolts)*((1.0d0+0.2472d0*temperatureElectronVolts)**3.512d0))
        end if
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex  ) &
             & +rate*2.0d0               )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2_H_to_3H
+  end subroutine hydrogenNetworkRateH2_H_to_3H
 
-  subroutine Chemical_Hydrogen_Rate_Hminus_Electron_to_H_2Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_Electron_to_H_2Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                  =.false., reactionInitialized        =.false.
-    integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
-         &                                                       electronChemicalIndex
-    double precision                                          :: rate                                    , rateCoefficient
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                  =.false., reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenChemicalIndex        , &
+         &                                                                  electronChemicalIndex
+    double precision                                                     :: rate                                    , rateCoefficient
     !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
@@ -803,17 +814,14 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Get rate coefficient.
-       rateCoefficient=Hminus_Electron_to_H_2Electron_Rate_Coefficient(temperature)
-
+       rateCoefficient=hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient(temperature)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
@@ -826,9 +834,9 @@ contains
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_Hminus_Electron_to_H_2Electron
+  end subroutine hydrogenNetworkRateHminus_Electron_to_H_2Electron
 
-  double precision function Hminus_Electron_to_H_2Electron_Rate_Coefficient(temperature)
+  double precision function hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient(temperature)
     !% Computes the rate coefficient (in units of cm$^3$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
@@ -839,9 +847,8 @@ contains
     ! Compute the temperature in electron volts.
     temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
     logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
-
     ! Compute rate coefficient.
-    Hminus_Electron_to_H_2Electron_Rate_Coefficient=exp(       &
+    hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient=exp( &
          &                                      -18.01849334d0  &
          & +logNaturalTemperatureElectronVolts*(+ 2.36085220d0  &
          & +logNaturalTemperatureElectronVolts*(- 0.28274430d0  &
@@ -854,31 +861,31 @@ contains
          &                                     ))))))))         &
          &                                              )
     return
-  end function Hminus_Electron_to_H_2Electron_Rate_Coefficient
+  end function hydrogenNetworkHminus_Electron_to_H_2Electron_RateCoefficient
 
-  subroutine Chemical_Hydrogen_Rate_Hminus_H_to_2H_Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_H_to_2H_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H} \rightarrow 2 \hbox{H} + \hbox{e}^-$.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                    =.false., reactionInitialized        =.false.
-    integer                             , save                :: atomicHydrogenAnionChemicalIndex          , atomicHydrogenChemicalIndex        , &
-         &                                                       electronChemicalIndex
-    double precision                                          :: logNaturalTemperatureElectronVolts        , rate                               , &
-         &                                                       rateCoefficient                           , temperatureElectronVolts
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                    =.false., reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenAnionChemicalIndex          , atomicHydrogenChemicalIndex        , &
+         &                                                                  electronChemicalIndex
+    double precision                                                     :: logNaturalTemperatureElectronVolts        , rate                               , &
+         &                                                                  rateCoefficient                           , temperatureElectronVolts
     !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex     =Chemicals_Index("AtomicHydrogen"     )
@@ -889,18 +896,16 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Electron_to_Hminus_Photon_Init)
+       !$omp end critical(hydrogenNetworkRateH_Electron_to_Hminus_Photon_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute the temperature in electron volts.
        temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
        logNaturalTemperatureElectronVolts=log(temperatureElectronVolts)
-
        ! Compute rate coefficient.
        if (temperatureElectronVolts >= 0.1d0) then
-          rateCoefficient=exp(                                          &
+          rateCoefficient=exp(                                           &
                & -20.37260896d0                                          &
                & + 1.13944330d0 * logNaturalTemperatureElectronVolts     &
                & - 0.14210136d0 *(logNaturalTemperatureElectronVolts**2) &
@@ -915,10 +920,8 @@ contains
        else
           rateCoefficient=2.5634d-9*(temperatureElectronVolts**1.78186d0)
        end if
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
@@ -931,28 +934,28 @@ contains
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_Hminus_H_to_2H_Electron
+  end subroutine hydrogenNetworkRateHminus_H_to_2H_Electron
 
-  subroutine Chemical_Hydrogen_Rate_Hminus_Hplus_to_2H(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_Hplus_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                  =.false., reactionInitialized              =.false.
-    integer                             , save                :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenCationChemicalIndex        , &
-         &                                                       atomicHydrogenChemicalIndex
-    double precision                                          :: rate                                    , rateCoefficient
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                  =.false., reactionInitialized              =.false.
+    integer                                              , save          :: atomicHydrogenAnionChemicalIndex        , atomicHydrogenCationChemicalIndex        , &
+         &                                                                  atomicHydrogenChemicalIndex
+    double precision                                                     :: rate                                    , rateCoefficient
     !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-    
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_Hminus_Hplus_to_2H_Init)
+       !$omp critical(hydrogenNetworkRateHminus_Hplus_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenCationChemicalIndex=Chemicals_Index("AtomicHydrogenCation")
@@ -963,17 +966,14 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_Hminus_Hplus_to_2H_Init)
+       !$omp end critical(hydrogenNetworkRateHminus_Hplus_to_2H_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Get the rate coefficient.
-       rateCoefficient=Hminus_Hplus_to_2H_Rate_Coefficient(temperature)
-
+       rateCoefficient=hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient(temperature)
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex , &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex ) &
@@ -986,166 +986,163 @@ contains
             & +rate*2.0d0               )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_Hminus_Hplus_to_2H
+  end subroutine hydrogenNetworkRateHminus_Hplus_to_2H
 
-  double precision function Hminus_Hplus_to_2H_Rate_Coefficient(temperature)
+  double precision function hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient(temperature)
     !% Compute the rate coefficient (in units of c$^3$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H} \rightarrow \hbox{H}_2 + \hbox{H}^+$.
     implicit none
     double precision, intent(in   ) :: temperature
 
-    Hminus_Hplus_to_2H_Rate_Coefficient=7.0d-8/sqrt(temperature/100.0d0)
+    hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient=7.0d-8/sqrt(temperature/100.0d0)
     return
-  end function Hminus_Hplus_to_2H_Rate_Coefficient
+  end function hydrogenNetworkHminus_Hplus_to_2H_RateCoefficient
 
-  subroutine Chemical_Hydrogen_Rate_Hminus_Hplus_to_H2plus_Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \hbox{H}^+ \rightarrow \hbox{H}_2^+ + \hbox{e}^-$.
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                     =.false., reactionInitialized              =.false.
-    integer                             , save                :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenCationChemicalIndex        , &
-         &                                                       chemicalHydrogenCationChemicalIndex        , electronChemicalIndex
-    double precision                                          :: rate                                       , rateCoefficient                          , &
-         &                                                       temperatureElectronVolts
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                     =.false., reactionInitialized              =.false.
+    integer                                              , save          :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenCationChemicalIndex        , &
+         &                                                                  chemicalHydrogenCationChemicalIndex        , electronChemicalIndex
+    double precision                                                     :: rate                                       , rateCoefficient                          , &
+         &                                                                  temperatureElectronVolts
     !GCC$ attributes unused :: radiation
     
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-    
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_Hminus_Hplus_to_H2plus_Electron_Init)
+       !$omp critical(hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation"   )
-          atomicHydrogenAnionChemicalIndex    =Chemicals_Index("AtomicHydrogenAnion"    )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
+          atomicHydrogenAnionChemicalIndex   =Chemicals_Index("AtomicHydrogenAnion"   )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          electronChemicalIndex           =Chemicals_Index("Electron"           )
+          electronChemicalIndex              =Chemicals_Index("Electron"              )
           ! This reaction is active if both species were found.
-          reactionActive=atomicHydrogenCationChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and.&
-               & chemicalHydrogenCationChemicalIndex > 0
+          reactionActive= atomicHydrogenCationChemicalIndex   > 0 &
+               &         .and.                                    &
+               &          atomicHydrogenAnionChemicalIndex    > 0 &
+               &         .and.                                    &
+               &          chemicalHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_Hminus_Hplus_to_H2plus_Electron_Init)
+       !$omp end critical(hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute the temperature in electron volts.
        temperatureElectronVolts=boltzmannsConstant*temperature/electronVolt
-
        ! Compute rate coefficient.
        if (temperatureElectronVolts < 1.719d0) then
           rateCoefficient=2.2910d-10/(temperatureElectronVolts**0.4d0)
        else
           rateCoefficient=8.4258d-10/(temperatureElectronVolts**1.4d0)*exp(-1.301d0/temperatureElectronVolts)
        end if
-
        ! Compute rate.
-       rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)&
-            &*chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
-
+       rate   =+rateCoefficient                                              &
+            &  *chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex ) &
+            &  *chemicalDensity%abundance(atomicHydrogenCationChemicalIndex)
        ! Record rate.
-       call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex    , &
-            & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex    ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex   , &
+            & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex   ) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex  ) &
             & -rate                     )
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & +rate                     )
-       call   chemicalRates%abundanceSet(electronChemicalIndex               , &
-            & chemicalRates%abundance   (electronChemicalIndex               ) &
+       call   chemicalRates%abundanceSet(electronChemicalIndex              , &
+            & chemicalRates%abundance   (electronChemicalIndex              ) &
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_Hminus_Hplus_to_H2plus_Electron
+  end subroutine hydrogenNetworkRateHminus_Hplus_to_H2plus_Electron
 
-  subroutine Chemical_Hydrogen_Rate_H2plus_Electron_to_2H(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2plus_Electron_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{e}^- \rightarrow 2\hbox{H}$.
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive             =.false., reactionInitialized                =.false.
-    integer                             , save                :: atomicHydrogenChemicalIndex        , chemicalHydrogenCationChemicalIndex        , &
-         &                                                       electronChemicalIndex
-    double precision                                          :: rate                               , rateCoefficient
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive             =.false., reactionInitialized                =.false.
+    integer                                              , save          :: atomicHydrogenChemicalIndex        , chemicalHydrogenCationChemicalIndex        , &
+         &                                                                  electronChemicalIndex
+    double precision                                                     :: rate                               , rateCoefficient
     !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-    
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H2plus_Electron_to_2H_Init)
+       !$omp critical(hydrogenNetworkRateH2plus_Electron_to_2H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
+          atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          electronChemicalIndex               =Chemicals_Index("Electron"               )
+          electronChemicalIndex              =Chemicals_Index("Electron"              )
           ! This reaction is active if both species were found.
           reactionActive=atomicHydrogenChemicalIndex > 0 .and. chemicalHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H2plus_Electron_to_2H_Init)
+       !$omp end critical(hydrogenNetworkRateH2plus_Electron_to_2H_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        if (temperature < 617.0d0) then
           rateCoefficient=1.0d-8
        else
           rateCoefficient=1.32d-6/(temperature**0.76d0)
        end if
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)*chemicalDensity%abundance(electronChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex         , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex         ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex        , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex        ) &
             & +rate*2.0d0               )
-       call   chemicalRates%abundanceSet(electronChemicalIndex               , &
-            & chemicalRates%abundance   (electronChemicalIndex               ) &
+       call   chemicalRates%abundanceSet(electronChemicalIndex              , &
+            & chemicalRates%abundance   (electronChemicalIndex              ) &
             & -rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2plus_Electron_to_2H
+  end subroutine hydrogenNetworkRateH2plus_Electron_to_2H
 
-  subroutine Chemical_Hydrogen_Rate_H2plus_Hminus_to_H2_H(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2plus_Hminus_to_H2_H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \hbox{H}^- \rightarrow \hbox{H}_2 + \hbox{H}$.
     use Radiation_Structure
     implicit none
-    double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure)      , intent(in   ) :: radiation
-    type            (chemicalAbundances)      , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)      , intent(inout) :: chemicalRates
-    logical                             , save                :: reactionActive                     =.false., reactionInitialized          =.false.
-    integer                             , save                :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenChemicalIndex          , &
-         &                                                       chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
-    double precision                                          :: rate                                       , rateCoefficient
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
+    double precision                                     , intent(in   ) :: temperature
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                     =.false., reactionInitialized          =.false.
+    integer                                              , save          :: atomicHydrogenAnionChemicalIndex           , atomicHydrogenChemicalIndex          , &
+         &                                                                  chemicalHydrogenCationChemicalIndex        , chemicalHydrogenChemicalIndex
+    double precision                                                     :: rate                                       , rateCoefficient
     !GCC$ attributes unused :: radiation
 
     ! If using the fast network, this reaction is ignored so simply return in such cases.
-    if (hydrogenNetworkFast) return
-
+    if (self%fast) return
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H2plus_Hminus_to_H2_H_Init)
+       !$omp critical(hydrogenNetworkRateH2plus_Hminus_to_H2_H_Init)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
@@ -1153,63 +1150,61 @@ contains
           chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
           atomicHydrogenChemicalIndex        =Chemicals_Index("AtomicHydrogen"        )
           ! This reaction is active if both species were found.
-          reactionActive=chemicalHydrogenCationChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and.&
-               & chemicalHydrogenChemicalIndex > 0 .and. atomicHydrogenChemicalIndex > 0
+          reactionActive=chemicalHydrogenCationChemicalIndex > 0 .and. atomicHydrogenAnionChemicalIndex > 0 .and. &
+               &         chemicalHydrogenChemicalIndex       > 0 .and. atomicHydrogenChemicalIndex      > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H2plus_Hminus_to_H2_H_Init)
+       !$omp end critical(hydrogenNetworkRateH2plus_Hminus_to_H2_H_Init)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
        rateCoefficient=5.0d-7*sqrt(100.0d0/temperature)
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)&
             &*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex    , &
-            & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex    ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex   , &
+            & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex   ) &
             & -rate                     )
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex      , &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex      ) &
             & +rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex         , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex         ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex        , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex        ) &
             & +rate                     )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2plus_Hminus_to_H2_H
+  end subroutine hydrogenNetworkRateH2plus_Hminus_to_H2_H
 
-  subroutine Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateHminus_Gamma_to_H_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$.
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
-    type            (radiationStructure)                 , intent(in   ) :: radiation
-    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     ! Energy range for the cross-section.
-    double precision                          , parameter                :: crossSectionEnergyLow           =0.755d0
+    double precision                                     , parameter     :: crossSectionEnergyLow           =0.755d0
     ! Wavelength range for the cross-section.
-    double precision                          , parameter                :: crossSectionWavelengthHigh      =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
-    logical                             , save                           :: reactionActive                  =.false.                                                                        , reactionInitialized        =.false.
-    integer                             , save                           :: atomicHydrogenAnionChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
+    double precision                                     , parameter     :: crossSectionWavelengthHigh      =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    logical                                              , save          :: reactionActive                  =.false.                                                                        , reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenAnionChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                            , rateCoefficient
     !GCC$ attributes unused :: temperature
     
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
+       !$omp critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenAnionChemicalIndex=Chemicals_Index("AtomicHydrogenAnion")
@@ -1220,22 +1215,18 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron)
+       !$omp end critical(hydrogenNetworkRateHminus_Gamma_to_H_Electron)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
-       if (hydrogenNetworkCMBOnly) then
+       if (self%radiationCMBOnly) then
           rateCoefficient=0.144d0*(radiation%temperature([radiationTypeCMB])**2.13d0)*exp(-8650.0d0/radiation%temperature([radiationTypeCMB]))
        else
-          rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_Hminus_Gamma_to_H_Electron,[0.0d0&
-               &,crossSectionWavelengthHigh])
+          rateCoefficient=radiation%integrateOverCrossSection(hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron,[0.0d0,crossSectionWavelengthHigh])
        end if
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenAnionChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenAnionChemicalIndex, &
             & chemicalRates%abundance   (atomicHydrogenAnionChemicalIndex) &
@@ -1249,9 +1240,9 @@ contains
 
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_Hminus_Gamma_to_H_Electron
+  end subroutine hydrogenNetworkRateHminus_Gamma_to_H_Electron
 
-  double precision function Cross_Section_Hminus_Gamma_to_H_Electron(wavelength)
+  double precision function hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}^- + \gamma \rightarrow \hbox{H} + \hbox{e}^-$
     !% using the fitting function given by \cite{shapiro_hydrogen_1987}, renormalized\footnote{It seems unclear what units were
     !% used in \protect\cite{shapiro_hydrogen_1987}, hence the recalibration.} to match the results of
@@ -1265,83 +1256,78 @@ contains
 
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-
     ! Evaluate the fitting function for the cross-section.
     if (energy >=  energyThreshold) then
-       Cross_Section_Hminus_Gamma_to_H_Electron=2.085d-16*(energy-energyThreshold)**1.5d0/energy**3
+       hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron=2.085d-16*(energy-energyThreshold)**1.5d0/energy**3
     else
-       Cross_Section_Hminus_Gamma_to_H_Electron= 0.0d0
+       hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron= 0.0d0
     end if
     return
-  end function Cross_Section_Hminus_Gamma_to_H_Electron
+  end function hydrogenNetworkCrossSection_Hminus_Gamma_to_H_Electron
 
-  subroutine Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2plus_Gamma_to_H_Hplus(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of c$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$.
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
-    type            (radiationStructure)                 , intent(in   ) :: radiation
-    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
     ! Energy range for the cross-section.
-    double precision                          , parameter                :: crossSectionEnergyLow              =2.65d0
-    double precision                          , parameter                :: crossSectionEnergyHigh             =21.00d0
+    double precision                                     , parameter     :: crossSectionEnergyLow              =2.65d0
+    double precision                                     , parameter     :: crossSectionEnergyHigh             =21.00d0
     ! Wavelength range for the cross-section.
-    double precision                          , parameter                :: crossSectionWavelengthLow          =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
-    double precision                          , parameter                :: crossSectionWavelengthHigh         =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
-    logical                             , save                           :: reactionActive                     =.false.                                                                         , reactionInitialized        =.false.
-    integer                             , save                           :: atomicHydrogenCationChemicalIndex                                                                                   , atomicHydrogenChemicalIndex        , &
+    double precision                                     , parameter     :: crossSectionWavelengthLow          =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
+    double precision                                     , parameter     :: crossSectionWavelengthHigh         =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    logical                                              , save          :: reactionActive                     =.false.                                                                         , reactionInitialized        =.false.
+    integer                                              , save          :: atomicHydrogenCationChemicalIndex                                                                                   , atomicHydrogenChemicalIndex        , &
          &                                                                  chemicalHydrogenCationChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
-    !GCC$ attributes unused :: temperature
+    !GCC$ attributes unused :: temperature                 
     
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
+       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"         )
-          atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation"   )
+          atomicHydrogenChemicalIndex         =Chemicals_Index("AtomicHydrogen"       )
+          atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation" )
           ! This reaction is active if all species were found.
           reactionActive=chemicalHydrogenCationChemicalIndex > 0 .and. atomicHydrogenChemicalIndex > 0 .and. atomicHydrogenCationChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus)
+       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_H_Hplus)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
-       if (hydrogenNetworkCMBOnly) then
+       if (self%radiationCMBOnly) then
           rateCoefficient=6.36d5*exp(-71600.0d0/radiation%temperature([radiationTypeCMB]))
        else
-          rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2plus_Gamma_to_H_Hplus,[crossSectionWavelengthLow&
-               &,crossSectionWavelengthHigh])
+          rateCoefficient=radiation%integrateOverCrossSection(hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus,[crossSectionWavelengthLow,crossSectionWavelengthHigh])
        end if
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & -rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex         , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex         ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex        , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex        ) &
             & +rate                     )
-       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex  ) &
             & +rate                     )
-
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2plus_Gamma_to_H_Hplus
+  end subroutine hydrogenNetworkRateH2plus_Gamma_to_H_Hplus
 
-  double precision function Cross_Section_H2plus_Gamma_to_H_Hplus(wavelength)
+  double precision function hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow \hbox{H} + \hbox{H}^+$
     !% as given by \cite{shapiro_hydrogen_1987}.
     use Numerical_Constants_Units
@@ -1352,69 +1338,66 @@ contains
 
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-
     ! Evaluate the fitting function for the cross-section.
     if      (energy >=  2.65d0 .and. energy < 11.27d0) then
-       Cross_Section_H2plus_Gamma_to_H_Hplus=10.0d0**(-40.97d0+energy*(+6.030d+0 &
-            &                                                 +energy*(-0.504d+0 &
-            &                                                 +energy*(+1.387d-2 &
-            &                                                         )))        &
+       hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus=10.0d0**(-40.97d0+energy*(+6.030d+0 &
+            &                                                               +energy*(-0.504d+0 &
+            &                                                               +energy*(+1.387d-2 &
+            &                                                                       )))        &
             &                                        )
     else if (energy >= 11.27d0 .and. energy < 21.00d0) then
-       Cross_Section_H2plus_Gamma_to_H_Hplus=10.0d0**(-30.26d0+energy*(+2.790d+0 &
-            &                                                 +energy*(-0.184d+0 &
-            &                                                 +energy*(+3.535d-3 &
-            &                                                         )))        &
+       hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus=10.0d0**(-30.26d0+energy*(+2.790d+0 &
+            &                                                               +energy*(-0.184d+0 &
+            &                                                               +energy*(+3.535d-3 &
+            &                                                                       )))        &
             &                                        )
     else
-       Cross_Section_H2plus_Gamma_to_H_Hplus= 0.0d0
+       hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus=0.0d0
     end if
     return
-  end function Cross_Section_H2plus_Gamma_to_H_Hplus
+  end function hydrogenNetworkCrossSection_H2plus_Gamma_to_H_Hplus
 
-  subroutine Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_Gamma_to_H2star_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow H_2^* \rightarrow
     !% 2\hbox{H}$.
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
-    type            (radiationStructure)                 , intent(in   ) :: radiation
-    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates
-    logical                                        , save                :: reactionActive             =.false.                                                                    , reactionInitialized          =.false.
-    integer                                        , save                :: atomicHydrogenChemicalIndex                                                                            , chemicalHydrogenChemicalIndex
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive             =.false.                                                                    , reactionInitialized          =.false.
+    integer                                              , save          :: atomicHydrogenChemicalIndex                                                                            , chemicalHydrogenChemicalIndex
     ! Median energy of the Lyman band in chemical hydrogen (in eV).
-    double precision                    , parameter                      :: energyLymanBand            =12.87d0
+    double precision                                     , parameter     :: energyLymanBand            =12.87d0
     ! Corresponding median wavelength of the Lyman band in chemical hydrogen (in Angstroms).
-    double precision                    , parameter                      :: wavelengthLymanBand        =angstromsPerMeter*plancksConstant*speedLight/(energyLymanBand*electronVolt)
+    double precision                                     , parameter     :: wavelengthLymanBand        =angstromsPerMeter*plancksConstant*speedLight/(energyLymanBand*electronVolt)
     double precision                                                     :: rate                                                                                                   , rateCoefficient
-    !GCC$ attributes unused :: temperature
+    !GCC$ attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
-          atomicHydrogenChemicalIndex   =Chemicals_Index("AtomicHydrogen"   )
+          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"   )
           ! This reaction is active if all species were found.
           reactionActive=chemicalHydrogenChemicalIndex > 0 .and. atomicHydrogenChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2star_to_2H)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
        rateCoefficient=1.1d8*(4.0d0*Pi*Radiation_Flux(radiation,wavelengthLymanBand))
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex) &
@@ -1424,55 +1407,52 @@ contains
             & +2.0d0*rate               )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2_Gamma_to_H2star_to_2H
+  end subroutine hydrogenNetworkRateH2_Gamma_to_H2star_to_2H
 
-  subroutine Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_Gamma_to_H2plus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ + \hbox{e}^-$.
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
-    type            (radiationStructure)                 , intent(in   ) :: radiation
-    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates
-    logical                                        , save                :: reactionActive                     =.false.                                                                         , reactionInitialized          =.false.
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                     =.false.                                                                         , reactionInitialized          =.false.
     ! Energy of the edge in the cross-section.
-    double precision                    , parameter                      :: crossSectionEdgeEnergy             =15.42d0
+    double precision                                     , parameter     :: crossSectionEdgeEnergy             =15.42d0
     ! Wavelength of the edge in the cross-section.
-    double precision                    , parameter                      :: crossSectionEdgeWavelength         =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEdgeEnergy
-    integer                                        , save                :: chemicalHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex        , &
+    double precision                                     , parameter     :: crossSectionEdgeWavelength         =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEdgeEnergy
+    integer                                              , save          :: chemicalHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                                , rateCoefficient
-    !GCC$ attributes unused :: temperature
+    !GCC$ attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           chemicalHydrogenChemicalIndex      =Chemicals_Index("ChemicalHydrogen"      )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          electronChemicalIndex               =Chemicals_Index("Electron"               )
+          electronChemicalIndex              =Chemicals_Index("Electron"              )
           ! This reaction is active if all species were found.
           reactionActive=       chemicalHydrogenChemicalIndex       > 0 &
                &          .and. chemicalHydrogenCationChemicalIndex > 0 &
-               &          .and. electronChemicalIndex                > 0
+               &          .and. electronChemicalIndex               > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_H2plus_Electron)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2_Gamma_to_H2plus_Electron,[0.0d0&
-            &,crossSectionEdgeWavelength])
-
+       rateCoefficient=radiation%integrateOverCrossSection(hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron,[0.0d0,crossSectionEdgeWavelength])
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex      , &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex      ) &
@@ -1480,15 +1460,15 @@ contains
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & +rate                     )
-       call   chemicalRates%abundanceSet(electronChemicalIndex               , &
-            & chemicalRates%abundance   (electronChemicalIndex               ) &
+       call   chemicalRates%abundanceSet(electronChemicalIndex              , &
+            & chemicalRates%abundance   (electronChemicalIndex              ) &
             & +rate                     )
 
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2_Gamma_to_H2plus_Electron
+  end subroutine hydrogenNetworkRateH2_Gamma_to_H2plus_Electron
 
-  double precision function Cross_Section_H2_Gamma_to_H2plus_Electron(wavelength)
+  double precision function hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow \hbox{H}_2^+ +
     !% \hbox{e}^-$ as given by\footnote{\protect\cite{abel_modeling_1997} cite ``O'Neil \& Reinhardt (1978)'' as the source for
     !% this fit, but it is not listed in their bibliography, and I have not been able to locate by any other means.}
@@ -1501,85 +1481,81 @@ contains
 
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-
     ! Evaluate the fitting function for the cross-section.
     if      (energy < 15.42d0) then
-       Cross_Section_H2_Gamma_to_H2plus_Electron=0.0d0
+       hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=0.0d0
     else if (energy < 16.50d0) then
-       Cross_Section_H2_Gamma_to_H2plus_Electron=6.2d-18*energy-9.40d-17
+       hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=6.2d-18*energy-9.40d-17
     else if (energy < 17.70d0) then
-       Cross_Section_H2_Gamma_to_H2plus_Electron=1.4d-18*energy-1.48d-17
+       hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=1.4d-18*energy-1.48d-17
     else
-       Cross_Section_H2_Gamma_to_H2plus_Electron=2.5d-14/(energy**2.71d0)
+       hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron=2.5d-14/(energy**2.71d0)
     end if
     return
-  end function Cross_Section_H2_Gamma_to_H2plus_Electron
+  end function hydrogenNetworkCrossSection_H2_Gamma_to_H2plus_Electron
 
-  subroutine Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
     !% \hbox{e}^-$.
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
-    type            (radiationStructure)                 , intent(in   ) :: radiation
-    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates
-    logical                                        , save                :: reactionActive                   =.false.                                                                         , reactionInitialized                =.false.
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive                   =.false.                                                                         , reactionInitialized                =.false.
     ! Energy range for the cross-section.
-    double precision                    , parameter                      :: crossSectionEnergyLow            =30.0d0
-    double precision                    , parameter                      :: crossSectionEnergyHigh           =90.0d0
+    double precision                                     , parameter     :: crossSectionEnergyLow            =30.0d0
+    double precision                                     , parameter     :: crossSectionEnergyHigh           =90.0d0
     ! Wavelength range for the cross-section.
-    double precision                    , parameter                      :: crossSectionWavelengthLow        =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
-    double precision                    , parameter                      :: crossSectionWavelengthHigh       =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
-    integer                                        , save                :: atomicHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenCationChemicalIndex        , &
+    double precision                                     , parameter     :: crossSectionWavelengthLow        =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
+    double precision                                     , parameter     :: crossSectionWavelengthHigh       =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    integer                                              , save          :: atomicHydrogenCationChemicalIndex                                                                                 , chemicalHydrogenCationChemicalIndex        , &
          &                                                                  electronChemicalIndex
     double precision                                                     :: rate                                                                                                              , rateCoefficient
-    !GCC$ attributes unused :: temperature
+    !GCC$ attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
+       !$omp critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenCationChemicalIndex   =Chemicals_Index("AtomicHydrogenCation"   )
+          atomicHydrogenCationChemicalIndex  =Chemicals_Index("AtomicHydrogenCation"  )
           chemicalHydrogenCationChemicalIndex=Chemicals_Index("ChemicalHydrogenCation")
-          electronChemicalIndex               =Chemicals_Index("Electron"               )
+          electronChemicalIndex              =Chemicals_Index("Electron"              )
           ! This reaction is active if all species were found.
-          reactionActive=       atomicHydrogenCationChemicalIndex    > 0 &
+          reactionActive=       atomicHydrogenCationChemicalIndex   > 0 &
                &          .and. chemicalHydrogenCationChemicalIndex > 0 &
-               &          .and. electronChemicalIndex                > 0
+               &          .and. electronChemicalIndex               > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron)
+       !$omp end critical(hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2plus_Gamma_to_2Hplus_Electron&
-            &,[crossSectionWavelengthLow,crossSectionWavelengthHigh])
-
+       rateCoefficient=radiation%integrateOverCrossSection(hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron,[crossSectionWavelengthLow,crossSectionWavelengthHigh])
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenCationChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenCationChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenCationChemicalIndex) &
             & -      rate               )
-       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenCationChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenCationChemicalIndex  ) &
             & +2.0d0*rate               )
-       call   chemicalRates%abundanceSet(electronChemicalIndex               , &
-            & chemicalRates%abundance   (electronChemicalIndex               ) &
+       call   chemicalRates%abundanceSet(electronChemicalIndex              , &
+            & chemicalRates%abundance   (electronChemicalIndex              ) &
             & +     rate                )
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2plus_Gamma_to_2Hplus_Electron
+  end subroutine hydrogenNetworkRateH2plus_Gamma_to_2Hplus_Electron
 
-  double precision function Cross_Section_H2plus_Gamma_to_2Hplus_Electron(wavelength)
+  double precision function hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
     !% \hbox{e}^-$ as given by \cite{shapiro_hydrogen_1987}.
     use Numerical_Constants_Units
@@ -1590,81 +1566,76 @@ contains
 
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-
     ! Evaluate the fitting function for the cross-section.
     if (energy >= 30.0d0 .and. energy <= 90.0d0) then
-       Cross_Section_H2plus_Gamma_to_2Hplus_Electron=10.0d0**(         -16.926d+0 &
-            &                                                 +energy*(- 4.528d-2 &
-            &                                                 +energy*(  2.238d-4 &
-            &                                                 +energy*(  4.245d-7 &
-            &                                                         )))         &
-            &                                                )
+       hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron=10.0d0**(         -16.926d+0 &
+            &                                                               +energy*(- 4.528d-2 &
+            &                                                               +energy*(  2.238d-4 &
+            &                                                               +energy*(  4.245d-7 &
+            &                                                                       )))         &
+            &                                                              )
     else
-       Cross_Section_H2plus_Gamma_to_2Hplus_Electron=0.0d0
+       hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron=0.0d0
     end if
     return
-  end function Cross_Section_H2plus_Gamma_to_2Hplus_Electron
+  end function hydrogenNetworkCrossSection_H2plus_Gamma_to_2Hplus_Electron
 
-  subroutine Chemical_Hydrogen_Rate_H2_Gamma_to_2H(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH2_Gamma_to_2H(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H}_2^+ + \gamma \rightarrow 2\hbox{H}^+ +
     !% \hbox{e}^-$.
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
+    class           (chemicalReactionRateHydrogenNetwork), intent(inout) :: self
     double precision                                     , intent(in   ) :: temperature
-    type            (radiationStructure)                 , intent(in   ) :: radiation
-    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates
-    logical                                        , save                :: reactionActive             =.false.                                                                         , reactionInitialized          =.false.
+    type            (radiationStructure                 ), intent(in   ) :: radiation
+    type            (chemicalAbundances                 ), intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 ), intent(inout) :: chemicalRates
+    logical                                              , save          :: reactionActive             =.false.                                                                         , reactionInitialized          =.false.
     ! Energy range for the cross-section.
-    double precision                    , parameter                      :: crossSectionEnergyLow      =14.159d0
-    double precision                    , parameter                      :: crossSectionEnergyHigh     =17.700d0
+    double precision                                     , parameter     :: crossSectionEnergyLow      =14.159d0
+    double precision                                     , parameter     :: crossSectionEnergyHigh     =17.700d0
     ! Wavelength range for the cross-section.
-    double precision                    , parameter                      :: crossSectionWavelengthLow  =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
-    double precision                    , parameter                      :: crossSectionWavelengthHigh =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
-    integer                                        , save                :: atomicHydrogenChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex
+    double precision                                     , parameter     :: crossSectionWavelengthLow  =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyHigh
+    double precision                                     , parameter     :: crossSectionWavelengthHigh =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    integer                                              , save          :: atomicHydrogenChemicalIndex                                                                                 , chemicalHydrogenChemicalIndex
     double precision                                                     :: rate                                                                                                        , rateCoefficient
-    !GCC$ attributes unused :: temperature
+    !GCC$ attributes unused :: self, temperature
 
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H2_Gamma_to_2H)
+       !$omp critical(hydrogenNetworkRateH2_Gamma_to_2H)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
-          atomicHydrogenChemicalIndex   =Chemicals_Index("AtomicHydrogen"   )
+          atomicHydrogenChemicalIndex  =Chemicals_Index("AtomicHydrogen"  )
           chemicalHydrogenChemicalIndex=Chemicals_Index("ChemicalHydrogen")
           ! This reaction is active if all species were found.
-          reactionActive=       atomicHydrogenChemicalIndex    > 0 &
+          reactionActive=       atomicHydrogenChemicalIndex   > 0 &
                &          .and. chemicalHydrogenChemicalIndex > 0
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H2_Gamma_to_2H)
+       !$omp end critical(hydrogenNetworkRateH2_Gamma_to_2H)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H2_Gamma_to_2H&
-            &,[crossSectionWavelengthLow,crossSectionWavelengthHigh])
-
+       rateCoefficient=radiation%integrateOverCrossSection(hydrogenNetworkCrossSection_H2_Gamma_to_2H,[crossSectionWavelengthLow,crossSectionWavelengthHigh])
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(chemicalHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(chemicalHydrogenChemicalIndex, &
             & chemicalRates%abundance   (chemicalHydrogenChemicalIndex) &
             & -      rate               )
-       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex   , &
-            & chemicalRates%abundance   (atomicHydrogenChemicalIndex   ) &
+       call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex  , &
+            & chemicalRates%abundance   (atomicHydrogenChemicalIndex  ) &
             & +2.0d0*rate               )
-
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H2_Gamma_to_2H
+  end subroutine hydrogenNetworkRateH2_Gamma_to_2H
 
-  double precision function Cross_Section_H2_Gamma_to_2H(wavelength)
+  double precision function hydrogenNetworkCrossSection_H2_Gamma_to_2H(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     !% \cite{abel_modeling_1997}.
     use Numerical_Constants_Units
@@ -1678,7 +1649,6 @@ contains
 
     ! Convert from wavelength (in Angstroms) to energy (in eV).
     energy=plancksConstant*speedLight*angstromsPerMeter/electronVolt/wavelength
-
     ! Evaluate the Lyman and Wener band cross sections for para- and ortho- configurations.
     if      (energy > 14.675d0 .and. energy <= 16.820d0) then
        crossSectionLymanPara  =10.0d0**(-18.0d0+15.1289d0-1.0513900000d+0*energy                       )
@@ -1704,38 +1674,37 @@ contains
     else
        crossSectionWernerOrtho= 0.0d0
     end if
-
     ! Construct the combined cross-section weighted by the appropriate ortho- to para- ratio.
-    Cross_Section_H2_Gamma_to_2H= (      1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanPara +crossSectionWernerPara ) &
-         &                       +(1.0d0-1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanOrtho+crossSectionWernerOrtho)
-
+    hydrogenNetworkCrossSection_H2_Gamma_to_2H=+(      1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanPara +crossSectionWernerPara ) &
+         &                                     +(1.0d0-1.0d0/(ratioOrthoToPara+1.0d0))*(crossSectionLymanOrtho+crossSectionWernerOrtho)
     return
-  end function Cross_Section_H2_Gamma_to_2H
+  end function hydrogenNetworkCrossSection_H2_Gamma_to_2H
 
-  subroutine Chemical_Hydrogen_Rate_H_Gamma_to_Hplus_Electron(temperature,radiation,chemicalDensity,chemicalRates)
+  subroutine hydrogenNetworkRateH_Gamma_to_Hplus_Electron(self,temperature,radiation,chemicalDensity,chemicalRates)
     !% Computes the rate (in units of cm$^{-3}$ s$^{-1}$) for the reaction $\hbox{H} + \gamma \rightarrow \hbox{H}^+ +
     !% \hbox{e}^-$.
     use Radiation_Structure
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
     implicit none
-    double precision                                     , intent(in   ) :: temperature
-    type            (radiationStructure)                 , intent(in   ) :: radiation
-    type            (chemicalAbundances)                 , intent(in   ) :: chemicalDensity
-    type            (chemicalAbundances)                 , intent(inout) :: chemicalRates
-    logical                                        , save                :: reactionActive                   =.false.                                                                        , reactionInitialized        =.false.
+    class           (chemicalReactionRateHydrogenNetwork), target   , intent(inout) :: self
+    double precision                                                , intent(in   ) :: temperature
+    type            (radiationStructure                 )           , intent(in   ) :: radiation
+    type            (chemicalAbundances                 )           , intent(in   ) :: chemicalDensity
+    type            (chemicalAbundances                 )           , intent(inout) :: chemicalRates
+    logical                                               , save                    :: reactionActive                   =.false.                                                                        , reactionInitialized        =.false.
     ! Energy range for the cross-section (in eV).
-    double precision                    , parameter                      :: crossSectionEnergyLow            =13.60d0
+    double precision                                     , parameter                :: crossSectionEnergyLow            =13.60d0
     ! Wavelength range for the cross-section (in Angstroms).
-    double precision                    , parameter                      :: crossSectionWavelengthHigh       =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
-    integer                                        , save                :: atomicHydrogenCationChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
-         &                                                                  electronChemicalIndex
-    double precision                                                     :: rate                                                                                                             , rateCoefficient
-    !GCC$ attributes unused :: temperature
+    double precision                                     , parameter                :: crossSectionWavelengthHigh       =plancksConstant*speedLight*angstromsPerMeter/electronVolt/crossSectionEnergyLow
+    integer                                              , save                     :: atomicHydrogenCationChemicalIndex                                                                                , atomicHydrogenChemicalIndex        , &
+         &                                                                             electronChemicalIndex
+    double precision                                                                :: rate                                                                                                             , rateCoefficient
+    !GCC$ attributes unused :: self, temperature
     
     ! Check if this reaction needs initializing.
     if (.not.reactionInitialized) then
-       !$omp critical(Chemical_Hydrogen_Rate_H_Gamma_to_H_Electron)
+       !$omp critical(hydrogenNetworkRateH_Gamma_to_H_Electron)
        if (.not.reactionInitialized) then
           ! Find the chemicals in this reaction.
           atomicHydrogenChemicalIndex      =Chemicals_Index("AtomicHydrogen"      )
@@ -1748,18 +1717,16 @@ contains
           ! Flag that the reaction is now initialized.
           reactionInitialized=.true.
        end if
-       !$omp end critical(Chemical_Hydrogen_Rate_H_Gamma_to_H_Electron)
+       !$omp end critical(hydrogenNetworkRateH_Gamma_to_H_Electron)
     end if
     ! Do calculation if this reaction is active.
     if (reactionActive) then
-
        ! Compute rate coefficient.
-       rateCoefficient=radiation%integrateOverCrossSection(Cross_Section_H_Gamma_to_Hplus_Electron&
+       hydrogenNetworkSelf => self
+       rateCoefficient=radiation%integrateOverCrossSection(hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron&
             &,[0.0d0,crossSectionWavelengthHigh])
-
        ! Compute rate.
        rate=rateCoefficient*chemicalDensity%abundance(atomicHydrogenChemicalIndex)
-
        ! Record rate.
        call   chemicalRates%abundanceSet(atomicHydrogenChemicalIndex      , &
             & chemicalRates%abundance   (atomicHydrogenChemicalIndex      ) &
@@ -1770,23 +1737,17 @@ contains
        call   chemicalRates%abundanceSet(electronChemicalIndex            , &
             & chemicalRates%abundance   (electronChemicalIndex            ) &
             & +rate                     )
-
     end if
     return
-  end subroutine Chemical_Hydrogen_Rate_H_Gamma_to_Hplus_Electron
+  end subroutine hydrogenNetworkRateH_Gamma_to_Hplus_Electron
 
-  double precision function Cross_Section_H_Gamma_to_Hplus_Electron(wavelength)
+  double precision function hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron(wavelength)
     !% Compute the cross-section (in units of cm$^{2}$) for the reaction $\hbox{H}_2 + \gamma \rightarrow 2\hbox{H}$ as given by
     !% \cite{abel_modeling_1997}.
-    use Atomic_Cross_Sections_Ionization_Photo
     implicit none
-    double precision                                        , intent(in   ) :: wavelength
-    class           (atomicCrossSectionIonizationPhotoClass), pointer       :: atomicCrossSectionIonizationPhoto_
+    double precision, intent(in   ) :: wavelength
 
     ! Use the hydrogen photoionization cross section method.
-    atomicCrossSectionIonizationPhoto_ => atomicCrossSectionIonizationPhoto()
-    Cross_Section_H_Gamma_to_Hplus_Electron=atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,wavelength)
+    hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron=hydrogenNetworkSelf%atomicCrossSectionIonizationPhoto_%crossSection(1,1,1,wavelength)
     return
-  end function Cross_Section_H_Gamma_to_Hplus_Electron
-
-end module Chemical_Hydrogen_Rates
+  end function hydrogenNetworkCrossSection_H_Gamma_to_Hplus_Electron

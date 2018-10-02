@@ -16,44 +16,48 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null calculation of chemical reaction rates.
+  !% An implementation of calculations of chemical reaction rates which assumes zero rates.
+  
+  !# <chemicalReactionRate name="chemicalReactionRateZero">
+  !#  <description>A chemical reaction rate class in which all rates are zero.</description>
+  !# </chemicalReactionRate>
+  type, extends(chemicalReactionRateClass) :: chemicalReactionRateZero
+     !% A chemical reaction rate class in which all rates are zero.
+     private
+   contains
+     procedure :: rates => zeroRates
+  end type chemicalReactionRateZero
 
-module Chemical_Reaction_Rates_Null
-  !% Implements a null calculation of chemical reaction rates.
-  implicit none
-  private
-  public :: Chemical_Reaction_Rates_Null_Initialize, Chemical_Reaction_Rates_Null_Compute
-
+  interface chemicalReactionRateZero
+     !% Constructors for the {\normalfont \ttfamily zero} chemical reaction rates class.
+     module procedure zeroConstructorParameters
+  end interface chemicalReactionRateZero
+  
 contains
 
-  !# <chemicalReactionRates>
-  !#  <unitName>Chemical_Reaction_Rates_Null_Initialize</unitName>
-  !# </chemicalReactionRates>
-  subroutine Chemical_Reaction_Rates_Null_Initialize(chemicalReactionRatesMethods)
-    !% Initializes the null chemical reaction network module.
-    use ISO_Varying_String
+  function zeroConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily zero} chemical reaction rates class which takes a parameter set as
+    !% input.
+    use Input_Parameters
     implicit none
-    type(varying_string), intent(in   ) :: chemicalReactionRatesMethods(:)
-    !GCC$ attributes unused :: chemicalReactionRatesMethods
-    
-    return
-  end subroutine Chemical_Reaction_Rates_Null_Initialize
+    type(chemicalReactionRateZero)                :: self
+    type(inputParameters         ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
-  !# <chemicalRatesCompute>
-  !#  <unitName>Chemical_Reaction_Rates_Null_Compute</unitName>
-  !# </chemicalRatesCompute>
-  subroutine Chemical_Reaction_Rates_Null_Compute(temperature,chemicalDensity,radiation,chemicalRates)
-    !% Compute rates of change of chemical abundances due to reactions involving chemical hydrogen species.
-    use Chemical_Abundances_Structure
-    use Radiation_Structure
+    self=chemicalReactionRateZero()
+    return
+  end function zeroConstructorParameters
+
+  subroutine zeroRates(self,temperature,chemicalDensity,radiation,chemicalRates)
+    !% Return zero rates of chemical reactions.
     implicit none
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensity
-    double precision                    , intent(in   ) :: temperature
-    type            (radiationStructure), intent(in   ) :: radiation
-    type            (chemicalAbundances), intent(inout) :: chemicalRates
-    !GCC$ attributes unused :: chemicalDensity, temperature, radiation, chemicalRates
+    class           (chemicalReactionRateZero), intent(inout) :: self
+    type            (chemicalAbundances      ), intent(in   ) :: chemicalDensity
+    double precision                          , intent(in   ) :: temperature
+    type            (radiationStructure      ), intent(in   ) :: radiation
+    type            (chemicalAbundances      ), intent(inout) :: chemicalRates
+    !GCC$ attributes unused :: self, chemicalDensity, temperature, radiation
     
+    call chemicalRates%reset()
     return
-  end subroutine Chemical_Reaction_Rates_Null_Compute
-
-end module Chemical_Reaction_Rates_Null
+  end subroutine zeroRates
