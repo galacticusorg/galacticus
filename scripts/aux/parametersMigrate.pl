@@ -528,9 +528,12 @@ my @translations =
 	 outputVersion => "0.9.5",
 	 names         =>
 	 {
-	     "atomicCollisionalIonizationMethod" => "atomicIonizationRateCollisionalMethod",
-	     "collisionalExcitationMethod"       => "atomicExcitationRateCollisionalMethod"
-	 },
+	     "atomicCollisionalIonizationMethod" => "atomicIonizationRateCollisionalMethod"                        ,
+	     "collisionalExcitationMethod"       => "atomicExcitationRateCollisionalMethod"                        ,
+	     "chemicalReactionRateMethods"       => "chemicalReactionRateMethod"                                   ,
+	     "hydrogenNetworkFast"               => "chemicalReactionRateMethod.hydrogenNetwork.--fast"            ,
+	     "hydrogenNetworkCMBOnly"            => "chemicalReactionRateMethod.hydrogenNetwork.--radiationCMBOnly"
+ },
 	 values        =>
 	 {
 	     atomicCollisionalIonizationMethod =>
