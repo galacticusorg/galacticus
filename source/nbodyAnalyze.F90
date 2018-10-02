@@ -21,6 +21,7 @@
 program nbodyAnalyze
   !% Performs analysis on N-body simulation halos.
   use Galacticus_Error
+  use Galacticus_Display_Verbosity
   use IO_HDF5
   use Memory_Management
   use Input_Parameters
@@ -44,6 +45,7 @@ program nbodyAnalyze
   ! Open the parameter file.
   parameters=inputParameters(parameterFileName)
   call parameters%markGlobal()
+  call Galacticus_Verbosity_Set_From_Parameters()
   ! Load the N-body data.
   nBodyImporter_ => nBodyImporter        (             )
   simulation     =  nBodyImporter_%import(nbodyFileName)
