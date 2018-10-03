@@ -468,6 +468,7 @@ contains
          &                                                                             blackHolePrimary                 , blackHoleSecondary
     class           (blackHoleBinaryRecoilClass           )               , pointer :: blackHoleBinaryRecoil_
     class           (blackHoleBinaryInitialSeparationClass)               , pointer :: blackHoleBinaryInitialSeparation_
+    class           (blackHoleBinaryMergerClass           )               , pointer :: blackHoleBinaryMerger_
     integer                                                                         :: instance
     double precision                                                                :: blackHoleMassNew                 , blackHoleSpinNew  , &
          &                                                                             massBlackHole1                   , massBlackHole2    , &
@@ -483,21 +484,22 @@ contains
        radiusInitial                     =  blackHoleBinaryInitialSeparation_%separationInitial(node,hostNode)
        ! If the separation is non-positive, assume that the black holes merge instantaneously.
        if (radiusInitial <= 0.0d0) then
-          ! Get the central black hole of the host galaxy.
+          blackHoleBinaryMerger_ => blackHoleBinaryMerger()
+         ! Get the central black hole of the host galaxy.
           blackHoleHostCentral => hostNode%blackHole(instance=1,autoCreate=.true.)
           ! Loop over all black holes in the satellite galaxy.
           do instance=1,node%blackHoleCount()
              ! Get the black hole.
              blackHole => node%blackHole(instance=instance)
              ! Compute the outcome of the merger,
-             call Black_Hole_Binary_Merger(                             &
-                  &                        blackHole           %mass(), &
-                  &                        blackHoleHostCentral%mass(), &
-                  &                        blackHole           %spin(), &
-                  &                        blackHoleHostCentral%spin(), &
-                  &                        blackHoleMassNew           , &
-                  &                        blackHoleSpinNew             &
-                  &                       )
+             call blackHoleBinaryMerger_%merge(                             &
+                  &                            blackHole           %mass(), &
+                  &                            blackHoleHostCentral%mass(), &
+                  &                            blackHole           %spin(), &
+                  &                            blackHoleHostCentral%spin(), &
+                  &                            blackHoleMassNew           , &
+                  &                            blackHoleSpinNew             &
+                  &                           )
              ! Merge the black holes instantaneously.
              ! Check which black hole is more massive in order to compute an appropriate recoil velocity
              if (blackHoleHostCentral%mass() >= blackHole%mass()) then

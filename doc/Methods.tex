@@ -556,46 +556,6 @@ Currently defined bar instability methods are:
  \item [{\normalfont \ttfamily ELN+tidal}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982} with an additional term to account for an external tidal field.
 \end{description}
 
-\subsubsection{Black Hole Binaries: Mergers}\label{sec:BlackHoleBinaryMergers}
-
-Additional methods for black hole binary merger calculations can be added using the {\normalfont \ttfamily blackHoleBinaryMergersMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Rezzolla2008} method is described by a directive:
-\begin{verbatim}
- !# <blackHoleBinaryMergersMethod>
- !#  <unitName>Black_Hole_Binary_Merger_Initialize</unitName>
- !# </blackHoleBinaryMergersMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Black\_Hole\_Binary\_Merger\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(blackHoleBinaryMergersMethod,Black_Hole_Binary_Merger_Do)
-    implicit none
-    type(varying_string),          intent(in)    :: blackHoleBinaryMergersMethod
-    procedure(),          pointer, intent(inout) :: Black_Hole_Binary_Merger_Do
-    
-    if (blackHoleBinaryMergersMethod == 'myMethod') Black_Hole_Binary_Merger_Do => My_Method_Do_Procedure
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily blackHoleBinaryMergersMethod} input parameter. The procedure pointer {\normalfont \ttfamily Black\_Hole\_Binary\_Merger\_Do} must be set to point to a function which returns the properties (mass and spin) of the merged black hole as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The cooling radius function must have the form:
-\begin{verbatim}
- subroutine My_Method_Do_Procedure(blackHoleMassA,blackHoleMassB,blackHoleSpinA,blackHoleSpinB,blackHoleMassFinal,blackHoleSpinFinal)
-    implicit none
-    double precision, intent(in)  :: blackHoleMassA,blackHoleMassB,blackHoleSpinA,blackHoleSpinB
-    double precision, intent(out) :: blackHoleMassFinal,blackHoleSpinFinal
-    .
-    .
-    .
-    return
- end subroutine My_Method_Do_Procedure
-\end{verbatim}
-The function must return the mass and spin (in {\normalfont \ttfamily blackHoleMassFinal} and {\normalfont \ttfamily blackHoleSpinFinal} respectively) of the black hole resulting from the merger of black holes with masses {\normalfont \ttfamily blackHoleMassA} and {\normalfont \ttfamily blackHoleMassB} and spins {\normalfont \ttfamily blackHoleSpinA} and {\normalfont \ttfamily blackHoleSpinB}. The subroutine should make no assumptions about the mass ordering of the input black holes (i.e. A could be more massive than B or vice versa).
-
-Currently defined black hole binary merger methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Rezzolla2008}] Computes the properties of the merged black hole using the approximations of \cite{rezzolla_final_2008}.
-\end{description}
-
 \subsubsection{Conditional Mass Functions}
 
 Additional methods for empirical conditional mass functions can be added using the {\normalfont \ttfamily conditionalMassFunctionMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Behroozi2010} method is described by a directive:

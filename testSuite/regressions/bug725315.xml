@@ -167,7 +167,7 @@
   <outputRedshifts value="0"/>
   <coolingRadiusMethod value="simple"/>
   <randomSpinResetMassFactor value="2"/>
-  <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
+  <blackHoleBinaryMergersMethod value="rezzolla2008"/>
   <timestepHostAbsolute value="1"/>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
   <mergerTreeConstructorMethod value="build">

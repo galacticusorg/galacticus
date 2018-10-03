@@ -555,6 +555,10 @@ my @translations =
 	     blackHoleBinarySeparationGrowthRateMethod =>
 	     {
 		 "null"            => "zero"
+	     },
+	     blackHoleBinaryMergersMethod =>
+	     {
+		 "Rezzolla2008"    => "rezzolla2008"
 	     }
 	 }
      }
