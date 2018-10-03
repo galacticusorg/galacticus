@@ -459,26 +459,28 @@ contains
   subroutine Node_Component_Black_Hole_Standard_Satellite_Merging(node)
     !% Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.
     use Black_Hole_Binary_Mergers
-    use Black_Hole_Binary_Initial_Radii
+    use Black_Hole_Binary_Initial_Separation
     use Black_Hole_Binary_Recoil_Velocities
    implicit none
-    type            (treeNode                  ), intent(inout), pointer :: node
-    type            (treeNode                  )               , pointer :: hostNode
-    class           (nodeComponentBlackHole    )               , pointer :: blackHoleHostCentral  , blackHole         , &
-         &                                                                  blackHolePrimary      , blackHoleSecondary
-    class           (blackHoleBinaryRecoilClass)               , pointer :: blackHoleBinaryRecoil_
-    integer                                                              :: instance
-    double precision                                                     :: blackHoleMassNew      , blackHoleSpinNew  , &
-         &                                                                  massBlackHole1        , massBlackHole2    , &
-         &                                                                  radiusInitial         , recoilVelocity    , &
-         &                                                                  spinBlackHole1        , spinBlackHole2
+    type            (treeNode                             ), intent(inout), pointer :: node
+    type            (treeNode                             )               , pointer :: hostNode
+    class           (nodeComponentBlackHole               )               , pointer :: blackHoleHostCentral             , blackHole         , &
+         &                                                                             blackHolePrimary                 , blackHoleSecondary
+    class           (blackHoleBinaryRecoilClass           )               , pointer :: blackHoleBinaryRecoil_
+    class           (blackHoleBinaryInitialSeparationClass)               , pointer :: blackHoleBinaryInitialSeparation_
+    integer                                                                         :: instance
+    double precision                                                                :: blackHoleMassNew                 , blackHoleSpinNew  , &
+         &                                                                             massBlackHole1                   , massBlackHole2    , &
+         &                                                                             radiusInitial                    , recoilVelocity    , &
+         &                                                                             spinBlackHole1                   , spinBlackHole2
 
     ! Check that the standard black hole implementation is active.
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Find the node to merge with.
        hostNode => node%mergesWith()
        ! Find the initial radius of the satellite black hole in the remnant.
-       radiusInitial=Black_Hole_Binary_Initial_Radius(node,hostNode)
+       blackHoleBinaryInitialSeparation_ => blackHoleBinaryInitialSeparation                   (             )
+       radiusInitial                     =  blackHoleBinaryInitialSeparation_%separationInitial(node,hostNode)
        ! If the separation is non-positive, assume that the black holes merge instantaneously.
        if (radiusInitial <= 0.0d0) then
           ! Get the central black hole of the host galaxy.

@@ -557,47 +557,6 @@ Currently defined bar instability methods are:
  \item [{\normalfont \ttfamily ELN+tidal}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982} with an additional term to account for an external tidal field.
 \end{description}
 
-\subsubsection{Black Hole Binaries: Initial Separation}
-
-Additional methods for black hole binary initial separation calculations can be added using the {\normalfont \ttfamily blackHoleBinaryInitialRadiiMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily spheroidRadiusFraction} method is described by a directive:
-\begin{verbatim}
- !# <blackHoleBinaryInitialRadiiMethod>
- !#  <unitName>Black_Hole_Binary_Initial_Radii_Spheroid_Size_Initialize</unitName>
- !# </blackHoleBinaryInitialRadiiMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Black\_Hole\_Binary\_Initial\_Radii\_Spheroid\_Size\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(blackHoleBinaryInitialRadiiMethod,Black_Hole_Binary_Initial_Radius_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: blackHoleBinaryInitialRadiiMethod
-    procedure(),          pointer, intent(inout) :: Black_Hole_Binary_Initial_Radius_Get
-    
-    if (blackHoleBinaryInitialRadiiMethod == 'myMethod') Black_Hole_Binary_Initial_Radius_Get => My_Method_Get
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily blackHoleBinaryInitialRadiiMethod} input parameter. The procedure pointer {\normalfont \ttfamily Black\_Hole\_Binary\_Initial\_Radius\_Get} must be set to point to a function which returns the initial separation of a just-formed black hole binary. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The initial separation function must have the form:
-\begin{verbatim}
- double precision function My_Method_Get(thisNode,hostNode)
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode,hostNode
-    .
-    .
-    .
-    return
- end subroutine My_Method_Get
-\end{verbatim}
-The function must return the initial separation (in Mpc) of the active black hole in {\normalfont \ttfamily thisNode} as it merges into {\normalfont \ttfamily hostNode}.
-
-Currently defined black hole binary initial separation methods are:
-\begin{description}
- \item [{\normalfont \ttfamily spheroidRadiusFraction}] Assumes that the initial separation is equal to a fraction {\normalfont \ttfamily [blackHoleInitialRadiusSpheroidRadiusRatio]} of the larger of the spheroid scale radii in {\normalfont \ttfamily thisNode} and {\normalfont \ttfamily hostNode}.
- \item [{\normalfont \ttfamily Volonteri2003}] Assumes that the initial separation follows the relationship described in \cite{volonteri_assembly_2003} following the black hole masses in {\normalfont \ttfamily thisNode} and {\normalfont \ttfamily hostNode}.
-\item [{\normalfont \ttfamily tidalRadius}] Solves the radius at which the satellite galaxy is stripped of its stars, and assume only the central black hole remains, at that specific radius. This uses the masses in {\normalfont \ttfamily thisNode} and {\normalfont \ttfamily hostNode}.
-\end{description}
-
 \subsubsection{Black Hole Binaries: Separation Growth Rate}\label{sec:SMBHRadialMotion}
 
 Additional methods for black hole binary separation growth rate calculations can be added using the {\normalfont \ttfamily blackHoleBinarySeparationGrowthRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Volonteri2003} method is described by a directive:
@@ -612,22 +571,6 @@ Currently defined black hole binary separation growth rate methods are:
 \begin{description}
  \item [{\normalfont \ttfamily null}] Assumes that the initial separation stays constant.
  \item [{\normalfont \ttfamily standard}] Assumes that the separation growth rate follows \cite{volonteri_assembly_2003} following the black hole masses in {\normalfont \ttfamily thisNode}. Although it innovates as it encompasses all three influences: Dynamical Friction, Hardening due to stars and finally due to Gravitational Wave expulsion. Dynamical friction here occurs until a certain hardening separation is reached, it then is replaced by the (faster) three-body interactions with stars.
-\end{description}
-
-\subsubsection{Black Hole Binaries: Recoil Velocity}
-
-Additional methods for the recoil velocity of a binary black hole can be added using the {\normalfont \ttfamily blackHoleBinaryRecoilVelocityMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Standard} method is described by a directive:
-
-\begin{verbatim}
-  !# <blackHoleBinaryRecoilVelocityMethod>
-  !#  <unitName>Black_Hole_Binary_Recoil_Velocity_Standard_Initialize</unitName>
-  !# </blackHoleBinaryRecoilVelocityMethod>
-\end{verbatim}
-
-Currently defined black hole binary recoil velocity methods are:
-\begin{description}
- \item [{\normalfont \ttfamily null}] Assumes that there is zero recoil velocity.
- \item [{\normalfont \ttfamily Campanelli2008}] Assumes that the recoil velocity follows \cite{campanelli_large_2007}, utilizing the black hole masses and spins in {\normalfont \ttfamily thisNode}. For now it does not take the direction of the spin into account, and assumes a zero perpendicular velocity.
 \end{description}
 
 \subsubsection{Black Hole Binaries: Mergers}\label{sec:BlackHoleBinaryMergers}
