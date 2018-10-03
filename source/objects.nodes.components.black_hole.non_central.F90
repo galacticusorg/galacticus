@@ -267,6 +267,7 @@ contains
     class           (nodeComponentBlackHole    )               , pointer :: blackHole1            , blackHole2        , &
          &                                                                  blackHolePrimary      , blackHoleSecondary
     class           (blackHoleBinaryRecoilClass)               , pointer :: blackHoleBinaryRecoil_
+    class           (blackHoleBinaryMergerClass)               , pointer :: blackHoleBinaryMerger_
     double precision                                                     :: blackHoleMassNew      , blackHoleSpinNew  , &
          &                                                                  massBlackHole1        , massBlackHole2    , &
          &                                                                  recoilVelocity        , spinBlackHole1    , &
@@ -276,13 +277,14 @@ contains
     blackHole1 => node%blackHole(instance=              1)
     blackHole2 => node%blackHole(instance=mergingInstance)
     ! Process the merger to get the mass and spin of the merged black hole.
-    call Black_Hole_Binary_Merger(blackHole2%mass(), &
-         &                        blackHole1%mass(), &
-         &                        blackHole2%spin(), &
-         &                        blackHole1%spin(), &
-         &                        blackHoleMassNew , &
-         &                        blackHoleSpinNew   &
-         &                       )
+    blackHoleBinaryMerger_ => blackHoleBinaryMerger()
+    call blackHoleBinaryMerger_%merge(blackHole2%mass(), &
+         &                            blackHole1%mass(), &
+         &                            blackHole2%spin(), &
+         &                            blackHole1%spin(), &
+         &                            blackHoleMassNew , &
+         &                            blackHoleSpinNew   &
+         &                           )
     ! Check which black hole is more massive in order to compute an appropriate recoil velocity.
     if (blackHole1%mass() >= blackHole2%mass()) then
        blackHolePrimary   => blackHole1

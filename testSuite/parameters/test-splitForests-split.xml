@@ -184,7 +184,7 @@
   </accretionDisksMethod>
 
   <!-- Black hole options -->
-  <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
+  <blackHoleBinaryMergersMethod value="rezzolla2008"/>
   <blackHoleSeedMass value="100"/>
   <blackHoleWindEfficiency value="0.0024"/>
   <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>

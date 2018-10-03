@@ -274,10 +274,11 @@ contains
     !% Merge (instantaneously) any simple black hole associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
     use Black_Hole_Binary_Mergers
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: thisNode
-    type            (treeNode              )               , pointer :: hostNode
-    class           (nodeComponentBlackHole)               , pointer :: hostBlackHoleComponent, thisBlackHoleComponent
-    double precision                                                 :: blackHoleMassNew      , blackHoleSpinNew
+    type            (treeNode                  ), intent(inout), pointer :: thisNode
+    type            (treeNode                  )               , pointer :: hostNode
+    class           (nodeComponentBlackHole    )               , pointer :: hostBlackHoleComponent, thisBlackHoleComponent
+    class           (blackHoleBinaryMergerClass)               , pointer :: blackHoleBinaryMerger_
+    double precision                                                     :: blackHoleMassNew      , blackHoleSpinNew
 
     ! Check that the simple black hole is active.
     if (defaultBlackHoleComponent%simpleIsActive()) then
@@ -287,13 +288,14 @@ contains
        thisBlackHoleComponent => thisNode%blackHole (autoCreate=.true.)
        hostBlackHoleComponent => hostNode%blackHole (autoCreate=.true.)
        ! Compute the effects of the merger.
-       call Black_Hole_Binary_Merger(thisBlackHoleComponent%mass(), &
-            &                        hostBlackHoleComponent%mass(), &
-            &                        0.0d0                        , &
-            &                        0.0d0                        , &
-            &                        blackHoleMassNew             , &
-            &                        blackHoleSpinNew               &
-            &                       )
+       blackHoleBinaryMerger_ => blackHoleBinaryMerger()
+       call blackHoleBinaryMerger_%merge(thisBlackHoleComponent%mass(), &
+            &                            hostBlackHoleComponent%mass(), &
+            &                            0.0d0                        , &
+            &                            0.0d0                        , &
+            &                            blackHoleMassNew             , &
+            &                            blackHoleSpinNew               &
+            &                           )
        ! Move the black hole to the host.
        call hostBlackHoleComponent%massSet(blackHoleMassNew)
        call thisBlackHoleComponent%massSet(           0.0d0)
