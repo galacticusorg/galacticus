@@ -361,8 +361,8 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <blackHoleBinaryInitialRadiiMethod value="spheroidRadiusFraction"/>
-    <blackHoleBinaryInitialRadiiMethod value="tidalRadius">
+    <blackHoleBinaryInitialSeparationMethod value="spheroidRadiusFraction"/>
+    <blackHoleBinaryInitialSeparationMethod value="tidalRadius">
       <blackHoleBinaryRecoilMethod value="null" parameterLevel="top"/>
       <blackHoleBinaryRecoilMethod value="Campanelli2007" parameterLevel="top">
  	<blackHoleBinarySeparationGrowthRateMethod value="null" parameterLevel="top"/>
@@ -374,8 +374,8 @@
  	  </tripleBlackHoleInteraction>
  	</blackHoleBinarySeparationGrowthRateMethod>
       </blackHoleBinaryRecoilMethod>
-    </blackHoleBinaryInitialRadiiMethod>
-    <blackHoleBinaryInitialRadiiMethod value="Volonteri2003"/>
+    </blackHoleBinaryInitialSeparationMethod>
+    <blackHoleBinaryInitialSeparationMethod value="volonteri2003"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>

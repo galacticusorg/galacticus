@@ -528,22 +528,28 @@ my @translations =
 	 outputVersion => "0.9.5",
 	 names         =>
 	 {
-	     "atomicCollisionalIonizationMethod" => "atomicIonizationRateCollisionalMethod"                        ,
-	     "collisionalExcitationMethod"       => "atomicExcitationRateCollisionalMethod"                        ,
-	     "chemicalReactionRateMethods"       => "chemicalReactionRateMethod"                                   ,
-	     "hydrogenNetworkFast"               => "chemicalReactionRateMethod.hydrogenNetwork.--fast"            ,
-	     "hydrogenNetworkCMBOnly"            => "chemicalReactionRateMethod.hydrogenNetwork.--radiationCMBOnly"
- },
+	     "atomicCollisionalIonizationMethod"         => "atomicIonizationRateCollisionalMethod"                                                 ,
+	     "collisionalExcitationMethod"               => "atomicExcitationRateCollisionalMethod"                                                 ,
+	     "chemicalReactionRateMethods"               => "chemicalReactionRateMethod"                                                            ,
+	     "hydrogenNetworkFast"                       => "chemicalReactionRateMethod.hydrogenNetwork.--fast"                                     ,
+	     "hydrogenNetworkCMBOnly"                    => "chemicalReactionRateMethod.hydrogenNetwork.--radiationCMBOnly"                         ,
+	     "blackHoleBinaryInitialRadiiMethod"         => "blackHoleBinaryInitialSeparationMethod"                                                ,
+	     "blackHoleInitialRadiusSpheroidRadiusRatio" => "blackHoleBinaryInitialSeparationMethod.spheroidRadiusFraction.--spheroidRadiusFraction"
+	 },
 	 values        =>
 	 {
 	     atomicCollisionalIonizationMethod =>
 	     {
 		 "Verner"          => "verner1996"
 	     },
-	     collisionalExcitationMethod => 
+	     collisionalExcitationMethod       => 
 	     {
 		 "ScholzWalters91" => "scholzWalters91"
-	     }
+	     },
+	     blackHoleBinaryInitialRadiiMethod =>
+	     {
+		 "Volonteri2003"   => "volonteri2003"
+	     }    
 	 }
      }
     );
