@@ -49,7 +49,6 @@ A simple example of this extension capability can be found in the {\normalfont \
 \subsection{Implementing a New Component}\label{sec:ComponentImplement}\index{components!implementing}
 
 Implementing a new component involves writing some modules and functions which contain a definition of the component and, if necessary, handle initialization, creation, evolution, and responses to any events. Frequently, the easiest way to make a new component is to copy a previously existing one and modify it as needed. Details of the various functions that component modules must perform are given below.
-
 By convention, a component's implementation is split into three or four files, although some components might not need all of these files. These files are named as follows (with {\normalfont \ttfamily \textless component\textgreater} acting as a placeholder for the name of the component in question):
 \begin{description}
  \item [{\normalfont \ttfamily objects.nodes.components.\textless component\textgreater.F90}] The primary file which describes the component and its properties, and which contains functions that manipulate the component as it evolves through a merger tree (ODE rates, behavior during mergers, etc.);
@@ -555,22 +554,6 @@ Currently defined bar instability methods are:
  \item [{\normalfont \ttfamily null}] A null method in which disks are never bar unstable;
  \item [{\normalfont \ttfamily ELN}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982}.
  \item [{\normalfont \ttfamily ELN+tidal}] The bar instability is determined using the algorithm of \cite{efstathiou_stability_1982} with an additional term to account for an external tidal field.
-\end{description}
-
-\subsubsection{Black Hole Binaries: Separation Growth Rate}\label{sec:SMBHRadialMotion}
-
-Additional methods for black hole binary separation growth rate calculations can be added using the {\normalfont \ttfamily blackHoleBinarySeparationGrowthRateMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Volonteri2003} method is described by a directive:
-
-\begin{verbatim}
-  !# <blackHoleBinarySeparationGrowthRateMethod>
-  !#  <unitName>Black_Hole_Binary_Separation_Growth_Rate_Standard_Init</unitName>
-  !# </blackHoleBinarySeparationGrowthRateMethod>
-\end{verbatim}
-
-Currently defined black hole binary separation growth rate methods are:
-\begin{description}
- \item [{\normalfont \ttfamily null}] Assumes that the initial separation stays constant.
- \item [{\normalfont \ttfamily standard}] Assumes that the separation growth rate follows \cite{volonteri_assembly_2003} following the black hole masses in {\normalfont \ttfamily thisNode}. Although it innovates as it encompasses all three influences: Dynamical Friction, Hardening due to stars and finally due to Gravitational Wave expulsion. Dynamical friction here occurs until a certain hardening separation is reached, it then is replaced by the (faster) three-body interactions with stars.
 \end{description}
 
 \subsubsection{Black Hole Binaries: Mergers}\label{sec:BlackHoleBinaryMergers}

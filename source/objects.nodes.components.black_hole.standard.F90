@@ -592,20 +592,21 @@ contains
     use Hot_Halo_Temperature_Profiles
     use Black_Hole_Binary_Separations
     implicit none
-    class           (nodeComponentBlackHole        ), intent(inout)          :: blackHole
-    double precision                                , intent(  out)          :: accretionRateHotHalo        , accretionRateSpheroid
-    type            (treeNode                      )               , pointer :: node
-    class           (nodeComponentSpheroid         )               , pointer :: spheroid
-    class           (nodeComponentHotHalo          )               , pointer :: hotHalo
-    class           (hotHaloTemperatureProfileClass)               , pointer :: hotHaloTemperatureProfile_
-    class           (accretionDisksClass           )               , pointer :: accretionDisks_
-    double precision                                , parameter              :: gasDensityMinimum     =1.0d0                        !    Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
-    double precision                                                         :: accretionRadius             , accretionRateMaximum                                                                                                                   , &
-         &                                                                      blackHoleMass               , gasDensity                                                                                                                             , &
-         &                                                                      hotHaloTemperature          , hotModeFraction                                                                                                                        , &
-         &                                                                      jeansLength                 , position             (                                                                                                               3), &
-         &                                                                      radiativeEfficiency         , relativeVelocity                                                                                                                      , &
-         &                                                                      coldModeFraction
+    class           (nodeComponentBlackHole                  ), intent(inout)          :: blackHole
+    double precision                                          , intent(  out)          :: accretionRateHotHalo                      , accretionRateSpheroid
+    type            (treeNode                                )               , pointer :: node
+    class           (nodeComponentSpheroid                   )               , pointer :: spheroid
+    class           (nodeComponentHotHalo                    )               , pointer :: hotHalo
+    class           (hotHaloTemperatureProfileClass          )               , pointer :: hotHaloTemperatureProfile_
+    class           (accretionDisksClass                     )               , pointer :: accretionDisks_
+    class           (blackHoleBinarySeparationGrowthRateClass)               , pointer :: blackHoleBinarySeparationGrowthRate_
+    double precision                                          , parameter              :: gasDensityMinimum                   =1.0d0                              ! Lowest gas density to consider when computing accretion rates onto black hole (in units of M_Solar/Mpc^3).
+    double precision                                                                   :: accretionRadius                           , accretionRateMaximum    , &
+         &                                                                                blackHoleMass                             , gasDensity              , &
+         &                                                                                hotHaloTemperature                        , hotModeFraction         , &
+         &                                                                                jeansLength                               , position             (3), &
+         &                                                                                radiativeEfficiency                       , relativeVelocity        , &
+         &                                                                                coldModeFraction
 
     ! Get the host node.
     node => blackHole%host()
@@ -614,10 +615,11 @@ contains
     ! Check black hole mass is positive.
     if (blackHoleMass > 0.0d0) then
        ! Get required objects.
-       accretionDisks_ => accretionDisks()
+       accretionDisks_                      => accretionDisks                     ()
+       blackHoleBinarySeparationGrowthRate_ => blackHoleBinarySeparationGrowthRate()
        ! Compute the relative velocity of black hole and gas. We assume that relative motion arises only from the radial
        ! migration of the black hole.
-       relativeVelocity=Black_Hole_Binary_Separation_Growth_Rate(blackHole)*Mpc_per_km_per_s_To_Gyr
+       relativeVelocity=blackHoleBinarySeparationGrowthRate_%growthRate(blackHole)*Mpc_per_km_per_s_To_Gyr
        ! Contribution from spheroid:
        ! Get the accretion radius. We take this to be the larger of the Bondi-Hoyle radius and the current radius position of
        ! the black hole.
@@ -965,24 +967,26 @@ contains
     use Black_Hole_Binary_Separations
     use Accretion_Disks
     implicit none
-    type            (treeNode              )                           , intent(inout), pointer :: node
-    integer         (kind=kind_int8        )                           , intent(in   )          :: treeIndex
-    integer         (c_size_t              )                           , intent(in   )          :: iOutput
-    logical                                                            , intent(in   )          :: nodePassesFilter
-    class           (nodeComponentBlackHole)                                          , pointer :: blackHole
-    class           (accretionDisksClass   )                                          , pointer :: accretionDisks_
-    integer         (kind=kind_int8        ), allocatable, dimension(:)                         :: mergerTreeIndex       , nodeIndex
-    double precision                        , allocatable, dimension(:)                         :: mass                  , massAccretionRate    , radiativeEfficiency, &
-         &                                                                                         radius                , spin                 , timescale
-    double precision                                                                            :: accretionRateHotHalo  , accretionRateSpheroid
-    integer                                                                                     :: blackHoleCount        , instance
-    type            (hdf5Object            )                                                    :: blackHolesGroup       , outputGroup
-    type            (varying_string        )                                                    :: groupName
+    type            (treeNode                               )                           , intent(inout), pointer :: node
+    integer         (kind=kind_int8                         )                           , intent(in   )          :: treeIndex
+    integer         (c_size_t                               )                           , intent(in   )          :: iOutput
+    logical                                                                             , intent(in   )          :: nodePassesFilter
+    class           (nodeComponentBlackHole                 )                                          , pointer :: blackHole
+    class           (accretionDisksClass                    )                                          , pointer :: accretionDisks_
+    class           (blackHoleBinarySeparationGrowthRateClass)                                         , pointer :: blackHoleBinarySeparationGrowthRate_
+    integer         (kind=kind_int8                         ), allocatable, dimension(:)                         :: mergerTreeIndex                     , nodeIndex
+    double precision                                         , allocatable, dimension(:)                         :: mass                                , massAccretionRate    , radiativeEfficiency, &
+         &                                                                                                          radius                              , spin                 , timescale
+    double precision                                                                                             :: accretionRateHotHalo                , accretionRateSpheroid
+    integer                                                                                                      :: blackHoleCount                      , instance
+    type            (hdf5Object                             )                                                    :: blackHolesGroup                     , outputGroup
+    type            (varying_string                         )                                                    :: groupName
 
     ! If black hole output was requested , output their properties.
     if (nodePassesFilter .and. blackHoleOutputData) then
        ! Get required objects.
-       accretionDisks_ => accretionDisks()
+       accretionDisks_                      => accretionDisks                     ()
+       blackHoleBinarySeparationGrowthRate_ => blackHoleBinarySeparationGrowthRate()
        ! Get a count of the number of black holes present.
        blackHoleCount=node%blackHoleCount()
        ! Open the output group.
@@ -1014,9 +1018,9 @@ contains
           nodeIndex          (instance)=node%index()
           mergerTreeIndex    (instance)=treeIndex
           if (instance > 1) then
-             if (Black_Hole_Binary_Separation_Growth_Rate(blackHole) /= 0.0d0 )then
-                timescale(instance)=-blackHole%radialPosition()                 &
-                     &              /Black_Hole_Binary_Separation_Growth_Rate(blackHole)
+             if (blackHoleBinarySeparationGrowthRate_%growthRate(blackHole) /= 0.0d0 )then
+                timescale(instance)=-blackHole                           %radialPosition(         ) &
+                     &              /blackHoleBinarySeparationGrowthRate_%growthRate    (blackHole)
              else
                 timescale(instance)=0.0d0
              end if
