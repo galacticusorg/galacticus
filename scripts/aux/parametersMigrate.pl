@@ -559,7 +559,17 @@ my @translations =
 	     blackHoleBinaryMergersMethod =>
 	     {
 		 "Rezzolla2008"    => "rezzolla2008"
-	     }
+	     },
+	     stellarSpectraDustAttenuationMethod       =>
+	     {
+		 "Calzetti2000"    => "calzetti2000"   ,
+		 "Cardelli1989"    => "cardelli1989"   ,
+		 "CharlotFall2000" => "charlotFall2000",
+		 "Gordon2003"      => "gordon2003"     ,
+		 "WittGordon2000"  => "wittGorden2000" ,
+		 "PrevotBouchet"   => "prevotBouchet"  ,
+		 "null"            => "zero"
+	     }    
 	 }
      }
     );

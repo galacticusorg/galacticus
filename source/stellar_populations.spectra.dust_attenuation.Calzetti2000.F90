@@ -21,7 +21,6 @@
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCalzetti2000">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{calzetti_dust_2000}.</description>
   !# </stellarSpectraDustAttenuation>
-
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationCalzetti2000
      !% A class implementing calculations of attenuation of stellar spectra using the model of \cite{calzetti_dust_2000}.
      private
@@ -31,20 +30,23 @@
 
   interface stellarSpectraDustAttenuationCalzetti2000
      !% Constructors for the ``calzetti2000'' stellar spectra dust attenuation class.
-     module procedure calzetti2000DefaultConstructor
+     module procedure calzetti2000ConstructorParameters
   end interface stellarSpectraDustAttenuationCalzetti2000
 
 contains
 
-  function calzetti2000DefaultConstructor()
-    !% Default constructor for the ``calzetti2000'' stellar spectra dust attenuation class.
+  function calzetti2000ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily calzetti2000} stellar spectra dust attenuation class which takes a parameter set
+    !% as input.
     use Input_Parameters
     implicit none
-    type(stellarSpectraDustAttenuationCalzetti2000) :: calzetti2000DefaultConstructor
-
-    calzetti2000DefaultConstructor%isIndestructible=.false.
+    type(stellarSpectraDustAttenuationCalzetti2000)                :: self
+    type(inputParameters                          ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=stellarSpectraDustAttenuationCalzetti2000()
     return
-  end function calzetti2000DefaultConstructor
+  end function calzetti2000ConstructorParameters
 
   double precision function calzetti2000Attenuation(self,wavelength,age,vBandAttenuation)
     !% Return attenuation of stellar spectra according to the model of \cite{calzetti_dust_2000}.
