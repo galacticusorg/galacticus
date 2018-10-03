@@ -100,26 +100,28 @@ contains
     use Black_Hole_Binary_Separations
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    logical                                   , intent(inout)          :: interrupt
-    logical                                   , intent(in   )          :: odeConverged
-    procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
-    integer                                   , intent(in   )          :: propertyType
-    class           (nodeComponentBlackHole  )               , pointer :: blackHoleBinary     , blackHoleCentral   , &
-         &                                                                blackHole
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    integer                                                            :: iInstance           , instanceCount      , &
-         &                                                                mergingInstance
-    double precision                                                   :: binaryRadius        , radialMigrationRate, &
-         &                                                                radiusHardBinary
-    logical                                                            :: binaryRadiusFound
+    type            (treeNode                                ), intent(inout), pointer :: node
+    logical                                                   , intent(inout)          :: interrupt
+    logical                                                   , intent(in   )          :: odeConverged
+    procedure       (interruptTask                           ), intent(inout), pointer :: interruptProcedure
+    integer                                                   , intent(in   )          :: propertyType
+    class           (nodeComponentBlackHole                  )               , pointer :: blackHoleBinary                     , blackHoleCentral   , &
+         &                                                                                blackHole
+    class           (darkMatterHaloScaleClass                )               , pointer :: darkMatterHaloScale_
+    class           (blackHoleBinarySeparationGrowthRateClass)               , pointer :: blackHoleBinarySeparationGrowthRate_
+    integer                                                                            :: iInstance                           , instanceCount      , &
+         &                                                                                mergingInstance
+    double precision                                                                   :: binaryRadius                        , radialMigrationRate, &
+         &                                                                                radiusHardBinary
+    logical                                                                            :: binaryRadiusFound
     !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     if (defaultBlackHoleComponent%noncentralIsActive()) then
        ! Get required objects.
-       darkMatterHaloScale_ => darkMatterHaloScale()
+       darkMatterHaloScale_                 => darkMatterHaloScale                ()
+       blackHoleBinarySeparationGrowthRate_ => blackHoleBinarySeparationGrowthRate()
        ! Get a count of the number of black holes associated with this node.
        instanceCount=node%blackHoleCount()
        ! Get the central black hole.
@@ -158,7 +160,7 @@ contains
              return
           end if
           ! Set the rate of radial migration.
-          radialMigrationRate=Black_Hole_Binary_Separation_Growth_Rate(blackHole)
+          radialMigrationRate=blackHoleBinarySeparationGrowthRate_%growthRate(blackHole)
           call blackHole%radialPositionRate(radialMigrationRate)
        end do
        ! Loop over black holes, testing for triple black hole interactions. Find the three closest black holes then check if a

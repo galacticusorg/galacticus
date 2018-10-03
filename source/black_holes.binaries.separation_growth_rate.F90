@@ -18,65 +18,26 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements calculations of black hole binary separation growth rate.
+!% Contains a module which implements a class for calculations of black hole binary separation growth rate.
 
 module Black_Hole_Binary_Separations
-  !% Implements calculations of black hole binary separation growth rate.
-  use ISO_Varying_String
+  !% Implements a class for calculations of black hole binary separation growth rate.
+  use Galacticus_Nodes
   implicit none
   private
-  public :: Black_Hole_Binary_Separation_Growth_Rate
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                      :: blackHoleBinarySeparationGrowthRateInitialized=.false.
-
-  ! Name of mass movement method used.
-  type     (varying_string                          )          :: blackHoleBinarySeparationGrowthRateMethod
-
-  ! Pointer to the subroutine that returns descriptors for mass movement.
-  procedure(Black_Hole_Binary_Separation_Growth_Rate), pointer :: Black_Hole_Binary_Separation_Growth_Rate_Get  =>null()
-
-contains
-
-  double precision function Black_Hole_Binary_Separation_Growth_Rate(thisBlackHoleComponent)
-    !% Computes the separation growth rate of a black hole binary in units of Mpc/Gyr.
-    use Galacticus_Error
-    use Input_Parameters
-    use Galacticus_Nodes
-    !# <include directive="blackHoleBinarySeparationGrowthRateMethod" type="moduleUse">
-    include 'black_holes.binary.separation_growth_rate.modules.inc'
-    !# </include>
-    implicit none
-    class(nodeComponentBlackHole), intent(inout) :: thisBlackHoleComponent
-
-    if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
-       !$omp critical(blackHoleBinarySeparationGrowthRateInitialize)
-       if (.not.blackHoleBinarySeparationGrowthRateInitialized) then
-          ! Get the binary black hole separation growth rate method parameter.
-          !# <inputParameter>
-          !#   <name>blackHoleBinarySeparationGrowthRateMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('null')</defaultValue>
-          !#   <description>The name of the method to be used for computing the separation growth rate of black hole binaries.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="blackHoleBinarySeparationGrowthRateMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>blackHoleBinarySeparationGrowthRateMethod,Black_Hole_Binary_Separation_Growth_Rate_Get</functionArgs>
-          include 'black_holes.binaries.separation_growth_rate.inc'
-          !# </include>
-          if (.not.associated(Black_Hole_Binary_Separation_Growth_Rate_Get)) call Galacticus_Error_Report('method '//char(blackHoleBinarySeparationGrowthRateMethod)//' is unrecognized'//{introspection:location})
-          ! Flag that the module is now initialized.
-          blackHoleBinarySeparationGrowthRateInitialized=.true.
-       end if
-       !$omp end critical(blackHoleBinarySeparationGrowthRateInitialize)
-    end if
-
-    ! Call the routine to do the calculation.
-    Black_Hole_Binary_Separation_Growth_Rate=Black_Hole_Binary_Separation_Growth_Rate_Get(thisBlackHoleComponent)
-
-    return
-  end function Black_Hole_Binary_Separation_Growth_Rate
-
+  !# <functionClass>
+  !#  <name>blackHoleBinarySeparationGrowthRate</name>
+  !#  <descriptiveName>Black Hole Binaries Separation Growth Rate</descriptiveName>
+  !#  <description>Class providing models of black hole binary separation growth rates.</description>
+  !#  <default>zero</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="growthRate" >
+  !#   <description>Computes the rate of growth of the separation of the given black hole and its binary companion in units of Mpc/Gyr.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Black_Hole_Binary_Separations
