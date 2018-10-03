@@ -20,6 +20,7 @@
 
   use Geometry_Surveys
   use Cosmology_Functions
+  use Stellar_Spectra_Dust_Attenuations
 
   !# <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha" defaultThreadPrivate="yes">
   !#  <description>A luminosity function output analysis class.</description>
@@ -27,8 +28,9 @@
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunctionHalpha
      !% A luminosity function output analysis class.
      private
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_     => null()
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null(), cosmologyFunctionsData => null()
+     class(surveyGeometryClass               ), pointer :: surveyGeometry_                => null()
+     class(cosmologyFunctionsClass           ), pointer :: cosmologyFunctions_            => null(), cosmologyFunctionsData => null()
+     class(stellarSpectraDustAttenuationClass), pointer :: stellarSpectraDustAttenuation_ => null()
    contains
      final :: luminosityFunctionHalphaDestructor
   end type outputAnalysisLuminosityFunctionHalpha
@@ -53,6 +55,7 @@ contains
     class           (cosmologyFunctionsClass                ), pointer                    :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputAnalysisDistributionOperatorClass), pointer                    :: outputAnalysisDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                    :: outputAnalysisPropertyOperator_
+    class           (stellarSpectraDustAttenuationClass     ), pointer                    :: stellarSpectraDustAttenuation_
     double precision                                         , dimension(:) , allocatable :: luminosities
     double precision                                                                      :: depthOpticalISMCoefficient
     integer                                                                               :: covarianceBinomialBinsPerDecade
@@ -127,12 +130,13 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
     !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
     !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
-    self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    !# <objectBuilder class="stellarSpectraDustAttenuation"      name="stellarSpectraDustAttenuation_"      source="parameters"            />
+    self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !# <inputParametersValidate source="parameters"/>
     return
   end function luminosityFunctionHalphaConstructorParameters
 
-  function luminosityFunctionHalphaConstructorFile(label,comment,fileName,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function luminosityFunctionHalphaConstructorFile(label,comment,fileName,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``luminosityFunctionHalpha'' output analysis class which reads bin information from a standard format file.
     use IO_HDF5
     implicit none
@@ -146,6 +150,7 @@ contains
     class           (cosmologyFunctionsClass                ), intent(in   ), target      :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass    ), intent(in   ), target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ), target      :: outputAnalysisDistributionOperator_
+    class           (stellarSpectraDustAttenuationClass     ), intent(in   ), target      :: stellarSpectraDustAttenuation_
     double precision                                         , dimension(:) , allocatable :: luminosities
     integer                                                                               :: covarianceBinomialBinsPerDecade
     double precision                                                                      :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
@@ -157,11 +162,11 @@ contains
     call dataFile%close      (                            )
     !$ call hdf5Access%unset()
     ! Construct the object.
-    self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     return
   end function luminosityFunctionHalphaConstructorFile
 
-  function luminosityFunctionHalphaConstructorInternal(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result(self)
+  function luminosityFunctionHalphaConstructorInternal(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result(self)
     !% Constructor for the ``luminosityFunctionHalpha'' output analysis class which takes a parameter set as input.
     use ISO_Varying_String
     use Memory_Management
@@ -183,6 +188,7 @@ contains
     class           (cosmologyFunctionsClass                        ), intent(in   ), target         :: cosmologyFunctions_                                   , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass            ), intent(in   ), target         :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target         :: outputAnalysisDistributionOperator_
+    class           (stellarSpectraDustAttenuationClass             ), intent(in   ), target         :: stellarSpectraDustAttenuation_
     integer                                                          , intent(in   )                 :: covarianceBinomialBinsPerDecade
     double precision                                                 , intent(in   )                 :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
     type            (outputAnalysisPropertyExtractorLmnstyEmssnLine )               , pointer        :: outputAnalysisPropertyExtractor_
@@ -216,14 +222,14 @@ contains
        allocate(lineNames(1))
        lineNames=[var_str('balmerAlpha6563')                                                    ]
     end if
-    outputAnalysisPropertyExtractor_                =outputAnalysisPropertyExtractorLmnstyEmssnLine (lineNames          ,depthOpticalISMCoefficient,outputMask=sum(outputWeight,dim=1) > 0.0d0)
+    outputAnalysisPropertyExtractor_                =outputAnalysisPropertyExtractorLmnstyEmssnLine (stellarSpectraDustAttenuation_,lineNames            ,depthOpticalISMCoefficient,outputMask=sum(outputWeight,dim=1) > 0.0d0)
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )
-    outputAnalysisPropertyOperatorLog10_            =outputAnalysisPropertyOperatorLog10            (                                                                                         )
+    outputAnalysisPropertyOperatorLog10_            =outputAnalysisPropertyOperatorLog10            (                                                                                                                          )
     allocate(outputAnalysisPropertyOperatorAntiLog10_        )
-    outputAnalysisPropertyOperatorAntiLog10_        =outputAnalysisPropertyOperatorAntiLog10        (                                                                                         )
+    outputAnalysisPropertyOperatorAntiLog10_        =outputAnalysisPropertyOperatorAntiLog10        (                                                                                                                          )
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_,cosmologyFunctionsData                                               )
+    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_           ,cosmologyFunctionsData                                                                     )
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
        ! Existing property operator is a sequence operator - simply prepend our magnitude and cosmological luminosity distance operators to it.
@@ -308,7 +314,8 @@ contains
     !% Destructor for  the ``luminosityFunctionHalpha'' output analysis class.
     type(outputAnalysisLuminosityFunctionHalpha), intent(inout) :: self
     
-    !# <objectDestructor name="self%surveyGeometry_"/>
+    !# <objectDestructor name="self%surveyGeometry_"               />
+    !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
     return
   end subroutine luminosityFunctionHalphaDestructor
   

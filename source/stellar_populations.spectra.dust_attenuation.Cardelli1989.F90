@@ -21,7 +21,6 @@
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCardelli1989">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.</description>
   !# </stellarSpectraDustAttenuation>
-
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationCardelli1989
      !% A class implementing calculations of attenuation of stellar spectra using the model of \cite{cardelli_relationship_1989}.
      private
@@ -49,32 +48,43 @@
 
   interface stellarSpectraDustAttenuationCardelli1989
      !% Constructors for the ``cardelli1989'' stellar spectra dust attenuation class.
-     module procedure cardelli1989DefaultConstructor
-     module procedure cardelli1989Constructor
+     module procedure cardelli1989ConstructorParameters
+     module procedure cardelli1989ConstructorInternal
   end interface stellarSpectraDustAttenuationCardelli1989
 
 contains
 
-  function cardelli1989DefaultConstructor()
-    !% Default constructor for the ``cardelli1989'' stellar spectra dust attenuation class.
+  function cardelli1989ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily cardelli1989} stellar spectra dust attenuation class which takes a parameter set
+    !% as input.
+    use Input_Parameters
     implicit none
-    type            (stellarSpectraDustAttenuationCardelli1989)            :: cardelli1989DefaultConstructor
-    ! Standard value of Rv.
-    double precision                                           , parameter :: Rv                            =3.1d0
+    type            (stellarSpectraDustAttenuationCardelli1989)                :: self
+    type            (inputParameters                          ), intent(inout) :: parameters
+    double precision                                                           :: Rv
 
-    cardelli1989DefaultConstructor=cardelli1989Constructor(Rv)
+    !# <inputParameter>
+    !#   <name>Rv</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>3.1d0</defaultValue>
+    !#   <description>The relative visibility, $R_\mathrm{V}$.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    self=stellarSpectraDustAttenuationCardelli1989(Rv)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function cardelli1989DefaultConstructor
+  end function cardelli1989ConstructorParameters
 
-  function cardelli1989Constructor(Rv)
+  function cardelli1989ConstructorInternal(Rv) result(self)
     !% Constructor for the ``cardelli1989'' stellar spectra dust attenuation class.
     implicit none
-    type            (stellarSpectraDustAttenuationCardelli1989)                :: cardelli1989Constructor
+    type            (stellarSpectraDustAttenuationCardelli1989)                :: self
     double precision                                           , intent(in   ) :: Rv
+    !# <constructorAssign variables="Rv"/>
 
-    cardelli1989Constructor%Rv=Rv
     return
-  end function cardelli1989Constructor
+  end function cardelli1989ConstructorInternal
 
   double precision function cardelli1989Attenuation(self,wavelength,age,vBandAttenuation)
     !% Return attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.

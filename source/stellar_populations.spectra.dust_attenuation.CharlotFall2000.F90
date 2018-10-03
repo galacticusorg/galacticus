@@ -21,7 +21,6 @@
   !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCharlotFall2000">
   !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{charlot_simple_2000}.</description>
   !# </stellarSpectraDustAttenuation>
-
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationCharlotFall2000
      !% A class implementing calculations of attenuation of stellar spectra using the model of \cite{charlot_simple_2000}.
      private
@@ -32,52 +31,78 @@
   end type stellarSpectraDustAttenuationCharlotFall2000
 
   interface stellarSpectraDustAttenuationCharlotFall2000
-     !% Constructors for the ``charlotFall2000'' stellar spectra dust attenuation class.
-     module procedure charlotFall2000DefaultConstructor
-     module procedure charlotFall2000Constructor
+     !% Constructors for the {\normalfont \ttfamily charlotFall2000} stellar spectra dust attenuation class.
+     module procedure charlotFall2000ConstructorParameters
+     module procedure charlotFall2000ConstructorInternal
   end interface stellarSpectraDustAttenuationCharlotFall2000
 
 contains
 
-  function charlotFall2000DefaultConstructor()
-    !% Default constructor for the ``charlotFall2000'' stellar spectra dust attenuatio class.
+  function charlotFall2000ConstructorParameters(parameters) result(self)
+    !% Default constructor for the {\normalfont \ttfamily charlotFall2000} stellar spectra dust attenuatio class.
     implicit none
-    type            (stellarSpectraDustAttenuationCharlotFall2000)            :: charlotFall2000DefaultConstructor
-    ! Exponent of the opacity wavelength dependence.
-    double precision                                              , parameter :: opacityExponent        =    0.7d0
-    ! Duration spent in birthclouds (Gyr).
-    double precision                                              , parameter :: birthCloudLifetime     =    1.0d-2
-    ! Effective optical depth of the ISM and birthclouds.
-    double precision                                              , parameter :: opticalDepthISM        =    0.5d0 , &
-         &                                                                       opticalDepthBirthClouds=    1.0d0
+    type            (stellarSpectraDustAttenuationCharlotFall2000)                :: self
+    type            (inputParameters                             ), intent(inout) :: parameters
+    double precision                                                              :: opacityExponent, birthCloudLifetime     , &
+         &                                                                           opticalDepthISM, opticalDepthBirthClouds
 
-    charlotFall2000DefaultConstructor=charlotFall2000Constructor(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds)
+    !# <inputParameter>
+    !#   <name>opacityExponent</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.7d0</defaultValue>
+    !#   <description>The exponent of wavelength appearing in the opacity.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>birthCloudLifetime</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d-2</defaultValue>
+    !#   <description>The duration which stars remain within their birth clouds.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>opticalDepthISM</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.5d0</defaultValue>
+    !#   <description>The effective optical depth of the ISM.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>opticalDepthBirthClouds</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The effective optical depth of birth clouds.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=stellarSpectraDustAttenuationCharlotFall2000(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end function charlotFall2000DefaultConstructor
+  end function charlotFall2000ConstructorParameters
 
-  function charlotFall2000Constructor(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds)
-    !% Constructor for the ``charlotFall2000'' stellar spectra dust attenuation class.
+  function charlotFall2000ConstructorInternal(opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds) result(self)
+    !% Constructor for the {\normalfont \ttfamily charlotFall2000} stellar spectra dust attenuation class.
     implicit none
-    type            (stellarSpectraDustAttenuationCharlotFall2000)                :: charlotFall2000Constructor
-    double precision                                              , intent(in   ) :: opacityExponent           , birthCloudLifetime     , &
-         &                                                                           opticalDepthISM           , opticalDepthBirthClouds
+    type            (stellarSpectraDustAttenuationCharlotFall2000)                :: self
+    double precision                                              , intent(in   ) :: opacityExponent, birthCloudLifetime     , &
+         &                                                                           opticalDepthISM, opticalDepthBirthClouds
+    !# <constructorAssign variables="opacityExponent,birthCloudLifetime,opticalDepthISM,opticalDepthBirthClouds"/>
 
-    charlotFall2000Constructor%opacityExponent        =opacityExponent
-    charlotFall2000Constructor%birthCloudLifetime     =birthCloudLifetime
-    charlotFall2000Constructor%opticalDepthISM        =opticalDepthISM
-    charlotFall2000Constructor%opticalDepthBirthClouds=opticalDepthBirthClouds
     return
-  end function charlotFall2000Constructor
+  end function charlotFall2000ConstructorInternal
 
   double precision function charlotFall2000Attenuation(self,wavelength,age,vBandAttenuation)
     !% Return attenuation of stellar spectra according to the model of \cite{charlot_simple_2000}. Note that the V-band
     !% attenuation is taken to be that due to the ISM alone (i.e. not including birthclouds).
     implicit none
     class           (stellarSpectraDustAttenuationCharlotFall2000), intent(inout) :: self
-    double precision                                              , intent(in   ) :: wavelength                                , age, &
+    double precision                                              , intent(in   ) :: wavelength                         , age, &
          &                                                                           vBandAttenuation
     ! Effective wavelength of Buser V-band filter.
-    double precision                                              , parameter     :: vBandWavelength        =5504.61227375652d0
+    double precision                                              , parameter     :: vBandWavelength =5504.61227375652d0
     double precision                                                              :: cloudFactor
 
     if (age <= self%birthCloudLifetime) then

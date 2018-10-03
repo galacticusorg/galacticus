@@ -44,6 +44,7 @@ contains
     type            (inputParameters                                 ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                         ), pointer                     :: cosmologyFunctions_
     class           (gravitationalLensingClass                       ), pointer                     :: gravitationalLensing_
+    class           (stellarSpectraDustAttenuationClass              ), pointer                     :: stellarSpectraDustAttenuation_
     double precision                                                  , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                         :: covarianceBinomialBinsPerDecade  , redshiftInterval
     double precision                                                                                :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -149,15 +150,16 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
-    !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"            name="cosmologyFunctions_"            source="parameters"/>
+    !# <objectBuilder class="gravitationalLensing"          name="gravitationalLensing_"          source="parameters"/>
+    !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
+    self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
     return
   end function luminosityFunctionSobral2013HiZELSConstructorParameters
 
-  function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
+  function luminosityFunctionSobral2013HiZELSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionSobral2013HiZELS'' output analysis class for internal use.
     use Input_Parameters
     use Galacticus_Paths
@@ -169,6 +171,7 @@ contains
     type            (outputAnalysisLuminosityFunctionSobral2013HiZELS   )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
+    class           (stellarSpectraDustAttenuationClass                 ), intent(in   ), target       :: stellarSpectraDustAttenuation_
     integer                                                              , intent(in   )               :: redshiftInterval
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing                                   , depthOpticalISMCoefficient
@@ -249,15 +252,16 @@ contains
          &                                                                                                       distributionOperatorSequence      &
          &                                                                                                      )
     ! Build the object.
-    self%outputAnalysisLuminosityFunctionHalpha=                                                                                                                   &
-         & outputAnalysisLuminosityFunctionHalpha(                                                                                                                 &
+    self%outputAnalysisLuminosityFunctionHalpha=                                                                                                                         &
+         & outputAnalysisLuminosityFunctionHalpha(                                                                                                                       &
          &                                        var_str('Sobral2013HiZELSZ'                                                                      )//redshiftInterval , &
          &                                        var_str('Hα luminosity function for the Sobral et al. (2013) HiZELS analysis; redshift interval ')//redshiftInterval , &
-         &                                        char   (galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/'                        //fileName        ), &
+         &                                        char   (galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/'                  //fileName        ), &
          &                                        .false.                                                                                                              , &
          &                                        depthOpticalISMCoefficient                                                                                           , &
          &                                        galacticFilter_                                                                                                      , &
          &                                        surveyGeometry_                                                                                                      , &
+         &                                        stellarSpectraDustAttenuation_                                                                                       , &
          &                                        cosmologyFunctions_                                                                                                  , &
          &                                        cosmologyFunctionsData                                                                                               , &
          &                                        outputAnalysisPropertyOperator_                                                                                      , &

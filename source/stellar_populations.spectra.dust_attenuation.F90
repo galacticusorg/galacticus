@@ -20,13 +20,10 @@
 
 module Stellar_Spectra_Dust_Attenuations
   !% Provides a class implementing dust attenuation of stellar spectra.
-  use ISO_Varying_String
-  !# <include directive="stellarSpectraDustAttenuation" type="functionModules" >
-  include 'stellarSpectraDustAttenuation.functionModules.inc'
-  !# </include>
   private
 
-  !# <include directive="stellarSpectraDustAttenuation" type="function" >
+  !# <functionClass>
+  !#  <name>stellarSpectraDustAttenuation</name>
   !#  <descriptiveName>Stellar Spectra Dust Attenuation</descriptiveName>
   !#  <description>Class implementing dust attenuation of stellar spectra..</description>
   !#  <default>null</default>
@@ -55,7 +52,6 @@ module Stellar_Spectra_Dust_Attenuations
   !#    stellarSpectraDustAttenuationIsSeparable=.true.
   !#   </code>
   !#  </method>
-  include 'stellarSpectraDustAttenuation.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Stellar_Spectra_Dust_Attenuations

@@ -298,11 +298,11 @@ contains
     ! Construct dust attenuation object.
     select case (self%dustType)
     case (sedFitDustTypeNull           )
-       allocate(stellarSpectraDustAttenuationNull :: dust)
+       allocate(stellarSpectraDustAttenuationZero :: dust)
        select type (dust)
-       type is (stellarSpectraDustAttenuationNull)
+       type is (stellarSpectraDustAttenuationZero)
           vBandAttenuation=0.0d0
-          dust=stellarSpectraDustAttenuationNull()
+          dust=stellarSpectraDustAttenuationZero()
        end select
        burstIndexOffset=5
     case (sedFitDustTypeCharlotFall2000)
@@ -311,11 +311,11 @@ contains
        type is (stellarSpectraDustAttenuationCharlotFall2000)
           vBandAttenuation       =     stateVector(6)
           opticalDepthBirthClouds=-log(stateVector(7))
-          dust=stellarSpectraDustAttenuationCharlotFall2000(                                                 &
-               &                                            opacityExponent        =0.7d+0                 , &
-               &                                            birthCloudLifetime     =1.0d-2                 , &
-               &                                            opticalDepthISM        =1.0d+0                 , &
-               &                                            opticalDepthBirthClouds=opticalDepthBirthClouds  &
+          dust=stellarSpectraDustAttenuationCharlotFall2000(                                                              &
+               &                                            opacityExponent        =0.7d+0                              , &
+               &                                            birthCloudLifetime     =1.0d-2                              , &
+               &                                            opticalDepthISM        =1.0d+0                              , &
+               &                                            opticalDepthBirthClouds=opticalDepthBirthClouds               &
                &                                           )
        end select
        burstIndexOffset=7
@@ -325,8 +325,8 @@ contains
        type is (stellarSpectraDustAttenuationCardelli1989)
           vBandAttenuation=stateVector(6)
           Rv              =stateVector(7)
-          dust=stellarSpectraDustAttenuationCardelli1989   (                                                 &
-               &                                            Rv                     =Rv                       &
+          dust=stellarSpectraDustAttenuationCardelli1989   (                                                              &
+               &                                            Rv                     =Rv                                    &
                &                                           )
        end select
        burstIndexOffset=7
@@ -335,8 +335,8 @@ contains
        select type (dust)
        type is (stellarSpectraDustAttenuationGordon2003)
           vBandAttenuation=stateVector(6)
-          dust=stellarSpectraDustAttenuationGordon2003     (                                                 &
-               &                                            sample                 ='LMC'                    &
+          dust=stellarSpectraDustAttenuationGordon2003     (                                                              &
+               &                                            sample                 =gordon2003SampleLMC                   &
                &                                           )
        end select
        burstIndexOffset=6
@@ -345,7 +345,7 @@ contains
        select type (dust)
        type is (stellarSpectraDustAttenuationCalzetti2000)
           vBandAttenuation=stateVector(6)
-          dust=stellarSpectraDustAttenuationCalzetti2000   (                                                 &
+          dust=stellarSpectraDustAttenuationCalzetti2000   (                                                              &
                &                                           )
        end select
        burstIndexOffset=6
@@ -354,8 +354,8 @@ contains
        select type (dust)
        type is (stellarSpectraDustAttenuationWittGordon2000)
           vBandAttenuation=stateVector(6)
-          dust=stellarSpectraDustAttenuationWittGordon2000 (                                                &
-               &                                            model                 ='MilkyWayShellTau3.0'    &
+          dust=stellarSpectraDustAttenuationWittGordon2000 (                                                             &
+               &                                            model                 =wittGordon2000ModelMilkyWayShellTau3  &
                &                                           )
        end select
        burstIndexOffset=6
