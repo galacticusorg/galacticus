@@ -1665,8 +1665,9 @@ contains
      use Supernovae_Type_Ia
      use Stellar_Astrophysics
      implicit none
-     double precision, intent(in   ) :: initialMass
-     double precision                :: sneiaLifetime, yieldMass
+     double precision                       , intent(in   ) :: initialMass
+     class           (supernovaeTypeIaClass), pointer       :: supernovaeTypeIa_
+     double precision                                       :: sneiaLifetime, yieldMass
      
      ! Include yields from isolated stars.
      if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
@@ -1691,12 +1692,13 @@ contains
         ! In the standard calculation simply use the current age.
         sneiaLifetime=lifetime
      end if
+     supernovaeTypeIa_ => supernovaeTypeIa()
      select case (atomIndexGlobal)
      case (0)
         ! Total metallicity required.
-        yieldMass=SNeIa_Cumulative_Yield(initialMass,sneiaLifetime,metallicity                )
+        yieldMass=supernovaeTypeIa_%yield(initialMass,sneiaLifetime,metallicity                )
      case default
-        yieldMass=SNeIa_Cumulative_Yield(initialMass,sneiaLifetime,metallicity,atomIndexGlobal)
+        yieldMass=supernovaeTypeIa_%yield(initialMass,sneiaLifetime,metallicity,atomIndexGlobal)
      end select
      Metal_Yield_Integrand=Metal_Yield_Integrand+IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
      return
