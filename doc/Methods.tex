@@ -1934,51 +1934,6 @@ Currently defined stellar tracks methods are:
  \item [{\normalfont \ttfamily file}] Stellar tracks are read from an HDF5 file and interpolated in. The structure of the HDF5 is described in \S\ref{sec:StellarTracksFile}.
 \end{description}
 
-\subsubsection{Stellar Winds}
-
-Additional methods for stellar winds can be added using the {\normalfont \ttfamily stellarWindsMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Leitherer1992} method is described by a directive:
-\begin{verbatim}
-  !# <stellarWindsMethod>
-  !#  <unitName>Stellar_Winds_Leitherer1992_Initialize</unitName>
-  !# </stellarWindsMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Stellar\_Winds\_Leitherer1992\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: stellarWindsMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get
-    
-    if (stellarWindsMethod == 'myMethod') then
-       Stellar_Winds_Mass_Loss_Rate_Get    => My_Stellar_Winds_Mass_Loss_Rate_Get
-       Stellar_Winds_Terminal_Velocity_Get => My_Stellar_Winds_Terminal_Velocity_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily stellarWindsMethod} input parameter. The procedure pointers {\normalfont \ttfamily Stellar\_Winds\_Mass\_Loss\_Rate\_Get} and {\normalfont \ttfamily Stellar\_Winds\_Terminal\_Velocity\_Get} must be set to point to functions which return the mass loss rate and terminal velocity of winds as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The functions must have the form:
-\begin{verbatim}
-   double precision function Stellar_Wind_Function(initialMass,age,metallicity)
-    implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-    .
-    .
-    .
-    return
-   end function Stellar_Wind_Function 
-\end{verbatim}
-The mass loss function must return the rate of mass loss (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The terminal velocity function should give the velocity (in km/s) at infinity of the wind for the same stars.
-
-Currently defined stellar winds methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Leitherer1992}] Computes wind properties using the fitting functions of \cite{leitherer_deposition_1992} and \glc\ stellar tracks.
-\end{description}
-
 \subsubsection{Tree Timing}
 
 Additional methods for tree timing (i.e. the time taken to process a given merger tree) can be added using the {\normalfont \ttfamily timePerTreeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily file} method is described by a directive:

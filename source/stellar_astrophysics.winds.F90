@@ -16,92 +16,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides calculations of stellar winds.
+!% Contains a module which implements a class for calculations of stellar winds.
 
 module Stellar_Astrophysics_Winds
-  !% Provides calculations of stellar winds.
-  use ISO_Varying_String
+  !% Implements a class for calculations of stellar winds.
   implicit none
   private
-  public :: Stellar_Winds_Mass_Loss_Rate, Stellar_Winds_Terminal_Velocity
 
-  ! Flag indicating whether this module has been initialized.
-  logical                                        :: stellarWindsInitialized            =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string            )          :: stellarWindsMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Stellar_Winds_Get_Template), pointer :: Stellar_Winds_Mass_Loss_Rate_Get   =>null()
-  procedure(Stellar_Winds_Get_Template), pointer :: Stellar_Winds_Terminal_Velocity_Get=>null()
-  abstract interface
-    double precision function Stellar_Winds_Get_Template(initialMass,age,metallicity)
-      double precision, intent(in   ) :: age, initialMass, metallicity
-    end function Stellar_Winds_Get_Template
-  end interface
-
-contains
-
-  subroutine Stellar_Winds_Initialize
-    !% Initialize the stellar winds module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="stellarWindsMethod" type="moduleUse">
-    include 'stellar_astrophysics.winds.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.stellarWindsInitialized) then
-       !$omp critical(Stellar_Winds_Initialization)
-       if (.not.stellarWindsInitialized) then
-          ! Get the halo spin distribution method parameter.
-          !# <inputParameter>
-          !#   <name>stellarWindsMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Leitherer1992')</defaultValue>
-          !#   <description>The method to use for computing aspects of stellar winds.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarWindsMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>stellarWindsMethod,Stellar_Winds_Mass_Loss_Rate_Get,Stellar_Winds_Terminal_Velocity_Get</functionArgs>
-          include 'stellar_astrophysics.winds.inc'
-          !# </include>
-          if (.not.(associated(Stellar_Winds_Mass_Loss_Rate_Get).or.associated(Stellar_Winds_Terminal_Velocity_Get))) &
-               & call Galacticus_Error_Report('method '//char(stellarWindsMethod)//' is unrecognized'//{introspection:location})
-          stellarWindsInitialized=.true.
-       end if
-       !$omp end critical(Stellar_Winds_Initialization)
-    end if
-    return
-  end subroutine Stellar_Winds_Initialize
-
-  double precision function Stellar_Winds_Mass_Loss_Rate(initialMass,age,metallicity)
-    !% Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
-
-    ! Ensure module is initialized.
-    call Stellar_Winds_Initialize
-
-    ! Simply call the function which does the actual work.
-    Stellar_Winds_Mass_Loss_Rate=Stellar_Winds_Mass_Loss_Rate_Get(initialMass,age,metallicity)
-    return
-  end function Stellar_Winds_Mass_Loss_Rate
-
-  double precision function Stellar_Winds_Terminal_Velocity(initialMass,age,metallicity)
-    !% Return the terminal velocity (in km/s) of winds from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
-
-    ! Ensure module is initialized.
-    call Stellar_Winds_Initialize
-
-    ! Simply call the function which does the actual work.
-    Stellar_Winds_Terminal_Velocity=Stellar_Winds_Terminal_Velocity_Get(initialMass,age,metallicity)
-    return
-  end function Stellar_Winds_Terminal_Velocity
-
+  !# <functionClass>
+  !#  <name>stellarWinds</name>
+  !#  <descriptiveName>Stellar Winds</descriptiveName>
+  !#  <description>Class providing models of stellar winds.</description>
+  !#  <default>leitherer1992</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="rateMassLoss" >
+  !#   <description>Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+  !#  </method>
+  !#  <method name="velocityTerminal" >
+  !#   <description>Return the terminal velocity (in km/s) of winds from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Stellar_Astrophysics_Winds

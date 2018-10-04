@@ -20,6 +20,7 @@
 
   use Supernovae_Type_Ia
   use Supernovae_Population_III
+  use Stellar_Astrophysics_Winds
 
   !# <stellarFeedback name="stellarFeedbackStandard">
   !#  <description>A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.</description>
@@ -29,6 +30,7 @@
      private
      class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_
      class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_
+     class           (stellarWindsClass           ), pointer :: stellarWinds_
      double precision                                        :: initialMassForSupernovaeTypeII, supernovaEnergy
    contains
      final     ::                          standardDestructor
@@ -42,8 +44,9 @@
   end interface stellarFeedbackStandard
 
   ! Module-scope variables used in integrands.
-  double precision :: standardMassInitial, standardMetallicity
-  !$omp threadprivate(standardMassInitial,standardMetallicity)
+  class           (stellarFeedbackStandard), pointer :: standardSelf
+  double precision                                   :: standardMassInitial, standardMetallicity
+  !$omp threadprivate(standardSelf,standardMassInitial,standardMetallicity)
 
 contains
 
@@ -58,6 +61,7 @@ contains
     type            (inputParameters             ), intent(inout) :: parameters
     class           (supernovaeTypeIaClass       ), pointer       :: supernovaeTypeIa_
     class           (supernovaePopulationIIIClass), pointer       :: supernovaePopulationIII_
+    class           (stellarWindsClass           ), pointer       :: stellarWinds_
     double precision                                              :: initialMassForSupernovaeTypeII, supernovaEnergy
 
     !# <inputParameter>
@@ -80,19 +84,21 @@ contains
     supernovaEnergy=supernovaEnergy*ergs/massSolar/kilo**2
     !# <objectBuilder class="supernovaeTypeIa"        name="supernovaeTypeIa_"        source="parameters"/>
     !# <objectBuilder class="supernovaePopulationIII" name="supernovaePopulationIII_" source="parameters"/>
-    self=stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_)
+    !# <objectBuilder class="stellarWinds"            name="stellarWinds_"            source="parameters"/>
+    self=stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
   
-  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_) result(self)
+  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
     implicit none
     type            (stellarFeedbackStandard     )                        :: self
     class           (supernovaeTypeIaClass       ), intent(in   ), target :: supernovaeTypeIa_
     class           (supernovaePopulationIIIClass), intent(in   ), target :: supernovaePopulationIII_
+    class           (stellarWindsClass           ), intent(in   ), target :: stellarWinds_
     double precision                              , intent(in   )         :: initialMassForSupernovaeTypeII, supernovaEnergy
-    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_"/>
+    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_, *stellarWinds_"/>
     
     return
   end function standardConstructorInternal
@@ -104,6 +110,7 @@ contains
     
     !# <objectDestructor name="self%supernovaeTypeIa_"       />
     !# <objectDestructor name="self%supernovaePopulationIII_"/>
+    !# <objectDestructor name="self%stellarWinds_"           />
     return
   end subroutine standardDestructor
   
@@ -114,17 +121,17 @@ contains
     use Numerical_Constants_Astronomical
     use FGSL
     implicit none
-    class           (stellarFeedbackStandard   ), intent(inout) :: self
-    double precision                            , intent(in   ) :: age                                                    , initialMass, metallicity
-    double precision                            , parameter     :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
-    double precision                                            :: energySNe                                              , energyWinds, lifetime
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    class           (stellarFeedbackStandard   ), intent(inout), target :: self
+    double precision                            , intent(in   )         :: age                                                    , initialMass, metallicity
+    double precision                            , parameter             :: populationIIIMaximumMetallicity=1.0d-4*metallicitySolar
+    double precision                                                    :: energySNe                                              , energyWinds, lifetime
+    type            (fgsl_function             )                        :: integrandFunction
+    type            (fgsl_integration_workspace)                        :: integrationWorkspace
 
     ! Begin with zero energy input.
     standardEnergyInputCumulative=0.0d0
     ! Check if the star is sufficiently massive to result in a Type II supernova.
-    if (initialMass >= self%initialMassForSupernovaeTypeII ) then
+    if (initialMass >= self%initialMassForSupernovaeTypeII) then
        ! Get the lifetime of the star.
        lifetime=Star_Lifetime(initialMass,metallicity)
        ! If lifetime is exceeded, assume a SNe has occurred.
@@ -143,8 +150,9 @@ contains
          &                        +self%supernovaeTypeIa_%number         (initialMass,age,metallicity) &
          &                        *self                  %supernovaEnergy
     ! Add in the contribution from stellar winds.
-    standardMassInitial=initialMass
-    standardMetallicity=metallicity
+    standardSelf        => self
+    standardMassInitial =  initialMass
+    standardMetallicity =  metallicity
     energyWinds=Integrate(0.0d0,age,standardWindEnergyIntegrand,integrandFunction,integrationWorkspace,toleranceAbsolute=1.0d-3*standardEnergyInputCumulative,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     standardEnergyInputCumulative=standardEnergyInputCumulative+energyWinds
@@ -153,12 +161,11 @@ contains
 
   double precision function standardWindEnergyIntegrand(age)
     !% Integrand used in evaluating cumulative energy input from winds.
-    use Stellar_Astrophysics_Winds
     implicit none
     double precision, intent(in   ) :: age
 
-    standardWindEnergyIntegrand=+0.5d0                                                                           &
-         &                      *Stellar_Winds_Mass_Loss_Rate   (standardMassInitial,age,standardMetallicity)    &
-         &                      *Stellar_Winds_Terminal_Velocity(standardMassInitial,age,standardMetallicity)**2
+    standardWindEnergyIntegrand=+0.5d0                                                                                       &
+         &                      *standardSelf%stellarWinds_%rateMassLoss    (standardMassInitial,age,standardMetallicity)    &
+         &                      *standardSelf%stellarWinds_%velocityTerminal(standardMassInitial,age,standardMetallicity)**2
     return
   end function standardWindEnergyIntegrand

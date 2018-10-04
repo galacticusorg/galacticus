@@ -578,7 +578,11 @@ my @translations =
 	     supernovaePopulationIIIMethod =>
 	     {
 		 "Heger-Woosley2002" => "hegerWoosley2002"
-	     }   
+	     },
+	     stellarWindsMethod      =>
+	     {
+		 "Leitherer1992"     => "leitherer1992"
+	     }    
 	 }
      }
     );

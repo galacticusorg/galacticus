@@ -33,6 +33,7 @@ module Stellar_Feedback
   !#   <description>Return the cumulative energy input from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
   !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
   !#  </method>
   !# </functionClass>
