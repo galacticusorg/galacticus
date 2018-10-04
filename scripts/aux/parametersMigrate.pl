@@ -543,38 +543,42 @@ my @translations =
 	 {
 	     atomicCollisionalIonizationMethod         =>
 	     {
-		 "Verner"          => "verner1996"
+		 "Verner"            => "verner1996"
 	     },
 	     collisionalExcitationMethod               => 
 	     {
-		 "ScholzWalters91" => "scholzWalters91"
+		 "ScholzWalters91  " => "scholzWalters91"
 	     },
 	     blackHoleBinaryInitialRadiiMethod         =>
 	     {
-		 "Volonteri2003"   => "volonteri2003"
+		 "Volonteri2003"     => "volonteri2003"
 	     },    
 	     blackHoleBinarySeparationGrowthRateMethod =>
 	     {
-		 "null"            => "zero"
+		 "null"              => "zero"
 	     },
 	     blackHoleBinaryMergersMethod =>
 	     {
-		 "Rezzolla2008"    => "rezzolla2008"
+		 "Rezzolla2008"      => "rezzolla2008"
 	     },
 	     stellarSpectraDustAttenuationMethod       =>
 	     {
-		 "Calzetti2000"    => "calzetti2000"   ,
-		 "Cardelli1989"    => "cardelli1989"   ,
-		 "CharlotFall2000" => "charlotFall2000",
-		 "Gordon2003"      => "gordon2003"     ,
-		 "WittGordon2000"  => "wittGorden2000" ,
-		 "PrevotBouchet"   => "prevotBouchet"  ,
-		 "null"            => "zero"
+		 "Calzetti2000"      => "calzetti2000"   ,
+		 "Cardelli1989"      => "cardelli1989"   ,
+		 "CharlotFall2000"   => "charlotFall2000",
+		 "Gordon2003"        => "gordon2003"     ,
+		 "WittGordon2000"    => "wittGorden2000" ,
+		 "PrevotBouchet"     => "prevotBouchet"  ,
+		 "null"              => "zero"
 	     },
 	     supernovaeIaMethod =>
 	     {
-		 "Nagashima"       => "nagashima2005"
-	     }
+		 "Nagashima"         => "nagashima2005"
+	     },
+	     supernovaePopulationIIIMethod =>
+	     {
+		 "Heger-Woosley2002" => "hegerWoosley2002"
+	     }   
 	 }
      }
     );

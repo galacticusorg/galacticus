@@ -19,6 +19,7 @@
   !% Implements a stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
 
   use Supernovae_Type_Ia
+  use Supernovae_Population_III
 
   !# <stellarFeedback name="stellarFeedbackStandard">
   !#  <description>A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.</description>
@@ -26,8 +27,9 @@
   type, extends(stellarFeedbackClass) :: stellarFeedbackStandard
      !% A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
      private
-     class           (supernovaeTypeIaClass), pointer :: supernovaeTypeIa_
-     double precision                                 :: initialMassForSupernovaeTypeII, supernovaEnergy
+     class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_
+     class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_
+     double precision                                        :: initialMassForSupernovaeTypeII, supernovaEnergy
    contains
      final     ::                          standardDestructor
      procedure :: energyInputCumulative => standardEnergyInputCumulative
@@ -52,10 +54,11 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     implicit none
-    type            (stellarFeedbackStandard)                :: self
-    type            (inputParameters        ), intent(inout) :: parameters
-    class           (supernovaeTypeIaClass  ), pointer       :: supernovaeTypeIa_
-    double precision                                         :: initialMassForSupernovaeTypeII, supernovaEnergy
+    type            (stellarFeedbackStandard     )                :: self
+    type            (inputParameters             ), intent(inout) :: parameters
+    class           (supernovaeTypeIaClass       ), pointer       :: supernovaeTypeIa_
+    class           (supernovaePopulationIIIClass), pointer       :: supernovaePopulationIII_
+    double precision                                              :: initialMassForSupernovaeTypeII, supernovaEnergy
 
     !# <inputParameter>
     !#   <name>initialMassForSupernovaeTypeII</name>
@@ -75,19 +78,21 @@ contains
     !# </inputParameter>
     ! Convert energy to M☉ (km/s)².
     supernovaEnergy=supernovaEnergy*ergs/massSolar/kilo**2
-    !# <objectBuilder class="supernovaeTypeIa" name="supernovaeTypeIa_" source="parameters"/>
-    self           =stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_)
+    !# <objectBuilder class="supernovaeTypeIa"        name="supernovaeTypeIa_"        source="parameters"/>
+    !# <objectBuilder class="supernovaePopulationIII" name="supernovaePopulationIII_" source="parameters"/>
+    self=stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
   
-  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_) result(self)
+  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
     implicit none
-    type            (stellarFeedbackStandard)                        :: self
-    class           (supernovaeTypeIaClass  ), intent(in   ), target :: supernovaeTypeIa_
-    double precision                         , intent(in   )         :: initialMassForSupernovaeTypeII, supernovaEnergy
-    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_"/>
+    type            (stellarFeedbackStandard     )                        :: self
+    class           (supernovaeTypeIaClass       ), intent(in   ), target :: supernovaeTypeIa_
+    class           (supernovaePopulationIIIClass), intent(in   ), target :: supernovaePopulationIII_
+    double precision                              , intent(in   )         :: initialMassForSupernovaeTypeII, supernovaEnergy
+    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_"/>
     
     return
   end function standardConstructorInternal
@@ -97,14 +102,14 @@ contains
     implicit none
     type(stellarFeedbackStandard), intent(inout) :: self
     
-    !# <objectDestructor name="self%supernovaeTypeIa_"/>
+    !# <objectDestructor name="self%supernovaeTypeIa_"       />
+    !# <objectDestructor name="self%supernovaePopulationIII_"/>
     return
   end subroutine standardDestructor
   
   double precision function standardEnergyInputCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     use Stellar_Astrophysics
-    use Supernovae_Population_III
     use Numerical_Integration
     use Numerical_Constants_Astronomical
     use FGSL
@@ -126,7 +131,7 @@ contains
        if (age >= lifetime) then
           energySNe=0.0d0
           ! Check for pair instability supernovae.
-          if (metallicity <= populationIIIMaximumMetallicity) energySNe=energySNe+SNePopIII_Cumulative_Energy(initialMass,age,metallicity)
+          if (metallicity <= populationIIIMaximumMetallicity) energySNe=energySNe+self%supernovaePopulationIII_%energyCumulative(initialMass,age,metallicity)
           ! Population II star - normal supernova.
           energySNe=energySNe+self%supernovaEnergy
           ! Add the supernova energy.

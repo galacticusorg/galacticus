@@ -16,77 +16,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides calculations of Population III supernovae.
+!% Contains a module which implements a class for calculations of Population III supernovae.
 
 module Supernovae_Population_III
-  !% Provides calculations of Population III supernovae.
-  use ISO_Varying_String
+  !% Implements a class for calculations of Population III supernovae.
   implicit none
   private
-  public :: SNePopIII_Cumulative_Energy
-
-  ! Flag indicating whether this module has been initialized.
-  logical                                           :: supernovaePopIIIInitialized    =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string               )          :: supernovaePopIIIMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(SNePopIII_Cumulative_Template), pointer :: SNePopIII_Cumulative_Energy_Get=>null()
-  abstract interface
-    double precision function SNePopIII_Cumulative_Template(initialMass,age,metallicity)
-      double precision, intent(in   ) :: age, initialMass, metallicity
-    end function SNePopIII_Cumulative_Template
-  end interface
-
-contains
-
-  subroutine Supernovae_Population_III_Initialize
-    !% Initialize the Population III supernovae module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="supernovaePopIIIMethod" type="moduleUse">
-    include 'stellar_astrophysics.supernovae_type_PopIII.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.supernovaePopIIIInitialized) then
-       !$omp critical(Supernovae_Population_III_Initialization)
-       if (.not.supernovaePopIIIInitialized) then
-          ! Get the halo spin distribution method parameter.
-          !# <inputParameter>
-          !#   <name>supernovaePopIIIMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Heger-Woosley2002')</defaultValue>
-          !#   <description>The method to use for computing properties of Population III supernovae.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="supernovaePopIIIMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get</functionArgs>
-          include 'stellar_astrophysics.supernovae_type_PopIII.inc'
-          !# </include>
-          if (.not.associated(SNePopIII_Cumulative_Energy_Get)) call Galacticus_Error_Report('method '//char(supernovaePopIIIMethod)//' is unrecognized'//{introspection:location})
-          supernovaePopIIIInitialized=.true.
-       end if
-       !$omp end critical(Supernovae_Population_III_Initialization)
-    end if
-    return
-  end subroutine Supernovae_Population_III_Initialize
-
-  double precision function SNePopIII_Cumulative_Energy(initialMass,age,metallicity)
-    !% Return the cumulative energy input from Population III supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
-
-    ! Ensure module is initialized.
-    call Supernovae_Population_III_Initialize
-
-    ! Simply call the function which does the actual work.
-    SNePopIII_Cumulative_Energy=SNePopIII_Cumulative_Energy_Get(initialMass,age,metallicity)
-    return
-  end function SNePopIII_Cumulative_Energy
+  
+  !# <functionClass>
+  !#  <name>supernovaePopulationIII</name>
+  !#  <descriptiveName>Supernovae Type Ia</descriptiveName>
+  !#  <description>Class providing models of supernovae from Population III stars.</description>
+  !#  <default>hegerWoosley2002</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="energyCumulative" >
+  !#   <description> Return the cumulative energy input from Population III supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Supernovae_Population_III
