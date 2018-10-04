@@ -1933,50 +1933,6 @@ Currently defined stellar population properties methods are:
  \item [\hyperlink{stellar_populations.properties.instantaneous.F90:stellar_population_properties_instantaneous:stellar_population_properties_rates_instantaneous}{{\normalfont \ttfamily instantaneous}}] Computes stellar population properties using an instantaneous recyclying approximation.
 \end{description}
 
-\subsubsection{Stellar Feedback}
-
-Additional methods for stellar feedback can be added using the {\normalfont \ttfamily stellarFeedbackMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily standard} method is described by a directive:
-\begin{verbatim}
-  !# <stellarFeedbackMethod>
-  !#  <unitName>Stellar_Feedback_Standard_Initialize</unitName>
-  !# </stellarFeedbackMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Stellar\_Feedback\_Standard\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: stellarFeedbackMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Feedback_Cumulative_Energy_Input_Get
-    
-    if (stellarFeedbackMethod == 'myMethod') then
-       Stellar_Feedback_Cumulative_Energy_Input_Get => My_Stellar_Feedback_Cumulative_Energy_Input_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily stellarFeedbackMethod} input parameter. The procedure pointer {\normalfont \ttfamily Stellar\_Feedback\_Cumulative\_Energy\_Input\_Get} must be set to point to a function which returns the cumulative energy input from stars as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The function must have the form:
-\begin{verbatim}
-   double precision function Stellar_Feedback_Cumulative_Energy_Input(initialMass,age,metallicity)
-    implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-    .
-    .
-    .
-    return
-   end function Stellar_Feedback_Cumulative_Energy_Input 
-\end{verbatim}
-The function must return the cumulative energy input (in $M_\odot$ (km/s)$^2$ from stars of given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}.
-
-Currently defined stellar feedback methods are:
-\begin{description}
- \item [{\normalfont \ttfamily standard}] This method assumes that the energy input has contributions from stellar winds, Type Ia, Type II and Population III supernovae. The minimum mass required for a star to produce a Type II supernova is specified via {\normalfont \ttfamily initialMassForSupernovaeTypeII} (in $M_\odot$), while the energy per Type II or Ia supernova is specified via {\normalfont \ttfamily supernovaEnergy} (in ergs).
-\end{description}
-
 \subsubsection{Stellar Tracks}
 
 Additional methods for stellar tracks can be added using the {\normalfont \ttfamily stellarTracksMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily file} method is described by a directive:

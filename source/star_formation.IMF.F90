@@ -2056,8 +2056,9 @@ contains
     !% Integrand used in evaluating cumulative energy input.
     use Stellar_Feedback
     implicit none
-    double precision, intent(in   ) :: initialMass
-    double precision                :: energyLifetime
+    double precision                      , intent(in   ) :: initialMass
+    double precision                                      :: energyLifetime
+    class           (stellarFeedbackClass), pointer       :: stellarFeedback_
 
     if (starFormationImfInstantaneousApproximation) then
        ! In the instantaneous stellar evolution approximation, assume stars more massive than the long-lived star cut off
@@ -2072,8 +2073,8 @@ contains
        ! In the standard calculation, simply use the current lifetime.
        energyLifetime=lifetime
     end if
-    Cumulative_Energy_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*Stellar_Feedback_Cumulative_Energy_Input(initialMass&
-         &,energyLifetime,metallicity)
+    stellarFeedback_ => stellarFeedback()
+    Cumulative_Energy_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*stellarFeedback_%energyInputCumulative(initialMass,energyLifetime,metallicity)
     return
   end function Cumulative_Energy_Integrand
 
