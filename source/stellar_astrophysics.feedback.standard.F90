@@ -18,14 +18,18 @@
 
   !% Implements a stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
 
+  use Supernovae_Type_Ia
+
   !# <stellarFeedback name="stellarFeedbackStandard">
   !#  <description>A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.</description>
   !# </stellarFeedback>
   type, extends(stellarFeedbackClass) :: stellarFeedbackStandard
      !% A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
      private
-     double precision :: initialMassForSupernovaeTypeII, supernovaEnergy
+     class           (supernovaeTypeIaClass), pointer :: supernovaeTypeIa_
+     double precision                                 :: initialMassForSupernovaeTypeII, supernovaEnergy
    contains
+     final     ::                          standardDestructor
      procedure :: energyInputCumulative => standardEnergyInputCumulative
   end type stellarFeedbackStandard
   
@@ -50,6 +54,7 @@ contains
     implicit none
     type            (stellarFeedbackStandard)                :: self
     type            (inputParameters        ), intent(inout) :: parameters
+    class           (supernovaeTypeIaClass  ), pointer       :: supernovaeTypeIa_
     double precision                                         :: initialMassForSupernovaeTypeII, supernovaEnergy
 
     !# <inputParameter>
@@ -70,25 +75,35 @@ contains
     !# </inputParameter>
     ! Convert energy to M☉ (km/s)².
     supernovaEnergy=supernovaEnergy*ergs/massSolar/kilo**2
-    self           =stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy)
+    !# <objectBuilder class="supernovaeTypeIa" name="supernovaeTypeIa_" source="parameters"/>
+    self           =stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
   
-  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy) result(self)
+  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
     implicit none
-    type            (stellarFeedbackStandard)                :: self
-    double precision                         , intent(in   ) :: initialMassForSupernovaeTypeII, supernovaEnergy
-    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy"/>
+    type            (stellarFeedbackStandard)                        :: self
+    class           (supernovaeTypeIaClass  ), intent(in   ), target :: supernovaeTypeIa_
+    double precision                         , intent(in   )         :: initialMassForSupernovaeTypeII, supernovaEnergy
+    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_"/>
     
     return
   end function standardConstructorInternal
   
+  subroutine standardDestructor(self)
+   !% Destructor for the {\normalfont \ttfamily standard} stellar feedback class.
+    implicit none
+    type(stellarFeedbackStandard), intent(inout) :: self
+    
+    !# <objectDestructor name="self%supernovaeTypeIa_"/>
+    return
+  end subroutine standardDestructor
+  
   double precision function standardEnergyInputCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     use Stellar_Astrophysics
-    use Supernovae_Type_Ia
     use Supernovae_Population_III
     use Numerical_Integration
     use Numerical_Constants_Astronomical
@@ -119,9 +134,9 @@ contains
        end if
     end if
     ! Add in contribution from Type Ia supernovae.
-    standardEnergyInputCumulative=+standardEnergyInputCumulative                        &
-         &                        +SNeIa_Cumulative_Number(initialMass,age,metallicity) &
-         &                        *self%supernovaEnergy
+    standardEnergyInputCumulative=+standardEnergyInputCumulative                                       &
+         &                        +self%supernovaeTypeIa_%number         (initialMass,age,metallicity) &
+         &                        *self                  %supernovaEnergy
     ! Add in the contribution from stellar winds.
     standardMassInitial=initialMass
     standardMetallicity=metallicity

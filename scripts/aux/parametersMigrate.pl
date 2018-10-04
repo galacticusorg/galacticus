@@ -536,7 +536,8 @@ my @translations =
 	     "blackHoleBinaryInitialRadiiMethod"          => "blackHoleBinaryInitialSeparationMethod"                                                ,
 	     "blackHoleInitialRadiusSpheroidRadiusRatio"  => "blackHoleBinaryInitialSeparationMethod.spheroidRadiusFraction.--spheroidRadiusFraction",
 	     "stellarDensityChangeBinaryMotion"           => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--stellarDensityChangeBinaryMotion" ,
-	     "blackHoleBinariesComputeVelocityDispersion" => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--computeVelocityDispersion"
+	     "blackHoleBinariesComputeVelocityDispersion" => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--computeVelocityDispersion"        ,
+	     "supernovaeIaMethod"                         => "supernovaeTypeIaMethod"
 	 },
 	 values        =>
 	 {
@@ -569,7 +570,11 @@ my @translations =
 		 "WittGordon2000"  => "wittGorden2000" ,
 		 "PrevotBouchet"   => "prevotBouchet"  ,
 		 "null"            => "zero"
-	     }    
+	     },
+	     supernovaeIaMethod =>
+	     {
+		 "Nagashima"       => "nagashima2005"
+	     }
 	 }
      }
     );
