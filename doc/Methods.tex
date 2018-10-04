@@ -1415,50 +1415,6 @@ Currently defined merger tree construction methods are:
  \item [{\normalfont \ttfamily fullySpecified}] Intended primarily for constructing test cases, this method allows the full state of the merger tree (and all components of nodes) to be specified via an XML document. See \S\ref{sec:TreeConstructFullySpecified} for details of how to use this method.
 \end{description}
 
-\subsubsection{Population III Supernovae}
-
-Additional methods for Population III supernovae can be added using the {\normalfont \ttfamily supernovaePopIIIMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Heger-Woosley2002} method is described by a directive:
-\begin{verbatim}
-  !# <supernovaePopIIIMethod>
-  !#  <unitName>Supernovae_Population_III_HegerWoosley_Initialize</unitName>
-  !# </supernovaePopIIIMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Supernovae\_Population\_III\_HegerWoosley\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(supernovaePopIIIMethod,SNePopIII_Cumulative_Energy_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: supernovaePopIIIMethod
-    procedure(),          pointer, intent(inout) :: SNePopIII_Cumulative_Energy_Get
-    
-    if (supernovaePopIIIMethod == 'myMethod') then
-       SNePopIII_Cumulative_Energy_Get => My_SNePopIII_Cumulative_Energy_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily supernovaePopIIIMethod} input parameter. The procedure pointer {\normalfont \ttfamily SNePopIII\_Cumulative\_Energy\_Get} must be set to point to a function which returns the cumulative energy input from Population III supernovae as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The functions must have the form:
-\begin{verbatim}
-   double precision function PopIII_Cumulative_Energy(initialMass,age,metallicity)
-    implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-    .
-    .
-    .
-    return
-   end function PopIII_Cumulative_Energy 
-\end{verbatim}
-This function must return the cumulative energy (in $M_\odot$ (km/s)$^2$) from Population III supernovae resulting from a star with given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}.
-
-Currently defined population III supernovae methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Heger-Woosley2002}] Computes the energy input from the pair-instability results of \cite{heger_nucleosynthetic_2002}.
-\end{description}
-
 \subsubsection{Radiation Components}\index{radiation}\label{sec:radiationComponents}
 
 Radiation components (i.e. types of radiation field that may be added to any radiation object; see \S\ref{sec:RadiationSubsystem}) are defined using a combination of several directives: {\normalfont \ttfamily radiationLabel}, {\normalfont \ttfamily radiationSet}, {\normalfont \ttfamily radiationTemperature} and {\normalfont \ttfamily radiationFlux}. For example, the cosmic microwave background radiation component is defined by the following set of directives:
@@ -2021,65 +1977,6 @@ The mass loss function must return the rate of mass loss (in $M_\odot$/Gyr) from
 Currently defined stellar winds methods are:
 \begin{description}
  \item [{\normalfont \ttfamily Leitherer1992}] Computes wind properties using the fitting functions of \cite{leitherer_deposition_1992} and \glc\ stellar tracks.
-\end{description}
-
-\subsubsection{Supernovae Type Ia}
-
-Additional methods for Type 1a supernovae can be added using the {\normalfont \ttfamily supernovaeIaMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Nagashima} method is described by a directive:
-\begin{verbatim}
-  !# <supernovaeIaMethod>
-  !#  <unitName>Supernovae_Type_Ia_Nagashima_Initialize</unitName>
-  !# </supernovaeIaMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Supernovae\_Type\_Ia\_Nagashima\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: supernovaeIaMethod
-    procedure(),          pointer, intent(inout) :: SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get
-    
-    if (supernovaeIaMethod == 'myMethod') then
-       SNeIa_Cumulative_Number_Get => My_SNeIa_Cumulative_Number_Get
-       SNeIa_Cumulative_Yield_Get  => My_SNeIa_Cumulative_Yield_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily supernovaeIaMethod} input parameter. The procedure pointers {\normalfont \ttfamily SNeIa\_Cumulative\_Number\_Get} and {\normalfont \ttfamily SNeIa\_Cumulative\_Yield\_Get} must be set to point to functions which return the cumulative number of and cumulative yield from Type Ia supernovae as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The cumulative number function must have the form:
-\begin{verbatim}
-   double precision function SNeIa_Cumulative_Number(initialMass,age,metallicity)
-    implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-    .
-    .
-    .
-    return
-   end function SNeIa_Cumulative_Number 
-\end{verbatim}
-and must return the number of Type Ia supernovae resulting per $M_\odot$ of stars formed with given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. (Since Type Ia's form in binary systems this function should specifically return the number such that when integrated over the \gls{imf} it gives the correct total number of Type Ia supernovae formed from a single stellar population.)
-
-The cumulative yield function must have the form:
-\begin{verbatim}
-   double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity,atomIndex)
-    implicit none
-    double precision, intent(in)           :: initialMass,age,metallicity
-    integer,          intent(in), optional :: atomIndex
-    .
-    .
-    .
-    return
-   end function SNeIa_Cumulative_Yield 
-\end{verbatim}
-and should return the yield of the element identified by {\normalfont \ttfamily atomIndex} (as returned by the \hyperlink{atomic.data.F90:atomic_data:atom_lookup}{{\normalfont \ttfamily Atom\_Lookup()}} function from the \hyperlink{atomic.data.F90:atomic_data}{{\normalfont \ttfamily Atomic\_Data}} module) if present, or total metal yield otherwise from Type Ia's resulting from stars defined in the same way as for the cumulative number function.
-
-Currently defined type Ia supernovae methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Nagashima}] Computes Type Ia properties using the methods described by \cite{nagashima_metal_2005}.
 \end{description}
 
 \subsubsection{Tree Timing}
