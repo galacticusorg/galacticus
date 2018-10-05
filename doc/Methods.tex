@@ -1723,77 +1723,6 @@ Currently defined satellite merger progenitor properties methods are:
  \item [{\normalfont \ttfamily standard}] Masses of host and spheroid are set equal to their stellar plus cold gas masses utilizing, while radii are a mass-weighted average of the half-mass radii of the components which end up in the merger remnant spheroid. The angular momentum factor is similarly set to a mass-weighted average of the corresponding factor for each component which will end up in the merger remnant spheroid.
 \end{description}
 
-\subsubsection{Stellar Astrophysics}
-
-Additional methods for stellar astrophysical properties can be added using the {\normalfont \ttfamily stellarAstrophysicsMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily file} method is described by a directive:
-\begin{verbatim}
-  !# <stellarAstrophysicsMethod>
-  !#  <unitName>Stellar_Astrophysics_File_Initialize</unitName>
-  !# </stellarAstrophysicsMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Stellar\_Astrophysics\_File\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(stellarAstrophysicsMethod,Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get,Star_Lifetime_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: stellarAstrophysicsMethod
-    procedure(),          pointer, intent(inout) :: Star_Ejected_Mass_Get,Star_Initial_Mass_Get,Star_Metal_Yield_Mass_Get,Star_Lifetime_Get
-    
-    if (stellarAstrophysicsMethod == 'myMethod') then
-      Star_Ejected_Mass_Get     => My_Star_Ejected_Mass
-      Star_Initial_Mass_Get     => My_Star_Initial_Mass
-      Star_Metal_Yield_Mass_Get => My_Star_Metal_Yield_Mass
-      Star_Lifetime_Get         => My_Star_Lifetime
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily stellarAstrophysicsMethod} input parameter. The procedure pointers must be set to point to functions which return stellar properties as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The ejected mass and lifetime functions must have the form:
-\begin{verbatim}
- double precision function Star_Property(initialMass,metallicity)
-    implicit none
-    double precision, intent(in) :: initialMass,metallicity
-    .
-    .
-    .
-    return
- end function Star_Property
-\end{verbatim}
-These functions must return the total ejected mass (in $M_\odot$), total metal yield (in $M_\odot$) and lifetime (in Gyr) for a star of the specified {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity}.
-
-The metal yield function must have the form:
-\begin{verbatim}
- double precision function Star_Metal_Yield(initialMass,metallicity,atomIndex)
-    implicit none
-    double precision, intent(in)           :: initialMass,metallicity
-    integer,          intent(in), optional :: atomIndex
-    .
-    .
-    .
-    return
- end function Star_Property
-\end{verbatim}
-This function must return the yield (in $M_\odot$) of the element identified by {\normalfont \ttfamily atomIndex} (as returned by the \hyperlink{atomic.data.F90:atomic_data:atom_lookup}{{\normalfont \ttfamily Atom\_Lookup()}} function from the \hyperlink{atomic.data.F90:atomic_data}{{\normalfont \ttfamily Atomic\_Data}} module) if present, or total metal yield otherwise for a star of the specified {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity}.
-
-The initial mass function must have the form:
-\begin{verbatim}
- double precision function Star_Initial_Mass(lifetime,metallicity)
-    implicit none
-    double precision, intent(in) :: lifetime,metallicity
-    .
-    .
-    .
-    return
- end function Star_Initial_Mass
-\end{verbatim}
-and should return the initial mass (in $M_\odot$) of a star of given {\normalfont \ttfamily lifetime} (specified in Gyr) and {\normalfont \ttfamily metallicity}.
-
-Currently defined stellar astrophysics methods are:
-\begin{description}
- \item [{\normalfont \ttfamily file}] Stellar properties are read from an XML file and interpolated. The structure of the XML file is described in \S\ref{sec:StellarAstrophysicsFile}.
-\end{description}
-
 \subsubsection{Stellar Population Properties}
 
 Additional methods for computing properties of stellar populations can be added using the {\normalfont \ttfamily stellarPopulationPropertiesMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily instantaneous} method is described by a directive:
@@ -1887,51 +1816,6 @@ and should create {\normalfont \ttfamily thisHistory} with a suitable set of tim
 Currently defined stellar population properties methods are:
 \begin{description}
  \item [\hyperlink{stellar_populations.properties.instantaneous.F90:stellar_population_properties_instantaneous:stellar_population_properties_rates_instantaneous}{{\normalfont \ttfamily instantaneous}}] Computes stellar population properties using an instantaneous recyclying approximation.
-\end{description}
-
-\subsubsection{Stellar Tracks}
-
-Additional methods for stellar tracks can be added using the {\normalfont \ttfamily stellarTracksMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily file} method is described by a directive:
-\begin{verbatim}
-  !# <stellarTracksMethod>
-  !#  <unitName>Stellar_Tracks_Initialize_File</unitName>
-  !# </stellarTracksMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Stellar\_Tracks\_Initialize\_File} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(stellarTracksMethod,Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: stellarTracksMethod
-    procedure(),          pointer, intent(inout) :: Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get
-    
-    if (stellarTracksMethod == 'myMethod') then
-       Stellar_Luminosity_Get            => My_Stellar_Luminosity_Get
-       Stellar_Effective_Temperature_Get => My_Stellar_Effective_Temperature_Get
-       .
-       .
-       .
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily stellarTracksMethod} input parameter. The procedure pointers {\normalfont \ttfamily Stellar\_Luminosity\_Get} and {\normalfont \ttfamily Stellar\_Effective\_Temperature\_Get} must be set to point to functions which return the luminosity and effective temperatures of stars as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The functions must have the form:
-\begin{verbatim}
-   double precision function Stellar_Tracks_Function(initialMass,age,metallicity)
-    implicit none
-    double precision, intent(in) :: initialMass,age,metallicity
-    .
-    .
-    .
-    return
-   end function Stellar_Tracks_Function 
-\end{verbatim}
-The luminosity function must return the bolometric luminosity (in $L_\odot$) of a star of given {\normalfont \ttfamily initialMass} and {\normalfont \ttfamily metallicity} after a time {\normalfont \ttfamily age}. The effective temperature function should give the effective temperature (in Kelvin) for the same star.
-
-Currently defined stellar tracks methods are:
-\begin{description}
- \item [{\normalfont \ttfamily file}] Stellar tracks are read from an HDF5 file and interpolated in. The structure of the HDF5 is described in \S\ref{sec:StellarTracksFile}.
 \end{description}
 
 \subsubsection{Tree Timing}

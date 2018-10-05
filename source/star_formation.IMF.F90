@@ -834,12 +834,14 @@ contains
     !% Integrand used in evaluating recycled fractions.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in   ) :: initialMass
+    double precision                          , intent(in   ) :: initialMass
+    class           (stellarAstrophysicsClass), pointer       :: stellarAstrophysics_
 
     if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
-       Recycled_Fraction_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*Star_Ejected_Mass(initialMass,metallicity)
+       stellarAstrophysics_       => stellarAstrophysics()
+       Recycled_Fraction_Integrand=  IMF_Phi(initialMass,imfSelectedGlobal)*stellarAstrophysics_%massEjected(initialMass,metallicity)
     else
-       Recycled_Fraction_Integrand=0.0d0
+       Recycled_Fraction_Integrand=  0.0d0
     end if
     return
   end function Recycled_Fraction_Integrand
@@ -1214,14 +1216,17 @@ contains
     !% Returns true if the specified star is evolved by the given {\normalfont \ttfamily age}.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
+    double precision                          , intent(in   ) :: age                 , initialMass, &
+         &                                                       metallicity
+    class           (stellarAstrophysicsClass), pointer       :: stellarAstrophysics_
 
     if (starFormationImfInstantaneousApproximation) then
        ! Instantaneous calculation - star is evolved if it is more massive that the specified mass of long-lived stars.
-       Star_Is_Evolved=(initialMass > starFormationImfInstantaneousApproximationMassLongLived)
+       Star_Is_Evolved      =  initialMass > starFormationImfInstantaneousApproximationMassLongLived
     else
        ! Standard calculation - star is evolved if its lifeltime is less than the supplied age.
-       Star_Is_Evolved=(Star_Lifetime(initialMass,metallicity) < age)
+       stellarAstrophysics_ => stellarAstrophysics          (                       )
+       Star_Is_Evolved      =  stellarAstrophysics_%lifetime(initialMass,metallicity) < age
     end if
     return
   end function Star_Is_Evolved
@@ -1230,12 +1235,14 @@ contains
     !% Integrand used in evaluating remnant fractions.
     use Stellar_Astrophysics
     implicit none
-    double precision, intent(in   ) :: initialMass
+    double precision                          , intent(in   ) :: initialMass
+    class           (stellarAstrophysicsClass), pointer       :: stellarAstrophysics_
 
     if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
-       Remnant_Fraction_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*(initialMass-Star_Ejected_Mass(initialMass,metallicity))
+       stellarAstrophysics_       => stellarAstrophysics()
+       Remnant_Fraction_Integrand =  IMF_Phi(initialMass,imfSelectedGlobal)*(initialMass-stellarAstrophysics_%massEjected(initialMass,metallicity))
     else
-       Remnant_Fraction_Integrand=0.0d0
+       Remnant_Fraction_Integrand =  0.0d0
     end if
     return
   end function Remnant_Fraction_Integrand
@@ -1665,19 +1672,21 @@ contains
      use Supernovae_Type_Ia
      use Stellar_Astrophysics
      implicit none
-     double precision                       , intent(in   ) :: initialMass
-     class           (supernovaeTypeIaClass), pointer       :: supernovaeTypeIa_
-     double precision                                       :: sneiaLifetime, yieldMass
+     double precision                          , intent(in   ) :: initialMass
+     class           (supernovaeTypeIaClass   ), pointer       :: supernovaeTypeIa_
+     class           (stellarAstrophysicsClass), pointer       :: stellarAstrophysics_
+     double precision                                          :: sneiaLifetime       , yieldMass
      
      ! Include yields from isolated stars.
      if (Star_Is_Evolved(initialMass,metallicity,lifetime)) then
+        stellarAstrophysics_ => stellarAstrophysics()
         select case (atomIndexGlobal)
         case (0)
            ! Total metallicity required.
-           yieldMass=Star_Metal_Yield_Mass(initialMass,metallicity                )
+           yieldMass=stellarAstrophysics_%massYield(initialMass,metallicity                )
         case default
            ! Inidividual element required.
-           yieldMass=Star_Metal_Yield_Mass(initialMass,metallicity,atomIndexGlobal)
+           yieldMass=stellarAstrophysics_%massYield(initialMass,metallicity,atomIndexGlobal)
         end select
         Metal_Yield_Integrand=IMF_Phi(initialMass,imfSelectedGlobal)*yieldMass
      else
