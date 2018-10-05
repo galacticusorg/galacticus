@@ -21,6 +21,7 @@
   use Supernovae_Type_Ia
   use Supernovae_Population_III
   use Stellar_Astrophysics_Winds
+  use Stellar_Astrophysics
 
   !# <stellarFeedback name="stellarFeedbackStandard">
   !#  <description>A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.</description>
@@ -31,6 +32,7 @@
      class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_
      class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_
      class           (stellarWindsClass           ), pointer :: stellarWinds_
+     class           (stellarAstrophysicsClass    ), pointer :: stellarAstrophysics_
      double precision                                        :: initialMassForSupernovaeTypeII, supernovaEnergy
    contains
      final     ::                          standardDestructor
@@ -62,6 +64,7 @@ contains
     class           (supernovaeTypeIaClass       ), pointer       :: supernovaeTypeIa_
     class           (supernovaePopulationIIIClass), pointer       :: supernovaePopulationIII_
     class           (stellarWindsClass           ), pointer       :: stellarWinds_
+    class           (stellarAstrophysicsClass    ), pointer       :: stellarAstrophysics_
     double precision                                              :: initialMassForSupernovaeTypeII, supernovaEnergy
 
     !# <inputParameter>
@@ -85,20 +88,22 @@ contains
     !# <objectBuilder class="supernovaeTypeIa"        name="supernovaeTypeIa_"        source="parameters"/>
     !# <objectBuilder class="supernovaePopulationIII" name="supernovaePopulationIII_" source="parameters"/>
     !# <objectBuilder class="stellarWinds"            name="stellarWinds_"            source="parameters"/>
-    self=stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_)
+    !# <objectBuilder class="stellarAstrophysics"     name="stellarAstrophysics_"     source="parameters"/>
+    self=stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
   
-  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_) result(self)
+  function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_) result(self)
     !% Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
     implicit none
     type            (stellarFeedbackStandard     )                        :: self
     class           (supernovaeTypeIaClass       ), intent(in   ), target :: supernovaeTypeIa_
     class           (supernovaePopulationIIIClass), intent(in   ), target :: supernovaePopulationIII_
     class           (stellarWindsClass           ), intent(in   ), target :: stellarWinds_
+    class           (stellarAstrophysicsClass    ), intent(in   ), target :: stellarAstrophysics_
     double precision                              , intent(in   )         :: initialMassForSupernovaeTypeII, supernovaEnergy
-    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_, *stellarWinds_"/>
+    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_, *stellarWinds_, *stellarAstrophysics_"/>
     
     return
   end function standardConstructorInternal
@@ -111,12 +116,12 @@ contains
     !# <objectDestructor name="self%supernovaeTypeIa_"       />
     !# <objectDestructor name="self%supernovaePopulationIII_"/>
     !# <objectDestructor name="self%stellarWinds_"           />
+    !# <objectDestructor name="self%stellarAstrophysics_"    />
     return
   end subroutine standardDestructor
   
   double precision function standardEnergyInputCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    use Stellar_Astrophysics
     use Numerical_Integration
     use Numerical_Constants_Astronomical
     use FGSL
@@ -133,7 +138,7 @@ contains
     ! Check if the star is sufficiently massive to result in a Type II supernova.
     if (initialMass >= self%initialMassForSupernovaeTypeII) then
        ! Get the lifetime of the star.
-       lifetime=Star_Lifetime(initialMass,metallicity)
+       lifetime=self%stellarAstrophysics_%lifetime(initialMass,metallicity)
        ! If lifetime is exceeded, assume a SNe has occurred.
        if (age >= lifetime) then
           energySNe=0.0d0

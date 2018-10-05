@@ -19,19 +19,22 @@
   !% Implements a Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.
 
   use FGSL
-  
+  use Stellar_Astrophysics
+
   !# <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002">
   !#  <description>A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.</description>
   !# </supernovaePopulationIII>
   type, extends(supernovaePopulationIIIClass) :: supernovaePopulationIIIHegerWoosley2002
      !% A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}
      private
-     integer                                                        :: countTable
-     double precision                   , allocatable, dimension(:) :: energy                  , massHeliumCore
-     type            (fgsl_interp      )                            :: interpolationObject
-     type            (fgsl_interp_accel)                            :: interpolationAccelerator
-     logical                                                        :: interpolationReset
+     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_
+     integer                                                               :: countTable
+     double precision                          , allocatable, dimension(:) :: energy                  , massHeliumCore
+     type            (fgsl_interp             )                            :: interpolationObject
+     type            (fgsl_interp_accel       )                            :: interpolationAccelerator
+     logical                                                               :: interpolationReset
    contains
+     final     ::                     hegerWoosley2002Destructor
      procedure :: energyCumulative => hegerWoosley2002EnergyCumulative
   end type supernovaePopulationIIIHegerWoosley2002
   
@@ -47,15 +50,17 @@ contains
     !% Constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class which takes a parameter list as input.
     use Input_Parameters
     implicit none
-    type(supernovaePopulationIIIHegerWoosley2002)                :: self
-    type(inputParameters                        ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
-    
-    self=supernovaePopulationIIIHegerWoosley2002()
+    type (supernovaePopulationIIIHegerWoosley2002)                :: self
+    type (inputParameters                        ), intent(inout) :: parameters
+    class(stellarAstrophysicsClass               ), pointer       :: stellarAstrophysics_
+
+    !# <objectBuilder class="stellarAstrophysics" name="stellarAstrophysics_" source="parameters"/>
+    self=supernovaePopulationIIIHegerWoosley2002(stellarAstrophysics_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function hegerWoosley2002ConstructorParameters
   
-  function hegerWoosley2002ConstructorInternal() result(self)
+  function hegerWoosley2002ConstructorInternal(stellarAstrophysics_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
     use Numerical_Constants_Astronomical
     use ISO_Varying_String
@@ -64,10 +69,12 @@ contains
     use IO_XML
     use Galacticus_Paths
     implicit none
-    type   (supernovaePopulationIIIHegerWoosley2002)          :: self
-    type   (node                                   ), pointer :: doc        , energyElement, &
-         &                                                       massElement
-    integer                                                   :: ioErr
+    type   (supernovaePopulationIIIHegerWoosley2002)                         :: self
+    class  (stellarAstrophysicsClass               ), intent(in   ), target  :: stellarAstrophysics_
+    type   (node                                   )               , pointer :: doc                 , energyElement, &
+         &                                                                      massElement
+    integer                                                                  :: ioErr
+    !# <constructorAssign variables="*stellarAstrophysics_"/>
 
     ! Read in pair instability supernova energies.
     !$omp critical (FoX_DOM_Access)
@@ -90,6 +97,15 @@ contains
     return
   end function hegerWoosley2002ConstructorInternal
 
+  subroutine hegerWoosley2002Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily hegerWoosley2002} Population III supernovae class.
+    implicit none
+    type(supernovaePopulationIIIHegerWoosley2002), intent(inout) :: self
+
+    !# <objectDestructor name="self%stellarAstrophysics_"/>
+    return
+  end subroutine hegerWoosley2002Destructor
+  
   double precision function hegerWoosley2002EnergyCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from Population III star pair instability supernovae using the results of
     !% \cite{heger_nucleosynthetic_2002}.
@@ -103,8 +119,7 @@ contains
     double precision                                                         :: lifetime   , massHeliumCore
 
     ! Get the lifetime of a star of this initial mass and metallicity.
-    lifetime=Star_Lifetime(initialMass,metallicity)
-
+    lifetime=self%stellarAstrophysics_%lifetime(initialMass,metallicity)
     ! Check if star has reached end of life.
     if (lifetime <= age) then
        ! Star has reached end of life. Compute core helium mass using simple scaling given by Heger & Woosley.
@@ -130,6 +145,5 @@ contains
        ! Star has not gone supernova yet.
        hegerWoosley2002EnergyCumulative=0.0d0
     end if
-
     return
   end function hegerWoosley2002EnergyCumulative

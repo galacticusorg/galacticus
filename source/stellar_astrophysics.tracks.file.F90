@@ -89,6 +89,7 @@ contains
     !#   <source>parameters</source>
     !# </inputParameter>
     self=stellarTracksFile(char(fileName))
+    !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
 
