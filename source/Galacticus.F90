@@ -93,6 +93,8 @@ program Galacticus
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
   ! Finalize MPI.
 #ifdef USEMPI
+  call MPI_Barrier(MPI_Comm_World,status)
+  if (status /= 0) call Galacticus_Error_Report('MPI barrier failed'//{introspection:location})
   call mpiFinalize()
 #endif
   ! All done, finish.
