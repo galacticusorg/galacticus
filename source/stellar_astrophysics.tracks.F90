@@ -16,95 +16,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculation of stellar tracks.
+!% Contains a module which implements a class for calculation of stellar tracks.
 
 module Stellar_Astrophysics_Tracks
-  !% Implements stellar tracks.
-  use ISO_Varying_String
+  !% Implements a class for stellar tracks.
   implicit none
   private
-  public :: Stellar_Luminosity, Stellar_Effective_Temperature
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                     :: stellarTracksInitialized         =.false.
-
-  ! Name of cosmology functions method used.
-  type     (varying_string         )          :: stellarTracksMethod
-
-  ! Pointer to the functions that actually do the calculations.
-  procedure(Stellar_Tracks_Template), pointer :: Stellar_Luminosity_Get           =>null()
-  procedure(Stellar_Tracks_Template), pointer :: Stellar_Effective_Temperature_Get=>null()
-
-  abstract interface
-     double precision function Stellar_Tracks_Template(initialMass,metallicity,age)
-       double precision, intent(in   ) :: age, initialMass, metallicity
-     end function Stellar_Tracks_Template
-  end interface
-
-contains
-
-  subroutine Stellar_Tracks_Initialize
-    !% Initialize the cosmology functions module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="stellarTracksMethod" type="moduleUse">
-    include 'stellar_astrophysics.tracks.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.stellarTracksInitialized) then
-       !$omp critical(Stellar_Tracks_Initialization)
-       if (.not.stellarTracksInitialized) then
-          ! Get the stellar tracks method parameter.
-          !# <inputParameter>
-          !#   <name>stellarTracksMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('file')</defaultValue>
-          !#   <description>The name of the method to be used for stellar tracks calculations.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarTracksMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>stellarTracksMethod,Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get</functionArgs>
-          include 'stellar_astrophysics.tracks.inc'
-          !# </include>
-          if (.not.(associated(Stellar_Luminosity_Get).and.associated(Stellar_Effective_Temperature_Get))) &
-               & call Galacticus_Error_Report('method '//char(stellarTracksMethod)//' is unrecognized'//{introspection:location})
-          stellarTracksInitialized=.true.
-       end if
-       !$omp end critical(Stellar_Tracks_Initialization)
-    end if
-    return
-  end subroutine Stellar_Tracks_Initialize
-
-  double precision function Stellar_Luminosity(initialMass,metallicity,age)
-    !% Returns the bolometric luminosity of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
-    implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
-
-    ! Initialize the module.
-    call Stellar_Tracks_Initialize
-
-    ! Get the answer using the selected method.
-    Stellar_Luminosity=Stellar_Luminosity_Get(initialMass,metallicity,age)
-
-    return
-  end function Stellar_Luminosity
-
-  double precision function Stellar_Effective_Temperature(initialMass,metallicity,age)
-    !% Returns the effective temperature of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
-    implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
-
-    ! Initialize the module.
-    call Stellar_Tracks_Initialize
-
-    ! Get the answer using the selected method.
-    Stellar_Effective_Temperature=Stellar_Effective_Temperature_Get(initialMass,metallicity,age)
-
-    return
-  end function Stellar_Effective_Temperature
+  !# <functionClass>
+  !#  <name>stellarTracks</name>
+  !#  <descriptiveName>Stellar Tracks</descriptiveName>
+  !#  <description>Class providing models of stellar tracks.</description>
+  !#  <default>file</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="luminosity" >
+  !#   <description>Returns the bolometric luminosity of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: initialMass, metallicity, age</argument>
+  !#  </method>
+  !#  <method name="temperatureEffective" >
+  !#   <description>Returns the effective temperature of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: initialMass, metallicity, age</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Stellar_Astrophysics_Tracks

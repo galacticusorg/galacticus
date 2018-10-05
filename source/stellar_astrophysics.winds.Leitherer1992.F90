@@ -19,6 +19,7 @@
   !% Implements a stellar winds class based on \cite{leitherer_deposition_1992}.
 
   use Numerical_Constants_Astronomical
+  use Stellar_Astrophysics_Tracks
 
   !# <stellarWinds name="stellarWindsLeitherer1992">
   !#  <description>A stellar winds class based on \cite{leitherer_deposition_1992}.</description>
@@ -26,7 +27,9 @@
   type, extends(stellarWindsClass) :: stellarWindsLeitherer1992
      !% A stellar winds class based on \cite{leitherer_deposition_1992}.
      private
+     class(stellarTracksClass), pointer :: stellarTracks_
    contains
+     final     ::                     leitherer1992Destructor
      procedure :: rateMassLoss     => leitherer1992RateMassLoss
      procedure :: velocityTerminal => leitherer1992VelocityTerminal
   end type stellarWindsLeitherer1992
@@ -34,6 +37,7 @@
   interface stellarWindsLeitherer1992
      !% Constructors for the {\normalfont \ttfamily leitherer1992} stellar winds class.
      module procedure leitherer1992ConstructorParameters
+     module procedure leitherer1992ConstructorInternal
   end interface stellarWindsLeitherer1992
 
   ! Minimum metallicity to which we trust Leitherer et al.'s metallicity scaling.
@@ -45,18 +49,38 @@ contains
     !% Constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class which takes a parameter list as input.
     use Input_Parameters
     implicit none
-    type(stellarWindsLeitherer1992)                :: self
-    type(inputParameters          ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
-    
-    self=stellarWindsLeitherer1992()
+    type (stellarWindsLeitherer1992)                :: self
+    type (inputParameters          ), intent(inout) :: parameters
+    class(stellarTracksClass       ), pointer       :: stellarTracks_
+
+    !# <objectBuilder class="stellarTracks" name="stellarTracks_" source="parameters"/>
+    self=stellarWindsLeitherer1992(stellarTracks_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function leitherer1992ConstructorParameters
 
+  function leitherer1992ConstructorInternal(stellarTracks_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+    implicit none
+    type (stellarWindsLeitherer1992)                        :: self
+    class(stellarTracksClass       ), intent(in   ), target :: stellarTracks_
+    !# <constructorAssign variables="*stellarTracks_"/>
+    
+    return
+  end function leitherer1992ConstructorInternal
+
+  subroutine leitherer1992Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+    implicit none
+    type(stellarWindsLeitherer1992), intent(inout) :: self
+
+    !# <objectDestructor name="self%stellarTracks_"/>
+    return
+  end subroutine leitherer1992Destructor
+  
   double precision function leitherer1992RateMassLoss(self,initialMass,age,metallicity)
     !% Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont
     !% \ttfamily age} and {\normalfont \ttfamily metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
-    use Stellar_Astrophysics_Tracks
     implicit none
     class           (stellarWindsLeitherer1992), intent(inout) :: self
     double precision                           , intent(in   ) :: age                        , initialMass       , &
@@ -65,8 +89,8 @@ contains
     !GCC$ attributes unused :: self
 
     ! Get luminosity and effective temperature of the star.
-    stellarLuminosity          =Stellar_Luminosity           (initialMass,metallicity,age)
-    stellarEffectiveTemperature=Stellar_Effective_Temperature(initialMass,metallicity,age)
+    stellarLuminosity          =self%stellarTracks_%luminosity          (initialMass,metallicity,age)
+    stellarEffectiveTemperature=self%stellarTracks_%temperatureEffective(initialMass,metallicity,age)
     ! Compute mass loss rate using fitting formula. (Initial constant 9 converts Leitherer's mass loss rate from per year to per Gyr.)
     if     (                                     &
          &   stellarLuminosity           > 0.0d0 &
@@ -90,7 +114,6 @@ contains
   double precision function leitherer1992VelocityTerminal(self,initialMass,age,metallicity)
     !% Compute the terminal velocity (in km/s) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity} using
     !% the fitting formula of \cite{leitherer_deposition_1992}.
-    use Stellar_Astrophysics_Tracks
     implicit none
      class           (stellarWindsLeitherer1992), intent(inout) :: self
      double precision                           , intent(in   ) :: age                        , initialMass       , &
@@ -99,8 +122,8 @@ contains
     !GCC$ attributes unused :: self
     
     ! Get luminosity and effective temperature of the star.
-    stellarLuminosity          =Stellar_Luminosity           (initialMass,metallicity,age)
-    stellarEffectiveTemperature=Stellar_Effective_Temperature(initialMass,metallicity,age)
+    stellarLuminosity          =self%stellarTracks_%luminosity          (initialMass,metallicity,age)
+    stellarEffectiveTemperature=self%stellarTracks_%temperatureEffective(initialMass,metallicity,age)
     ! Compute mass loss rate using fitting formula.
     if (stellarLuminosity > 0.0d0 .and. stellarEffectiveTemperature > 0.0d0) then
        leitherer1992VelocityTerminal=+10.0d0**(                                                                                                 &

@@ -537,7 +537,8 @@ my @translations =
 	     "blackHoleInitialRadiusSpheroidRadiusRatio"  => "blackHoleBinaryInitialSeparationMethod.spheroidRadiusFraction.--spheroidRadiusFraction",
 	     "stellarDensityChangeBinaryMotion"           => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--stellarDensityChangeBinaryMotion" ,
 	     "blackHoleBinariesComputeVelocityDispersion" => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--computeVelocityDispersion"        ,
-	     "supernovaeIaMethod"                         => "supernovaeTypeIaMethod"
+	     "supernovaeIaMethod"                         => "supernovaeTypeIaMethod"                                                                ,
+	     "stellarTracksFile"                          => "stellarTracksMethod.file.--fileName"
 	 },
 	 values        =>
 	 {
