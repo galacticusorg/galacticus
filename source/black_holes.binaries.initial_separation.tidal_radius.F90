@@ -66,7 +66,8 @@ contains
     class(nodeComponentBlackHole                     ), pointer               :: blackHole
     type (rootFinder                                 ), save                  :: finder
     !$omp threadprivate(finder)
-
+    !GCC$ attributes unused :: self
+    
     ! Assume zero separation by default.
     tidalRadiusSeparationInitial=0.0d0
     ! Get the black hole component.
