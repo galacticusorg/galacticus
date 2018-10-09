@@ -79,34 +79,36 @@ contains
     use String_Handling
     use ISO_Varying_String
     use Galacticus_Display
-    use Satellite_Merging_Remnant_Sizes_Progenitors
+    use Satellite_Merging_Progenitor_Properties
     use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout) :: thisNode
-    type            (treeNode                ), pointer       :: hostNode
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    double precision                          , parameter     :: bindingEnergyFormFactor             =0.5d+00
-    double precision                          , parameter     :: absoluteMassTolerance               =1.0d-06
-    double precision                          , parameter     :: relativeMassTolerance               =1.0d-09
-    double precision                          , parameter     :: specificAngularMomentumFractionSmall=1.0d-12
-    double precision                                          :: angularMomentumFactor                       , finalEnergy        , &
-         &                                                       gasFractionInitial                          , hostMass           , &
-         &                                                       hostRadius                                  , hostSpheroidMass   , &
-         &                                                       hostSpheroidMassPreMerger                   , progenitorsEnergy  , &
-         &                                                       radiatedEnergy                              , radiusVirial       , &
-         &                                                       remnantSpheroidGasMass                      , remnantSpheroidMass, &
-         &                                                       satelliteMass                               , satelliteRadius    , &
-         &                                                       satelliteSpheroidMass                       , velocityVirial
-    character       (len= 3                  )                :: joinString
-    character       (len=70                  )                :: dataString
-    type            (varying_string          )                :: message
-    logical                                                   :: errorCondition
+    type            (treeNode                       ), intent(inout) :: thisNode
+    type            (treeNode                       ), pointer       :: hostNode
+    class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
+    double precision                                 , parameter     :: bindingEnergyFormFactor             =0.5d+00
+    double precision                                 , parameter     :: absoluteMassTolerance               =1.0d-06
+    double precision                                 , parameter     :: relativeMassTolerance               =1.0d-09
+    double precision                                 , parameter     :: specificAngularMomentumFractionSmall=1.0d-12
+    class           (mergerProgenitorPropertiesClass), pointer       :: mergerProgenitorProperties_
+    double precision                                                 :: angularMomentumFactor                       , finalEnergy        , &
+         &                                                              gasFractionInitial                          , hostMass           , &
+         &                                                              hostRadius                                  , hostSpheroidMass   , &
+         &                                                              hostSpheroidMassPreMerger                   , progenitorsEnergy  , &
+         &                                                              radiatedEnergy                              , radiusVirial       , &
+         &                                                              remnantSpheroidGasMass                      , remnantSpheroidMass, &
+         &                                                              satelliteMass                               , satelliteRadius    , &
+         &                                                              satelliteSpheroidMass                       , velocityVirial
+    character       (len= 3                         )                :: joinString
+    character       (len=70                         )                :: dataString
+    type            (varying_string                 )                :: message
+    logical                                                          :: errorCondition
 
     ! Get the host node.
     hostNode => thisNode%mergesWith()
 
     ! Get properties of the merging systems.
-    call Satellite_Merging_Remnant_Progenitor_Properties(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
+    mergerProgenitorProperties_ => mergerProgenitorProperties()
+    call mergerProgenitorProperties_%get(thisNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
          &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius,angularMomentumFactor,remnantSpheroidMass&
          &,remnantSpheroidGasMass)
     if (satelliteMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then

@@ -1677,52 +1677,6 @@ Currently defined satellite merger remnant size methods are:
  \item [{\normalfont \ttfamily Covington2008}] Implements the algorithm of \cite{covington_predicting_2008} to compute the remnant size. The orbital energy assumed can be adjusted using the {\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} parameter, which is equivalent to the $f_\mathrm{orbit}$ parameter of \cite{cole_hierarchical_2000}.
 \end{description}
 
-\subsubsection{Satellite Merging Remnants: Progenitor Properties}
-
-Additional methods for satellite merging remnant progenitor properties can be added using the {\normalfont \ttfamily satelliteMergingRemnantProgenitorPropertiesMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily standard} method is described by a directive:
-\begin{verbatim}
- !# <satelliteMergingRemnantProgenitorPropertiesMethod>
- !#  <unitName>Satellite_Merging_Remnant_Progenitor_Properties_Standard_Init</unitName>
- !# </satelliteMergingRemnantProgenitorPropertiesMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Satellite\_Merging\_Remnant\_Progenitor\_Properties\_Standard\_Init} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(satelliteMergingRemnantProgenitorPropertiesMethod,Satellite_Merging_Remnant_Progenitor_Properties_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: satelliteMergingRemnantProgenitorPropertiesMethod
-    procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Progenitor_Properties_Get
-    
-    if (satelliteMergingRemnantProgenitorPropertiesMethod == 'myMethod') Satellite_Merging_Remnant_Progenitor_Properties_Get => My_Method_Get
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily satelliteMergingRemnantProgenitorPropertiesMethod} input parameter. The procedure pointer {\normalfont \ttfamily Satellite\_Merging\_Remnant\_Progenitor\_Properties\_Get} must be set to point to a subroutine which computes various properties of the progenitor galaxies involved in the merger, as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The progenitor properties subroutine must have the form:
-\begin{verbatim}
-  subroutine My_Method_Get(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
-       & ,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius &
-       & ,angularMomentumFactor,remnantSpheroidMass,remnantSpheroidGasMass)
-    implicit none
-    type(treeNode),   intent(inout), pointer :: satelliteNode,hostNode
-    double precision, intent(out)            :: satelliteMass,hostMass,satelliteSpheroidMass, &
-       & hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius, &
-       & angularMomentumFactor,remnantSpheroidMass,remnantSpheroidGasMass
-    .
-    .
-    .
-    return
-  end subroutine My_Method_Do
-\end{verbatim}
-The subroutine must compute properties of the merger progenitor galaxies in {\normalfont \ttfamily satelliteNode} and {\normalfont \ttfamily hostNode}: {\normalfont \ttfamily satelliteMass} and {\normalfont \ttfamily hostMass} are the total masses of the two galaxies; {\normalfont \ttfamily satelliteSpheroidMass} and {\normalfont \ttfamily hostSpheroidMass} are the masses of each galaxy that will end up in the spheroid of the merger remnant; {\normalfont \ttfamily hostSpheroidMassPreMerger} is the mass of the host spheroid prior to the merger; {\normalfont \ttfamily satelliteRadius} and {\normalfont \ttfamily hostRadius} are radii of the two galaxies for use in merger remnant size calculations (and so should typically refer to the radius of material that will end up in the merger remnant spheroid); {\normalfont \ttfamily remnantSpheroidMass} is the mass of the spheroid in the remnant; {\normalfont \ttfamily remnantSpheroidGasMass} is the mass of gas in the spheroid of the remnant; and {\normalfont \ttfamily angularMomentumFactor} gives the pseudo-specific angular momentum of the remnant in units of $(\mathrm{G} M_\mathrm{remnant,spheroid} r_\mathrm{remnant,spheroid})^{1/2}$ where $M_\mathrm{remnant,spheroid}$ is the mass of the 
-remnant spheroid and $r_\mathrm{remnant,spheroid}$ is the radius of the remnant spheroid.
-
-Currently defined satellite merger progenitor properties methods are:
-\begin{description}
- \item [{\normalfont \ttfamily Cole2000}] Implements the algorithm of \cite{cole_hierarchical_2000} to compute the remnant properties. Masses of host and spheroid are set equal to their stellar plus cold gas masses utilizing, while radii are the half-mass radii of each galaxy, including only those components which end up in the remnant spheroid. The angular momentum factor is set to a mass-weighted average of the corresponding factor for each component which will end up in the merger remnant spheroid.
- \item [{\normalfont \ttfamily standard}] Masses of host and spheroid are set equal to their stellar plus cold gas masses utilizing, while radii are a mass-weighted average of the half-mass radii of the components which end up in the merger remnant spheroid. The angular momentum factor is similarly set to a mass-weighted average of the corresponding factor for each component which will end up in the merger remnant spheroid.
-\end{description}
-
 \subsubsection{Stellar Population Properties}
 
 Additional methods for computing properties of stellar populations can be added using the {\normalfont \ttfamily stellarPopulationPropertiesMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily instantaneous} method is described by a directive:

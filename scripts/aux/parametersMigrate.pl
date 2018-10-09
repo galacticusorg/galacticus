@@ -528,18 +528,19 @@ my @translations =
 	 outputVersion => "0.9.5",
 	 names         =>
 	 {
-	     "atomicCollisionalIonizationMethod"          => "atomicIonizationRateCollisionalMethod"                                                 ,
-	     "collisionalExcitationMethod"                => "atomicExcitationRateCollisionalMethod"                                                 ,
-	     "chemicalReactionRateMethods"                => "chemicalReactionRateMethod"                                                            ,
-	     "hydrogenNetworkFast"                        => "chemicalReactionRateMethod.hydrogenNetwork.--fast"                                     ,
-	     "hydrogenNetworkCMBOnly"                     => "chemicalReactionRateMethod.hydrogenNetwork.--radiationCMBOnly"                         ,
-	     "blackHoleBinaryInitialRadiiMethod"          => "blackHoleBinaryInitialSeparationMethod"                                                ,
-	     "blackHoleInitialRadiusSpheroidRadiusRatio"  => "blackHoleBinaryInitialSeparationMethod.spheroidRadiusFraction.--spheroidRadiusFraction",
-	     "stellarDensityChangeBinaryMotion"           => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--stellarDensityChangeBinaryMotion" ,
-	     "blackHoleBinariesComputeVelocityDispersion" => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--computeVelocityDispersion"        ,
-	     "supernovaeIaMethod"                         => "supernovaeTypeIaMethod"                                                                ,
-	     "stellarTracksFile"                          => "stellarTracksMethod.file.--fileName"                                                   ,
-	     "stellarPropertiesFile"                      => "stellarAstrophysicsMethod.file.--fileName"
+	     "atomicCollisionalIonizationMethod"                 => "atomicIonizationRateCollisionalMethod"                                                 ,
+	     "collisionalExcitationMethod"                       => "atomicExcitationRateCollisionalMethod"                                                 ,
+	     "chemicalReactionRateMethods"                       => "chemicalReactionRateMethod"                                                            ,
+	     "hydrogenNetworkFast"                               => "chemicalReactionRateMethod.hydrogenNetwork.--fast"                                     ,
+	     "hydrogenNetworkCMBOnly"                            => "chemicalReactionRateMethod.hydrogenNetwork.--radiationCMBOnly"                         ,
+	     "blackHoleBinaryInitialRadiiMethod"                 => "blackHoleBinaryInitialSeparationMethod"                                                ,
+	     "blackHoleInitialRadiusSpheroidRadiusRatio"         => "blackHoleBinaryInitialSeparationMethod.spheroidRadiusFraction.--spheroidRadiusFraction",
+	     "stellarDensityChangeBinaryMotion"                  => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--stellarDensityChangeBinaryMotion" ,
+	     "blackHoleBinariesComputeVelocityDispersion"        => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--computeVelocityDispersion"        ,
+	     "supernovaeIaMethod"                                => "supernovaeTypeIaMethod"                                                                ,
+	     "stellarTracksFile"                                 => "stellarTracksMethod.file.--fileName"                                                   ,
+	     "stellarPropertiesFile"                             => "stellarAstrophysicsMethod.file.--fileName"                                             ,
+	     "satelliteMergingRemnantProgenitorPropertiesMethod" => "mergerProgenitorPropertiesMethod"
 	 },
 	 values        =>
 	 {
@@ -559,7 +560,7 @@ my @translations =
 	     {
 		 "null"              => "zero"
 	     },
-	     blackHoleBinaryMergersMethod =>
+	     blackHoleBinaryMergersMethod              =>
 	     {
 		 "Rezzolla2008"      => "rezzolla2008"
 	     },
@@ -573,15 +574,15 @@ my @translations =
 		 "PrevotBouchet"     => "prevotBouchet"  ,
 		 "null"              => "zero"
 	     },
-	     supernovaeIaMethod =>
+	     supernovaeIaMethod                        =>
 	     {
 		 "Nagashima"         => "nagashima2005"
 	     },
-	     supernovaePopulationIIIMethod =>
+	     supernovaePopulationIIIMethod             =>
 	     {
 		 "Heger-Woosley2002" => "hegerWoosley2002"
 	     },
-	     stellarWindsMethod      =>
+	     stellarWindsMethod                        =>
 	     {
 		 "Leitherer1992"     => "leitherer1992"
 	     }    
