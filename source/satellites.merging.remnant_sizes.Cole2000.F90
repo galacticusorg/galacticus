@@ -64,33 +64,35 @@ contains
     use String_Handling
     use ISO_Varying_String
     use Galacticus_Display
-    use Satellite_Merging_Remnant_Sizes_Progenitors
+    use Satellite_Merging_Progenitor_Properties
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type            (treeNode      ), intent(inout) :: satelliteNode
-    type            (treeNode      ), pointer       :: hostNode
-    double precision                , parameter     :: bindingEnergyFormFactor   =0.5d+0
-    double precision                , parameter     :: absoluteMassTolerance     =1.0d+0
-    double precision                , parameter     :: relativeMassTolerance     =1.0d-9
-    double precision                                :: angularMomentumFactor            , hostDarkMatterMass       , &
-         &                                             hostMass                         , hostRadius               , &
-         &                                             hostSpheroidMass                 , hostSpheroidMassPreMerger, &
-         &                                             hostSpheroidMassTotal            , progenitorsEnergy        , &
-         &                                             remnantSpheroidGasMass           , remnantSpheroidMass      , &
-         &                                             satelliteDarkMatterMass          , satelliteMass            , &
-         &                                             satelliteRadius                  , satelliteSpheroidMass    , &
-         &                                             satelliteSpheroidMassTotal
-    character       (len= 3        )                :: joinString
-    character       (len=40        )                :: dataString
-    type            (varying_string)                :: message
-    logical                                         :: errorCondition
+    type            (treeNode                       ), intent(inout) :: satelliteNode
+    type            (treeNode                       ), pointer       :: hostNode
+    double precision                                 , parameter     :: bindingEnergyFormFactor   =0.5d+0
+    double precision                                 , parameter     :: absoluteMassTolerance     =1.0d+0
+    double precision                                 , parameter     :: relativeMassTolerance     =1.0d-9
+    class           (mergerProgenitorPropertiesClass), pointer       :: mergerProgenitorProperties_
+    double precision                                                 :: angularMomentumFactor            , hostDarkMatterMass       , &
+         &                                                              hostMass                         , hostRadius               , &
+         &                                                              hostSpheroidMass                 , hostSpheroidMassPreMerger, &
+         &                                                              hostSpheroidMassTotal            , progenitorsEnergy        , &
+         &                                                              remnantSpheroidGasMass           , remnantSpheroidMass      , &
+         &                                                              satelliteDarkMatterMass          , satelliteMass            , &
+         &                                                              satelliteRadius                  , satelliteSpheroidMass    , &
+         &                                                              satelliteSpheroidMassTotal
+    character       (len= 3                         )                :: joinString
+    character       (len=40                         )                :: dataString
+    type            (varying_string                 )                :: message
+    logical                                                          :: errorCondition
 
     ! Find the node to merge with.
     hostNode => satelliteNode%mergesWith()
 
     ! Get properties of the merging systems.
-    call Satellite_Merging_Remnant_Progenitor_Properties(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
+    mergerProgenitorProperties_ => mergerProgenitorProperties()
+    call mergerProgenitorProperties_%get(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
          &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius ,angularMomentumFactor,remnantSpheroidMass &
          &,remnantSpheroidGasMass)
     if (satelliteSpheroidMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
