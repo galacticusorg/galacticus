@@ -287,8 +287,10 @@ CODE
 			if ( exists($directive->{'source'}) && $directive->{'source'} eq "parameters" ) {
 			    $moduleCode .=
 <<CODE;
-  subParameters=globalParameters%subParameters('$methodParameter')
+  allocate(subParameters)
+  subParameters=globalParameters%subParameters('$methodParameter',requirePresent=.false.)
   call subParameters%value('$directive->{'name'}',parameterValue,defaultValue=$defaultValue,writeOutput=.false.)
+  deallocate(subParameters)
 CODE
                             $requireSubParameters = 1;
 			} else {
@@ -437,7 +439,7 @@ CODE
     if ( $subParametersUsed ) {
 	$openingCode .= 
 <<CODE;
-  type   (inputParameters)                          :: subParameters
+  type   (inputParameters), allocatable :: subParameters
 CODE
     }
     $definitionCode = $openingCode.$definitionCode;
