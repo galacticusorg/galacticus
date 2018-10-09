@@ -815,6 +815,7 @@ contains
     character(len=1024       )                                        :: parameterValue
     character(len=1024       )                                        :: unknownName                  , allowedParameterName, &
          &                                                               parameterNameGuess
+    type     (varying_string )                                        :: message
 
     ! Determine whether we should be verbose.
     verbose=Galacticus_Verbosity_Level() > verbositySilent
@@ -861,37 +862,21 @@ contains
                   &  .and.                                              &
                   &   .not.warningsFound                                &
                   & ) then
-                if (verbose) then
-                   !$ if (omp_in_parallel()) then
-                   !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-                   !$ else
-                   !$    write (0,'(a2,a2,$)') "MM",": "
-                   !$ end if
-                   write (0,'(a)') '-> WARNING: problems found with input parameters:'
-                end if
+                if (verbose) call Galacticus_Display_Indent('WARNING: problems found with input parameters:')
                 warningsFound=.true.
              end if
              if (errorStatus /= inputParameterErrorStatusSuccess .and. verbose) then
-                !$ if (omp_in_parallel()) then
-                !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-                !$ else
-                !$    write (0,'(a2,a2,$)') "MM",": "
-                !$ end if
                 !$omp critical (FoX_DOM_Access)
                 select case (errorStatus)
                 case (inputParameterErrorStatusEmptyValue    )
-                   write (0,'(3a)') '    empty value for parameter ['    ,getNodeName(thisNode),']'
+                   message='empty value for parameter ['    //getNodeName(thisNode)//']'
                 case (inputParameterErrorStatusAmbiguousValue)
-                   write (0,'(3a)') '    ambiguous value for parameter [',getNodeName(thisNode),']'
+                   message='ambiguous value for parameter ['//getNodeName(thisNode)//']'
                 end select
                 !$omp end critical (FoX_DOM_Access)
+                call Galacticus_Display_Message(message)
              end if
              if (allowedParametersCount > 0 .and. .not.parameterMatched .and. verbose) then
-                !$ if (omp_in_parallel()) then
-                !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-                !$ else
-                !$    write (0,'(a2,a2,$)') "MM",": "
-                !$ end if
                 !$omp critical (FoX_DOM_Access)
                 unknownName    =getNodeName(thisNode)
                 !$omp end critical (FoX_DOM_Access)
@@ -906,25 +891,16 @@ contains
                    end if
                 end do
                 if (verbose) then
-                   if (distanceMinimum < 0) then
-                      write (0,'(3a)') '    unrecognized parameter [',trim(unknownName),']'
-                   else
-                      write (0,'(5a)') '    unrecognized parameter [',trim(unknownName),'] (did you mean [',trim(parameterNameGuess),']?)'
-                   end if
+                   message='unrecognized parameter ['//trim(unknownName)//']'
+                   if (distanceMinimum >= 0) message=message//' (did you mean ['//trim(parameterNameGuess)//']?)'
+                   call Galacticus_Display_Message(message)
                 end if
              end if
           end if
           currentParameter => currentParameter%sibling   
        end do
     end if
-    if (warningsFound .and. verbose) then
-       !$ if (omp_in_parallel()) then
-       !$    write (0,'(i2,a2,$)') omp_get_thread_num(),": "
-       !$ else
-       !$    write (0,'(a2,a2,$)') "MM",": "
-       !$ end if
-       write (0,'(a)') '<-'
-    end if
+    if (warningsFound .and. verbose) call Galacticus_Display_Unindent('')
     return
   end subroutine inputParametersCheckParameters  
 
@@ -1176,7 +1152,7 @@ contains
 
     if (.not.self%isPresent(parameterName,requireValue)) then
        if (requirePresent_) then
-          call Galacticus_Error_Report('parameter not found'//{introspection:location})
+          call Galacticus_Error_Report('parameter ['//trim(parameterName)//'] not found'//{introspection:location})
        else
           inputParametersSubParameters=inputParameters()
        end if
