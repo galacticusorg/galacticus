@@ -282,8 +282,8 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    print $dependenciesFile "\t\@awk '{print \"\\\"".$sourceFile->{'subDirectoryName'}.$sourceFile->{'fileName'}."\\\" -> \\\"\"\$\$1\"\\\"\"}' ".($dependencyExplicit =~ m/\// ? "" : $workDirectoryName).$dependencyExplicitFileName." >> ".$workSubDirectoryName.$graphVizFileName."\n";
 	}
 	foreach my $graphVizUsed ( @graphVizesUsed ) {
-	    print $dependenciesFile "\t\@awk '{print \"\\\"".$sourceFile->{'subDirectoryName'}.$sourceFile->{'fileName'}."\\\" -> \\\"\"\$\$1\"\\\"\"}' ".$graphVizUsed." >> ".$workSubDirectoryName.$graphVizFileName."\n";
-	    print $dependenciesFile "\t\@cat `awk '{print \"".$workDirectoryName."\"\$\$1\".gv\"}' ".$graphVizUsed."` >> ".$workSubDirectoryName.$graphVizFileName."\n";
+	    print $dependenciesFile "\t\@awk '{print \"\\\"".$sourceFile->{'subDirectoryName'}.$sourceFile->{'fileName'}."\\\" -> \\\"\"\$\$1\"\\\"\"}' ".$graphVizUsed.".d >> ".$workSubDirectoryName.$graphVizFileName."\n";
+	    print $dependenciesFile "\t\@cat `awk '{print \"".$workDirectoryName."\"\$\$1\".gv\"}' ".$graphVizUsed.".d` >> ".$workSubDirectoryName.$graphVizFileName."\n";
 	}
 	print $dependenciesFile "\t\@sort -u ".$workSubDirectoryName.$graphVizFileName." -o ".$workSubDirectoryName.$graphVizFileName."\n\n";
     }
