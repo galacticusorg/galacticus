@@ -453,7 +453,6 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Black_Hole_Standard_Satellite_Merging(node)
     !% Merge any black hole associated with {\normalfont \ttfamily node} before it merges with its host halo.

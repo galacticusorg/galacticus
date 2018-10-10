@@ -207,8 +207,9 @@
   <destinationGasMinorMerger value="spheroid"/>
     <massRatioMajorMerger value="0.3983"/>
   </mergerMassMovementsMethod>
-  <satelliteMergingRemnantSizeMethod value="Covington2008"/>
-  <mergerRemnantSizeOrbitalEnergy value="1"/>
+  <mergerRemnantSizeMethod value="covington2008">
+    <energyOrbital value="1"/>
+  </mergerRemnantSizeMethod>
 
   <!-- Spheroid options -->
   <spheroidEnergeticOutflowMassRate value="1.0"/>

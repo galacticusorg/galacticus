@@ -36,7 +36,7 @@
     <running value="0.000"/>
   </powerSpectrumPrimordialMethod>
   <stellarPopulationSpectraMethod value="FSPS"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <galacticDynamicsBarInstabilityMethod value="stable"/>
   <transferFunctionMethod value="eisensteinHu1999">

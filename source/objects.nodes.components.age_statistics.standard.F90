@@ -221,19 +221,17 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Satellite_Merging</unitName>
+  !#  <after>Satellite_Merging_Remnant_Compute</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging(node)
     !% Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
+    use Satellite_Merging_Remnant_Properties
     use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     implicit none
     type   (treeNode                  ), intent(inout), pointer :: node
     type   (treeNode                  )               , pointer :: nodeHost
     class  (nodeComponentAgeStatistics)               , pointer :: ageStatistics          , ageStatisticsHost
-    class  (mergerMassMovementsClass  )               , pointer :: mergerMassMovements_
-    integer                                                     :: destinationGasSatellite, destinationGasHost       , &
-         &                                                         destinationStarsHost   , destinationStarsSatellite
-    logical                                                     :: mergerIsMajor
  
     ! Get the inter-output component.
     ageStatistics => node%ageStatistics()
@@ -243,9 +241,6 @@ contains
        ! Find the node to merge with.
        nodeHost          => node    %mergesWith   (                 )
        ageStatisticsHost => nodeHost%ageStatistics(autoCreate=.true.)
-       ! Find where mass moves to.
-       mergerMassMovements_ => mergerMassMovements()
-       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the star formation rates from secondary to primary.
        select case (destinationStarsSatellite)
        case (destinationMergerDisk    )

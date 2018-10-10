@@ -72,7 +72,6 @@
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
   <linearGrowthMethod value="simple"/>
-  <mergerRemnantSizeOrbitalEnergy value="1"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -113,7 +112,9 @@
     <destinationGasMinorMerger value="spheroid"/>
   </mergerMassMovementsMethod>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <satelliteMergingRemnantSizeMethod value="Cole2000"/>
+  <mergerRemnantSizeMethod value="cole2000">
+  <energyOrbital value="1"/>
+  </mergerRemnantSizeMethod>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
   </cosmologicalMassVarianceMethod>

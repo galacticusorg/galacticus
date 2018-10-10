@@ -3,7 +3,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
+   <mergerRemnantSizeMethod value="cole2000"/>
    <mergerTreeConstructorMethod value="read">
   <missingHostsAreFatal value="false"/>
     <treeIndexToRootNodeIndex value="true"/>

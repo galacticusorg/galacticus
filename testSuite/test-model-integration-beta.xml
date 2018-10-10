@@ -203,7 +203,7 @@
   
   <!-- Galaxy merging -->
   <mergerMassMovementsMethod value="verySimple"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null"/>
   
   <!-- Solvers and time-stepping -->
   <odeAlgorithm value="Runge-Kutta-Second-Order"/>

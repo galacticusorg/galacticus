@@ -144,7 +144,7 @@
     <powerSpectrumPrimordialTransferredMethod value="simple"/>
     <randomSpinResetMassFactor value="2.0"/>
     <mergerMassMovementsMethod value="verySimple"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <satelliteMergingTimescalesMethod value="jiang2008"/>
     <starFormationFeedbackDisksMethod value="vlctyMxSclng">
       <fraction value="5.4973312818696149E-002"/>

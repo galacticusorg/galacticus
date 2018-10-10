@@ -77,7 +77,7 @@
 
   <!-- Switch off baryonic physics -->
   <hotHaloMassDistributionMethod value="null"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null"/>
 
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>

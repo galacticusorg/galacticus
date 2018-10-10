@@ -88,7 +88,7 @@
   <mergingTimescaleMultiplier value="1.0"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <treeNodeMethodSatellite value="preset"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>

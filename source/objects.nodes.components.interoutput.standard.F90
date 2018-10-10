@@ -157,19 +157,17 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Satellite_Merging</unitName>
+  !#  <after>Satellite_Merging_Remnant_Compute</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Inter_Output_Standard_Satellite_Merging(node)
     !% Remove any inter-output quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
+    use Satellite_Merging_Remnant_Properties
     use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     implicit none
     type   (treeNode                ), intent(inout), pointer :: node
     type   (treeNode                )               , pointer :: nodeHost
-    class  (nodeComponentInterOutput)               , pointer :: interOutputHost        , interOutput
-    class  (mergerMassMovementsClass)               , pointer :: mergerMassMovements_
-    integer                                                   :: destinationGasSatellite, destinationGasHost       , &
-         &                                                       destinationStarsHost   , destinationStarsSatellite
-    logical                                                   :: mergerIsMajor
+    class  (nodeComponentInterOutput)               , pointer :: interOutputHost, interOutput
 
     ! Get the inter-output component.
     interOutput => node%interOutput()
@@ -177,10 +175,8 @@ contains
     select type (interOutput)
     class is (nodeComponentInterOutputStandard)
        ! Find the node to merge with.
-       nodeHost             => node%mergesWith ()
-       interOutputHost      => nodeHost%interOutput()
-       mergerMassMovements_ => mergerMassMovements()
-       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+       nodeHost        => node    %mergesWith ()
+       interOutputHost => nodeHost%interOutput()
        ! Move the star formation rates from secondary to primary.
        select case (destinationStarsSatellite)
        case (destinationMergerDisk    )
