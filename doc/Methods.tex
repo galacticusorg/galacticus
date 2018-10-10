@@ -1587,55 +1587,6 @@ Currently defined intergalactic background radiation methods are:
 \end{description}
 The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily redshift} element. Each {\normalfont \ttfamily spectra} element must contain an array of {\normalfont \ttfamily datum} elements that gives the spectrum at each wavelength listed in the {\normalfont \ttfamily wavelength} element. Spectra must be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
 
-\subsubsection{Satellite Merging Mass Movements}
-
-Additional methods for the satellite merging mass movements can be added using the {\normalfont \ttfamily satelliteMergingMassMovementsMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily simple} method is described by a directive:
-\begin{verbatim}
- !# <satelliteMergingMassMovementsMethod>
- !#  <unitName>Satellite_Merging_Mass_Movements_Simple_Initialize</unitName>
- !# </satelliteMergingMassMovementsMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Satellite\_Merging\_Mass\_Movements\_Simple\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: satelliteMergingMassMovementsMethod
-    procedure(),          pointer, intent(inout) :: Satellite_Merging_Mass_Movement_Get
-    
-    if (satelliteMergingMassMovementsMethod == 'simple') Satellite_Merging_Mass_Movement_Get => My_Method_Get
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily satelliteMergingMassMovementsMethod} input parameter. The procedure pointer {\normalfont \ttfamily Satellite\_Merging\_Mass\_Movement\_Get} must be set to point to a function which sets the mass movement descriptors as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The mass movement subroutine must have the form:
-\begin{verbatim}
-  subroutine My_Method_Get(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
-    implicit none
-    type(treeNode), intent(inout), pointer  :: thisNode
-    integer,        intent(out)             :: gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo
-    logical,        intent(out)             :: mergerIsMajor
-    .
-    .
-    .
-    return
-  end subroutine My_Method_Get
-\end{verbatim}
-The subroutine must return values for each of the ``{\normalfont \ttfamily MoveTo}'' descriptors to specify where stars and gas from {\normalfont \ttfamily thisNode} and {\normalfont \ttfamily thisNode}'s host node should move to in the host. Allowed values are:
-\begin{description}
- \item [{\normalfont \ttfamily movesToDisk}] The material in question moves to the disk of the host node;
- \item [{\normalfont \ttfamily movesToSpheroid}] The material in question moves to the spheroid of the host node;
- \item [{\normalfont \ttfamily doesNotMove}] The material in question does not move (allowed only for host node descriptors).
-\end{description}
-Additionally, the {\normalfont \ttfamily mergerIsMajor} flag should be set to indicate whether this merger is deemed to be ``major'' (typically defined as one which redistributes mass from a disk into a spheroidal component).
-
-Currently defined satellite merger mass movement methods are:
-\begin{description}
- \item [{\normalfont \ttfamily verySimple}] In this case, the satellite is always added to the disk of the host, while material in the host does not move.
- \item [{\normalfont \ttfamily simple}] If the baryonic mass of the satellite exceeds a fraction {\normalfont \ttfamily majorMergerMassRatio} of the baryonic mass of the host then all material is moved to the spheroid of the host. Otherwise, satellite gas moves to the component given by {\normalfont \ttfamily minorMergerGasMovesTo}, satellite stars move to the host spheroid and host material does not move.
- \item [{\normalfont \ttfamily Baugh2005}] If the baryonic mass of the satellite exceeds a fraction {\normalfont \ttfamily majorMergerMassRatio} of the baryonic mass of the host then all material is moved to the spheroid of the host. Otherwise, if the baryonic mass of the satellite exceeds a fraction {\normalfont \ttfamily burstMassRatio} of the baryonic mass of the host and the gas fraction in the host exceeds {\normalfont \ttfamily burstCriticalGasFraction} then all gas is moved to the host spheroid, while the host stellar disk remains in place. For mergers failing both criteria, satellite gas moves to the component given by {\normalfont \ttfamily minorMergerGasMovesTo}, satellite stars move to the host spheroid and host material does not move. 
-\end{description}
-
 \subsubsection{Satellite Merging Remnant Sizes}\label{sec:satelliteMergerMassMovementMethod}
 
 Additional methods for the satellite merging remnant sizes can be added using the {\normalfont \ttfamily satelliteMergingRemnantSizeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Cole2000} method is described by a directive:

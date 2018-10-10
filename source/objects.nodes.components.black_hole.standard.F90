@@ -453,7 +453,6 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Black_Hole_Standard_Satellite_Merging(node)

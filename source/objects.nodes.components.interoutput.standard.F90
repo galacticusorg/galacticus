@@ -157,16 +157,19 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Inter_Output_Standard_Satellite_Merging(node)
     !% Remove any inter-output quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     implicit none
-    type (treeNode                ), intent(inout), pointer :: node
-    type (treeNode                )               , pointer :: nodeHost
-    class(nodeComponentInterOutput)               , pointer :: interOutputHost, interOutput
+    type   (treeNode                ), intent(inout), pointer :: node
+    type   (treeNode                )               , pointer :: nodeHost
+    class  (nodeComponentInterOutput)               , pointer :: interOutputHost        , interOutput
+    class  (mergerMassMovementsClass)               , pointer :: mergerMassMovements_
+    integer                                                   :: destinationGasSatellite, destinationGasHost       , &
+         &                                                       destinationStarsHost   , destinationStarsSatellite
+    logical                                                   :: mergerIsMajor
 
     ! Get the inter-output component.
     interOutput => node%interOutput()
@@ -174,11 +177,13 @@ contains
     select type (interOutput)
     class is (nodeComponentInterOutputStandard)
        ! Find the node to merge with.
-       nodeHost        => node%mergesWith ()
-       interOutputHost => nodeHost%interOutput()
+       nodeHost             => node%mergesWith ()
+       interOutputHost      => nodeHost%interOutput()
+       mergerMassMovements_ => mergerMassMovements()
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the star formation rates from secondary to primary.
-       select case (thisMergerStarsMoveTo)
-       case (movesToDisk    )
+       select case (destinationStarsSatellite)
+       case (destinationMergerDisk    )
           call interOutputHost%    diskStarFormationRateSet(                                             &
                &                                             interOutputHost%    diskStarFormationRate() &
                &                                            +interOutput    %    diskStarFormationRate() &
@@ -187,7 +192,7 @@ contains
                &                                             interOutputHost%spheroidStarFormationRate() &
                &                                            +interOutput    %spheroidStarFormationRate() &
                &                                           )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
@@ -199,8 +204,8 @@ contains
             &                                         0.0d0                                       &
             &                                       )
        ! Move star formation rates within the host if necessary.
-       select case (thisHostStarsMoveTo)
-       case (movesToDisk)
+       select case (destinationStarsHost)
+       case (destinationMergerDisk)
           call interOutputHost%    diskStarFormationRateSet(                                             &
                &                                             interOutputHost%    diskStarFormationRate() &
                &                                            +interOutputHost%spheroidStarFormationRate() &
@@ -208,7 +213,7 @@ contains
           call interOutputHost%spheroidStarFormationRateSet(                                             &
                &                                             0.0d0                                       &
                &                                           )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
           call interOutputHost%spheroidStarFormationRateSet(                                             &
                &                                             interOutputHost%spheroidStarFormationRate() &
                &                                            +interOutputHost%    diskStarFormationRate() &
@@ -216,7 +221,7 @@ contains
           call interOutputHost%    diskStarFormationRateSet(                                             &
                &                                             0.0d0                                       &
                &                                           )
-       case (doesNotMove)
+       case (destinationMergerUnmoved)
           ! Do nothing.
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})

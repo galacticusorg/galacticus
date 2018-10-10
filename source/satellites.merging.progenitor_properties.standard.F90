@@ -18,19 +18,24 @@
 
   !% Implements a merger progenitor properties class which uses a standard calculation.
 
+  use Satellite_Merging_Mass_Movements
+
   !# <mergerProgenitorProperties name="mergerProgenitorPropertiesStandard">
   !#  <description>A merger progenitor properties class which uses a standard calculation.</description>
   !# </mergerProgenitorProperties>
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesStandard
      !% A merger progenitor properties class which uses a standard calculation.
      private
+     class(mergerMassMovementsClass), pointer :: mergerMassMovements_
    contains
+     final     ::        standardDestructor
      procedure :: get => standardGet
   end type mergerProgenitorPropertiesStandard
 
   interface mergerProgenitorPropertiesStandard
      !% Constructors for the {\normalfont \ttfamily standard} merger progenitor properties class.
      module procedure standardConstructorParameters
+     module procedure standardConstructorInternal
   end interface mergerProgenitorPropertiesStandard
 
 contains
@@ -41,10 +46,10 @@ contains
     use Array_Utilities
     use Input_Parameters
     implicit none
-    type(mergerProgenitorPropertiesStandard)                :: self
-    type(inputParameters                   ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
-   
+    type (mergerProgenitorPropertiesStandard)                :: self
+    type (inputParameters                   ), intent(inout) :: parameters
+    class(mergerMassMovementsClass          ), pointer       :: mergerMassMovements_
+
     if     (                                                                                                                                                           &
          &  .not.                                                                                                                                                      &
          &       (                                                                                                                                                     &
@@ -85,9 +90,30 @@ contains
          &                                  )                                                                                                                       // &
          &         {introspection:location}                                                                                                                            &
          &        )
-    self=mergerProgenitorPropertiesStandard()
+    !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
+    self=mergerProgenitorPropertiesStandard(mergerMassMovements_)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
+  
+ function standardConstructorInternal(mergerMassMovements_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily standard} merger progenitor properties class.
+    implicit none
+    type (mergerProgenitorPropertiesStandard)                        :: self
+    class(mergerMassMovementsClass          ), intent(in   ), target :: mergerMassMovements_
+    !# <constructorAssign variables="*mergerMassMovements_"/>
+    
+    return
+  end function standardConstructorInternal
+
+  subroutine standardDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily standard} merger progenitor properties class.
+    implicit none
+    type (mergerProgenitorPropertiesStandard) :: self
+
+    !# <objectDestructor name="self%mergerMassMovements_"/>
+    return
+  end subroutine standardDestructor
   
   subroutine standardGet(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
@@ -95,7 +121,6 @@ contains
     use Galactic_Structure_Radii
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
-    use Satellite_Merging_Mass_Movements_Descriptors
     use Numerical_Constants_Physical
     implicit none
     class           (mergerProgenitorPropertiesStandard), intent(inout)         :: self
@@ -112,8 +137,12 @@ contains
          &                                                                         hostSpheroidHalfMassRadius     , factorDarkMatterDiskSatellite    , &
          &                                                                         radiusHalfMassDiskSatellite    , factorDarkMatterSpheroidSatellite, &
          &                                                                         radiusHalfMassSpheroidSatellite
-    !GCC$ attributes unused :: self
-    
+    integer                                                                     :: destinationGasSatellite        , destinationGasHost               , &
+         &                                                                         destinationStarsHost           , destinationStarsSatellite
+    logical                                                                     :: mergerIsMajor
+
+    ! Find how mass is moved by the merger.
+    call self%mergerMassMovements_%get(nodeSatellite,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
     ! Get the disk and spheroid components of host and satellite.
     diskHost          => nodeHost     %disk    ()
     spheroidHost      => nodeHost     %spheroid()
@@ -169,20 +198,20 @@ contains
        factorDarkMatterDiskSatellite    =+0.0d0
     end if
     ! Find the masses of material that will end up in the spheroid component of the remnant.
-    select case (thisHostGasMovesTo)
-    case (movesToSpheroid)
+    select case (destinationGasHost)
+    case (destinationMergerSpheroid)
        massSpheroidHost      =spheroidHost%massGas()                             +diskHost%massGas()
        radiusHost            =spheroidHost%massGas()*hostSpheroidHalfMassRadius  +diskHost%massGas()*radiusHalfMassDiskHost
        factorAngularMomentum =spheroidHost%massGas()*factorDarkMatterSpheroidHost+diskHost%massGas()*factorDarkMatterDiskHost
        massGasSpheroidRemnant=spheroidHost%massGas()                             +diskHost%massGas()
        massSpheroidRemnant   =spheroidHost%massGas()                             +diskHost%massGas()
-    case (movesToDisk)
+    case (destinationMergerDisk)
        massSpheroidHost      =0.0d0
        radiusHost            =0.0d0
        factorAngularMomentum =0.0d0
        massGasSpheroidRemnant=0.0d0
        massSpheroidRemnant   =0.0d0
-    case (doesNotMove)
+    case (destinationMergerUnmoved)
        massSpheroidHost      =spheroidHost%massGas()
        radiusHost            =spheroidHost%massGas()*hostSpheroidHalfMassRadius
        factorAngularMomentum =spheroidHost%massGas()*factorDarkMatterSpheroidHost
@@ -191,17 +220,17 @@ contains
     case default
        call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (thisHostStarsMoveTo)
-    case (movesToSpheroid)
+    select case (destinationStarsHost)
+    case (destinationMergerSpheroid)
        massSpheroidHost     =massSpheroidHost     +spheroidHost%massStellar()                             +diskHost%massStellar()
        radiusHost           =radiusHost           +spheroidHost%massStellar()*hostSpheroidHalfMassRadius  +diskHost%massStellar()*radiusHalfMassDiskHost
        factorAngularMomentum=factorAngularMomentum+spheroidHost%massStellar()*factorDarkMatterSpheroidHost+diskHost%massStellar()*factorDarkMatterDiskHost
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidHost%massStellar()                             +diskHost%massStellar()
-    case (movesToDisk)
+    case (destinationMergerDisk)
        massSpheroidHost     =massSpheroidHost
        radiusHost           =radiusHost
        factorAngularMomentum=factorAngularMomentum
-    case (doesNotMove)
+    case (destinationMergerUnmoved)
        massSpheroidHost     =massSpheroidHost     +spheroidHost%massStellar()
        radiusHost           =radiusHost           +spheroidHost%massStellar()*hostSpheroidHalfMassRadius
        factorAngularMomentum=factorAngularMomentum+spheroidHost%massStellar()*factorDarkMatterSpheroidHost
@@ -209,18 +238,18 @@ contains
     case default
        call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (thisMergerGasMovesTo)
-    case (movesToSpheroid)
+    select case (destinationGasSatellite)
+    case (destinationMergerSpheroid)
        massSpheroidSatellite =                       spheroidSatellite%massGas()                                  +diskSatellite%massGas()
        radiusSatellite       =                       spheroidSatellite%massGas()*radiusHalfMassSpheroidSatellite  +diskSatellite%massGas()*radiusHalfMassDiskSatellite
        factorAngularMomentum =factorAngularMomentum +spheroidSatellite%massGas()*factorDarkMatterSpheroidSatellite+diskSatellite%massGas()*factorDarkMatterDiskSatellite
        massGasSpheroidRemnant=massGasSpheroidRemnant+spheroidSatellite%massGas()                                  +diskSatellite%massGas()
        massSpheroidRemnant   =massSpheroidRemnant   +spheroidSatellite%massGas()                                  +diskSatellite%massGas()
-    case (movesToDisk)
+    case (destinationMergerDisk)
        massSpheroidSatellite =0.0d0
        radiusSatellite       =0.0d0
        factorAngularMomentum =factorAngularMomentum
-    case (doesNotMove)
+    case (destinationMergerUnmoved)
        massSpheroidSatellite =                       spheroidSatellite%massGas()
        radiusSatellite       =                       spheroidSatellite%massGas()*radiusHalfMassSpheroidSatellite
        factorAngularMomentum =factorAngularMomentum +spheroidSatellite%massGas()*factorDarkMatterSpheroidSatellite
@@ -229,17 +258,17 @@ contains
     case default
        call Galacticus_Error_Report('unrecognized moveTo descriptor'//{introspection:location})
     end select
-    select case (thisMergerStarsMoveTo)
-    case (movesToSpheroid)
+    select case (destinationStarsSatellite)
+    case (destinationMergerSpheroid)
        massSpheroidSatellite=massSpheroidSatellite+spheroidSatellite%massStellar()                                  +diskSatellite%massStellar()
        radiusSatellite      =radiusSatellite      +spheroidSatellite%massStellar()*radiusHalfMassSpheroidSatellite  +diskSatellite%massStellar()*radiusHalfMassDiskSatellite
        factorAngularMomentum=factorAngularMomentum+spheroidSatellite%massStellar()*factorDarkMatterSpheroidSatellite+diskSatellite%massStellar()*factorDarkMatterDiskSatellite
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidSatellite%massStellar()                                  +diskSatellite%massStellar()
-    case (movesToDisk)
+    case (destinationMergerDisk)
        massSpheroidSatellite=massSpheroidSatellite
        radiusSatellite      =radiusSatellite
        factorAngularMomentum=factorAngularMomentum
-    case (doesNotMove)
+    case (destinationMergerUnmoved)
        massSpheroidSatellite=massSpheroidSatellite+spheroidSatellite%massStellar()
        radiusSatellite      =radiusSatellite      +spheroidSatellite%massStellar()*radiusHalfMassSpheroidSatellite
        factorAngularMomentum=factorAngularMomentum+spheroidSatellite%massStellar()*factorDarkMatterSpheroidSatellite

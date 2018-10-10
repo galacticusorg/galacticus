@@ -787,38 +787,43 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Disk_Very_Simple_Satellite_Merging(node)
     !% Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     implicit none
-    type (treeNode             ), intent(inout), pointer :: node
-    type (treeNode             )               , pointer :: nodeHost
-    class(nodeComponentDisk    )               , pointer :: diskHost    , disk
-    class(nodeComponentSpheroid)               , pointer :: spheroidHost
-    
+    type   (treeNode                ), intent(inout), pointer :: node
+    type   (treeNode                )               , pointer :: nodeHost
+    class  (nodeComponentDisk       )               , pointer :: diskHost               , disk
+    class  (nodeComponentSpheroid   )               , pointer :: spheroidHost
+    class  (mergerMassMovementsClass)               , pointer :: mergerMassMovements_
+    integer                                                   :: destinationGasSatellite, destinationGasHost       , &
+         &                                                       destinationStarsHost   , destinationStarsSatellite
+    logical                                                   :: mergerIsMajor
+ 
     ! Check that the disk is of the verySimple class.
     disk => node%disk()
     select type (disk)
-    class is (nodeComponentDiskVerySimple)
-
+    class is (nodeComponentDiskVerySimple)       
+       ! Find where mass moves to.
+       mergerMassMovements_ => mergerMassMovements()
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Find the node to merge with and its disk component (and spheroid if necessary).
        nodeHost => node    %mergesWith(                 )
        diskHost => nodeHost%disk      (autoCreate=.true.)
        if     (                                          &
-            &   thisMergerGasMovesTo  == movesToSpheroid &
+            &   destinationGasSatellite  == destinationMergerSpheroid &
             &  .or.                                      &
-            &   thisMergerStarsMoveTo == movesToSpheroid &
+            &   destinationStarsSatellite == destinationMergerSpheroid &
             & )                                          &
             & spheroidHost => nodeHost%spheroid(autoCreate=.true.)
        ! Move the gas component of the very simple disk to the host.
-       select case (thisMergerGasMovesTo)
-       case (movesToDisk)
+       select case (destinationGasSatellite)
+       case (destinationMergerDisk)
           call diskHost    %massGasSet          (                              &
                &                                  diskHost    %      massGas() &
                &                                 +disk        %      massGas() &
@@ -827,7 +832,7 @@ contains
                &                                  diskHost    %abundancesGas() &
                &                                 +disk        %abundancesGas() &
                &                                )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
           call spheroidHost%massGasSet          (                              &
                &                                  spheroidHost%massGas      () &
                &                                 +disk        %massGas      () &
@@ -849,8 +854,8 @@ contains
             &                                                    zeroAbundances          &
             &                                   )
        ! Move the stellar component of the very simple disk to the host.
-       select case (thisMergerStarsMoveTo)
-       case (movesToDisk)
+       select case (destinationStarsSatellite)
+       case (destinationMergerDisk)
           call diskHost    %massStellarSet        (                                    &
                &                                    diskHost    %        massStellar() &
                &                                   +disk        %        massStellar() &
@@ -863,7 +868,7 @@ contains
                &                                    diskHost    %luminositiesStellar() &
                &                                   +disk        %luminositiesStellar() &
                &                                  )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
           call spheroidHost%massStellarSet        (                                    &
                &                                    spheroidHost%  massStellar      () &
                &                                   +disk        %  massStellar      () &

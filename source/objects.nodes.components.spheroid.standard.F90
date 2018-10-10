@@ -956,25 +956,28 @@ contains
   
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Spheroid_Standard_Satellite_Merging(node)
     !% Transfer any standard spheroid associated with {\normalfont \ttfamily node} to its host halo.
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     use Satellite_Merging_Remnant_Sizes_Properties
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    type            (treeNode             )               , pointer :: nodeHost
-    class           (nodeComponentDisk    )               , pointer :: diskHost    , disk
-    class           (nodeComponentSpheroid)               , pointer :: spheroidHost, spheroid
-    type            (history              )                         :: historyDisk          , historySpheroid                , &
-         &                                                             history_
-    double precision                                                :: angularMomentum      , diskSpecificAngularMomentum    , &
-         &                                                             spheroidMass         , spheroidSpecificAngularMomentum
+    type            (treeNode                ), intent(inout), pointer :: node
+    type            (treeNode                )               , pointer :: nodeHost
+    class           (nodeComponentDisk       )               , pointer :: diskHost               , disk
+    class           (nodeComponentSpheroid   )               , pointer :: spheroidHost           , spheroid
+    class           (mergerMassMovementsClass)               , pointer :: mergerMassMovements_
+    integer                                                            :: destinationGasSatellite, destinationGasHost             , &
+         &                                                                destinationStarsHost   , destinationStarsSatellite
+    logical                                                            :: mergerIsMajor
+    type            (history                 )                         :: historyDisk            , historySpheroid                , &
+         &                                                                history_
+    double precision                                                   :: angularMomentum        , diskSpecificAngularMomentum    , &
+         &                                                                spheroidMass           , spheroidSpecificAngularMomentum
 
     ! Check that the standard spheroid is active.
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -1009,10 +1012,12 @@ contains
           else
              diskSpecificAngularMomentum=0.0d0
           end if
-
+          ! Find where mass moves to.
+          mergerMassMovements_ => mergerMassMovements()
+          call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
           ! Move gas material within the host if necessary.
-          select case (thisHostGasMovesTo)
-          case (movesToDisk)
+          select case (destinationGasHost)
+          case (destinationMergerDisk)
              call diskHost    %        massGasSet(                                 &
                   &                                diskHost    %massGas        ()  &
                   &                               +spheroidHost%massGas        ()  &
@@ -1037,7 +1042,7 @@ contains
              call spheroidHost%  abundancesGasSet(                                 &
                   &                                zeroAbundances                  &
                   &                              )
-          case (movesToSpheroid)
+          case (destinationMergerSpheroid)
              call spheroidHost%        massGasSet(                                 &
                   &                                spheroidHost%massGas        ()  &
                   &                               +diskHost    %massGas        ()  &
@@ -1057,15 +1062,15 @@ contains
              call diskHost    %  abundancesGasSet(                                 &
                   &                                zeroAbundances                  &
                   &                              )
-          case (doesNotMove)
+          case (destinationMergerUnmoved)
              ! Do nothing.
           case default
              call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
           end select
 
           ! Move stellar material within the host if necessary.
-          select case (thisHostStarsMoveTo)
-          case (movesToDisk)
+          select case (destinationStarsHost)
+          case (destinationMergerDisk)
              call     diskHost%        massStellarSet(                                    &
                   &                                    diskHost    %        massStellar() &
                   &                                   +spheroidHost%        massStellar() &
@@ -1113,7 +1118,7 @@ contains
              call spheroidHost%    starFormationHistorySet(historySpheroid)
              call historyDisk    %destroy(recordMemory=.false.)
              call historySpheroid%destroy(recordMemory=.false.)
-          case (movesToSpheroid)
+          case (destinationMergerSpheroid)
              call spheroidHost%        massStellarSet(                                    &
                   &                                    spheroidHost%        massStellar() &
                   &                                   +diskHost    %        massStellar() &
@@ -1156,7 +1161,7 @@ contains
              call historySpheroid%destroy(recordMemory=.false.)
              historyDisk    =diskHost    %starFormationHistory()
              historySpheroid=spheroidHost%starFormationHistory()
-          case (doesNotMove)
+          case (destinationMergerUnmoved)
              ! Do nothing.
           case default
              call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
@@ -1175,8 +1180,8 @@ contains
              spheroidSpecificAngularMomentum=spheroid%angularMomentum()/spheroidMass
 
              ! Move the gas component of the standard spheroid to the host.
-             select case (thisMergerGasMovesTo)
-             case (movesToDisk)
+             select case (destinationGasSatellite)
+             case (destinationMergerDisk)
                 call     diskHost%        massGasSet(                                 &
                      &                                diskHost    %        massGas()  &
                      &                               +spheroid%            massGas()  &
@@ -1189,7 +1194,7 @@ contains
                      &                               +spheroid    %        massGas()  &
                      &                               *spheroidSpecificAngularMomentum &
                      &                              )
-             case (movesToSpheroid)
+             case (destinationMergerSpheroid)
                 call spheroidHost%        massGasSet(                                 &
                      &                                spheroidHost%        massGas()  &
                      &                               +spheroid    %        massGas()  &
@@ -1205,8 +1210,8 @@ contains
              call spheroid%abundancesGasSet(zeroAbundances)
 
              ! Move the stellar component of the standard spheroid to the host.
-             select case (thisMergerStarsMoveTo)
-             case (movesToDisk)
+             select case (destinationStarsSatellite)
+             case (destinationMergerDisk)
                 call diskHost    %        massStellarSet(                                 &
                      &                                    diskHost%        massStellar()  &
                      &                                   +spheroid%        massStellar()  &
@@ -1237,7 +1242,7 @@ contains
                 call spheroid       %starFormationHistorySet(historySpheroid                     )
                 call history_       %destroy                (                recordMemory=.false.)
                 call historySpheroid%destroy                (                recordMemory=.false.)
-             case (movesToSpheroid)
+             case (destinationMergerSpheroid)
                 call spheroidHost%        massStellarSet( spheroidHost%        massStellar() &
                      &                                   +spheroid    %        massStellar() &
                      &                                  )
