@@ -334,22 +334,27 @@ contains
     
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging(node)
     !% Record properties of a merging event for {\normalfont \ttfamily node}.
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Mass_Movements
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
-    type (treeNode                      )               , pointer :: nodeHost
-    class(nodeComponentBasic            )               , pointer :: basicHost
-    class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsHost
+    type   (treeNode                      ), intent(inout), pointer :: node
+    type   (treeNode                      )               , pointer :: nodeHost
+    class  (nodeComponentBasic            )               , pointer :: basicHost
+    class  (nodeComponentMergingStatistics)               , pointer :: mergingStatisticsHost
+    class  (mergerMassMovementsClass      )               , pointer :: mergerMassMovements_
+    integer                                                         :: destinationGasSatellite, destinationGasHost       , &
+         &                                                             destinationStarsHost   , destinationStarsSatellite
+    logical                                                         :: mergerIsMajor
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
 
     ! Record the time of this merger if it is a major merger.
-    if (thisMergerIsMajor) then
+    mergerMassMovements_ => mergerMassMovements()
+    call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+    if (mergerIsMajor) then
        ! Find the node to merge with.
        nodeHost              => node    %mergesWith       ()
        basicHost             => nodeHost%basic            ()

@@ -968,23 +968,26 @@ contains
   
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Disk_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !#  <after>Satellite_Merging_Remnant_Size</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Disk_Standard_Satellite_Merging(node)
     !% Transfer any standard disk associated with {\normalfont \ttfamily node} to its host halo.
     use Histories
     use Abundances_Structure
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    class           (nodeComponentDisk    )               , pointer :: diskHost               , disk
-    class           (nodeComponentSpheroid)               , pointer :: spheroidHost           , spheroid
-    type            (treeNode             )               , pointer :: nodeHost
-    type            (history              )                         :: historyHost            , historyNode
-    double precision                                                :: specificAngularMomentum
+    type            (treeNode                ), intent(inout), pointer :: node
+    class           (nodeComponentDisk       )               , pointer :: diskHost               , disk
+    class           (nodeComponentSpheroid   )               , pointer :: spheroidHost           , spheroid
+    type            (treeNode                )               , pointer :: nodeHost
+    type            (history                 )                         :: historyHost            , historyNode
+    class           (mergerMassMovementsClass)               , pointer :: mergerMassMovements_
+    integer                                                            :: destinationGasSatellite, destinationGasHost       , &
+         &                                                                destinationStarsHost   , destinationStarsSatellite
+    logical                                                            :: mergerIsMajor
+    double precision                                                   :: specificAngularMomentum
 
     ! Check that the disk is of the standard class.
     disk => node%disk()
@@ -1003,10 +1006,12 @@ contains
        else
           specificAngularMomentum=0.0d0
        end if
-
+       ! Find where mass moves to.
+       mergerMassMovements_ => mergerMassMovements()
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the gas component of the standard disk to the host.
-       select case (thisMergerGasMovesTo)
-       case (movesToDisk)
+       select case (destinationGasSatellite)
+       case (destinationMergerDisk)
           call diskHost    %massGasSet            (                                                                     &
                &                                             diskHost    %massGas            ()                         &
                &                                            +disk        %massGas            ()                         &
@@ -1019,7 +1024,7 @@ contains
                &                                             diskHost    %angularMomentum    ()                         &
                &                                            +disk        %massGas            ()*specificAngularMomentum &
                &                                           )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
           call spheroidHost%massGasSet            (                                                                     &
                &                                             spheroidHost%massGas            ()                         &
                &                                            +disk        %massGas            ()                         &
@@ -1035,8 +1040,8 @@ contains
        call disk%abundancesGasSet(zeroAbundances)
 
        ! Move the stellar component of the standard disk to the host.
-       select case (thisMergerStarsMoveTo)
-       case (movesToDisk)
+       select case (destinationStarsSatellite)
+       case (destinationMergerDisk)
           call diskHost    %massStellarSet        (                                                                     &
                &                                             diskHost    %massStellar        ()                         &
                &                                            +disk        %massStellar        ()                         &
@@ -1069,7 +1074,7 @@ contains
           call disk       %starFormationHistorySet(historyNode                     )
           call historyNode%destroy                (            recordMemory=.false.)
           call historyHost%destroy                (            recordMemory=.false.)
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
           call spheroidHost%massStellarSet        (                                                                     &
                &                                             spheroidHost%massStellar        ()                         &
                &                                            +disk        %massStellar        ()                         &

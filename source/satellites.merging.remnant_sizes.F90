@@ -38,7 +38,6 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Satellite_Merging_Remnant_Size</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
   subroutine Satellite_Merging_Remnant_Size(thisNode)
     !% Computes the size of a merger remnant.

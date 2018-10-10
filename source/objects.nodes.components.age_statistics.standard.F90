@@ -221,17 +221,20 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging(node)
     !% Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: node
-    type (treeNode                  )               , pointer :: nodeHost
-    class(nodeComponentAgeStatistics)               , pointer :: ageStatistics, ageStatisticsHost
-
+    type   (treeNode                  ), intent(inout), pointer :: node
+    type   (treeNode                  )               , pointer :: nodeHost
+    class  (nodeComponentAgeStatistics)               , pointer :: ageStatistics          , ageStatisticsHost
+    class  (mergerMassMovementsClass  )               , pointer :: mergerMassMovements_
+    integer                                                     :: destinationGasSatellite, destinationGasHost       , &
+         &                                                         destinationStarsHost   , destinationStarsSatellite
+    logical                                                     :: mergerIsMajor
+ 
     ! Get the inter-output component.
     ageStatistics => node%ageStatistics()
     ! Ensure that it is of the standard class.
@@ -240,9 +243,12 @@ contains
        ! Find the node to merge with.
        nodeHost          => node    %mergesWith   (                 )
        ageStatisticsHost => nodeHost%ageStatistics(autoCreate=.true.)
+       ! Find where mass moves to.
+       mergerMassMovements_ => mergerMassMovements()
+       call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
        ! Move the star formation rates from secondary to primary.
-       select case (thisMergerStarsMoveTo)
-       case (movesToDisk    )
+       select case (destinationStarsSatellite)
+       case (destinationMergerDisk    )
           call ageStatisticsHost%    diskTimeWeightedIntegratedSFRSet(                                                       &
                &                                                       ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
                &                                                      +ageStatistics    %    diskTimeWeightedIntegratedSFR() &
@@ -259,7 +265,7 @@ contains
                &                                                       ageStatisticsHost%            spheroidIntegratedSFR() &
                &                                                      +ageStatistics    %            spheroidIntegratedSFR() &
                &                                                     )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
@@ -277,8 +283,8 @@ contains
             &                                                   0.0d0                                                    &
             &                                                 )
        ! Move star formation rates within the host if necessary.
-       select case (thisHostStarsMoveTo)
-       case (movesToDisk)
+       select case (destinationStarsHost)
+       case (destinationMergerDisk)
           call ageStatisticsHost%    diskTimeWeightedIntegratedSFRSet(                                                       &
                &                                                       ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
                &                                                      +ageStatisticsHost%spheroidTimeWeightedIntegratedSFR() &
@@ -293,7 +299,7 @@ contains
           call ageStatisticsHost%            spheroidIntegratedSFRSet(                                                       &
                &                                                       0.0d0                                                 &
                &                                                     )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
           call ageStatisticsHost%spheroidTimeWeightedIntegratedSFRSet(                                                       &
                &                                                       ageStatisticsHost%spheroidTimeWeightedIntegratedSFR() &
                &                                                      +ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
@@ -308,7 +314,7 @@ contains
           call ageStatisticsHost%                diskIntegratedSFRSet(                                                       &
                &                                                       0.0d0                                                 &
                &                                                     )
-       case (doesNotMove)
+       case (destinationMergerUnmoved)
           ! Do nothing.
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})

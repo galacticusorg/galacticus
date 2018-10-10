@@ -540,7 +540,12 @@ my @translations =
 	     "supernovaeIaMethod"                                => "supernovaeTypeIaMethod"                                                                ,
 	     "stellarTracksFile"                                 => "stellarTracksMethod.file.--fileName"                                                   ,
 	     "stellarPropertiesFile"                             => "stellarAstrophysicsMethod.file.--fileName"                                             ,
-	     "satelliteMergingRemnantProgenitorPropertiesMethod" => "mergerProgenitorPropertiesMethod"
+	     "satelliteMergingRemnantProgenitorPropertiesMethod" => "mergerProgenitorPropertiesMethod"	          	     	     	     	     	    ,
+	     "satelliteMergingMassMovementsMethod" 	         => "mergerMassMovementsMethod"                                                             ,
+	     "majorMergerMassRatio"                              => "mergerMassMovementsMethod.simple.--massRatioMajorMerger"                               ,
+	     "burstMassRatio"                                    => "mergerMassMovementsMethod.baugh2005.--ratioMassBurst"                                  ,
+	     "burstCriticalGasFraction"                          => "mergerMassMovementsMethod.baugh2005.--fractionGasCriticalBurst"                        ,
+	     "minorMergerGasMovesTo"                             => "mergerMassMovementsMethod.simple.--destinationGasMinorMerger"
 	 },
 	 values        =>
 	 {
@@ -585,7 +590,11 @@ my @translations =
 	     stellarWindsMethod                        =>
 	     {
 		 "Leitherer1992"     => "leitherer1992"
-	     }    
+	     },
+	     satelliteMergingMassMovementsMethod       =>
+	     {
+		 "Baugh2005"         => "baugh2005"
+	     }
 	 }
      }
     );
