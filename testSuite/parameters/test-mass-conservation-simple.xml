@@ -17,7 +17,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <accretionHaloMethod value="bertschinger">
-      <redshiftReionization value="10.5" />
+      <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="47.370163695687651"/>
     </accretionHaloMethod>
     <accretionHaloTotalMethod value="bertschinger"/>
@@ -143,7 +143,7 @@
     </powerSpectrumPrimordialMethod>
     <powerSpectrumPrimordialTransferredMethod value="simple"/>
     <randomSpinResetMassFactor value="2.0"/>
-    <satelliteMergingMassMovementsMethod value="verySimple"/>
+    <mergerMassMovementsMethod value="verySimple"/>
     <satelliteMergingRemnantSizeMethod value="null"/>
     <satelliteMergingTimescalesMethod value="jiang2008"/>
     <starFormationFeedbackDisksMethod value="vlctyMxSclng">

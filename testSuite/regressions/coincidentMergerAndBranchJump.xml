@@ -205,10 +205,11 @@
   <virialOrbitMethod value="benson2005"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="1.0"/>
-  <satelliteMergingMassMovementsMethod value="simple"/>
-  <minorMergerGasMovesTo value="spheroid"/>
+  <mergerMassMovementsMethod value="simple">
+  <destinationGasMinorMerger value="spheroid"/>
+    <massRatioMajorMerger value="0.3983"/>
+  </mergerMassMovementsMethod>
   <satelliteMergingRemnantSizeMethod value="Covington2008"/>
-  <majorMergerMassRatio value="0.3983"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
 
   <!-- Spheroid options -->

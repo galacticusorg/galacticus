@@ -15,7 +15,6 @@
   </cosmologyParametersMethod>
 
   <treeNodeMethodDarkMatterProfile value="scale"/>
-  <majorMergerMassRatio value="0.1"/>
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
@@ -99,7 +98,10 @@
     <efficiency value="0.1"/>
   </starFormationTimescaleSpheroidsMethod>
 
-  <satelliteMergingMassMovementsMethod value="simple"/>
+  <mergerMassMovementsMethod value="simple">
+  <massRatioMajorMerger value="0.1"/>
+    <destinationGasMinorMerger value="spheroid"/>
+  </mergerMassMovementsMethod>
   <haloMassFunctionMethod value="tinker2008"/>
   <accretionDisksMethod value="ADAF">
       <efficiencyRadiationType value="thinDisk"/>
@@ -111,7 +113,6 @@
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
   <imfSalpeterRecycledInstantaneous value="0.39"/>
-  <minorMergerGasMovesTo value="spheroid"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
