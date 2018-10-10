@@ -343,7 +343,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <chemicalReactionRateMethod value="hydrogenNetwork">
-      <fast             value="true"/>
+      <fast value="true"/>
       <radiationCMBOnly value="true"/>
     </chemicalReactionRateMethod>
     <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
@@ -365,7 +365,7 @@
     <blackHoleBinaryInitialSeparationMethod value="tidalRadius">
       <blackHoleBinaryRecoilMethod value="null" parameterLevel="top"/>
       <blackHoleBinaryRecoilMethod value="campanelli2007" parameterLevel="top">
- 	<blackHoleBinarySeparationGrowthRateMethod value="zero"     parameterLevel="top"/>
+ 	<blackHoleBinarySeparationGrowthRateMethod value="zero" parameterLevel="top"/>
  	<blackHoleBinarySeparationGrowthRateMethod value="standard" parameterLevel="top">
  	  <tripleBlackHoleInteraction value="false" parameterLevel="top"/>
  	  <tripleBlackHoleInteraction value="true" parameterLevel="top">
@@ -466,8 +466,8 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <satelliteMergingMassMovementsMethod value="simple"/>
-    <satelliteMergingMassMovementsMethod value="Baugh2005"/>
+    <mergerMassMovementsMethod value="simple"/>
+    <mergerMassMovementsMethod value="baugh2005"/>
   </parameters>
   
   <!-- Star formation feedback. -->
@@ -693,20 +693,20 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <powerSpectrumWindowFunctionMethod value="topHat"            />
-    <powerSpectrumWindowFunctionMethod value="sharpKSpace"        >
+    <powerSpectrumWindowFunctionMethod value="topHat"/>
+    <powerSpectrumWindowFunctionMethod value="sharpKSpace">
       <normalization value="2.5"/>
     </powerSpectrumWindowFunctionMethod>
-    <powerSpectrumWindowFunctionMethod value="topHatSharpKHybrid" >
+    <powerSpectrumWindowFunctionMethod value="topHatSharpKHybrid">
       <normalization value="2.5"/>
-      <radiiRatio    value="1.0"/>
+      <radiiRatio value="1.0"/>
     </powerSpectrumWindowFunctionMethod>
-    <powerSpectrumWindowFunctionMethod value="smoothKSpace"       >
+    <powerSpectrumWindowFunctionMethod value="smoothKSpace">
       <normalization value="3.5"/>
-      <beta          value="3.7"/>
+      <beta value="3.7"/>
     </powerSpectrumWindowFunctionMethod>
-    <powerSpectrumWindowFunctionMethod value="lagrangianChan2017" >
-      <f             value="1.0"/>
+    <powerSpectrumWindowFunctionMethod value="lagrangianChan2017">
+      <f value="1.0"/>
     </powerSpectrumWindowFunctionMethod>
   </parameters>
 

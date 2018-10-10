@@ -202,7 +202,7 @@
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   
   <!-- Galaxy merging -->
-  <satelliteMergingMassMovementsMethod value="verySimple"/>
+  <mergerMassMovementsMethod value="verySimple"/>
   <satelliteMergingRemnantSizeMethod value="null"/>
   
   <!-- Solvers and time-stepping -->

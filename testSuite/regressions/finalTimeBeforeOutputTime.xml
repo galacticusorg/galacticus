@@ -149,5 +149,5 @@
   </mergerTreeConstructorMethod>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <imfChabrierRecycledInstantaneous value="0.46"/>
-  <satelliteMergingMassMovementsMethod value="verySimple"/>
+  <mergerMassMovementsMethod value="verySimple"/>
 </parameters>

@@ -116,12 +116,12 @@
   <hotHaloTrackStrippedGas value="true"/>
 
   <!-- Galaxy ram pressure stripping options -->
-  <ramPressureStrippingDisksMethod value="null"/>
-  <ramPressureStrippingSpheroidsMethod value="null"/>
+  <ramPressureStrippingMassLossRateDisksMethod value="null"/>
+  <ramPressureStrippingMassLossRateSpheroidsMethod value="null"/>
 
   <!-- Galaxy tidal stripping options -->
-  <tidalStrippingDisksMethod value="null"/>
-  <tidalStrippingSpheroidsMethod value="null"/>
+  <tidalStrippingMassLossRateDisksMethod value="null"/>
+  <tidalStrippingMassLossRateSpheroidsMethod value="null"/>
   <satelliteTidalFieldMethod value="null"/>
 
   <!-- Galactic structure solver options -->
@@ -131,21 +131,27 @@
   <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
   <!-- Galactic disk dynamics options -->
-  <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
+  <barInstabilityMethod value="ELN"/>
   <stabilityThresholdGaseous value="0.7"/>
-    <stabilityThresholdStellar value="1.1"/>
-  </galacticDynamicsBarInstabilityMethod>
+  <stabilityThresholdStellar value="1.1"/>
+
   <!-- Star formation rate options -->
   <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity"/>
   <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
     <frequencyStarFormation value="0.385"/>
     <clumpingFactorMolecularComplex value="5.000"/>
     <molecularFractionFast value="true"/>
-  <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
+  </starFormationRateSurfaceDensityDisksMethod>
+  <starFormationTimescaleDisks value="dynamicalTime">
+    <timescaleMinimum value="0.001"/>
+  </starFormationTimescaleDisks>
+
+  <starFormationTimescaleSpheroidsMethod value="dynamicalTime"/>
+  <starFormationTimescaleSpheroids value="dynamicalTime">
     <efficiency value="0.04"/>
     <exponentVelocity value="2.0"/>
     <timescaleMinimum value="0.001"/>
-  </starFormationTimescaleSpheroidsMethod>
+  </starFormationTimescaleSpheroids>
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
@@ -201,10 +207,11 @@
   <virialOrbitsMethod value="benson2005"/>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="0.75"/>
-  <satelliteMergingMassMovementsMethod value="simple"/>
-  <minorMergerGasMovesTo value="spheroid"/>
+  <mergerMassMovementsMethod value="simple">
+  <destinationGasMinorMerger value="spheroid"/>
+    <massRatioMajorMerger value="0.25"/>
+  </mergerMassMovementsMethod>
   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
-  <majorMergerMassRatio value="0.25"/>
   <mergerRemnantSizeOrbitalEnergy value="1"/>
 
   <!-- Spheroid options -->

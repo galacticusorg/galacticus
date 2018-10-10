@@ -82,7 +82,7 @@
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
   <imfChabrierRecycledInstantaneous value="0.46"/>
-  <satelliteMergingMassMovementsMethod value="verySimple"/>
+  <mergerMassMovementsMethod value="verySimple"/>
   <mergingTimescaleMultiplier value="1.0"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <treeNodeMethodSatellite value="preset"/>
