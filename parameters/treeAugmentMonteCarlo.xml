@@ -67,7 +67,9 @@
     <massTreeMinimum value="1.0e12"/>
     <massTreeMaximum value="1.1e12"/>
     <treesPerDecade value="800000"/>
-  </mergerTreeBuildMassesMethod><mergerTreeMassResolutionMethod value="fixed">
+  </mergerTreeBuildMassesMethod>
+
+  <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="1.0e10"/>
   </mergerTreeMassResolutionMethod>
   
@@ -82,7 +84,7 @@
 
   <!-- Switch off baryonic physics -->
   <hotHaloMassDistributionMethod value="null"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null"/>
   
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>

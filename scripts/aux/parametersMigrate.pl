@@ -545,7 +545,10 @@ my @translations =
 	     "majorMergerMassRatio"                              => "mergerMassMovementsMethod.simple.--massRatioMajorMerger"                               ,
 	     "burstMassRatio"                                    => "mergerMassMovementsMethod.baugh2005.--ratioMassBurst"                                  ,
 	     "burstCriticalGasFraction"                          => "mergerMassMovementsMethod.baugh2005.--fractionGasCriticalBurst"                        ,
-	     "minorMergerGasMovesTo"                             => "mergerMassMovementsMethod.simple.--destinationGasMinorMerger"
+	     "minorMergerGasMovesTo"                             => "mergerMassMovementsMethod.simple.--destinationGasMinorMerger"                          ,
+	     "satelliteMergingRemnantSizeMethod"                 => "mergerRemnantSizeMethod"                                                               ,
+	     "mergerRemnantSizeOrbitalEnergy"                    => "mergerRemnantSizeMethod.cole2000.--energyOrbital"                                      ,
+	     "mergerRemnantRadiativeEfficiency"                  => "mergerRemnantSizeMethod.covington2008.--efficiencyRadiative"
 	 },
 	 values        =>
 	 {
@@ -571,12 +574,12 @@ my @translations =
 	     },
 	     stellarSpectraDustAttenuationMethod       =>
 	     {
-		 "Calzetti2000"      => "calzetti2000"   ,
-		 "Cardelli1989"      => "cardelli1989"   ,
-		 "CharlotFall2000"   => "charlotFall2000",
-		 "Gordon2003"        => "gordon2003"     ,
-		 "WittGordon2000"    => "wittGorden2000" ,
-		 "PrevotBouchet"     => "prevotBouchet"  ,
+		 "Calzetti2000"      => "calzetti2000"    ,
+		 "Cardelli1989"      => "cardelli1989"    ,
+		 "CharlotFall2000"   => "charlotFall2000" ,
+		 "Gordon2003"        => "gordon2003"      ,
+		 "WittGordon2000"    => "wittGorden2000"  ,
+		 "PrevotBouchet"     => "prevotBouchet"   ,
 		 "null"              => "zero"
 	     },
 	     supernovaeIaMethod                        =>
@@ -594,6 +597,11 @@ my @translations =
 	     satelliteMergingMassMovementsMethod       =>
 	     {
 		 "Baugh2005"         => "baugh2005"
+	     },
+	     satelliteMergingRemnantSizeMethod         =>
+	     {
+		 "Cole2000"          => "cole2000"        ,
+		 "Covington2008"     => "covington2008"
 	     }
 	 }
      }

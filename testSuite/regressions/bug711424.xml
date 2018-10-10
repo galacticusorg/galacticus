@@ -47,7 +47,6 @@
   <stabilityThresholdGaseous value="0.9"/>
     <stabilityThresholdStellar value="1.1"/>
   </galacticDynamicsBarInstabilityMethod>
-  <mergerRemnantSizeOrbitalEnergy value="1"/>
   <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <treesPerDecade value="4"/>
     <massTreeMaximum value="1.01e12"/>
@@ -111,7 +110,9 @@
       <viscosityOption value="fit"/>
   </accretionDisksMethod>
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
-  <satelliteMergingRemnantSizeMethod value="Cole2000"/>
+  <mergerRemnantSizeMethod value="cole2000">
+  <energyOrbital value="1"/>
+  </mergerRemnantSizeMethod>
   <imfSalpeterRecycledInstantaneous value="0.39"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>

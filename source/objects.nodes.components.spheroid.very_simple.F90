@@ -534,26 +534,23 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Size</after>
+  !#  <after>Satellite_Merging_Remnant_Compute</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Spheroid_Very_Simple_Satellite_Merging(node)
     !% Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
     use Satellite_Merging_Mass_Movements
+    use Satellite_Merging_Remnant_Properties
     use Galacticus_Error
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Histories
     implicit none
-    type   (treeNode                ), intent(inout), pointer :: node
-    type   (treeNode                )               , pointer :: nodeHost
-    class  (nodeComponentSpheroid   )               , pointer :: spheroidHost           , spheroid
-    class  (nodeComponentDisk       )               , pointer :: diskHost
-    class  (mergerMassMovementsClass)               , pointer :: mergerMassMovements_
-    integer                                                   :: destinationGasSatellite, destinationGasHost       , &
-         &                                                       destinationStarsHost   , destinationStarsSatellite
-    logical                                                   :: mergerIsMajor
-    type   (history              )                            :: historyDisk            , historySpheroid          , &
-         &                                                       historyHost
+    type   (treeNode             ), intent(inout), pointer :: node
+    type   (treeNode             )               , pointer :: nodeHost
+    class  (nodeComponentSpheroid)               , pointer :: spheroidHost, spheroid
+    class  (nodeComponentDisk    )               , pointer :: diskHost
+    type   (history              )                         :: historyDisk , historySpheroid, &
+         &                                                    historyHost
 
     ! Check that the very simple spheroid is active.
     if (defaultSpheroidComponent%verySimpleIsActive()) then
@@ -567,9 +564,6 @@ contains
           nodeHost     => node    %mergesWith(                 )
           spheroidHost => nodeHost%spheroid  (autoCreate=.true.)
           diskHost     => nodeHost%disk      (autoCreate=.true.)
-          ! Find where mass moves to.
-          mergerMassMovements_ => mergerMassMovements()
-          call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
           ! Move gas material within the host if necessary.
           select case (destinationGasHost)
           case (destinationMergerDisk)

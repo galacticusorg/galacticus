@@ -16,39 +16,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null algorithm for merger remnant sizes.
+  !% Implements a merger remnant size class which takes no action.
 
-module Satellite_Merging_Remnant_Sizes_Null
-  !% Implements a null algorithm for merger remnant sizes.
-  implicit none
-  private
-  public :: Satellite_Merging_Remnant_Sizes_Null_Initialize
+  !# <mergerRemnantSize name="mergerRemnantSizeNull">
+  !#  <description>A merger remnant size class which takes no action.</description>
+  !# </mergerRemnantSize>
+  type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeNull
+     !% A merger remnant size class which uses takes no action.
+     private
+   contains
+     procedure :: get => nullGet
+  end type mergerRemnantSizeNull
+
+  interface mergerRemnantSizeNull
+     !% Constructors for the {\normalfont \ttfamily null} merger remnant size class.
+     module procedure nullConstructorParameters
+  end interface mergerRemnantSizeNull
 
 contains
 
-  !# <satelliteMergingRemnantSizeMethod>
-  !#  <unitName>Satellite_Merging_Remnant_Sizes_Null_Initialize</unitName>
-  !# </satelliteMergingRemnantSizeMethod>
-  subroutine Satellite_Merging_Remnant_Sizes_Null_Initialize(satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function nullConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily null} merger remnant size class which takes a parameter list as input.
+    use Input_Parameters
     implicit none
-    type     (varying_string                     ), intent(in   )          :: satelliteMergingRemnantSizeMethod
-    procedure(Satellite_Merging_Remnant_Size_Null), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do
-
-    if (satelliteMergingRemnantSizeMethod == 'null') Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Null
-    return
-  end subroutine Satellite_Merging_Remnant_Sizes_Null_Initialize
-
-  subroutine Satellite_Merging_Remnant_Size_Null(thisNode)
-    !% A null implementation of merger remnant size. Does nothing.
-    use Galacticus_Nodes
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-    !GCC$ attributes unused :: thisNode
+    type(mergerRemnantSizeNull)                :: self
+    type(inputParameters      ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
     
-    ! Do nothing.
+    self=mergerRemnantSizeNull()
     return
-  end subroutine Satellite_Merging_Remnant_Size_Null
+  end function nullConstructorParameters
 
-end module Satellite_Merging_Remnant_Sizes_Null
+  subroutine nullGet(self,node,radius,velocityCircular,angularMomentumSpecific)
+    !% Do not compute the size of the merger remnant for {\normalfont \ttfamily node}.
+    implicit none
+    class           (mergerRemnantSizeNull), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node
+    double precision                       , intent(  out) :: radius                 , velocityCircular, &
+         &                                                    angularMomentumSpecific
+    !GCC$ attributes unused :: self,node,radius,velocityCircular,angularMomentumSpecific
+    
+    return
+  end subroutine nullGet

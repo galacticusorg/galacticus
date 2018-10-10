@@ -159,7 +159,9 @@
   <hotHaloMassDistributionMethod value="null"/>
 
   <!-- Satellite merger options -->
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null">
+  <energyOrbital value="1"/>
+  </mergerRemnantSizeMethod>
   <virialOrbitMethod value="benson2005"/>
   <!--satelliteMergingTimescalesMethod value="jiang2008"/-->
   <mergingTimescaleMultiplier value="0.75"/>
@@ -167,8 +169,6 @@
   <destinationGasMinorMerger value="spheroid"/>
     <massRatioMajorMerger value="0.25"/>
   </mergerMassMovementsMethod>
-  <mergerRemnantSizeOrbitalEnergy value="1"/>
-
   <!-- Galactic structure options -->
   <!-- Since this model is dark matter-only there will be no adiabatic contraction of dark matter halos. Therefore, use a static solver for initial radii in dark matter halos. -->
   <galacticStructureRadiusSolverMethod value="simple"/>

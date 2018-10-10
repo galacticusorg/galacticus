@@ -16,110 +16,150 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{cole_hierarchical_2000} algorithm for merger remnant sizes.
+  !% Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
 
-module Satellite_Merging_Remnant_Sizes_Cole2000
-  !% Implements the \cite{cole_hierarchical_2000} algorithm for merger remnant sizes.
-  implicit none
-  private
-  public :: Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
+  use Satellite_Merging_Progenitor_Properties
 
-  ! Parameter controlling the orbital energy used in the calculation.
-  double precision :: mergerRemnantSizeOrbitalEnergy
+  !# <mergerRemnantSize name="mergerRemnantSizeCole2000">
+  !#  <description>A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.</description>
+  !# </mergerRemnantSize>
+  type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCole2000
+     !% A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+     private
+     class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_
+     double precision                                           :: energyOrbital
+   contains
+     final     ::        cole2000Destructor
+     procedure :: get => cole2000Get
+  end type mergerRemnantSizeCole2000
+
+  interface mergerRemnantSizeCole2000
+     !% Constructors for the {\normalfont \ttfamily cole2000} merger remnant size class.
+     module procedure cole2000ConstructorParameters
+     module procedure cole2000ConstructorInternal
+  end interface mergerRemnantSizeCole2000
 
 contains
 
-  !# <satelliteMergingRemnantSizeMethod>
-  !#  <unitName>Satellite_Merging_Remnant_Sizes_Cole2000_Initialize</unitName>
-  !# </satelliteMergingRemnantSizeMethod>
-  subroutine Satellite_Merging_Remnant_Sizes_Cole2000_Initialize(satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function cole2000ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily cole2000} merger remnant size class which takes a parameter list as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                         ), intent(in   )          :: satelliteMergingRemnantSizeMethod
-    procedure(Satellite_Merging_Remnant_Size_Cole2000), intent(inout), pointer :: Satellite_Merging_Remnant_Size_Do
+    type            (mergerRemnantSizeCole2000      )                :: self
+    type            (inputParameters                ), intent(inout) :: parameters
+    class           (mergerProgenitorPropertiesClass), pointer       :: mergerProgenitorProperties_
+    double precision                                                 :: energyOrbital
 
-    if (satelliteMergingRemnantSizeMethod == 'Cole2000') then
-       Satellite_Merging_Remnant_Size_Do => Satellite_Merging_Remnant_Size_Cole2000
-       !# <inputParameter>
-       !#   <name>mergerRemnantSizeOrbitalEnergy</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d0</defaultValue>
-       !#   <description>The orbital energy used in the ``Cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>energyOrbital</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The orbital energy used in the ``cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
+    self=mergerRemnantSizeCole2000(energyOrbital,mergerProgenitorProperties_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Satellite_Merging_Remnant_Sizes_Cole2000_Initialize
+  end function cole2000ConstructorParameters
 
-  subroutine Satellite_Merging_Remnant_Size_Cole2000(satelliteNode)
-    !% Compute the size of the merger remnant for {\normalfont \ttfamily satelliteNode} using the \cite{cole_hierarchical_2000} algorithm.
-    use Galacticus_Nodes
+  function cole2000ConstructorInternal(energyOrbital,mergerProgenitorProperties_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    implicit none
+    type            (mergerRemnantSizeCole2000      )                        :: self
+    double precision                                 , intent(in   )         :: energyOrbital
+    class           (mergerProgenitorPropertiesClass), intent(in   ), target :: mergerProgenitorProperties_
+    !# <constructorAssign variables="energyOrbital, *mergerProgenitorProperties_"/>
+
+    return
+  end function cole2000ConstructorInternal
+
+  subroutine cole2000Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    implicit none
+    type(mergerRemnantSizeCole2000), intent(inout) :: self
+
+    !# <objectDestructor name="self%mergerProgenitorProperties_"/>
+    return
+  end subroutine cole2000Destructor
+
+  subroutine cole2000Get(self,node,radius,velocityCircular,angularMomentumSpecific)
+    !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{cole_hierarchical_2000} algorithm.
     use Numerical_Constants_Physical
     use Numerical_Comparison
-    use Satellite_Merging_Remnant_Sizes_Properties
     use Galacticus_Error
     use String_Handling
-    use ISO_Varying_String
     use Galacticus_Display
-    use Satellite_Merging_Progenitor_Properties
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     implicit none
-    type            (treeNode                       ), intent(inout) :: satelliteNode
-    type            (treeNode                       ), pointer       :: hostNode
-    double precision                                 , parameter     :: bindingEnergyFormFactor   =0.5d+0
-    double precision                                 , parameter     :: absoluteMassTolerance     =1.0d+0
-    double precision                                 , parameter     :: relativeMassTolerance     =1.0d-9
-    class           (mergerProgenitorPropertiesClass), pointer       :: mergerProgenitorProperties_
-    double precision                                                 :: angularMomentumFactor            , hostDarkMatterMass       , &
-         &                                                              hostMass                         , hostRadius               , &
-         &                                                              hostSpheroidMass                 , hostSpheroidMassPreMerger, &
-         &                                                              hostSpheroidMassTotal            , progenitorsEnergy        , &
-         &                                                              remnantSpheroidGasMass           , remnantSpheroidMass      , &
-         &                                                              satelliteDarkMatterMass          , satelliteMass            , &
-         &                                                              satelliteRadius                  , satelliteSpheroidMass    , &
-         &                                                              satelliteSpheroidMassTotal
-    character       (len= 3                         )                :: joinString
-    character       (len=40                         )                :: dataString
-    type            (varying_string                 )                :: message
-    logical                                                          :: errorCondition
+    class           (mergerRemnantSizeCole2000), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node
+    double precision                           , intent(  out) :: radius                           , velocityCircular         , &
+         &                                                        angularMomentumSpecific
+    type            (treeNode                 ), pointer       :: nodeHost
+    double precision                           , parameter     :: formFactorEnergyBinding   =0.5d+0
+    double precision                           , parameter     :: toleranceMassAbsolute     =1.0d+0
+    double precision                           , parameter     :: toleranceMassRelative     =1.0d-9
+    double precision                                           :: factorAngularMomentum            , massDarkMatterHost       , &
+         &                                                        massHost                         , radiusHost               , &
+         &                                                        massSpheroidHost                 , massSpheroidHostPreMerger, &
+         &                                                        massSpheroidHostTotal            , energyProgenitors        , &
+         &                                                        massGasSpheroidRemnant           , massSpheroidRemnant      , &
+         &                                                        massDarkMatterSatellite          , massSatellite            , &
+         &                                                        radiusSatellite                  , massSpheroidSatellite    , &
+         &                                                        massSpheroidTotalSatellite
+    character       (len= 5                   )                :: joinString
+    character       (len=40                   )                :: dataString
+    type            (varying_string           )                :: message
+    logical                                                    :: errorCondition
 
-    ! Find the node to merge with.
-    hostNode => satelliteNode%mergesWith()
-
-    ! Get properties of the merging systems.
-    mergerProgenitorProperties_ => mergerProgenitorProperties()
-    call mergerProgenitorProperties_%get(satelliteNode,hostNode,satelliteMass,hostMass,satelliteSpheroidMass &
-         &,hostSpheroidMass,hostSpheroidMassPreMerger,satelliteRadius,hostRadius ,angularMomentumFactor,remnantSpheroidMass &
-         &,remnantSpheroidGasMass)
-    if (satelliteSpheroidMass <= 0.0d0 .and. Values_Agree(hostSpheroidMass,hostSpheroidMassPreMerger,relTol=relativeMassTolerance)) then
-       remnantRadius                 =remnantNoChangeValue
-       remnantCircularVelocity       =remnantNoChangeValue
-       remnantSpecificAngularMomentum=remnantNoChangeValue
+    nodeHost => node%mergesWith()
+    call self%mergerProgenitorProperties_%get(                           &
+         &                                    node                     , &
+         &                                    nodeHost                 , &
+         &                                    massSatellite            , &
+         &                                    massHost                 , &
+         &                                    massSpheroidSatellite    , &
+         &                                    massSpheroidHost         , &
+         &                                    massSpheroidHostPreMerger, &
+         &                                    radiusSatellite          , &
+         &                                    radiusHost               , &
+         &                                    factorAngularMomentum    , &
+         &                                    massSpheroidRemnant      , &
+         &                                    massGasSpheroidRemnant     &
+         &                                   )
+    if (massSpheroidSatellite <= 0.0d0 .and. Values_Agree(massSpheroidHost,massSpheroidHostPreMerger,relTol=toleranceMassRelative)) then
+       radius                 =remnantNoChange
+       velocityCircular       =remnantNoChange
+       angularMomentumSpecific=remnantNoChange
     else
        ! Check that the properties of the galaxies are physically reasonable.
        errorCondition=.false.
-       if     (                                                                         &
-            &      (satelliteRadius       <= 0.0d0 .and. satelliteSpheroidMass > 0.0d0) &
-            &  .or. satelliteMass         < -absoluteMassTolerance                      &
-            &  .or. satelliteSpheroidMass < -absoluteMassTolerance                      &
+       if     (                                                  &
+            &   (                                                &
+            &     radiusSatellite       <= +0.0d0                &
+            &    .and.                                           &
+            &     massSpheroidSatellite >  +0.0d0                &
+            &   )                                                &
+            &  .or.                                              &
+            &     massSatellite         < -toleranceMassAbsolute &
+            &  .or.                                              &
+            &     massSpheroidSatellite < -toleranceMassAbsolute &
             & ) then
-          write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') satelliteRadius,satelliteMass,satelliteSpheroidMass
-          message='Satellite galaxy ['
-          message=message//satelliteNode%index()//'] has '
+          write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusSatellite,massSatellite,massSpheroidSatellite
+          message=var_str('Satellite galaxy [')//node%index()//'] has '
           joinString=""
-          if (satelliteRadius       <= 0.0d0         ) then
+          if (radiusSatellite       <= +0.0d0        ) then
              message=message//trim(joinString)//'non-positive radius'
              joinString=", "
           end if
-          if (satelliteMass         <  -absoluteMassTolerance) then
+          if (massSatellite         <  -toleranceMassAbsolute) then
              message=message//trim(joinString)//'negative mass'
              joinString=", "
           end if
-          if (satelliteSpheroidMass <  -absoluteMassTolerance) then
+          if (massSpheroidSatellite <  -toleranceMassAbsolute) then
              message=message//trim(joinString)//'negative spheroid mass'
              joinString=", "
           end if
@@ -127,20 +167,29 @@ contains
           call Galacticus_Display_Message(message)
           errorCondition=.true.
        end if
-       if ((hostRadius <= 0.0d0 .and. hostSpheroidMass > 0.0d0) .or. hostMass < -absoluteMassTolerance .or. hostSpheroidMass < -absoluteMassTolerance) then
-          write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') hostRadius,hostMass,hostSpheroidMass
-          message='Host galaxy ['
-          message=message//hostNode%index()//'] has '
+       if     (                                             &
+            &   (                                           &
+            &     radiusHost       <= +0.0d0                &
+            &    .and.                                      &
+            &     massSpheroidHost >  +0.0d0                &
+            &   )                                           &
+            &  .or.                                         &
+            &     massHost         < -toleranceMassAbsolute &
+            &  .or.                                         &
+            &     massSpheroidHost < -toleranceMassAbsolute &
+            & ) then
+          write (dataString,'(3(e12.6,":",e12.6,":",e12.6))') radiusHost,massHost,massSpheroidHost
+          message=var_str('Host galaxy [')//nodeHost%index()//'] has '
           joinString=""
-          if (hostRadius       <= 0.0d0         ) then
+          if (radiusHost       <= +0.0d0        ) then
              message=message//trim(joinString)//'non-positive radius'
              joinString=", "
           end if
-          if (hostMass         <  -absoluteMassTolerance) then
+          if (massHost         <  -toleranceMassAbsolute) then
              message=message//trim(joinString)//'negative mass'
              joinString=", "
           end if
-          if (hostSpheroidMass <  -absoluteMassTolerance) then
+          if (massSpheroidHost <  -toleranceMassAbsolute) then
              message=message//trim(joinString)//'negative spheroid mass'
              joinString=", "
           end if
@@ -149,40 +198,37 @@ contains
           errorCondition=.true.
        end if
        if (errorCondition) then
-          call satelliteNode%serializeASCII()
-          call hostNode     %serializeASCII()
+          call node    %serializeASCII()
+          call nodeHost%serializeASCII()
           call Galacticus_Error_Report('error condition detected'//{introspection:location})
        end if
        ! Check if host has finite mass.
-       if (satelliteSpheroidMass+hostSpheroidMass > 0.0d0) then
+       if (massSpheroidSatellite+massSpheroidHost > 0.0d0) then
           ! Compute masses of dark matter within the host and satellite radii.
-          hostDarkMatterMass     =Galactic_Structure_Enclosed_Mass(     hostNode,     hostRadius,massType=massTypeDark,haloLoaded=.true.)
-          satelliteDarkMatterMass=Galactic_Structure_Enclosed_Mass(satelliteNode,satelliteRadius,massType=massTypeDark,haloLoaded=.true.)
+          massDarkMatterHost     =Galactic_Structure_Enclosed_Mass(nodeHost,radiusHost     ,massType=massTypeDark,haloLoaded=.true.)
+          massDarkMatterSatellite=Galactic_Structure_Enclosed_Mass(node    ,radiusSatellite,massType=massTypeDark,haloLoaded=.true.)
           ! Combine baryonic and dark matter masses.
-          hostSpheroidMassTotal     =     hostSpheroidMass+2.0d0*     hostDarkMatterMass
-          satelliteSpheroidMassTotal=satelliteSpheroidMass+2.0d0*satelliteDarkMatterMass
+          massSpheroidHostTotal     =+massSpheroidHost     +2.0d0*massDarkMatterHost
+          massSpheroidTotalSatellite=+massSpheroidSatellite+2.0d0*massDarkMatterSatellite
           ! Apply the Cole et al. (2000) algorithm to compute the size of the new remnant.
-          progenitorsEnergy=0.0d0
-          if (hostRadius                 > 0.0d0)                                                                                     &
-               & progenitorsEnergy=progenitorsEnergy+                           hostSpheroidMassTotal**2/                 hostRadius
-          if (           satelliteRadius > 0.0d0)                                                                                     &
-               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal                      **2/ satelliteRadius
-          if (hostRadius+satelliteRadius > 0.0d0)                                                                                     &
-               & progenitorsEnergy=progenitorsEnergy+satelliteSpheroidMassTotal*hostSpheroidMassTotal   /(satelliteRadius+hostRadius) &
-               &                                    *mergerRemnantSizeOrbitalEnergy/bindingEnergyFormFactor
-          remnantRadius=(satelliteSpheroidMassTotal+hostSpheroidMassTotal)**2/progenitorsEnergy
-
+          energyProgenitors=0.0d0
+          if (+radiusHost                 > 0.0d0)                                                                                      &
+               & energyProgenitors=+energyProgenitors+                           massSpheroidHostTotal**2/                  radiusHost
+          if (           +radiusSatellite > 0.0d0)                                                                                      &
+               & energyProgenitors=+energyProgenitors+massSpheroidTotalSatellite                      **2/  radiusSatellite
+          if (+radiusHost+radiusSatellite > 0.0d0)                                                                                      &
+               & energyProgenitors=+energyProgenitors+massSpheroidTotalSatellite*massSpheroidHostTotal   /(+radiusSatellite+radiusHost) &
+               &                                     *self%energyOrbital/formFactorEnergyBinding
+          radius=(massSpheroidTotalSatellite+massSpheroidHostTotal)**2/energyProgenitors
           ! Also compute the specific angular momentum at the half-mass radius.
-          remnantCircularVelocity=sqrt(gravitationalConstantGalacticus*(satelliteSpheroidMass+hostSpheroidMass)/remnantRadius)
-          remnantSpecificAngularMomentum=remnantRadius*remnantCircularVelocity*angularMomentumFactor
+          velocityCircular       =sqrt(gravitationalConstantGalacticus*(massSpheroidSatellite+massSpheroidHost)/radius)
+          angularMomentumSpecific=radius*velocityCircular*factorAngularMomentum
        else
           ! Remnant has zero mass - don't do anything.
-          remnantRadius                 =remnantNoChangeValue
-          remnantCircularVelocity       =remnantNoChangeValue
-          remnantSpecificAngularMomentum=remnantNoChangeValue
+          radius                 =remnantNoChange
+          velocityCircular       =remnantNoChange
+          angularMomentumSpecific=remnantNoChange
        end if
     end if
     return
-  end subroutine Satellite_Merging_Remnant_Size_Cole2000
-
-end module Satellite_Merging_Remnant_Sizes_Cole2000
+  end subroutine cole2000Get

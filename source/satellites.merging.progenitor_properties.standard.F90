@@ -118,7 +118,6 @@ contains
   subroutine standardGet(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
     use Galacticus_Error
-    use Galactic_Structure_Radii
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
@@ -148,9 +147,6 @@ contains
     spheroidHost      => nodeHost     %spheroid()
     diskSatellite     => nodeSatellite%disk    ()
     spheroidSatellite => nodeSatellite%spheroid()
-    ! Solve for the radii of the host and satellite nodes, to ensure they are computed and up to date.
-    call Galactic_Structure_Radii_Solve(     nodeHost)
-    call Galactic_Structure_Radii_Solve(nodeSatellite)
     ! Find the baryonic masses of the two galaxies.
     massSatellite=Galactic_Structure_Enclosed_Mass(nodeSatellite,massType=massTypeGalactic)
     massHost     =Galactic_Structure_Enclosed_Mass(nodeHost     ,massType=massTypeGalactic)
@@ -168,7 +164,7 @@ contains
        factorDarkMatterSpheroidHost     =+0.0d0
     end if
     massComponent                  =+    diskHost     %massStellar   () &
-         &                          +    diskHost     %massGas       ()
+        &                          +    diskHost     %massGas       ()
     radiusHalfMassDiskHost         =+    diskHost     %halfMassRadius()
     if (radiusHalfMassDiskHost > 0.0d0 .and. massComponent > 0.0d0) then
        factorDarkMatterDiskHost         =+    diskHost%angularMomentum()                                        &

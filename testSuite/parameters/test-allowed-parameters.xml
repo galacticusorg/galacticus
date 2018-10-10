@@ -120,7 +120,9 @@
     <massTreeMinimum value="1.0e12"/>
     <massTreeMaximum value="2.0e12"/>
     <treesPerDecade value="20"/>
-  </mergerTreeBuildMassesMethod><mergerTreeMassResolutionMethod value="fixed">
+  </mergerTreeBuildMassesMethod>
+
+  <mergerTreeMassResolutionMethod value="fixed">
     <massResolution value="1.0e10"/>
   </mergerTreeMassResolutionMethod>
   
@@ -146,7 +148,7 @@
   <satelliteTidalHeatingRateMethod value="gnedin1999"/>
 
   <!-- Satellite merger options -->
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null"/>
   
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>

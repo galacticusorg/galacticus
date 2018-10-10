@@ -1587,47 +1587,6 @@ Currently defined intergalactic background radiation methods are:
 \end{description}
 The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily redshift} element. Each {\normalfont \ttfamily spectra} element must contain an array of {\normalfont \ttfamily datum} elements that gives the spectrum at each wavelength listed in the {\normalfont \ttfamily wavelength} element. Spectra must be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
 
-\subsubsection{Satellite Merging Remnant Sizes}\label{sec:satelliteMergerMassMovementMethod}
-
-Additional methods for the satellite merging remnant sizes can be added using the {\normalfont \ttfamily satelliteMergingRemnantSizeMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily Cole2000} method is described by a directive:
-\begin{verbatim}
- !# <satelliteMergingRemnantSizeMethod>
- !#  <unitName>Satellite_Merging_Remnant_Sizes_Cole2000_Initialize</unitName>
- !# </satelliteMergingRemnantSizeMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Satellite\_Merging\_Remnant\_Sizes\_Cole2000\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do)
-    implicit none
-    type(varying_string),          intent(in)    :: satelliteMergingRemnantSizeMethod
-    procedure(),          pointer, intent(inout) :: Satellite_Merging_Remnant_Size_Do
-    
-    if (satelliteMergingRemnantSizeMethod == 'myMethod') Satellite_Merging_Remnant_Size_Do => My_Method_Do
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily satelliteMergingRemnantSizeMethod} input parameter. The procedure pointer {\normalfont \ttfamily Satellite\_Merging\_Remnant\_Size\_Do} must be set to point to a function which computes the size of the merger remnant and stores the properties (e.g. radius, circular velocity and specific angular momentum at the half-mass radius) of the \emph{host} node. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The remnant size subroutine must have the form:
-\begin{verbatim}
-  subroutine My_Method_Do(thisNode)
-    implicit none
-    type(treeNode), intent(inout), pointer  :: thisNode
-    .
-    .
-    .
-    return
-  end subroutine My_Method_Do
-\end{verbatim}
-The subroutine must compute the properties of the merger remnant. Typically these are stored in the {\normalfont \ttfamily Satellite\_Merging\_Remnant\_Sizes\_Properties} module for later retrieval by the appropriate component.
-
-Currently defined satellite merger remnant size methods are:
-\begin{description}
- \item [{\normalfont \ttfamily null}] This is a null method which does nothing. It is useful for runs where no baryonic components are included (e.g. for studying dark matter only).
- \item [{\normalfont \ttfamily Cole2000}] Implements the algorithm of \cite{cole_hierarchical_2000} to compute the remnant size. The orbital energy assumed can be adjusted using the {\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} parameter, which is equivalent to the $f_\mathrm{orbit}$ parameter of \cite{cole_hierarchical_2000}.
- \item [{\normalfont \ttfamily Covington2008}] Implements the algorithm of \cite{covington_predicting_2008} to compute the remnant size. The orbital energy assumed can be adjusted using the {\normalfont \ttfamily mergerRemnantSizeOrbitalEnergy} parameter, which is equivalent to the $f_\mathrm{orbit}$ parameter of \cite{cole_hierarchical_2000}.
-\end{description}
-
 \subsubsection{Stellar Population Properties}
 
 Additional methods for computing properties of stellar populations can be added using the {\normalfont \ttfamily stellarPopulationPropertiesMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily instantaneous} method is described by a directive:

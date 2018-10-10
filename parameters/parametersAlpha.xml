@@ -133,7 +133,7 @@
   <satelliteMergingTimescalesMethod value="jiang2008"/>
   <mergingTimescaleMultiplier value="0.114092219110171"/>
   <mergerMassMovementsMethod value="verySimple"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null"/>
 
   <!-- Numerical tolerances -->
   <odeAlgorithm value="Runge-Kutta-Second-Order"/>

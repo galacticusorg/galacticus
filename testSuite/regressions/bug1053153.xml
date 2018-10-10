@@ -21,7 +21,7 @@
   <allTreesExistAtFinalTime value="false"/>
   <treeNodeMethodPosition value="preset"/>
   <treeNodeMethodSatellite value="preset"/>
-  <satelliteMergingRemnantSizeMethod value="Cole2000"/>
+  <mergerRemnantSizeMethod value="cole2000"/>
   <cosmologyParametersMethod value="simple">
     <HubbleConstant value="70.2"/>
     <OmegaMatter value="0.2748"/>

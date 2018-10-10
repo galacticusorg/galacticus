@@ -956,28 +956,25 @@ contains
   
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Remnant_Size</after>
+  !#  <after>Satellite_Merging_Remnant_Compute</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Spheroid_Standard_Satellite_Merging(node)
     !% Transfer any standard spheroid associated with {\normalfont \ttfamily node} to its host halo.
     use Satellite_Merging_Mass_Movements
+    use Satellite_Merging_Remnant_Sizes
+    use Satellite_Merging_Remnant_Properties
     use Galacticus_Error
-    use Satellite_Merging_Remnant_Sizes_Properties
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    type            (treeNode                )               , pointer :: nodeHost
-    class           (nodeComponentDisk       )               , pointer :: diskHost               , disk
-    class           (nodeComponentSpheroid   )               , pointer :: spheroidHost           , spheroid
-    class           (mergerMassMovementsClass)               , pointer :: mergerMassMovements_
-    integer                                                            :: destinationGasSatellite, destinationGasHost             , &
-         &                                                                destinationStarsHost   , destinationStarsSatellite
-    logical                                                            :: mergerIsMajor
-    type            (history                 )                         :: historyDisk            , historySpheroid                , &
-         &                                                                history_
-    double precision                                                   :: angularMomentum        , diskSpecificAngularMomentum    , &
-         &                                                                spheroidMass           , spheroidSpecificAngularMomentum
+    type            (treeNode             ), intent(inout), pointer :: node
+    type            (treeNode             )               , pointer :: nodeHost
+    class           (nodeComponentDisk    )               , pointer :: diskHost       , disk
+    class           (nodeComponentSpheroid)               , pointer :: spheroidHost   , spheroid
+    type            (history              )                         :: historyDisk    , historySpheroid                , &
+         &                                                             history_
+    double precision                                                :: angularMomentum, diskSpecificAngularMomentum    , &
+         &                                                             spheroidMass   , spheroidSpecificAngularMomentum
 
     ! Check that the standard spheroid is active.
     if (defaultSpheroidComponent%standardIsActive()) then
@@ -1012,9 +1009,6 @@ contains
           else
              diskSpecificAngularMomentum=0.0d0
           end if
-          ! Find where mass moves to.
-          mergerMassMovements_ => mergerMassMovements()
-          call mergerMassMovements_%get(node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
           ! Move gas material within the host if necessary.
           select case (destinationGasHost)
           case (destinationMergerDisk)
@@ -1276,16 +1270,14 @@ contains
              call spheroid%luminositiesStellarSet(zeroStellarLuminosities)
              call spheroid%    angularMomentumSet(0.0d0                  )
           end if
-
           ! Set the angular momentum of the spheroid.
-          if (remnantSpecificAngularMomentum /= remnantNoChangeValue) then
+          if (angularMomentumSpecificRemnant /= remnantNoChange) then
              ! Note that the remnant specific angular momentum computed by the merger remnant modules automatically gives the mean
              ! specific angular momentum of the component by virtue of the fact that it computes the ratio of the actual angular
              ! momentum to the contribution from the component's own rotation curve at its scale radius.
-             angularMomentum=remnantSpecificAngularMomentum*(spheroidHost%massGas()+spheroidHost%massStellar())
+             angularMomentum=angularMomentumSpecificRemnant*(spheroidHost%massGas()+spheroidHost%massStellar())
              call spheroidHost%angularMomentumSet(angularMomentum)
           end if
-
        end select
     end if
     return

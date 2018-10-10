@@ -145,7 +145,6 @@ contains
     use               Galacticus_Calculations_Resets
     use               Galacticus_Nodes
     use               Input_Parameters
-    use               Galactic_Structure_Radii
     use               Galacticus_Output_Merger_Tree_Data
     use               Multi_Counters
     use               Merger_Tree_Walkers
@@ -209,8 +208,6 @@ contains
           ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
           ! calculations would not be automatically reset because the node unique ID will not have changed).
           call Galacticus_Calculations_Reset (node)
-          ! Ensure that galactic structure is up to date.
-          call Galactic_Structure_Radii_Solve(node)
           ! Check for final node.
           if (.not.treeWalker%nodesRemain()) nodeStatus=nodeStatusLast
           ! Get the basic component.
@@ -268,9 +265,7 @@ contains
                    ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
                    ! calculations would not be automatically reset because the node unique ID will not have changed).
                    call Galacticus_Calculations_Reset (node)
-                   ! Ensure that galactic structure is up to date.
-                   call Galactic_Structure_Radii_Solve(node)
-                   ! Test whether this node passes all output filters.
+                    ! Test whether this node passes all output filters.
                    nodePassesFilter=outputFilter%passes(node)
                    if (nodePassesFilter) then
                       ! Initialize the instance counter.
