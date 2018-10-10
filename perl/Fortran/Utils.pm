@@ -54,6 +54,9 @@ our %intrinsicDeclarations = (
     procedure     => { intrinsic => "procedure"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
     );
 
+# Hash of files which have been read and processed.
+my %processedFiles;
+
 sub Truncate_Fortran_Lines {
     # Scans a Fortran file and truncates source lines to be less than 132 characters in length as (still) required by some compilers.
     # Includes intelligent handling of OpenMP directives.
@@ -178,24 +181,32 @@ sub Truncate_Fortran_Lines {
 
 sub Get_Matching_Lines {
     # Return a list of all lines in a file matching a supplied regular expression.
-    my $fileName = shift;
-    my $regEx    = shift;
+    my $fileName = shift();
+    my $regEx    = shift();
+    # Determine if we need to read the file.
+    unless ( exists($processedFiles{$fileName}) ) {
+	open(my $fileHandle,$fileName);
+	until ( eof($fileHandle) ) {
+	    &Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
+	    push(@{$processedFiles{$fileName}},$processedLine);
+	}
+	close($fileName);
+    }
     # Open the file, and read each line.
     my @matches;
-    open(my $fileHandle,$fileName);
-    until ( eof($fileHandle) ) {
-	&Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
-	if ( my @submatches = $processedLine =~ $regEx ) {
-	    push(
-		@matches,
-		{
-		    line => $processedLine,
-		    submatches => \@submatches
-		}
-		);
+    if ( defined($processedFiles{$fileName}) ) {
+	foreach my $processedLine ( @{$processedFiles{$fileName}} ) {
+	    if ( my @submatches = $processedLine =~ $regEx ) {
+		push(
+		    @matches,
+		    {
+			line       => $processedLine,
+			submatches => \@submatches
+		    }
+		    );
+	    }
 	}
     }
-    close($fileName);
     return @matches;
 }
 
