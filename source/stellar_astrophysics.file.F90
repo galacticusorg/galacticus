@@ -124,21 +124,21 @@ contains
     self%countYieldElement=0
     do iStar=0,getLength(starList)-1
        star         => item(starList,iStar)
-       propertyList => getElementsByTagname(star,"massInitial"    )
+       propertyList => getElementsByTagname(star,"initialMass"    )
        if (getLength(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one initial mass'//{introspection:location})
        propertyList => getElementsByTagname(star,"metallicity")
        if (getLength(propertyList) /= 1) call Galacticus_Error_Report('star must have precisely one metallicity' //{introspection:location})
        propertyList => getElementsByTagname(star,"lifetime"       )
        if (getLength(propertyList) == 1) countLifetime=countLifetime      +1
        if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple lifetimes'              //{introspection:location})
-       propertyList => getElementsByTagname(star,"massEjected"    )
+       propertyList => getElementsByTagname(star,"ejectedMass"    )
        if (getLength(propertyList) == 1) countMassEjected=countMassEjected+1
        if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple ejected masses'         //{introspection:location})
-       propertyList => getElementsByTagname(star,"yieldMetalsMass")
+       propertyList => getElementsByTagname(star,"metalYieldMass")
        if (getLength(propertyList) == 1) countYieldMetals=countYieldMetals+1
        if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple metal yield masses'     //{introspection:location})
        do iElement=1,size(self%countYieldElement)
-          propertyList => getElementsByTagname(star,"yieldElementMass"//trim(Atomic_Short_Label(iElement)))
+          propertyList => getElementsByTagname(star,"elementYieldMass"//trim(Atomic_Short_Label(iElement)))
           if (getLength(propertyList) == 1) self%countYieldElement(iElement)=self%countYieldElement(iElement)+1
           if (getLength(propertyList) >  1) call Galacticus_Error_Report('star has multiple element yield masses'//{introspection:location})
        end do
@@ -176,7 +176,7 @@ contains
     self%countYieldElement=0
     do iStar=0,getLength(starList)-1
        star         => item(starList,iStar)
-       propertyList => getElementsByTagname(star,"massInitial")
+       propertyList => getElementsByTagname(star,"initialMass")
        datum        => item(propertyList,0)
        call extractDataContent(datum,massInitial)
        propertyList => getElementsByTagname(star,"metallicity")
@@ -192,7 +192,7 @@ contains
           self%lifetimeMetallicity(countLifetime)=metallicity
        end if
        ! Process ejected masses.
-       propertyList => getElementsByTagname(star,"massEjected")
+       propertyList => getElementsByTagname(star,"ejectedMass")
        if (getLength(propertyList) == 1) then
           datum => item(propertyList,0)
           countMassEjected=countMassEjected+1
@@ -201,7 +201,7 @@ contains
           self%massEjectedMetallicity(countMassEjected)=metallicity
        end if
        ! Process metal yields.
-       propertyList => getElementsByTagname(star,"yieldMetalsMass")
+       propertyList => getElementsByTagname(star,"metalYieldMass")
        if (getLength(propertyList) == 1) then
           datum => item(propertyList,0)
           countYieldMetals=countYieldMetals+1
@@ -212,7 +212,7 @@ contains
        ! Process element yields.
        starHasElements=.false.
        do iElement=1,size(self%countYieldElement)
-          propertyList => getElementsByTagname(star,"yieldElementMass"//trim(Atomic_Short_Label(iElement)))
+          propertyList => getElementsByTagname(star,"elementYieldMass"//trim(Atomic_Short_Label(iElement)))
           if (getLength(propertyList) == 1) then
              starHasElements=.true.
              datum => item(propertyList,0)
