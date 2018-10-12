@@ -152,38 +152,42 @@ contains
        call CPU_Time(time)
        timePostEvolution=dble(time)
        !$ end if
-       !$omp critical (Meta_Tree_Timing_Pre_Construct_Record)
-       ! Ensure that record arrays are sufficiently sized.
-       if (.not.allocated(treeMasses)) then
-          call allocateArray(treeMasses        ,[                 treeArrayIncreaseSize])
-          call allocateArray(treeConstructTimes,[                 treeArrayIncreaseSize])
-          call allocateArray(treeEvolveTimes   ,[                 treeArrayIncreaseSize])
-          call allocateArray(treeIDs           ,[                 treeArrayIncreaseSize])
-       else if (treesRecordedCount >= size(treeMasses)) then
-          call Move_Alloc(treeMasses        ,treeMassesTemporary        )
-          call Move_Alloc(treeConstructTimes,treeConstructTimesTemporary)
-          call Move_Alloc(treeEvolveTimes   ,treeEvolveTimesTemporary   )
-          call Move_Alloc(treeIDs           ,treeIDsTemporary           )
-          call allocateArray(treeMasses        ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
-          call allocateArray(treeConstructTimes,[size(treeMassesTemporary)+treeArrayIncreaseSize])
-          call allocateArray(treeEvolveTimes   ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
-          call allocateArray(treeIDs           ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
-          treeMasses        (1:size(treeMassesTemporary))=treeMassesTemporary
-          treeConstructTimes(1:size(treeMassesTemporary))=treeConstructTimesTemporary
-          treeEvolveTimes   (1:size(treeMassesTemporary))=treeEvolveTimesTemporary
-          treeIDs           (1:size(treeMassesTemporary))=treeIDsTemporary
-          call deallocateArray(treeMassesTemporary        )
-          call deallocateArray(treeConstructTimesTemporary)
-          call deallocateArray(treeEvolveTimesTemporary   )
-          call deallocateArray(treeIDsTemporary           )
+       ! Check that the tree was actually processed. If no pre-evolution time was recorded then no tree existed to be
+       ! processed. In that case we ignore the results.
+       if (timePreEvolution > 0.0d0) then
+          !$omp critical (Meta_Tree_Timing_Pre_Construct_Record)
+          ! Ensure that record arrays are sufficiently sized.
+          if (.not.allocated(treeMasses)) then
+             call allocateArray(treeMasses        ,[                 treeArrayIncreaseSize])
+             call allocateArray(treeConstructTimes,[                 treeArrayIncreaseSize])
+             call allocateArray(treeEvolveTimes   ,[                 treeArrayIncreaseSize])
+             call allocateArray(treeIDs           ,[                 treeArrayIncreaseSize])
+          else if (treesRecordedCount >= size(treeMasses)) then
+             call Move_Alloc(treeMasses        ,treeMassesTemporary        )
+             call Move_Alloc(treeConstructTimes,treeConstructTimesTemporary)
+             call Move_Alloc(treeEvolveTimes   ,treeEvolveTimesTemporary   )
+             call Move_Alloc(treeIDs           ,treeIDsTemporary           )
+             call allocateArray(treeMasses        ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+             call allocateArray(treeConstructTimes,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+             call allocateArray(treeEvolveTimes   ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+             call allocateArray(treeIDs           ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+             treeMasses        (1:size(treeMassesTemporary))=treeMassesTemporary
+             treeConstructTimes(1:size(treeMassesTemporary))=treeConstructTimesTemporary
+             treeEvolveTimes   (1:size(treeMassesTemporary))=treeEvolveTimesTemporary
+             treeIDs           (1:size(treeMassesTemporary))=treeIDsTemporary
+             call deallocateArray(treeMassesTemporary        )
+             call deallocateArray(treeConstructTimesTemporary)
+             call deallocateArray(treeEvolveTimesTemporary   )
+             call deallocateArray(treeIDsTemporary           )
+          end if
+          ! Store the timing data.
+          treesRecordedCount=treesRecordedCount+1
+          treeMasses        (treesRecordedCount)=treeMass
+          treeConstructTimes(treesRecordedCount)=timePreEvolution -timePreConstruction
+          treeEvolveTimes   (treesRecordedCount)=timePostEvolution-timePreEvolution
+          treeIDs           (treesRecordedCount)=treeID
+          !$omp end critical (Meta_Tree_Timing_Pre_Construct_Record)
        end if
-       ! Store the timing data.
-       treesRecordedCount=treesRecordedCount+1
-       treeMasses        (treesRecordedCount)=treeMass
-       treeConstructTimes(treesRecordedCount)=timePreEvolution -timePreConstruction
-       treeEvolveTimes   (treesRecordedCount)=timePostEvolution-timePreEvolution
-       treeIDs           (treesRecordedCount)=treeID
-       !$omp end critical (Meta_Tree_Timing_Pre_Construct_Record)
     end if
 
     return
