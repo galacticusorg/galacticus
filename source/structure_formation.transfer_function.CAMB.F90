@@ -259,7 +259,7 @@ contains
        ! Build the CAMB code.
        if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB/camb")) then
           call Galacticus_Display_Message("compiling CAMB code",verbosityWorking)
-          call System_Command_Do('cd '//galacticusPath(pathTypeExec)//'/CAMB/; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp"/ Makefile; make -j1',status);
+          call System_Command_Do('cd '//galacticusPath(pathTypeDataDynamic)//'/CAMB/; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp"/ Makefile; make -j1',status);
           if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB/camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
        end if
        ! Determine maximum wavenumber.
