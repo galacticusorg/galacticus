@@ -53,7 +53,7 @@ foreach my $fileName ( @sourceFileNames ) {
 	    <$fileHandle>
 	    );
 	close($fileHandle);
-	# Get all directives in the file.	
+	# Get all directives in the file.
 	foreach my $directive ( &Galacticus::Build::Directives::Extract_Directives($filePathName,"*", comment => qr/^\s*(!|\/\/)\#\s+/, setRootElementType => 1) ) {
 	    # Act on the directive. "Include" directives are handled separately from other directives.
 	    if ( $directive->{'rootElementType'} eq "include" ) {
