@@ -647,7 +647,7 @@ contains
             &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        stellarHistoryRate=spheroid%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,node    &
+       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,spheroid,node    &
             &,stellarHistoryRate,stellarMassRate,stellarAbundancesRates ,luminositiesStellarRates,fuelMassRate &
             &,fuelAbundancesRates,energyInputRate,luminositiesCompute)
        if (stellarHistoryRate%exists()) call spheroid%stellarPropertiesHistoryRate(stellarHistoryRate)

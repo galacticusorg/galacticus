@@ -428,6 +428,16 @@ my @executablesToRun = (
 	name     => "tests.locks.exe",                                                    # Tests of OpenMP locking functionality.
 	valgrind => 0,
 	mpi      => 0
+    },
+    {
+	name     => "tests.initial_mass_functions.exe",                                   # Tests of initial mass functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.stellar_populations.exe",                                      # Tests of stellar populations.
+	valgrind => 0,
+	mpi      => 0
     }
     );
 

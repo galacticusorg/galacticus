@@ -95,42 +95,45 @@ contains
     return
   end function Stellar_Population_Properties_History_Count_Noninstantaneous
 
-  subroutine Stellar_Population_Properties_Rates_Noninstantaneous(starFormationRate,fuelAbundances,component,node,propertiesHistory&
+  subroutine Stellar_Population_Properties_Rates_Noninstantaneous(starFormationRate,fuelAbundances,component_,node,propertiesHistory&
        &,stellarMassRate ,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate,stellarLuminositiesRatesCompute)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Galacticus_Nodes
     use Abundances_Structure
     use Histories
-    use Star_Formation_IMF
     use Stellar_Luminosities_Structure
+    use Stellar_Populations
+    use Stellar_Population_Selectors
     use Numerical_Interpolation
     use FGSL
     use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision                     , intent(  out)            :: energyInputRate          , fuelMassRate          , &
-         &                                                             stellarMassRate
-    type            (abundances         ), intent(inout)            :: fuelAbundancesRates      , stellarAbundancesRates
-    type            (stellarLuminosities), intent(inout)            :: stellarLuminositiesRates
-    double precision                     , intent(in   )            :: starFormationRate
-    type            (abundances         ), intent(in   )            :: fuelAbundances
-    integer                              , intent(in   )            :: component
-    type            (treeNode           ), intent(inout)            :: node
-    type            (history            ), intent(inout)            :: propertiesHistory
-    logical                              , intent(in   )            :: stellarLuminositiesRatesCompute
-    class           (nodeComponentBasic ), pointer                  :: basic
-    double precision                     , dimension(elementsCount) :: fuelMetallicity          , fuelMetalsRateOfChange, &
-         &                                                             metalReturnRate          , metalYieldRate        , &
-         &                                                             stellarMetalsRateOfChange
-    integer                                                         :: iElement                 , imfSelected
-    integer         (c_size_t           )                           :: iHistory
-    double precision                                                :: ageMaximum               , ageMinimum            , &
-         &                                                             currentTime              , recyclingRate
-    type            (fgsl_interp_accel  )                           :: interpolationAccelerator
-    logical                                                         :: interpolationReset
+    double precision                                , intent(  out)            :: energyInputRate          , fuelMassRate          , &
+         &                                                                        stellarMassRate
+    type            (abundances                    ), intent(inout)            :: fuelAbundancesRates      , stellarAbundancesRates
+    type            (stellarLuminosities           ), intent(inout)            :: stellarLuminositiesRates
+    double precision                                , intent(in   )            :: starFormationRate
+    type            (abundances                    ), intent(in   )            :: fuelAbundances
+    class           (nodeComponent                 ), intent(in   )            :: component_
+    type            (treeNode                      ), intent(inout)            :: node
+    type            (history                       ), intent(inout)            :: propertiesHistory
+    logical                                         , intent(in   )            :: stellarLuminositiesRatesCompute
+    class           (nodeComponentBasic            ), pointer                  :: basic
+    class           (stellarPopulationClass        ), pointer                  :: stellarPopulation_
+    class           (stellarPopulationSelectorClass), pointer                  :: stellarPopulationSelector_
+    double precision                                , dimension(elementsCount) :: fuelMetallicity          , fuelMetalsRateOfChange, &
+         &                                                                        metalReturnRate          , metalYieldRate        , &
+         &                                                                        stellarMetalsRateOfChange
+    integer                                                                    :: iElement
+    integer         (c_size_t                      )                           :: iHistory
+    double precision                                                           :: ageMaximum               , ageMinimum            , &
+         &                                                                        currentTime              , recyclingRate
+    type            (fgsl_interp_accel             )                           :: interpolationAccelerator
+    logical                                                                    :: interpolationReset
 
     ! Get the current time.
-    basic => node%basic()
-    currentTime=basic%time()
+    basic       => node %basic()
+    currentTime =  basic%time ()
 
     ! Get interpolating factors in stellar population history.
     interpolationReset=.true.
@@ -156,11 +159,12 @@ contains
     call stellarAbundancesRates%deserialize(stellarMetalsRateOfChange)
     call fuelAbundancesRates   %deserialize(   fuelMetalsRateOfChange)
 
-    ! Get the IMF.
-    imfSelected=IMF_Select(starFormationRate,fuelAbundances,component)
+    ! Get the stellar population.
+    stellarPopulationSelector_ => stellarPopulationSelector        (                                           )
+    stellarPopulation_         => stellarPopulationSelector_%select(starFormationRate,fuelAbundances,component_)
 
     ! Set luminosity rates of change.
-    if (stellarLuminositiesRatesCompute) call stellarLuminositiesRates%setLuminosities(starFormationRate,imfSelected,currentTime,fuelAbundances)
+    if (stellarLuminositiesRatesCompute) call stellarLuminositiesRates%setLuminosities(starFormationRate,stellarPopulation_,currentTime,fuelAbundances)
 
     ! Set rates of change in the stellar populations properties future history.
     do iHistory=1,size(propertiesHistory%time)-1
@@ -171,19 +175,21 @@ contains
        ! Check that it really is in the future and that the timestep over which the contribution to be made is non-zero.
        if (ageMaximum >= 0.0d0 .and. ageMaximum > ageMinimum) then
           ! Get the recycling rate.
-          recyclingRate=IMF_Recycling_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)&
-               &*starFormationRate
+          recyclingRate                                                                            =+stellarPopulation_%rateRecycling(fuelAbundances,ageMinimum,ageMaximum         ) &
+               &                                                                                    *starFormationRate
           ! Accumulate the mass recycling rate from this population at the future time.
-          propertiesHistory%data(iHistory,recycledRateIndex     )=recyclingRate
+          propertiesHistory   %data(iHistory,recycledRateIndex                                    )=+recyclingRate
           ! Get the (normalized) energy input rate.
-          propertiesHistory%data(iHistory,energyInputRateIndex  )=IMF_Energy_Input_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum)*starFormationRate
+          propertiesHistory   %data(iHistory,energyInputRateIndex                                 )=+stellarPopulation_%rateEnergy   (fuelAbundances,ageMinimum,ageMaximum         ) &
+               &                                                                                    *starFormationRate
           ! Accumulate the metal return rate from this population at the future time.
-          propertiesHistory%data(iHistory,returnedMetalRateBeginIndex:returnedMetalRateEndIndex)=recyclingRate*fuelMetallicity
+          propertiesHistory   %data(iHistory,returnedMetalRateBeginIndex:returnedMetalRateEndIndex)=+recyclingRate   &
+               &                                                                                    *fuelMetallicity
           ! Loop over all elements (and total metallicity).
           do iElement=1,elementsCount
              ! Get the metal yield rate.
-             propertiesHistory%data(iHistory,metalYieldRateBeginIndex+iElement-1)=IMF_Metal_Yield_Rate_NonInstantaneous(starFormationRate,fuelAbundances,component,ageMinimum,ageMaximum&
-                  &,iElement)*starFormationRate
+             propertiesHistory%data(iHistory,metalYieldRateBeginIndex+iElement-1                  )=+stellarPopulation_%rateYield    (fuelAbundances,ageMinimum,ageMaximum,iElement) &
+                  &                                                                                 *starFormationRate
           end do
        end if
     end do

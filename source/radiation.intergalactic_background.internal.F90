@@ -219,10 +219,11 @@ contains
     use               Galacticus_Output_Times
     use               Galacticus_Nodes
     use               Galacticus_Display
-    use               Star_Formation_IMF
     use               Galactic_Structure_Options
     use               Galacticus_Error
     use               Merger_Tree_Walkers
+    use               Stellar_Population_Selectors
+    use               Stellar_Populations
     use               Stellar_Population_Spectra
     use               Accretion_Disk_Spectra
     use               Arrays_Search
@@ -238,40 +239,41 @@ contains
     use               Galacticus_HDF5
     use               IO_HDF5
     implicit none
-    class           (universeEvent                ), intent(in   ) :: event
-    type            (universe                     ), intent(inout) :: universe_
-    type            (mergerTreeList               ), pointer       :: forest       
-    type            (treeNode                     ), pointer       :: node
-    class           (nodeComponentBasic           ), pointer       :: basic
-    class           (nodeComponentDisk            ), pointer       :: disk
-    class           (nodeComponentSpheroid        ), pointer       :: spheroid
-    type            (universeEvent                ), pointer       :: eventNew
-    class           (accretionDiskSpectraClass    ), pointer       :: accretionDiskSpectra_
-    class           (stellarPopulationSpectraClass), pointer       :: stellarPopulationSpectra_
-    double precision                               , parameter     :: odeToleranceAbsolute        =1.0d-30, odeToleranceRelative        =1.0d-3
-    double precision                               , parameter     :: integrationToleranceAbsolute=1.0d-30, integrationToleranceRelative=1.0d-3
-    type            (abundances                   ), target        :: gasAbundancesDisk                   , gasAbundancesSpheroid
-    type            (abundances                   ), pointer       :: gasAbundances
-    type            (fodeiv2_system               ), save          :: ode2System
-    type            (fodeiv2_driver               ), save          :: ode2Driver
-    type            (fgsl_function                ), save          :: integrandFunction
-    type            (fgsl_integration_workspace   ), save          :: integrationWorkspace
-    logical                                        , save          :: odeReset                            , integrationReset            =.true.
-    type            (mergerTreeWalkerAllNodes     )                :: treeWalker
-    double precision                                               :: starFormationRateDisk               , starFormationRateSpheroid          , &
-         &                                                            gasMassDisk                         , gasMassSpheroid                    , &
-         &                                                            ageEnd                              , ageStart                           , &
-         &                                                            stellarSpectrumDisk                 , stellarSpectrumSpheroid            , & 
-         &                                                            timeStart                           , timeEnd                            , &
-         &                                                            treeTimeLatest                      , wavelength
-    integer                                                        :: imfIndexDisk                        , imfIndexSpheroid                   , &
-         &                                                            iTime                               , iWavelength                        , &
-         &                                                            imfIndex
-    type            (varying_string               )                :: message
-    character       (len=6                        )                :: label
-    type            (hdf5Object                   )                :: backgroundRadiationGroup            , backgroundRadiationDataset
-    integer         (c_size_t                     )                :: iNow
-    logical                                                        :: firstTime
+    class           (universeEvent                 ), intent(in   ) :: event
+    type            (universe                      ), intent(inout) :: universe_
+    type            (mergerTreeList                ), pointer       :: forest       
+    type            (treeNode                      ), pointer       :: node
+    class           (nodeComponentBasic            ), pointer       :: basic
+    class           (nodeComponentDisk             ), pointer       :: disk
+    class           (nodeComponentSpheroid         ), pointer       :: spheroid
+    type            (universeEvent                 ), pointer       :: eventNew
+    class           (accretionDiskSpectraClass     ), pointer       :: accretionDiskSpectra_
+    class           (stellarPopulationSelectorClass), pointer       :: stellarPopulationSelector_
+    class           (stellarPopulationClass        ), pointer       :: stellarPopulationDisk_               , stellarPopulationSpheroid_ 
+    class           (stellarPopulationSpectraClass ), pointer       :: stellarPopulationSpectraDisk_        , stellarPopulationSpectraSpheroid_       , &
+         &                                                             stellarPopulationSpectra_
+    double precision                                , parameter     :: odeToleranceAbsolute         =1.0d-30, odeToleranceRelative             =1.0d-3
+    double precision                                , parameter     :: integrationToleranceAbsolute =1.0d-30, integrationToleranceRelative     =1.0d-3
+    type            (abundances                    ), target        :: gasAbundancesDisk                    , gasAbundancesSpheroid
+    type            (abundances                    ), pointer       :: gasAbundances
+    type            (fodeiv2_system                ), save          :: ode2System
+    type            (fodeiv2_driver                ), save          :: ode2Driver
+    type            (fgsl_function                 ), save          :: integrandFunction
+    type            (fgsl_integration_workspace    ), save          :: integrationWorkspace
+    logical                                         , save          :: odeReset                             , integrationReset                 =.true.
+    type            (mergerTreeWalkerAllNodes      )                :: treeWalker
+    double precision                                                :: starFormationRateDisk                , starFormationRateSpheroid               , &
+         &                                                             gasMassDisk                          , gasMassSpheroid                         , &
+         &                                                             ageEnd                               , ageStart                                , &
+         &                                                             stellarSpectrumDisk                  , stellarSpectrumSpheroid                 , & 
+         &                                                             timeStart                            , timeEnd                                 , &
+         &                                                             treeTimeLatest                       , wavelength
+    integer                                                         :: iTime                                , iWavelength
+    type            (varying_string                )                :: message
+    character       (len=6                         )                :: label
+    type            (hdf5Object                    )                :: backgroundRadiationGroup             , backgroundRadiationDataset
+    integer         (c_size_t                      )                :: iNow
+    logical                                                         :: firstTime
 
     ! Display message.
     write (label,'(f6.3)') event%time
@@ -293,8 +295,8 @@ contains
           treeTimeLatest=max(treeTimeLatest,basic%time())
           if (basic%time() == event%time) then
              ! Get the star formation rates and metallicites for this node.
-             disk                  => node    %disk             ()
-             spheroid              => node    %spheroid         ()
+             disk                      => node    %disk             ()
+             spheroid                  => node    %spheroid         ()
              starFormationRateDisk     =  disk    %starFormationRate()
              starFormationRateSpheroid =  spheroid%starFormationRate()
              gasMassDisk               =  disk    %massGas          ()
@@ -304,9 +306,12 @@ contains
              if (starFormationRateDisk     > 0.0d0) gasAbundancesDisk    =gasAbundancesDisk    /gasMassDisk
              if (starFormationRateSpheroid > 0.0d0) gasAbundancesSpheroid=gasAbundancesSpheroid/gasMassSpheroid
              if (starFormationRateDisk > 0.0d0 .or. starFormationRateSpheroid > 0.0d0) then
-                ! Find IMF indices for disk and spheroid.
-                imfIndexDisk    =IMF_Select(starFormationRateDisk    ,gasAbundancesDisk    ,componentTypeDisk    )
-                imfIndexSpheroid=IMF_Select(starFormationRateSpheroid,gasAbundancesSpheroid,componentTypeSpheroid)
+                ! Find stellar spectra for disk and spheroid.
+                stellarPopulationSelector_        => stellarPopulationSelector         (                                                                        )
+                stellarPopulationDisk_            => stellarPopulationSelector_%select (starFormationRateDisk    ,gasAbundancesDisk    ,defaultDiskComponent    )
+                stellarPopulationSpheroid_        => stellarPopulationSelector_%select (starFormationRateSpheroid,gasAbundancesSpheroid,defaultSpheroidComponent)
+                stellarPopulationSpectraDisk_     => stellarPopulationDisk_    %spectra(                                                                        )
+                stellarPopulationSpectraSpheroid_ => stellarPopulationSpheroid_%spectra(                                                                        )
                 ! Find the duration of the current timestep.
                 ! Accumulate emissivity to each timestep.
                 firstTime=.true.
@@ -316,39 +321,40 @@ contains
                    ! Compute age of the currently forming population at this time.
                    ageEnd=backgroundRadiationTime(iTime)-event%time
                    if (iTime == 1) then
-                      ageStart=0.0d0
+                      ageStart=                                                0.0d0
                    else
                       ageStart=max(backgroundRadiationTime(iTime-1)-event%time,0.0d0)
                    end if
                    ! Iterate over wavelength
                    do iWavelength=1,backgroundRadiationWavelengthCount                         
-                      wavelength              =  backgroundRadiationWavelength(iWavelength)
-                      imfIndex                =  imfIndexDisk
-                      gasAbundances           => gasAbundancesDisk
-                      integrationReset=.true.
-                      stellarSpectrumDisk     =  Integrate(                                                        &
-                           &                               ageStart                                              , &
-                           &                               ageEnd                                                , &
-                           &                               stellarSpectraConvolution                             , &
-                           &                               integrandFunction                                     , &
-                           &                               integrationWorkspace                                  , &
-                           &                               toleranceAbsolute        =integrationToleranceAbsolute, &
-                           &                               toleranceRelative        =integrationToleranceRelative, &
-                           &                               reset                    =integrationReset              &
-                           &                              )
+                      wavelength                =  backgroundRadiationWavelength(iWavelength)
+                      stellarPopulationSpectra_ => stellarPopulationSpectraDisk_
+                      gasAbundances             => gasAbundancesDisk
+                      integrationReset          =  .true.
+                      stellarSpectrumDisk       =  Integrate(                                                        &
+                           &                                 ageStart                                              , &
+                           &                                 ageEnd                                                , &
+                           &                                 stellarSpectraConvolution                             , &
+                           &                                 integrandFunction                                     , &
+                           &                                 integrationWorkspace                                  , &
+                           &                                 toleranceAbsolute        =integrationToleranceAbsolute, &
+                           &                                 toleranceRelative        =integrationToleranceRelative, &
+                           &                                 reset                    =integrationReset              &
+                           &                                )
                       call Integrate_Done(integrandFunction,integrationWorkspace)
-                      gasAbundances           => gasAbundancesSpheroid
-                      integrationReset=.true.
-                      stellarSpectrumSpheroid =  Integrate(                                                        &
-                           &                               ageStart                                              , &
-                           &                               ageEnd                                                , &
-                           &                               stellarSpectraConvolution                             , &
-                           &                               integrandFunction                                     , &
-                           &                               integrationWorkspace                                  , &
-                           &                               toleranceAbsolute        =integrationToleranceAbsolute, &
-                           &                               toleranceRelative        =integrationToleranceRelative, &
-                           &                               reset                    =integrationReset              &
-                           &                              )
+                      stellarPopulationSpectra_ => stellarPopulationSpectraSpheroid_
+                      gasAbundances             => gasAbundancesSpheroid
+                      integrationReset          =.true.
+                      stellarSpectrumSpheroid   =  Integrate(                                                        &
+                           &                                 ageStart                                              , &
+                           &                                 ageEnd                                                , &
+                           &                                 stellarSpectraConvolution                             , &
+                           &                                 integrandFunction                                     , &
+                           &                                 integrationWorkspace                                  , &
+                           &                                 toleranceAbsolute        =integrationToleranceAbsolute, &
+                           &                                 toleranceRelative        =integrationToleranceRelative, &
+                           &                                 reset                    =integrationReset              &
+                           &                                )
                       call Integrate_Done(integrandFunction,integrationWorkspace)
                       backgroundRadiationEmissivity        (iWavelength,iTime)          &
                            & =backgroundRadiationEmissivity(iWavelength,iTime)          &
@@ -460,7 +466,6 @@ contains
            &                                                         gasAbundances, &
            &                                                         age          , &
            &                                                         wavelength   , &
-           &                                                         imfIndex     , &
            &                                                         status         &
            &                                                        )
       if     (                                                                              &

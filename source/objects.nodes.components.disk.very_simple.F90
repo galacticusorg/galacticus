@@ -723,7 +723,7 @@ contains
     end select
     ! Find rates of change of stellar mass, and gas mass.
     stellarHistoryRate=disk%stellarPropertiesHistory()
-    call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate &
+    call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,disk,node,stellarHistoryRate &
          &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate,stellarLuminositiesRatesCompute=.true.)
     ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
     massOutflowRate=starFormationFeedbackDisks_%outflowRate(node,energyInputRate,starFormationRate)

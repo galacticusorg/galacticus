@@ -40,12 +40,23 @@
      type            (interp2dIrregularObject)                              :: interpolationWorkspaceMassInitial, interpolationWorkspaceLifetime , &
           &                                                                    interpolationWorkspaceMassEjected, interpolationWorkspaceMassYield
      logical                                                                :: interpolationResetMassInitial    , interpolationResetLifetime     , &
-          &                                                                    interpolationResetMassEjected    , interpolationResetMassYield
+          &                                                                    interpolationResetMassEjected    , interpolationResetMassYield    , &
+          &                                                                    readDone
   contains
+     !@ <objectMethods>
+     !@   <object>stellarAstrophysicsFile</object>
+     !@   <objectMethod>
+     !@     <method>read</method>
+     !@     <arguments></arguments>
+     !@     <type>\void</type>
+     !@     <description>Read stellar astrophysics data from file.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: massInitial => fileMassInitial
      procedure :: massEjected => fileMassEjected
      procedure :: massYield   => fileMassYield
      procedure :: lifetime    => fileLifetime
+     procedure :: read        => fileRead
   end type stellarAstrophysicsFile
   
   interface stellarAstrophysicsFile
@@ -83,15 +94,34 @@ contains
 
   function fileConstructorInternal(fileName) result(self)
     !% Internal constructor for the {\normalfont \ttfamily file} stellar astrophysics class.
-    use FoX_dom
-    use Galacticus_Error
     use Memory_Management
-    use ISO_Varying_String
     use Atomic_Data
-    use IO_XML
     implicit none
-    type            (stellarAstrophysicsFile)                :: self
-    character       (len=*                  ), intent(in   ) :: fileName
+    type     (stellarAstrophysicsFile)                :: self
+    character(len=*                  ), intent(in   ) :: fileName
+    !# <constructorAssign variables="fileName"/>
+
+    ! Allocate array to store number of entries in file for yield of each element.
+    call allocateArray(self%countYieldElement,[Atomic_Data_Atoms_Count()])
+    call allocateArray(self%atomIndexMap     ,[Atomic_Data_Atoms_Count()])
+    self%interpolationResetMassInitial=.true.
+    self%interpolationResetLifetime   =.true.
+    self%interpolationResetMassEjected=.true.
+    self%interpolationResetMassYield  =.true.
+    self%readDone                     =.false.
+    return
+  end function fileConstructorInternal
+  
+  subroutine fileRead(self)
+    !% Read stellar astrophysics data. This is not done during object construction since it can be slow---we only perform the read if the data is actually needed.
+    use Memory_Management
+    use FoX_DOM
+    use Galacticus_Error
+    use ISO_Varying_String
+    use IO_XML
+    use Atomic_Data
+    implicit none
+    class           (stellarAstrophysicsFile), intent(inout) :: self
     type            (node                   ), pointer       :: doc              , datum                   , &
          &                                                      star
     type            (nodeList               ), pointer       :: propertyList     , starList
@@ -102,14 +132,11 @@ contains
          &                                                      countYieldMetals
     double precision                                         :: massInitial      , metallicity
     logical                                                  :: starHasElements
-    !# <constructorAssign variables="fileName"/>
 
-    ! Allocate array to store number of entries in file for yield of each element.
-    call allocateArray(self%countYieldElement,[Atomic_Data_Atoms_Count()])
-    call allocateArray(self%atomIndexMap     ,[Atomic_Data_Atoms_Count()])
+    if (self%readDone) return
     !$omp critical (FoX_DOM_Access)
     ! Open the XML file containing stellar properties.
-    doc => parseFile(fileName,iostat=ioErr)
+    doc => parseFile(char(self%fileName),iostat=ioErr)
     if (ioErr /= 0) call Galacticus_Error_Report('Unable to parse stellar properties file'//{introspection:location})
     ! Check the file format version of the file.
     datum => XML_Get_First_Element_By_Tag_Name(doc,"fileFormat")
@@ -237,19 +264,17 @@ contains
     ! Destroy the document.
     call destroy(doc)
     !$omp end critical (FoX_DOM_Access)
-    self%interpolationResetMassInitial=.true.
-    self%interpolationResetLifetime   =.true.
-    self%interpolationResetMassEjected=.true.
-    self%interpolationResetMassYield  =.true.
+    self%readDone=.true. 
     return
-  end function fileConstructorInternal
-
+  end subroutine fileRead
+  
   double precision function fileMassInitial(self,lifetime,metallicity)
     !% Return the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.
     implicit none
     class           (stellarAstrophysicsFile), intent(inout) :: self
     double precision                         , intent(in   ) :: lifetime, metallicity
 
+    call self%read()
     self%interpolationResetMassInitial=.true.
     fileMassInitial                   =Interpolate_2D_Irregular(                                                            &
          &                                                                          self%lifetimeLifetime                 , &
@@ -270,6 +295,7 @@ contains
     class           (stellarAstrophysicsFile), intent(inout) :: self
     double precision                         , intent(in   ) :: massInitial, metallicity
 
+    call self%read()
     self%interpolationResetLifetime=.true.
     fileLifetime                   =Interpolate_2D_Irregular(                                           &
          &                                                         self%lifetimeMass                  , &
@@ -289,6 +315,7 @@ contains
     class           (stellarAstrophysicsFile), intent(inout) :: self
     double precision                         , intent(in   ) :: massInitial, metallicity
 
+    call self%read()
     self%interpolationResetMassEjected=.true.
     fileMassEjected                   =max(                                                                       &
          &                                 Interpolate_2D_Irregular(                                              &
@@ -313,6 +340,7 @@ contains
     integer                                  , intent(in   ), optional :: atomIndex
     integer                                                            :: elementIndex
 
+    call self%read()
     self%interpolationResetMassYield=.true.
     if (present(atomIndex)) then
        ! Compute the element mass yield.

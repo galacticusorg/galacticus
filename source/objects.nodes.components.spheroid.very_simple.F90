@@ -469,7 +469,7 @@ contains
     end select
     ! Find rates of change of stellar mass, and gas mass.
     stellarHistoryRate=spheroid%stellarPropertiesHistory()
-    call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeSpheroid,node,stellarHistoryRate &
+    call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,spheroid,node,stellarHistoryRate &
          &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate,stellarLuminositiesRatesCompute=.true.)
     ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
     starFormationFeedbackSpheroids_ => starFormationFeedbackSpheroids()

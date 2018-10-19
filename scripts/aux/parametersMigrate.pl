@@ -528,27 +528,57 @@ my @translations =
 	 outputVersion => "0.9.5",
 	 names         =>
 	 {
-	     "atomicCollisionalIonizationMethod"                 => "atomicIonizationRateCollisionalMethod"                                                 ,
-	     "collisionalExcitationMethod"                       => "atomicExcitationRateCollisionalMethod"                                                 ,
-	     "chemicalReactionRateMethods"                       => "chemicalReactionRateMethod"                                                            ,
-	     "hydrogenNetworkFast"                               => "chemicalReactionRateMethod.hydrogenNetwork.--fast"                                     ,
-	     "hydrogenNetworkCMBOnly"                            => "chemicalReactionRateMethod.hydrogenNetwork.--radiationCMBOnly"                         ,
-	     "blackHoleBinaryInitialRadiiMethod"                 => "blackHoleBinaryInitialSeparationMethod"                                                ,
-	     "blackHoleInitialRadiusSpheroidRadiusRatio"         => "blackHoleBinaryInitialSeparationMethod.spheroidRadiusFraction.--spheroidRadiusFraction",
-	     "stellarDensityChangeBinaryMotion"                  => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--stellarDensityChangeBinaryMotion" ,
-	     "blackHoleBinariesComputeVelocityDispersion"        => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--computeVelocityDispersion"        ,
-	     "supernovaeIaMethod"                                => "supernovaeTypeIaMethod"                                                                ,
-	     "stellarTracksFile"                                 => "stellarTracksMethod.file.--fileName"                                                   ,
-	     "stellarPropertiesFile"                             => "stellarAstrophysicsMethod.file.--fileName"                                             ,
-	     "satelliteMergingRemnantProgenitorPropertiesMethod" => "mergerProgenitorPropertiesMethod"	          	     	     	     	     	    ,
-	     "satelliteMergingMassMovementsMethod" 	         => "mergerMassMovementsMethod"                                                             ,
-	     "majorMergerMassRatio"                              => "mergerMassMovementsMethod.simple.--massRatioMajorMerger"                               ,
-	     "burstMassRatio"                                    => "mergerMassMovementsMethod.baugh2005.--ratioMassBurst"                                  ,
-	     "burstCriticalGasFraction"                          => "mergerMassMovementsMethod.baugh2005.--fractionGasCriticalBurst"                        ,
-	     "minorMergerGasMovesTo"                             => "mergerMassMovementsMethod.simple.--destinationGasMinorMerger"                          ,
-	     "satelliteMergingRemnantSizeMethod"                 => "mergerRemnantSizeMethod"                                                               ,
-	     "mergerRemnantSizeOrbitalEnergy"                    => "mergerRemnantSizeMethod.cole2000.--energyOrbital"                                      ,
-	     "mergerRemnantRadiativeEfficiency"                  => "mergerRemnantSizeMethod.covington2008.--efficiencyRadiative"
+	     "atomicCollisionalIonizationMethod"                       => "atomicIonizationRateCollisionalMethod"                                                 ,
+	     "collisionalExcitationMethod"                             => "atomicExcitationRateCollisionalMethod"                                                 ,
+	     "chemicalReactionRateMethods"                             => "chemicalReactionRateMethod"                                                            ,
+	     "hydrogenNetworkFast"                                     => "chemicalReactionRateMethod.hydrogenNetwork.--fast"                                     ,
+	     "hydrogenNetworkCMBOnly"                                  => "chemicalReactionRateMethod.hydrogenNetwork.--radiationCMBOnly"                         ,
+	     "blackHoleBinaryInitialRadiiMethod"                       => "blackHoleBinaryInitialSeparationMethod"                                                ,
+	     "blackHoleInitialRadiusSpheroidRadiusRatio"               => "blackHoleBinaryInitialSeparationMethod.spheroidRadiusFraction.--spheroidRadiusFraction",
+	     "stellarDensityChangeBinaryMotion"                        => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--stellarDensityChangeBinaryMotion" ,
+	     "blackHoleBinariesComputeVelocityDispersion"              => "blackHoleInitialRadiusSpheroidRadiusRatio.standard.--computeVelocityDispersion"        ,
+	     "supernovaeIaMethod"                                      => "supernovaeTypeIaMethod"                                                                ,
+	     "stellarTracksFile"                                       => "stellarTracksMethod.file.--fileName"                                                   ,
+	     "stellarPropertiesFile"                                   => "stellarAstrophysicsMethod.file.--fileName"                                             ,
+	     "satelliteMergingRemnantProgenitorPropertiesMethod"       => "mergerProgenitorPropertiesMethod"	          	     	     	     	     	    ,
+	     "satelliteMergingMassMovementsMethod" 	               => "mergerMassMovementsMethod"                                                             ,
+	     "majorMergerMassRatio"                                    => "mergerMassMovementsMethod.simple.--massRatioMajorMerger"                               ,
+	     "burstMassRatio"                                          => "mergerMassMovementsMethod.baugh2005.--ratioMassBurst"                                  ,
+	     "burstCriticalGasFraction"                                => "mergerMassMovementsMethod.baugh2005.--fractionGasCriticalBurst"                        ,
+	     "minorMergerGasMovesTo"                                   => "mergerMassMovementsMethod.simple.--destinationGasMinorMerger"                          ,
+	     "satelliteMergingRemnantSizeMethod"                       => "mergerRemnantSizeMethod"                                                               ,
+	     "mergerRemnantSizeOrbitalEnergy"                          => "mergerRemnantSizeMethod.cole2000.--energyOrbital"                                      ,
+	     "mergerRemnantRadiativeEfficiency"                        => "mergerRemnantSizeMethod.covington2008.--efficiencyRadiative"                           ,
+	     "imfSelectionMethod"                                      => "stellarPopulationSelectorMethod"                                                       ,
+	     "imfBaugh2005TopHeavyRecycledInstantaneous"               => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfBaugh2005TopHeavyYieldInstantaneous"                  => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfBPASSRecycledInstantaneous"                           => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfBPASSYieldInstantaneous"                              => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfChabrierRecycledInstantaneous"                        => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfChabrierYieldInstantaneous"                           => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfKennicuttRecycledInstantaneous"                       => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfKennicuttYieldInstantaneous"                          => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfKroupaRecycledInstantaneous"                          => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfKroupaYieldInstantaneous"                             => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfMillerScaloRecycledInstantaneous"                     => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfMillerScaloYieldInstantaneous"                        => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfPiecewisePowerLawRecycledInstantaneous"               => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfPiecewisePowerLawYieldInstantaneous"                  => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfSalpeterRecycledInstantaneous"                        => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfSalpeterYieldInstantaneous"                           => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfScaloRecycledInstantaneous"                           => "stellarPopulationMethod.standard.--recycledFraction"                                   ,
+	     "imfScaloYieldInstantaneous"                              => "stellarPopulationMethod.standard.--metalYield"                                         ,
+	     "imfChabrierMassUpper"                                    => "initialMassFunctionMethod.chabrier2001.--massUpper"                                    ,
+	     "imfChabrierMassLower"                                    => "initialMassFunctionMethod.chabrier2001.--massLower"                                    ,
+	     "imfChabrierMassTransition"                               => "initialMassFunctionMethod.chabrier2001.--massTransition"                               ,
+	     "imfChabrierSigma"                                        => "initialMassFunctionMethod.chabrier2001.--sigma"                                        ,
+	     "imfChabrierExponent"                                     => "initialMassFunctionMethod.chabrier2001.--exponent"                                     ,
+	     "imfChabrierMass"                                         => "initialMassFunctionMethod.chabrier2001.--massCharacteristic"                           ,
+	     "imfPiecewisePowerLawMassPoints"                          => "initialMassFunctionMethod.piecewisePowerLaw.--mass"                                    ,
+	     "imfPiecewisePowerLawExponents"                           => "initialMassFunctionMethod.piecewisePowerLaw.--exponent"                                ,
+	     "starFormationImfInstantaneousApproximation"              => "stellarPopulationMethod.standard.--instantaneousRecyclingApproximation"                ,
+	     "starFormationImfInstantaneousApproximationMassLongLived" => "stellarPopulationMethod.standard.--massLongLived"                                      ,
+	     "starFormationImfInstantaneousApproximationEffectiveAge"  => "stellarPopulationMethod.standard.--ageEffective"		 
 	 },
 	 values        =>
 	 {
@@ -602,8 +632,109 @@ my @translations =
 	     {
 		 "Cole2000"          => "cole2000"        ,
 		 "Covington2008"     => "covington2008"
-	     }
+	     },
+	     imfSelectionFixed                         =>
+	     {		
+		 "Baugh2005TopHeavy" => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "baugh2005TopHeavy"
+			  }
+			 ]
+		 },
+		 "BPASS"             => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "BPASS"
+			  }
+			 ]
+		 },
+		 "Chabrier"          => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "chabrier2001"
+			  }
+			 ]
+		 },
+		 "Kennicutt"         => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "kennicutt1983"
+			  }
+			 ]
+		 },
+		 "Kroupa"            => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "kroupa2001"
+			  }
+			 ]
+		 },
+		 "MillerScalo"       => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "millerScalo1979"
+			  }
+			 ]
+		 },
+		 "PiecewisePowerLaw" => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "piecewisePowerLaw"
+			  }
+			 ]
+		 },
+		 "Salpeter"          => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "salpeter1955"
+			  }
+			 ]
+		 },
+		 "Scalo"             => 
+		 {
+		     new   =>
+			 [
+			  {
+			      name  => "initialMassFunctionMethod",
+			      value => "scalo1986"
+			  }
+			 ]
+		 },
+	     },
 	 }
+
+
+
+	 
+#		 imfSelectionDisk
+#		 imfSelectionSpheroid
+
+	     
      }
     );
      
@@ -806,8 +937,13 @@ sub Translate {
 			    print "   translate parameter value: ".$nameText."\n";
 			    if ( ref($translation->{'values'}->{$nameText}->{$thisValue}) ) {
 				my $newValue = $translation->{'values'}->{$nameText}->{$thisValue};
-				print "                                 ".$thisValue." --> ".$newValue->{'value'}."\n";
-				$thisValue = $newValue->{'value'};
+				if ( exists($newValue->{'value'}) ) {
+				    print "                                 ".$thisValue." --> ".$newValue->{'value'}."\n";
+				    $thisValue = $newValue->{'value'};
+				} else {
+				    print "                                 ".$thisValue." --> {remove}\n";
+				    $thisValue = undef();
+				}
 				if ( exists($newValue->{'new'}) ) {
 				    foreach my $newParameter ( &List::ExtraUtils::as_array($newValue->{'new'}) ) {
 					print "      add parameter: ".$newParameter->{'name'}." = ".$newParameter->{'value'}."\n";
@@ -839,10 +975,18 @@ sub Translate {
 				$thisValue = $translation->{'values'}->{$nameText}->{$thisValue};
 			    }
 			}
-			if ( $value->isSameNode($name) ) {
-			    $value->setAttribute('value',join(" ",@values));
+			if ( scalar(@values) == 1 && ! defined($values[0]) ) {
+			    if ( $value->isSameNode($name) ) {
+				$value->parentNode->removeChild($value);
+			    } else {
+				$value->removeChild($value->firstChild());
+			    }
 			} else {
-			    $value->firstChild()->setData(join(" ",@values));
+			    if ( $value->isSameNode($name) ) {
+				$value->setAttribute('value',join(" ",@values));
+			    } else {
+				$value->firstChild()->setData(join(" ",@values));
+			    }
 			}
 		    }
 		}

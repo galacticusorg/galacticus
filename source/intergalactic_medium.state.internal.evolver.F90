@@ -263,17 +263,16 @@
    
    logical function Intergalactic_Medium_State_Internal_Update(event,universe_) result (success)
      !% Update the properties for a given universe.
+     use, intrinsic :: ISO_C_Binding
      use               Galacticus_Nodes
      use               Galacticus_Display
      use               Galacticus_Output_Times
-     use               Star_Formation_IMF
      use               Galactic_Structure_Options
      use               Galacticus_Error
      use               Stellar_Population_Spectra
      use               Arrays_Search
      use               FODEIV2
      use               ODEIV2_Solver
-     use, intrinsic :: ISO_C_Binding
      use               Numerical_Constants_Prefixes
      use               Numerical_Constants_Math
      use               Numerical_Constants_Physical
@@ -392,10 +391,10 @@
     do while (associated(forest))
        tree => forest%tree
        do while (associated(tree))
-          node       => tree%baseNode
-          basic      => node%basic()
+          node           => tree%baseNode
+          basic          => node%basic()
           treetimeLatest =  max(treetimeLatest,basic%time())
-          tree       => tree%nextTree
+          tree           => tree%nextTree
        end do
        forest => forest%next
     end do
