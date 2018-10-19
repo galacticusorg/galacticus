@@ -449,7 +449,7 @@ contains
   end subroutine Stellar_Population_Luminosity_Tabulate
   
   function Stellar_Population_Luminosity(luminosityIndex,filterIndex,postprocessingChainIndex,stellarPopulation_,abundancesStellar,age,redshift)
-    !% Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation_} of given {\normalfont \ttfamily
+    !% Returns the luminosity for a $1 M_\odot$ simple {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
     !% abundances} and {\normalfont \ttfamily age} and observed through the filter specified by {\normalfont \ttfamily
     !% filterIndex}.
     use, intrinsic :: ISO_C_Binding
