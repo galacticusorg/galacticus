@@ -718,7 +718,7 @@ contains
           if (associated(head)) then
              ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack.
              current  => head
-             previous => head 
+             previous => null() 
              do while (associated(current%next).and.abs(current%error) > abs(newInterval%error))
                 previous => current
                 current  => current%next
@@ -731,13 +731,27 @@ contains
                    current%next => newInterval
                 else
                    ! New interval goes before the final interval.
-                   newInterval%next => previous   %next
-                   previous   %next => newInterval
+                   if (associated(previous)) then
+                      ! Final interval is not the head interval.
+                      newInterval%next => previous   %next
+                      previous   %next => newInterval
+                   else
+                      ! Final interval is the head interval.
+                      newInterval%next => current
+                      head             => newInterval
+                   end if
                 end if
              else
                 ! End of stack not reached. Insert new interval after the previous interval.
-                newInterval%next => previous   %next
-                previous   %next => newInterval
+                if (associated(previous)) then
+                   ! Next interval is not the head interval.
+                   newInterval%next => previous   %next
+                   previous   %next => newInterval
+                else
+                   ! Next interval is the head interval.
+                   newInterval%next => current
+                   head             => newInterval
+                end if
              end if
           else
              ! Stack is empty - simply point the head to our new subinterval.
@@ -812,7 +826,7 @@ contains
     end do
     mean        =integralKronrod*0.5d0
     integralAsc=self%wKronrod(pointCountKronrod)*abs(fCenter-mean)
-    do j=0,pointCountKronrod-1
+    do j=0,pointCountKronrod-2
        integralAsc=integralAsc+self%wKronrod(j+1)*(abs(fValue1(j+1)-mean)+abs(fValue2(j+1)-mean))
     end do
     error           =abs((integralKronrod-integralGauss)*halfLength)
@@ -1051,7 +1065,7 @@ contains
           if (associated(head)) then
              ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack.
              current  => head
-             previous => head 
+             previous => null() 
              do while (associated(current%next).and.abs(current%error) > abs(newInterval%error))
                 previous => current
                 current  => current%next
@@ -1064,13 +1078,27 @@ contains
                    current%next => newInterval
                 else
                    ! New interval goes before the final interval.
-                   newInterval%next => previous   %next
-                   previous   %next => newInterval
+                   if (associated(previous)) then
+                      ! Final interval is not the head interval.
+                      newInterval%next => previous   %next
+                      previous   %next => newInterval
+                   else
+                      ! Final interval is the head interval.
+                      newInterval%next => current
+                      head             => newInterval
+                   end if
                 end if
              else
                 ! End of stack not reached. Insert new interval after the previous interval.
-                newInterval%next => previous   %next
-                previous   %next => newInterval
+                if (associated(previous)) then
+                   ! Next interval is not the head interval.
+                   newInterval%next => previous   %next
+                   previous   %next => newInterval
+                else
+                   ! Next interval is the head interval.
+                   newInterval%next => current
+                   head             => newInterval
+                end if
              end if
           else
              ! Stack is empty - simply point the head to our new subinterval.
