@@ -72,27 +72,31 @@ CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${
 
 # Detect GProf compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
-FCFLAGS  += -pg
-CFLAGS   += -pg
-CPPFLAGS += -pg
+FCFLAGS       += -pg
+FCFLAGS_NOOPT += -pg
+CFLAGS        += -pg
+CPPFLAGS      += -pg
 else
-FCFLAGS  += -g
-CFLAGS   += -g
-CPPFLAGS += -g
+FCFLAGS       += -g
+FCFLAGS_NOOPT += -g
+CFLAGS        += -g
+CPPFLAGS      += -g
 endif
 
 # Detect ODE profiling compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
 FCFLAGS  += -DPROFILE
+FCFLAGS_NOOPT += -DPROFILE
 CFLAGS   += -DPROFILE
 CPPFLAGS += -DPROFILE
 endif
 
 # Detect MPI compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
-FCFLAGS  += -DUSEMPI
-CFLAGS   += -DUSEMPI
-CPPFLAGS += -DUSEMPI 
+FCFLAGS       += -DUSEMPI
+FCFLAGS_NOOPT += -DUSEMPI
+CFLAGS        += -DUSEMPI
+CPPFLAGS      += -DUSEMPI 
 endif
 
 # Detect YEPPP libraries.
@@ -409,14 +413,6 @@ $(BUILDPATH)/galacticus.output.build.environment.inc:
 	@echo FCCOMPILER_VERSION=\"$(FCCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-
-# Rules for unique label function creation.
-dfiles := $(patsubst source/%.F90,$(BUILDPATH)/%.d,$(wildcard source/*.F90))
-mfiles := $(patsubst source/%.F90,$(BUILDPATH)/%.m,$(wildcard source/*.F90))
-$(BUILDPATH)/utility.input_parameters.unique_labels.inc:
-	@touch $(BUILDPATH)/utility.input_parameters.unique_labels.inc
-$(BUILDPATH)/utility.input_parameters.unique_labels.visibilities.inc: $(dfiles) $(mfiles) $(BUILDPATH)/flock_config.h
-	./scripts/build/uniqueLabelFunctions.pl `pwd`
 
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.hg.patch $(BUILDPATH)/galacticus.hg.bundle
