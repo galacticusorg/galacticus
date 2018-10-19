@@ -28,37 +28,34 @@ module Stellar_Population_Spectra
   !#  <name>stellarPopulationSpectra</name>
   !#  <descriptiveName>Stellar Population Spectra</descriptiveName>
   !#  <description>Class providing stellar population spectra.</description>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <default>FSPS</default>
   !#  <method name="luminosity" >
-  !#   <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with \gls{imf} specified by {\normalfont \ttfamily imfIndex}, composition {\normalfont \ttfamily abundances}, of the given {\normalfont \ttfamily age} (in Gyr), at the specified {\normalfont \ttfamily wavelength} (in Angstroms).</description>
+  !#   <description>Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population, composition {\normalfont \ttfamily abundances}, of the given {\normalfont \ttfamily age} (in Gyr), at the specified {\normalfont \ttfamily wavelength} (in Angstroms).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type            (abundances), intent(in   )           :: abundancesStellar</argument>
   !#   <argument>double precision            , intent(in   )           :: age              , wavelength</argument>
-  !#   <argument>integer                     , intent(in   )           :: imfIndex</argument>
   !#   <argument>integer                     , intent(  out), optional :: status</argument>
   !#  </method>
   !#  <method name="tabulation" >
-  !#   <description>Return a tabulation of ages and metallicities at which stellar spectra for the specified \gls{imf} should be tabulated.</description>
+  !#   <description>Return a tabulation of ages and metallicities at which stellar spectra should be tabulated.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>integer                                    , intent(in   ) :: imfIndex</argument>
   !#   <argument>integer                                    , intent(  out) :: agesCount, metallicitiesCount</argument>
   !#   <argument>double precision, allocatable, dimension(:), intent(  out) :: ages     , metallicity</argument>
   !#  </method>
   !#  <method name="wavelengths" >
-  !#   <description>Return a tabulation of wavelengths at which stellar spectra for the specified \gls{imf} are defined.</description>
+  !#   <description>Return a tabulation of wavelengths at which stellar spectra are defined.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>integer                                    , intent(in   ) :: imfIndex</argument>
   !#   <argument>integer                                    , intent(  out) :: wavelengthsCount</argument>
   !#   <argument>double precision, allocatable, dimension(:), intent(  out) :: wavelengths</argument>
   !#  </method>
   !#  <method name="wavelengthInterval" >
-  !#   <description>At a given wavelength, return the wavelength interval in the tabulation of wavelength for which stellar spectra for the specified \gls{imf} are defined.</description>
+  !#   <description>At a given wavelength, return the wavelength interval in the tabulation of wavelength for which stellar spectra are defined.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>integer         , intent(in   ) :: imfIndex</argument>
   !#   <argument>double precision, intent(in   ) :: wavelength</argument>
   !#  </method>
   !# </functionClass>

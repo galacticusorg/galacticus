@@ -691,7 +691,7 @@ contains
             &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
        stellarHistoryRate=disk%stellarPropertiesHistory()     
-       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,componentTypeDisk,node,stellarHistoryRate&
+       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,disk,node,stellarHistoryRate&
             &,stellarMassRate,stellarAbundancesRates,luminositiesStellarRates,fuelMassRate,fuelAbundancesRates,energyInputRate,luminositiesCompute)
        ! Adjust rates.
        if (propertyType == propertyTypeActive .or. propertyType == propertyTypeAll) then

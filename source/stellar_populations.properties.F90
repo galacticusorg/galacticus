@@ -82,7 +82,7 @@ contains
     return
   end subroutine Stellar_Population_Properties_Rates_Initialize
 
-  subroutine Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate &
+  subroutine Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,component_,thisNode,thisHistory,stellarMassRate &
        &,stellarAbundancesRates ,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate,stellarLuminositiesRatesCompute)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
     use Stellar_Luminosities_Structure
@@ -93,7 +93,7 @@ contains
     type            (stellarLuminosities), intent(inout) :: stellarLuminositiesRates
     double precision                     , intent(in   ) :: starFormationRate
     type            (abundances         ), intent(in   ) :: fuelAbundances
-    integer                              , intent(in   ) :: component
+    class           (nodeComponent      ), intent(in   ) :: component_
     type            (treeNode           ), intent(inout) :: thisNode
     type            (history            ), intent(inout) :: thisHistory
     logical                              , intent(in   ) :: stellarLuminositiesRatesCompute
@@ -102,7 +102,7 @@ contains
     call Stellar_Population_Properties_Rates_Initialize
 
     ! Simply call the subroutine which does the actual work.
-    call Stellar_Population_Properties_Rates_Get(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate&
+    call Stellar_Population_Properties_Rates_Get(starFormationRate,fuelAbundances,component_,thisNode,thisHistory,stellarMassRate&
          &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate,stellarLuminositiesRatesCompute)
     return
   end subroutine Stellar_Population_Properties_Rates

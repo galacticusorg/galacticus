@@ -506,10 +506,14 @@
  	<imfPiecewisePowerLawExponents value="-1.5 -2.3" parameterLevel="top"/>
       </imfSelectionFixed>
     </imfSelectionMethod>
-    <imfSelectionMethod value="diskSpheroid">
-      <imfSelectionDisk value="Chabrier" parameterLevel="top"/>
-      <imfSelectionSpheroid value="Kennicutt" parameterLevel="top"/>
-    </imfSelectionMethod>
+    <stellarPopulationSelectorMethod value="diskSpheroid">
+      <stellarPopulationDisk value="standard">
+	<initialMassFunction value="chabrier2001"/>
+      </stellarPopulationDisk>
+      <stellarPopulationSpheroid value="standard">
+	<initialMassFunction value="kennicutt1983"/>
+      </stellarPopulationSpheroid>
+    </stellarPopulationSelectorMethod>
   </parameters>
 
   <!-- Hot halo density profile -->
