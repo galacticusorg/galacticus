@@ -20,12 +20,14 @@
 
 module Hashes
   !% Implements ``hashes'' (i.e. associative arrays).
-  use ISO_Varying_String
+  use, intrinsic :: ISO_C_Binding
+  use               ISO_Varying_String
   implicit none
 
   !# <generic identifier="Type">
-  !#  <instance label="integer" intrinsic="integer"          />
-  !#  <instance label="double"  intrinsic="double precision" />
+  !#  <instance label="integer"      intrinsic="integer"          />
+  !#  <instance label="integerSizeT" intrinsic="integer(c_size_t)"/>
+  !#  <instance label="double"       intrinsic="double precision" />
   !# </generic>
 
   private
