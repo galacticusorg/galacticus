@@ -32,9 +32,6 @@ module Input_Parameters
   private
   public :: inputParameters, inputParameter, inputParameterList, globalParameters  
 
-  ! Include public specifiers for functions that will generate unique labels for modules.
-  include 'utility.input_parameters.unique_labels.visibilities.inc'
-
   !# <generic identifier="Type">
   !#  <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
   !#  <instance label="Integer"        intrinsic="integer"                                          outputConverter="regEx¦(.*)¦$1¦"      />
@@ -1429,7 +1426,4 @@ contains
     return
   end subroutine inputParametersAddParameter
   
-  ! Include functions that generate unique labels for modules.
-  include 'utility.input_parameters.unique_labels.inc'
-
 end module Input_Parameters
