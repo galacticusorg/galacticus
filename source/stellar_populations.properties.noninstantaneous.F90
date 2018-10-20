@@ -16,249 +16,248 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements stellar population properties with noninstantaneous recycling.
+  !% Implements a stellar population properties class based on the noninstantaneous recycling approximation.
 
-module Stellar_Population_Properties_Noninstantaneous
-  !% Implements stellar population properties with noninstantaneous recycling.
-  implicit none
-  private
-  public :: Stellar_Population_Properties_Noninstantaneous_Initialize
+  use Stellar_Population_Selectors
 
-  ! Count of number of elements (plus total metals) that are to be tracked.
-  integer            :: elementsCount
-  ! Count of the number of histories required by this implementation.
-  integer            :: historyCount
-  ! Indices for histories.
-  integer, parameter :: recycledRateIndex          =1
-  integer, parameter :: energyInputRateIndex       =2
-  integer, parameter :: returnedMetalRateBeginIndex=3
-  integer            :: metalYieldRateBeginIndex     , metalYieldRateEndIndex, &
-       &                returnedMetalRateEndIndex
+  !# <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous">
+  !#  <description>A stellar population properties class based on the noninstantaneous recycling approximation.</description>
+  !# </stellarPopulationProperties>
+  type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesNoninstantaneous
+     !% A stellar population properties class based on the noninstantaneous recycling approximation.
+     private
+     class(stellarPopulationSelectorClass), pointer :: stellarPopulationSelector_
+     ! Count of number of elements (plus total metals) that are to be tracked.
+     integer                                        :: elementsCount
+     ! Count of the number of histories required by this implementation.
+     integer                                        :: historyCount_
+     ! Indices for histories.
+     integer                                        :: recycledRateIndex          , rateEnergyInputIndex     , &
+          &                                            returnedMetalRateBeginIndex, metalYieldRateBeginIndex , &
+          &                                            metalYieldRateEndIndex     , returnedMetalRateEndIndex
+     ! Number of times to store in histories.
+     integer                                        :: countHistoryTimes
+   contains
+     final     ::                  noninstantaneousDestructor
+     procedure :: rates         => noninstantaneousRates
+     procedure :: scales        => noninstantaneousScales
+     procedure :: historyCount  => noninstantaneousHistoryCount
+     procedure :: historyCreate => noninstantaneousHistoryCreate
+  end type stellarPopulationPropertiesNoninstantaneous
 
-  ! Number of times to store in histories.
-  integer            :: noninstantHistoryTimesCount
+  interface stellarPopulationPropertiesNoninstantaneous
+     !% Constructors for the {\normalfont \ttfamily noninstantaneous} stellar population class.
+     module procedure noninstantaneousConstructorParameters
+     module procedure noninstantaneousConstructorInternal
+  end interface stellarPopulationPropertiesNoninstantaneous
 
 contains
 
-  !# <stellarPopulationPropertiesMethod>
-  !#  <unitName>Stellar_Population_Properties_Noninstantaneous_Initialize</unitName>
-  !# </stellarPopulationPropertiesMethod>
-  subroutine Stellar_Population_Properties_Noninstantaneous_Initialize(stellarPopulationPropertiesMethod &
-       &,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get&
-       &,Stellar_Population_Properties_History_Count_Get ,Stellar_Population_Properties_History_Create_Do)
-    !% Initializes the noninstantaneous recycling stellar population properties module.
-    use ISO_Varying_String
+  function noninstantaneousConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class which takes a parameter list
+    !% as input.
     use Input_Parameters
-    use Abundances_Structure
     implicit none
-    type     (varying_string                                               ), intent(in   )          :: stellarPopulationPropertiesMethod
-    procedure(Stellar_Population_Properties_History_Count_Noninstantaneous ), intent(inout), pointer :: Stellar_Population_Properties_History_Count_Get
-    procedure(Stellar_Population_Properties_Rates_Noninstantaneous         ), intent(inout), pointer :: Stellar_Population_Properties_Rates_Get
-    procedure(Stellar_Population_Properties_History_Create_Noninstantaneous), intent(inout), pointer :: Stellar_Population_Properties_History_Create_Do
-    procedure(Stellar_Population_Properties_Scales_Noninstantaneous        ), intent(inout), pointer :: Stellar_Population_Properties_Scales_Get
+    type   (stellarPopulationPropertiesNoninstantaneous)                :: self
+    type   (inputParameters                            ), intent(inout) :: parameters
+    class  (stellarPopulationSelectorClass             ), pointer       :: stellarPopulationSelector_
+    integer                                                             :: countHistoryTimes
 
-    if (stellarPopulationPropertiesMethod == 'noninstantaneous') then
-       Stellar_Population_Properties_Rates_Get         => Stellar_Population_Properties_Rates_Noninstantaneous
-       Stellar_Population_Properties_Scales_Get        => Stellar_Population_Properties_Scales_Noninstantaneous
-       Stellar_Population_Properties_History_Count_Get => Stellar_Population_Properties_History_Count_Noninstantaneous
-       Stellar_Population_Properties_History_Create_Do => Stellar_Population_Properties_History_Create_Noninstantaneous
-       !# <inputParameter>
-       !#   <name>noninstantHistoryTimesCount</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>10</defaultValue>
-       !#   <description>The number of times at which a galaxy's stellar properties history is stored.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>integer</type>
-       !# </inputParameter>
-
-       ! Get a count of the number of elements (plus total metals) that will be tracked.
-       elementsCount=Abundances_Property_Count()
-
-       ! Determine the number of histories that we must store. We require one for recycled mass, one for energy input and two
-       ! (return rate and yield rate) for each element.
-       historyCount=2+2*elementsCount
-
-       ! Establish indices in the array of histories where returned metal rates and yield rates will be stored.
-       returnedMetalRateEndIndex=returnedMetalRateBeginIndex+elementsCount-1
-       metalYieldRateBeginIndex =returnedMetalRateEndIndex                +1
-       metalYieldRateEndIndex   =metalYieldRateBeginIndex   +elementsCount-1
-      end if
+    !# <inputParameter>
+    !#   <name>countHistoryTimes</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>10</defaultValue>
+    !#   <description>The number of times at which a galaxy's stellar properties history is stored.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
+    self=stellarPopulationPropertiesNoninstantaneous(countHistoryTimes,stellarPopulationSelector_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Stellar_Population_Properties_Noninstantaneous_Initialize
+  end function noninstantaneousConstructorParameters
 
-  integer function Stellar_Population_Properties_History_Count_Noninstantaneous()
-    !% Returns the number of histories required by the noninstantaneous stellar populations properties module.
+  function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
     implicit none
+    type   (stellarPopulationPropertiesNoninstantaneous)                        :: self
+    integer                                             , intent(in   )         :: countHistoryTimes
+    class  (stellarPopulationSelectorClass             ), intent(in   ), target :: stellarPopulationSelector_
+    !# <constructorAssign variables="countHistoryTimes, *stellarPopulationSelector_"/>
 
-    ! Return number of histories required.
-    Stellar_Population_Properties_History_Count_Noninstantaneous=historyCount
+    ! Get a count of the number of elements (plus total metals) that will be tracked.
+    self%elementsCount=Abundances_Property_Count()
+    ! Determine the number of histories that we must store. We require one for recycled mass, one for energy input and two
+    ! (return rate and yield rate) for each element.
+    self%historyCount_=2+2*self%elementsCount
+    ! Establish indices in the array of histories where returned metal rates and yield rates will be stored.
+    self%recycledRateIndex          =                                                   +1
+    self%rateEnergyInputIndex       =self%recycledRateIndex                             +1
+    self%returnedMetalRateBeginIndex=self%rateEnergyInputIndex                          +1
+    self%returnedMetalRateEndIndex  =self%returnedMetalRateBeginIndex+self%elementsCount-1
+    self%metalYieldRateBeginIndex   =self%returnedMetalRateEndIndex                     +1
+    self%metalYieldRateEndIndex     =self%metalYieldRateBeginIndex   +self%elementsCount-1
     return
-  end function Stellar_Population_Properties_History_Count_Noninstantaneous
+  end function noninstantaneousConstructorInternal
 
-  subroutine Stellar_Population_Properties_Rates_Noninstantaneous(starFormationRate,fuelAbundances,component_,node,propertiesHistory&
-       &,stellarMassRate ,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate,stellarLuminositiesRatesCompute)
+  subroutine noninstantaneousDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
+    implicit none
+    type(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
+
+    !# <objectDestructor name="self%stellarPopulationSelector_"/>
+    return
+  end subroutine noninstantaneousDestructor
+ 
+  integer function noninstantaneousHistoryCount(self)
+    !% Returns the number of histories required by the noninstantaneous stellar populations properties class.
+    implicit none
+    class(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
+
+    noninstantaneousHistoryCount=self%historyCount_
+    return
+  end function noninstantaneousHistoryCount
+
+  subroutine noninstantaneousRates(self,rateStarFormation,abundancesFuel,component,node,history_,rateMassStellar,rateMassFuel,rateEnergyInput&
+       &,rateAbundancesFuel,rateAbundancesStellar,rateLuminosityStellar,computeRateLuminosityStellar)
     !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
-    use Galacticus_Nodes
-    use Abundances_Structure
-    use Histories
-    use Stellar_Luminosities_Structure
-    use Stellar_Populations
-    use Stellar_Population_Selectors
-    use Numerical_Interpolation
-    use FGSL
     use, intrinsic :: ISO_C_Binding
+    use            :: Stellar_Luminosities_Structure
+    use            :: Stellar_Populations
+    use            :: Numerical_Interpolation
+    use            :: FGSL
     implicit none
-    double precision                                , intent(  out)            :: energyInputRate          , fuelMassRate          , &
-         &                                                                        stellarMassRate
-    type            (abundances                    ), intent(inout)            :: fuelAbundancesRates      , stellarAbundancesRates
-    type            (stellarLuminosities           ), intent(inout)            :: stellarLuminositiesRates
-    double precision                                , intent(in   )            :: starFormationRate
-    type            (abundances                    ), intent(in   )            :: fuelAbundances
-    class           (nodeComponent                 ), intent(in   )            :: component_
-    type            (treeNode                      ), intent(inout)            :: node
-    type            (history                       ), intent(inout)            :: propertiesHistory
-    logical                                         , intent(in   )            :: stellarLuminositiesRatesCompute
-    class           (nodeComponentBasic            ), pointer                  :: basic
-    class           (stellarPopulationClass        ), pointer                  :: stellarPopulation_
-    class           (stellarPopulationSelectorClass), pointer                  :: stellarPopulationSelector_
-    double precision                                , dimension(elementsCount) :: fuelMetallicity          , fuelMetalsRateOfChange, &
-         &                                                                        metalReturnRate          , metalYieldRate        , &
-         &                                                                        stellarMetalsRateOfChange
-    integer                                                                    :: iElement
-    integer         (c_size_t                      )                           :: iHistory
-    double precision                                                           :: ageMaximum               , ageMinimum            , &
-         &                                                                        currentTime              , recyclingRate
-    type            (fgsl_interp_accel             )                           :: interpolationAccelerator
-    logical                                                                    :: interpolationReset
+    class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                 :: self
+    double precision                                             , intent(  out)                 :: rateEnergyInput              , rateMassFuel          , &
+         &                                                                                          rateMassStellar
+    type            (abundances                                 ), intent(inout)                 :: rateAbundancesFuel           , rateAbundancesStellar
+    type            (stellarLuminosities                        ), intent(inout)                 :: rateLuminosityStellar
+    double precision                                             , intent(in   )                 :: rateStarFormation
+    type            (abundances                                 ), intent(in   )                 :: abundancesFuel
+    class           (nodeComponent                              ), intent(in   )                 :: component
+    type            (treeNode                                   ), intent(inout)                 :: node
+    type            (history                                    ), intent(inout)                 :: history_
+    logical                                                      , intent(in   )                 :: computeRateLuminosityStellar
+    class           (nodeComponentBasic                         ), pointer                       :: basic
+    class           (stellarPopulationClass                     ), pointer                       :: stellarPopulation_
+    double precision                                             , dimension(self%elementsCount) :: fuelMetallicity              , fuelMetalsRateOfChange, &
+         &                                                                                          metalReturnRate              , metalYieldRate        , &
+         &                                                                                          stellarMetalsRateOfChange
+    integer                                                                                      :: iElement
+    integer         (c_size_t                                   )                                :: iHistory
+    double precision                                                                             :: ageMaximum                   , ageMinimum            , &
+         &                                                                                          currentTime                  , recyclingRate
+    type            (fgsl_interp_accel                          )                                :: interpolationAccelerator
+    logical                                                                                      :: interpolationReset
 
     ! Get the current time.
     basic       => node %basic()
     currentTime =  basic%time ()
-
     ! Get interpolating factors in stellar population history.
     interpolationReset=.true.
-    iHistory          =Interpolate_Locate(propertiesHistory%time,interpolationAccelerator,currentTime,interpolationReset)
+    iHistory          =Interpolate_Locate(history_%time,interpolationAccelerator,currentTime,interpolationReset)
     call Interpolate_Done(interpolationAccelerator=interpolationAccelerator,reset=interpolationReset)
-
     ! Get recycling, energy input, metal recycling and metal yield rates.
-    recyclingRate  =propertiesHistory%data(iHistory,          recycledRateIndex                                            )
-    energyInputRate=propertiesHistory%data(iHistory,       energyInputRateIndex                                            )
-    metalReturnRate=propertiesHistory%data(iHistory,returnedMetalRateBeginIndex:returnedMetalRateBeginIndex+elementsCount-1)
-    metalYieldRate =propertiesHistory%data(iHistory,   metalYieldRateBeginIndex:   metalYieldRateBeginIndex+elementsCount-1)
-
+    recyclingRate  =history_%data(iHistory,self%          recycledRateIndex                               )
+    rateEnergyInput=history_%data(iHistory,self%       rateEnergyInputIndex                               )
+    metalReturnRate=history_%data(iHistory,self%returnedMetalRateBeginIndex:self%returnedMetalRateEndIndex)
+    metalYieldRate =history_%data(iHistory,self%   metalYieldRateBeginIndex:self%   metalYieldRateEndIndex)
     ! Get the metallicity of the fuel supply.
-    call fuelAbundances%serialize(fuelMetallicity)
-
+    call abundancesFuel%serialize(fuelMetallicity)
     ! Set the stellar and fuel mass rates of change.
-    stellarMassRate=starFormationRate-recyclingRate
-    fuelMassRate   =-stellarMassRate
-
+    rateMassStellar=+rateStarFormation-recyclingRate
+    rateMassFuel   =-rateMassStellar
     ! Set the rates of change of the stellar and fuel metallicities.
-    stellarMetalsRateOfChange=starFormationRate*fuelMetallicity-metalReturnRate
+    stellarMetalsRateOfChange=rateStarFormation*fuelMetallicity-metalReturnRate
     fuelMetalsRateOfChange   =-stellarMetalsRateOfChange+metalYieldRate
-    call stellarAbundancesRates%deserialize(stellarMetalsRateOfChange)
-    call fuelAbundancesRates   %deserialize(   fuelMetalsRateOfChange)
-
+    call rateAbundancesStellar%deserialize(stellarMetalsRateOfChange)
+    call rateAbundancesFuel   %deserialize(   fuelMetalsRateOfChange)
     ! Get the stellar population.
-    stellarPopulationSelector_ => stellarPopulationSelector        (                                           )
-    stellarPopulation_         => stellarPopulationSelector_%select(starFormationRate,fuelAbundances,component_)
-
+    stellarPopulation_ => self%stellarPopulationSelector_%select(rateStarFormation,abundancesFuel,component)
     ! Set luminosity rates of change.
-    if (stellarLuminositiesRatesCompute) call stellarLuminositiesRates%setLuminosities(starFormationRate,stellarPopulation_,currentTime,fuelAbundances)
-
+    if (computeRateLuminosityStellar) call rateLuminosityStellar%setLuminosities(rateStarFormation,stellarPopulation_,currentTime,abundancesFuel)
     ! Set rates of change in the stellar populations properties future history.
-    do iHistory=1,size(propertiesHistory%time)-1
+    do iHistory=1,size(history_%time)-1
        ! Find the age of the forming stellar population at the future time. We average over the time between successive timesteps
        ! to ensure that the rates will integrate to the correct values.
-       ageMinimum=max(propertiesHistory%time(iHistory  )-currentTime,0.0d0)
-       ageMaximum=max(propertiesHistory%time(iHistory+1)-currentTime,0.0d0)
+       ageMinimum=max(history_%time(iHistory  )-currentTime,0.0d0)
+       ageMaximum=max(history_%time(iHistory+1)-currentTime,0.0d0)
        ! Check that it really is in the future and that the timestep over which the contribution to be made is non-zero.
        if (ageMaximum >= 0.0d0 .and. ageMaximum > ageMinimum) then
           ! Get the recycling rate.
-          recyclingRate                                                                            =+stellarPopulation_%rateRecycling(fuelAbundances,ageMinimum,ageMaximum         ) &
-               &                                                                                    *starFormationRate
+          recyclingRate                                                                                =+stellarPopulation_%rateRecycling(abundancesFuel,ageMinimum,ageMaximum         ) &
+               &                                                                                        *rateStarFormation
           ! Accumulate the mass recycling rate from this population at the future time.
-          propertiesHistory   %data(iHistory,recycledRateIndex                                    )=+recyclingRate
+          history_      %data(iHistory,self%recycledRateIndex                                         )=+recyclingRate
           ! Get the (normalized) energy input rate.
-          propertiesHistory   %data(iHistory,energyInputRateIndex                                 )=+stellarPopulation_%rateEnergy   (fuelAbundances,ageMinimum,ageMaximum         ) &
-               &                                                                                    *starFormationRate
+          history_      %data(iHistory,self%rateEnergyInputIndex                                      )=+stellarPopulation_%rateEnergy   (abundancesFuel,ageMinimum,ageMaximum         ) &
+               &                                                                                        *rateStarFormation
           ! Accumulate the metal return rate from this population at the future time.
-          propertiesHistory   %data(iHistory,returnedMetalRateBeginIndex:returnedMetalRateEndIndex)=+recyclingRate   &
-               &                                                                                    *fuelMetallicity
+          history_      %data(iHistory,self%returnedMetalRateBeginIndex:self%returnedMetalRateEndIndex)=+recyclingRate   &
+               &                                                                                        *fuelMetallicity
           ! Loop over all elements (and total metallicity).
-          do iElement=1,elementsCount
+          do iElement=1,self%elementsCount
              ! Get the metal yield rate.
-             propertiesHistory%data(iHistory,metalYieldRateBeginIndex+iElement-1                  )=+stellarPopulation_%rateYield    (fuelAbundances,ageMinimum,ageMaximum,iElement) &
-                  &                                                                                 *starFormationRate
+             history_   %data(iHistory,self%metalYieldRateBeginIndex+iElement-1                       )=+stellarPopulation_%rateYield    (abundancesFuel,ageMinimum,ageMaximum,iElement) &
+                  &                                                                                     *rateStarFormation
           end do
        end if
     end do
     return
-  end subroutine Stellar_Population_Properties_Rates_Noninstantaneous
+  end subroutine noninstantaneousRates
 
-  subroutine Stellar_Population_Properties_Scales_Noninstantaneous(propertiesHistory,stellarMass,stellarAbundances)
+  subroutine noninstantaneousScales(self,massStellar,abundancesStellar,history_)
     !% Set the scalings for error control on the absolute values of stellar population properties.
-    use Histories
     use Stellar_Feedback
-    use Abundances_Structure
     use Memory_Management
     implicit none
-    double precision                                                              , intent(in   ) :: stellarMass
-    type            (abundances)                                                  , intent(in   ) :: stellarAbundances
-    type            (history   )                                                  , intent(inout) :: propertiesHistory
-    double precision                                                   , parameter                :: stellarMassMinimum       =1.0d0
-    double precision                                                   , parameter                :: stellarAbundancesMinimum =1.0d0
-    double precision                         , dimension(elementsCount)                           :: stellarAbundancesUnpacked
-    double precision            , allocatable, dimension(:            )                           :: timeSteps
-    integer                                                                                       :: scaleIndex
+    class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                                :: self
+    double precision                                             , intent(in   )                                :: massStellar
+    type            (abundances                                 ), intent(in   )                                :: abundancesStellar
+    type            (history                                    ), intent(inout)                                :: history_
+    double precision                                             , parameter                                    :: massStellarMinimum       =1.0d0
+    double precision                                             , parameter                                    :: abundancesStellarMinimum =1.0d0
+    double precision                                                            , dimension(self%elementsCount) :: abundancesStellarUnpacked
+    double precision                                             , allocatable  , dimension(:                 ) :: timeSteps
+    integer                                                                                                     :: scaleIndex
 
     ! Get timesteps.
-    call propertiesHistory%timeSteps(timeSteps)
-
+    call history_         %timeSteps(timeSteps                )
     ! Get abundances.
-    call stellarAbundances%serialize(stellarAbundancesUnpacked)
-
+    call abundancesStellar%serialize(abundancesStellarUnpacked)
     ! Set scaling factors for recycled mass.
-    propertiesHistory   %data(:,recycledRateIndex                       )=max(stellarMass                         ,stellarMassMinimum      )                                       /timeSteps
-
+    history_   %data(:,self%recycledRateIndex                       )=max(massStellar                          ,massStellarMinimum      )                                       /timeSteps
     ! Set scaling factors for metal recycling rates.
-    forall(scaleIndex=1:elementsCount)
-       propertiesHistory%data(:,returnedMetalRateBeginIndex-1+scaleIndex)=max(stellarAbundancesUnpacked(scaleIndex),stellarAbundancesMinimum)                                       /timeSteps
+    forall(scaleIndex=1:self%elementsCount)
+       history_%data(:,self%returnedMetalRateBeginIndex-1+scaleIndex)=max(abundancesStellarUnpacked(scaleIndex),abundancesStellarMinimum)                                       /timeSteps
     end forall
-
     ! Set scaling factors for metal yield rates.
-    forall(scaleIndex=1:elementsCount)
-       propertiesHistory%data(:,metalYieldRateBeginIndex   -1+scaleIndex)=max(stellarAbundancesUnpacked(scaleIndex),stellarAbundancesMinimum)                                       /timeSteps
+    forall(scaleIndex=1:self%elementsCount)
+       history_%data(:,self%metalYieldRateBeginIndex   -1+scaleIndex)=max(abundancesStellarUnpacked(scaleIndex),abundancesStellarMinimum)                                       /timeSteps
     end forall
-
     ! Set scaling factors for energy input rates.
-    propertiesHistory   %data(:,energyInputRateIndex                    )=max(stellarMass                          ,stellarMassMinimum      )*feedbackEnergyInputAtInfinityCanonical/timeSteps
-
+    history_   %data(:,self%rateEnergyInputIndex                    )=max(massStellar                          ,massStellarMinimum      )*feedbackEnergyInputAtInfinityCanonical/timeSteps
     ! Destroy temporary array.
     call deallocateArray(timeSteps)
-
     return
-  end subroutine Stellar_Population_Properties_Scales_Noninstantaneous
+  end subroutine noninstantaneousScales
 
-  subroutine Stellar_Population_Properties_History_Create_Noninstantaneous(node,propertiesHistory)
+  subroutine noninstantaneousHistoryCreate(self,node,history_)
     !% Create any history required for storing stellar population properties.
-    use Histories
     use Numerical_Ranges
-    use Galacticus_Nodes
     use Galacticus_Output_Times
     implicit none
-    type            (treeNode          ), intent(inout) :: node
-    type            (history           ), intent(inout) :: propertiesHistory
-    class           (nodeComponentBasic), pointer       :: basic
-    double precision                                    :: timeBegin         , timeEnd
+    class           (stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
+    type            (treeNode                                   ), intent(inout) :: node
+    type            (history                                    ), intent(inout) :: history_
+    class           (nodeComponentBasic                         ), pointer       :: basic
+    double precision                                                             :: timeBegin, timeEnd
 
     ! Decide on start and end times for the history.
     basic     => node %basic()
     timeBegin =  basic%time ()
     timeEnd   =  Galacticus_Output_Time(Galacticus_Output_Time_Count())
     ! Create the history.
-    call propertiesHistory%create(historyCount,noninstantHistoryTimesCount,timeBegin,timeEnd,rangeTypeLogarithmic)
+    call history_%create(self%historyCount_,self%countHistoryTimes,timeBegin,timeEnd,rangeTypeLogarithmic)
     return
-  end subroutine Stellar_Population_Properties_History_Create_Noninstantaneous
-
-end module Stellar_Population_Properties_Noninstantaneous
+  end subroutine noninstantaneousHistoryCreate

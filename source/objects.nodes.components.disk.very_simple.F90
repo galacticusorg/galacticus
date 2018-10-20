@@ -361,10 +361,11 @@ contains
     use Histories
     use Stellar_Population_Properties
     implicit none
-    type   (treeNode         ), intent(inout), pointer :: node
-    class  (nodeComponentDisk)               , pointer :: disk
-    type   (history          )                         :: stellarPropertiesHistory
-    logical                                            :: createStellarPropertiesHistory
+    type   (treeNode                        ), intent(inout), pointer :: node
+    class  (nodeComponentDisk               )               , pointer :: disk
+    class  (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
+    type   (history                         )                         :: stellarPropertiesHistory
+    logical                                                           :: createStellarPropertiesHistory
 
     ! Get the disk component.
     disk => node%disk()
@@ -377,8 +378,9 @@ contains
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
-       call Stellar_Population_Properties_History_Create(node,stellarPropertiesHistory)
-       call disk%stellarPropertiesHistorySet            (     stellarPropertiesHistory)
+       stellarPopulationProperties_ => stellarPopulationProperties()
+       call stellarPopulationProperties_%historyCreate(node,stellarPropertiesHistory)
+       call disk%stellarPropertiesHistorySet          (     stellarPropertiesHistory)
     end if
     ! Record that the disk has been initialized.
     call disk%isInitializedSet(.true.)
@@ -392,7 +394,6 @@ contains
     !% Compute the very simple disk node mass rate of change.
     use Star_Formation_Feedback_Disks
     use Stellar_Feedback
-    use Stellar_Population_Properties
     use Dark_Matter_Halo_Scales
     use Abundances_Structure
     use Galactic_Structure_Options
@@ -407,12 +408,12 @@ contains
     procedure       (interruptTask       ), intent(inout), pointer :: interruptProcedureReturn
     procedure       (interruptTask       )               , pointer :: interruptProcedure
     integer                               , intent(in   )          :: propertyType
-    double precision                                               :: stellarMassRate         , fuelMassRate         , &
+    double precision                                               :: stellarMassRate           , fuelMassRate         , &
          &                                                            massOutflowRate
     type            (history             )                         :: stellarHistoryRate
-    type            (abundances          ), save                   :: fuelAbundancesRate      , stellarAbundancesRate, &
+    type            (abundances          ), save                   :: fuelAbundancesRate        , stellarAbundancesRate, &
          &                                                            abundancesOutflowRate
-    type            (stellarLuminosities ), save                     :: luminositiesStellarRates
+    type            (stellarLuminosities ), save                   :: luminositiesStellarRates
     !$omp threadprivate(fuelAbundancesRate,stellarAbundancesRate,abundancesOutflowRate,luminositiesStellarRates)
     !GCC$ attributes unused :: odeConverged
         
@@ -687,22 +688,24 @@ contains
     use Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                       ), intent(inout), pointer :: node
-    type            (history                        ), intent(inout)          :: stellarHistoryRate
-    double precision                                 , intent(  out)          :: fuelMassRate               , stellarMassRate       , &
-         &                                                                       massOutflowRate
-    type            (abundances                     ), intent(inout)          :: fuelAbundancesRate         , stellarAbundancesRate
-    type            (stellarLuminosities            ), intent(inout)          :: luminositiesStellarRates
-    class           (nodeComponentDisk              )               , pointer :: disk
-    class           (darkMatterHaloScaleClass       )               , pointer :: darkMatterHaloScale_
-    class           (starFormationFeedbackDisksClass)               , pointer :: starFormationFeedbackDisks_
-    double precision                                                          :: diskDynamicalTime          , fuelMass              , &
-         &                                                                       energyInputRate            , starFormationRate
-    type            (abundances                     )               , save    :: fuelAbundances
+    type            (treeNode                        ), intent(inout), pointer :: node
+    type            (history                         ), intent(inout)          :: stellarHistoryRate
+    double precision                                  , intent(  out)          :: fuelMassRate                , stellarMassRate       , &
+         &                                                                        massOutflowRate
+    type            (abundances                      ), intent(inout)          :: fuelAbundancesRate          , stellarAbundancesRate
+    type            (stellarLuminosities             ), intent(inout)          :: luminositiesStellarRates
+    class           (nodeComponentDisk               )               , pointer :: disk
+    class           (darkMatterHaloScaleClass        )               , pointer :: darkMatterHaloScale_
+    class           (starFormationFeedbackDisksClass )               , pointer :: starFormationFeedbackDisks_
+    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
+    double precision                                                           :: diskDynamicalTime           , fuelMass              , &
+         &                                                                        energyInputRate             , starFormationRate
+    type            (abundances                      )               , save    :: fuelAbundances
     !$omp threadprivate (fuelAbundances)
 
     ! Get required objects.
-    starFormationFeedbackDisks_ => starFormationFeedbackDisks()
+    starFormationFeedbackDisks_  => starFormationFeedbackDisks ()
+    stellarPopulationProperties_ => stellarPopulationProperties()
     ! Get the disk.
     disk => node%disk()
     ! Initialize to zero rates.
@@ -723,8 +726,8 @@ contains
     end select
     ! Find rates of change of stellar mass, and gas mass.
     stellarHistoryRate=disk%stellarPropertiesHistory()
-    call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,disk,node,stellarHistoryRate &
-         &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate,stellarLuminositiesRatesCompute=.true.)
+    call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,disk,node,stellarHistoryRate&
+            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRate,stellarAbundancesRate,luminositiesStellarRates,computeRateLuminosityStellar=.true.)
     ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
     massOutflowRate=starFormationFeedbackDisks_%outflowRate(node,energyInputRate,starFormationRate)
     if (massOutflowRate > 0.0d0) then
@@ -747,13 +750,14 @@ contains
     use Histories
     use Stellar_Population_Properties
     implicit none
-    type            (treeNode           ), intent(inout), pointer :: node
-    class           (nodeComponentDisk  )               , pointer :: disk
-    double precision                     , parameter              :: luminosityMinimum             =1.0d0
-    double precision                                              :: mass
-    type            (history            )                         :: stellarPopulationHistoryScales
-    type            (abundances         )                         :: abundancesTotal
-    type            (stellarLuminosities)                         :: stellarLuminositiesScale
+    type            (treeNode                        ), intent(inout), pointer :: node
+    class           (nodeComponentDisk               )               , pointer :: disk
+    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
+    double precision                                  , parameter              :: luminosityMinimum             =1.0d0
+    double precision                                                           :: mass
+    type            (history                         )                         :: stellarPopulationHistoryScales
+    type            (abundances                      )                         :: abundancesTotal
+    type            (stellarLuminosities             )                         :: stellarLuminositiesScale
 
     ! Get the disk component.
     disk => node%disk()
@@ -769,9 +773,10 @@ contains
        call disk%abundancesGasScale    (max(abundancesTotal,unitAbundances*diskVerySimpleMassScaleAbsolute))
        call disk%abundancesStellarScale(max(abundancesTotal,unitAbundances*diskVerySimpleMassScaleAbsolute))
        ! Set scales for stellar population properties and star formation histories.
+       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarPopulationHistoryScales=disk%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Scales           (stellarPopulationHistoryScales,disk%massStellar(),zeroAbundances)
-       call disk%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                               )
+       call stellarPopulationProperties_%scales(disk%massStellar(),zeroAbundances,stellarPopulationHistoryScales)
+       call disk%stellarPropertiesHistoryScale (                                  stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        ! Set scale for stellar luminosities.
        stellarLuminositiesScale=max(                                  &

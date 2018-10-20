@@ -322,10 +322,11 @@ contains
     use Histories
     use Stellar_Population_Properties
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: node
-    class  (nodeComponentSpheroid)               , pointer :: spheroid
-    type   (history              )                         :: stellarPropertiesHistory
-    logical                                                :: createStellarPropertiesHistory
+    type   (treeNode                        ), intent(inout), pointer :: node
+    class  (nodeComponentSpheroid           )               , pointer :: spheroid
+    class  (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
+    type   (history                         )                         :: stellarPropertiesHistory
+    logical                                                           :: createStellarPropertiesHistory
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
@@ -338,8 +339,9 @@ contains
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
-       call Stellar_Population_Properties_History_Create(node,stellarPropertiesHistory)
-       call spheroid%stellarPropertiesHistorySet        (     stellarPropertiesHistory)
+       stellarPopulationProperties_ => stellarPopulationProperties()
+       call stellarPopulationProperties_%historyCreate(node,stellarPropertiesHistory)
+       call spheroid%stellarPropertiesHistorySet      (     stellarPropertiesHistory)
     end if
     ! Record that the spheroid has been initialized.
     call spheroid%isInitializedSet(.true.)
@@ -353,7 +355,6 @@ contains
     !% Compute the very simple spheroid node mass rate of change.
     use Star_Formation_Feedback_Spheroids
     use Stellar_Feedback
-    use Stellar_Population_Properties
     use Dark_Matter_Halo_Scales
     use Abundances_Structure
     use Galactic_Structure_Options
@@ -445,6 +446,7 @@ contains
     class           (nodeComponentSpheroid              )               , pointer :: spheroid
     class           (darkMatterHaloScaleClass           )               , pointer :: darkMatterHaloScale_
     class           (starFormationFeedbackSpheroidsClass)               , pointer :: starFormationFeedbackSpheroids_
+    class           (stellarPopulationPropertiesClass   )               , pointer :: stellarPopulationProperties_
     double precision                                                              :: spheroidDynamicalTime          , fuelMass             , &
          &                                                                           energyInputRate                , starFormationRate
     type            (abundances                         )                         :: fuelAbundances
@@ -468,9 +470,10 @@ contains
        starFormationRate=Node_Component_Spheroid_Very_Simple_SFR(spheroid)
     end select
     ! Find rates of change of stellar mass, and gas mass.
+    stellarPopulationProperties_ => stellarPopulationProperties()
     stellarHistoryRate=spheroid%stellarPropertiesHistory()
-    call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,spheroid,node,stellarHistoryRate &
-         &,stellarMassRate,stellarAbundancesRate,luminositiesStellarRates,fuelMassRate,fuelAbundancesRate,energyInputRate,stellarLuminositiesRatesCompute=.true.)
+    call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,spheroid,node,stellarHistoryRate&
+            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRate,stellarAbundancesRate,luminositiesStellarRates,computeRateLuminosityStellar=.true.)
     ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
     starFormationFeedbackSpheroids_ => starFormationFeedbackSpheroids()
     massOutflowRate=starFormationFeedbackSpheroids_%outflowRate(node,energyInputRate,starFormationRate)
@@ -494,13 +497,14 @@ contains
     use Histories
     use Stellar_Population_Properties
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
-    double precision                       , parameter              :: luminosityMinimum             =1.0d0
-    double precision                                                :: mass
-    type            (history              )                         :: stellarPopulationHistoryScales
-    type            (abundances           )                         :: abundancesTotal
-    type            (stellarLuminosities  )                         :: stellarLuminositiesScale
+    type            (treeNode                        ), intent(inout), pointer :: node
+    class           (nodeComponentSpheroid           )               , pointer :: spheroid
+    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
+    double precision                                  , parameter              :: luminosityMinimum             =1.0d0
+    double precision                                                           :: mass
+    type            (history                         )                         :: stellarPopulationHistoryScales
+    type            (abundances                      )                         :: abundancesTotal
+    type            (stellarLuminosities             )                         :: stellarLuminositiesScale
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
@@ -516,9 +520,10 @@ contains
        call spheroid%abundancesGasScale    (max(abundancesTotal,unitAbundances*spheroidVerySimpleMassScaleAbsolute))
        call spheroid%abundancesStellarScale(max(abundancesTotal,unitAbundances*spheroidVerySimpleMassScaleAbsolute))
        ! Set scales for stellar population properties and star formation histories.
+       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarPopulationHistoryScales=spheroid%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Scales               (stellarPopulationHistoryScales,spheroid%massStellar(),zeroAbundances)
-       call spheroid%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                                   )
+       call stellarPopulationProperties_%scales   (spheroid%massStellar(),zeroAbundances,stellarPopulationHistoryScales)
+       call spheroid%stellarPropertiesHistoryScale(                                      stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        ! Set scale for stellar luminosities.
        stellarLuminositiesScale=max(                                      &
