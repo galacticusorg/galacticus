@@ -560,14 +560,15 @@ contains
     use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode             ), intent(inout), pointer :: node
-    class  (nodeComponentDisk    )               , pointer :: disk
-    class  (nodeComponentSpheroid)               , pointer :: spheroid
-    class  (nodeComponentBasic   )               , pointer :: basic
-    type   (history              )                         :: starFormationHistory        , stellarPropertiesHistory      , &
-         &                                                    spheroidStarFormationHistory
-    logical                                                :: createStarFormationHistory  , createStellarPropertiesHistory
-    double precision                                       :: timeBegin
+    type   (treeNode                        ), intent(inout), pointer :: node
+    class  (nodeComponentDisk               )               , pointer :: disk
+    class  (nodeComponentSpheroid           )               , pointer :: spheroid
+    class  (nodeComponentBasic              )               , pointer :: basic
+    class  (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
+    type   (history                         )                         :: starFormationHistory        , stellarPropertiesHistory      , &
+         &                                                               spheroidStarFormationHistory
+    logical                                                           :: createStarFormationHistory  , createStellarPropertiesHistory
+    double precision                                                  :: timeBegin
     
     ! Get the disk component.
     disk => node%disk()
@@ -583,8 +584,9 @@ contains
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
-       call Stellar_Population_Properties_History_Create (node,stellarPropertiesHistory)
-       call disk%stellarPropertiesHistorySet(         stellarPropertiesHistory)
+       stellarPopulationProperties_ => stellarPopulationProperties()
+       call stellarPopulationProperties_%historyCreate(node,stellarPropertiesHistory)
+       call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
     end if
     ! Create the star formation history.
     if (createStarFormationHistory    ) then
@@ -638,6 +640,7 @@ contains
     class           (galacticDynamicsBarInstabilityClass     )               , pointer :: galacticDynamicsBarInstability_
     class           (tidalStrippingDisksClass                )               , pointer :: tidalStrippingDisks_
     class           (ramPressureStrippingDisksClass          )               , pointer :: ramPressureStrippingDisks_
+    class           (stellarPopulationPropertiesClass        )               , pointer :: stellarPopulationProperties_
     type            (abundances                              ), save                   :: fuelAbundances                      , fuelAbundancesRates        , &
          &                                                                                stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
@@ -690,9 +693,10 @@ contains
             &              .or.                                                                               &
             &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
+       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarHistoryRate=disk%stellarPropertiesHistory()     
-       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,disk,node,stellarHistoryRate&
-            &,stellarMassRate,stellarAbundancesRates,luminositiesStellarRates,fuelMassRate,fuelAbundancesRates,energyInputRate,luminositiesCompute)
+       call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,disk,node,stellarHistoryRate&
+            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRates,stellarAbundancesRates,luminositiesStellarRates,luminositiesCompute)
        ! Adjust rates.
        if (propertyType == propertyTypeActive .or. propertyType == propertyTypeAll) then
           if (stellarHistoryRate%exists()) call disk%stellarPropertiesHistoryRate(stellarHistoryRate)
@@ -880,16 +884,17 @@ contains
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    class           (nodeComponentDisk    )               , pointer :: disk
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
-    double precision                       , parameter              :: massMinimum                   =1.0d+00
-    double precision                       , parameter              :: angularMomentumMinimum        =1.0d-1
-    double precision                       , parameter              :: luminosityMinimum             =1.0d0
-    double precision                                                :: angularMomentum                      , mass
-    type            (history              )                         :: stellarPopulationHistoryScales
-    type            (stellarLuminosities  )                         :: stellarLuminositiesScale
-    type            (abundances           )                         :: abundancesScale
+    type            (treeNode                        ), intent(inout), pointer :: node
+    class           (nodeComponentDisk               )               , pointer :: disk
+    class           (nodeComponentSpheroid           )               , pointer :: spheroid
+    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
+    double precision                                  , parameter              :: massMinimum                   =1.0d+00
+    double precision                                  , parameter              :: angularMomentumMinimum        =1.0d-1
+    double precision                                  , parameter              :: luminosityMinimum             =1.0d0
+    double precision                                                           :: angularMomentum                      , mass
+    type            (history                         )                         :: stellarPopulationHistoryScales
+    type            (stellarLuminosities             )                         :: stellarLuminositiesScale
+    type            (abundances                      )                         :: abundancesScale
     
     ! Get the disk component.
     disk => node%disk()
@@ -933,9 +938,10 @@ contains
        call disk       %luminositiesStellarScale(stellarLuminositiesScale                      )
 
        ! Set scales for stellar population properties and star formation histories.
+       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarPopulationHistoryScales=disk%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Scales(stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())
-       call disk%stellarPropertiesHistoryScale  (stellarPopulationHistoryScales                                            )
+       call stellarPopulationProperties_%scales (disk%massStellar(),disk%abundancesStellar(),stellarPopulationHistoryScales)
+       call disk%stellarPropertiesHistoryScale  (                                            stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        stellarPopulationHistoryScales=disk%starFormationHistory()
        call Star_Formation_History_Scales       (stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())

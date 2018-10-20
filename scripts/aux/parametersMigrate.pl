@@ -578,7 +578,8 @@ my @translations =
 	     "imfPiecewisePowerLawExponents"                           => "initialMassFunctionMethod.piecewisePowerLaw.--exponent"                                ,
 	     "starFormationImfInstantaneousApproximation"              => "stellarPopulationMethod.standard.--instantaneousRecyclingApproximation"                ,
 	     "starFormationImfInstantaneousApproximationMassLongLived" => "stellarPopulationMethod.standard.--massLongLived"                                      ,
-	     "starFormationImfInstantaneousApproximationEffectiveAge"  => "stellarPopulationMethod.standard.--ageEffective"		 
+	     "starFormationImfInstantaneousApproximationEffectiveAge"  => "stellarPopulationMethod.standard.--ageEffective"		                          ,
+	     "noninstantHistoryTimesCount"                             => "stellarPopulationPropertiesMethod.noninstantaneous.--countHistoryTimes"
 	 },
 	 values        =>
 	 {

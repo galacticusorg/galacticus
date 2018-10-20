@@ -600,6 +600,7 @@ contains
     class           (tidalStrippingSpheroidsClass                )               , pointer :: tidalStrippingSpheroids_
     class           (ramPressureStrippingSpheroidsClass          )               , pointer :: ramPressureStrippingSpheroids_
     class           (satelliteTidalFieldClass                    )               , pointer :: satelliteTidalField_
+    class           (stellarPopulationPropertiesClass            )               , pointer :: stellarPopulationProperties_
     double precision                                              , parameter              :: radiusMinimum                           =1.0d-12
     double precision                                              , parameter              :: massMinimum                             =1.0d-06
     double precision                                              , parameter              :: angularMomentumMinimum                  =1.0d-20
@@ -646,10 +647,10 @@ contains
             &              .or.                                                                                   &
             &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       stellarHistoryRate=spheroid%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,spheroid,node    &
-            &,stellarHistoryRate,stellarMassRate,stellarAbundancesRates ,luminositiesStellarRates,fuelMassRate &
-            &,fuelAbundancesRates,energyInputRate,luminositiesCompute)
+       stellarPopulationProperties_ => stellarPopulationProperties()
+       stellarHistoryRate           =  spheroid%stellarPropertiesHistory()
+       call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,spheroid,node,stellarHistoryRate&
+            &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRates,stellarAbundancesRates,luminositiesStellarRates,luminositiesCompute)
        if (stellarHistoryRate%exists()) call spheroid%stellarPropertiesHistoryRate(stellarHistoryRate)
        ! Adjust rates.
        if (propertyType == propertyTypeActive .or. propertyType == propertyTypeAll) then
@@ -858,16 +859,17 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode             ), intent(inout), pointer :: node
-    class           (nodeComponentSpheroid)               , pointer :: spheroid
-    class           (nodeComponentDisk    )               , pointer :: disk
-    double precision                       , parameter              :: massMinimum                   =1.0d0
-    double precision                       , parameter              :: angularMomentumMinimum        =0.1d0
-    double precision                       , parameter              :: gasMassScaling                =0.1d0
-    double precision                       , parameter              :: luminosityMinimum             =1.0d0
-    double precision                                                :: angularMomentum                     , mass
-    type            (history              )                         :: stellarPopulationHistoryScales
-    type            (stellarLuminosities  )                         :: stellarLuminositiesScale
+    type            (treeNode                        ), intent(inout), pointer :: node
+    class           (nodeComponentSpheroid           )               , pointer :: spheroid
+    class           (nodeComponentDisk               )               , pointer :: disk
+    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
+    double precision                                  , parameter              :: massMinimum                   =1.0d0
+    double precision                                  , parameter              :: angularMomentumMinimum        =0.1d0
+    double precision                                  , parameter              :: gasMassScaling                =0.1d0
+    double precision                                  , parameter              :: luminosityMinimum             =1.0d0
+    double precision                                                           :: angularMomentum                     , mass
+    type            (history                         )                         :: stellarPopulationHistoryScales
+    type            (stellarLuminosities             )                         :: stellarLuminositiesScale
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
@@ -922,9 +924,10 @@ contains
        call spheroid   %luminositiesStellarScale(stellarLuminositiesScale                      )
 
        ! Set scales for stellar population properties history.
+       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarPopulationHistoryScales=spheroid%stellarPropertiesHistory()
-       call Stellar_Population_Properties_Scales  (stellarPopulationHistoryScales,spheroid%massStellar(),spheroid%abundancesStellar())
-       call spheroid%stellarPropertiesHistoryScale(stellarPopulationHistoryScales                                                    )
+       call stellarPopulationProperties_%scales   (spheroid%massStellar(),spheroid%abundancesStellar(),stellarPopulationHistoryScales)
+       call spheroid%stellarPropertiesHistoryScale(                                                    stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        stellarPopulationHistoryScales=spheroid%starFormationHistory()
        call Star_Formation_History_Scales         (stellarPopulationHistoryScales,spheroid%massStellar(),spheroid%abundancesStellar())
@@ -1448,14 +1451,15 @@ contains
     !% Initializes a standard spheroid component.
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type            (nodeComponentSpheroidStandard )          :: self
-    type            (treeNode                      ), pointer :: selfNode
-    class           (nodeComponentDisk             ), pointer :: disk
-    class           (nodeComponentBasic            ), pointer :: basic
-    type            (history                       )          :: starFormationHistory      , stellarPropertiesHistory      , &
-         &                                                       diskStarFormationHistory
-    logical                                                   :: createStarFormationHistory, createStellarPropertiesHistory
-    double precision                                          :: timeBegin
+    type            (nodeComponentSpheroidStandard   )          :: self
+    type            (treeNode                        ), pointer :: selfNode
+    class           (nodeComponentDisk               ), pointer :: disk
+    class           (nodeComponentBasic              ), pointer :: basic
+    class           (stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
+    type            (history                         )          :: starFormationHistory        , stellarPropertiesHistory      , &
+         &                                                         diskStarFormationHistory
+    logical                                                     :: createStarFormationHistory  , createStellarPropertiesHistory
+    double precision                                            :: timeBegin
     
     ! Return if already initialized.
     if (self%isInitialized()) return
@@ -1470,7 +1474,8 @@ contains
     call                                stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
-       call Stellar_Population_Properties_History_Create(selfNode,stellarPropertiesHistory)
+       stellarPopulationProperties_ => stellarPopulationProperties()
+       call stellarPopulationProperties_%historyCreate(selfNode,stellarPropertiesHistory)
        call self%stellarPropertiesHistorySet(                     stellarPropertiesHistory)
     end if
     ! Create the star formation history.
