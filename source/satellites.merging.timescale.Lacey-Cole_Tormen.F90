@@ -48,13 +48,14 @@ contains
     return
   end function laceyCole1993TormenConstructorParameters
   
-  function laceyCole1993TormenConstructorInternal(darkMatterHaloScale_) result(self)
+  function laceyCole1993TormenConstructorInternal(timescaleMultiplier,darkMatterHaloScale_) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} merging timescale class.
     implicit none
-    type (satelliteMergingTimescalesLaceyCole1993Tormen)                        :: self
-    class(darkMatterHaloScaleClass                     ), intent(in   ), target :: darkMatterHaloScale_
+    type            (satelliteMergingTimescalesLaceyCole1993Tormen)                        :: self
+    double precision                                               , intent(in   )         :: timescaleMultiplier
+    class           (darkMatterHaloScaleClass                     ), intent(in   ), target :: darkMatterHaloScale_
     
-    self%satelliteMergingTimescalesLaceyCole1993=satelliteMergingTimescalesLaceyCole1993(darkMatterHaloScale_)
+    self%satelliteMergingTimescalesLaceyCole1993=satelliteMergingTimescalesLaceyCole1993(timescaleMultiplier,darkMatterHaloScale_)
     return
   end function laceyCole1993TormenConstructorInternal
   

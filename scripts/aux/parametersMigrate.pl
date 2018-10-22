@@ -579,7 +579,8 @@ my @translations =
 	     "starFormationImfInstantaneousApproximation"              => "stellarPopulationMethod.standard.--instantaneousRecyclingApproximation"                ,
 	     "starFormationImfInstantaneousApproximationMassLongLived" => "stellarPopulationMethod.standard.--massLongLived"                                      ,
 	     "starFormationImfInstantaneousApproximationEffectiveAge"  => "stellarPopulationMethod.standard.--ageEffective"		                          ,
-	     "noninstantHistoryTimesCount"                             => "stellarPopulationPropertiesMethod.noninstantaneous.--countHistoryTimes"
+	     "noninstantHistoryTimesCount"                             => "stellarPopulationPropertiesMethod.noninstantaneous.--countHistoryTimes"                ,
+	     "mergingTimescaleMultiplier"                              => "satelliteMergingTimescalesMethod--timescaleMultiplier"
 	 },
 	 values        =>
 	 {
@@ -727,15 +728,7 @@ my @translations =
 			 ]
 		 },
 	     },
-	 }
-
-
-
-	 
-#		 imfSelectionDisk
-#		 imfSelectionSpheroid
-
-	     
+	 }	     
      }
     );
      
@@ -749,7 +742,8 @@ my %knownDefaults =
      "darkMatterProfileConcentrationMethod" => "gao2008"      ,
      "powerSpectrumPrimordialMethod"        => "powerLaw"     ,
      "haloMassFunctionMethod"               => "tinker2008"   ,
-     "mergerTreeOutput"                     => "true"
+     "mergerTreeOutput"                     => "true"         ,
+     "satelliteMergingTimescalesMethod"     => "jiang2008"
   );
 
 # Parse the input file.
