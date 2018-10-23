@@ -38,12 +38,12 @@ sub Process_InputParametersValidate {
 	    # Determine the parameter source.
 	    my $source = exists($node->{'directive'}->{'source'}) ? $node->{'directive'}->{'source'} : "globalParameters";
 	    # Step through sibling nodes looking for input parameter directives.
-	    my @objectBuilderNames;
+	    my @objectBuilders;
 	    my $sibling = $node->{'parent'}->{'firstChild'};
 	    while ( $sibling ) {
 		if ( $sibling->{'type'} eq "objectBuilder" ) {
 		    my $objectBuilderSource = exists($sibling->{'directive'}->{'source'}) ? $sibling->{'directive'}->{'source'} : "globalParameters";
-		    push(@objectBuilderNames,$sibling->{'directive'}->{'name'})
+		    push(@objectBuilders,$sibling->{'directive'})
 			if ( $objectBuilderSource eq $source );
 		}
 		$sibling = $sibling->{'sibling'};
@@ -81,8 +81,22 @@ sub Process_InputParametersValidate {
 		die('Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate: parent is neither function nor subroutine');
 	    }
 	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."')\n";
-	    $code .= "   call ".$_     ."%allowedParameters(".$variableName.",'parameters')\n"
-		foreach ( @objectBuilderNames);
+	    foreach ( @objectBuilders) {
+		# Handle multiple copies.
+		my $copyInstance  = "";
+		my $copyLoopOpen  = "";
+		my $copyLoopClose = "";
+		if ( exists($_->{'copy'}) ) {
+		    if ( $_->{'copy'} =~ m/^([a-zA-Z0-9_]+)=/ ) {
+			$copyInstance  = ",copyInstance=".$1;
+			$copyLoopOpen  = "      do ".$_->{'copy'}."\n";
+			$copyLoopClose = "      end do\n";
+		    } else {
+			$copyInstance = ",copyInstance=".$_->{'copy'};
+		    }
+		}
+		$code .= $copyLoopOpen."   call ".$_->{'name'}."%allowedParameters(".$variableName.",'parameters')\n".$copyLoopClose;
+	    }
 	    $code .= "   call ".$source."%checkParameters(".$variableName.")\n";
 	    $code .= "   if (allocated(".$variableName.")) deallocate(".$variableName.")\n";
 	    # Insert new code.
