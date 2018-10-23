@@ -275,17 +275,16 @@ contains
     double precision                         , intent(in   ) :: lifetime, metallicity
 
     call self%read()
-    self%interpolationResetMassInitial=.true.
-    fileMassInitial                   =Interpolate_2D_Irregular(                                                            &
-         &                                                                          self%lifetimeLifetime                 , &
-         &                                                                          self%lifetimeMetallicity              , &
-         &                                                                          self%lifetimeMass                     , &
-         &                                                                               lifetime                         , &
-         &                                                                               metallicity                      , &
-         &                                                                          self%interpolationWorkspaceMassInitial, &
-         &                                                      reset              =self%interpolationResetMassInitial    , &
-         &                                                      numberComputePoints=     3                                  &
-         &                                                     )
+    fileMassInitial=Interpolate_2D_Irregular(                                                            &
+         &                                                       self%lifetimeLifetime                 , &
+         &                                                       self%lifetimeMetallicity              , &
+         &                                                       self%lifetimeMass                     , &
+         &                                                            lifetime                         , &
+         &                                                            metallicity                      , &
+         &                                                       self%interpolationWorkspaceMassInitial, &
+         &                                   reset              =self%interpolationResetMassInitial    , &
+         &                                   numberComputePoints=     3                                  &
+         &                                  )
     return
   end function fileMassInitial
 
@@ -296,16 +295,15 @@ contains
     double precision                         , intent(in   ) :: massInitial, metallicity
 
     call self%read()
-    self%interpolationResetLifetime=.true.
-    fileLifetime                   =Interpolate_2D_Irregular(                                           &
-         &                                                         self%lifetimeMass                  , &
-         &                                                         self%lifetimeMetallicity           , &
-         &                                                         self%lifetimeLifetime              , &
-         &                                                              massInitial                   , &
-         &                                                              metallicity                   , &
-         &                                                         self%interpolationWorkspaceLifetime, &
-         &                                                   reset=self%interpolationResetLifetime      &
-         &                                                  )
+    fileLifetime=Interpolate_2D_Irregular(                                           &
+         &                                      self%lifetimeMass                  , &
+         &                                      self%lifetimeMetallicity           , &
+         &                                      self%lifetimeLifetime              , &
+         &                                           massInitial                   , &
+         &                                           metallicity                   , &
+         &                                      self%interpolationWorkspaceLifetime, &
+         &                                reset=self%interpolationResetLifetime      &
+         &                               )
     return
   end function fileLifetime
 
@@ -316,19 +314,18 @@ contains
     double precision                         , intent(in   ) :: massInitial, metallicity
 
     call self%read()
-    self%interpolationResetMassEjected=.true.
-    fileMassEjected                   =max(                                                                       &
-         &                                 Interpolate_2D_Irregular(                                              &
-         &                                                                self%massEjectedMass                  , &
-         &                                                                self%massEjectedMetallicity           , &
-         &                                                                self%massEjectedMassEjected           , &
-         &                                                                     massInitial                      , &
-         &                                                                     metallicity                      , &
-         &                                                                self%interpolationWorkspaceMassEjected, &
-         &                                                          reset=self%interpolationResetMassEjected      &
-         &                                                         )                                            , &
-         &                                  0.0d0                                                                 &
-         &                                )
+    fileMassEjected=max(                                                                       &
+         &              Interpolate_2D_Irregular(                                              &
+         &                                             self%massEjectedMass                  , &
+         &                                             self%massEjectedMetallicity           , &
+         &                                             self%massEjectedMassEjected           , &
+         &                                                  massInitial                      , &
+         &                                                  metallicity                      , &
+         &                                             self%interpolationWorkspaceMassEjected, &
+         &                                       reset=self%interpolationResetMassEjected      &
+         &                                      )                                            , &
+         &               0.0d0                                                                 &
+         &             )
     return
   end function fileMassEjected
 
@@ -341,7 +338,6 @@ contains
     integer                                                            :: elementIndex
 
     call self%read()
-    self%interpolationResetMassYield=.true.
     if (present(atomIndex)) then
        ! Compute the element mass yield.
        elementIndex =self%atomIndexMap(atomIndex)
