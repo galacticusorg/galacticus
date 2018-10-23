@@ -508,10 +508,10 @@
     </imfSelectionMethod>
     <stellarPopulationSelectorMethod value="diskSpheroid">
       <stellarPopulationDisk value="standard">
-	<initialMassFunction value="chabrier2001"/>
+	<initialMassFunctionMethod value="chabrier2001"/>
       </stellarPopulationDisk>
       <stellarPopulationSpheroid value="standard">
-	<initialMassFunction value="kennicutt1983"/>
+	<initialMassFunctionMethod value="kennicutt1983"/>
       </stellarPopulationSpheroid>
     </stellarPopulationSelectorMethod>
   </parameters>
