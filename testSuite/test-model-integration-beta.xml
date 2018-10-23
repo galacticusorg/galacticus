@@ -135,9 +135,9 @@
       <densityType value="critical"/>
     </virialDensityContrastMethod>
   </virialOrbitMethod>
-  <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <mergingTimescaleMultiplier value="1.2044009774202384"/>
-  
+  <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="1.2044009774202384"/>
+  </satelliteMergingTimescalesMethod>
   <!-- Hot atmosphere -->
   <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling">
     <redshiftExponent value="-0.35071002436845261e+0"/>
@@ -193,11 +193,14 @@
   <diskOutflowTimescaleMinimum value="2.8035155505694409E-002"/>
   
   <!-- Stellar initial mass function -->
-  <imfSelectionMethod value="fixed"/>
-  <imfSelectionFixed value="Chabrier"/>
-  <imfChabrierRecycledInstantaneous value="0.46"/>
-  <imfChabrierYieldInstantaneous value="0.0"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
   
+  <initialMassFunctionMethod value="chabrier2001"/>
+  <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.46"/>
+    <metalYield value="0.0"/>
+  </stellarPopulationMethod>
+
   <!-- Stellar evolution -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   

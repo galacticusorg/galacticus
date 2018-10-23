@@ -86,10 +86,12 @@
       <velocityExponent value="+0.29779289184659419e+0"/>
     </hotHaloOutflowReincorporationMethod>
     <hotHaloVerySimpleDelayedMassScaleRelative value="1.0"/>
-    <imfChabrierRecycledInstantaneous value="0.46"/>
-    <imfChabrierYieldInstantaneous value="0.0"/>
-    <imfSelectionFixed value="Chabrier"/>
-    <imfSelectionMethod value="fixed"/>
+    <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.46"/>
+    <metalYield value="0.0"/>
+  </stellarPopulationMethod>
+  <initialMassFunctionMethod value="chabrier2001"/>
+    <stellarPopulationSelectorMethod value="fixed"/>
     <intergalacticMediumStateMethod value="recFast"/>
     <linearGrowthMethod value="simple"/>
     <mergerTreeBuilderMethod value="cole2000">
@@ -119,7 +121,6 @@
       <outputReferences value="false"/>
     </mergerTreeOutput>
     <mergerTreePruneBaryons value="true"/>
-    <mergingTimescaleMultiplier value="1.2035038666749114"/>
     <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
       <G0 value="+0.570"/>
       <gamma1 value="+0.380"/>
@@ -145,7 +146,9 @@
     <randomSpinResetMassFactor value="2.0"/>
     <mergerMassMovementsMethod value="verySimple"/>
     <mergerRemnantSizeMethod value="null"/>
-    <satelliteMergingTimescalesMethod value="jiang2008"/>
+    <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="1.2035038666749114"/>
+  </satelliteMergingTimescalesMethod>
     <starFormationFeedbackDisksMethod value="vlctyMxSclng">
       <fraction value="5.4973312818696149E-002"/>
       <exponentRedshift value="1.9464430036515628"/>

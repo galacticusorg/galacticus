@@ -46,5 +46,8 @@
     <efficiency value="0.0"/>
   </starFormationTimescaleSpheroidsMethod>
 
-  <mergingTimescaleMultiplier value="1.0e30"/>
-</parameters>
+  <satelliteMergingTimescalesMethod value="jiang2008">
+    <timescaleMultiplier value="1.0e30"/>
+  </satelliteMergingTimescalesMethod>
+
+  </parameters>
