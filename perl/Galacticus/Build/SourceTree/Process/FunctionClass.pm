@@ -1656,8 +1656,8 @@ CODE
 
 	    # Generate class constructors
 	    $preContains->[0]->{'content'} .= "   interface ".$directive->{'name'}."\n";
-	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."ConstructorDefault\n";
-	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."ConstructorParameters\n";
+	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."CnstrctrDflt\n";
+	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."CnstrctrPrmtrs\n";
 	    $preContains->[0]->{'content'} .= "   end interface ".$directive->{'name'}."\n";
 	    # Add method name parameter.
 	    $preContains->[0]->{'content'} .= "   ! Method name parameter.\n";
@@ -1699,10 +1699,10 @@ CODE
 		if ( $requireThreadPublicDefault  == 1 );
 	    $preContains->[0]->{'content'} .= "\n";
 	    # Create default constructor.
-	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."ConstructorDefault()\n";
+	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."CnstrctrDflt()\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
-	    $postContains->[0]->{'content'} .= "      class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."ConstructorDefault\n\n";
+	    $postContains->[0]->{'content'} .= "      class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."CnstrctrDflt\n\n";
             if ( $requireThreadPublicDefault  == 1 ) {
 		$postContains->[0]->{'content'} .= "      !\$omp critical(".$directive->{'name'}."StateOpInit)\n";
 		$postContains->[0]->{'content'} .= "      !\$ if (.not.allocated(".$directive->{'name'}."DefaultStateOperationID)) then\n";
@@ -1726,16 +1726,16 @@ CODE
 		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
             }
 	    $postContains->[0]->{'content'} .= "      if (.not.associated(".$directive->{'name'}."Default)) call ".$directive->{'name'}."Initialize()\n";
-	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."ConstructorDefault => ".$directive->{'name'}."Default\n";
+	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."CnstrctrDflt => ".$directive->{'name'}."Default\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
-	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."ConstructorDefault\n\n";
+	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrDflt\n\n";
 	    # Create XML constructor.
-	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."ConstructorParameters(parameters,copyInstance,parameterName)\n";
+	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."CnstrctrPrmtrs(parameters,copyInstance,parameterName)\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
 	    $postContains->[0]->{'content'} .= "      use Input_Parameters\n";
 	    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
-	    $postContains->[0]->{'content'} .= "      class    (".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."ConstructorParameters\n";
+	    $postContains->[0]->{'content'} .= "      class    (".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."CnstrctrPrmtrs\n";
 	    $postContains->[0]->{'content'} .= "      type     (inputParameters), intent(inout)           :: parameters\n";
 	    $postContains->[0]->{'content'} .= "      integer                   , intent(in   ), optional :: copyInstance\n";
 	    $postContains->[0]->{'content'} .= "      character(len=*          ), intent(in   ), optional :: parameterName\n";
@@ -1754,10 +1754,10 @@ CODE
 		$name = lcfirst($name)
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$postContains->[0]->{'content'} .= "     case ('".$name."')\n";
-		$postContains->[0]->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive->{'name'}."ConstructorParameters)\n";
-		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."ConstructorParameters)\n";
+		$postContains->[0]->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
 		$postContains->[0]->{'content'} .= "          type is (".$class->{'name'}.")\n";
-		$postContains->[0]->{'content'} .= "            ".$directive->{'name'}."ConstructorParameters=".$class->{'name'}."(subParameters)\n";
+		$postContains->[0]->{'content'} .= "            ".$directive->{'name'}."CnstrctrPrmtrs=".$class->{'name'}."(subParameters)\n";
 		$postContains->[0]->{'content'} .= "         end select\n";
 	    }
 	    $postContains->[0]->{'content'} .= "      case default\n";
@@ -1774,7 +1774,7 @@ CODE
 	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $postContains->[0]->{'content'} .= "      end select\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
-	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."ConstructorParameters\n\n";
+	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrPrmtrs\n\n";
 	    
 	    # Insert class code.
 	    foreach my $class ( @classes ) {
