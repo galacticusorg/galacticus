@@ -215,12 +215,15 @@
     <!-- Stellar populations options -->
     <stellarPopulationPropertiesMethod value="instantaneous"/>
     <stellarPopulationSpectraMethod value="FSPS"/>
-    <imfSelectionMethod value="fixed"/>
-    <imfSelectionFixed value="Chabrier"/>
-    <imfChabrierRecycledInstantaneous value="0.46"/>
-    <imfChabrierYieldInstantaneous value="0.035"/>
+    <stellarPopulationSelectorMethod value="fixed"/>
+    
+  <initialMassFunctionMethod value="chabrier2001"/>
+    <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.46"/>
+    <metalYield value="0.035"/>
+  </stellarPopulationMethod>
 
-    <!-- AGN feedback options -->
+  <!-- AGN feedback options -->
     <hotHaloExcessHeatDrivesOutflow value="true"/>
     <blackHoleHeatsHotHalo value="false"/>
 
@@ -265,8 +268,9 @@
 
     <!-- Galaxy merger options -->
     <virialOrbitMethod value="benson2005"/>
-    <satelliteMergingTimescalesMethod value="jiang2008"/>
-    <mergingTimescaleMultiplier value="0.75"/>
+    <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="0.75"/>
+  </satelliteMergingTimescalesMethod>
     <mergerMassMovementsMethod value="simple">
   <destinationGasMinorMerger value="spheroid"/>
     <massRatioMajorMerger value="0.25"/>

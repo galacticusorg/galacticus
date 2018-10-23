@@ -65,7 +65,9 @@
     <normalization value="2.0e-4"/>
     <binWidthLogarithmic value="0.097"/>
   </mergerTreeBuildMassDistributionMethod>
-  <satelliteMergingTimescalesMethod value="jiang2008"/>
+  <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="1.0"/>
+  </satelliteMergingTimescalesMethod>
   <linearGrowthMethod value="simple"/>
   <treeNodeMethodDisk value="verySimple"/>
   <mergerTreeBuilderMethod value="cole2000">
@@ -81,9 +83,12 @@
   <hotHaloTemperatureProfileMethod value="virial"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
-  <imfChabrierRecycledInstantaneous value="0.46"/>
+  <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.46"/>
+    <metalYield value="0.035"/>
+  </stellarPopulationMethod>
+
   <mergerMassMovementsMethod value="verySimple"/>
-  <mergingTimescaleMultiplier value="1.0"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <treeNodeMethodSatellite value="preset"/>
   <mergerTreeBuildMassDistributionMethod value="uniform"/>
@@ -104,7 +109,7 @@
     <velocitySuppressionReionization value="35.0"/>
   </accretionHaloMethod>
   <hdf5CompressionLevel value="-1"/>
-  <imfSelectionMethod value="fixed"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
   <mergerTreeOutput>
     <outputReferences value="false"/>
   </mergerTreeOutput>
@@ -114,8 +119,8 @@
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
-  <imfChabrierYieldInstantaneous value="0.035"/>
-  <imfSelectionFixed value="Chabrier"/>
+  
+  <initialMassFunctionMethod value="chabrier2001"/>
   <treeNodeMethodHotHalo value="verySimple"/>
   <timestepHostRelative value="0.1"/>
   <randomSeed value="828"/>

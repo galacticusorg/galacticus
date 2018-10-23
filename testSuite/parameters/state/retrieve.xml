@@ -20,6 +20,9 @@
   <luminosityFilter value="SDSS_r"/> 
   <luminosityType value="rest"/> 
   <luminosityRedshift value="0.0"/> 
-  <mergingTimescaleMultiplier value="5.4"/>
+  <satelliteMergingTimescalesMethod value="jiang2008">
+    <timescaleMultiplier value="5.4"/>
+  </satelliteMergingTimescalesMethod>
+
   <verbosityLevel value="1"/>
 </parameters>

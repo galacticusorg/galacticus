@@ -112,10 +112,13 @@
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
-  <imfSelectionMethod value="fixed"/>
-  <imfSelectionFixed value="Chabrier"/>
-  <imfChabrierRecycledInstantaneous value="0.0"/>
-  <imfChabrierYieldInstantaneous value="0.0"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
+  
+  <initialMassFunctionMethod value="chabrier2001"/>
+  <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.0"/>
+    <metalYield value="0.0"/>
+  </stellarPopulationMethod>
 
   <!-- Supernovae feedback options -->
   <starFormationFeedbackDisksMethod value="haloScaling">
@@ -130,8 +133,9 @@
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>
   </virialOrbitMethod>
-  <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <mergingTimescaleMultiplier value="0.114092219110171"/>
+  <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="0.114092219110171"/>
+  </satelliteMergingTimescalesMethod>
   <mergerMassMovementsMethod value="verySimple"/>
   <mergerRemnantSizeMethod value="null"/>
 
