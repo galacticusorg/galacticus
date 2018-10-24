@@ -202,18 +202,13 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     type(hdf5Object) :: metaDataDataset, metaDataGroup, timingDataGroup
-
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
-
     ! Output tree evolution meta-data if any was collected.
-    if (metaCollectTimingData) then
-
-       ! Open output groups.
+    if (metaCollectTimingData .and. treesRecordedCount > 0) then
+       !$ call hdf5Access%set()
        metaDataGroup  =galacticusOutputFile%openGroup('metaData'  ,'Galacticus meta data.'    )
        timingDataGroup=metaDataGroup       %openGroup('treeTiming','Meta-data on tree timing.')
-
-       ! Write timing data.
        call timingDataGroup%writeDataset(treeIDs           (1:treesRecordedCount),"treeIDs"           ,"Tree ID"                                                   )
        call timingDataGroup%writeDataset(treeMasses        (1:treesRecordedCount),"treeMasses"        ,"Tree mass [M⊙]"            ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(massSolar,"unitsInSI")
@@ -224,13 +219,10 @@ contains
        call timingDataGroup%writeDataset(treeEvolveTimes   (1:treesRecordedCount),"treeEvolveTimes"   ,"Tree evolution time [s]"   ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(1.0d0    ,"unitsInSI")
        call metaDataDataset%close()
-
-       ! Close output groups.
        call timingDataGroup%close()
        call metaDataGroup  %close()
-
+       !$ call hdf5Access%unset()
     end if
-
     return
   end subroutine Meta_Tree_Timing_Output
 
