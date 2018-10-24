@@ -471,64 +471,6 @@ Currently defined radius solver methods are:
  \item [\hyperlink{galactic_structure.radius_solver.fixed.F90:galactic_structure_radii_fixed:galactic_structure_radii_solve_fixed}{{\normalfont \ttfamily fixed}}] This solver assumes that radii equal the product of virial radius of the halo and its spin parameter (with an adjustable coefficient). It uses the ``radius solver'' (see \S\ref{sec:radius_solver}) task to interact with the node.
 \end{description}
 
-\subsubsection{Galactic Component Radius Solver Initial Radius}
-
-Additional methods for computing the initial radius in the dark matter profile when solving for adiabatic contraction of the halo can be added using the {\normalfont \ttfamily galacticStructureRadiusSolverInitialRadiusMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily adiabatic} method is described by a directive:
-\begin{verbatim}
- !# <galacticStructureRadiusSolverInitialRadiusMethod>
- !#  <unitName>Galactic_Structure_Initial_Radii_Adiabatic_Initialize</unitName>
- !# </galacticStructureRadiusSolverInitialRadiusMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Galactic\_Structure\_Initial\_Radii\_Adiabatic\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-  subroutine Method_Initialize(galacticStructureRadiusSolverInitialRadiusMethod,Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get)
-    implicit none
-    type(varying_string),          intent(in)    :: galacticStructureRadiusSolverInitialRadiusMethod
-    procedure(),          pointer, intent(inout) :: Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get
-    
-    if (galacticStructureRadiusSolverInitialRadiusMethod == 'myMethod') then
-       Galactic_Structure_Radius_Initial_Get            => My_Method_Get
-       Galactic_Structure_Radius_Initial_Derivative_Get => My_Method_Derivative_Get
-    end if
-    return
-  end subroutine Method_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily galacticStructureRadiusSolverInitialRadiusMethod} input parameter. The procedure pointers {\normalfont \ttfamily Galactic\_Structure\_Radius\_Initial\_Get} and {\normalfont \ttfamily Galactic\_Structure\_Radius\_Initial\_Derivative\_Get} must be set to point to functions which compute the initial radius in the dark matter halo given the final radius, and the deriative of this quantity with respect to the final radius as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The initial radius function must have the form:
-\begin{verbatim}
- double precision function Radius_Initial_Get(thisNode,radius)
-    implicit none
-    type            (treeNode), intent(in   ), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
-    .
-    .
-    .
-    return
- end function Radius_Initial_Get
-\end{verbatim}
-The function must return the initial radius in the dark matter halo of {\normalfont \ttfamily thisNode} corresponding to the final {\normalfont \ttfamily radius} after accounting for the effects of adiabatic contraction.
-
-The initial radius derivative function must have the form:
-\begin{verbatim}
- double precision function Radius_Initial_Derivative_Get(thisNode,radius)
-    implicit none
-    type            (treeNode), intent(in   ), pointer :: thisNode
-    double precision          , intent(in   )          :: radius
-    .
-    .
-    .
-    return
- end function Radius_Initial_Derivative_Get
-\end{verbatim}
-The function must return the derivative with respect to the final {\normalfont \ttfamily radius} of initial radius in the dark matter halo of {\normalfont \ttfamily thisNode} corresponding to the final {\normalfont \ttfamily radius} after accounting for the effects of adiabatic contraction.
-
-Currently defined initial radius methods are:
-\begin{description}
- \item [\hyperlink{galactic_structure.radius_solver.initial_radii.static.F90:galactic_structure_initial_radii_static:galactic_structure_radius_initial_static}{{\normalfont \ttfamily static}}] This method assumes a static dark matter halo, and so the initial radius always equals the final radius.
- \item [\hyperlink{galactic_structure.radius_solver.initial_radii.adiabatic.F90:galactic_structure_initial_radii_adiabatic:galactic_structure_radius_initial_adiabatic}{{\normalfont \ttfamily adiabatic}}] This method assumes adiabatic contraction follows the model of \cite{gnedin_response_2004}.
-\end{description}
-
 \subsubsection{Radiation Components}\index{radiation}\label{sec:radiationComponents}
 
 Radiation components (i.e. types of radiation field that may be added to any radiation object; see \S\ref{sec:RadiationSubsystem}) are defined using a combination of several directives: {\normalfont \ttfamily radiationLabel}, {\normalfont \ttfamily radiationSet}, {\normalfont \ttfamily radiationTemperature} and {\normalfont \ttfamily radiationFlux}. For example, the cosmic microwave background radiation component is defined by the following set of directives:

@@ -17,7 +17,11 @@
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
-  <adiabaticContractionGnedinOmega value="0.77"/>
+  <galacticStructureRadiiInitialMethod value="gnedin2004">
+    <omega value="0.77"/>
+    <A value="0.8"/>
+  </galacticStructureRadiiInitialMethod>
+
   <starFormationTimescaleDisksMethod value="dynamicalTime">
     <efficiency value="0.01"/>
     <timescaleMinimum value="0.001"/>
@@ -71,7 +75,6 @@
   <treeNodeMethodBasic value="standard"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
-  <adiabaticContractionGnedinA value="0.8"/>
   <odeToleranceRelative value="0.01"/>
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
@@ -93,7 +96,11 @@
   <hotHaloTemperatureProfileMethod value="virial"/>
   <starFormationHistoryTimeStep value="1.0"/>
   <verbosityLevel value="1"/>
-  <imfSalpeterYieldInstantaneous value="0.02"/>
+  <stellarPopulationMethod value="standard">
+    <metalYield value="0.02"/>
+    <recycledFraction value="0.39"/>
+  </stellarPopulationMethod>
+
   <virialOrbitMethod value="benson2005"/>
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -120,7 +127,6 @@
   <mergerRemnantSizeMethod value="cole2000">
   <energyOrbital value="1"/>
   </mergerRemnantSizeMethod>
-  <imfSalpeterRecycledInstantaneous value="0.39"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
@@ -134,12 +140,15 @@
   </mergerTreeBranchingProbabilityMethod>
   <starFormationHistoryMetallicityCount value="0"/>
   <blackHoleSeedMass value="100"/>
-  <imfSelectionMethod value="fixed"/>
-  <stellarPopulationPropertiesMethod value="noninstantaneous"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
+  <stellarPopulationPropertiesMethod value="noninstantaneous">
+  <countHistoryTimes value="10"/>
+  </stellarPopulationPropertiesMethod>
   <galacticusOutputFileName value="testSuite/outputs/regressions/test.hdf5"/>
   <treeNodeMethodSatellite value="standard"/>
   <stateFileRoot value="galacticusDebug"/>
-  <imfSelectionFixed value="Salpeter"/>
+  
+  <initialMassFunctionMethod value="salpeter1955"/>
   <treeNodeMethodHotHalo value="standard"/>
   <accretionHaloMethod value="simple">
     <redshiftReionization value="9"/>
@@ -151,7 +160,6 @@
   </starFormationFeedbackSpheroidsMethod>
   <mergerTreeStructureOutput value="false"/>
   <timestepHostRelative value="0.1"/>
-  <noninstantHistoryTimesCount value="10"/>
   <randomSeed value="228"/>
   <elementsToTrack value="Ca Mg Si Ti Fe"/>
   <starFormationFeedbackDisksMethod value="powerLaw">

@@ -22,8 +22,11 @@
   </accretionHaloMethod>
   <accretionRateThinDiskMaximum value="0.30d0"/>
   <accretionRateThinDiskMinimum value="0.01d0"/>
-  <adiabaticContractionGnedinA value="0.8"/>
-  <adiabaticContractionGnedinOmega value="0.77"/>
+  <galacticStructureRadiiInitialMethod value="gnedin2004">
+    <A value="0.8"/>
+    <omega value="0.77"/>
+  </galacticStructureRadiiInitialMethod>
+
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
   <stabilityThresholdGaseous value="0.9"/>
     <stabilityThresholdStellar value="1.1"/>
@@ -64,10 +67,12 @@
   <hotHaloMassDistributionMethod value="cored isothermal"/>
   <hotHaloOutflowReturnRate value="1.26027"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <imfSalpeterRecycledInstantaneous value="0.39"/>
-  <imfSalpeterYieldInstantaneous value="0.02"/>
-  <imfSelectionFixed value="Salpeter"/>
-  <imfSelectionMethod value="fixed"/>
+  <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.39"/>
+    <metalYield value="0.02"/>
+  </stellarPopulationMethod>
+  <initialMassFunctionMethod value="salpeter1955"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>

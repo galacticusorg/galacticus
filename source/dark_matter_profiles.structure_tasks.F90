@@ -38,16 +38,17 @@ contains
     use Cosmology_Parameters
     use Galactic_Structure_Initial_Radii
     implicit none
-    type            (treeNode                ), intent(inout)           :: node
-    integer                                   , intent(in   )           :: componentType       , massType     , &
-         &                                                                 weightBy            , weightIndex
-    double precision                          , intent(in   )           :: radius
-    logical                                   , intent(in   ), optional :: haloLoaded
-    class           (nodeComponentBasic      )               , pointer  :: basic
-    class           (cosmologyParametersClass)               , pointer  :: cosmologyParameters_
-    class           (darkMatterProfileClass  )               , pointer  :: darkMatterProfile_
-    double precision                                                    :: darkMatterFraction  , radiusInitial
-    logical                                                             :: haloLoadedActual
+    type            (treeNode                          ), intent(inout)           :: node
+    integer                                             , intent(in   )           :: componentType                 , massType     , &
+         &                                                                           weightBy                      , weightIndex
+    double precision                                    , intent(in   )           :: radius
+    logical                                             , intent(in   ), optional :: haloLoaded
+    class           (nodeComponentBasic                )               , pointer  :: basic
+    class           (cosmologyParametersClass          )               , pointer  :: cosmologyParameters_
+    class           (darkMatterProfileClass            )               , pointer  :: darkMatterProfile_
+    class           (galacticStructureRadiiInitialClass)               , pointer  :: galacticStructureRadiiInitial_
+    double precision                                                              :: darkMatterFraction            , radiusInitial
+    logical                                                                       :: haloLoadedActual
     !GCC$ attributes unused :: weightIndex
 
     Dark_Matter_Profile_Enclosed_Mass_Task=0.0d0
@@ -56,7 +57,7 @@ contains
     if (.not.(weightBy      == weightByMass                                                )) return
 
     ! Get required objects.
-    darkMatterProfile_      => darkMatterProfile  ()
+    darkMatterProfile_   => darkMatterProfile  ()
     cosmologyParameters_ => cosmologyParameters()
     ! Determine the dark matter fraction.
     darkMatterFraction=(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter()
@@ -74,7 +75,8 @@ contains
        if (present(haloLoaded)) haloLoadedActual=haloLoaded
        if (haloLoadedActual) then
           ! Halo loading is to be accounted for - get the initial radius in the dark matter halo.
-          radiusInitial=Galactic_Structure_Radius_Initial(node,radius)
+          galacticStructureRadiiInitial_ => galacticStructureRadiiInitial        (           )
+          radiusInitial                  =  galacticStructureRadiiInitial_%radius(node,radius)
        else
           ! Halo loading is not to be accounted for. The radius to use is simply the radius we were given.
           radiusInitial=radius
@@ -123,16 +125,17 @@ contains
     use Galactic_Structure_Initial_Radii
     use Cosmology_Parameters
     implicit none
-    type            (treeNode                ), intent(inout)           :: node
-    integer                                   , intent(in   )           :: componentType          , massType     , &
-         &                                                                 weightBy               , weightIndex
-    double precision                          , intent(in   )           :: positionSpherical   (3)
-    logical                                   , intent(in   ), optional :: haloLoaded
-    class           (cosmologyParametersClass)               , pointer  :: cosmologyParameters_
-    class           (darkMatterProfileClass  )               , pointer  :: darkMatterProfile_
-    logical                                                             :: haloLoadedActual
-    double precision                                                    :: darkMatterFraction     , radiusInitial, &
-         &                                                                 radiusJacobian
+    type            (treeNode                          ), intent(inout)           :: node
+    integer                                             , intent(in   )           :: componentType          , massType     , &
+         &                                                                           weightBy               , weightIndex
+    double precision                                    , intent(in   )           :: positionSpherical   (3)
+    logical                                             , intent(in   ), optional :: haloLoaded
+    class           (cosmologyParametersClass          )               , pointer  :: cosmologyParameters_
+    class           (darkMatterProfileClass            )               , pointer  :: darkMatterProfile_
+    class           (galacticStructureRadiiInitialClass)               , pointer  :: galacticStructureRadiiInitial_
+    logical                                                                       :: haloLoadedActual
+    double precision                                                              :: darkMatterFraction     , radiusInitial, &
+         &                                                                           radiusJacobian
     !GCC$ attributes unused :: weightIndex
     
     ! Return zero if the component and mass type is not matched.
@@ -150,9 +153,10 @@ contains
     if (present(haloLoaded)) haloLoadedActual=haloLoaded
     if (haloLoadedActual) then
        ! Halo loading is to be accounted for - get the initial radius in the dark matter halo, and the Jacobian.
-       radiusInitial = Galactic_Structure_Radius_Initial           (node,positionSpherical(1))
-       radiusJacobian= Galactic_Structure_Radius_Initial_Derivative(node,positionSpherical(1)) &
-            &         *(radiusInitial/positionSpherical(1))**2
+       galacticStructureRadiiInitial_ =>  galacticStructureRadiiInitial                  (                         )
+       radiusInitial                  =  +galacticStructureRadiiInitial_%radius          (node,positionSpherical(1))
+       radiusJacobian                 =  +galacticStructureRadiiInitial_%radiusDerivative(node,positionSpherical(1)) &
+            &                            *(radiusInitial/positionSpherical(1))**2
     else
        ! Halo loading is not to be accounted for. The radius to use is simply the radius we were given.
        radiusInitial =positionSpherical(1)

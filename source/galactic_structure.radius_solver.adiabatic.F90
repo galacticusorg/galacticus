@@ -169,25 +169,26 @@ contains
     use Memory_Management
     use Galacticus_Display
     implicit none
-    type            (treeNode                  ), intent(inout)                     :: node
-    double precision                            , intent(in   )                     :: specificAngularMomentum
-    procedure       (Radius_Solver_Get_Template), intent(in   ) , pointer           :: Radius_Get                          , Velocity_Get
-    procedure       (Radius_Solver_Set_Template), intent(in   ) , pointer           :: Radius_Set                          , Velocity_Set
-    class           (darkMatterProfileClass    )                , pointer           :: darkMatterProfile_
-    double precision                            , dimension(:,:), allocatable, save :: radiusHistory
+    type            (treeNode                          ), intent(inout)                     :: node
+    double precision                                    , intent(in   )                     :: specificAngularMomentum
+    procedure       (Radius_Solver_Get_Template        ), intent(in   ) , pointer           :: Radius_Get                          , Velocity_Get
+    procedure       (Radius_Solver_Set_Template        ), intent(in   ) , pointer           :: Radius_Set                          , Velocity_Set
+    class           (darkMatterProfileClass            )                , pointer           :: darkMatterProfile_
+    class           (galacticStructureRadiiInitialClass)               , pointer  :: galacticStructureRadiiInitial_
+    double precision                                    , dimension(:,:), allocatable, save :: radiusHistory
     !$omp threadprivate(radiusHistory)
-    double precision                            , dimension(:,:), allocatable       :: radiusHistoryTemporary
-    double precision                            , dimension(:  ), allocatable       :: radiusStoredTmp                     , velocityStoredTmp
-    integer                                     , dimension(1  ), parameter         :: storeIncrement                 =[10]
-    integer                                     , parameter                         :: iterationsForBisectionMinimum  = 10
-    integer                                     , parameter                         :: activeComponentMaximumIncrement=  2
-    integer                                                                         :: activeComponentMaximumCurrent
-    character       (len=14                    )                                    :: label
-    type            (varying_string            )                                    :: message
-    double precision                                                                :: baryonicVelocitySquared             , darkMatterMassFinal, &
-         &                                                                             darkMatterVelocitySquared           , haloMassInitial    , &
-         &                                                                             radius                              , radiusInitial      , &
-         &                                                                             radiusNew                           , velocity
+    double precision                                    , dimension(:,:), allocatable       :: radiusHistoryTemporary
+    double precision                                    , dimension(:  ), allocatable       :: radiusStoredTmp                     , velocityStoredTmp
+    integer                                             , dimension(1  ), parameter         :: storeIncrement                 =[10]
+    integer                                             , parameter                         :: iterationsForBisectionMinimum  = 10
+    integer                                             , parameter                         :: activeComponentMaximumIncrement=  2
+    integer                                                                                 :: activeComponentMaximumCurrent
+    character       (len=14                            )                                    :: label
+    type            (varying_string                    )                                    :: message
+    double precision                                                                        :: baryonicVelocitySquared             , darkMatterMassFinal, &
+         &                                                                                     darkMatterVelocitySquared           , haloMassInitial    , &
+         &                                                                                     radius                              , radiusInitial      , &
+         &                                                                                     radiusNew                           , velocity
 
     ! Get required objects.
     darkMatterProfile_ => darkMatterProfile()
@@ -246,7 +247,8 @@ contains
        radius=Radius_Get(node)
 
        ! Find the corresponding initial radius in the dark matter halo.
-       radiusInitial=Galactic_Structure_Radius_Initial(haloNode,radius)
+       galacticStructureRadiiInitial_ => galacticStructureRadiiInitial        (               )
+       radiusInitial                  =  galacticStructureRadiiInitial_%radius(haloNode,radius)
 
        ! Compute mass within that radius.
        haloMassInitial=darkMatterProfile_%enclosedMass(haloNode,radiusInitial)
