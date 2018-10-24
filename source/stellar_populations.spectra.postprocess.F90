@@ -16,168 +16,46 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements stellar spectra postprocessors.
+!% Contains a module which implements a class for stellar spectra postprocessors.
 
 module Stellar_Population_Spectra_Postprocess
-  !% Provides an object that implements stellar spectra postprocessors.
-  use, intrinsic :: ISO_C_Binding
-  use               ISO_Varying_String
-  !# <include directive="spectraPostprocessor" type="functionModules" >
-  include 'spectraPostprocessor.functionModules.inc'
-  !# </include>
+  !% Implements a class for stellar spectra postprocessors.
   private
-  public :: Stellar_Population_Spectrum_Postprocess, Stellar_Population_Spectrum_Postprocess_Index, Stellar_Population_Spectrum_Postprocess_Chain_Methods
+  public :: stellarPopulationSpectraPostprocessorList
 
-  ! A chain of postprocessing algorithms.
-  type postprocessor
-     class(spectraPostprocessorClass), pointer :: method
-  end type postprocessor
-  type postprocessors
-     type(varying_string)                            :: methodsLabel
-     type(postprocessor ), allocatable, dimension(:) :: postprocess
-  end type postprocessors
-  ! Initialization state.
-  logical                                            :: stellarPopulationSpectraPostprocessInitialized=.false.
-  ! Array of postprocessing chains.
-  type   (postprocessors), allocatable, dimension(:) :: postprocessingChains
-  type   (varying_string), allocatable, dimension(:) :: postprocessingChainNames
-
-  !# <include directive="spectraPostprocessor" type="function" >
-  !#  <descriptiveName>Spectra Postprocessor</descriptiveName>
-  !#  <description>Object providing postprocessors for spectra.</description>
-  !#  <default>null</default>
+  !# <functionClass>
+  !#  <name>stellarPopulationSpectraPostprocessor</name>
+  !#  <descriptiveName>Postprocessors for stellar population spectra</descriptiveName>
+  !#  <description>Class providing postprocessors for stellar population spectra.</description>
+  !#  <default>inoue2014</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
-  !#  <method name="apply" >
-  !#   <description>Apply postprocessing to a spectrum.</description>
-  !#   <type>void</type>
+  !#  <method name="multiplier" >
+  !#   <description>Return the multiplicative modification to the spectrum.</description>
+  !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: wavelength, age, redshift</argument>
-  !#   <argument>double precision, intent(inout) :: modifier</argument>
   !#  </method>
-  include 'spectraPostprocessor.type.inc'
-  !# </include>
-
-  function Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex)
-    !% Return a label describing the postprocessing methods used in the indicated chain.
-    implicit none
-    type   (varying_string)                :: Stellar_Population_Spectrum_Postprocess_Chain_Methods
-    integer                , intent(in   ) :: postprocessingChainIndex
-
-    Stellar_Population_Spectrum_Postprocess_Chain_Methods=postprocessingChains(postprocessingChainIndex)%methodsLabel
-    return
-  end function Stellar_Population_Spectrum_Postprocess_Chain_Methods
-
-  integer function Stellar_Population_Spectrum_Postprocess_Index(postprocessingChain)
-    !% Return the index to the specified postprocessing chain.
-    use String_Handling
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="stellarPopulationSpectraPostprocessInitialize" type="moduleUse">
-    include 'stellar_populations.spectra.postprocess.initialize.modules.inc'
-    !# </include>
-    implicit none
-    type   (varying_string), intent(in   )               :: postprocessingChain
-    type   (varying_string), allocatable  , dimension(:) :: postprocessingChainNamesTemporary
-    type   (postprocessors), allocatable  , dimension(:) :: postprocessingChainsTemporary
-    integer                                              :: i                                , methodCount
-    type   (varying_string)                              :: parameterName
-
-    ! Check whether we already have this chain loaded.
-    if (allocated(postprocessingChainNames)) then
-       if (.not.any(postprocessingChainNames == postprocessingChain)) then
-          call Move_Alloc(postprocessingChainNames,postprocessingChainNamesTemporary)
-          call Move_Alloc(postprocessingChains    ,postprocessingChainsTemporary    )
-          allocate(postprocessingChainNames(size(postprocessingChainNamesTemporary)+1))
-          allocate(postprocessingChains    (size(postprocessingChainNamesTemporary)+1))
-          postprocessingChainNames(1:size(postprocessingChainNamesTemporary))=postprocessingChainNamesTemporary
-          postprocessingChains    (1:size(postprocessingChainNamesTemporary))=postprocessingChainsTemporary
-          postprocessingChainNames(size(postprocessingChainNames))=postprocessingChain
-          Stellar_Population_Spectrum_Postprocess_Index=size(postprocessingChainNames)
-          deallocate(postprocessingChainNamesTemporary)
-          deallocate(postprocessingChainsTemporary    )
-       else
-          do Stellar_Population_Spectrum_Postprocess_Index=1,size(postprocessingChainNames)
-             if (postprocessingChainNames(Stellar_Population_Spectrum_Postprocess_Index) == postprocessingChain) return
-          end do
-       end if
-    else
-       allocate(postprocessingChainNames(1))
-       allocate(postprocessingChains    (1))
-       postprocessingChainNames(1)=postprocessingChain
-       Stellar_Population_Spectrum_Postprocess_Index=1
-    end if
-    ! We do not have this chain loaded. Load it now.
-    ! Construct the name of the parameter to read.
-    parameterName='stellarPopulationSpectraPostprocess'//String_Upper_Case_First(char(postprocessingChain))//'Methods'
-    ! Determine how many methods are to be applied.
-    if (postprocessingChain /= "default" .and. .not.globalParameters%isPresent(char(parameterName))) &
-         & call Galacticus_Error_Report('parameter ['//parameterName//'] is not present in parameter file'//{introspection:location})
-    methodCount=max(globalParameters%count(char(parameterName),zeroIfNotPresent=.true.),1)
-    allocate(postprocessingChainNamesTemporary(methodCount))
-    ! Note that we specify a default value here, which applies to all post-processing chains, even though we want it to apply only
-    ! to the default chain. This works because for all non-default chains we have already checked that the parameter is actually
-    ! present, and so the default will be ignored.    
-    !# <inputParameter>
-    !#   <name>char(parameterName)</name>
-    !#   <regEx>stellarPopulationSpectraPostprocess[A-Za-z0-9]+Methods</regEx>
-    !#   <variable>postprocessingChainNamesTemporary</variable>
-    !#   <defaultValue>[var_str('inoue2014')]</defaultValue>
-    !#   <source>globalParameters</source>
-    !#   <description>The name of methods to be used for post-processing of stellar population spectra.</description>
-    !#   <type>string</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    ! Store the list of method names.
-    postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%methodsLabel=String_Join(postprocessingChainNamesTemporary,":")
-    ! Allocate postprocessors.
-    allocate(postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%postprocess(methodCount))
-    do i=1,methodCount
-       nullify(postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%postprocess(i)%method)
-       ! Create the appropriate postprocessor.
-       postprocessingChains(Stellar_Population_Spectrum_Postprocess_Index)%postprocess(i)%method => &
-            & spectraPostprocessor(char(postprocessingChainNamesTemporary(i)))
-    end do
-    deallocate(postprocessingChainNamesTemporary)
-    return
-  end function Stellar_Population_Spectrum_Postprocess_Index
-
-  subroutine Stellar_Population_Spectrum_Postprocess_Initialize
-    !% Initialize the stellar population spectra postprocessing module
-    implicit none
-    integer                 :: defaultIndex
-    type   (varying_string) :: postprocessingChain
-
-    ! Initialize if necessary.
-    if (.not.stellarPopulationSpectraPostprocessInitialized) then
-       !$omp critical(Stellar_Population_Spectrum_Postprocess_Initialization)
-       if (.not.stellarPopulationSpectraPostprocessInitialized) then
-          ! Initialize by ensuring that the default postprocessing chain is loaded.
-          postprocessingChain="default"
-          defaultIndex=Stellar_Population_Spectrum_Postprocess_Index(postprocessingChain)
-          stellarPopulationSpectraPostprocessInitialized=.true.
-       end if
-       !$omp end critical(Stellar_Population_Spectrum_Postprocess_Initialization)
-    end if
-    return
-  end subroutine Stellar_Population_Spectrum_Postprocess_Initialize
-
-  double precision function Stellar_Population_Spectrum_Postprocess(postprocessingChainIndex,wavelength,age,redshift)
-    !% Return a multiplicative factor by which a stellar population spectrum should be modified by any postprocessing.
-    implicit none
-    integer         , intent(in   ) :: postprocessingChainIndex
-    double precision, intent(in   ) :: age                     , redshift, &
-         &                             wavelength
-    integer                         :: i
-
-    ! Initialize the module.
-    call Stellar_Population_Spectrum_Postprocess_Initialize()
-
-    ! Compute the postprocessing factor.
-    Stellar_Population_Spectrum_Postprocess=1.0d0
-    do i=1,size(postprocessingChains(postprocessingChainIndex)%postprocess)
-       call postprocessingChains(postprocessingChainIndex)%postprocess(i)%method%apply(wavelength,age,redshift,Stellar_Population_Spectrum_Postprocess)
-    end do
-    return
-  end function Stellar_Population_Spectrum_Postprocess
+  !# </functionClass>
+  
+  !# <functionClass>
+  !#  <name>stellarPopulationSpectraPostprocessorBuilder</name>
+  !#  <descriptiveName>Builder for postprocessors for stellar population spectra</descriptiveName>
+  !#  <description>Class providing builders for postprocessors for stellar population spectra.</description>
+  !#  <default>lookup</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="build" >
+  !#   <description>Build and return a postprocessor.</description>
+  !#   <type>class(stellarPopulationSpectraPostprocessorClass)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(varying_string), intent(in   ) :: descriptor</argument>
+  !#  </method>
+  !# </functionClass>
+  
+  type :: stellarPopulationSpectraPostprocessorList
+     !% Ttype used to build linked list of stellar population spectra postprocessors.
+     class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_
+   contains
+     final :: stellarPopulationSpectraPostprocessorListDestructor
+  end type stellarPopulationSpectraPostprocessorList
 
 end module Stellar_Population_Spectra_Postprocess

@@ -216,12 +216,13 @@
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
     <luminosityType value="rest observed observed observed"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="meiksin2006"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="madau1995"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="inoue2014"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="lycSuppress"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="recent"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="identity"/>
+    <stellarPopulationSpectraPostprocessorBuilderMethod value="lookup"/>
+    <stellarPopulationSpectraPostprocessorMethod value="meiksin2006"/>
+    <stellarPopulationSpectraPostprocessorMethod value="madau1995"/>
+    <stellarPopulationSpectraPostprocessorMethod value="inoue2014"/>
+    <stellarPopulationSpectraPostprocessorMethod value="lycSuppress"/>
+    <stellarPopulationSpectraPostprocessorMethod value="recent"/>
+    <stellarPopulationSpectraPostprocessorMethod value="identity"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>

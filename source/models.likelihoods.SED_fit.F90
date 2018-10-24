@@ -20,6 +20,7 @@
   
   use Cosmology_Functions
   use Stellar_Population_Selectors
+  use Stellar_Population_Spectra_Postprocess
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit" defaultThreadPrivate="yes">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
@@ -27,19 +28,20 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
      private
-     class           (cosmologyFunctionsClass       ), pointer                   :: cosmologyFunctions_
-     class           (stellarPopulationSelectorClass), pointer                   :: stellarPopulationSelector_
-     integer                                                                     :: photometryCount           , dustType           , &
-          &                                                                         burstCount                , startTimeType
-     integer                                         , allocatable, dimension(:) :: filterIndex               , luminosityIndex    , &
-          &                                                                         postprocessingChainIndex
-     double precision                                , allocatable, dimension(:) :: magnitude                 , error              , &
-          &                                                                         redshift                  , burstFraction      , &
-          &                                                                         age                       , wavelengthEffective, &
-          &                                                                         burstTimeStart            , burstTimescale
-     type            (varying_string                ), allocatable, dimension(:) :: filter                    , system
-     type            (varying_string                )                            :: startTime
-     double precision                                             , dimension(1) :: massToLightRatio
+     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
+     class           (stellarPopulationSelectorClass                   ), pointer                   :: stellarPopulationSelector_
+     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_
+     integer                                                                                        :: photometryCount                              , dustType           , &
+          &                                                                                            burstCount                                   , startTimeType
+     integer                                                            , allocatable, dimension(:) :: filterIndex                                  , luminosityIndex
+     type            (stellarPopulationSpectraPostprocessorList        ), allocatable, dimension(:) :: postprocessor
+     double precision                                                   , allocatable, dimension(:) :: magnitude                                    , error              , &
+          &                                                                                            redshift                                     , burstFraction      , &
+          &                                                                                            age                                          , wavelengthEffective, &
+          &                                                                                            burstTimeStart                               , burstTimescale
+     type            (varying_string                                   ), allocatable, dimension(:) :: filter                                       , system
+     type            (varying_string                                   )                            :: startTime
+     double precision                                                                , dimension(1) :: massToLightRatio
    contains
      final     ::                    sedFitDestructor
      procedure :: evaluate        => sedFitEvaluate
@@ -83,14 +85,15 @@ contains
     !% parameter set.
     use Input_Parameters
     implicit none
-    type            (posteriorSampleLikelihoodSEDFit)                              :: self
-    type            (inputParameters                ), intent(inout)               :: parameters
-    double precision                                 , allocatable  , dimension(:) :: magnitude                 , error
-    type            (varying_string                 ), allocatable  , dimension(:) :: filter                    , system
-    integer                                                                        :: burstCount                , dustType, &
-         &                                                                            startTime
-    class           (cosmologyFunctionsClass        ), pointer                     :: cosmologyFunctions_
-    class           (stellarPopulationSelectorClass ), pointer                     :: stellarPopulationSelector_
+    type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
+    type            (inputParameters                                  ), intent(inout)               :: parameters
+    double precision                                                   , allocatable  , dimension(:) :: magnitude                                    , error
+    type            (varying_string                                   ), allocatable  , dimension(:) :: filter                                       , system
+    integer                                                                                          :: burstCount                                   , dustType, &
+         &                                                                                              startTime
+    class           (cosmologyFunctionsClass                          ), pointer                     :: cosmologyFunctions_
+    class           (stellarPopulationSelectorClass                   ), pointer                     :: stellarPopulationSelector_
+    class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                     :: stellarPopulationSpectraPostprocessorBuilder_
 
     !# <inputParameter>
     !#   <name>magnitude</name>
@@ -141,47 +144,49 @@ contains
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
-    self=posteriorSampleLikelihoodSEDFit(                                                                                           &
-         &                                                                     magnitude                                          , &
-         &                                                                     error                                              , &
-         &                                                                     filter                                             , &
-         &                                                                     system                                             , &
-         &                                                                     burstCount                                         , &
-         &                               enumerationSedFitDustTypeEncode (char(dustType                  ),includesPrefix=.false.), &
-         &                               enumerationSedFitStartTimeEncode(char(startTime                 ),includesPrefix=.false.), &
-         &                                                                     cosmologyFunctions_                                , &
-         &                                                                     stellarPopulationSelector_                           &
+    !# <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters"/>
+    !# <objectBuilder class="stellarPopulationSelector"                    name="stellarPopulationSelector_"                    source="parameters"/>
+    !# <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder_" source="parameters"/>
+    self=posteriorSampleLikelihoodSEDFit(                                                                                                              &
+         &                                                                     magnitude                                                             , &
+         &                                                                     error                                                                 , &
+         &                                                                     filter                                                                , &
+         &                                                                     system                                                                , &
+         &                                                                     burstCount                                                            , &
+         &                               enumerationSedFitDustTypeEncode (char(dustType                                     ),includesPrefix=.false.), &
+         &                               enumerationSedFitStartTimeEncode(char(startTime                                    ),includesPrefix=.false.), &
+         &                                                                     cosmologyFunctions_                                                   , &
+         &                                                                     stellarPopulationSelector_                                            , &
+         &                                                                     stellarPopulationSpectraPostprocessorBuilder_                           &
          &                              )
     !# <inputParametersValidate source="parameters"/>
     return
   end function sedFitConstructorParameters
 
-  function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_) result(self)
+  function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_,stellarPopulationSpectraPostprocessorBuilder_) result(self)
     !% Constructor for ``sedFit'' posterior sampling likelihood class.
     use Instruments_Filters
     use ISO_Varying_String
     use Memory_Management
-    use Stellar_Population_Spectra_Postprocess
     use Galacticus_Error
     implicit none
-    type            (posteriorSampleLikelihoodSEDFit)                              :: self
-    double precision                                 , intent(in   ), dimension(:) :: magnitude                 , error
-    type            (varying_string                 ), intent(in   ), dimension(:) :: filter                    , system
-    integer                                          , intent(in   )               :: burstCount                , dustType, &
-         &                                                                            startTimeType
-    class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_ 
-    class           (stellarPopulationSelectorClass ), intent(in   ), target       :: stellarPopulationSelector_
-    integer                                                                        :: i
-    !# <constructorAssign variables="magnitude, error, filter, system, burstCount, dustType, startTimeType, *cosmologyFunctions_, *stellarPopulationSelector_"/>
+    type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
+    double precision                                                   , intent(in   ), dimension(:) :: magnitude                                    , error
+    type            (varying_string                                   ), intent(in   ), dimension(:) :: filter                                       , system
+    integer                                                            , intent(in   )               :: burstCount                                   , dustType, &
+         &                                                                                              startTimeType
+    class           (cosmologyFunctionsClass                          ), intent(in   ), target       :: cosmologyFunctions_ 
+    class           (stellarPopulationSelectorClass                   ), intent(in   ), target       :: stellarPopulationSelector_
+    class           (stellarPopulationSpectraPostprocessorBuilderClass), intent(in   ), target       :: stellarPopulationSpectraPostprocessorBuilder_
+    integer                                                                                          :: i
+    !# <constructorAssign variables="magnitude, error, filter, system, burstCount, dustType, startTimeType, *cosmologyFunctions_, *stellarPopulationSelector_, *stellarPopulationSpectraPostprocessorBuilder_"/>
 
     self%photometryCount=size(magnitude)
+    allocate          (self%postprocessor            (self%photometryCount))
     call allocateArray(self%filterIndex             ,[self%photometryCount])
     call allocateArray(self%luminosityIndex         ,[self%photometryCount])
     call allocateArray(self%redshift                ,[self%photometryCount])
     call allocateArray(self%age                     ,[self%photometryCount])
-    call allocateArray(self%postprocessingChainIndex,[self%photometryCount])
     call allocateArray(self%wavelengthEffective     ,[self%photometryCount])
     ! Determine indices.
     do i=1,self%photometryCount
@@ -202,7 +207,9 @@ contains
     call allocateArray(self%burstTimescale,[self%burstCount])
     call allocateArray(self%burstFraction ,[self%burstCount])
     ! Find stellar spectra postprocessing chain to use.
-    self%postprocessingChainIndex=Stellar_Population_Spectrum_Postprocess_Index(var_str('default'))
+    do i=1,self%photometryCount
+       self%postprocessor(i)%stellarPopulationSpectraPostprocessor_ => self%stellarPopulationSpectraPostprocessorBuilder_%build(var_str('default'))
+    end do
     return
   end function sedFitConstructorInternal
 
@@ -211,8 +218,9 @@ contains
     implicit none
     type(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"        />
-    !# <objectDestructor name="self%stellarPopulationSelector_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"                          />
+    !# <objectDestructor name="self%stellarPopulationSelector_"                   />
+    !# <objectDestructor name="self%stellarPopulationSpectraPostprocessorBuilder_"/>
     return
   end subroutine sedFitDestructor
   
@@ -400,15 +408,15 @@ contains
          &                   .not.self%stellarPopulationSelector_%isStarFormationRateDependent()
     if (useRapidEvaluation) then
        ! Get tables of ages and luminosities.
-       call Stellar_Population_Luminosity_Track(                               &
-            &                                   self%luminosityIndex         , &
-            &                                   self%filterIndex             , &
-            &                                   self%postprocessingChainIndex, &
-            &                                   stellarPopulation_           , &
-            &                                   abundancesStars              , &
-            &                                   self%redshift                , &
-            &                                   ages                         , &
-            &                                   massToLightRatios              &
+       call Stellar_Population_Luminosity_Track(                      &
+            &                                   self%luminosityIndex, &
+            &                                   self%filterIndex    , &
+            &                                   self%postprocessor  , &
+            &                                   stellarPopulation_  , &
+            &                                   abundancesStars     , &
+            &                                   self%redshift       , &
+            &                                   ages                , &
+            &                                   massToLightRatios     &
             &                                  )
        ! Evaluate the star formation rate normalization.
        starFormationRateNormalization=+mass                  &
@@ -613,14 +621,14 @@ contains
       ! Determine if we're computing luminosity or mass.
       if (iMagnitude > 0) then
          ! Find the mass-to-light ratio.
-         self%massToLightRatio=Stellar_Population_Luminosity(                                                      &
-              &                                              self%luminosityIndex         (iMagnitude:iMagnitude), &
-              &                                              self%filterIndex             (iMagnitude:iMagnitude), &
-              &                                              self%postprocessingChainIndex(iMagnitude:iMagnitude), &
-              &                                              stellarPopulation_                                  , &
-              &                                              abundancesStars                                     , &
-              &                                              self%age                     (iMagnitude:iMagnitude), &
-              &                                              self%redshift                (iMagnitude:iMagnitude)  &
+         self%massToLightRatio=Stellar_Population_Luminosity(                                             &
+              &                                              self%luminosityIndex(iMagnitude:iMagnitude), &
+              &                                              self%filterIndex    (iMagnitude:iMagnitude), &
+              &                                              self%postprocessor  (iMagnitude:iMagnitude), &
+              &                                              stellarPopulation_                         , &
+              &                                              abundancesStars                            , &
+              &                                              self%age            (iMagnitude:iMagnitude), &
+              &                                              self%redshift       (iMagnitude:iMagnitude)  &
               &                                             )
          luminosityIntegrand=                                                                  &
               &              +starFormationRate                                                &

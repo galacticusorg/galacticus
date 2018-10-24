@@ -18,37 +18,54 @@
 
   !% An implementation of a spectrum postprocessor that applies the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
 
-  !# <spectraPostprocessor name="spectraPostprocessorMadau1995">
-  !#  <description>Apply the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.</description>
-  !# </spectraPostprocessor>
-
-  type, extends(spectraPostprocessorClass) :: spectraPostprocessorMadau1995
-     !% An spectrum postprocessor applying the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
+  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMadau1995">
+  !#  <description>Multiplier the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !# </stellarPopulationSpectraPostprocessor>
+  type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMadau1995
+     !% An spectrum postprocessor multipliering the \cite{madau_radiative_1995} calculation of the attenuation of spectra by the intergalactic medium.
      private
    contains
-     procedure :: apply => madau1995Apply
-  end type spectraPostprocessorMadau1995
+     procedure :: multiplier => madau1995Multiplier
+  end type stellarPopulationSpectraPostprocessorMadau1995
 
+  interface stellarPopulationSpectraPostprocessorMadau1995
+     !% Constructors for the {\normalfont \ttfamily madau1995} stellar population spectra postprocessor class.
+     module procedure madau1995ConstructorParameters
+  end interface stellarPopulationSpectraPostprocessorMadau1995
+    
 contains
 
-  subroutine madau1995Apply(self,wavelength,age,redshift,modifier)
+  function madau1995ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily madau1995} stellar population spectra postprocessor class which takes a
+    !% parameter list as input.
+    use Input_Parameters
+    implicit none
+    type(stellarPopulationSpectraPostprocessorMadau1995)                :: self
+    type(inputParameters                               ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=stellarPopulationSpectraPostprocessorMadau1995()
+    return
+  end function madau1995ConstructorParameters
+  
+  double precision function madau1995Multiplier(self,wavelength,age,redshift)
     !% Suppress the Lyman continuum in a spectrum.
     use Numerical_Constants_Atomic
     implicit none
-    class           (spectraPostprocessorMadau1995), intent(inout)           :: self
-    double precision                               , intent(in   )           :: age                                                                                                                           , redshift                        , &
-         &                                                                      wavelength
-    double precision                               , intent(inout)           :: modifier
-    double precision                               , dimension(9), parameter :: opticalDepthLymanLinesCoefficients=[0.00360d0,0.00170d0,0.00120d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0]
-    double precision                               , dimension(9)            :: opticalDepthLymanLines
-    integer                                                                  :: iLine
-    double precision                                                         :: continuumFactor                                                                                                               , emissionFactor                  , &
-         &                                                                      opticalDepth                                                                                                                  , wavelengthObservedLymanContinuum
+    class           (stellarPopulationSpectraPostprocessorMadau1995), intent(inout)           :: self
+    double precision                                                , intent(in   )           :: age                                                                                                                           , redshift                        , &
+         &                                                                                       wavelength
+    double precision                                                , dimension(9), parameter :: opticalDepthLymanLinesCoefficients=[0.00360d0,0.00170d0,0.00120d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0,0.00093d0]
+    double precision                                                , dimension(9)            :: opticalDepthLymanLines
+    integer                                                                                   :: iLine
+    double precision                                                                          :: continuumFactor                                                                                                               , emissionFactor                  , &
+         &                                                                                       opticalDepth                                                                                                                  , wavelengthObservedLymanContinuum
     !GCC$ attributes unused :: self, age
     
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then
        ! It is, so return no modification.
+       madau1995Multiplier=1.0d0
        return
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
@@ -73,8 +90,8 @@ contains
                &/continuumFactor**1.32d0-1.0d0/emissionFactor**1.32d0)-0.023d0*(emissionFactor**1.68d0-continuumFactor**1.68d0)
        end if
        ! Compute attenuation from optical depth.
-       modifier=modifier*exp(-opticalDepth)
+       madau1995Multiplier=exp(-opticalDepth)
     end if
     return
-  end subroutine madau1995Apply
+  end function madau1995Multiplier
   
