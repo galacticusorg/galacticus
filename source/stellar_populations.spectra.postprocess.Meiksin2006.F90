@@ -18,43 +18,60 @@
 
   !% An implementation of a spectrum postprocessor that applies the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
 
-  !# <spectraPostprocessor name="spectraPostprocessorMeiksin2006">
-  !#  <description>Apply the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.</description>
-  !# </spectraPostprocessor>
-
-  type, extends(spectraPostprocessorClass) :: spectraPostprocessorMeiksin2006
-     !% An spectrum postprocessor applying the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
+  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorMeiksin2006">
+  !#  <description>Multiplier the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.</description>
+  !# </stellarPopulationSpectraPostprocessor>
+  type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorMeiksin2006
+     !% An spectrum postprocessor multipliering the \cite{meiksin_colour_2006} calculation of the attenuation of spectra by the intergalactic medium.
      private
    contains
-     procedure :: apply => meiksin2006Apply
-  end type spectraPostprocessorMeiksin2006
+     procedure :: multiplier => meiksin2006Multiplier
+  end type stellarPopulationSpectraPostprocessorMeiksin2006
 
+  interface stellarPopulationSpectraPostprocessorMeiksin2006
+     !% Constructors for the {\normalfont \ttfamily meiksin2006} stellar population spectra postprocessor class.
+     module procedure meiksin2006ConstructorParameters
+  end interface stellarPopulationSpectraPostprocessorMeiksin2006
+    
 contains
 
-  subroutine meiksin2006Apply(self,wavelength,age,redshift,modifier)
+  function meiksin2006ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily meiksin2006} stellar population spectra postprocessor class which takes a
+    !% parameter list as input.
+    use Input_Parameters
+    implicit none
+    type(stellarPopulationSpectraPostprocessorMeiksin2006)                :: self
+    type(inputParameters                                 ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=stellarPopulationSpectraPostprocessorMeiksin2006()
+    return
+  end function meiksin2006ConstructorParameters
+  
+  double precision function meiksin2006Multiplier(self,wavelength,age,redshift)
     !% Suppress the Lyman continuum in a spectrum.
     use Numerical_Constants_Atomic
     use Factorials
     use Gamma_Functions
     implicit none
-    class           (spectraPostprocessorMeiksin2006), intent(inout) :: self
-    double precision                                 , intent(in   ) :: age                                    , redshift           , &
-         &                                                              wavelength
-    double precision                                 , intent(inout) :: modifier
+    class           (stellarPopulationSpectraPostprocessorMeiksin2006), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: age                                    , redshift           , &
+         &                                                                               wavelength
     ! Parameters of the Lyman-limit system distribution.
-    double precision                                 , parameter     :: N0                              =0.25d0
-    double precision                                 , parameter     :: beta                            =1.50d0
-    double precision                                 , parameter     :: gamma                           =1.50d0
-    double precision                                 , dimension(31) :: opticalDepthLymanLines                 , redshiftLymanLines
-    integer                                                          :: iLine
-    double precision                                                 :: nFactorial                             , opticalDepth       , &
-         &                                                              seriesSolutionTermA                    , seriesSolutionTermB, &
-         &                                                              wavelengthObservedLymanContinuum
+    double precision                                                  , parameter     :: N0                              =0.25d0
+    double precision                                                  , parameter     :: beta                            =1.50d0
+    double precision                                                  , parameter     :: gamma                           =1.50d0
+    double precision                                                  , dimension(31) :: opticalDepthLymanLines                 , redshiftLymanLines
+    integer                                                                           :: iLine
+    double precision                                                                  :: nFactorial                             , opticalDepth       , &
+         &                                                                               seriesSolutionTermA                    , seriesSolutionTermB, &
+         &                                                                               wavelengthObservedLymanContinuum
     !GCC$ attributes unused :: self, age
     
     ! Check if this is a zero redshift case.
     if (redshift <= 0.0d0) then
        ! It is, so return no attenuation modification.
+       meiksin2006Multiplier=1.0d0
        return
     else
        ! Compute the observed wavelength in units of the Lyman-continuum wavelength.
@@ -122,8 +139,8 @@ contains
                &/(1.0d0+redshift))
        end if
        ! Compute attenuation from optical depth.
-       modifier=modifier*exp(-opticalDepth)
+       meiksin2006Multiplier=exp(-opticalDepth)
     end if
     return
-  end subroutine meiksin2006Apply
+  end function meiksin2006Multiplier
   

@@ -580,7 +580,9 @@ my @translations =
 	     "starFormationImfInstantaneousApproximationMassLongLived" => "stellarPopulationMethod.standard.--massLongLived"                                      ,
 	     "starFormationImfInstantaneousApproximationEffectiveAge"  => "stellarPopulationMethod.standard.--ageEffective"		                          ,
 	     "noninstantHistoryTimesCount"                             => "stellarPopulationPropertiesMethod.noninstantaneous.--countHistoryTimes"                ,
-	     "mergingTimescaleMultiplier"                              => "satelliteMergingTimescalesMethod--timescaleMultiplier"
+	     "mergingTimescaleMultiplier"                              => "satelliteMergingTimescalesMethod--timescaleMultiplier"                                 ,
+	     "stellarPopulationSpectraRecentTimeLimit"                 => "stellarPopulationSpectraPostprocessorMethod.recent.--timeLimit"                        ,
+	     "stellarPopulationSpectraUnescapedTimescale"              => "stellarPopulationSpectraPostprocessorMethod.unescaped.--timescale"
 	 },
 	 values        =>
 	 {
