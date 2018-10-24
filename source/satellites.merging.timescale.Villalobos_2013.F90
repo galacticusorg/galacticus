@@ -96,15 +96,14 @@ contains
   double precision function villalobos2013TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{villalobos_improved_2013} method.
     use Galacticus_Nodes
-    use Dynamical_Friction_Timescale_Utilities
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none
-    class           (satelliteMergingTimescalesVillalobos2013 ), intent(inout) :: self
-    type            (treeNode                                 ), intent(inout) :: node
-    type            (keplerOrbit                              ), intent(inout) :: orbit
-    class           (nodeComponentBasic                       ), pointer       :: basic
-    double precision                                                           :: expansionFactor
+    class           (satelliteMergingTimescalesVillalobos2013), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    type            (keplerOrbit                             ), intent(inout) :: orbit
+    class           (nodeComponentBasic                      ), pointer       :: basic
+    double precision                                                          :: expansionFactor
 
     ! Compute expansion factor.
     basic           => node                    %basic          (            )
