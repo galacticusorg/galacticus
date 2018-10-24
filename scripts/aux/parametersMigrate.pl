@@ -582,31 +582,34 @@ my @translations =
 	     "noninstantHistoryTimesCount"                             => "stellarPopulationPropertiesMethod.noninstantaneous.--countHistoryTimes"                ,
 	     "mergingTimescaleMultiplier"                              => "satelliteMergingTimescalesMethod--timescaleMultiplier"                                 ,
 	     "stellarPopulationSpectraRecentTimeLimit"                 => "stellarPopulationSpectraPostprocessorMethod.recent.--timeLimit"                        ,
-	     "stellarPopulationSpectraUnescapedTimescale"              => "stellarPopulationSpectraPostprocessorMethod.unescaped.--timescale"
+	     "stellarPopulationSpectraUnescapedTimescale"              => "stellarPopulationSpectraPostprocessorMethod.unescaped.--timescale"                     ,
+	     "galacticStructureRadiusSolverInitialRadiusMethod"        => "galacticStructureRadiiInitialMethod"                                                   ,
+	     "adiabaticContractionGnedinA"                             => "galacticStructureRadiiInitialMethod.gnedin2004.--A"                                    ,
+	     "adiabaticContractionGnedinOmega"                         => "galacticStructureRadiiInitialMethod.gnedin2004.--omega"
 	 },
 	 values        =>
 	 {
-	     atomicCollisionalIonizationMethod         =>
+	     atomicCollisionalIonizationMethod                =>
 	     {
 		 "Verner"            => "verner1996"
 	     },
-	     collisionalExcitationMethod               => 
+	     collisionalExcitationMethod                      => 
 	     {
 		 "ScholzWalters91  " => "scholzWalters91"
 	     },
-	     blackHoleBinaryInitialRadiiMethod         =>
+	     blackHoleBinaryInitialRadiiMethod                =>
 	     {
 		 "Volonteri2003"     => "volonteri2003"
 	     },    
-	     blackHoleBinarySeparationGrowthRateMethod =>
+	     blackHoleBinarySeparationGrowthRateMethod        =>
 	     {
 		 "null"              => "zero"
 	     },
-	     blackHoleBinaryMergersMethod              =>
+	     blackHoleBinaryMergersMethod                     =>
 	     {
 		 "Rezzolla2008"      => "rezzolla2008"
 	     },
-	     stellarSpectraDustAttenuationMethod       =>
+	     stellarSpectraDustAttenuationMethod              =>
 	     {
 		 "Calzetti2000"      => "calzetti2000"    ,
 		 "Cardelli1989"      => "cardelli1989"    ,
@@ -616,28 +619,32 @@ my @translations =
 		 "PrevotBouchet"     => "prevotBouchet"   ,
 		 "null"              => "zero"
 	     },
-	     supernovaeIaMethod                        =>
+	     supernovaeIaMethod                               =>
 	     {
 		 "Nagashima"         => "nagashima2005"
 	     },
-	     supernovaePopulationIIIMethod             =>
+	     supernovaePopulationIIIMethod                    =>
 	     {
 		 "Heger-Woosley2002" => "hegerWoosley2002"
 	     },
-	     stellarWindsMethod                        =>
+	     stellarWindsMethod                               =>
 	     {
 		 "Leitherer1992"     => "leitherer1992"
 	     },
-	     satelliteMergingMassMovementsMethod       =>
+	     satelliteMergingMassMovementsMethod              =>
 	     {
 		 "Baugh2005"         => "baugh2005"
 	     },
-	     satelliteMergingRemnantSizeMethod         =>
+	     satelliteMergingRemnantSizeMethod                =>
 	     {
 		 "Cole2000"          => "cole2000"        ,
 		 "Covington2008"     => "covington2008"
 	     },
-	     imfSelectionFixed                         =>
+	     galacticStructureRadiusSolverInitialRadiusMethod =>
+	     {
+		 "adiabatic"         => "gnedin2004"
+	     },
+	     imfSelectionFixed                                =>
 	     {		
 		 "Baugh2005TopHeavy" => 
 		 {

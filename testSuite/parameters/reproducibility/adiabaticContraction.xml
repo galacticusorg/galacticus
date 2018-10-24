@@ -34,7 +34,9 @@
   <!-- Power spectrum options -->
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
-  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999">
+  </cosmologicalMassVarianceMethod>
+
+  <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.046"/>
     <neutrinoMassSummed value="0.000"/>
   </transferFunctionMethod>
@@ -64,9 +66,11 @@
   <hotHaloMassDistributionMethod value="null"/>
 
   <!-- Adiabatic contraction solver -->
-  <adiabaticContractionGnedinA value="1.0"/>
-  <adiabaticContractionGnedinOmega value="1.0"/>
-  
+  <galacticStructureRadiiInitialMethod value="gnedin2004">
+    <A value="1.0"/>
+    <omega value="1.0"/>
+  </galacticStructureRadiiInitialMethod>
+
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>

@@ -53,9 +53,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <galacticStructureRadiusSolverInitialRadiusMethod value="static"/>
+    <galacticStructureRadiiInitialMethod value="static"/>
     <galacticStructureRadiusSolverMethod value="adiabatic">
-      <galacticStructureRadiusSolverInitialRadiusMethod value="adiabatic" parameterLevel="top"/>
+      <galacticStructureRadiiInitialMethod value="gnedin2004" parameterLevel="top"/>
     </galacticStructureRadiusSolverMethod>
     <galacticStructureRadiusSolverMethod value="simple"/>
     <galacticStructureRadiusSolverMethod value="linear"/>
@@ -494,7 +494,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <imfSelectionMethod value="fixed">
+    <stellarPopulationSelectorMethod value="fixed">
       <imfSelectionFixed value="Baugh2005TopHeavy" parameterLevel="top"/>
       <imfSelectionFixed value="Chabrier" parameterLevel="top"/>
       <imfSelectionFixed value="Kennicutt" parameterLevel="top"/>
@@ -506,7 +506,7 @@
  	<imfPiecewisePowerLawMassPoints value="0.1 1.0 125.0" parameterLevel="top"/>
  	<imfPiecewisePowerLawExponents value="-1.5 -2.3" parameterLevel="top"/>
       </imfSelectionFixed>
-    </imfSelectionMethod>
+    </stellarPopulationSelectorMethod>
     <stellarPopulationSelectorMethod value="diskSpheroid">
       <stellarPopulationDisk value="standard">
 	<initialMassFunctionMethod value="chabrier2001"/>
@@ -606,9 +606,12 @@
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
-    <imfSelectionFixed value="Chabrier"/>
-    <imfSelectionFixed value="Kroupa"/>
-    <imfSelectionFixed value="Salpeter"/>
+    
+  <initialMassFunctionMethod value="chabrier2001"/>
+    
+  <initialMassFunctionMethod value="kroupa2001"/>
+    
+  <initialMassFunctionMethod value="salpeter1955"/>
   </parameters>
 
   <!-- Calculation of luminosities at all output redshifts -->

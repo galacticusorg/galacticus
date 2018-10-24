@@ -126,8 +126,11 @@
 
   <!-- Galactic structure solver options -->
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
-  <adiabaticContractionGnedinA value="0.73"/>
-  <adiabaticContractionGnedinOmega value="0.7"/>
+  <galacticStructureRadiiInitialMethod value="gnedin2004">
+    <A value="0.73"/>
+    <omega value="0.7"/>
+  </galacticStructureRadiiInitialMethod>
+
   <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
   <!-- Galactic disk dynamics options -->
