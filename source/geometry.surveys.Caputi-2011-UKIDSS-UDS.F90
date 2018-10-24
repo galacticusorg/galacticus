@@ -128,15 +128,13 @@ contains
 
   double precision function caputi2011UKIDSSUDSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryCaputi2011UKIDSSUDS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    class           (cosmologyFunctionsClass          ), pointer                 :: cosmologyFunctions_
-    double precision                                                             :: redshift           , logarithmicMass
+    double precision                                                             :: redshift, logarithmicMass
     !GCC$ attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
@@ -145,14 +143,12 @@ contains
     ! constraints/dataAnalysis/stellarMassFunctions_UKIDSS_UDS_z3_5/massLuminosityRelation.pl for details.)
     logarithmicMass=log10(mass)
     redshift=-56.247426278132d0+logarithmicMass*(5.88091022342758d0)
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()    
     ! Convert from redshift to comoving distance.
-    caputi2011UKIDSSUDSDistanceMaximum                                                &
-         &=cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                             output  =distanceTypeComoving, &
-         &                                             redshift=redshift              &
-         &                                            )
+    caputi2011UKIDSSUDSDistanceMaximum                                                     &
+         &=self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                  output  =distanceTypeComoving, &
+         &                                                  redshift=redshift              &
+         &                                                 )
     ! Limit the maximum distance.
     caputi2011UKIDSSUDSDistanceMaximum=min(caputi2011UKIDSSUDSDistanceMaximum,self%binDistanceMaximum)
     return

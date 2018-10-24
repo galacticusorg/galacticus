@@ -19,6 +19,7 @@
   !% Implementation of a merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
 
   use Halo_Mass_Functions
+  use Conditional_Mass_Functions
 
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn" defaultThreadPrivate="yes">
   !#  <description>A merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.</description>
@@ -26,11 +27,12 @@
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionStllrMssFnctn
      !% Implementation of merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
      private
-     class           (haloMassFunctionClass), pointer :: haloMassFunction_
-     double precision                                 :: alpha             , beta               , &
-          &                                              constant          , binWidthLogarithmic, &
-          &                                              massMinimum       , massMaximum        , &
-          &                                              massCharacteristic, normalization
+     class           (haloMassFunctionClass       ), pointer :: haloMassFunction_
+     class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+     double precision                                        :: alpha                   , beta               , &
+          &                                                     constant                , binWidthLogarithmic, &
+          &                                                     massMinimum             , massMaximum        , &
+          &                                                     massCharacteristic      , normalization
    contains
      final     ::           stellarMassFunctionDestructor
      procedure :: sample => stellarMassFunctionSample
@@ -51,10 +53,11 @@ contains
     type            (mergerTreeBuildMassDistributionStllrMssFnctn)                :: self
     type            (inputParameters                             ), intent(inout) :: parameters
     class           (haloMassFunctionClass                       ), pointer       :: haloMassFunction_
-    double precision                                                              :: alpha             , beta               , &
-          &                                                                          constant          , binWidthLogarithmic, &
-          &                                                                          massMinimum       , massMaximum        , &
-          &                                                                          massCharacteristic, normalization
+    class           (conditionalMassFunctionClass                ), pointer       :: conditionalMassFunction_
+    double precision                                                              :: alpha                   , beta               , &
+         &                                                                           constant                , binWidthLogarithmic, &
+         &                                                                           massMinimum             , massMaximum        , &
+          &                                                                          massCharacteristic      , normalization
     
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -112,22 +115,24 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    !# <objectBuilder class="haloMassFunction" name="haloMassFunction_" source="parameters"/>
-    self=mergerTreeBuildMassDistributionStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_)
+    !# <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters"/>
+    !# <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
+    self=mergerTreeBuildMassDistributionStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function stellarMassFunctionConstructorParameters
 
-  function stellarMassFunctionConstructorInternal(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_) result(self)
+  function stellarMassFunctionConstructorInternal(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class.
    implicit none
     type            (mergerTreeBuildMassDistributionStllrMssFnctn)                        :: self
-    class           (haloMassFunctionClass                          ), intent(in   ), target :: haloMassFunction_
-    double precision                                                 , intent(in   )         :: alpha             , beta               , &
-         &                                                                                      constant          , binWidthLogarithmic, &
-         &                                                                                      massMinimum       , massMaximum        , &
-         &                                                                                      massCharacteristic, normalization
-    !# <constructorAssign variables="alpha, beta, constant, binWidthLogarithmic, massMinimum, massMaximum, massCharacteristic, normalization, *haloMassFunction_"/>
+    class           (haloMassFunctionClass                       ), intent(in   ), target :: haloMassFunction_
+    class           (conditionalMassFunctionClass                ), intent(in   ), target :: conditionalMassFunction_
+    double precision                                              , intent(in   )         :: alpha                   , beta               , &
+         &                                                                                   constant                , binWidthLogarithmic, &
+         &                                                                                   massMinimum             , massMaximum        , &
+         &                                                                                   massCharacteristic      , normalization
+    !# <constructorAssign variables="alpha, beta, constant, binWidthLogarithmic, massMinimum, massMaximum, massCharacteristic, normalization, *haloMassFunction_, *conditionalMassFunction_"/>
     
     return
   end function stellarMassFunctionConstructorInternal
@@ -137,7 +142,8 @@ contains
     implicit none
     type(mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self
 
-    !# <objectDestructor name="self%haloMassFunction_"/>
+    !# <objectDestructor name="self%haloMassFunction_"       />
+    !# <objectDestructor name="self%conditionalMassFunction_"/>
     return
   end subroutine stellarMassFunctionDestructor
 
@@ -189,21 +195,18 @@ contains
 
     double precision function xiIntegrand(logStellarMass)
       !% The integrand appearing in the $\xi$ function.
-      use Conditional_Mass_Functions
       implicit none
-      double precision                              , intent(in   ) :: logStellarMass
-      class           (conditionalMassFunctionClass), pointer       :: conditionalMassFunction_
-      double precision                                              :: conditionalMassFunctionVariance , stellarMass       , &
-           &                                                           stellarMassFunctionObservedError, stellarMassMaximum, &
-           &                                                           stellarMassMinimum
+      double precision, intent(in   ) :: logStellarMass
+      double precision                :: conditionalMassFunctionVariance , stellarMass       , &
+           &                             stellarMassFunctionObservedError, stellarMassMaximum, &
+           &                             stellarMassMinimum
 
       ! Compute the stellar mass and range corresponding to data bins.
       stellarMass       =10.0d0** logStellarMass
       stellarMassMinimum=10.0d0**(logStellarMass-0.5d0*self%binWidthLogarithmic)
       stellarMassMaximum=10.0d0**(logStellarMass+0.5d0*self%binWidthLogarithmic)
       ! Compute the variance in the model conditional stellar mass function.
-      conditionalMassFunction_        => conditionalMassFunction()
-      conditionalMassFunctionVariance =  conditionalMassFunction_%massFunctionVariance(massHalo,stellarMassMinimum,stellarMassMaximum)
+      conditionalMassFunctionVariance =+self%conditionalMassFunction_%massFunctionVariance(massHalo,stellarMassMinimum,stellarMassMaximum)
       ! Compute the error in the observed stellar mass. We use a simple Schechter function (plus minimum error) fit.
       stellarMassFunctionObservedError=+self%normalization                                      &
            &                           *exp(-(stellarMass/self%massCharacteristic)**self%beta ) &

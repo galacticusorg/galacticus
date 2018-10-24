@@ -88,6 +88,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialBinsPerDecade</name>
+    !#   <source>parameters</source>
     !#   <defaultValue>10</defaultValue>
     !#   <description>The number of bins per decade of halo mass to use when constructing stellar mass function covariance matrices for main branch galaxies.</description>
     !#   <type>real</type>
@@ -95,6 +96,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMinimum</name>
+    !#   <source>parameters</source>
     !#   <defaultValue>1.0d8</defaultValue>
     !#   <description>The minimum halo mass to consider when constructing stellar mass function covariance matrices for main branch galaxies.</description>
     !#   <type>real</type>
@@ -102,6 +104,7 @@ contains
     !# </inputParameter>
     !# <inputParameter>
     !#   <name>covarianceBinomialMassHaloMaximum</name>
+    !#   <source>parameters</source>
     !#   <defaultValue>1.0d16</defaultValue>
     !#   <description>The maximum halo mass to consider when constructing stellar mass function covariance matrices for main branch galaxies.</description>
     !#   <type>real</type>
