@@ -125,15 +125,13 @@ contains
 
   double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
-    double precision                               , intent(in   ), optional :: mass               , magnitudeAbsolute, luminosity
+    double precision                               , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                        , intent(in   ), optional :: field
-    class           (cosmologyFunctionsClass      ), pointer                 :: cosmologyFunctions_
-    double precision                                                         :: redshift           , logarithmicMass
+    double precision                                                         :: redshift, logarithmicMass
     !GCC$ attributes unused :: self, magnitudeAbsolute, luminosity
     
     ! Validate field.
@@ -162,15 +160,13 @@ contains
          &      )                             , &
          &     +0.0d0                           &
          &    )
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()     
     ! Convert from redshift to comoving distance.
-    liWhite2009SDSSDistanceMaximum=min(                                                                           &
-         &                             self%limitDistanceMaximum                                                , &
-         &                             cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                                         output  =distanceTypeComoving, &
-         &                                                                         redshift=redshift              &
-         &                                                                        )                               &
+    liWhite2009SDSSDistanceMaximum=min(                                                                                &
+         &                             self%limitDistanceMaximum                                                     , &
+         &                             self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                                              output  =distanceTypeComoving, &
+         &                                                                              redshift=redshift              &
+         &                                                                             )                               &
          &                            )
     return
   end function liWhite2009SDSSDistanceMaximum

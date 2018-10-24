@@ -163,15 +163,13 @@ contains
 
   double precision function tomczak2014ZFOURGEDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryTomczak2014ZFOURGE), intent(inout)           :: self
-    double precision                                  , intent(in   ), optional :: mass               , magnitudeAbsolute, luminosity
+    double precision                                  , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                           , intent(in   ), optional :: field
-    class           (cosmologyFunctionsClass         ), pointer                 :: cosmologyFunctions_
-    double precision                                                            :: redshift           , logarithmicMass
+    double precision                                                            :: redshift, logarithmicMass
     !GCC$ attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
@@ -186,14 +184,12 @@ contains
     case (2)
        redshift=-58.4827675323933d0+logarithmicMass*(20.2501133330335d0+logarithmicMass*(-2.35628286307041d0+logarithmicMass*(0.0927047000361006d0)))
     end select
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()    
     ! Convert from redshift to comoving distance.
-    tomczak2014ZFOURGEDistanceMaximum                                                 &
-         &=cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                             output  =distanceTypeComoving, &
-         &                                             redshift=redshift              &
-         &                                            )
+    tomczak2014ZFOURGEDistanceMaximum                                                      &
+         &=self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                  output  =distanceTypeComoving, &
+         &                                                  redshift=redshift              &
+         &                                                 )
     ! Limit the maximum distance.
     tomczak2014ZFOURGEDistanceMaximum=min(tomczak2014ZFOURGEDistanceMaximum,self%binDistanceMaximum)
     return

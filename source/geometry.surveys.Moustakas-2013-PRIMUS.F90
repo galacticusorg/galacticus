@@ -161,15 +161,13 @@ contains
 
   double precision function moustakas2013PRIMUSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryMoustakas2013PRIMUS), intent(inout)           :: self
-    double precision                                   , intent(in   ), optional :: mass               , magnitudeAbsolute, luminosity
+    double precision                                   , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                            , intent(in   ), optional :: field
-    class           (cosmologyFunctionsClass          ), pointer                 :: cosmologyFunctions_
-    double precision                                                             :: redshift           , logarithmicMass
+    double precision                                                             :: redshift, logarithmicMass
     !GCC$ attributes unused :: magnitudeAbsolute, luminosity
 
     ! Validate field.
@@ -205,14 +203,12 @@ contains
             &   +logarithmicMass*(+0.10030052053225000d0) &
             &                                           )
     end select
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()    
     ! Convert from redshift to comoving distance.
-    moustakas2013PRIMUSDistanceMaximum                                                &
-         &=cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                             output  =distanceTypeComoving, &
-         &                                             redshift=redshift              &
-         &                                            )
+    moustakas2013PRIMUSDistanceMaximum                                                     &
+         &=self%cosmologyFunctions_%distanceComovingConvert(                               &
+         &                                                  output  =distanceTypeComoving, &
+         &                                                  redshift=redshift              &
+         &                                                 )
     ! Limit the maximum distance.
     moustakas2013PRIMUSDistanceMaximum=min(moustakas2013PRIMUSDistanceMaximum,self%binDistanceMaximum)
     return
