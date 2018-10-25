@@ -89,7 +89,7 @@ contains
     double precision                                     , intent(in   )         :: timescaleMultiplier , scatter
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileClass             ), intent(in   ), target :: darkMatterProfile_
-    !# <constructorAssign variables="scatter, *darkMatterHaloScale_, *darkMatterProfile_"/>
+    !# <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfile_"/>
 
     return
   end function jiang2008ConstructorInternal
