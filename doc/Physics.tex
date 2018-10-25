@@ -2430,7 +2430,7 @@ Stellar population spectra are used to construct intgrated spectra of galaxies. 
 
 \subsection{Conroy, White \& Gunn (2009)}
 
-Selected with {\normalfont \ttfamily stellarPopulationSpectraMethod}$=${\normalfont \ttfamily Conroy-White-Gunn2009} this method uses v2.2 of the \href{http://www.cfa.harvard.edu/~cconroy/FSPS.html}{{\normalfont \ttfamily FSPS}} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval. The file name used is {\normalfont \ttfamily data/SSP\_Spectra\_Conroy-et-al\_v2.2\_imf$<$imfDescriptor$>$.hdf5} where $<${\normalfont \ttfamily imfDescriptor}$>$ is the \gls{imf} descriptor defined by the selected \gls{imf} (see \S\ref{sec:imfTasks}).
+Selected with {\normalfont \ttfamily stellarPopulationSpectraMethod}$=${\normalfont \ttfamily Conroy-White-Gunn2009} this method uses v2.2 of the \href{http://www.cfa.harvard.edu/~cconroy/FSPS.html}{{\normalfont \ttfamily FSPS}} code of \cite{conroy_propagation_2009} to compute stellar spectra. If necessary, the {\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later retrieval. The file name used is {\normalfont \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v2.5\_$<$descriptor$>$.hdf5} where $<${\normalfont \ttfamily descriptor}$>$ is an MD5 hash descriptor of the selected stellar population.
 
 \subsection{File}
 
