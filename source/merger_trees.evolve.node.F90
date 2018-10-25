@@ -751,35 +751,35 @@ contains
        ! If an interrupt was triggered, then derivatives will all be zero, so we set the Jacobian to zero here and exit.
        if (interrupt) then
           jacobian(1:propertyCountActive,1:propertyCountActive)=0.0d0
-          return
-       end if       
-       ! Iterate over parameters, computing Jacobian using finite differences.
-       do i=1,propertyCountActive
-          ! To compute the finite difference we make a small perturbation in one parameter. If the parameter is non-zero, use a
-          ! small, fractional perturbation. For parameters with zero value, use a perturbation equal to the absolute tolerance
-          ! supplied to the ODE solver.
-          if (propertyValues0(i)==0.0d0) then
-             propertyValueDelta       =+propertyScalesActive       (i)
-          else
-             propertyValueDelta       =+odeJacobianStepSizeRelative    &
-                  &                    *propertyValues0            (i)
-             if (abs(propertyValueDelta) < deltaTiny*propertyScalesActive(i)) &
-                  & propertyValueDelta=+propertyScalesActive       (i)
-          end if          
-          propertyValues1       =+propertyValues0
-          propertyValues1(i)    =+propertyValues1            (i) &
-               &                 +propertyValueDelta
-          call activeNode%deserializeValues     (propertyValues1,propertyTypeODE                                         )
-          call activeNode%odeStepRatesInitialize(                                                                        )
-          call Galactic_Structure_Radii_Revert  (activeNode                                                              )
-          call Tree_Node_Compute_Derivatives    (activeNode     ,odeConverged,interrupt,functionInterrupt,propertyTypeODE)
-          call activeNode%serializeRates        (propertyRates1                                          ,propertyTypeODE)
-          jacobian(i,:)=+(                  &
-               &          +propertyRates1   &
-               &          -propertyRates0   &
-               &         )                  &
-               &        /propertyValueDelta
-       end do
+       else
+          ! Iterate over parameters, computing Jacobian using finite differences.
+          do i=1,propertyCountActive
+             ! To compute the finite difference we make a small perturbation in one parameter. If the parameter is non-zero, use a
+             ! small, fractional perturbation. For parameters with zero value, use a perturbation equal to the absolute tolerance
+             ! supplied to the ODE solver.
+             if (propertyValues0(i)==0.0d0) then
+                propertyValueDelta       =+propertyScalesActive       (i)
+             else
+                propertyValueDelta       =+odeJacobianStepSizeRelative    &
+                     &                    *propertyValues0            (i)
+                if (abs(propertyValueDelta) < deltaTiny*propertyScalesActive(i)) &
+                     & propertyValueDelta=+propertyScalesActive       (i)
+             end if
+             propertyValues1       =+propertyValues0
+             propertyValues1(i)    =+propertyValues1            (i) &
+                  &                 +propertyValueDelta
+             call activeNode%deserializeValues     (propertyValues1,propertyTypeODE                                         )
+             call activeNode%odeStepRatesInitialize(                                                                        )
+             call Galactic_Structure_Radii_Revert  (activeNode                                                              )
+             call Tree_Node_Compute_Derivatives    (activeNode     ,odeConverged,interrupt,functionInterrupt,propertyTypeODE)
+             call activeNode%serializeRates        (propertyRates1                                          ,propertyTypeODE)
+             jacobian(i,:)=+(                  &
+                  &          +propertyRates1   &
+                  &          -propertyRates0   &
+                  &         )                  &
+                  &        /propertyValueDelta
+          end do
+       end if
     end if
     ! Map Jacobian back to output array.
     derivativeRatesValues=reshape(jacobian,[propertyCountActive**2])
