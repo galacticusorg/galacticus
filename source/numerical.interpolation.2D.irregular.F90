@@ -108,10 +108,13 @@ contains
        workspace%realWork   =0.0d0
     end if
 
-    ! Call the subroutine that does the interpolation.
+    ! Call the subroutine that does the interpolation. This call is wrapped inside an OpenMP critical section as the 2D
+    ! interpolation code is not thread prarallel - I don't understand why, but it's such old and ugly code that I can't figure it
+    ! out. It should be replaced.    
+    !$omp critical (idbvip)
     call idbvip(resetFlag,numberComputePointsActual,dataPointCount,dataX,dataY,dataZ,interpolatedPointCount,interpolateX&
          &,interpolateY,Interpolate_2D_Irregular_Array,workspace%integerWork,workspace%realWork)
-
+    !$omp end critical (idbvip)
     return
   end function Interpolate_2D_Irregular_Array
 
