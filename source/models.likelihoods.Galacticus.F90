@@ -499,9 +499,6 @@ contains
              end if
              ! Spawn the MPI processes for Galacticus.             
              allocate(spawnStatus(mpiSelf%count()))
-             ! AJB TODO
-             !  Pass ulimit etc. to spawned threads?
-             !    Seems like we'd have to do this via setrlimit() system call within Galacticus itself.
              call CPU_Time(timeBegin)
              call MPI_Comm_Spawn(char(self%executable),[char(self%scratchPath)//'/galacticusLikelihoodParameters'//char(mpiSelf%rankLabel())//'.xml'],mpiSelf%count(),self%spawnInfo,0,splitCommunicator,childCommunicator,spawnStatus,status)
              if (status /= 0) call Galacticus_Error_Report('failed to spawn Galacticus'//{introspection:location})
