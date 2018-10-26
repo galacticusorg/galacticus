@@ -110,7 +110,7 @@
   class           (initialMassFunctionClass ), allocatable :: standardInitialMassFunction_
   class           (stellarFeedbackClass     ), allocatable :: standardStellarFeedback_
   class           (supernovaeTypeIaClass    ), allocatable :: standardSupernovaeTypeIa_
-  !$omp threadprivate(standardSelf,standardLifetime,standardMetallicity,standardStellarAstrophysics_,standardInitialMassFunction_,standardStellarFeedback_,standardSupernovaeTypeIa_)
+  !$omp threadprivate(standardElementIndex,standardSelf,standardLifetime,standardMetallicity,standardStellarAstrophysics_,standardInitialMassFunction_,standardStellarFeedback_,standardSupernovaeTypeIa_)
 
   ! Tabulation resolution.
   integer         , parameter :: standardTableMetallicityCount  =10
@@ -346,7 +346,7 @@ contains
     type            (integratorCompositeGaussKronrod1D)                        :: integrator_
     integer                                                                    :: fileFormat        , iAge            , &
          &                                                                        iMetallicity      , loopCount       , &
-         &                                                                        loopCountTotal
+         &                                                                        loopCountTotal    , i
     double precision                                                           :: maximumMass       , minimumMass     , &
          &                                                                        metallicity
     type            (hdf5Object                       )                        :: file              , dataset
@@ -438,31 +438,29 @@ contains
           call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)
           call integrator_%integrandSet(property%integrand                                   )
           !$omp do schedule(dynamic)
-          do iAge=1,standardTableAgeCount
+          do i=0,loopCountTotal-1
+             iMetallicity=mod( i              ,standardTableMetallicityCount)+1
+             iAge        =    (i-iMetallicity)/standardTableMetallicityCount +1
              standardLifetime=property%age(iAge)
-             write (progressMessage,'(a6,e8.2,a4)') 'age = ',standardLifetime,' Gyr'
-             call Galacticus_Display_Message(progressMessage,verbosityWorking)
-             do iMetallicity=1,standardTableMetallicityCount
-                ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
-                if (self%instantaneousRecyclingApproximation) then
-                   standardMetallicity=metallicitySolar
-                else
-                   standardMetallicity=property%metallicity(iMetallicity)
-                end if
-                ! Update the counter.
-                !$omp atomic
-                loopCount=loopCount+1
-                ! Find the minimum and maximum masses to integrate over for this IMF.
-                minimumMass=self%initialMassFunction_%massMinimum()
-                maximumMass=self%initialMassFunction_%massMaximum()
-                ! Integrate ejected mass over the IMF between these limits.
-                property%property(iAge,iMetallicity)=integrator_%evaluate(minimumMass,maximumMass)
-                call Galacticus_Display_Counter(                                                   &
-                     &                          int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
-                     &                          .false.                                          , &
-                     &                          verbosityWorking                                   &
-                     &                         )
-             end do
+             ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
+             if (self%instantaneousRecyclingApproximation) then
+                standardMetallicity=metallicitySolar
+             else
+                standardMetallicity=property%metallicity(iMetallicity)
+             end if
+             ! Find the minimum and maximum masses to integrate over for this IMF.
+             minimumMass=self%initialMassFunction_%massMinimum()
+             maximumMass=self%initialMassFunction_%massMaximum()
+             ! Integrate ejected mass over the IMF between these limits.
+             property%property(iAge,iMetallicity)=integrator_%evaluate(minimumMass,maximumMass)
+             ! Update the counter.
+             !$omp atomic
+             loopCount=loopCount+1
+             call Galacticus_Display_Counter(                                                   &
+                  &                          int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
+                  &                          .false.                                          , &
+                  &                          verbosityWorking                                   &
+                  &                         )
           end do
           !$omp end do
           deallocate(standardStellarAstrophysics_)
