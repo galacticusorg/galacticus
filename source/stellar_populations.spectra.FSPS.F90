@@ -69,7 +69,7 @@ contains
     type   (stellarPopulationSpectraFSPS)                        :: self
     logical                              , intent(in   )         :: forceZeroMetallicity
     class  (initialMassFunctionClass    ), intent(in   ), target :: initialMassFunction_
-    !# <constructorAssign variables="*initialMassFunction_"/>
+    !# <constructorAssign variables="forceZeroMetallicity, *initialMassFunction_"/>
     
     self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(galacticusPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v2.5_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
     return
