@@ -227,7 +227,7 @@ contains
     use Galacticus_Display
     use Kind_Numbers
     use Error_Functions
-    !$ use OMP_Lib
+    use MPI_Utilities
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)  :: self
     double precision                                 , intent(in   )  :: variance                     , time
@@ -254,23 +254,39 @@ contains
     end if
     ! Construct the table if necessary.
     makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
-    if (makeTable) then
-       ! Construct the table of variance on which we will solve for the first crossing distribution.
-       if (self%useFile.and..not.locked) then
-          call File_Lock(char(self%fileName),farahiFileLock)
-          locked=.true.
+#ifdef USEMPI
+    if (self%coordinatedMPI_) then
+       if (locked) then
+          call File_Unlock(farahiFileLock)
+          locked=.false.
        end if
+       call mpiBarrier()
+    end if
+#endif
+    if (makeTable) then
+#ifdef USEMPI
+       ! If coordinating under MPI then only the rank-0 process locks the file.
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+          ! Construct the table of variance on which we will solve for the first crossing distribution.
+          if (self%useFile.and..not.locked) then
+             call File_Lock(char(self%fileName),farahiFileLock)
+             locked=.true.
+          end if
+#ifdef USEMPI
+       end if
+#endif
        if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
        self%varianceMaximum   =max(self%varianceMaximum,variance)
        self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnityProbability))
        if (self%tableInitialized) then
-          self%timeMinimum=min(self%timeMinimum,0.5d0*time)
-          self%timeMaximum=max(self%timeMaximum,2.0d0*time)
+          self%timeMinimum=min(      self%timeMinimum                                          ,0.5d0*time)
+          self%timeMaximum=max(      self%timeMaximum                                          ,2.0d0*time)
        else
-          self%timeMinimum=                     0.5d0*time
-          self%timeMaximum=                     2.0d0*time
+          self%timeMinimum=                                                                     0.5d0*time
+          self%timeMaximum=max(2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0),2.0d0*time)
        end if
        self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(farahiTimeNumberPerDecade))+1)
        call allocateArray(self%varianceTable                ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
@@ -280,24 +296,44 @@ contains
        self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
        self%varianceTableStep=self%varianceTable(1)-self%varianceTable(0)
        ! Loop through the table and solve for the first crossing distribution.
-       call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
-       message="    time: "
-       write (label,'(f6.3)') self%timeMinimum
-       message=message//label//" to "
-       write (label,'(f6.3)') self%timeMaximum
-       message=message//label
-       call Galacticus_Display_Message(message,verbosityWorking)
-       message="variance: "
-       write (label,'(f6.3)') self%varianceMaximum
-       message=message//label
-       call Galacticus_Display_Message(message,verbosityWorking)
-       loopCountTotal=self%timeTableCount*(self%varianceTableCount-1)
-       loopCount     =0
-       !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_)
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+          call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
+          message="    time: "
+          write (label,'(f6.3)') self%timeMinimum
+          message=message//label//" to "
+          write (label,'(f6.3)') self%timeMaximum
+          message=message//label
+          call Galacticus_Display_Message(message,verbosityWorking)
+          message="variance: "
+          write (label,'(f6.3)') self%varianceMaximum
+          message=message//label
+          call Galacticus_Display_Message(message,verbosityWorking)
+#ifdef USEMPI
+       end if
+#endif
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+          loopCountTotal=(self%timeTableCount/mpiSelf%count()+1)*((self%varianceTableCount-1)*self%varianceTableCount)/2
+       else
+#endif
+          loopCountTotal= self%timeTableCount                   *((self%varianceTableCount-1)*self%varianceTableCount)/2
+#ifdef USEMPI
+       end if
+#endif
+       loopCount=0
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
+#endif
+       !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_) if (.not.mpiSelf%isActive())
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
+#ifdef USEMPI
+          if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
           self%firstCrossingProbabilityTable(0,iTime)=0.0d0
           self%firstCrossingProbabilityTable(1,iTime)=                                                                                                                                          &
                &                                 real(                                                                                                                                          &
@@ -313,9 +349,15 @@ contains
                &                                      kind=kind_dble                                                                                                                            &
                &                                     )
           do i=2,self%varianceTableCount
-             call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+#ifdef USEMPI
+             if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+                call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+#ifdef USEMPI
+             end if
+#endif
              !$omp atomic
-             loopCount=loopCount+1
+             loopCount=loopCount+(i-1)
              sigma1f  =0.0d0
              do j=1,i-1
                 sigma1f=+sigma1f                                                                                                                     &
@@ -355,8 +397,18 @@ contains
        end do
        !$omp end do
        !$omp end parallel
-       call Galacticus_Display_Counter_Clear(verbosityWorking)
-       call Galacticus_Display_Unindent("done",verbosityWorking)
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+          call Galacticus_Display_Counter_Clear(verbosityWorking)
+          call Galacticus_Display_Unindent("done",verbosityWorking)
+#ifdef USEMPI
+       end if
+       if (self%coordinatedMPI_) then
+          call mpiBarrier()
+          self%firstCrossingProbabilityTable=mpiSelf%sum(self%firstCrossingProbabilityTable)
+       end if
+#endif
        ! Reset the interpolators.
        call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance,reset=self%interpolationResetVariance)
        call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime    ,reset=self%interpolationResetTime    )
@@ -365,7 +417,13 @@ contains
        ! Record that the table is now built.
        self%tableInitialized=.true.
        ! Write the table to file if possible.
-       if (self%useFile) call self%fileWrite()       
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+          if (self%useFile) call self%fileWrite()
+#ifdef USEMPI
+       end if
+#endif
     end if
     if (locked) call File_Unlock(farahiFileLock)
     ! Get interpolation in time.
@@ -500,6 +558,7 @@ contains
     use Galacticus_Display
     use Kind_Numbers
     use Error_Functions
+    use MPI_Utilities
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)               :: self
     double precision                                 , intent(in   )               :: time                             , varianceProgenitor
@@ -512,7 +571,8 @@ contains
     logical                                                                        :: makeTable
     integer                                                                        :: i                                , iTime                    , &
          &                                                                            iVariance                        , j                        , &
-         &                                                                            loopCount                        , loopCountTotal
+         &                                                                            loopCount                        , loopCountTotal           , &
+         &                                                                            taskCount
     double precision                                                               :: timeProgenitor                   , varianceMinimumRate
     character       (len=6                          )                              :: label
     type            (varying_string                 )                              :: message
@@ -524,18 +584,34 @@ contains
     ! Determine if we need to make the table.
     ! Read tables from file if possible.
     locked=.false.
-    if (self%useFile.and..not.self%tableInitialized) then
+    if (self%useFile.and..not.self%tableInitializedRate) then
        call File_Lock(char(self%fileName),farahiFileLock)
        locked=.true.
        call self%fileRead()
     end if
     makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
-    if (makeTable) then
-       ! Construct the table of variance on which we will solve for the first crossing distribution.
-       if (self%useFile.and..not.locked) then
-          call File_Lock(char(self%fileName),farahiFileLock)
-          locked=.true.
+#ifdef USEMPI
+    if (self%coordinatedMPI_) then
+       if (locked) then
+          call File_Unlock(farahiFileLock)
+          locked=.false.
        end if
+       call mpiBarrier()
+    end if
+#endif
+    if (makeTable) then
+#ifdef USEMPI
+       ! If coordinating under MPI then only the rank-0 process locks the file.
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+          ! Construct the table of variance on which we will solve for the first crossing distribution.
+          if (self%useFile.and..not.locked) then
+             call File_Lock(char(self%fileName),farahiFileLock)
+             locked=.true.
+          end if
+#ifdef USEMPI
+       end if
+#endif
        if (allocated(self%varianceTableRate     )) call deallocateArray(self%varianceTableRate     )
        if (allocated(self%varianceTableRateBase )) call deallocateArray(self%varianceTableRateBase )
        if (allocated(self%timeTableRate         )) call deallocateArray(self%timeTableRate         )
@@ -546,7 +622,6 @@ contains
           self%timeMaximumRate   =max(self%timeMaximumRate,2.0d0*time)
           self%timeTableCountRate=int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+1
        else
-          ! Get the default cosmology functions object.
           self%timeMinimumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMaximum))
           self%timeMaximumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMinimum))
           self%timeMinimumRate   =min(self%timeMinimumRate,0.5d0*time)
@@ -588,20 +663,41 @@ contains
        ! The time table is logarithmically distributed in time.
        self%timeTableRate=Make_Range(self%timeMinimumRate,self%timeMaximumRate,self%timeTableCountRate,rangeType=rangeTypeLogarithmic)
        ! Loop through the table and solve for the first crossing distribution.
-       call Galacticus_Display_Indent("solving for excursion set barrier crossing rates",verbosityWorking)
-       message="    time: "
-       write (label,'(f6.3)') self%timeMinimumRate
-       message=message//label//" to "
-       write (label,'(f6.3)') self%timeMaximumRate
-       message=message//label
-       call Galacticus_Display_Message(message,verbosityWorking)
-       message="variance: "
-       write (label,'(f6.3)') self%varianceMaximumRate
-       message=message//label
-       call Galacticus_Display_Message(message,verbosityWorking)
-       loopCountTotal=self%timeTableCountRate*(1+self%varianceTableCountRateBase)
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+          call Galacticus_Display_Indent("solving for excursion set barrier crossing rates",verbosityWorking)
+          message="    time: "
+          write (label,'(f6.3)') self%timeMinimumRate
+          message=message//label//" to "
+          write (label,'(f6.3)') self%timeMaximumRate
+          message=message//label
+          call Galacticus_Display_Message(message,verbosityWorking)
+          message="variance: "
+          write (label,'(f6.3)') self%varianceMaximumRate
+          message=message//label
+          call Galacticus_Display_Message(message,verbosityWorking)
+#ifdef USEMPI
+       end if
+#endif
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+          loopCountTotal=((self%timeTableCountRate*(self%varianceTableCountRateBase+1))/mpiSelf%count()+1)
+       else
+#endif
+          loopCountTotal= (self%timeTableCountRate*(self%varianceTableCountRateBase+1))          
+#ifdef USEMPI
+       end if
+#endif
        loopCount=0
-       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_)
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+          self%firstCrossingTableRate=0.0d0
+          self%nonCrossingTableRate  =0.0d0
+       end if
+       taskCount=-1
+#endif
+       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_) if (.not.mpiSelf%isActive())
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
        !$omp do schedule(dynamic)
@@ -611,7 +707,17 @@ contains
           timeProgenitor=self%timeTableRate(iTime)*(1.0d0-self%timeStepFractional)
           ! Loop through the starting variances.
           do iVariance=0,self%varianceTableCountRateBase
-             call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+#ifdef USEMPI
+             taskCount=taskCount+1
+             if (self%coordinatedMPI_ .and. mod(taskCount,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
+#ifdef USEMPI
+             if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+                call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+#ifdef USEMPI
+             end if
+#endif
              !$omp atomic
              loopCount=loopCount+1
              ! For zero variance, the rate is initialized to zero.
@@ -713,8 +819,19 @@ contains
        deallocate(varianceTableRateBaseQuad )
        deallocate(varianceTableRateQuad     )
        if (allocated(firstCrossingTableRateQuad)) deallocate(firstCrossingTableRateQuad)
-       call Galacticus_Display_Counter_Clear(       verbosityWorking)
-       call Galacticus_Display_Unindent     ("done",verbosityWorking)
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+          call Galacticus_Display_Counter_Clear(       verbosityWorking)
+          call Galacticus_Display_Unindent     ("done",verbosityWorking)
+#ifdef USEMPI
+       end if
+       if (self%coordinatedMPI_) then
+          call mpiBarrier()
+          self%firstCrossingTableRate=mpiSelf%sum(self%firstCrossingTableRate)
+          self%  nonCrossingTableRate=mpiSelf%sum(self%  nonCrossingTableRate)
+       end if
+#endif
        ! Reset the interpolators.
        call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRate    ,reset=self%interpolationResetVarianceRate    )
        call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRateBase,reset=self%interpolationResetVarianceRateBase)
@@ -728,7 +845,13 @@ contains
        ! Record that the table is now built.
        self%tableInitializedRate=.true.
        ! Write the table to file if possible.
-       if (self%useFile) call self%fileWrite()
+#ifdef USEMPI
+       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+          if (self%useFile) call self%fileWrite()
+#ifdef USEMPI
+       end if
+#endif
     end if
     if (locked) call File_Unlock(farahiFileLock)
     return
@@ -798,8 +921,7 @@ contains
        write (label,'(e12.6)') self%timeMaximum
        message=var_str('    time maximum: ')//label//' Gyr'
        write (label,'(e12.6)') self%varianceMaximum
-       message=var_str('variance minimum: ')//label
-       call Galacticus_Display_Message (message,verbosityWorking)
+       message=var_str('variance maximum: ')//label
        call Galacticus_Display_Message (message,verbosityWorking)
        call Galacticus_Display_Unindent(''     ,verbosityWorking)
     end if
