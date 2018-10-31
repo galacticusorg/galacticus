@@ -47,8 +47,18 @@
      integer         (c_size_t                  ), allocatable, dimension(:) :: treeMassCount          , rankMass
      logical                                                                 :: computeTreeWeights
    contains
-     final     ::              buildDestructor
-     procedure :: construct => buildConstruct
+     !@ <objectMethods>
+     !@   <object>mergerTreeConstructorBuild</object>
+     !@   <objectMethod>
+     !@     <method>constructMasses</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Construct the set of tree masses to be built.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                    buildDestructor
+     procedure :: construct       => buildConstruct
+     procedure :: constructMasses => buildConstructMasses
   end type mergerTreeConstructorBuild
 
   interface mergerTreeConstructorBuild
@@ -121,9 +131,6 @@ contains
 
   function buildConstructorInternal(timeBase,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_) result(self)
     !% Initializes the merger tree building module.
-    use Memory_Management
-    use Sort
-    use Galacticus_Error
     implicit none
     type            (mergerTreeConstructorBuild)                        :: self
     double precision                            , intent(in   )         :: timeBase
@@ -134,7 +141,6 @@ contains
     class           (mergerTreeBuilderClass    ), intent(in   ), target :: mergerTreeBuilder_
     class           (haloMassFunctionClass     ), intent(in   ), target :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), intent(in   ), target :: mergerTreeBuildMasses_
-    integer         (c_size_t                  )                        :: iTreeFirst            , iTreeLast
     !# <constructorAssign variables="timeBase, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_"/>
 
     ! Set offset for tree numbers.
@@ -142,40 +148,6 @@ contains
        self%treeNumberOffset=0_c_size_t
     else
        self%treeNumberOffset=self%treeBeginAt-1_c_size_t
-    end if
-    ! Generate set of merger tree masses
-    call self%mergerTreeBuildMasses_%construct(self%timeBase,self%treeMass,self%treeMassMinimum,self%treeMassMaximum,self%treeWeight)
-    self%treeCount=size(self%treeMass,kind=c_size_t)
-    ! Sort halos by mass.
-    allocate(self%rankMass(self%treeCount))
-    self%rankMass=Sort_Index_Do(self%treeMass)
-    ! Compute the weight (number of trees per unit volume) for each tree if weights were not supplied.
-    self%computeTreeWeights=.not.allocated(self%treeWeight)
-    if (.not.self%computeTreeWeights) then
-       if     (                                 &
-            &   allocated(self%treeMassMinimum) &
-            &  .or.                             &
-            &   allocated(self%treeMassMaximum) &
-            & ) call Galacticus_Error_Report('mass interval should not be set if tree weights are provided'//{introspection:location})
-    else
-       call allocateArray(self%treeWeight   ,[self%treeCount])
-       call allocateArray(self%treeMassCount,[self%treeCount])
-       iTreeFirst=0
-       do while (iTreeFirst < self%treeCount)
-          iTreeFirst=iTreeFirst+1
-          ! Find the last tree with the same mass.
-          iTreeLast=iTreeFirst
-          if (iTreeLast < self%treeCount) then
-             do while (self%treeMass(self%rankMass(iTreeLast+1)) == self%treeMass(self%rankMass(iTreeFirst)))
-                iTreeLast=iTreeLast+1
-                if (iTreeLast == self%treeCount) exit
-             end do
-          end if
-          ! Store the number of trees at this mass.
-          self%treeMassCount(iTreeFirst:iTreeLast)=iTreeLast-iTreeFirst+1
-          ! Update to the last tree processed.
-          iTreeFirst=iTreeLast
-       end do
     end if
     return
   end function buildConstructorInternal
@@ -211,6 +183,8 @@ contains
     type            (varying_string            )                :: message
     double precision                                            :: uniformRandom
 
+    ! Ensure masses are constructed.
+    call self%constructMasses()
     ! Prepare to store/restore internal state.
     treeStateStoreSequence=-1_c_size_t
     ! Retrieve stored internal state if possible.
@@ -288,3 +262,52 @@ contains
     end if
     return
   end function buildConstruct
+
+  subroutine buildConstructMasses(self)
+    !% Construct the set of tree masses to be built.
+    use Memory_Management
+    use Sort
+    use Galacticus_Error
+    implicit none
+    class  (mergerTreeConstructorBuild), intent(inout) :: self
+    integer(c_size_t                  )                :: iTreeFirst, iTreeLast
+
+    if (.not.allocated(self%treeMass)) then
+       ! Generate set of merger tree masses
+       call self%mergerTreeBuildMasses_%construct(self%timeBase,self%treeMass,self%treeMassMinimum,self%treeMassMaximum,self%treeWeight)
+       self%treeCount=size(self%treeMass,kind=c_size_t)
+       ! Sort halos by mass.
+       allocate(self%rankMass(self%treeCount))
+       self%rankMass=Sort_Index_Do(self%treeMass)
+       ! Compute the weight (number of trees per unit volume) for each tree if weights were not supplied.
+       self%computeTreeWeights=.not.allocated(self%treeWeight)
+       if (.not.self%computeTreeWeights) then
+          if     (                                 &
+               &   allocated(self%treeMassMinimum) &
+               &  .or.                             &
+               &   allocated(self%treeMassMaximum) &
+               & ) call Galacticus_Error_Report('mass interval should not be set if tree weights are provided'//{introspection:location})
+       else
+          call allocateArray(self%treeWeight   ,[self%treeCount])
+          call allocateArray(self%treeMassCount,[self%treeCount])
+          iTreeFirst=0
+          do while (iTreeFirst < self%treeCount)
+             iTreeFirst=iTreeFirst+1
+             ! Find the last tree with the same mass.
+             iTreeLast=iTreeFirst
+             if (iTreeLast < self%treeCount) then
+                do while (self%treeMass(self%rankMass(iTreeLast+1)) == self%treeMass(self%rankMass(iTreeFirst)))
+                   iTreeLast=iTreeLast+1
+                   if (iTreeLast == self%treeCount) exit
+                end do
+             end if
+             ! Store the number of trees at this mass.
+             self%treeMassCount(iTreeFirst:iTreeLast)=iTreeLast-iTreeFirst+1
+             ! Update to the last tree processed.
+             iTreeFirst=iTreeLast
+          end do
+       end if
+    end if
+    return
+  end subroutine buildConstructMasses
+  
