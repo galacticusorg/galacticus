@@ -174,10 +174,10 @@ module MPI_Utilities
      generic   :: median         => mpiMedianArray
      procedure ::                   mpiSumScalarInt     , mpiSumArrayInt
      procedure ::                   mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble
+          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
      generic   :: sum            => mpiSumScalarInt     , mpiSumArrayInt         , &
           &                         mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble
+          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
      procedure ::                   mpiAnyLogicalScalar
      generic   :: any            => mpiAnyLogicalScalar
      procedure :: maxloc         => mpiMaxloc
@@ -921,6 +921,36 @@ contains
 #endif
     return
   end function mpiSumArrayTwoDouble
+
+  function mpiSumArrayThreeDouble(self,array,mask)
+    !% Sum an rank-3 double array over all processes, returning it to all processes.
+    implicit none
+    class           (mpiObject), intent(in   )                                                                             :: self
+    double precision           , intent(in   ), dimension( :               , :               , :               )           :: array
+    logical                    , intent(in   ), dimension(0:                                                   ), optional :: mask
+    double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: mpiSumArrayThreeDouble
+#ifdef USEMPI
+    double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: maskedArray
+    integer                                                                                                                :: iError                , activeCount
+#endif
+    
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0.0d0
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArrayThreeDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, array, mask
+    mpiSumArrayThreeDouble=0.0d0
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArrayThreeDouble
   
   double precision function mpiSumScalarDouble(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.
