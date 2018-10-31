@@ -30,6 +30,7 @@ module Excursion_Sets_First_Crossings
   !#  <description>Class providing first crossing statistics for the excursion set problem.</description>
   !#  <default>linearBarrier</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <data>logical :: coordinatedMPI_=.false. </data>
   !#  <method name="probability" >
   !#   <description>Return the probability for a trajectory to make its first crossing of the barrier at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>
   !#   <type>double precision</type>
@@ -50,6 +51,15 @@ module Excursion_Sets_First_Crossings
   !#   <pass>yes</pass>
   !#   <argument>double precision          , intent(in   ) :: variance, time</argument>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#  </method>
+  !#  <method name="coordinatedMPI" >
+  !#   <description>Sets the state of coordination under MPI. If set to true then the object can assume that any calculations it performs are being performed identically by all other MPI processes. This permits, for example, coordinated tabulation of results across MPI processes.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>logical, intent(in   ) :: state</argument>
+  !#   <code>
+  !#     self%coordinatedMPI_=state
+  !#   </code>
   !#  </method>
   !# </functionClass>
 
