@@ -274,10 +274,9 @@ contains
              powerSpectrumValue   (iMass      )=self%powerSpectrum_            %power       (wavenumber(iMass)                                                 )
              variance             (iMass      )=self%cosmologicalMassVariance_ %rootVariance(                              mass(iMass)                         )**2
           end if
-!! AJB HACK
-          !          barrier                 (iMass,iTime)=self%excursionSetBarrier_      %barrier     (variance  (iMass),time(iTime)            ,node,rateCompute=.false.)
-!          firstCrossingProbability(iMass,iTime)=self%excursionSetFirstCrossing_%probability (variance  (iMass),time(iTime)            ,node                    )
-!          massFunctionDifferential(iMass,iTime)=self%haloMassFunction_         %differential(                  time(iTime),mass(iMass),node                    )
+          barrier                 (iMass,iTime)=self%excursionSetBarrier_      %barrier     (variance  (iMass),time(iTime)            ,node,rateCompute=.false.)
+          firstCrossingProbability(iMass,iTime)=self%excursionSetFirstCrossing_%probability (variance  (iMass),time(iTime)            ,node                    )
+          massFunctionDifferential(iMass,iTime)=self%haloMassFunction_         %differential(                  time(iTime),mass(iMass),node                    )
           ! Compute halo branching rates.
           do jMass=1,iMass-1
              varianceProgenitor                   =self%cosmologicalMassVariance_ %rootVariance(mass    (jMass)                                    )**2
