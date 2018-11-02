@@ -273,7 +273,7 @@ contains
     integer(c_size_t                  )                :: iTreeFirst, iTreeLast
 
     if (.not.allocated(self%treeMass)) then
-       ! Generate set of merger tree masses
+       ! Generate set of merger tree masses.
        call self%mergerTreeBuildMasses_%construct(self%timeBase,self%treeMass,self%treeMassMinimum,self%treeMassMaximum,self%treeWeight)
        self%treeCount=size(self%treeMass,kind=c_size_t)
        ! Sort halos by mass.
