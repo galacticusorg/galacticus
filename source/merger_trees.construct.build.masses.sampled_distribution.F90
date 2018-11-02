@@ -137,7 +137,7 @@ contains
     type            (fgsl_integration_workspace              )                                           :: integrationWorkspace
     type            (fgsl_interp                             )                                           :: interpolationObject
     type            (fgsl_interp_accel                       )                                           :: interpolationAccelerator
-    logical                                                                                              :: integrandReset               =.true. , interpolationReset                =.true.
+    logical                                                                                              :: integrandReset                       , interpolationReset
     !GCC$ attributes unused :: weight
     
     ! Generate a randomly sampled set of halo masses.
@@ -155,6 +155,7 @@ contains
     jSample=0
     do iSample=1,massFunctionSampleCount
        if (massFunctionSampleLogMass(iSample) > massFunctionSampleLogPrevious) then
+          integrandReset=.true.
           probability=Integrate(                                                          &
                &                                  massFunctionSampleLogPrevious         , &
                &                                  massFunctionSampleLogMass    (iSample), &
@@ -210,6 +211,7 @@ contains
        end if
     end do
     ! Compute the corresponding halo masses by interpolation in the cumulative probability distribution function.
+    interpolationReset=.true.
     do iTree=1,treeCount
        mass       (iTree)=Interpolate(                                                                                 &
             &                                           massFunctionSampleProbability     (1:massFunctionSampleCount), &
