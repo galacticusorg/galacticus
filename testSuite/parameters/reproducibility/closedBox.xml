@@ -79,8 +79,10 @@
 
   <!-- Metal production -->
   <diskVerySimpleTrackAbundances value="true"/>
-  <imfChabrierYieldInstantaneous value="0.025"/>
-  <imfChabrierRecycledInstantaneous value="0.4"/>
+  <stellarPopulationMethod value="standard">
+    <metalYield       value="0.025"/>
+    <recycledFraction value="0.400"/>
+  </stellarPopulationMethod>
 
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="1.0e-6"/>
