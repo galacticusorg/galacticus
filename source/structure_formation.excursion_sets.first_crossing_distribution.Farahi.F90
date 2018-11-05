@@ -571,8 +571,7 @@ contains
     logical                                                                        :: makeTable
     integer                                                                        :: i                                , iTime                    , &
          &                                                                            iVariance                        , j                        , &
-         &                                                                            loopCount                        , loopCountTotal           , &
-         &                                                                            taskCount
+         &                                                                            loopCount                        , loopCountTotal
     double precision                                                               :: timeProgenitor                   , varianceMinimumRate
     character       (len=6                          )                              :: label
     type            (varying_string                 )                              :: message
@@ -580,6 +579,9 @@ contains
          &                                                                            sigma1f                          , varianceTableStepRate    , &
          &                                                                            barrier
     logical                                                                        :: locked
+#ifdef USEMPI
+    integer                                                                        :: taskCount
+#endif
     
     ! Determine if we need to make the table.
     ! Read tables from file if possible.
