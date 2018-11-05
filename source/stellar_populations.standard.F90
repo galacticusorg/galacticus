@@ -439,8 +439,8 @@ contains
           call integrator_%integrandSet(property%integrand                                   )
           !$omp do schedule(dynamic)
           do i=0,loopCountTotal-1
-             iMetallicity=mod( i              ,standardTableMetallicityCount)+1
-             iAge        =    (i-iMetallicity)/standardTableMetallicityCount +1
+             iMetallicity=mod( i                  ,standardTableMetallicityCount)+1
+             iAge        =    (i-(iMetallicity-1))/standardTableMetallicityCount +1
              standardLifetime=property%age(iAge)
              ! Set the metallicity. If using the instantaneous recycling approximation, assume Solar metallicity always.
              if (self%instantaneousRecyclingApproximation) then
