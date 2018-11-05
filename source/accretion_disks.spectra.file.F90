@@ -119,11 +119,15 @@ contains
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
 
-    if (allocated(self%wavelength)) call deallocateArray(self%wavelength)
-    if (allocated(self%luminosity)) call deallocateArray(self%luminosity)
-    if (allocated(self%SED       )) call deallocateArray(self%SED       )
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorWavelength,reset=self%resetWavelength)
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorLuminosity,reset=self%resetLuminosity)
+    if (allocated(self%wavelength)) then
+       call deallocateArray(self%wavelength)
+       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorWavelength,reset=self%resetWavelength)
+    end if
+    if (allocated(self%luminosity)) then
+       call deallocateArray(self%luminosity)
+       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorLuminosity,reset=self%resetLuminosity)
+    end if
+    if (allocated(self%SED       )) call deallocateArray(self%SED)
     return
   end subroutine fileDestructor
 
