@@ -205,10 +205,6 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <stellarPopulationSpectraMethod value="FSPS"/>
-    <stellarPopulationSpectraMethod value="file">
-      <imfSelectionFixed value="Salpeter" parameterLevel="top"/>
-      <fileNameForSalpeterIMF value="%DATADYNAMICPATH%/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imfSalpeter.hdf5"/>
-    </stellarPopulationSpectraMethod>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
