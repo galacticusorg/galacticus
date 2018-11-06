@@ -15,11 +15,12 @@ $Galacticus::Build::SourceTree::Hooks::processHooks{'objectBuilder'} = \&Process
 
 sub Process_ObjectBuilder {
     # Get the tree.
-    my $tree = shift();
+    my $tree               = shift();
     # Walk the tree, looking for code blocks.
-    my $node  = $tree;
-    my $xml   = new XML::Simple();
-    my $depth = 0;
+    my $node               = $tree;
+    my $xml                = new XML::Simple();
+    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
+    my $depth              = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "objectBuilder" && ! $node->{'directive'}->{'processed'} ) {
 	    # Generate source code for the object builder. The logic here is that we search for
@@ -92,6 +93,14 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "         ! Object does not yet exist - build it and store in the parameter node.\n";
 	    $builderCode .= "         ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent".$copyInstance.(exists($node->{'directive'}->{'parameterName'}) ? ",parameterName='".$parameterName."'" : "").")\n";
 	    $builderCode .= "         call parameterNode%objectSet(".$node->{'directive'}->{'name'}.")\n";
+	    $builderCode .= "         call ".$node->{'directive'}->{'name'}."%autoHook()\n"
+		if ( 
+		    grep 
+		    {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} 
+		    map
+		    {&Galacticus::Build::Directives::Extract_Directives($_,$node->{'directive'}->{'class'})}
+		    &List::ExtraUtils::as_array($directiveLocations->{$node->{'directive'}->{'class'}}->{'file'})
+		);
 	    $builderCode .= "      end if\n";
 	    $builderCode .= $copyLoopClose;
 	    if ( $defaultName ) {
