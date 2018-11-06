@@ -48,15 +48,16 @@ contains
     return
   end function zeroConstructorParameters
 
-  subroutine zeroRates(self,temperature,chemicalDensity,radiation,chemicalRates)
+  subroutine zeroRates(self,temperature,chemicalDensity,radiation,chemicalRates,node)
     !% Return zero rates of chemical reactions.
     implicit none
     class           (chemicalReactionRateZero), intent(inout) :: self
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensity
     double precision                          , intent(in   ) :: temperature
-    type            (radiationStructure      ), intent(in   ) :: radiation
+    class           (radiationFieldClass     ), intent(inout) :: radiation
     type            (chemicalAbundances      ), intent(inout) :: chemicalRates
-    !GCC$ attributes unused :: self, chemicalDensity, temperature, radiation
+    type            (treeNode                ), intent(inout) :: node
+    !GCC$ attributes unused :: self, chemicalDensity, temperature, radiation, node
     
     call chemicalRates%reset()
     return

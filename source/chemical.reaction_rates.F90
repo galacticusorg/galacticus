@@ -21,7 +21,8 @@
 module Chemical_Reaction_Rates
   !% Provides a class implementing chemical reaction rates.
   use Chemical_Abundances_Structure
-  use Radiation_Structure
+  use Radiation_Fields
+  use Galacticus_Nodes
   private
   
   !# <functionClass>
@@ -34,10 +35,11 @@ module Chemical_Reaction_Rates
   !#   <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision                    , intent(in   ) :: temperature</argument>
-  !#   <argument>type            (chemicalAbundances), intent(in   ) :: chemicalDensity</argument>
-  !#   <argument>type            (radiationStructure), intent(in   ) :: radiation</argument>               
-  !#   <argument>type            (chemicalAbundances), intent(inout) :: chemicalRates</argument>
+  !#   <argument>double precision                     , intent(in   ) :: temperature</argument>
+  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensity</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>               
+  !#   <argument>type            (chemicalAbundances ), intent(inout) :: chemicalRates</argument>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node</argument>
   !#  </method>
   !# </functionClass>
   

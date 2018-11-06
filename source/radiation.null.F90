@@ -16,79 +16,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-module Radiation_Null
-  implicit none
-  private
-  public :: Radiation_Set_Null, Radiation_Set_Time_Null, Radiation_Temperature_Null, Radiation_Flux_Null
+  !% Implements a class for null radiation fields.
+  
+  !# <radiationField name="radiationFieldNull">
+  !#  <description>A radiation field class for null fields.</description>
+  !# </radiationField>
+  type, extends(radiationFieldClass) :: radiationFieldNull
+     !% A radiation field class for null fields.
+     private
+   contains
+     procedure :: flux => nullFlux
+  end type radiationFieldNull
+
+  interface radiationFieldNull
+     !% Constructors for the {\normalfont \ttfamily null} radiation field class.
+     module procedure nullConstructorParameters
+  end interface radiationFieldNull
 
 contains
 
-  !# <radiationLabel>
-  !#  <label>Null</label>
-  !# </radiationLabel>
-
-  !# <radiationSet>
-  !#  <unitName>Radiation_Set_Null</unitName>
-  !#  <label>Null</label>
-  !# </radiationSet>
-  subroutine Radiation_Set_Null(componentMatched,thisNode,radiationProperties)
-    !% Property setting routine for null radiation component.
-    use Galacticus_Nodes
+  function nullConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily null} radiation field class which takes a parameter list as input.
+    use Input_Parameters
     implicit none
-    logical                                              , intent(in   ) :: componentMatched
-    type            (treeNode)                           , intent(inout) :: thisNode
-    double precision          , allocatable, dimension(:), intent(inout) :: radiationProperties
-    !GCC$ attributes unused :: componentMatched, thisNode, radiationProperties
-    
-    return
-  end subroutine Radiation_Set_Null
+    type(radiationFieldNull)                :: self
+    type(inputParameters   ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
 
-  !# <radiationSetTime>
-  !#  <unitName>Radiation_Set_Time_Null</unitName>
-  !#  <label>Null</label>
-  !# </radiationSetTime>
-  subroutine Radiation_Set_Time_Null(componentMatched,time,radiationProperties)
-    !% Property setting routine for null radiation component.
+    self=radiationFieldNull()
+    return
+  end function nullConstructorParameters
+
+  double precision function nullFlux(self,wavelength,node)
+    !% Return the flux of a null radiation field.
     implicit none
-    logical                                    , intent(in   ) :: componentMatched
-    double precision                           , intent(in   ) :: time
-    double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
-    !GCC$ attributes unused :: componentMatched, time, radiationProperties
+    class           (radiationFieldNull), intent(inout) :: self
+    double precision                    , intent(in   ) :: wavelength
+    type            (treeNode          ), intent(inout) :: node
+    !GCC$ attributes unused :: self, wavelength, node
 
+    nullFlux=0.0d0
     return
-  end subroutine Radiation_Set_Time_Null
-
-  !# <radiationTemperature>
-  !#  <unitName>Radiation_Temperature_Null</unitName>
-  !#  <label>Null</label>
-  !# </radiationTemperature>
-  subroutine Radiation_Temperature_Null(requestedType,ourType,radiationProperties,radiationTemperature,radiationType)
-    !% Temperature method for the null radiation component.
-    implicit none
-    integer                                    , intent(in   )           :: ourType             , requestedType
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
-    double precision                           , intent(inout)           :: radiationTemperature
-    integer                      , dimension(:), intent(in   ), optional :: radiationType
-    !GCC$ attributes unused :: ourType, requestedType, radiationProperties, radiationTemperature, radiationType
-
-    return
-  end subroutine Radiation_Temperature_Null
-
-  !# <radiationFlux>
-  !#  <unitName>Radiation_Flux_Null</unitName>
-  !#  <label>Null</label>
-  !# </radiationFlux>
-  subroutine Radiation_Flux_Null(requestedType,ourType,radiationProperties,wavelength,radiationFlux,radiationType)
-    !% Flux method for the null radiation component.
-    implicit none
-    integer                                    , intent(in   )           :: ourType            , requestedType
-    double precision                           , intent(in   )           :: wavelength
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
-    double precision                           , intent(inout)           :: radiationFlux
-    integer                      , dimension(:), intent(in   ), optional :: radiationType
-    !GCC$ attributes unused :: ourType, requestedType, radiationProperties, wavelength, radiationFlux, radiationType
-
-    return
-  end subroutine Radiation_Flux_Null
-
-end module Radiation_Null
+  end function nullFlux

@@ -256,7 +256,7 @@ contains
     !% Return the cooling function by interpolating in tabulated CIE data read from a file.
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
-    use               Radiation_Structure
+    use               Radiation_Fields
     use               Chemical_Abundances_Structure
     use               Table_Labels
     implicit none
@@ -264,7 +264,7 @@ contains
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances            ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure    ), intent(in   ) :: radiation
+    class           (radiationFieldClass   ), intent(inout) :: radiation
     integer         (c_size_t              )                :: iMetallicity         , iTemperature
     double precision                                        :: hMetallicity         , hTemperature  , &
          &                                                     metallicityUse       , temperatureUse
@@ -336,14 +336,14 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
     use               Chemical_Abundances_Structure
-    use               Radiation_Structure
+    use               Radiation_Fields
     use               Table_Labels
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances            ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure    ), intent(in   ) :: radiation
+    class           (radiationFieldClass   ), intent(inout) :: radiation
     double precision                                        :: coolingFunction
     integer         (c_size_t              )                :: iMetallicity         , iTemperature
     double precision                                        :: hMetallicity         , hTemperature  , &
@@ -435,13 +435,13 @@ contains
     !% Return the logarithmic slope of the cooling function with respect to density.
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     implicit none
     class           (coolingFunctionCIEFile), intent(inout) :: self
     double precision                        , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances            ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances    ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure    ), intent(in   ) :: radiation
+    class           (radiationFieldClass   ), intent(inout) :: radiation
     !GCC$ attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, chemicalDensities, radiation
     
     ! Logarithmic slope is always 2 for a CIE cooling function.

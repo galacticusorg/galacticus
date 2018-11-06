@@ -16,173 +16,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an intergalatic background (excluding the CMB) radiation component.
+  !% Implements a class for intergalactic background light.
+  
+  !# <radiationField name="radiationFieldIntergalacticBackground" abstract="yes">
+  !#  <description>A radiation field class for intergalactic background light with properties read from file.</description>
+  !# </radiationField>
+  type, extends(radiationFieldClass), abstract :: radiationFieldIntergalacticBackground
+     !% A radiation field class for intergalactic background light.
+     private
+   contains
+     !@ <objectMethods>
+     !@  <object>radiationFieldIntergalacticBackground</object>
+     !@  <objectMethod>
+     !@   <method>timeSet</method>
+     !@   <type>\void</type>
+     !@   <arguments>\doublezero\ time\argin</arguments>
+     !@   <description>Set the time for the intergalactic background radiation field.</description>
+     !@  </objectMethod>
+     !@ </objectMethods>
+     procedure(intergalacticBackgroundTimeSet), deferred :: timeSet
+  end type radiationFieldIntergalacticBackground
 
-module Radiation_Intergalactic_Background
-  !% Implements an intergalatic background (excluding the CMB) radiation component.
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Radiation_Set_Intergalactic_Background, Radiation_Set_Time_Intergalactic_Background, Radiation_Temperature_Intergalactic_Background, Radiation_Flux_Intergalactic_Background
-
-  ! Pointer to the functions that actually do the calculation.
-  procedure(Radiation_Set_Template ), pointer :: Radiation_Set_Intergalactic_Background_Do =>null()
-  procedure(Radiation_Flux_Template), pointer :: Radiation_Flux_Intergalactic_Background_Do=>null()
   abstract interface
-     subroutine Radiation_Set_Template(time,radiationProperties)
-       double precision                           , intent(in   ) :: time
-       double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
-     end subroutine Radiation_Set_Template
+     subroutine intergalacticBackgroundTimeSet(self,time)
+       import radiationFieldIntergalacticBackground
+       class           (radiationFieldIntergalacticBackground), intent(inout) :: self
+       double precision                                       , intent(in   ) :: time
+     end subroutine intergalacticBackgroundTimeSet
   end interface
-  abstract interface
-     subroutine Radiation_Flux_Template(radiationProperties,wavelength,radiationFlux)
-       import treeNode
-       double precision, dimension(:), intent(in   ) :: radiationProperties
-       double precision              , intent(in   ) :: wavelength
-       double precision              , intent(inout) :: radiationFlux
-     end subroutine Radiation_Flux_Template
-  end interface
-
-  ! Flag indicating if module has been initialized.
-  logical :: moduleInitialized=.false.
-
-contains
-
-  ! Specify the label for this radiation component.
-  !# <radiationLabel>
-  !#  <label>IGB</label>
-  !# </radiationLabel>
-
-  subroutine Radiation_Initialize_Intergalactic_Background
-    !% Initialize the intergalatic background radiation component module.
-    use ISO_Varying_String
-    use Input_Parameters
-    use Galacticus_Error
-    !# <include directive="radiationIntergalacticBackgroundMethod" type="moduleUse">
-    include 'radiation.intergalactic_background.modules.inc'
-    !# </include>
-    implicit none
-    type(varying_string) :: radiationIntergalacticBackgroundMethod
-
-    if (.not.moduleInitialized) then
-       !$omp critical(Radiation_Initialize_Intergalactic_Background)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>radiationIntergalacticBackgroundMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('file')</defaultValue>
-          !#   <description>The name of the method to be used for calculations of the intergalatic background radiation field.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="radiationIntergalacticBackgroundMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>radiationIntergalacticBackgroundMethod,Radiation_Set_Intergalactic_Background_Do,Radiation_Flux_Intergalactic_Background_Do</functionArgs>
-          include 'radiation.intergalactic_background.inc'
-          !# </include>
-          if (.not.(associated(Radiation_Set_Intergalactic_Background_Do).and.associated(Radiation_Flux_Intergalactic_Background_Do))) &
-               & call Galacticus_Error_Report('method ' //char(radiationIntergalacticBackgroundMethod)//' is unrecognized'//{introspection:location})
-          moduleInitialized=.true.
-       end if
-       !$omp end critical(Radiation_Initialize_Intergalactic_Background)
-    end if
-    return
-  end subroutine Radiation_Initialize_Intergalactic_Background
-
-  !# <radiationSetTime>
-  !#  <unitName>Radiation_Set_Time_Intergalactic_Background</unitName>
-  !#  <label>IGB</label>
-  !# </radiationSetTime>
-  subroutine Radiation_Set_Time_Intergalactic_Background(componentMatched,time,radiationProperties)
-    !% Property setting routine for the radiation component from file method.
-    implicit none
-    logical                                    , intent(in   ) :: componentMatched
-    double precision                           , intent(in   ) :: time
-    double precision, allocatable, dimension(:), intent(inout) :: radiationProperties
-
-    ! Return immediately if this component was not matched.
-    if (.not.componentMatched) return
-
-    ! Ensure that the module is initialized.
-    call Radiation_Initialize_Intergalactic_Background
-
-    ! Call the routine to do the calculation.
-    call Radiation_Set_Intergalactic_Background_Do(time,radiationProperties)
-    return
-  end subroutine Radiation_Set_Time_Intergalactic_Background
-
-  !# <radiationSet>
-  !#  <unitName>Radiation_Set_Intergalactic_Background</unitName>
-  !#  <label>IGB</label>
-  !# </radiationSet>
-  subroutine Radiation_Set_Intergalactic_Background(componentMatched,node,radiationProperties)
-    !% Property setting routine for the radiation component from file method.
-    implicit none
-    logical                                                        , intent(in   ) :: componentMatched
-    type            (treeNode          )                           , intent(inout) :: node
-    double precision                    , allocatable, dimension(:), intent(inout) :: radiationProperties
-    class           (nodeComponentBasic), pointer                                  :: basic
-
-    ! Return immediately if this component was not matched.
-    if (.not.componentMatched) return
-
-    ! Ensure that the module is initialized.
-    call Radiation_Initialize_Intergalactic_Background
-    ! Call the routine to do the calculation.
-    basic => node%basic()
-    call Radiation_Set_Intergalactic_Background_Do(basic%time(),radiationProperties)
-
-    return
-  end subroutine Radiation_Set_Intergalactic_Background
-
-  !# <radiationTemperature>
-  !#  <unitName>Radiation_Temperature_Intergalactic_Background</unitName>
-  !#  <label>IGB</label>
-  !# </radiationTemperature>
-  subroutine Radiation_Temperature_Intergalactic_Background(requestedType,ourType,radiationProperties,radiationTemperature,radiationType)
-    !% Returns the temperature for the radiation component from file method.
-    implicit none
-    integer                                    , intent(in   )           :: ourType             , requestedType
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
-    double precision                           , intent(inout)           :: radiationTemperature
-    integer                      , dimension(:), intent(in   ), optional :: radiationType
-    !GCC$ attributes unused :: requestedType, ourType, radiationProperties, radiationTemperature, radiationType
-    
-    ! Leave temperature undefined.
-    return
-  end subroutine Radiation_Temperature_Intergalactic_Background
-
-  !# <radiationFlux>
-  !#  <unitName>Radiation_Flux_Intergalactic_Background</unitName>
-  !#  <label>IGB</label>
-  !# </radiationFlux>
-  subroutine Radiation_Flux_Intergalactic_Background(requestedType,ourType,radiationProperties,wavelength,radiationFlux,radiationType)
-    !% Flux method for the radiation component from file method.
-    implicit none
-    integer                                    , intent(in   )           :: ourType            , requestedType
-    double precision                           , intent(in   )           :: wavelength
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
-    double precision                           , intent(inout)           :: radiationFlux
-    integer                      , dimension(:), intent(in   ), optional :: radiationType
-
-    ! Return immediately if this component was not matched.
-    if (requestedType /= ourType) return
-
-    ! Return immediately if the radiation object is not initialized.
-    if (.not.allocated(radiationProperties)) return
-
-    ! If specific radiation types were requested, check to see if they match our type.
-    if (present(radiationType)) then
-       if (all(radiationType /= ourType)) return
-    end if
-
-    ! Ensure that the module is initialized.
-    call Radiation_Initialize_Intergalactic_Background
-
-    ! Call the routine to do the calculation.
-    call Radiation_Flux_Intergalactic_Background_Do(radiationProperties,wavelength,radiationFlux)
-
-    return
-  end subroutine Radiation_Flux_Intergalactic_Background
-
-end module Radiation_Intergalactic_Background
+  
+       

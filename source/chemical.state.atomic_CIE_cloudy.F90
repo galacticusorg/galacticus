@@ -188,7 +188,7 @@ contains
     class           (chemicalStateAtomicCIECloudy), intent(inout) :: self
     double precision                              , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                  ), intent(in   ) :: gasAbundances
-    type            (radiationStructure          ), intent(in   ) :: radiation
+    class           (radiationFieldClass         ), intent(inout) :: radiation
 
     call                           self%tabulate                            (                                  gasAbundances          )
     atomicCIECloudyElectronDensity=self%chemicalStateCIEFile%electronDensity(numberDensityHydrogen,temperature,gasAbundances,radiation)
@@ -203,7 +203,7 @@ contains
     class           (chemicalStateAtomicCIECloudy), intent(inout) :: self
     double precision                              , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                  ), intent(in   ) :: gasAbundances
-    type            (radiationStructure          ), intent(in   ) :: radiation
+    class           (radiationFieldClass         ), intent(inout) :: radiation
 
     call                                              self%tabulate                                               (                                  gasAbundances          )
     atomicCIECloudyElectronDensityTemperatureLogSlope=self%chemicalStateCIEFile%electronDensityTemperatureLogSlope(numberDensityHydrogen,temperature,gasAbundances,radiation)
@@ -217,7 +217,7 @@ contains
     class           (chemicalStateAtomicCIECloudy), intent(inout) :: self
     double precision                              , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                  ), intent(in   ) :: gasAbundances
-    type            (radiationStructure          ), intent(in   ) :: radiation
+    class           (radiationFieldClass         ), intent(inout) :: radiation
 
     call                                          self%tabulate                                           (                                  gasAbundances          )
     atomicCIECloudyElectronDensityDensityLogSlope=self%chemicalStateCIEFile%electronDensityDensityLogSlope(numberDensityHydrogen,temperature,gasAbundances,radiation)
@@ -232,7 +232,7 @@ contains
     type            (chemicalAbundances          ), intent(inout) :: chemicalDensities
     double precision                              , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                  ), intent(in   ) :: gasAbundances
-    type            (radiationStructure          ), intent(in   ) :: radiation
+    class           (radiationFieldClass         ), intent(inout) :: radiation
 
     call self%tabulate                              (                                                    gasAbundances          )
     call self%chemicalStateCIEFile%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,gasAbundances,radiation)

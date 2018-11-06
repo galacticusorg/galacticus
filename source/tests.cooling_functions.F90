@@ -27,26 +27,28 @@ program Test_Cooling_Functions
   use Galacticus_Paths
   use Cooling_Functions
   use Abundances_Structure
+  use Cosmology_Functions
   use Chemical_Abundances_Structure
   use Chemical_States
-  use Radiation_Structure
+  use Radiation_Fields
   use Numerical_Constants_Physical
   use Numerical_Constants_Units
   use Numerical_Constants_Astronomical
   use Galacticus_Display
   implicit none
-  type            (inputParameters               ), target  :: testParameters
-  class           (coolingFunctionClass          ), pointer :: coolingFunction_
-  class           (chemicalStateClass            ), pointer :: chemicalState_
-  type            (varying_string                )          :: parameterFile
-  type            (abundances                    )          :: gasAbundances
-  type            (chemicalAbundances            )          :: chemicalDensities
-  type            (radiationStructure            )          :: radiation
-  type            (coolingFunctionCMBCompton     )          :: coolingFunctionCMBCompton_
-  type            (coolingFunctionAtomicCIECloudy)          :: coolingFunctionAtomicCIECloudy_
-  double precision                                          :: numberDensityHydrogen          , temperature           , &
-       &                                                       coolantSummation               , coolantCMBCompton     , &
-       &                                                       timescaleCooling               , coolantAtomicCIECloudy
+  type            (inputParameters                        ), target  :: testParameters
+  class           (coolingFunctionClass                   ), pointer :: coolingFunction_
+  class           (chemicalStateClass                     ), pointer :: chemicalState_
+  class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
+  type            (varying_string                         )          :: parameterFile
+  type            (abundances                             )          :: gasAbundances
+  type            (chemicalAbundances                     )          :: chemicalDensities
+  type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
+  type            (coolingFunctionCMBCompton              )          :: coolingFunctionCMBCompton_
+  type            (coolingFunctionAtomicCIECloudy)                   :: coolingFunctionAtomicCIECloudy_
+  double precision                                                   :: numberDensityHydrogen          , temperature           , &
+       &                                                                coolantSummation               , coolantCMBCompton     , &
+       &                                                                timescaleCooling               , coolantAtomicCIECloudy
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -59,16 +61,18 @@ program Test_Cooling_Functions
   parameterFile='testSuite/parameters/coolingFunctions.xml'
   testParameters=inputParameters(parameterFile)
   call testParameters%markGlobal()
+  ! Get required objects.
+  cosmologyFunctions_ => cosmologyFunctions()
+  chemicalState_      => chemicalState     ()
+  coolingFunction_    => coolingFunction   ()
   ! Define plasma conditions.
   numberDensityHydrogen=1.0d-4 ! cm^-3
   temperature          =1.0d+6 ! K
   chemicalDensities    =zeroChemicalAbundances
-  call radiation    %        define(                      [radiationTypeCMB ])
-  call radiation    %           set(1.0d0                                    )
-  call gasAbundances%metallicitySet(1.0d0,metallicityType= metallicityTypeLinearByMassSolar )
-  ! Get the cooling functions.
-  chemicalState_                  => chemicalState                 (              )
-  coolingFunction_                => coolingFunction               (              )
+  radiation            =radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+  call radiation    %       timeSet(1.0d0                                                  )
+  call gasAbundances%metallicitySet(1.0d0,metallicityType= metallicityTypeLinearByMassSolar)
+  ! Construct cooling functions.
   coolingFunctionCMBCompton_      =  coolingFunctionCMBCompton     (chemicalState_)
   coolingFunctionAtomicCIECloudy_ =  coolingFunctionAtomicCIECloudy(              )
   ! Summed cooling function should be twice the CMB Compton cooling function.
@@ -86,7 +90,7 @@ program Test_Cooling_Functions
   ! Begin repeatibility tests.
   call Unit_Tests_Begin_Group("Repeatibility")
   ! Compute timescale for Compton cooling off of CMB at the present day.
-  call radiation%set(13.8d0)
+  call radiation%timeSet(13.8d0)
   coolantCMBCompton=+coolingFunctionCMBCompton_%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
   timescaleCooling =+1.5d0                 &
        &            *numberDensityHydrogen &

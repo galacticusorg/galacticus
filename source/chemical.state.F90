@@ -21,7 +21,7 @@
 module Chemical_States
   !% Provides a class implementing the chemical state.
   use Abundances_Structure
-  use Radiation_Structure
+  use Radiation_Fields
   use Chemical_Abundances_Structure
 
   !# <functionClass>
@@ -33,34 +33,34 @@ module Chemical_States
   !#   <description>Return the electron density at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision                    , intent(in   ) :: numberDensityHydrogen, temperature</argument>
-  !#   <argument>type            (abundances        ), intent(in   ) :: gasAbundances</argument>
-  !#   <argument>type            (radiationStructure), intent(in   ) :: radiation</argument>
+  !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
   !#  </method>
   !#  <method name="electronDensityTemperatureLogSlope" >
   !#   <description>Return the logarithmic gradient of electron density with temperature at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision                    , intent(in   ) :: numberDensityHydrogen, temperature</argument>
-  !#   <argument>type            (abundances        ), intent(in   ) :: gasAbundances</argument>
-  !#   <argument>type            (radiationStructure), intent(in   ) :: radiation</argument>
+  !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
   !#  </method>
   !#  <method name="electronDensityDensityLogSlope" >
   !#   <description>Return the logarithmic gradient of electron density with respect to density at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision                    , intent(in   ) :: numberDensityHydrogen, temperature</argument>
-  !#   <argument>type            (abundances        ), intent(in   ) :: gasAbundances</argument>
-  !#   <argument>type            (radiationStructure), intent(in   ) :: radiation</argument>
+  !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
   !#  </method>
   !#  <method name="chemicalDensities" >
   !#   <description>Return the densities of chemical species at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned electron density are cm$^-3$.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (chemicalAbundances), intent(inout) :: chemicalDensities</argument>
-  !#   <argument>double precision                    , intent(in   ) :: numberDensityHydrogen, temperature</argument>
-  !#   <argument>type            (abundances        ), intent(in   ) :: gasAbundances</argument>
-  !#   <argument>type            (radiationStructure), intent(in   ) :: radiation</argument>
+  !#   <argument>type            (chemicalAbundances ), intent(inout) :: chemicalDensities</argument>
+  !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
   !#  </method>
   !# </functionClass>
 

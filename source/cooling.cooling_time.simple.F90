@@ -102,7 +102,7 @@ contains
     double precision                      , intent(in   ) :: density                       , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
     ! Effectively infinite time (for arbitrarily long cooling times).
     double precision                      , parameter     :: timeLarge              =1.0d10
     double precision                                      :: coolingFunctionValue          , energyDensityThermal , &
@@ -147,7 +147,7 @@ contains
     double precision                      , intent(in   ) :: density          , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
 
     simpleGradientDensityLogarithmic=+1.0d0                                                                                                               &
          &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
@@ -162,7 +162,7 @@ contains
     double precision                      , intent(in   ) :: density          , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
 
     simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
     return

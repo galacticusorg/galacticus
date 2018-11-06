@@ -16,139 +16,81 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a cosmic microwave background radiation component.
+  !% Implements a class for the cosmic microwave background radiation field.
 
-module Radiation_CMB
-  !% Implements a cosmic microwave background radiation component.
-  implicit none
-  private
-  public :: Radiation_Set_CMB, Radiation_Set_Time_CMB, Radiation_Temperature_CMB, Radiation_Flux_CMB
+  use Cosmology_Functions
+  
+  !# <radiationField name="radiationFieldCosmicMicrowaveBackground">
+  !#  <description>A radiation field class for the cosmic microwave background.</description>
+  !# </radiationField>
+  type, extends(radiationFieldBlackBody) :: radiationFieldCosmicMicrowaveBackground
+     !% A radiation field class for the cosmic microwave background.
+     private
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: time
+   contains
+     !@ <objectMethods>
+     !@  <object>radiationFieldCosmicMicrowaveBackground</object>
+     !@  <objectMethod>
+     !@   <method>timeSet</method>
+     !@   <type>\void</type>
+     !@   <arguments>\doublezero\ time\argin</arguments>
+     !@   <description>Set the time for the radiation field.</description>
+     !@  </objectMethod>
+     !@ </objectMethods>
+     final     ::            cosmicMicrowaveBackgroundDestructor
+     procedure :: timeSet => cosmicMicrowaveBackgroundTimeSet
+  end type radiationFieldCosmicMicrowaveBackground
+
+  interface radiationFieldCosmicMicrowaveBackground
+     !% Constructors for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
+     module procedure cosmicMicrowaveBackgroundConstructorParameters
+     module procedure cosmicMicrowaveBackgroundConstructorInternal
+  end interface radiationFieldCosmicMicrowaveBackground
 
 contains
 
-  ! Specify the label for this radiation component.
-  !# <radiationLabel>
-  !#  <label>CMB</label>
-  !# </radiationLabel>
-
-  !# <radiationSet>
-  !#  <unitName>Radiation_Set_CMB</unitName>
-  !#  <label>CMB</label>
-  !# </radiationSet>
-  subroutine Radiation_Set_CMB(componentMatched,node,radiationProperties)
-    !% Property setting routine for the cosmic microwave background radiation component.
-    use Galacticus_Nodes
-    use Memory_Management
-    use Cosmology_Functions
+  function cosmicMicrowaveBackgroundConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class which takes a parameter list as input.
+    use Input_Parameters
     implicit none
-    logical                                                             , intent(in   ) :: componentMatched
-    type            (treeNode               )                           , intent(inout) :: node
-    double precision                         , allocatable, dimension(:), intent(inout) :: radiationProperties
-    class           (nodeComponentBasic     )             , pointer                     :: basic
-    class           (cosmologyFunctionsClass)             , pointer                     :: cosmologyFunctions_
+    type (radiationFieldCosmicMicrowaveBackground)                :: self
+    type (inputParameters                        ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
 
-    ! Return immediately if this component was not matched.
-    if (.not.componentMatched) return
-
-    ! Ensure that the properties array is allocated.
-    if (.not.allocated(radiationProperties)) call allocateArray(radiationProperties,[1])
-
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
-    ! Set the CMB temperature.
-    basic => node%basic()
-    radiationProperties(1)=cosmologyFunctions_%temperatureCMBEpochal(basic%time())
-
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Radiation_Set_CMB
+  end function cosmicMicrowaveBackgroundConstructorParameters
 
-  !# <radiationSetTime>
-  !#  <unitName>Radiation_Set_Time_CMB</unitName>
-  !#  <label>CMB</label>
-  !# </radiationSetTime>
-  subroutine Radiation_Set_Time_CMB(componentMatched,time,radiationProperties)
-    !% Property setting routine for the cosmic microwave background radiation component.
-    use Memory_Management
-    use Cosmology_Functions
+  function cosmicMicrowaveBackgroundConstructorInternal(cosmologyFunctions_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
     implicit none
-    logical                                                             , intent(in   ) :: componentMatched
-    double precision                                                    , intent(in   ) :: time
-    double precision                         , allocatable, dimension(:), intent(inout) :: radiationProperties
-    class           (cosmologyFunctionsClass)             , pointer                     :: cosmologyFunctions_
+    type (radiationFieldCosmicMicrowaveBackground)                        :: self
+    class(cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="*cosmologyFunctions_"/>
 
-    ! Return immediately if this component was not matched.
-    if (.not.componentMatched) return
-
-    ! Ensure that the properties array is allocated.
-    if (.not.allocated(radiationProperties)) call allocateArray(radiationProperties,[1])
-
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
-    ! Set the CMB temperature.
-    radiationProperties(1)=cosmologyFunctions_%temperatureCMBEpochal(time)
-
+    self%temperature_=-1.0d0 ! Initialize to an unphysical value.
     return
-  end subroutine Radiation_Set_Time_CMB
-
-  !# <radiationTemperature>
-  !#  <unitName>Radiation_Temperature_CMB</unitName>
-  !#  <label>CMB</label>
-  !# </radiationTemperature>
-  subroutine Radiation_Temperature_CMB(requestedType,ourType,radiationProperties,radiationTemperature,radiationType)
-    !% Returns the temperature for the cosmic microwave background radiation component.
+  end function cosmicMicrowaveBackgroundConstructorInternal
+  
+  subroutine cosmicMicrowaveBackgroundDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily cosmicMicrowaveBackground} radiation field class.
     implicit none
-    integer                                    , intent(in   )           :: ourType             , requestedType
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
-    double precision                           , intent(inout)           :: radiationTemperature
-    integer                      , dimension(:), intent(in   ), optional :: radiationType
+    type(radiationFieldCosmicMicrowaveBackground), intent(inout) :: self
 
-    ! Return immediately if this component was not matched.
-    if (requestedType /= ourType) return
-
-    ! Return immediately if the radiation object is not initialized.
-    if (.not.allocated(radiationProperties)) return
-
-    ! If specific radiation types were requested, check to see if they match our type.
-    if (present(radiationType)) then
-       if (all(radiationType /= ourType)) return
-    end if
-
-    ! Set the temperature.
-    radiationTemperature=radiationProperties(1)
-
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
-  end subroutine Radiation_Temperature_CMB
-
-  !# <radiationFlux>
-  !#  <unitName>Radiation_Flux_CMB</unitName>
-  !#  <label>CMB</label>
-  !# </radiationFlux>
-  subroutine Radiation_Flux_CMB(requestedType,ourType,radiationProperties,wavelength,radiationFlux,radiationType)
-    !% Flux method for the CMB radiation component.
-    use Thermodynamics_Radiation
-    use Numerical_Constants_Units
+  end subroutine cosmicMicrowaveBackgroundDestructor
+  
+  subroutine cosmicMicrowaveBackgroundTimeSet(self,time)
+    !% Set the time (and temperature) of the cosmic microwave background radiation field.
     implicit none
-    integer                                    , intent(in   )           :: ourType            , requestedType
-    double precision                           , intent(in   )           :: wavelength
-    double precision, allocatable, dimension(:), intent(in   )           :: radiationProperties
-    double precision                           , intent(inout)           :: radiationFlux
-    integer                      , dimension(:), intent(in   ), optional :: radiationType
+    class           (radiationFieldCosmicMicrowaveBackground), intent(inout) :: self
+    double precision                                         , intent(in   ) :: time
 
-    ! Return immediately if this component was not matched.
-    if (requestedType /= ourType) return
-
-    ! Return immediately if the radiation object is not initialized.
-    if (.not.allocated(radiationProperties)) return
-
-    ! If specific radiation types were requested, check to see if they match our type.
-    if (present(radiationType)) then
-       if (all(radiationType /= ourType)) return
-    end if
-
-    ! Set the flux.
-    radiationFlux=radiationFlux+(centi**2)*Blackbody_Emission(wavelength,radiationProperties(1),radianceTypeFrequency)/ergs
-
+    self%time        =                                                    time
+    self%temperature_=self%cosmologyFunctions_%temperatureCMBEpochal(time=time)
     return
-  end subroutine Radiation_Flux_CMB
-
-end module Radiation_CMB
+  end subroutine cosmicMicrowaveBackgroundTimeSet
