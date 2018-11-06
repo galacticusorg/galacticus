@@ -32,6 +32,7 @@ use Galacticus::Build::SourceTree::Process::GCCAttributes;
 use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use Galacticus::Build::SourceTree::Process::Constructors;
 use Galacticus::Build::SourceTree::Process::ConditionalCall;
+use Galacticus::Build::SourceTree::Process::EventHooks;
 
 sub ParseFile {    
     # Grab the file name.

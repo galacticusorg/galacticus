@@ -184,6 +184,15 @@ sub Process_FunctionClass {
 		pass        => "yes",
 		code        => "self%isIndestructible=.true.\n"
 	    };
+	    # Add auto-hook function if required.
+	    $methods{'autoHook'} = 
+	    {
+		description => "Insert any event hooks required by this object.",
+		type        => "void",
+		pass        => "yes",
+		code        => "!GCC\$ attributes unused :: self\n\n! Nothing to do by default.\n"
+	    }
+	    if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );	    
 	    # Add "descriptor" method.
 	    my $descriptorCode;
 	    my %descriptorModules = ( "Input_Parameters" => 1 );
@@ -1772,8 +1781,8 @@ CODE
 		$postContains->[0]->{'content'} .= "         message=message//char(10)//'   -> ".$name."'\n";
 	    }
 	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
-	    $postContains->[0]->{'content'} .= "      end select\n";
-	    $postContains->[0]->{'content'} .= "      return\n";
+            $postContains->[0]->{'content'} .= "      end select\n";
+ 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrPrmtrs\n\n";
 	    
 	    # Insert class code.
@@ -1858,6 +1867,8 @@ CODE
 		    $postContains->[0]->{'content'} .= "          type is (".$class->{'name'}.")\n";
 		    $postContains->[0]->{'content'} .= "            ".$directive->{'name'}."Default=".$class->{'name'}."(subParameters)\n";
 		    $postContains->[0]->{'content'} .= "         end select\n";
+		    $postContains->[0]->{'content'} .= "      call ".$directive->{'name'}."Default%autoHook()\n"
+			if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );
 		} else {
 		    $postContains->[0]->{'content'} .= "        parametersObjectBuildIsPrivate=.false.\n";
 		    $postContains->[0]->{'content'} .= "        if (.not.associated(".$directive->{'name'}."PublicDefault)) then\n";
@@ -1866,6 +1877,8 @@ CODE
 		    $postContains->[0]->{'content'} .= "           type is (".$class->{'name'}.")\n";
 		    $postContains->[0]->{'content'} .= "             ".$directive->{'name'}."PublicDefault=".$class->{'name'}."(subParameters)\n";
 		    $postContains->[0]->{'content'} .= "           end select\n";
+		    $postContains->[0]->{'content'} .= "           call ".$directive->{'name'}."PublicDefault%autoHook()\n"
+			if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );
 		    $postContains->[0]->{'content'} .= "        end if\n";
 		    $postContains->[0]->{'content'} .= "         ".$directive->{'name'}."Default => ".$directive->{'name'}."PublicDefault\n";
 		}
@@ -2172,7 +2185,7 @@ CODE
 	    &Galacticus::Build::SourceTree::ProcessTree($treeTmp);
 	    $postContains->[0]->{'content'} = &Galacticus::Build::SourceTree::Serialize($treeTmp);
 	    # </workaround>
-	    &Galacticus::Build::SourceTree::InsertPreContains ($node->{'parent'},$preContains );
+	    &Galacticus::Build::SourceTree::InsertAfterNode   ($node            ,$preContains );
 	    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},$postContains);
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
