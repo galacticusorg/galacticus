@@ -399,7 +399,7 @@ would result in the {\normalfont \ttfamily haloMassFunction} task being performe
 
 \subsection{{\normalfont \ttfamily haloMassFunction}}
 
-The {\normalfont \ttfamily haloMassFunction} task code will tabulate the halo mass function and related quantities and output them to the main \glc\ output file. The tabulation is controlled by three sub- parameters:
+The {\normalfont \ttfamily haloMassFunction} task will tabulate the halo mass function and related quantities and output them to the main \glc\ output file. The tabulation is controlled by three sub- parameters:
 \begin{description}
 \item [{\normalfont \ttfamily [haloMassMinimum]}] The lowest mass halo (in units of $M_\odot$) at which to tabulate;
 \item [{\normalfont \ttfamily [haloMassMaximum]}] The highest mass halo (in units of $M_\odot$) at which to tabulate;
@@ -498,14 +498,9 @@ Dimensionful datasets have an {\normalfont \ttfamily unitsInSI} attribute that g
 
 Additionally, an attribute giving the critical density of the universe (in units of $\mathrm{M}_\odot \mathrm{Mpc}^{-3}$) is written to the {\normalfont \ttfamily cosmology} group and, if such a scale is well-defined, an attribute given the mass corresponding to the scale at which the power spectrum is reduce by half relative to a \gls{cdm} power spectrum in units of $\mathrm{M}_\odot$ is written as {\normalfont \ttfamily massHalfMode} to the {\normalfont \ttfamily powerSpectrum} group.
 
-\subsection{{\normalfont \ttfamily Excursion\_Sets}}\index{excursion sets}
+\subsection{{\normalfont \ttfamily excursionSets}}\index{excursion sets}
 
-The {\normalfont \ttfamily Excursion\_Sets} code will generate an HDF5 output file which contains a variety of measures related to excursion sets in the Press-Schechter formalism. The code is built and run as follows:
-\begin{verbatim}
-make Excursion_Sets.exe
-Excursion_Sets.exe <parameterFile> <outputFile>
-\end{verbatim}
-where {\normalfont \ttfamily parameterFile} is a file of parameters in \glc's usual XML format and {\normalfont \ttfamily outputFile} is the name of the file to which the excursion set data will be written. The output file has the following structure:
+The {\normalfont \ttfamily excursionSets} task will generate output which contains a variety of measures related to excursion sets in the Press-Schechter formalism. The results are output to a group specified by the {\normalfont \ttfamily [outputGroup]} subparameter (which defaults to {\normalfont \ttfamily excursionSets}). The output group contains the following structure:
 \begin{verbatim}
 +-> barrier                  [dataset]
 |
@@ -513,11 +508,13 @@ where {\normalfont \ttfamily parameterFile} is a file of parameters in \glc's us
 |
 +-> firstCrossingRate        [dataset]
 |
-+-> haloMass                 [dataset]
++-> mass                     [dataset]
 |
-+-> haloMassFunction         [dataset]
++-> massFunction             [dataset]
 |
 +-> powerSpectrum            [dataset]
+|
++-> time                     [dataset]
 |
 +-> variance                 [dataset]
 |
@@ -525,43 +522,32 @@ where {\normalfont \ttfamily parameterFile} is a file of parameters in \glc's us
 \end{verbatim}
 These datasets contain the following information:
 \begin{description}
- \item [{\normalfont \ttfamily haloMass}] Halo mass [$\mathrm{M}_\odot$];
+ \item [{\normalfont \ttfamily mass}] Halo mass [$\mathrm{M}_\odot$];
+ \item [{\normalfont \ttfamily time}] Cosmic time [Gyr];
  \item [{\normalfont \ttfamily wavenumber}] Wavenumber corresponding to this halo mass [Mpc$^{-1}$];
  \item [{\normalfont \ttfamily powerSpectrum}] Power spectrum at this wavenumber [Mpc$^3$];
  \item [{\normalfont \ttfamily variance}] The variance, $S(M)\equiv\sigma^2(M)$, at this halo mass;
  \item [{\normalfont \ttfamily barrier}] The excursion set barrier, $B(S)$;
  \item [{\normalfont \ttfamily firstCrossingProbability}] The probability of first crossing this barrier between $S$ and $S+\mathrm{d}S$;
  \item [{\normalfont \ttfamily firstCrossingRate}] The rate of first crossing of the barrier per unit time [Gyr$^{-1}$] for all pairs of halo mass;
- \item [{\normalfont \ttfamily haloMassFunction}] The halo mass function [$\mathrm{M}^{-1}_\odot$~Mpc$^{-3}$].
+ \item [{\normalfont \ttfamily massFunction}] The halo mass function [$\mathrm{M}^{-1}_\odot$~Mpc$^{-3}$].
 \end{description}
 
-\subsection{{\normalfont \ttfamily Power\_Spectra}}\index{power spectrum!outputting}
+\subsection{{\normalfont \ttfamily powerSpectra}}\index{power spectrum!outputting}
 
-The {\normalfont \ttfamily Power\_Spectra} code will generate an HDF5 output file which contains a variety of measures of the matter power spectrum tabulated as a function of wavenumber. The code is built and run as follows:
-\begin{verbatim}
-make Power_Spectra.exe
-Power_Spectra.exe <parameterFile> <outputFile>
-\end{verbatim}
-where {\normalfont \ttfamily parameterFile} is a file of parameters in \glc's usual XML format and {\normalfont \ttfamily outputFile} is the name of the file to which the power spectrum data will be written. The parameter file can specify any parameters needed for computing the power spectrum (they will be set to default values in cases where a parameter is not included).
-The output file has the following structure:
+The {\normalfont \ttfamily powerSpectra} task will output a variety of measures of the matter power spectrum tabulated as a function of wavenumber. The output data has the following structure:
 \begin{verbatim}
 +-> powerSpectrum
-|   |
-|   +-> alpha         [dataset]
-|   |
-|   +-> mass          [dataset]
-|   |
-|   +-> powerSpectrum [dataset]
-|   |
-|   +-> sigma         [dataset]
-|   |
-|   +-> wavenumber    [dataset]
-|    
-+-> Parameters
     |
-    +-> parameter1    [attribute]
+    +-> alpha         [dataset]
     |
-    +-> parameterN    [attribute]
+    +-> mass          [dataset]
+    |
+    +-> powerSpectrum [dataset]
+    |
+    +-> sigma         [dataset]
+    |
+    +-> wavenumber    [dataset]
 \end{verbatim}
 The {\normalfont \ttfamily Parameters} group contains attributes giving the values of all used parameters (just as in a \glc\ output file). The {\normalfont \ttfamily powerSpectrum} group contains datasets which give the power spectrum and related properties as follows:
 \begin{description}
