@@ -98,13 +98,13 @@ contains
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances              ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure      ), intent(in   ) :: radiation
+    class           (radiationFieldClass     ), intent(inout) :: radiation
     type            (coolantList             ), pointer       :: coolant
     
     summationCoolingFunction =  0.0d0
@@ -130,14 +130,14 @@ contains
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     use Galacticus_Error
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen  , temperature
     type            (abundances              ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure      ), intent(in   ) :: radiation
+    class           (radiationFieldClass     ), intent(inout) :: radiation
     type            (coolantList             ), pointer       :: coolant
     double precision                                          :: coolingFunction        , coolingFunctionCumulative, &
          &                                                       coolingFunctionGradient
@@ -183,14 +183,14 @@ contains
     !% \gls{cmb} photons.
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     use Galacticus_Error
     implicit none
     class           (coolingFunctionSummation), intent(inout) :: self
     double precision                          , intent(in   ) :: numberDensityHydrogen                       , temperature
     type            (abundances              ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances      ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure      ), intent(in   ) :: radiation
+    class           (radiationFieldClass     ), intent(inout) :: radiation
     type            (coolantList             ), pointer       :: coolant
     double precision                                          :: coolingFunction        , coolingFunctionCumulative, &
          &                                                       coolingFunctionGradient

@@ -28,7 +28,7 @@
      !% Implementation of a task which evolves galaxies within a set of merger tree forests. 
      private
      ! Parameters controlling load averaging and thread locking.
-     logical                                                :: limitLoadAverage             , threadLock
+     logical                                                :: limitLoadAverage                       , threadLock
      double precision                                       :: loadAverageMaximum
      integer                                                :: threadsMaximum
      type            (varying_string             )          :: threadLockName
@@ -40,7 +40,7 @@
      integer                                                :: evolveSingleForestSections
      double precision                                       :: evolveSingleForestMassMinimum
      ! Tree universes used while processing all trees.
-     type            (universe                   )          :: universeWaiting              , universeProcessed
+     type            (universe                   ), pointer :: universeWaiting               => null(), universeProcessed => null()
      ! Objects used in tree processing.
      class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_
      class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_
@@ -236,6 +236,8 @@ contains
     !# <objectDestructor name="self%mergerTreeConstructor_"  />
     !# <objectDestructor name="self%mergerTreeOperator_"     />
     !# <objectDestructor name="self%evolveForestsWorkShare_" />
+    if (associated(self%universeWaiting  )) deallocate(self%universeWaiting  )
+    if (associated(self%universeProcessed)) deallocate(self%universeProcessed)
     return
   end subroutine evolveForestsDestructor
   
@@ -256,6 +258,7 @@ contains
     use               Node_Events_Inter_Tree
     use               Sort
     use               Merger_Trees_Initialize
+    use               Events_Hooks
     !$ use            OMP_Lib
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
@@ -339,13 +342,6 @@ contains
     ! Initialize a lock used for controling tree initialization.
     !$ call OMP_Init_Lock(initializationLock)
 
-    ! Allow events to be attached to the universe.
-    self%universeWaiting%event => null()
-    !# <include directive="universePreEvolveTask" type="functionCall" functionType="void">
-    !#  <functionArgs>self%universeWaiting</functionArgs>
-    include 'galacticus.tasks.evolve_tree.universePreEvolveTask.inc'
-    !# </include>
-
     ! Initialize tree counter and record that we are not finished processing trees.
     deadlockReport              =.false.
     finished                    =.false.
@@ -359,8 +355,11 @@ contains
 
     ! Initialize universes which will act as tree stacks. We use two stacks: one for trees waiting to be processed, one for trees
     ! that have already been processed.
+    allocate(self%universeWaiting  )
+    allocate(self%universeProcessed)
     self%universeWaiting  %trees => null()
     self%universeProcessed%trees => null()
+    call self%universeWaiting%attributes%initialize()
 
     ! Set record of whether any trees were evolved to false initially.
     treesDidEvolve  =.false.
@@ -379,6 +378,18 @@ contains
        !# </include>
        evolveForestMergerTreeThreadInitialized=.true.
     end if
+    ! Allow events to be attached to the universe.
+    !$omp master
+    self%universeWaiting%event => null()
+    !# <include directive="universePreEvolveTask" type="functionCall" functionType="void">
+    !#  <functionArgs>self%universeWaiting</functionArgs>
+    include 'galacticus.tasks.evolve_tree.universePreEvolveTask.inc'
+    !# </include>
+    !# <eventHook name="universePreEvolve">
+    !#  <callWith>self%universeWaiting</callWith>
+    !# </eventHook>
+    !$omp end master
+    ! Begin processing trees.
     treeProcess : do while (.not.finished)
        ! For single forest evolution, only the master thread should retrieve a merger tree.
        singleForestTreeFetch : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
@@ -393,9 +404,10 @@ contains
           ! Get the number of the next tree to process.
           treeNumber=self%evolveForestsWorkShare_%forestNumber(utilizeOpenMPThreads=.not.self%evolveSingleForest)
           ! Get a tree.
-          tree      => mergerTreeConstructor_%construct(treeNumber)
-          finished  =  finished.or..not.associated(tree)
-          treeIsNew =.not.finished
+          tree                                    => mergerTreeConstructor_%construct(treeNumber)
+          if (associated(tree)) tree%hostUniverse => self%universeWaiting
+          finished                                =  finished.or..not.associated(tree)
+          treeIsNew                               =  .not.finished
           ! If no new tree was available, attempt to pop one off the universe stack.
           if (finished) then
              call self%resumeTree(tree)

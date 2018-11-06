@@ -26,7 +26,9 @@
    use Cosmology_Parameters
    use Intergalactic_Medium_State
    use Abundances_Structure
+   use Radiation_Fields
    use FGSL
+   use Galacticus_Nodes
    private
    public :: Intergalactic_Medium_State_Internal_Initialize
    
@@ -45,7 +47,11 @@
    class           (cosmologyFunctionsClass        ), pointer                     :: cosmologyFunctions_
    type            (intergalacticMediumStateRecFast)                              :: igmInitialState
    class           (intergalacticMediumStateClass  ), pointer                     :: igmState_  
- 
+   type            (treeNode                       ), pointer                     :: node_
+
+   ! Radiation field.
+   class           (radiationFieldClass            ), pointer                     :: radiation  
+
  contains
    
    !# <universePreEvolveTask>
@@ -115,6 +121,17 @@
         !#   <source>globalParameters</source>
         !#   <type>real</type>
         !# </inputParameter>
+        if (globalParameters%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
+           !# <objectBuilder class="radiationField" parameterName="radiationFieldIntergalacticBackgroundMethod" name="radiation" source="globalParameters"/>
+        else
+           call Galacticus_Error_Report('no intergalactic radiation field was defined'//{introspection:location})
+        end if
+        select type (radiation)
+           class is (radiationFieldIntergalacticBackground)
+           ! This is as expected.
+        class default
+           call Galacticus_Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
+        end select
         ! Build tables of properties and time for the temperature and ionization state densities in the IGM.
         cosmologyParameters_      => cosmologyParameters            (                                                      )
         cosmologyFunctions_       => cosmologyFunctions             (                                                      )
@@ -329,6 +346,7 @@
         cosmologyFunctions_       => cosmologyFunctions      ()
         linearGrowth_             => linearGrowth            ()
         cosmologicalMassVariance_ => cosmologicalMassVariance()
+        node_                     => universe_%trees%tree%baseNode
         ! Map properties to a contiguous array.
         properties( 1   )=temperature           (iNow-1    )
         properties( 2: 3)=densityHydrogen       (iNow-1,1:2)
@@ -480,7 +498,6 @@
      use Atomic_Rates_Recombination_Dielectronic
      use Atomic_Radiation_Gaunt_Factors
      use Atomic_Rates_Excitation_Collisional
-     use Radiation_Structure
      use Atomic_Cross_Sections_Ionization_Photo
      use Intergalactic_Medium_Filtering_Masses
      use Linear_Growth
@@ -505,7 +522,6 @@
      double precision                                                         , dimension(2) :: densityHydrogen_                                  , massFilteringComposite_            , &
           &                                                                                     massFilteringCompositeRateOfChange
      double precision                                                         , dimension(3) :: densityHelium_                                    , massFilteringODEsRateOfChange
-     type            (radiationStructure                      ), save                        :: radiation  
      type            (fgsl_function                           )                              :: integrationFunction
      type            (fgsl_integration_workspace              )                              :: integrationWorkspace
      logical                                                                                 :: integrationReset
@@ -677,9 +693,11 @@
            else
               recombinationDielectronicRateTo  =+0.0d0
            end if
-           ! Define the background radiation field.
-           call radiation%define([radiationTypeIGB])
-           call radiation%set   (             time )
+           ! Set the epoch for the intergalactic background radiation field.
+           select type (radiation)
+           class is (radiationFieldIntergalacticBackground)
+              call radiation%timeSet(time)
+           end select
            ! Compute rate of photoionizations from this ion.
            if (electronNumber  > 0) then
               ! Set the ground state for this photoionization calculation.
@@ -881,14 +899,14 @@
        if (wavelength <= 0.0d0) then
           Photoionization_Rate_Integrand=0.0d0
        else
-          photonFlux   =+radiation%flux(wavelength) &
-               &        /centi**2                   &
+          photonFlux   =+radiation%flux(wavelength,node_) &
+               &        /centi**2                         &
                &        *ergs
-          photonDensity=+4.0d0                      &
-               &        *Pi                         &
-               &        *photonFlux                 &
-               &        /plancksConstant            & 
-               &        /speedLight                 &
+          photonDensity=+4.0d0                            &
+               &        *Pi                               &
+               &        *photonFlux                       &
+               &        /plancksConstant                  & 
+               &        /speedLight                       &
                &        /wavelength
           Photoionization_Rate_Integrand=+speedLight                                                                            &
                &                         *atomicCrossSectionIonizationPhoto_%crossSection(                                      &
@@ -912,14 +930,14 @@
        if (wavelength < 0.0d0) then
           Photoionization_Heating_Rate_Integrand=0.0d0
        else
-          photonFlux   =+radiation%flux(wavelength) &
-               &        /centi**2                   &
+          photonFlux   =+radiation%flux(wavelength,node_) &
+               &        /centi**2                         &
                &        *ergs
-          photonDensity=+4.0d0                      &
-               &        *Pi                         &
-               &        *photonFlux                 &
-               &        /plancksConstant            & 
-               &        /speedLight                 &
+          photonDensity=+4.0d0                            &
+               &        *Pi                               &
+               &        *photonFlux                       &
+               &        /plancksConstant                  & 
+               &        /speedLight                       &
                &        /wavelength
           Photoionization_Heating_Rate_Integrand=+speedLight                                                                            &
                &                                 *atomicCrossSectionIonizationPhoto_%crossSection(                                      &

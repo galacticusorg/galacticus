@@ -25,6 +25,7 @@
      double precision                                    :: volumeWeight                  , initializedUntil
      type            (treeNode        ), pointer         :: baseNode             => null()
      type            (mergerTree      ), pointer         :: nextTree             => null()
+     type            (universe        ), pointer         :: hostUniverse         => null()
      type            (treeEvent       ), pointer, public :: event
      type            (pseudoRandom    )                  :: randomNumberGenerator
      type            (doubleScalarHash)                  :: properties

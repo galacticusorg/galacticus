@@ -268,13 +268,13 @@ contains
     !% Return the electron density by interpolating in tabulated CIE data read from a file.
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
-    use               Radiation_Structure
+    use               Radiation_Fields
     use               Table_Labels
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
@@ -344,13 +344,13 @@ contains
     !% read from a file.
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
-    use               Radiation_Structure
+    use               Radiation_Fields
     use               Table_Labels
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
@@ -439,12 +439,12 @@ contains
   double precision function cieFileElectronDensityDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
     !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE.
     use Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
     !GCC$ attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, radiation
 
     ! Electron density always scales as total density under CIE conditions.
@@ -457,7 +457,7 @@ contains
     !% and radiation field. Units of the returned electron density are cm$^-3$.
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
-    use               Radiation_Structure
+    use               Radiation_Fields
     use               Chemical_Abundances_Structure
     use               Table_Labels
     implicit none
@@ -465,8 +465,8 @@ contains
     type            (chemicalAbundances  ), intent(inout) :: chemicalDensities
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
-    type            (radiationStructure  ), intent(in   ) :: radiation
-    integer         (c_size_t          )                  :: iMetallicity         , iTemperature
+    class           (radiationFieldClass ), intent(inout) :: radiation
+    integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
     !GCC$ attributes unused :: radiation

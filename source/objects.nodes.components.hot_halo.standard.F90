@@ -21,7 +21,7 @@
 module Node_Component_Hot_Halo_Standard
   !% Implements the standard hot halo node component.
   use Galacticus_Nodes
-  use Radiation_Structure
+  use Radiation_Fields
   use Kind_Numbers
   implicit none
   private
@@ -197,31 +197,33 @@ module Node_Component_Hot_Halo_Standard
   !# </component>
 
   ! Internal count of abundances and chemicals.
-  integer                                                   :: abundancesCount                                 , chemicalsCount
+  integer                                                             :: abundancesCount                            , chemicalsCount
 
   ! Configuration variables.
-  logical                                                   :: hotHaloExcessHeatDrivesOutflow                  , hotHaloAngularMomentumAlwaysGrows
-  double precision                                          :: hotHaloExpulsionRateMaximum                     , hotHaloOutflowStrippingEfficiency
+  logical                                                             :: hotHaloExcessHeatDrivesOutflow             , hotHaloAngularMomentumAlwaysGrows
+  double precision                                                    :: hotHaloExpulsionRateMaximum                , hotHaloOutflowStrippingEfficiency
 
   ! Quantities stored to avoid repeated computation.
-  integer         (kind=kind_int8              )            :: uniqueIDPrevious
-  logical                                                   :: gotAngularMomentumCoolingRate           =.false., gotCoolingRate                      =.false., &
-       &                                                       gotOuterRadiusGrowthRate                =.false.
-  double precision                                          :: angularMomentumHeatingRateRemaining             , rateCooling                                 , &
-       &                                                       massHeatingRateRemaining                        , outerRadiusGrowthRateStored
+  integer         (kind=kind_int8                        )            :: uniqueIDPrevious
+  logical                                                             :: gotAngularMomentumCoolingRate      =.false., gotCoolingRate                   =.false., &
+       &                                                                 gotOuterRadiusGrowthRate           =.false.
+  double precision                                                    :: angularMomentumHeatingRateRemaining        , rateCooling                              , &
+       &                                                                 massHeatingRateRemaining                   , outerRadiusGrowthRateStored
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,rateCooling,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
-  type            (radiationStructure          )            :: radiation
-  !$omp threadprivate(radiation)
+  type           (radiationFieldSummation                )            :: radiation
+  type           (radiationFieldCosmicMicrowaveBackground), target    :: radiationCosmicMicrowaveBackground
+  class          (radiationFieldClass                    ), pointer   :: radiationIntergalacticBackground
+  !$omp threadprivate(radiation,radiationCosmicMicrowaveBackground,radiationIntergalacticBackground)
   ! Record of whether this module has been initialized.
-  logical                                                   :: moduleInitialized                       =.false.
+  logical                                                             :: moduleInitialized                 =.false.
 
   ! Tracked properties control.
-  logical                                                   :: hotHaloTrackStrippedGas
+  logical                                                             :: hotHaloTrackStrippedGas
 
   ! Parameters controlling absolute tolerance scales.
-  double precision                              , parameter :: scaleMassRelative                       =1.0d-3
-  double precision                              , parameter :: scaleRadiusRelative                     =1.0d-1
+  double precision                                        , parameter :: scaleMassRelative                 =1.0d-3
+  double precision                                        , parameter :: scaleRadiusRelative               =1.0d-1
   
 contains
 
@@ -417,10 +419,35 @@ contains
   !# </mergerTreeEvolveThreadInitialize>
   subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize
     !% Initializes the tree node hot halo methods module.
+    use Input_Parameters
+    use Cosmology_Functions
+    use Galacticus_Error
     implicit none
+    class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+    type (radiationFieldList     ), pointer :: radiationFieldList_
 
     ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
-    if (defaultHotHaloComponent%standardIsActive()) call radiation%define([radiationTypeCMB,radiationTypeIGB])
+    if (defaultHotHaloComponent%standardIsActive()) then
+       allocate(radiationFieldList_)
+       cosmologyFunctions_                 => cosmologyFunctions                     (                   )
+       radiationCosmicMicrowaveBackground  =  radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+       radiationFieldList_%radiationField_ => radiationCosmicMicrowaveBackground
+       if (globalParameters%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
+          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackgroundMethod" source="globalParameters"/>
+          select type (radiationIntergalacticBackground)
+          class is (radiationFieldIntergalacticBackground)
+             ! This is as expected.
+          class default
+             call Galacticus_Error_Report('radiation field is not of the intergalactic background class'//{introspection:location})
+          end select
+          allocate(radiationFieldList_%next)
+          radiationFieldList_%next%radiationField_ => radiationIntergalacticBackground
+       else
+          radiationIntergalacticBackground => null()
+       end if
+       radiation=radiationFieldSummation(radiationFieldList_)
+       nullify(radiationFieldList_)
+    end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize
 
@@ -1006,7 +1033,13 @@ contains
           ! Get the temperature of the hot reservoir.
           temperature=darkMatterHaloScale_%virialTemperature(node)
           ! Set the radiation background.
-          call radiation%set(node)
+          call radiationCosmicMicrowaveBackground%timeSet(basic%time())
+          if (associated(radiationIntergalacticBackground)) then
+             select type (radiationIntergalacticBackground)
+             class is (radiationFieldIntergalacticBackground)
+                call radiationIntergalacticBackground%timeSet(basic%time())
+             end select
+          end if
           ! Get the masses of chemicals.
           chemicalMasses=hotHalo%chemicals()
           ! Truncate masses to zero to avoid unphysical behavior.
@@ -1019,7 +1052,7 @@ contains
           chemicalDensities=chemicalDensities*massToDensityConversion
           ! Compute the chemical reaction rates.
           chemicalReactionRate_ => chemicalReactionRate()
-          call chemicalReactionRate_%rates(temperature,chemicalDensities,radiation,chemicalDensitiesRates)
+          call chemicalReactionRate_%rates(temperature,chemicalDensities,radiation,chemicalDensitiesRates,node)
           ! Convert to mass change rates.
           call chemicalDensitiesRates%numberToMass(chemicalMassesRates)
           chemicalMassesRates=chemicalMassesRates*gigaYear/massToDensityConversion
@@ -1197,10 +1230,16 @@ contains
           ! Get the hydrogen mass fraction in outflowed gas.
           hydrogenByMass         =outflowedAbundances%hydrogenMassFraction()
           ! Compute the temperature and density of material in the hot halo.
-          temperature          =darkMatterHaloScale_%virialTemperature(node)
+          temperature            =darkMatterHaloScale_%virialTemperature(node)
           numberDensityHydrogen  =hydrogenByMass*outflowedMass*massToDensityConversion/atomicMassHydrogen
           ! Set the radiation field.
-          call radiation%set(node)
+          call radiationCosmicMicrowaveBackground%timeSet(basic%time())
+          if (associated(radiationIntergalacticBackground)) then
+             select type (radiationIntergalacticBackground)
+             class is (radiationFieldIntergalacticBackground)
+                call radiationIntergalacticBackground%timeSet(basic%time())
+             end select
+          end if
           ! Get the chemical densities.
           call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
           ! Convert from densities to masses.
@@ -1844,6 +1883,7 @@ contains
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
+    class           (nodeComponentBasic      )               , pointer :: basic
     class           (nodeComponentHotHalo    )               , pointer :: hotHalo
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     class           (chemicalStateClass      )               , pointer :: chemicalState_
@@ -1878,8 +1918,15 @@ contains
           temperature          =darkMatterHaloScale_%virialTemperature(node)
           numberDensityHydrogen=hydrogenByMass*hotHalo%outflowedMass()*massToDensityConversion/atomicMassHydrogen
           ! Set the radiation field.
-          call radiation%set(node)
-          ! Get the chemical densities.
+          basic => node%basic()
+          call radiationCosmicMicrowaveBackground%timeSet(basic%time())
+          if (associated(radiationIntergalacticBackground)) then
+             select type (radiationIntergalacticBackground)
+             class is (radiationFieldIntergalacticBackground)
+                call radiationIntergalacticBackground%timeSet(basic%time())
+             end select
+          end if
+           ! Get the chemical densities.
           call chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,outflowedAbundances,radiation)
           ! Convert from densities to masses.
           call chemicalDensities%numberToMass(chemicalMasses)

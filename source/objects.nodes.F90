@@ -36,6 +36,7 @@ module Galacticus_Nodes
   use Pseudo_Random
   use Hashes
   use Kind_Numbers
+  use Hashes
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
 

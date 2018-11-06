@@ -23,7 +23,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   !% Implements an extension to the standard hot halo node component which supports a cold mode
   !% reservoir.
   use Galacticus_Nodes
-  use Radiation_Structure
+  use Radiation_Fields
   use ISO_Varying_String
   implicit none
   private

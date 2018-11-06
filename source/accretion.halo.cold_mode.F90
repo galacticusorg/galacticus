@@ -302,7 +302,7 @@ contains
     numberDensityHydrogen     =  hydrogenByMassPrimordial*(self%cosmologyParameters_%omegaBaryon()/self%cosmologyParameters_%omegaMatter())*basic%mass()*massToDensityConversion&
          &/atomicMassHydrogen
     ! Set the radiation field.
-    call self%radiation%set(node)
+    call self%radiation%timeSet(basic%time())
     ! Get hot and cold mode fractions.
     fractionHot =self%coldModeFraction(node,accretionModeHot )
     fractionCold=self%coldModeFraction(node,accretionModeCold)
@@ -358,10 +358,10 @@ contains
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
        ! Compute cold fraction if not already computed.
        if (.not.self%coldFractionComputed) then
-          ! Set the radiation field.
-          call self%radiation%set(node)
           ! Get the basic component.
           basic => node%basic()
+          ! Set the radiation field.
+          call self%radiation%timeSet(basic%time())
           ! Compute factors required for stability analysis.
           radiusShock          =self%darkMatterHaloScale_%virialRadius  (node)
           velocityPreShock     =self%darkMatterHaloScale_%virialVelocity(node)

@@ -19,7 +19,7 @@
   !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
   !% mimic the effects of reionization.
   
-  use Radiation_Structure
+  use Radiation_Fields
   use Intergalactic_Medium_State, only : intergalacticMediumStateClass, intergalacticMediumState
   use Cosmology_Functions       , only : cosmologyFunctionsClass      , cosmologyFunctions
   use Cosmology_Parameters      , only : cosmologyParametersClass     , cosmologyParameters
@@ -33,17 +33,17 @@
   type, extends(accretionHaloClass) :: accretionHaloSimple
      !% A halo accretion class using simple truncation to mimic the effects of reionization.
      private
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
-     class           (accretionHaloTotalClass      ), pointer :: accretionHaloTotal_       => null()
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
-     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_      => null()
-     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
-     class           (chemicalStateClass           ), pointer :: chemicalState_            => null()
-     double precision                                         :: timeReionization                   , velocitySuppressionReionization, &
-          &                                                      opticalDepthReionization
-     logical                                                  :: accretionNegativeAllowed           , accretionNewGrowthOnly
-     type            (radiationStructure           )          :: radiation
-     integer                                                  :: countChemicals
+     class           (cosmologyParametersClass               ), pointer :: cosmologyParameters_      => null()
+     class           (accretionHaloTotalClass                ), pointer :: accretionHaloTotal_       => null()
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_       => null()
+     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_      => null()
+     class           (intergalacticMediumStateClass          ), pointer :: intergalacticMediumState_ => null()
+     class           (chemicalStateClass                     ), pointer :: chemicalState_            => null()
+     double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
+          &                                                                opticalDepthReionization
+     logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
+     type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
+     integer                                                            :: countChemicals
    contains
      !@ <objectMethods>
      !@   <object>accretionHaloSimple</object>
@@ -172,7 +172,7 @@ contains
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
     !# <constructorAssign variables="timeReionization, velocitySuppressionReionization, accretionNegativeAllowed, accretionNewGrowthOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionHaloTotal_, *chemicalState_, *intergalacticMediumState_"/>
    
-    call self%radiation%define([radiationTypeCMB])
+    self%radiation=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
     ! Check that required properties have required attributes.       
     if     (                                                                                                       &
          &   accretionNewGrowthOnly                                                                                &
@@ -428,6 +428,7 @@ contains
     type            (chemicalAbundances )                :: simpleChemicalMasses
     type            (treeNode           ), intent(inout) :: node
     double precision                     , intent(in   ) :: massAccreted
+    class           (nodeComponentBasic ), pointer       :: basic
     type            (chemicalAbundances ), save          :: chemicalDensities
     !$omp threadprivate(chemicalDensities)
     double precision                                     :: massToDensityConversion, numberDensityHydrogen, &
@@ -440,7 +441,8 @@ contains
     temperature          =  self%darkMatterHaloScale_%virialTemperature(node)
     numberDensityHydrogen=  hydrogenByMassPrimordial*(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
-    call self%radiation%set(node)
+    basic => node%basic()
+    call self%radiation%timeSet(basic%time())
     ! Get the chemical densities.
     call self%chemicalState_%chemicalDensities(chemicalDensities,numberDensityHydrogen,temperature,zeroAbundances,self%radiation)
     ! Convert from densities to masses.

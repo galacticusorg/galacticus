@@ -144,13 +144,13 @@ contains
     !% Benson by measuring curves from the original paper.
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure                        ), intent(in   ) :: radiation
+    class           (radiationFieldClass                       ), intent(inout) :: radiation
     !GCC$ attributes unused :: radiation, gasAbundances
     
     ! Check if the hydrogen density is positive.
@@ -170,13 +170,13 @@ contains
     !% of \cite{galli_chemistry_1998}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen         , temperature
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure                        ), intent(in   ) :: radiation
+    class           (radiationFieldClass                       ), intent(inout) :: radiation
     double precision                                                            :: coolingFunction               , coolingFunctionLocalThermodynamicEquilibrium  , &
          &                                                                         coolingFunctionLowDensityLimit, numberDensityCriticalOverNumberDensityHydrogen, &
          &                                                                         coolingFunctionCumulative
@@ -242,14 +242,14 @@ contains
     !% function of \cite{galli_chemistry_1998}.
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     use Numerical_Constants_Prefixes
     implicit none
     class           (coolingFunctionMolecularHydrogenGalliPalla), intent(inout) :: self
     double precision                                            , intent(in   ) :: numberDensityHydrogen                                          , temperature
     type            (abundances                                ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances                        ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure                        ), intent(in   ) :: radiation
+    class           (radiationFieldClass                       ), intent(inout) :: radiation
     double precision                                                            :: coolingFunction                                                , coolingFunctionLocalThermodynamicEquilibrium   , &
          &                                                                         coolingFunctionLocalThermodynamicEquilibriumTemperatureGradient, coolingFunctionLowDensityLimit                 , &
          &                                                                         coolingFunctionLowDensityLimitTemperatureGradient              , logarithmic10Temperature                       , &
