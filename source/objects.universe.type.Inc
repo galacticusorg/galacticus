@@ -26,9 +26,10 @@
 
   type, public :: universe
      !% The universe object class.
-     type   (mergerTreeList), pointer         :: trees         => null()
-     logical                                  :: allTreesBuilt =  .false.
-     type   (universeEvent ), pointer, public :: event
+     type   (mergerTreeList   ), pointer         :: trees         => null()
+     logical                                     :: allTreesBuilt =  .false.
+     type   (universeEvent    ), pointer, public :: event
+     type   (genericScalarHash)                  :: attributes
    contains
      !@ <objectMethods>
      !@   <object>universe</object>
@@ -71,13 +72,14 @@
      double precision                            , public :: time 
      type            (universeEvent    ), pointer, public :: next 
      procedure       (universeEventTask), pointer, public :: task 
+     class           (*                ), pointer, public :: creator
   end type universeEvent
   
   ! Interface for universe event tasks.
   abstract interface
      logical function universeEventTask(thisEvent,thisUniverse)
        import universeEvent, universe
-       class  (universeEvent), intent(in   ) :: thisEvent      
+       class  (universeEvent), intent(in   ) :: thisEvent
        type   (universe     ), intent(inout) :: thisUniverse       
      end function universeEventTask
   end interface
