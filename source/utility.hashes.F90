@@ -25,20 +25,26 @@ module Hashes
   implicit none
 
   !# <generic identifier="Type">
-  !#  <instance label="integer"      intrinsic="integer"          />
-  !#  <instance label="integerSizeT" intrinsic="integer(c_size_t)"/>
-  !#  <instance label="double"       intrinsic="double precision" />
+  !#  <instance label="integer"      intrinsic="integer"           attributes=""          argumentAttributes=""         assignment="="  null="0"         />
+  !#  <instance label="integerSizeT" intrinsic="integer(c_size_t)" attributes=""          argumentAttributes=""         assignment="="  null="0_c_size_t"/>
+  !#  <instance label="double"       intrinsic="double precision"  attributes=""          argumentAttributes=""         assignment="="  null="0.0d0"     />
+  !#  <instance label="generic"      intrinsic="class(*)"          attributes=", pointer" argumentAttributes=", target" assignment="=>" null="null()"    />
   !# </generic>
 
   private
   public :: {Type¦label}ScalarHash
 
+  type :: {Type¦label}Container
+  private
+     {Type¦intrinsic}{Type¦attributes} :: object
+  end type {Type¦label}Container
+
   type :: {Type¦label}ScalarHash
      !% Derived type for {Type¦label} hashes.
      private
-     integer                                       :: allocatedSize   , elementCount
-     {Type¦intrinsic}                , allocatable :: hashValues   (:)
-     type            (varying_string), allocatable :: hashKeys     (:)
+     integer                                     :: allocatedSize   , elementCount
+     type   ({Type¦label}Container), allocatable :: hashValues   (:)
+     type   (varying_string       ), allocatable :: hashKeys     (:)
    contains
      !@ <objectMethods>
      !@   <object>{Type¦label}ScalarHash</object>
@@ -82,7 +88,7 @@ module Hashes
      !@     <method>values</method>
      !@     <description>Return an array of all values in the hash.</description>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless {Type¦intrinsic}[:]\textgreater} values\arginout</arguments>
+     !@     <arguments>\textcolor{red}{\textless {Type¦intrinsic}{Type¦attributes}[:]\textgreater} values\arginout</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>exists</method>
@@ -204,20 +210,23 @@ contains
 
   subroutine Delete_{Type¦label}_Scalar_VS(thisHash,key)
     !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
-    use Arrays_Search
-    use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
+    use            :: Arrays_Search
+    use            :: Galacticus_Error
     implicit none
-    type   (varying_string   ), intent(in   ) :: key
+    type   (varying_string        ), intent(in   ) :: key
     class  ({Type¦label}ScalarHash), intent(inout) :: thisHash
-    integer(c_size_t         )   , save          :: iKey
+    integer(c_size_t              ), save          :: iKey
     !$omp threadprivate(iKey)
+    integer(c_size_t              )                :: i
     
     if (Exists_{Type¦label}_Scalar_VS(thisHash,key)) then
        iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
-       thisHash%hashKeys  (ikey:thisHash%elementCount-1)=thisHash%hashKeys  (ikey+1:thisHash%elementCount)
-       thisHash%hashValues(ikey:thisHash%elementCount-1)=thisHash%hashValues(ikey+1:thisHash%elementCount)
-       thisHash%elementCount                        =thisHash%elementCount-1
+       do i=iKey,thisHash%elementCount-1
+          thisHash%hashKeys  (i)        =                 thisHash%hashKeys  (i+1)
+          thisHash%hashValues(i)%object {Type¦assignment} thisHash%hashValues(i+1)%object
+       end do
+       thisHash%elementCount=thisHash%elementCount-1
     else
        call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
     end if
@@ -246,40 +255,49 @@ contains
     keys=thisHash%hashKeys(1:thisHash%elementCount)
     return
   end subroutine Keys_{Type¦label}_Scalar
-
+  
   subroutine Values_{Type¦label}_Scalar(thisHash,values)
     !% Returns an array of all values in {\normalfont \ttfamily thisHash}.
+    use Galacticus_Error
     implicit none
-    {Type¦intrinsic}                   , allocatable, dimension(:), intent(inout) :: values
-    class  ({Type¦label}ScalarHash)                           , intent(in   ) :: thisHash
+#if {Type¦match¦^generic$¦0¦1}
+    {Type¦intrinsic}                        {Type¦attributes}, allocatable, dimension(:), intent(inout) :: values
+    class           ({Type¦label}ScalarHash)                                            , intent(in   ) :: thisHash
 
     if (allocated(values)) deallocate(values)
     allocate(values(thisHash%elementCount))
-    values=thisHash%hashValues(1:thisHash%elementCount)
+    values=thisHash%hashValues(1:thisHash%elementCount)%object
+#else
+    integer                                 , allocatable, dimension(:), intent(inout) :: values
+    class           ({Type¦label}ScalarHash)                           , intent(in   ) :: thisHash
+    !GCC$ attributes unused :: thisHash, values
+    
+    call Galacticus_Error_Report('values method is not supported for generic hashes'//{introspection:location})
+#endif
     return
   end subroutine Values_{Type¦label}_Scalar
 
-   function Value_{Type¦label}_Scalar_I(thisHash,indexValue)
+  function Value_{Type¦label}_Scalar_I(thisHash,indexValue)
     !% Returns the value of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily Hash}.
     implicit none
-    {Type¦intrinsic}                                        :: Value_{Type¦label}_Scalar_I
-    class           ({Type¦label}ScalarHash), intent(in   ) :: thisHash
-    integer                                 , intent(in   ) :: indexValue
+    {Type¦intrinsic}                        {Type¦attributes} :: Value_{Type¦label}_Scalar_I
+    class           ({Type¦label}ScalarHash), intent(in   )   :: thisHash
+    integer                                 , intent(in   )   :: indexValue
 
-    Value_{Type¦label}_Scalar_I=thisHash%hashValues(indexValue)
+    Value_{Type¦label}_Scalar_I {Type¦assignment} thisHash%hashValues(indexValue)%object
     return
   end function Value_{Type¦label}_Scalar_I
 
   function Value_{Type¦label}_Scalar_CH(thisHash,keyCH)
     !% Returns the value of {\normalfont \ttfamily Key} in {\normalfont \ttfamily Hash}.
     implicit none
-    {Type¦intrinsic}                                        :: Value_{Type¦label}_Scalar_CH
-    character       (len=*                 ), intent(in   ) :: keyCH
-    class           ({Type¦label}ScalarHash), intent(in   ) :: thisHash
-    type            (varying_string        ), save          :: key
+    {Type¦intrinsic}                        {Type¦attributes} :: Value_{Type¦label}_Scalar_CH
+    character       (len=*                 ), intent(in   )   :: keyCH
+    class           ({Type¦label}ScalarHash), intent(in   )   :: thisHash
+    type            (varying_string        ), save            :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
-    Value_{Type¦label}_Scalar_CH=Value_{Type¦label}_Scalar_VS(thisHash,key)
+    Value_{Type¦label}_Scalar_CH {Type¦assignment} Value_{Type¦label}_Scalar_VS(thisHash,key)
     return
   end function Value_{Type¦label}_Scalar_CH
 
@@ -289,16 +307,16 @@ contains
     use Galacticus_Error
     use, intrinsic :: ISO_C_Binding
     implicit none
-    {Type¦intrinsic}                                        :: Value_{Type¦label}_Scalar_VS
-    class           ({Type¦label}ScalarHash), intent(in   ) :: thisHash
-    type            (varying_string        ), intent(in   ) :: key
-    integer         (c_size_t              )                :: iKey
+    {Type¦intrinsic}                        {Type¦attributes} :: Value_{Type¦label}_Scalar_VS
+    class           ({Type¦label}ScalarHash), intent(in   )   :: thisHash
+    type            (varying_string        ), intent(in   )   :: key
+    integer         (c_size_t              )                  :: iKey
 
     if (Exists_{Type¦label}_Scalar_VS(thisHash,key)) then
        iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
-       Value_{Type¦label}_Scalar_VS=thisHash%hashValues(iKey)
+       Value_{Type¦label}_Scalar_VS {Type¦assignment} thisHash%hashValues(iKey)%object
     else
-       Value_{Type¦label}_Scalar_VS=0
+       Value_{Type¦label}_Scalar_VS {Type¦assignment} {Type¦null}
        call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
     end if
     return
@@ -307,10 +325,10 @@ contains
   subroutine Set_{Type¦label}_Scalar_CH(thisHash,keyCH,value)
     !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
     implicit none
-    {Type¦intrinsic}                        , intent(in   ) :: value
-    character       (len=*                 ), intent(in   ) :: keyCH
-    class           ({Type¦label}ScalarHash), intent(inout) :: thisHash
-    type            (varying_string        ), save          :: key
+    {Type¦intrinsic}                        {Type¦argumentAttributes}, intent(in   ) :: value
+    character       (len=*                 )                         , intent(in   ) :: keyCH
+    class           ({Type¦label}ScalarHash)                         , intent(inout) :: thisHash
+    type            (varying_string        )                         , save          :: key
     !$omp threadprivate(key)
     
     key=trim(keyCH)
@@ -323,13 +341,13 @@ contains
     use Arrays_Search
     use, intrinsic :: ISO_C_Binding
     implicit none
-    {Type¦intrinsic}                        , intent(in   )               :: Value
-    type            (varying_string        ), intent(in   )               :: Key
-    class           ({Type¦label}ScalarHash), intent(inout)               :: thisHash
-    integer         (c_size_t              )                              :: iKey
-    logical                                                               :: keyExists
-    {Type¦intrinsic}                        , allocatable  , dimension(:) :: valuesTemporary
-    type            (varying_string        ), allocatable  , dimension(:) :: keysTemporary
+    {Type¦intrinsic}                        {Type¦argumentAttributes}, intent(in   )               :: Value
+    type            (varying_string        )                         , intent(in   )               :: Key
+    class           ({Type¦label}ScalarHash)                         , intent(inout)               :: thisHash
+    integer         (c_size_t              )                                                       :: iKey
+    logical                                                                                        :: keyExists
+    type            ({Type¦label}Container )                         , allocatable  , dimension(:) :: valuesTemporary
+    type            (varying_string        )                         , allocatable  , dimension(:) :: keysTemporary
 
     ! Check if key already exists.
     if (thisHash%elementCount > 0) then
@@ -339,7 +357,7 @@ contains
     end if
     if (keyExists) then
        iKey=Search_Array(thisHash%hashKeys(1:thisHash%elementCount),key)
-       thisHash%hashValues(iKey)=value
+       thisHash%hashValues(iKey)%object {Type¦assignment} value
     else
        ! Increase hash size if necessary.
        if (thisHash%elementCount == thisHash%allocatedSize) then
@@ -370,16 +388,16 @@ contains
        end if
        if (iKey > thisHash%elementCount) then
           ! Insert at end.
-          thisHash%elementCount                       =thisHash%elementCount+1
-          thisHash%hashKeys    (thisHash%elementCount)=key
-          thisHash%hashValues  (thisHash%elementCount)=value
+          thisHash%elementCount                               =                 thisHash%elementCount+1
+          thisHash%hashKeys    (thisHash%elementCount)        =                 key
+          thisHash%hashValues  (thisHash%elementCount)%object {Type¦assignment} value
        else
           ! Shift array then insert.
-          thisHash%hashKeys        (iKey+2:thisHash%elementCount+1)=thisHash%hashKeys  (iKey+1:thisHash%elementCount)
-          thisHash%hashValues      (iKey+2:thisHash%elementCount+1)=thisHash%hashValues(iKey+1:thisHash%elementCount)
-          thisHash%hashKeys        (iKey+1                        )=key
-          thisHash%hashValues      (iKey+1                        )=value
-          thisHash%elementCount                                    =thisHash%elementCount+1
+          thisHash%hashKeys        (iKey+2:thisHash%elementCount+1)        =                 thisHash%hashKeys  (iKey+1:thisHash%elementCount)
+          thisHash%hashValues      (iKey+2:thisHash%elementCount+1)        =                 thisHash%hashValues(iKey+1:thisHash%elementCount)
+          thisHash%hashKeys        (iKey+1                        )        =                 key
+          thisHash%hashValues      (iKey+1                        )%object {Type¦assignment} value
+          thisHash%elementCount                                            =                 thisHash%elementCount+1
        end if
     end if
     return

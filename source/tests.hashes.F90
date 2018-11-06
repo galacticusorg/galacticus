@@ -24,61 +24,65 @@ program Test_Hashes
   use Memory_Management
   use Hashes
   use Galacticus_Display
+  use Input_Parameters
   implicit none
-  type(integerScalarHash) :: myHash
-
+  type (integerScalarHash)              :: myHash
+  type (genericScalarHash)              :: genericHash
+  class(inputParameters  ), allocatable :: inputParameters_
+  type (inputParameter   )              :: inputParameter_
+  class(*                ), pointer     :: generic_
+  
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
   ! Read in basic code memory usage.
   call Code_Memory_Usage('tests.hashes.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Hashes")
-
-  ! Initialize the hash.
+  ! Tests of integer scalar hashes.
+  !! Initialize the hash.
   call myHash%initialize()
-
-  ! Create some entries in the hash.
+  !! Create some entries in the hash.
   call myHash%set("dude"    , 34)
   call myHash%set("zuncular", 12)
   call myHash%set("munky"   ,-86)
-
-  ! Assert the size of the hash.
+  !! Assert the size of the hash.
   call Assert("hash size is correct",myHash%size(),3)
-
-  ! Assert that the set entries exist.
+  !! Assert that the set entries exist.
   call Assert("hash entries exist",                                                      &
        &      [myHash%exists("dude") ,myHash%exists("munky"),myHash%exists("zuncular")], &
        &      [.true.                ,.true.                ,.true.                   ]  &
        &     )
-
-  ! Assert that unset entries to not exist.
+  !! Assert that unset entries to not exist.
   call Assert("hash non-entries do not exist",                                           &
        &      [myHash%exists("buffy"),myHash%exists("giles"),myHash%exists("willow")  ], &
        &      [.false.               ,.false.               ,.false.                  ]  &
        &     )
-
-  ! Assert values of set entries.
+  !! Assert values of set entries.
   call Assert("hash entries have correct values",                                        &
        &      [myHash%value ("dude") ,myHash%value ("munky"),myHash%value ("zuncular")], &
        &      [34                    ,-86                   ,12                       ]  &
        &     )
-
-  ! Delete a hash entry.
+  !! Delete a hash entry.
   call myHash%delete("munky")
-
-  ! Assert that deleted entry no longer exists.
+  !! Assert that deleted entry no longer exists.
   call Assert("deleted hash entries no longer exists",myHash%exists("munky"),.false.)
-
-  ! Change the value of a hash entry.
+  !! Change the value of a hash entry.
   call myHash%set("dude",876)
-
-  ! Assert that new value is correct.
+  !! Assert that new value is correct.
   call Assert("changed hash entry has correct value",myHash%value("dude"),876)
-
+  !! Tests of generic scalar hashes.
+  !! Initialize the hash.
+  call genericHash%initialize()
+  !! Create some entries in the hash.
+  allocate(inputParameters :: inputParameters_)
+  call genericHash%set("class",inputParameters_)
+  call genericHash%set("type" ,inputParameter_ )
+  !! Assert types of entries.
+  generic_ => genericHash%value("class")
+  call Assert("correct class for polymoprhic object"    ,same_type_as(generic_,inputParameters_),.true.)
+  generic_ => genericHash%value("type" )
+  call Assert("correct class for non-polymoprhic object",same_type_as(generic_,inputParameter_ ),.true.)  
   ! End unit tests.
   call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
-
+  call Unit_Tests_Finish   ()
 end program Test_Hashes
