@@ -73,7 +73,7 @@ my $functionName;
 my $pointerName;
 my %bogusUninitialized;
 while ( my $line = <STDIN> ) {
-    if ( $line =~ m/^([a-zA-Z0-9_\.\/]+\.p\.F90):(\d+):(\d+):\s*$/ ) {
+    if ( $line =~ m/^([a-zA-Z0-9_\.\/]+\.p\.F90):(\d+):([\d\-]+):\s*$/ ) {
 	my $fileName     = $1;
 	my $lineOriginal = $2;
 	my $flag         = $3;
