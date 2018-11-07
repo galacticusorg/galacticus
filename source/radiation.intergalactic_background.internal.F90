@@ -323,6 +323,8 @@ contains
                   &                              *state%flux                         (jWavelength+iWavelength,jTime+iTime)
           end do
        end do
+    class default
+       intergalacticBackgroundInternalFlux=0.0d0
     end select
     !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
     intergalacticBackgroundInternalFlux=max(intergalacticBackgroundInternalFlux,0.0d0)
