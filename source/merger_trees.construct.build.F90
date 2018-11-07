@@ -36,13 +36,13 @@
      class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_
      class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_
      ! Variables giving the mass range and sampling frequency for mass function sampling.
-     double precision                                                        :: timeBase
+     double precision                                                        :: timeBase               , timeSnapTolerance
      integer                                                                 :: treeBeginAt
      ! Direction in which to process trees. 
      logical                                                                 :: processDescending
      ! Array of halo masses to use. 
      integer         (c_size_t                  )                            :: treeCount              , treeNumberOffset
-     double precision                            , allocatable, dimension(:) :: treeMass               , treeWeight      , &
+     double precision                            , allocatable, dimension(:) :: treeMass               , treeWeight       , &
           &                                                                     treeMassMinimum        , treeMassMaximum
      integer         (c_size_t                  ), allocatable, dimension(:) :: treeMassCount          , rankMass
      logical                                                                 :: computeTreeWeights
@@ -82,7 +82,7 @@ contains
     class           (mergerTreeBuilderClass    ), pointer       :: mergerTreeBuilder_
     class           (haloMassFunctionClass     ), pointer       :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), pointer       :: mergerTreeBuildMasses_
-    double precision                                            :: redshiftBase
+    double precision                                            :: redshiftBase          , timeSnapTolerance
     integer                                                     :: treeBeginAt
     logical                                                     :: processDescending
 
@@ -91,6 +91,14 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>The redshift at which to plant the base node when building merger trees.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timeSnapTolerance</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d-6</defaultValue>
+    !#   <description>The fractional tolerance within which the tree base time will be snapped to a nearby output time.</description>
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
@@ -117,6 +125,7 @@ contains
     !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
     self=mergerTreeConstructorBuild(                                                                                                        &
          &                          cosmologyFunctions_    %cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftBase     )), &
+         &                                                                                                             timeSnapTolerance  , &
          &                                                                                                             treeBeginAt        , &
          &                                                                                                             processDescending  , &
          &                          cosmologyParameters_                                                                                  , &
@@ -129,11 +138,14 @@ contains
     return
   end function buildConstructorParameters
 
-  function buildConstructorInternal(timeBase,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_) result(self)
+  function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_) result(self)
     !% Initializes the merger tree building module.
+    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Output_Times
+    use            :: Numerical_Comparison
     implicit none
     type            (mergerTreeConstructorBuild)                        :: self
-    double precision                            , intent(in   )         :: timeBase
+    double precision                            , intent(in   )         :: timeBase            , timeSnapTolerance
     integer                                     , intent(in   )         :: treeBeginAt
     logical                                     , intent(in   )         :: processDescending
     class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
@@ -141,13 +153,20 @@ contains
     class           (mergerTreeBuilderClass    ), intent(in   ), target :: mergerTreeBuilder_
     class           (haloMassFunctionClass     ), intent(in   ), target :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), intent(in   ), target :: mergerTreeBuildMasses_
-    !# <constructorAssign variables="timeBase, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_"/>
+    integer         (c_size_t                  )                        :: i
+    !# <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_"/>
 
     ! Set offset for tree numbers.
     if (self%treeBeginAt == 0) then
        self%treeNumberOffset=0_c_size_t
     else
        self%treeNumberOffset=self%treeBeginAt-1_c_size_t
+    end if
+    ! Snap tree base time if necessary.
+    if (self%timeSnapTolerance > 0.0d0) then
+       do i=1_c_size_t,Galacticus_Output_Time_Count()
+          if (Values_Agree(self%timeBase,Galacticus_Output_Time(i),relTol=self%timeSnapTolerance)) self%timeBase=Galacticus_Output_Time(i)
+       end do
     end if
     return
   end function buildConstructorInternal
