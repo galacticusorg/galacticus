@@ -100,6 +100,7 @@ contains
     double precision                              , intent(inout), optional, dimension(:) :: z
     class            (integratorMultiVectorized1D), intent(inout), optional               :: integrator_
     logical                                       , intent(in   ), optional               :: integratorErrorTolerate
+    double precision                                                                      :: y0(yCount)
     double precision                              , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
     integer                                                                               :: status
     integer         (kind=c_size_t               )                                        :: previousODENumber               , previousIntegrandsNumber
@@ -161,6 +162,8 @@ contains
           odeDriver=FODEIV2_Driver_Alloc_y_New     (odeSystem,algorithmActual,h,toleranceAbsolute,toleranceRelative)
        end if       
     end if
+    ! Keep a local copy of the initial y values so that we can repeat the step if necessary.
+    y0=y
     ! Keep a local copy of the end point as we may reset it.
     x1Internal=x1
     ! Set initial value of x variable.
@@ -210,6 +213,12 @@ contains
        case (odeSolverInterrupt)
           ! The evolution was interrupted. Reset the end time of the evolution and continue.
           x1Internal=interruptedAtX
+          if (x > x1Internal) then
+             ! The timestep exceeded the time at which an interrupt occured. To maintain accuracy we need to repeat the step.
+             y=y0
+             x=x0
+             status=FODEIV2_Driver_Reset(odeDriver)
+          end if
        case default
           ! Some other error condition.
           if (present(errorHandler)) call errorHandler(status,x,y)
