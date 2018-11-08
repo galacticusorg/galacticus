@@ -72,7 +72,7 @@
   !#   Note that the high resolution spectra from \cite{bruzual_stellar_2003} may require you to adjust the {\normalfont \ttfamily [stellarPopulationLuminosityIntegrationToleranceRelative]} parameter to a larger value\footnote{Or, alternatively, set {\normalfont \ttfamily [stellarPopulationLuminosityIntegrationToleranceDegrade]}$=${\normalfont \ttfamily true}. This will cause \glc\ to increase the tolerance as necessary to get the integrals to converge---issuing warnings each time the tolerance is increased.}. The sharp features in these high resolution spectra can be difficult to integrate. Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's format are provided in the {\normalfont \ttfamily scripts/ssps} folder.
   !#  </description>
   !#  <stateStorable>
-  !#   <exclude variables="spectra, forceZeroMetallicity, fileName"/>
+  !#   <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>
   !#  </stateStorable>
   !# </stellarPopulationSpectra>
   type, extends(stellarPopulationSpectraClass) :: stellarPopulationSpectraFile
@@ -133,7 +133,7 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=fileConstructorInternal(forceZeroMetallicity,char(fileName))
+    self=stellarPopulationSpectraFile(forceZeroMetallicity,char(fileName))
     !# <inputParametersValidate source="parameters"/>
     return
   end function fileConstructorParameters
@@ -368,8 +368,8 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
-    integer                                                                  , intent(  out) :: agesCount     , metallicitiesCount
-    double precision                              , allocatable, dimension(:), intent(  out) :: ages          , metallicity
+    integer                                                                  , intent(  out) :: agesCount, metallicitiesCount
+    double precision                              , allocatable, dimension(:), intent(  out) :: ages     , metallicity
 
     ! Ensure that the file has been read.
     call self%readFile()
