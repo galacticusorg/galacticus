@@ -109,7 +109,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,self%deltaVirial)
+       call Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,self%deltaVirial,self%cosmologyFunctions_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%deltaVirial%x(+1)
        self%tableTimeMaximum=self%deltaVirial%x(-1)

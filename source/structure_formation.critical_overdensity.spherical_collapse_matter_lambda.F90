@@ -154,7 +154,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,self%overdensityCritical,self%linearGrowth_,self%cosmologyFunctions_)
+       call Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,self%overdensityCritical,self%cosmologyFunctions_,self%linearGrowth_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%overdensityCritical%x(+1)
        self%tableTimeMaximum=self%overdensityCritical%x(-1)
