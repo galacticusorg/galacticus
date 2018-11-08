@@ -250,7 +250,7 @@ contains
        self%metalYield       =metalYield
     else
        self%metalYield_      =-huge(0.0d0)
-       self%metalYield_      = huge(0.0d0)
+       self%metalYield       = huge(0.0d0)
     end if
     countElements=Abundances_Property_Count()
     allocate(self%yield(countElements))
