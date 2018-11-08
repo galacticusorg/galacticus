@@ -184,9 +184,9 @@ contains
   double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,node)
     !% Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily node}.
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: node
-    class(nodeComponentBasic                                )               , pointer :: basic
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: node
+    class(nodeComponentBasic                                ), pointer       :: basic
 
     ! Get the basic component.
     basic => node%basic()
@@ -252,8 +252,8 @@ contains
     !% Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for {\normalfont \ttfamily node}.
     use Numerical_Constants_Math
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: node
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
     
     ! Halos at given epoch have fixed density, so radius always grows as the cube-root of mass.
@@ -264,9 +264,9 @@ contains
   double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,node)
     !% Returns the growth rate of the virial radius scale for {\normalfont \ttfamily node}.
     implicit none
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type (treeNode                                          ), intent(inout), pointer :: node
-    class(nodeComponentBasic)                                               , pointer :: basic
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type (treeNode                                          ), intent(inout) :: node
+    class(nodeComponentBasic)                                , pointer       :: basic
 
     ! Get the basic component.
     basic => node%basic()
@@ -282,7 +282,7 @@ contains
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type            (treeNode                                          ), intent(inout) :: node
     class           (nodeComponentBasic                                ), pointer       :: basic
-    integer                                                                             :: i                   , meanDensityTablePoints
+    integer                                                                             :: i    , meanDensityTablePoints
     double precision                                                                    :: time
 
     ! Get the basic component.
@@ -331,10 +331,10 @@ contains
   double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,node)
     !% Returns the growth rate of the mean density for {\normalfont \ttfamily node}.
     implicit none
-    class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)          :: self
-    type            (treeNode                                          ), intent(inout), pointer :: node
-    class           (nodeComponentBasic                                )               , pointer :: basic
-    double precision                                                                             :: expansionFactor    , time
+    class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    type            (treeNode                                          ), intent(inout) :: node
+    class           (nodeComponentBasic                                ), pointer       :: basic
+    double precision                                                                    :: expansionFactor, time
 
     if (node%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.
