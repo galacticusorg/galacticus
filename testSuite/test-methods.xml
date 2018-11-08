@@ -341,7 +341,6 @@
     <version>0.9.4</version>
     <chemicalReactionRateMethod value="hydrogenNetwork">
       <fast value="true"/>
-      <radiationCMBOnly value="true"/>
     </chemicalReactionRateMethod>
     <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
     <coolingFunctionMethod value="summation">
@@ -765,7 +764,7 @@
     <igmPropertiesRedshiftMaximum value="150"/>
     <!-- Background radiation -->
     <backgroundRadiationCompute value="true"/>
-    <radiationIntergalacticBackgroundMethod value="internal"/>
+    <radiationFieldIntergalacticBackgroundMethod value="intergalacticBackgroundInternal"/>
     <backgroundRadiationWavelengthCountPerDecade value="5"/>
     <backgroundRadiationTimeCountPerDecade value="2"/>
     <!-- Halo mass ranges -->
