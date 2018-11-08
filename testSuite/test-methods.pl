@@ -12,14 +12,14 @@ my $dataDynamicPath = exists($ENV{'GALACTICUS_DYNAMIC_DATA_PATH'}) ? $ENV{'GALAC
 # correctly).
 #
 # FSPS stellar population synthesis code and associated file.
-system("rm -f ".$dataDynamicPath."/dynamic/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imfSalpeter.hdf5");
-system("rm -rf ../aux/FSPS_v2.4");
+system("rm -f  ".$dataDynamicPath."/dynamic/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imfSalpeter.hdf5");
+system("rm -rf ".$dataDynamicPath."/dynamic/FSPS_v2.5");
 # Core files (older than 7 days).
 system("find ../ -name '".$_."' -ctime +7 -exec rm {} \\;")
     foreach ( "core.*", "vgcore.*" );
 # Noninstantaneous recycling files (older than 14 days).
 system("find ".$dataDynamicPath."/dynamic/stellarPopulations -name '".$_."' -ctime +14 -exec rm {} \\;")
-    foreach ( "Stellar_*_Yield_*_*.xml", "Stellar_Recycled_Fraction_*_*.xml", "Stellar_Energy_Input_*_*.xml" );
+    foreach ( "yield*.hdf5", "recycledFraction*.hdf5", "energyOutput*.hdf5" );
 # CAMB transfer function files (older than 14 days).
 system("find ".$dataDynamicPath."/dynamic/largeScaleStructure -name 'transfer_function_CAMB_*.xml' -ctime +14 -exec rm {} \\;");
 
