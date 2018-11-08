@@ -223,13 +223,15 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init(node)
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
+    use Dark_Matter_Halo_Mass_Accretion_Histories
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type   (treeNode                      ), intent(inout), pointer :: node
-    type   (treeNode                      )               , pointer :: nodeHost
-    class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
-    class  (nodeComponentBasic            )               , pointer :: basic
-    integer                                                         :: nodeHierarchyLevel
+    type   (treeNode                               ), intent(inout), pointer :: node
+    type   (treeNode                               )               , pointer :: nodeHost
+    class  (nodeComponentMergingStatistics         )               , pointer :: mergingStatistics
+    class  (nodeComponentBasic                     )               , pointer :: basic
+    class  (darkMatterHaloMassAccretionHistoryClass)               , pointer :: darkMatterHaloMassAccretionHistory_
+    integer                                                                  :: nodeHierarchyLevel
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
@@ -244,14 +246,15 @@ contains
        nodeHost           => nodeHost          %parent
     end do    
     ! Create a merger statistics component and initialize it. 
-    mergingStatistics => node%mergingStatistics(autoCreate=.true.)
-    basic             => node%basic            (                 )
+    darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory                  (                 )
+    mergingStatistics                   => node                              %mergingStatistics(autoCreate=.true.)
+    basic                               => node                              %basic            (                 )
     call mergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel)
     call mergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel)
     call mergingStatistics%    massWhenFirstIsolatedSet(      basic%mass())
     call mergingStatistics%    galaxyMajorMergerTimeSet(            -1.0d0)
     call mergingStatistics%      nodeMajorMergerTimeSet(            -1.0d0)
-    call mergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(node,nodeFormationMassFraction))
+    call mergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(node,nodeFormationMassFraction,darkMatterHaloMassAccretionHistory_))
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init
 
