@@ -79,11 +79,11 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init(node)
     !% Initialize the mass flow statistics component by creating components in nodes and computing formation times.
-    use Dark_Matter_Halo_Formation_Times
+    use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
     type (treeNode                       ), pointer, intent(inout) :: node
     class(nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
-    
+
     ! Return immediately if this class is not active.
     if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return
     
