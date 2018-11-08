@@ -37,6 +37,27 @@ module Events_Hooks
      integer                :: count_ =  0
      type   (hook), pointer :: first_  => null()
    contains
+     !@ <objectMethods>
+     !@   <object>eventHook</object>
+     !@   <objectMethod>
+     !@     <method>attach</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless external\textgreater} *function\_\argin</arguments>
+     !@     <description>Attach a hook to the event.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>count</method>
+     !@     <type>\intzero</type>
+     !@     <arguments></arguments>
+     !@     <description>Return a count of the number of hooks into this event.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>first</method>
+     !@     <type></type>
+     !@     <arguments>\textcolor{red}{\textless *type(hook)\textgreater}</arguments>
+     !@     <description>Return a pointer to the first hook into this event.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      procedure :: attach => eventHookAttach
      procedure :: count  => eventHookCount
      procedure :: first  => eventHookFirst
