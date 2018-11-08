@@ -96,7 +96,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,self%deltaVirial)
+       call Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,self%deltaVirial,self%cosmologyFunctions_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%deltaVirial%x(+1)
        self%tableTimeMaximum=self%deltaVirial%x(-1)
@@ -142,7 +142,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(timeActual,self%turnaround)
+       call Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(timeActual,self%turnaround,self%cosmologyFunctions_)
        self%turnaroundInitialized=.true.
        self%turnaroundTimeMinimum=self%turnaround%x(+1)
        self%turnaroundTimeMaximum=self%turnaround%x(-1)
