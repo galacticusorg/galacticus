@@ -99,8 +99,8 @@ contains
     !% fractional change in energy for a particle per crossing time is $8 \log \Lambda / N$ where $N$ is the number of particles
     !% within radius $r=${\normalfont \ttfamily radius}. The crossing time is approximated by $r/V(r)$ where $V(r)$ is the
     !% circular velocity at $r$. The Coulomb logarithm is given by $\log\Lambda=\hbox{max}(\epsilon,b_{90})$ where $\epsilon$ is
-    !% the softening length, $b_{90}=2{\rm G}m_{_\rm p}/V^2(r)$, and $m_{\rm p}$ is the particle mass. Finally, the specific
-    !% energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
+    !% the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
+    !% specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
