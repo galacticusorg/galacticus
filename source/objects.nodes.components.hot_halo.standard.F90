@@ -1221,8 +1221,9 @@ contains
        ! If we have a non-zero return rate, compute associated chemical rates.
        if (chemicalsCount > 0 .and. massReturnRate /= 0.0d0) then
           ! Get required objects.
-          darkMatterHaloScale_ => darkMatterHaloScale()
-          chemicalState_       => chemicalState      ()
+          darkMatterHaloScale_ => darkMatterHaloScale      ()
+          chemicalState_       => chemicalState            ()
+          basic                => node               %basic()
           ! Compute coefficient in conversion of mass to density for this node.
           massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(node))/3.0d0
           ! Get the abundances of the outflowed material.
