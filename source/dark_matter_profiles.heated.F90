@@ -575,8 +575,8 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class(darkMatterProfileHeated), intent(inout)          :: self
-    type (treeNode               ), intent(inout), pointer :: node
+    class(darkMatterProfileHeated), intent(inout)         :: self
+    type (treeNode               ), intent(inout), target :: node
 
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then

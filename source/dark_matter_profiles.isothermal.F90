@@ -289,7 +289,7 @@ contains
     use Dark_Matter_Halo_Scales
     implicit none
     class(darkMatterProfileIsothermal), intent(inout)          :: self
-    type (treeNode                   ), intent(inout), pointer :: node
+    type (treeNode                   ), intent(inout), target  :: node
     class(nodeComponentBasic         )               , pointer :: basic
 
     basic   => node%basic     ()
