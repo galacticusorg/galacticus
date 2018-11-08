@@ -362,8 +362,8 @@ contains
     !% Return the rate of change of the energy of a truncated halo density profile.
     use Galacticus_Error
     implicit none
-    class(darkMatterProfileTruncated), intent(inout)          :: self
-    type (treeNode                  ), intent(inout), pointer :: node
+    class(darkMatterProfileTruncated), intent(inout)         :: self
+    type (treeNode                  ), intent(inout), target :: node
 
     if (self%unimplementedIsFatal) then
        truncatedEnergyGrowthRate=0.0d0

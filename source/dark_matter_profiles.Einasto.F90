@@ -834,7 +834,7 @@ contains
     use Numerical_Interpolation
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout) , pointer :: node
+    type            (treeNode                      ), intent(inout) , target  :: node
     class           (nodeComponentBasic            )                , pointer :: basic
     class           (nodeComponentDarkMatterProfile)                , pointer :: darkMatterProfile
     integer         (c_size_t                      ), dimension(0:1)          :: jAlpha
