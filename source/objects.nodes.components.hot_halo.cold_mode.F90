@@ -196,6 +196,7 @@ contains
     use Accretion_Halos
     use Dark_Matter_Halo_Spins
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profiles
     use Numerical_Constants_Astronomical
     use Hot_Halo_Ram_Pressure_Stripping
     use Node_Component_Hot_Halo_Standard_Data
@@ -211,6 +212,7 @@ contains
     class           (nodeComponentHotHalo    )               , pointer :: hotHalo
     class           (nodeComponentBasic      )               , pointer :: basic
     class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    class           (darkMatterProfileClass  )               , pointer :: darkMatterProfile_
     class           (accretionHaloClass      )               , pointer :: accretionHalo_
     class           (coldModeInfallRateClass )               , pointer :: coldModeInfallRate_
     double precision                                                   :: angularMomentumAccretionRate, densityAtOuterRadius , &
@@ -244,7 +246,8 @@ contains
     ! Next block of tasks occur only if the accretion rate is non-zero.
     if (massAccretionRate > 0.0d0) then
        ! Compute the rate of accretion of angular momentum.
-       angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node)*(massAccretionRate &
+       darkMatterProfile_ => darkMatterProfile()
+       angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfile_)*(massAccretionRate &
             &/basic%accretionRate())
        if (hotHaloOutflowAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
        call hotHalo%angularMomentumColdRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
@@ -419,14 +422,16 @@ contains
     !% accreted if the merger tree had infinite resolution).
     use Accretion_Halos
     use Dark_Matter_Halo_Spins
+    use Dark_Matter_Profiles
     use Abundances_Structure
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo)               , pointer :: hotHalo
-    class           (nodeComponentBasic  )               , pointer :: basic
-    class           (accretionHaloClass  )               , pointer :: accretionHalo_
-    class           (nodeEvent           )               , pointer :: event
-    double precision                                               :: angularMomentum   , coldModeMass
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentHotHalo  )               , pointer :: hotHalo
+    class           (nodeComponentBasic    )               , pointer :: basic
+    class           (accretionHaloClass    )               , pointer :: accretionHalo_
+    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
+    class           (nodeEvent             )               , pointer :: event
+    double precision                                                 :: angularMomentum   , coldModeMass
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(node%firstChild).or..not.defaultHotHaloComponent%coldModeIsActive()) return
@@ -452,11 +457,12 @@ contains
     ! If non-zero, then create a hot halo component and add to it.
     if (coldModeMass > 0.0d0) then
        ! Ensure that it is of unspecified class.
-       hotHalo => node%hotHalo(autoCreate=.true.)
-       basic   => node%basic  (                 )
+       hotHalo            => node             %hotHalo(autoCreate=.true.)
+       basic              => node             %basic  (                 )
+       darkMatterProfile_ => darkMatterProfile        (                 )
        call hotHalo%massColdSet(coldModeMass)
        ! Also add the appropriate angular momentum.
-       angularMomentum=coldModeMass*Dark_Matter_Halo_Angular_Momentum(node)/basic%mass()
+       angularMomentum=coldModeMass*Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
        call hotHalo%angularMomentumColdSet(angularMomentum)
        ! Add the appropriate abundances.
        call hotHalo%abundancesColdSet(accretionHalo_%accretedMassMetals(node,accretionModeCold))

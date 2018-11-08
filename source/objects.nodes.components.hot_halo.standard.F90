@@ -947,6 +947,7 @@ contains
     use Accretion_Halos
     use Dark_Matter_Halo_Spins
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profiles
     use Chemical_States
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates
@@ -965,6 +966,7 @@ contains
     class           (nodeComponentBasic          )                          , pointer :: basic
     class           (hotHaloMassDistributionClass)                          , pointer :: hotHaloMassDistribution_
     class           (darkMatterHaloScaleClass    )                          , pointer :: darkMatterHaloScale_
+    class           (darkMatterProfileClass      )                          , pointer :: darkMatterProfile_
     class           (accretionHaloClass          )                          , pointer :: accretionHalo_
     class           (chemicalReactionRateClass   )                          , pointer :: chemicalReactionRate_
     type            (chemicalAbundances          ), save                              :: chemicalDensitiesRates      , chemicalMasses         , &
@@ -1013,7 +1015,8 @@ contains
        ! Next block of tasks occur only if the accretion rate is non-zero.
        if (basic%accretionRate() /= 0.0d0) then
           ! Compute the rate of accretion of angular momentum.
-          angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node)*(massAccretionRate &
+          darkMatterProfile_ => darkMatterProfile()
+          angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfile_)*(massAccretionRate &
                &/basic%accretionRate())
              if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
           call hotHalo%angularMomentumRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
@@ -1355,16 +1358,18 @@ contains
     !% accreted if the merger tree had infinite resolution).
     use Accretion_Halos
     use Dark_Matter_Halo_Spins
+    use Dark_Matter_Profiles
     use Chemical_Abundances_Structure
     use Abundances_Structure
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo)               , pointer :: currentHotHaloComponent, hotHalo
-    class           (nodeComponentBasic  )               , pointer :: basic
-    class           (accretionHaloClass  )               , pointer :: accretionHalo_
-    class           (nodeEvent           )               , pointer :: event
-    double precision                                               :: angularMomentum        , failedMass          , &
-         &                                                            hotHaloMass
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentHotHalo  )               , pointer :: currentHotHaloComponent, hotHalo
+    class           (nodeComponentBasic    )               , pointer :: basic
+    class           (accretionHaloClass    )               , pointer :: accretionHalo_
+    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
+    class           (nodeEvent             )               , pointer :: event
+    double precision                                                 :: angularMomentum        , failedMass          , &
+         &                                                              hotHaloMass
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(node%firstChild).or..not.defaultHotHaloComponent%standardIsActive()) return
@@ -1396,12 +1401,13 @@ contains
        ! If either is non-zero, then create a hot halo component and add these masses to it.
        if (hotHaloMass > 0.0d0 .or. failedMass > 0.0d0) then
           call Node_Component_Hot_Halo_Standard_Create(node)
-          hotHalo => node%hotHalo()
-          basic   => node%basic  ()
+          hotHalo            => node              %hotHalo()
+          basic              => node              %basic  ()
+          darkMatterProfile_ => darkMatterProfile         ()
           call hotHalo%           massSet(hotHaloMass)
           call hotHalo% unaccretedMassSet( failedMass)
           ! Also add the appropriate angular momentum.
-          angularMomentum=hotHaloMass*Dark_Matter_Halo_Angular_Momentum(node)/basic%mass()
+          angularMomentum=hotHaloMass*Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
           call hotHalo%angularMomentumSet(angularMomentum   )
           ! Add the appropriate abundances.
           call hotHalo%abundancesSet(accretionHalo_%accretedMassMetals   (node,accretionModeHot))

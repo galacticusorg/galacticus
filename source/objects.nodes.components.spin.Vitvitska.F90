@@ -144,8 +144,8 @@ contains
                 basicChild => nodeChild%basic     ()
                 ! Node has multiple progenitors - iterate over them and sum their angular momenta.
                 nodeSibling          =>                                    nodeChild
-                angularMomentumTotal =  +Dark_Matter_Halo_Angular_Momentum(nodeChild) &
-                     &                  *spinChild%spinVector()                       &
+                angularMomentumTotal =  +Dark_Matter_Halo_Angular_Momentum(nodeChild,darkMatterProfile_) &
+                     &                  *spinChild%spinVector()                                          &
                      &                  /spinChild%spin      ()
                 do while(associated(nodeSibling%sibling))
                    nodeSibling            =>  nodeSibling %sibling
@@ -164,9 +164,9 @@ contains
                         &                 +massRatio            &
                         &               )
                    ! Add the spin angular momentum of the sibling.
-                   angularMomentumTotal=+angularMomentumTotal                           &
-                        &               +Dark_Matter_Halo_Angular_Momentum(nodeSibling) &
-                        &               *spinSibling%spinVector()                       &
+                   angularMomentumTotal=+angularMomentumTotal                                              &
+                        &               +Dark_Matter_Halo_Angular_Momentum(nodeSibling,darkMatterProfile_) &
+                        &               *spinSibling%spinVector()                                          &
                         &               /spinSibling%spin      ()
                 end do
                 ! Convert angular momentum back to spin.

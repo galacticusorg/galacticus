@@ -831,6 +831,7 @@ contains
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Dark_Matter_Halo_Spins
+    use Dark_Matter_Profiles
     implicit none
     type            (treeNode                                      ), intent(inout)          :: node
     logical                                                         , intent(  out)          :: componentActive
@@ -840,6 +841,7 @@ contains
     procedure       (Node_Component_Spheroid_Very_Simple_Radius_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
     class           (nodeComponentSpheroid                         )               , pointer :: spheroid
     class           (nodeComponentBasic                            )               , pointer :: basic
+    class           (darkMatterProfileClass                        )               , pointer :: darkMatterProfile_
 
     ! Determine if node has an active spheroid component supported by this module.
     componentActive =  .false.
@@ -848,8 +850,9 @@ contains
     class is (nodeComponentSpheroidVerySimple)
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
-          basic              => node%basic()
-          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node)/basic%mass()
+          darkMatterProfile_      => darkMatterProfile      ()
+          basic                   => node             %basic()
+          specificAngularMomentum =  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
        end if
        ! Associate the pointers with the appropriate property routines.
        Radius_Get   => Node_Component_Spheroid_Very_Simple_Radius
