@@ -100,6 +100,7 @@ contains
     double precision                              , intent(inout), optional, dimension(:) :: z
     class            (integratorMultiVectorized1D), intent(inout), optional               :: integrator_
     logical                                       , intent(in   ), optional               :: integratorErrorTolerate
+    double precision                              , dimension(:) , allocatable            :: z0
     double precision                                                                      :: y0(yCount)
     double precision                              , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
     integer                                                                               :: status
@@ -129,6 +130,8 @@ contains
        previousIntegrandsNumber =  currentIntegrandsNumber
        currentIntegrands        => integrands
        currentIntegrandsNumber  =  zCount
+       allocate(z0(zCount))
+       z0=z
     end if
     ! Initialize integrator if required.
     if (present(zCount).and.zCount > 0) call integrator_%integrandSet (zCount,integrandsWrapper )
@@ -217,6 +220,7 @@ contains
              ! The timestep exceeded the time at which an interrupt occured. To maintain accuracy we need to repeat the step.
              y=y0
              x=x0
+             if (present(z)) z=z0
              status=FODEIV2_Driver_Reset(odeDriver)
           end if
        case default
