@@ -251,6 +251,7 @@ module Input_Parameters
      module procedure inputParametersConstructorVarStr
      module procedure inputParametersConstructorFileChar
      module procedure inputParametersConstructorNode
+     module procedure inputParametersConstructorCopy
      module procedure inputParametersConstructorNull
   end interface inputParameters
 
@@ -424,6 +425,18 @@ contains
          &                                                           )
     return
   end function inputParametersConstructorFileChar
+
+  function inputParametersConstructorCopy(parameters)
+    !% Constructor for the {\normalfont \ttfamily inputParameters} class from an existing parameters object.
+    implicit none
+    type(inputParameters)                :: inputParametersConstructorCopy
+    type(inputParameters), intent(in   ) :: parameters    
+
+    inputParametersConstructorCopy        =  inputParameters(parameters%rootNode)
+    inputParametersConstructorCopy%parent =>                 parameters%parent
+    inputParametersConstructorCopy%global =                  parameters%global
+    return
+  end function inputParametersConstructorCopy
 
   function inputParametersConstructorNode(parametersNode,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
