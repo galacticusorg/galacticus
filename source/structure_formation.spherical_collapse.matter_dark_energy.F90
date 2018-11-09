@@ -29,30 +29,35 @@ module Spherical_Collapse_Matter_Dark_Energy
        &    Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
 
   ! Variables to hold the tabulated critical overdensity data.
-  integer                                  , parameter     :: deltaTableNPointsPerDecade                               =100
+  integer                                  , parameter     :: deltaTableNPointsPerDecade    =100
 
   ! Variables used in root finding.
-  double precision                                         :: OmegaDE                                                         , OmegaM                      , &
-       &                                                      epsilonPerturbationShared                                       , hubbleParameterInvGyr       , &
-       &                                                      perturbationRadiusInitial                                       , tNow
+  double precision                                         :: OmegaDE                              , OmegaM                      , &
+       &                                                      epsilonPerturbationShared            , hubbleParameterInvGyr       , &
+       &                                                      perturbationRadiusInitial            , tNow
   !$omp threadprivate(OmegaDE,OmegaM,hubbleParameterInvGyr,tNow,epsilonPerturbationShared,perturbationRadiusInitial)
   
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
-  double precision                         , parameter     :: expansionFactorInitialFraction                           =1.0d-6
+  double precision                         , parameter     :: expansionFactorInitialFraction=1.0d-6
 
   ! Calculation types.
-  integer                                  , parameter     :: calculationDeltaCrit                                     =0     , calculationDeltaVirial=1, &
-       &                                                      calculationTurnaround                                    =2
-
-  ! Parameter controlling the epoch at which the energy of a perturbation is fixed when computing virial overdensities.
-  type            (varying_string         )                :: virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt
+  integer                                  , parameter     :: calculationDeltaCrit          =0     , calculationDeltaVirial=1, &
+       &                                                      calculationTurnaround         =2
 
   ! Pointer to the default cosmology functions object.
   class           (cosmologyFunctionsClass), allocatable   :: cosmologyFunctions__
   !$omp threadprivate(cosmologyFunctions__)
 
-  ! Module initialization state.
-  logical                                                  :: moduleInitialized                                        =.false.
+  ! Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.
+  !# <enumeration>
+  !#  <name>darkEnergySphericalCollapseEnergyFixedAt</name>
+  !#  <description>Enumeration of radii at which the energy of a spherical top-hat perturbation in a dark energy cosmology can be considered to be fixed.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <validator>yes</validator>
+  !#  <visibility>public</visibility>
+  !#  <entry label="turnaround"   />
+  !#  <entry label="virialization"/>
+  !# </enumeration>
 
 contains
 
@@ -67,40 +72,42 @@ contains
     class           (linearGrowthClass      )             , intent(inout) :: linearGrowth_    
 
     !$omp critical(Spherical_Collapse_Make_Table)
-    call Make_Table(time,deltaCritTable,calculationDeltaCrit,cosmologyFunctions_,linearGrowth_)
+    call Make_Table(time,deltaCritTable,calculationDeltaCrit,cosmologyFunctions_,linearGrowth_=linearGrowth_)
     !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate
 
-  subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,deltaVirialTable,cosmologyFunctions_)
+  subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,energyFixedAt,deltaVirialTable,cosmologyFunctions_)
     !% Tabulate the virial density contrast for the spherical collapse model.
     use Tables
     implicit none
     double precision                                      , intent(in   ) :: time
+    integer                                               , intent(in   ) :: energyFixedAt
     class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
     class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
 
     !$omp critical(Spherical_Collapse_Make_Table)
-    call Make_Table(time,deltaVirialTable,calculationDeltaVirial,cosmologyFunctions_)
+    call Make_Table(time,deltaVirialTable,calculationDeltaVirial,cosmologyFunctions_,energyFixedAt=energyFixedAt)
     !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate
 
-  subroutine Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(time,turnaroundTable,cosmologyFunctions_)
+  subroutine Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(time,energyFixedAt,turnaroundTable,cosmologyFunctions_)
     !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
     use Tables
     implicit none
     double precision                                      , intent(in   ) :: time
+    integer                                               , intent(in   ) :: energyFixedAt
     class           (table1D                ), allocatable, intent(inout) :: turnaroundTable
     class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
 
     !$omp critical(Spherical_Collapse_Make_Table)
-    call Make_Table(time,turnaroundTable,calculationTurnaround,cosmologyFunctions_)
+    call Make_Table(time,turnaroundTable,calculationTurnaround,cosmologyFunctions_,energyFixedAt=energyFixedAt)
     !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
 
-  subroutine Make_Table(time,deltaTable,calculationType,cosmologyFunctions_,linearGrowth_)
+  subroutine Make_Table(time,deltaTable,calculationType,cosmologyFunctions_,linearGrowth_,energyFixedAt)
     !% Tabulate $\delta_\mathrm{crit}$ or $\Delta_\mathrm{vir}$ vs. time.
     use Linear_Growth
     use Root_Finder
@@ -114,6 +121,7 @@ contains
     class           (table1D                ), allocatable , intent(inout) :: deltaTable
     class           (cosmologyFunctionsClass)              , intent(inout) :: cosmologyFunctions_    
     class           (linearGrowthClass      ), optional    , intent(inout) :: linearGrowth_    
+    integer                                  , optional    , intent(in   ) :: energyFixedAt
     class           (linearGrowthClass      ), allocatable                 :: linearGrowth__
     double precision                         , parameter                   :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
     double precision                         , dimension(2)                :: timeRange
@@ -129,32 +137,18 @@ contains
          &                                                                    timeEnergyFixed                      , timeInitial                           , &
          &                                                                    y                                    , deltaTableTimeMinimum                 , &
          &                                                                    deltaTableTimeMaximum
-    double complex                                                         :: a,b,x
+    double complex                                                         :: a                                    , b                                     , &
+         &                                                                    x
     type            (varying_string         )                              :: message
     character       (len=13                 )                              :: label
 
-    ! Initialize the module if this is not already done.
-    if (.not.moduleInitialized) then
-       !$omp critical (Spherical_Collapse_Dark_Energy_Initialize)
-       if (.not.moduleInitialized) then
-          ! Read parameters controlling the calculation.
-          !# <inputParameter>
-          !#   <name>virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('turnaround')</defaultValue>
-          !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
-          !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
-          !#     \citealt{percival_cosmological_2005}; \S8.)</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Record that the module is initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Spherical_Collapse_Dark_Energy_Initialize)
-    end if
     ! Validate input.
-    if (calculationType == calculationDeltaCrit .and. .not.present(linearGrowth_)) call Galacticus_Error_Report('linearGrowth_ object must be provided for calcualtion of critical overdensity'//{introspection:location})
+    select case (calculationType)
+    case (calculationDeltaCrit)
+       if (.not.present(linearGrowth_)) call Galacticus_Error_Report('linearGrowth_ object must be provided for calcualtion of critical overdensity'//{introspection:location})
+    case (calculationDeltaVirial,calculationTurnaround)
+       if (.not.present(energyFixedAt)) call Galacticus_Error_Report('energyFixedAt must be provided for calcualtion of virial properties'          //{introspection:location})
+    end select
     ! Find minimum and maximum times to tabulate.
     if (allocated(deltaTable)) then
        ! Use currently tabulated range as the starting point.
@@ -268,10 +262,10 @@ contains
                   & /maximumExpansionDensityContrast
              y=      maximumExpansionExpansionFactor**cosmologyFunctions__%exponentDarkEnergy(time=maximumExpansionTime) &
                   & /aExpansionNow                  **cosmologyFunctions__%exponentDarkEnergy(time=tNow                )
-             select case (char(virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt))
-             case ('turnaround'   )
+             select case (energyFixedAt)
+             case (darkEnergySphericalCollapseEnergyFixedAtTurnaround   )
                 timeEnergyFixed=maximumExpansionTime
-             case ('virialization')
+             case (darkEnergySphericalCollapseEnergyFixedAtVirialization)
                 timeEnergyFixed=tNow
              case default
                 call Galacticus_Error_Report('unrecognized epoch'//{introspection:location})

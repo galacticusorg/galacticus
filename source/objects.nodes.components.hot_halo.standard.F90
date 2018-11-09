@@ -230,7 +230,7 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Hot_Halo_Standard_Initialize()
+  subroutine Node_Component_Hot_Halo_Standard_Initialize(parameters)
     !% Initializes the standard hot halo component module.
     use ISO_Varying_String
     use Input_Parameters
@@ -239,8 +239,9 @@ contains
     use Galacticus_Error
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
-    type(varying_string              ) :: hotHaloCoolingFromText
-    type(nodeComponentHotHaloStandard) :: hotHaloComponent
+    type(inputParameters             ), intent(inout) :: parameters
+    type(varying_string              )                :: hotHaloCoolingFromText
+    type(nodeComponentHotHaloStandard)                :: hotHaloComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Hot_Halo_Standard_Initialize)
@@ -256,7 +257,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the hot halo should be removed (``starved'') when a node becomes a satellite.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -265,7 +266,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the outflowed hot halo should be removed (``starved'') when a node becomes a satellite.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -275,7 +276,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not gas stripped from the hot halo should be tracked.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -285,7 +286,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not outflowed gas should be returned to the hot reservoir on halo formation events.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -297,7 +298,7 @@ contains
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not negative rates of accretion of angular momentum into the hot halo will be treated as positive
        !#      for the purposes of computing the hot halo angular momentum.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
@@ -307,7 +308,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>var_str('currentNode')</defaultValue>
        !#   <description>Specifies whether the angular momentum of cooling gas should be computed from the ``current node'' or the ``formation node''.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>integer</type>
        !#   <variable>hotHaloCoolingFromText</variable>
        !# </inputParameter>
@@ -326,7 +327,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether heating of the halo in excess of its cooling rate will drive an outflow from the halo.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>integer</type>
        !# </inputParameter>
 
@@ -336,7 +337,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>5.0d0</defaultValue>
        !#   <description>Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical time.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
 
@@ -346,7 +347,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>Specifies the efficiency with which outflowing gas is stripped from the hot halo, following the prescription of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; i.e. this is the parameter $\epsilon_\mathrm{strip}$ in their eqn.~6).</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
 
@@ -356,7 +357,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>Specifies the maximum rate at which mass can be expelled from the hot halo in units of the inverse halo dynamical time.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
 
@@ -366,7 +367,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.3d0</defaultValue>
        !#   <description>Specifies the fraction of angular momentum that is lost from cooling/infalling gas.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
 
@@ -379,7 +380,7 @@ contains
        !#     merger events. If set to {\normalfont \ttfamily true}, hot gas (and angular momentum, abundances, and chemicals proportionally) will be
        !#     removed from the merged halo to the unaccreted gas reservoir to limit the baryonic mass to the universal baryon
        !#     fraction where possible.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 

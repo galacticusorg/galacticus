@@ -67,10 +67,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize()
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize(parameters)
     !% Initializes the ``scale'' implementation of the dark matter halo profile component.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: parameters
 
     ! Check if this implementation is selected.
     if (.not.moduleInitialized) then
@@ -82,7 +83,7 @@ contains
           !#   <defaultValue>.false.</defaultValue>
           !#   <description>Determines whether or not dark matter halo shape parameter is included in outputs of merger trees.</description>
           !#   <group>output</group>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>boolean</type>
           !# </inputParameter>
           ! Bind the shape get function.

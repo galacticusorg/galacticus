@@ -45,6 +45,8 @@
      class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_
      class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_
      class           (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_
+     ! State of node component thread initialization.
+     logical                                                :: threadsInitialized
    contains
      !@ <objectMethods>
      !@   <object>taskEvolveForests</object>
@@ -80,10 +82,6 @@
      type(evolveForestsBranchList), pointer :: next
   end type evolveForestsBranchList
 
-  ! Record of thread initalization status.
-  logical          :: evolveForestMergerTreeThreadInitialized=.false.
-  !$omp threadprivate(evolveForestMergerTreeThreadInitialized)
-
 contains
 
   function evolveForestsParameters(parameters) result(self)
@@ -106,8 +104,8 @@ contains
     character       (len=32                     )                :: text
  
     ! Ensure the nodes objects are initialized.
-    call nodeClassHierarchyInitialize()
-    call Node_Components_Initialize  ()
+    call nodeClassHierarchyInitialize(          )
+    call Node_Components_Initialize  (parameters)
     !# <inputParameter>
     !#   <name>evolveSingleForest</name>
     !#   <cardinality>1</cardinality>
@@ -225,6 +223,7 @@ contains
     class           (evolveForestsWorkShareClass), intent(in   ), target :: evolveForestsWorkShare_
     !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_"/>
     
+    self%threadsInitialized=.false.
     return
   end function evolveForestsInternal
 
@@ -325,7 +324,7 @@ contains
     double precision                                                          , save :: timeSectionForestBegin
     logical                                                                          :: triggerExit                               , triggerFinishUniverse       , &
          &                                                                              disableSingleForestEvolution              , triggerFinishFinal          , &
-         &                                                                              triggerFinish
+         &                                                                              triggerFinish                             , initializeThreads
     integer         (c_size_t                     )                                  :: iBranchAcceptedLast                       , treeCount
     integer         (omp_lock_kind                )                                  :: initializationLock
     double precision                                                                 :: evolveToTimeForest
@@ -372,11 +371,15 @@ contains
     call self%mergerTreeConstructor_%deepCopy(mergerTreeConstructor_)
     call self%mergerTreeOperator_   %deepCopy(mergerTreeOperator_   )
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
-    if (.not.evolveForestMergerTreeThreadInitialized) then
+    !$omp master
+    initializeThreads                   =self%threadsInitialized
+    self             %threadsInitialized=.true.
+    !$omp end master
+    !$omp barrier
+    if (initializeThreads) then
        !# <include directive="mergerTreeEvolveThreadInitialize" type="functionCall" functionType="void">
        include 'merger_trees.evolve.threadInitialize.inc'
        !# </include>
-       evolveForestMergerTreeThreadInitialized=.true.
     end if
     ! Allow events to be attached to the universe.
     !$omp master

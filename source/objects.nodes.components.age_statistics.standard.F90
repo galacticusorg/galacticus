@@ -78,10 +78,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Age_Statistics_Standard_Initialize()
+  subroutine Node_Component_Age_Statistics_Standard_Initialize(parameters)
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: parameters
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Age_Statistics_Standard_Initialize)
@@ -91,7 +92,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the variables of the standard age statistics component are inactive (i.e. do not appear in any ODE being solved).</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        ! Record that the module is now initialized.

@@ -88,8 +88,8 @@ contains
     double precision                                                   :: haloMassMinimum              , haloMassMaximum
     integer                                                            :: pointsPerDecade
 
-    call nodeClassHierarchyInitialize()
-    call Node_Components_Initialize  ()
+    call nodeClassHierarchyInitialize(          )
+    call Node_Components_Initialize  (parameters)
     !# <inputParameter>
     !#   <name>haloMassMinimum</name>
     !#   <cardinality>1</cardinality>

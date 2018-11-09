@@ -76,8 +76,8 @@ contains
          &                                                             redshiftMinimum           , redshiftMaximum
     type            (varying_string                )                :: outputGroup
 
-    call nodeClassHierarchyInitialize()
-    call Node_Components_Initialize  ()
+    call nodeClassHierarchyInitialize(          )
+    call Node_Components_Initialize  (parameters)
     !# <inputParameter>
     !#   <name>massMinimum</name>
     !#   <cardinality>1</cardinality>

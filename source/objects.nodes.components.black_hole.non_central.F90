@@ -64,10 +64,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Black_Hole_Noncentral_Initialize()
+  subroutine Node_Component_Black_Hole_Noncentral_Initialize(parameters)
     !% Initializes the noncentral black hole component module.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: parameters
 
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
@@ -80,7 +81,7 @@ contains
           !#   <defaultValue>.false.</defaultValue>
           !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
           !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>boolean</type>
           !# </inputParameter>
           ! Record that the module is now initialized.

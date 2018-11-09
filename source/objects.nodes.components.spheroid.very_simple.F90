@@ -130,12 +130,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Initialize()
+  subroutine Node_Component_Spheroid_Very_Simple_Initialize(parameters)
     !% Initializes the tree node very simple spheroid component module.
     use Input_Parameters
     use Cosmology_Functions
     implicit none
-    type (nodeComponentSpheroidVerySimple)          :: spheroidVerySimpleComponent
+    type(inputParameters                ), intent(inout) :: parameters
+    type(nodeComponentSpheroidVerySimple)                :: spheroidVerySimpleComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Spheroid_Very_Simple_Initialize)
@@ -146,7 +147,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>100.0d0</defaultValue>
        !#   <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -154,7 +155,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the spheroid.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -162,7 +163,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the spheroid.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -170,7 +171,7 @@ contains
        !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track abundances in the very simple spheroid component.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -178,7 +179,7 @@ contains
        !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -186,7 +187,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        ! Bind the star formation rate function.

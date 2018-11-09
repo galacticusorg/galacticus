@@ -168,14 +168,15 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Disk_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Disk_Standard_Initialize()
+  subroutine Node_Component_Disk_Standard_Initialize(parameters)
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
     use Abundances_Structure
     use Galacticus_Error
     use Node_Component_Disk_Standard_Data
     implicit none
-    type(nodeComponentDiskStandard) :: diskStandardComponent
+    type(inputParameters          ), intent(inout) :: parameters
+    type(nodeComponentDiskStandard)                :: diskStandardComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Disk_Standard_Initialize)
@@ -196,7 +197,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -204,7 +205,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the disk dynamical time) on which outflows may deplete gas in the disk.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -212,7 +213,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The radius (in units of the standard scale length) to use in solving for the size of the disk.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -220,7 +221,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description></description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -228,7 +229,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not negative angular momentum is allowed for the disk.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -236,7 +237,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not star formation occurs in disks in satellites.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -244,7 +245,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not disk stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        ! Record that the module is now initialized.

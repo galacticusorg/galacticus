@@ -96,10 +96,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Initialize()
+  subroutine Node_Component_Merging_Statistics_Standard_Initialize(parameters)
     !% Initializes the standard merging statistics component.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: parameters
 
     ! Test whether module is already initialize.
     if (.not.moduleInitialized) then
@@ -110,7 +111,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>0.25d0</defaultValue>
           !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>double</type>
           !# </inputParameter>
           !# <inputParameter>
@@ -118,7 +119,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>0.5d0</defaultValue>
           !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>double</type>
           !# </inputParameter>
           !# <inputParameter>
@@ -126,7 +127,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>1.0d100</defaultValue>
           !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>double</type>
           !# </inputParameter>
           ! Bind the hierarchy level get functions.
@@ -235,9 +236,6 @@ contains
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
-
-    ! Ensure that the module is initialized.
-    call Node_Component_Merging_Statistics_Standard_Initialize()
     ! Find the initial hierarchy level.
     nodeHierarchyLevel =  0
     nodeHost       => node

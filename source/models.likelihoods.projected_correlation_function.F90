@@ -140,8 +140,7 @@ contains
     self%inverseCovariance=self%covariance      %invert()
     call self%inverseCovariance%makeSemiPositiveDefinite()
     ! Ensure the nodes objects are initialized.
-    call nodeClassHierarchyInitialize                       ()
-    call Node_Component_Dark_Matter_Profile_Scale_Initialize()
+    call nodeClassHierarchyInitialize()
     return
   end function projectedCorrelationFunctionConstructorInternal
 

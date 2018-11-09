@@ -70,10 +70,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Position_Preset_Initialize()
+  subroutine Node_Component_Position_Preset_Initialize(parameters)
     use Input_Parameters
     implicit none
-    
+    type(inputParameters), intent(inout) :: parameters
+
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Position_Preset_Initialize)
     if (defaultPositionComponent%presetIsActive().and..not.moduleInitialized) then
@@ -83,7 +84,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>bool</type>
        !# </inputParameter>
        moduleInitialized=.true.

@@ -90,11 +90,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-   subroutine Node_Component_Satellite_Standard_Initialize()
+   subroutine Node_Component_Satellite_Standard_Initialize(parameters)
      !% Initializes the standard satellite orbit component module.
      use Input_Parameters
      implicit none
-     type(nodeComponentSatelliteStandard) :: satellite
+     type(inputParameters               ), intent(inout) :: parameters
+     type(nodeComponentSatelliteStandard)                :: satellite
 
      ! Test whether module is already initialize.
      !$omp critical (Node_Component_Satellite_Standard_Initialize)
@@ -106,7 +107,7 @@ contains
         !#   <defaultValue>.true.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
         !#      again---possibly at random---each time they are requested).</description>
-        !#   <source>globalParameters</source>
+        !#   <source>parameters</source>
         !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if satellite orbits are to be reset on halo formation events.
@@ -115,7 +116,7 @@ contains
         !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
-        !#   <source>globalParameters</source>
+        !#   <source>parameters</source>
         !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if bound mass is an inactive variable.
@@ -124,7 +125,7 @@ contains
         !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
-        !#   <source>globalParameters</source>
+        !#   <source>parameters</source>
         !#   <type>boolean</type>
         !# </inputParameter>
          ! Specify the function to use for setting virial orbits.
@@ -378,8 +379,6 @@ contains
 
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
-       ! Ensure the module has been initialized.
-       call Node_Component_Satellite_Standard_Initialize()
        ! Get an orbit for this satellite.
        hostNode     => node%parent
        virialOrbit_ => virialOrbit()

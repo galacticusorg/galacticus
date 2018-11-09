@@ -29,6 +29,7 @@
      logical                                :: turnaroundInitialized
      double precision                       :: turnaroundTimeMinimum, turnaroundTimeMaximum
      class           (table1D), allocatable :: turnaround
+     integer                                :: energyFixedAt
    contains
      final     ::                              sphericalCollapseMatterDEDestructor
      procedure :: retabulate                => sphericalCollapseMatterDERetabulate
@@ -46,23 +47,36 @@ contains
   function sphericalCollapseMatterDEConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class that takes a parameter set as input.
     use Input_Parameters
+    use Spherical_Collapse_Matter_Dark_Energy
     implicit none
     type (virialDensityContrastSphericalCollapseMatterDE)                :: self
     type (inputParameters                               ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
+    type (varying_string                                )                :: energyFixedAt
     
+    !# <inputParameter>
+    !#   <name>energyFixedAt</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('turnaround')</defaultValue>
+    !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
+    !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
+    !#     \citealt{percival_cosmological_2005}; \S8.)</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
-    self=virialDensityContrastSphericalCollapseMatterDE(cosmologyFunctions_)
+    self=virialDensityContrastSphericalCollapseMatterDE(enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function sphericalCollapseMatterDEConstructorParameters
 
-  function sphericalCollapseMatterDEConstructorInternal(cosmologyFunctions_) result(self)
+  function sphericalCollapseMatterDEConstructorInternal(energyFixedAt,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
     implicit none
-    type (virialDensityContrastSphericalCollapseMatterDE)                        :: self
-    class(cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    type   (virialDensityContrastSphericalCollapseMatterDE)                        :: self
+    integer                                                , intent(in   )         :: energyFixedAt
+    class  (cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="energyFixedAt, *cosmologyFunctions_"/>
 
     self%tableInitialized     =.false.
     self%turnaroundInitialized=.false.
@@ -96,7 +110,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,self%deltaVirial,self%cosmologyFunctions_)
+       call Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate(time,self%energyFixedAt,self%deltaVirial,self%cosmologyFunctions_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%deltaVirial%x(+1)
        self%tableTimeMaximum=self%deltaVirial%x(-1)
@@ -142,7 +156,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(timeActual,self%turnaround,self%cosmologyFunctions_)
+       call Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate(timeActual,self%energyFixedAt,self%turnaround,self%cosmologyFunctions_)
        self%turnaroundInitialized=.true.
        self%turnaroundTimeMinimum=self%turnaround%x(+1)
        self%turnaroundTimeMaximum=self%turnaround%x(-1)

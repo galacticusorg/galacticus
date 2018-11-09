@@ -65,8 +65,8 @@ program haloSpinDistributions
   parameters=inputParameters(parameterFileName,outputParametersGroup=outputFile)
   call parameters%markGlobal()
   ! Initialize nodes and components.
-  call nodeClassHierarchyInitialize()
-  call Node_Components_Initialize  ()
+  call nodeClassHierarchyInitialize(          )
+  call Node_Components_Initialize  (parameters)
   ! Get required objects.
   cosmologyFunctions_   => cosmologyFunctions  ()
   haloSpinDistribution_ => haloSpinDistribution()

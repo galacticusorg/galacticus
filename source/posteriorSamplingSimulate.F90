@@ -61,8 +61,8 @@ program Posterior_Sampling_Simulate
   !# </inputParameter>
   call Galacticus_Verbosity_Level_Set(verbosityLevel)
   ! Ensure the nodes objects are initialized.
-  call nodeClassHierarchyInitialize()
-  call Node_Components_Initialize  ()
+  call nodeClassHierarchyInitialize(          )
+  call Node_Components_Initialize  (parameters)
   ! Get the simulator.
   posteriorSampleSimulation_ => posteriorSampleSimulation()
   ! Perform the simulation.

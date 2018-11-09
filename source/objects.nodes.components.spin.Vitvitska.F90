@@ -73,11 +73,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Bindings</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Spin_Vitvitska_Bindings()
+  subroutine Node_Component_Spin_Vitvitska_Bindings(parameters)
     !% Initializes the ``Vitvitskae'' implementation of the spin component.
+    use Input_Parameters
     implicit none
-    type(nodeComponentspinVitvitska) :: spin
-
+    type(inputParameters           ), intent(inout) :: parameters
+    type(nodeComponentspinVitvitska)                :: spin
+    !GCC$ attributes unused :: parameters
+    
     ! Initialize the bindings.
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Spin_Vitvitska_Bindings)
