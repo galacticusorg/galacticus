@@ -21,6 +21,7 @@
 module Node_Component_Hot_Halo_Standard
   !% Implements the standard hot halo node component.
   use Galacticus_Nodes
+  use Cosmology_Functions
   use Radiation_Fields
   use Kind_Numbers
   implicit none
@@ -196,6 +197,10 @@ module Node_Component_Hot_Halo_Standard
   !#  <functions>objects.nodes.components.hot_halo.standard.bound_functions.inc</functions>
   !# </component>
 
+  ! Objects used by this component.
+  class           (cosmologyFunctionsClass               ), pointer   :: cosmologyFunctions_
+  !$omp threadprivate(cosmologyFunctions_)
+  
   ! Internal count of abundances and chemicals.
   integer                                                             :: abundancesCount                            , chemicalsCount
 
@@ -418,23 +423,22 @@ contains
   !# <mergerTreeEvolveThreadInitialize>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Thread_Initialize</unitName>
   !# </mergerTreeEvolveThreadInitialize>
-  subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize
+  subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters)
     !% Initializes the tree node hot halo methods module.
     use Input_Parameters
-    use Cosmology_Functions
     use Galacticus_Error
     implicit none
-    class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-    type (radiationFieldList     ), pointer :: radiationFieldList_
+    type(inputParameters   ), intent(inout) :: parameters
+    type(radiationFieldList), pointer       :: radiationFieldList_
 
     ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
     if (defaultHotHaloComponent%standardIsActive()) then
+       !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
        allocate(radiationFieldList_)
-       cosmologyFunctions_                 => cosmologyFunctions                     (                   )
        radiationCosmicMicrowaveBackground  =  radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
        radiationFieldList_%radiationField_ => radiationCosmicMicrowaveBackground
-       if (globalParameters%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
-          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackgroundMethod" source="globalParameters"/>
+       if (parameters%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
+          !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackgroundMethod" source="parameters"/>
           select type (radiationIntergalacticBackground)
           class is (radiationFieldIntergalacticBackground)
              ! This is as expected.

@@ -27,11 +27,10 @@ module Node_Component_Hot_Halo_Cold_Mode
   use ISO_Varying_String
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute     , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging, &
-       &    Node_Component_Hot_Halo_Cold_Mode_Promote          , Node_Component_Hot_Halo_Cold_Mode_Formation        , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
+  public :: Node_Component_Hot_Halo_Cold_Mode_Initialize , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute     , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set  , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize  , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger, Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging, &
+       &    Node_Component_Hot_Halo_Cold_Mode_Promote    , Node_Component_Hot_Halo_Cold_Mode_Formation
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -75,27 +74,27 @@ module Node_Component_Hot_Halo_Cold_Mode
   !# </component>
 
   ! Options controlling the behavior of the cold mode gas.
-  logical              :: hotHaloOutflowToColdMode   
+  logical :: hotHaloOutflowToColdMode   
+
   ! Internal count of abundances.
-  integer              :: abundancesCount
-  ! Record of whether this module has been initialized.
-  logical              :: moduleInitialized       =.false.
+  integer :: abundancesCount
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize()
-    !% Initializes the standard hot halo component module.
-    use Input_Parameters
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize(parameters)
+    !% Initializes the tree node hot halo methods module.
     use Abundances_Structure
+    use Input_Parameters
     implicit none
-    type(nodeComponentHotHaloColdMode) :: hotHaloComponent
+    type(inputParameters             ), intent(inout) :: parameters
+    type(nodeComponentHotHaloColdMode)                :: hotHaloComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Hot_Halo_Cold_Mode_Initialize)
-    if (defaultHotHaloComponent%coldModeIsActive().and..not.moduleInitialized) then
+    if (defaultHotHaloComponent%coldModeIsActive()) then
        ! Get numbers of abundance properties.
        abundancesCount=Abundances_Property_Count()
        ! Determine whether outflows go to the cold mode.
@@ -104,32 +103,16 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not outflows from galaxies are returned to the cold or hot modes in the hot halo.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        ! Bind the outflow return function if outflow returns to the cold mode. (If it does not, do
        ! not bind any function and let the parent class handle this behavior.)
        if (hotHaloOutflowToColdMode) call hotHaloComponent%outflowReturnFunction(Node_Component_Hot_Halo_Cold_Mode_Outflow_Return)
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
     !$omp end critical (Node_Component_Hot_Halo_Cold_Mode_Initialize)
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize
-
-  !# <mergerTreeEvolveThreadInitialize>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize()
-    !% Initializes the tree node hot halo methods module.
-    use Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
-    use Mass_Distributions
-    implicit none
-
-    ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
-    if (defaultHotHaloComponent%coldModeIsActive()) call Node_Component_Hot_Halo_Cold_Mode_Initialize()
-    return
-  end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
 
   subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.

@@ -20,6 +20,7 @@
   use Merger_Tree_Operators
   use Merger_Tree_Construction
   use Task_Evolve_Forests_Work_Shares
+  use Input_Parameters
 
   !# <task name="taskEvolveForests" defaultThreadPrivate="yes">
   !#  <description>A task which evolves galaxies within a set of merger tree forests.</description>
@@ -47,6 +48,8 @@
      class           (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_
      ! State of node component thread initialization.
      logical                                                :: threadsInitialized
+     ! Pointer to the parameters for this task.
+     type            (inputParameters            )          :: parameters
    contains
      !@ <objectMethods>
      !@   <object>taskEvolveForests</object>
@@ -71,8 +74,8 @@
 
   interface taskEvolveForests
      !% Constructors for the {\normalfont \ttfamily evolveForests} task.
-     module procedure evolveForestsParameters
-     module procedure evolveForestsInternal
+     module procedure evolveForestsConstructorParameters
+     module procedure evolveForestsConstructorInternal
   end interface taskEvolveForests
 
   ! Class used to build lists of tree branches which get processed independently.
@@ -84,7 +87,7 @@
 
 contains
 
-  function evolveForestsParameters(parameters) result(self)
+  function evolveForestsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily evolveForests} task class which takes a parameter set as input.
     use System_Load
     use Galacticus_Error
@@ -204,12 +207,12 @@ contains
     !# <objectBuilder class="mergerTreeConstructor"  name="mergerTreeConstructor_"  source="parameters"/>
     !# <objectBuilder class="mergerTreeOperator"     name="mergerTreeOperator_"     source="parameters"/>
     !# <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
-    self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_)
+    self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,parameters)
     !# <inputParametersValidate source="parameters"/>
     return
-  end function evolveForestsParameters
+  end function evolveForestsConstructorParameters
 
-  function evolveForestsInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_) result(self)
+  function evolveForestsConstructorInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,parameters) result(self)
     !% Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
     implicit none
     type            (taskEvolveForests          )                        :: self
@@ -221,11 +224,13 @@ contains
     class           (mergerTreeConstructorClass ), intent(in   ), target :: mergerTreeConstructor_
     class           (mergerTreeOperatorClass    ), intent(in   ), target :: mergerTreeOperator_
     class           (evolveForestsWorkShareClass), intent(in   ), target :: evolveForestsWorkShare_
+    type            (inputParameters            ), intent(in   ), target :: parameters
     !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_"/>
-    
+
+    self%parameters        =inputParameters(parameters)
     self%threadsInitialized=.false.
     return
-  end function evolveForestsInternal
+  end function evolveForestsConstructorInternal
 
   subroutine evolveForestsDestructor(self)
     !% Destructor for the {\normalfont \ttfamily evolveForests} task class.
@@ -248,7 +253,6 @@ contains
     use               Merger_Tree_Walkers
     use               Galacticus_Output_Merger_Tree
     use               Galacticus_Display
-    use               Input_Parameters
     use               Galacticus_Output_Times
     use               Galacticus_Error
     use               Memory_Management
@@ -372,12 +376,13 @@ contains
     call self%mergerTreeOperator_   %deepCopy(mergerTreeOperator_   )
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     !$omp master
-    initializeThreads                   =self%threadsInitialized
+    initializeThreads                   =.not.self%threadsInitialized
     self             %threadsInitialized=.true.
     !$omp end master
     !$omp barrier
     if (initializeThreads) then
        !# <include directive="mergerTreeEvolveThreadInitialize" type="functionCall" functionType="void">
+       !#  <functionArgs>self%parameters</functionArgs>
        include 'merger_trees.evolve.threadInitialize.inc'
        !# </include>
     end if
