@@ -70,16 +70,16 @@ module Node_Component_Basic_Standard_Extended
   !# </component>
 
   ! Options controlling spherical collapse model to use.
-  integer                                        :: nodeComponentBasicExtendedSphericalCollapseType
+  integer                                        :: nodeComponentBasicExtendedSphericalCollapseType                 , nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt
   integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeLambda         =0
   integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeDE             =1
   integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998=2
 
   ! Initialization state.
-  logical                                          :: moduleInitialized                                  =.false.
+  logical                                          :: moduleInitialized                                           =.false.
 
   ! Virial density contrast object.
-  logical                                          :: virialDensityContrastInitialized                   =.false.
+  logical                                          :: virialDensityContrastInitialized                            =.false.
   class  (virialDensityContrastClass), allocatable :: virialDensityContrast_
   !$omp threadprivate(virialDensityContrast_,virialDensityContrastInitialized)
 
@@ -89,13 +89,15 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Basic_Extended_Bindings</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Basic_Extended_Bindings()
+  subroutine Node_Component_Basic_Extended_Bindings(parameters)
     !% Initializes the ``extended'' implementation of the basic component.
     use ISO_Varying_String
     use Input_Parameters
+    use Spherical_Collapse_Matter_Dark_Energy
     implicit none
-    type(varying_string                    ) :: nodeComponentBasicExtendedSphericalCollapseTypeText
-    type(nodeComponentBasicStandardExtended) :: basic
+    type(inputParameters                   ), intent(inout) :: parameters
+    type(varying_string                    )                :: nodeComponentBasicExtendedSphericalCollapseTypeText, nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText
+    type(nodeComponentBasicStandardExtended)                :: basic
 
     ! Initialize the bindings.
     if (.not.moduleInitialized) then
@@ -107,7 +109,7 @@ contains
           !#   <defaultValue>var_str('matterLambda')</defaultValue>
           !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
           !#   <group>cosmology</group>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>string</type>
           !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
           !# </inputParameter>
@@ -116,6 +118,19 @@ contains
              nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeLambda
           case ('matterDarkEnergy')
              nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeDE
+             !# <inputParameter>
+             !#   <name>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt</name>
+             !#   <cardinality>1</cardinality>
+             !#   <defaultValue>var_str('turnaround')</defaultValue>
+             !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
+             !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
+             !#     \citealt{percival_cosmological_2005}; \S8.).</description>
+             !#   <group>cosmology</group>
+             !#   <source>parameters</source>
+             !#   <type>string</type>
+             !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
+             !# </inputParameter>
+             nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt=enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode(char(nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText),includesPrefix=.false.)
           case ('bryanNorman')
              nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998
           end select
@@ -153,19 +168,19 @@ contains
           allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
           select type (virialDensityContrast_)
           type is (virialDensityContrastSphericalCollapseMatterLambda)
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda(                     cosmologyFunctions_)
+             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda(                                                         cosmologyFunctions_)
           end select
        case (nodeComponentBasicExtendedSphericalCollapseTypeDE             )
           allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)
           select type (virialDensityContrast_)
           type is (virialDensityContrastSphericalCollapseMatterDE    )
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    (                     cosmologyFunctions_)
+             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterDE    (nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt,cosmologyFunctions_)
           end select
        case (nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998)
           allocate(virialDensityContrastBryanNorman1998               :: virialDensityContrast_)
           select type (virialDensityContrast_)
           type is (virialDensityContrastBryanNorman1998              )
-             virialDensityContrast_=virialDensityContrastBryanNorman1998              (cosmologyParameters_,cosmologyFunctions_)
+             virialDensityContrast_=virialDensityContrastBryanNorman1998              (cosmologyParameters_                                    ,cosmologyFunctions_)
           end select
        end select
        virialDensityContrastInitialized=.true.

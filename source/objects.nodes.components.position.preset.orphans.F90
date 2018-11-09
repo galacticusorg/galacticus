@@ -83,10 +83,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Position_Preset_Orphans_Initialize()
+  subroutine Node_Component_Position_Preset_Orphans_Initialize(parameters)
+    use Input_Parameters
     implicit none
-    type(nodeComponentPositionPresetOrphans) :: position
-
+    type(inputParameters                   ), intent(inout) :: parameters
+    type(nodeComponentPositionPresetOrphans)                :: position
+    !GCC$ attributes unused :: parameters
+    
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Position_Preset_Orphans_Initialize)
     if (defaultPositionComponent%presetIsActive().and..not.moduleInitialized) then

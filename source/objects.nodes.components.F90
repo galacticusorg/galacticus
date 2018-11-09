@@ -25,14 +25,17 @@ module Node_Components
 
 contains
 
-  subroutine Node_Components_Initialize()
+  subroutine Node_Components_Initialize(parameters)
     !% Perform initialization tasks for node components.
+    use Input_Parameters
     !# <include directive="nodeComponentInitializationTask" type="moduleUse">
     include 'node_components.initialize.moduleUse.inc'
     !# </include>
     implicit none
+    type(inputParameters), intent(inout) :: parameters
 
     !# <include directive="nodeComponentInitializationTask" type="functionCall" functionType="void">
+    !#  <functionArgs>parameters</functionArgs>
     include 'node_components.initialize.inc'
     !# </include>
     return

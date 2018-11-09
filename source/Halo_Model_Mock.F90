@@ -103,8 +103,8 @@ program Halo_Model_Mock
   !#   <type>float</type>
   !# </inputParameter>
   ! Initialize nodes infrastructure.
-  call nodeClassHierarchyInitialize()
-  call Node_Components_Initialize  ()
+  call nodeClassHierarchyInitialize(          )
+  call Node_Components_Initialize  (parameters)
   ! Get required objects.
   cosmologyFunctions_      => cosmologyFunctions     ()
   darkMatterProfile_       => darkMatterProfile      ()

@@ -74,11 +74,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize()
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize(parameters)
     !% Initializes the ``scale'' implementation of the dark matter halo profile component.
     use Input_Parameters
     implicit none
-    
+    type(inputParameters), intent(inout) :: parameters
+
     ! Check if this implementation is selected.
     if (.not.moduleInitialized) then
        !$omp critical (Node_Component_Dark_Matter_Profile_Scale_Initialize)
@@ -89,7 +90,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>4.0d0</defaultValue>
           !#   <description>The minimum concentration allowed for dark matter profiles.</description>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>double</type>
           !# </inputParameter>
           !# <inputParameter>
@@ -97,7 +98,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>100.0d0</defaultValue>
           !#   <description>The maximum concentration allowed for dark matter profiles.</description>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>double</type>
           !# </inputParameter>
           !# <inputParameter>
@@ -106,7 +107,7 @@ contains
           !#   <defaultValue>.false.</defaultValue>
           !#   <description>Determines whether or not dark matter halo scale radius is included in outputs of merger trees.</description>
           !#   <group>output</group>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>boolean</type>
           !# </inputParameter>
           ! Bind the scale get function.

@@ -74,11 +74,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Black_Hole_Simple_Initialize()
+  subroutine Node_Component_Black_Hole_Simple_Initialize(parameters)
     !% Initializes the simple black hole node component module.
     use Input_Parameters
     implicit none
-    type(nodeComponentBlackHoleSimple) :: blackHoleSimple
+    type(inputParameters             ), intent(inout) :: parameters
+    type(nodeComponentBlackHoleSimple)                :: blackHoleSimple
 
     ! Initialize the module if necessary.
     if (.not.moduleInitialized) then
@@ -93,7 +94,7 @@ contains
           !#   <defaultValue>1.0d-3</defaultValue>
           !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
           !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>double</type>
           !# </inputParameter>
           ! Options controlling AGN feedback.
@@ -103,7 +104,7 @@ contains
           !#   <defaultValue>.true.</defaultValue>
           !#   <description>Specifies whether or not the black hole should heat the hot halo.</description>
           !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>boolean</type>
           !# </inputParameter>
           if (blackHoleHeatsHotHalo) then
@@ -113,7 +114,7 @@ contains
              !#   <defaultValue>1.0d-3</defaultValue>
              !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
              !#   <group>blackHoles</group>
-             !#   <source>globalParameters</source>
+             !#   <source>parameters</source>
              !#   <type>double</type>
              !# </inputParameter>
           else
@@ -126,7 +127,7 @@ contains
           !#   <defaultValue>2.2157d-3</defaultValue>
           !#   <description>The efficiency of the black hole accretion-driven wind.</description>
           !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>double</type>
           !# </inputParameter>
           ! Get options controlling output.
@@ -135,7 +136,7 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>.false.</defaultValue>
           !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
-          !#   <source>globalParameters</source>
+          !#   <source>parameters</source>
           !#   <type>boolean</type>
           !# </inputParameter>
           ! Record that the module is now initialized.

@@ -93,10 +93,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_NBody_Generic_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_NBody_Generic_Initialize()
+  subroutine Node_Component_NBody_Generic_Initialize(parameters)
     !% Initializes the generic N-body component module.
+    use Input_Parameters
     implicit none
-    type(nodeComponentNBodyGeneric) :: nbodyComponent
+    type(inputParameters             ), intent(inout) :: parameters
+    type(nodeComponentNBodyGeneric   )                :: nbodyComponent
+    !GCC$ attributes unused :: parameters
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_NBody_Generic_Initialize)

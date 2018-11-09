@@ -60,7 +60,7 @@ program Test_Dark_Matter_Profiles
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   ! Initialize node components.
-  call Node_Components_Initialize(                                 )
+  call Node_Components_Initialize(parameters)
   ! Create a node.
   node                      => treeNode                                    (                                )
   ! Create components.

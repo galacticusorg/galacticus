@@ -175,13 +175,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Spheroid_Standard_Initialize()
+  subroutine Node_Component_Spheroid_Standard_Initialize(parameters)
     !% Initializes the tree node standard spheroid methods module.
     use Input_Parameters
     use Abundances_Structure
     use Galacticus_Error
     implicit none
-    type            (nodeComponentSpheroidStandard) :: spheroidStandardComponent
+    type(inputParameters              ), intent(inout) :: parameters
+    type(nodeComponentSpheroidStandard)                :: spheroidStandardComponent
 
     ! Initialize the module if necessary.
     !$omp critical (Node_Component_Spheroid_Standard_Initialize)
@@ -204,7 +205,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-2</defaultValue>
        !#   <description>The proportionallity factor relating mass outflow rate from the spheroid to the energy input rate divided by $V_\mathrm{spheroid}^2$.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -212,7 +213,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -220,7 +221,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the spheroid dynamical time) on which outflows may deplete gas in the spheroid.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -228,7 +229,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not star formation occurs in spheroids in satellites.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -236,7 +237,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not spheroid stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
 
