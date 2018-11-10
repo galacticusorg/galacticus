@@ -16,7 +16,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree operator which creates particle representations of \glc\ halos.
+  !+    Contributions to this file made by: Xiaolong Du, Andrew Benson.
+  
+  !% Contains a module which implements a merger tree operator which creates particle representations of \glc\ halos.
 
   use Cosmology_Parameters
   use Cosmology_Functions
@@ -86,7 +88,7 @@
   integer                                        , parameter   :: energyDistributionTableMass           =5
 
   ! Tables used in construction of distribution functions.
-  class           (mergerTreeOperatorParticulate), pointer     :: particulateSelf
+  class           (mergerTreeOperatorParticulate), allocatable :: particulateSelf
   type            (treeNode                     ), pointer     :: particulateNode
   logical                                                      :: particularEnergyDistributionInitialized
   class           (table1D                      ), allocatable :: particulateRadiusDistribution
@@ -429,14 +431,16 @@ contains
           position  => node%position ()
           satellite => node%satellite()
           ! Set pointers to module-scope variables.
-          particulateSelf            => self
           particulateNode            => node
           particulateRadiusTruncate  =  radiusTruncate
           particulateLengthSoftening =  self%lengthSoftening
           particulateSofteningKernel =  self%kernelSoftening
           ! Iterate over particles.
           isNew=.true.
-          !$omp parallel do private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates)
+          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates)
+          allocate(particulateSelf,mold=self)
+          call self%deepCopy(particulateSelf)
+          !$omp do
           do i=1,particleCountActual
              if (OMP_Get_Thread_Num() == 0) then
                 call Galacticus_Display_Counter(max(1,int(100.0d0*dble(i-1)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityStandard)
@@ -589,7 +593,9 @@ contains
              particleVelocity(:,i)=[velocityCartesian%x(),velocityCartesian%y(),velocityCartesian%z()]
              particleIDs     (  i)=i-1
           end do
-          !$omp end parallel do
+          !$omp end do
+          deallocate(particulateSelf)
+          !$omp end parallel
           call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
           ! Perform unit conversion.
           particlePosition=particlePosition/unitGadgetLength
