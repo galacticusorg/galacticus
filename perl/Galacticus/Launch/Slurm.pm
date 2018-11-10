@@ -310,7 +310,7 @@ sub SubmitJobs {
 		if ( $resourceModel eq "nodes" ) {
 		    print $scriptFile "#SBATCH --nodes=".$nodes."\n";
 		    print $scriptFile "#SBATCH --ntasks-per-node=".$ppn."\n";		    
-		    print $scriptFile "#SBATCH --mem-per-cpu=".$newJob->{'mem'}."\n"
+		    print $scriptFile "#SBATCH --mem=".$newJob->{'mem'}."\n"
 			if ( exists($newJob->{'mem'}) );
 		} else {
 		    die("Galacticus::Launch::SLURM::SubmitJobs: unknown resource model");
