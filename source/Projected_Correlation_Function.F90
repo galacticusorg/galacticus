@@ -142,8 +142,8 @@ program Projected_Correlation_Function
   !#   <type>real</type>
   !# </inputParameter>
   ! Ensure the nodes objects are initialized.
-  call nodeClassHierarchyInitialize                        ()
-  call Node_Component_Dark_Matter_Profile_Scale_Initialize()
+  call nodeClassHierarchyInitialize                       ()
+  call Node_Component_Dark_Matter_Profile_Scale_Initialize(parameters)
   ! Get the default conditional mass function object.
   conditionalMassFunction_  => conditionalMassFunction()
   ! Generate binned separations.
