@@ -45,6 +45,12 @@
      module procedure schneider2015ConstructorInternal
   end interface darkMatterProfileConcentrationSchneider2015
 
+  ! Module-scope variables for root finding.
+  class           (darkMatterProfileConcentrationSchneider2015), pointer :: schneider2015Self
+  double precision                                                       :: schneider2015MassReferencePrevious, schneider2015TimeCollapseReference            , &
+       &                                                                    schneider2015Time                 , schneider2015ReferenceCollapseMassRootPrevious
+  !$omp threadprivate(schneider2015Self,schneider2015MassReferencePrevious,schneider2015TimeCollapseReference,schneider2015Time,schneider2015ReferenceCollapseMassRootPrevious)
+  
 contains
 
   function schneider2015ConstructorParameters(parameters)
@@ -123,18 +129,16 @@ contains
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), pointer :: node
     class           (nodeComponentBasic                         )               , pointer :: basic
-    double precision                                             , parameter              :: toleranceAbsolute                =0.0d00, toleranceRelative    =1.0d-6, &
-         &                                                                                   massReferenceMaximum             =1.0d20
-    double precision                                                                      :: mass                                    , time                        , &
-         &                                                                                   collapseCriticalOverdensity             , timeCollapse                , &
-         &                                                                                   massReference                           , timeCollapseReference       , &
-         &                                                                                   referenceCollapseMassRootPrevious       , massReferencePrevious       , &
-         &                                                                                   variance
+    double precision                                             , parameter              :: toleranceAbsolute          =0.0d00, toleranceRelative=1.0d-6, &
+         &                                                                                   massReferenceMaximum       =1.0d20
+    double precision                                                                      :: mass                                                        , &
+         &                                                                                   collapseCriticalOverdensity       , timeCollapse            , &
+         &                                                                                   massReference                     , variance 
       
     ! Get the basic component and the halo mass and time.
-    basic => node %basic()
-    mass  =  basic%mass ()
-    time  =  basic%time ()
+    basic             => node %basic()
+    mass              =  basic%mass ()
+    schneider2015Time =  basic%time ()
     ! Find critical overdensity at collapse for this node.
     variance=max(                                                                                  &
          &       +0.0d0                                                                          , &
@@ -146,15 +150,15 @@ contains
          &                            /2.0d0                                          &
          &                            *variance                                       &
          &                           )                                                &
-         &                      +self%criticalOverdensity_%value(time=time,mass=mass)
+         &                      +self%criticalOverdensity_%value(time=schneider2015Time,mass=mass)
     ! Compute the corresponding epoch of collapse.
-    timeCollapse=self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass)
+    timeCollapse                      =self%criticalOverdensity_%timeOfCollapse(collapseCriticalOverdensity,mass)
     ! Compute time of collapse in the reference model, assuming same redshift of collapse in both models.
-    timeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
+    schneider2015TimeCollapseReference=self%referenceCosmologyFunctions%cosmicTime(self%cosmologyFunctions_%expansionFactor(timeCollapse))
     ! Find the mass of a halo collapsing at the same time in the reference model.
     if (.not.self%finder%isInitialized()) then
-       call self%finder%rootFunction(referenceCollapseMassRoot                  )
-       call self%finder%tolerance   (toleranceAbsolute        ,toleranceRelative)
+       call self%finder%rootFunction(schneider2015ReferenceCollapseMassRoot)
+       call self%finder%tolerance   (toleranceAbsolute,toleranceRelative)
        call self%finder%rangeExpand (                                                   &
             &                        rangeExpandUpward  =2.000d0                      , &
             &                        rangeExpandDownward=0.999d0                      , &
@@ -162,8 +166,9 @@ contains
             &                        rangeUpwardLimit   =massReferenceMaximum           &
             &                       )
     end if
-    massReferencePrevious=-1.0d0
-    if (referenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
+    schneider2015Self                  => self
+    schneider2015MassReferencePrevious =  -1.0d0
+    if (schneider2015ReferenceCollapseMassRoot(massReferenceMaximum) > 0.0d0) then
        ! No solution can be found even at the maximum allowed mass. Simply set the reference mass to the maximum allowed mass -
        ! the choice shouldn't matter too much as the abundances of such halos should be hugely suppressed.
        massReference        =massReferenceMaximum
@@ -175,33 +180,31 @@ contains
     schneider2015Concentration=self%referenceConcentration%concentration(node)
     call basic%massSet(mass         )
     return
-
-  contains
-
-    double precision function referenceCollapseMassRoot(massReference)
-      !% Root function used to find the mass collapsing at given time in dark matter halo concentration algorithm of
-      !% \cite{schneider_structure_2015}.
-      implicit none
-      double precision, intent(in   ) :: massReference
-      double precision                :: variance
-
-      if (massReference /= massReferencePrevious) then
-         massReferencePrevious            =+massReference
-         variance                         =max(                                                                                                   &
-              &                                +0.0d0                                                                                           , &
-              &                                +self%referenceCosmologicalMassVariance%rootVariance(massReference*self%massFractionFormation)**2  &
-              &                                -self%referenceCosmologicalMassVariance%rootVariance(massReference                           )**2  &
-              &                               )
-         referenceCollapseMassRootPrevious=+sqrt(                                                                                                    &
-              &                                  +Pi                                                                                                 &
-              &                                  /2.0d0                                                                                              &
-              &                                  *variance                                                                                           &
-              &                                 )                                                                                                    &
-              &                            +self%referenceCriticalOverdensity%value(time=time                 ,mass=massReference)                   &
-              &                            -self%referenceCriticalOverdensity%value(time=timeCollapseReference,mass=massReference)
-      end if
-      referenceCollapseMassRoot=referenceCollapseMassRootPrevious
-      return
-    end function referenceCollapseMassRoot
-    
   end function schneider2015Concentration
+  
+  double precision function schneider2015ReferenceCollapseMassRoot(massReference)
+    !% Root function used to find the mass collapsing at given time in dark matter halo concentration algorithm of
+    !% \cite{schneider_structure_2015}.
+    use Numerical_Constants_Math
+    implicit none
+    double precision, intent(in   ) :: massReference
+    double precision                :: variance
+
+    if (massReference /= schneider2015MassReferencePrevious) then
+       schneider2015MassReferencePrevious            =+massReference
+       variance                                      =max(                                                                                                                             &
+            &                                             +0.0d0                                                                                                                     , &
+            &                                             +schneider2015Self%referenceCosmologicalMassVariance%rootVariance(massReference*schneider2015Self%massFractionFormation)**2  &
+            &                                             -schneider2015Self%referenceCosmologicalMassVariance%rootVariance(massReference                                        )**2  &
+            &                                            )
+       schneider2015ReferenceCollapseMassRootPrevious=+sqrt(                                                                                                                           &
+            &                                               +Pi                                                                                                                        &
+            &                                               /2.0d0                                                                                                                     &
+            &                                               *variance                                                                                                                  &
+            &                                              )                                                                                                                           &
+            &                                         +schneider2015Self%referenceCriticalOverdensity%value(time=schneider2015Time                 ,mass=massReference)                &
+            &                                         -schneider2015Self%referenceCriticalOverdensity%value(time=schneider2015TimeCollapseReference,mass=massReference)
+    end if
+    schneider2015ReferenceCollapseMassRoot=schneider2015ReferenceCollapseMassRootPrevious
+    return
+  end function schneider2015ReferenceCollapseMassRoot
