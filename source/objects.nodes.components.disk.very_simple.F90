@@ -23,13 +23,19 @@ module Node_Component_Disk_Very_Simple
   use ISO_Varying_String
   use Galacticus_Nodes
   use Math_Exponentiation
+  use Cosmology_Functions
+  use Stellar_Population_Properties
+  use Dark_Matter_Halo_Scales
+  use Star_Formation_Feedback_Disks
+  use Star_Formation_Timescales_Disks
+  use Dark_Matter_Profiles
   implicit none
   private
-  public :: Node_Component_Disk_Very_Simple_Post_Evolve  , Node_Component_Disk_Very_Simple_Rate_Compute         , &
-       &    Node_Component_Disk_Very_Simple_Scale_Set    , Node_Component_Disk_Very_Simple_Satellite_Merging    , &
-       &    Node_Component_Disk_Very_Simple_Initialize   , Node_Component_Disk_Very_Simple_Pre_Evolve           , &
-       &    Node_Component_Disk_Very_Simple_Rates        , Node_Component_Disk_Very_Simple_Analytic_Solver      , &
-       &    Node_Component_Disk_Very_Simple_Post_Step
+  public :: Node_Component_Disk_Very_Simple_Post_Evolve, Node_Component_Disk_Very_Simple_Rate_Compute     , &
+       &    Node_Component_Disk_Very_Simple_Scale_Set  , Node_Component_Disk_Very_Simple_Satellite_Merging, &
+       &    Node_Component_Disk_Very_Simple_Initialize , Node_Component_Disk_Very_Simple_Pre_Evolve       , &
+       &    Node_Component_Disk_Very_Simple_Rates      , Node_Component_Disk_Very_Simple_Analytic_Solver  , &
+       &    Node_Component_Disk_Very_Simple_Post_Step  , Node_Component_Disk_Very_Simple_Thread_Initialize
 
   !# <component>
   !#  <class>disk</class>
@@ -98,8 +104,14 @@ module Node_Component_Disk_Very_Simple
   !#  <functions>objects.nodes.components.disk.very_simple.bound_functions.inc</functions>
   !# </component>
 
-  ! Record of whether this module has been initialized.
-  logical                             :: moduleInitialized                         =.false.
+  ! Objects used by this component.
+  class(cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_
+  class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
+  class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
+  class(starFormationFeedbackDisksClass ), pointer :: starFormationFeedbackDisks_
+  class(starFormationTimescaleDisksClass), pointer :: starFormationTimescaleDisks_
+  class(darkMatterProfileClass          ), pointer :: darkMatterProfile_
+  !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,starFormationFeedbackDisks_,starFormationTimescaleDisks_,darkMatterProfile_)
 
   ! Record of whether to use the simple disk analytic solver.
   logical                             :: diskVerySimpleUseAnalyticSolver
@@ -123,16 +135,13 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Initialize(parameters)
     !% Initializes the tree node very simple disk component module.
     use Input_Parameters
-    use Cosmology_Functions
     implicit none
     type            (inputParameters            ), intent(inout) :: parameters
     type            (nodeComponentDiskVerySimple)                :: diskVerySimpleComponent
-    class           (cosmologyFunctionsClass    ), pointer       :: cosmologyFunctions_
     double precision                             , parameter     :: velocityNormalization  =200.0d0
 
     ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Disk_Very_Simple_Initialize)
-    if (defaultDiskComponent%verySimpleIsActive().and..not.moduleInitialized) then
+    if (defaultDiskComponent%verySimpleIsActive()) then
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>diskVerySimpleMassScaleAbsolute</name>
@@ -219,20 +228,34 @@ contains
        ! Compute normalization factor for surface density.
        surfaceDensityNormalization=diskVerySimpleSurfaceDensityThreshold/velocityNormalization**diskVerySimpleSurfaceDensityVelocityExponent
        ! If using the analytic solver, find the time at the present day.
-       if (diskVerySimpleUseAnalyticSolver) then
-          cosmologyFunctions_ => cosmologyFunctions            (     )
-          timePresentDay      =  cosmologyFunctions_%cosmicTime(1.0d0)
-       end if
+       if (diskVerySimpleUseAnalyticSolver) timePresentDay=cosmologyFunctions_%cosmicTime(1.0d0)
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()
        ! Bind the star formation rate function.
        call diskVerySimpleComponent%starFormationRateFunction(Node_Component_Disk_Very_Simple_SFR)
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Disk_Very_Simple_Initialize)
     return
   end subroutine Node_Component_Disk_Very_Simple_Initialize
+
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters)
+    !% Initializes the tree node very simple disk profile module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultDiskComponent%verySimpleIsActive()) then
+       !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
+       !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters"/>
+       !# <objectBuilder class="darkMatterProfile"           name="darkMatterProfile_"           source="parameters"/>
+       !# <objectBuilder class="starFormationFeedbackDisks"  name="starFormationFeedbackDisks_"  source="parameters"/>
+       !# <objectBuilder class="starFormationTimescaleDisks" name="starFormationTimescaleDisks_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Thread_Initialize
 
   !# <preEvolveTask>
   !# <unitName>Node_Component_Disk_Very_Simple_Pre_Evolve</unitName>
@@ -360,13 +383,11 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Create(node)
     !% Create properties in a very simple disk component.
     use Histories
-    use Stellar_Population_Properties
     implicit none
-    type   (treeNode                        ), intent(inout), pointer :: node
-    class  (nodeComponentDisk               )               , pointer :: disk
-    class  (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
-    type   (history                         )                         :: stellarPropertiesHistory
-    logical                                                           :: createStellarPropertiesHistory
+    type   (treeNode         ), intent(inout), pointer :: node
+    class  (nodeComponentDisk)               , pointer :: disk
+    type   (history          )                         :: stellarPropertiesHistory
+    logical                                            :: createStellarPropertiesHistory
 
     ! Get the disk component.
     disk => node%disk()
@@ -379,7 +400,6 @@ contains
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
-       stellarPopulationProperties_ => stellarPopulationProperties()
        call stellarPopulationProperties_%historyCreate(node,stellarPropertiesHistory)
        call disk%stellarPropertiesHistorySet          (     stellarPropertiesHistory)
     end if
@@ -680,33 +700,24 @@ contains
   
   subroutine Node_Component_Disk_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate,luminositiesStellarRates)
     !% Compute rates.
-    use Star_Formation_Feedback_Disks
     use Stellar_Feedback
-    use Stellar_Population_Properties
-    use Dark_Matter_Halo_Scales
     use Abundances_Structure
     use Galactic_Structure_Options
     use Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                        ), intent(inout), pointer :: node
-    type            (history                         ), intent(inout)          :: stellarHistoryRate
-    double precision                                  , intent(  out)          :: fuelMassRate                , stellarMassRate       , &
-         &                                                                        massOutflowRate
-    type            (abundances                      ), intent(inout)          :: fuelAbundancesRate          , stellarAbundancesRate
-    type            (stellarLuminosities             ), intent(inout)          :: luminositiesStellarRates
-    class           (nodeComponentDisk               )               , pointer :: disk
-    class           (darkMatterHaloScaleClass        )               , pointer :: darkMatterHaloScale_
-    class           (starFormationFeedbackDisksClass )               , pointer :: starFormationFeedbackDisks_
-    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
-    double precision                                                           :: diskDynamicalTime           , fuelMass              , &
-         &                                                                        energyInputRate             , starFormationRate
-    type            (abundances                      )               , save    :: fuelAbundances
+    type            (treeNode           ), intent(inout), pointer :: node
+    type            (history            ), intent(inout)          :: stellarHistoryRate
+    double precision                     , intent(  out)          :: fuelMassRate            , stellarMassRate       , &
+         &                                                           massOutflowRate
+    type            (abundances         ), intent(inout)          :: fuelAbundancesRate      , stellarAbundancesRate
+    type            (stellarLuminosities), intent(inout)          :: luminositiesStellarRates
+    class           (nodeComponentDisk  )               , pointer :: disk
+    double precision                                              :: diskDynamicalTime       , fuelMass              , &
+         &                                                           energyInputRate         , starFormationRate
+    type            (abundances         )               , save    :: fuelAbundances
     !$omp threadprivate (fuelAbundances)
 
-    ! Get required objects.
-    starFormationFeedbackDisks_  => starFormationFeedbackDisks ()
-    stellarPopulationProperties_ => stellarPopulationProperties()
     ! Get the disk.
     disk => node%disk()
     ! Initialize to zero rates.
@@ -733,10 +744,9 @@ contains
     massOutflowRate=starFormationFeedbackDisks_%outflowRate(node,energyInputRate,starFormationRate)
     if (massOutflowRate > 0.0d0) then
        ! Limit the outflow rate timescale to a multiple of the dynamical time.
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       fuelMass             =  disk                %massGas           (    )
-       diskDynamicalTime    =  darkMatterHaloScale_%dynamicalTimescale(node)
-       massOutflowRate      =  min(massOutflowRate,fuelMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
+       fuelMass         =disk                %massGas           (    )
+       diskDynamicalTime=darkMatterHaloScale_%dynamicalTimescale(node)
+       massOutflowRate  =min(massOutflowRate,fuelMass/diskOutflowTimescaleMinimum/diskDynamicalTime)
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Rates
@@ -749,16 +759,14 @@ contains
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Histories
-    use Stellar_Population_Properties
     implicit none
-    type            (treeNode                        ), intent(inout), pointer :: node
-    class           (nodeComponentDisk               )               , pointer :: disk
-    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
-    double precision                                  , parameter              :: luminosityMinimum             =1.0d0
-    double precision                                                           :: mass
-    type            (history                         )                         :: stellarPopulationHistoryScales
-    type            (abundances                      )                         :: abundancesTotal
-    type            (stellarLuminosities             )                         :: stellarLuminositiesScale
+    type            (treeNode           ), intent(inout), pointer :: node
+    class           (nodeComponentDisk  )               , pointer :: disk
+    double precision                     , parameter              :: luminosityMinimum             =1.0d0
+    double precision                                              :: mass
+    type            (history            )                         :: stellarPopulationHistoryScales
+    type            (abundances         )                         :: abundancesTotal
+    type            (stellarLuminosities)                         :: stellarLuminositiesScale
 
     ! Get the disk component.
     disk => node%disk()
@@ -774,7 +782,6 @@ contains
        call disk%abundancesGasScale    (max(abundancesTotal,unitAbundances*diskVerySimpleMassScaleAbsolute))
        call disk%abundancesStellarScale(max(abundancesTotal,unitAbundances*diskVerySimpleMassScaleAbsolute))
        ! Set scales for stellar population properties and star formation histories.
-       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarPopulationHistoryScales=disk%stellarPropertiesHistory()
        call stellarPopulationProperties_%scales(disk%massStellar(),zeroAbundances,stellarPopulationHistoryScales)
        call disk%stellarPropertiesHistoryScale (                                  stellarPopulationHistoryScales)
@@ -902,15 +909,9 @@ contains
 
   double precision function Node_Component_Disk_Very_Simple_SFR(self)
     !% Return the star formation rate of the very simple disk.
-    use Star_Formation_Timescales_Disks
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
     use Numerical_Constants_Math
     implicit none
     class           (nodeComponentDiskVerySimple     ), intent(inout) :: self
-    class           (darkMatterHaloScaleClass        ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass          ), pointer       :: darkMatterProfile_
-    class           (starFormationTimescaleDisksClass), pointer       :: starFormationTimescaleDisks_
     double precision                                                  :: diskDynamicalTime           , gasMass              , &
          &                                                               starFormationTimescale      , surfaceDensityCentral, &
          &                                                               radiusThreshold             , massStarForming      , &
@@ -919,13 +920,10 @@ contains
     ! Get the gas mass.
     gasMass=self%massGas()    
     ! Get the star formation timescale.
-    starFormationTimescaleDisks_ => starFormationTimescaleDisks           (             )
-    starFormationTimescale       =  starFormationTimescaleDisks_%timescale(self%hostNode)
+    starFormationTimescale=starFormationTimescaleDisks_%timescale(self%hostNode)
     ! Limit the star formation timescale to a multiple of the dynamical time.
-    darkMatterHaloScale_   => darkMatterHaloScale()
-    darkMatterProfile_     => darkMatterProfile  ()
-    diskDynamicalTime      =darkMatterHaloScale_%dynamicalTimescale(self%hostNode)
-    starFormationTimescale =max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
+    diskDynamicalTime     =darkMatterHaloScale_%dynamicalTimescale(self%hostNode)
+    starFormationTimescale=max(starFormationTimescale,diskStarFormationTimescaleMinimum*diskDynamicalTime)
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
     if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. self%radius() > 0.0d0) then
        ! Find mass of gas actively involved in star formation.

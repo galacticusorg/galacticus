@@ -22,6 +22,14 @@ module Node_Component_Disk_Standard
   !% Implements the standard disk node component.
   use Galacticus_Nodes
   use ISO_Varying_String
+  use Dark_Matter_Halo_Scales
+  use Stellar_Population_Properties
+  use Star_Formation_Feedback_Disks
+  use Star_Formation_Feedback_Expulsion_Disks
+  use Star_Formation_Timescales_Disks
+  use Galactic_Dynamics_Bar_Instabilities
+  use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
+  use Tidal_Stripping_Mass_Loss_Rate_Disks
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve       , &
@@ -139,6 +147,17 @@ module Node_Component_Disk_Standard
   !#  <functions>objects.nodes.components.disk.standard.bound_functions.inc</functions>
   !# </component>
 
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
+  class(stellarPopulationPropertiesClass        ), pointer :: stellarPopulationProperties_
+  class(starFormationFeedbackDisksClass         ), pointer :: starFormationFeedbackDisks_
+  class(starFormationExpulsiveFeedbackDisksClass), pointer :: starFormationExpulsiveFeedbackDisks_
+  class(starFormationTimescaleDisksClass        ), pointer :: starFormationTimescaleDisks_
+  class(galacticDynamicsBarInstabilityClass     ), pointer :: galacticDynamicsBarInstability_
+  class(ramPressureStrippingDisksClass          ), pointer :: ramPressureStrippingDisks_
+  class(tidalStrippingDisksClass                ), pointer :: tidalStrippingDisks_
+  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationFeedbackDisks_,starFormationExpulsiveFeedbackDisks_,starFormationTimescaleDisks_,galacticDynamicsBarInstability_,ramPressureStrippingDisks_,tidalStrippingDisks_)
+
   ! Internal count of abundances.
   integer                                     :: abundancesCount
 
@@ -160,9 +179,6 @@ module Node_Component_Disk_Standard
   double precision                            :: diskStructureSolverSpecificAngularMomentum  , diskRadiusSolverFlatVsSphericalFactor
   !$omp threadprivate(diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor)
   
-  ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized                    =.false.
-
 contains
 
   !# <nodeComponentInitializationTask>
@@ -178,19 +194,13 @@ contains
     type(inputParameters          ), intent(inout) :: parameters
     type(nodeComponentDiskStandard)                :: diskStandardComponent
 
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Disk_Standard_Initialize)
-    if (defaultDiskComponent%standardIsActive().and..not.moduleInitialized) then
-
+    if (defaultDiskComponent%standardIsActive()) then
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
-
        ! Attach the cooling mass/angular momentum pipes from the hot halo component.
        call diskStandardComponent%attachPipes()
-
        ! Bind the star formation rate function.
        call diskStandardComponent%starFormationRateFunction(Node_Component_Disk_Standard_Star_Formation_Rate)
-
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>diskMassToleranceAbsolute</name>
@@ -248,10 +258,7 @@ contains
        !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Disk_Standard_Initialize)
     return
   end subroutine Node_Component_Disk_Standard_Initialize
 
@@ -270,6 +277,16 @@ contains
     
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultDiskComponent%standardIsActive()) then
+       
+       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters"/>
+       !# <objectBuilder class="stellarPopulationProperties"         name="stellarPopulationProperties_"         source="parameters"/>
+       !# <objectBuilder class="starFormationFeedbackDisks"          name="starFormationFeedbackDisks_"          source="parameters"/>
+       !# <objectBuilder class="starFormationExpulsiveFeedbackDisks" name="starFormationExpulsiveFeedbackDisks_" source="parameters"/>
+       !# <objectBuilder class="starFormationTimescaleDisks"         name="starFormationTimescaleDisks_"         source="parameters"/>
+       !# <objectBuilder class="galacticDynamicsBarInstability"      name="galacticDynamicsBarInstability_"      source="parameters"/>
+       !# <objectBuilder class="ramPressureStrippingDisks"           name="ramPressureStrippingDisks_"           source="parameters"/>
+       !# <objectBuilder class="tidalStrippingDisks"                 name="tidalStrippingDisks_"                 source="parameters"/>
+       
        !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters" threadPrivate="yes">
        !#  <default>
        !#   <diskMassDistribution value="exponentialDisk">
@@ -387,14 +404,12 @@ contains
     use ISO_Varying_String
     use Abundances_Structure
     use Galacticus_Error
-    use Dark_Matter_Halo_Scales
     use Stellar_Luminosities_Structure
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
     integer                                   , intent(inout)          :: status
     class           (nodeComponentDisk       )               , pointer :: disk
     class           (nodeComponentSpin       )               , pointer :: spin
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
     double precision                          , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                          , save                   :: fractionalErrorMaximum  =0.0d0
     double precision                                                   :: diskMass                       , fractionalError, &
@@ -505,7 +520,6 @@ contains
           status=FGSL_Failure
        end if
        ! Trap negative angular momentum.
-       darkMatterHaloScale_ => darkMatterHaloScale()
        if (disk%angularMomentum() < 0.0d0) then
           spin => node%spin()
           if      (                           &
@@ -537,7 +551,7 @@ contains
                 message=message//char(10)//' -> stellar mass           = '//trim(valueString)
                 write (valueString,'(e12.6)') disk%massGas        ()
                 message=message//char(10)//' -> gas mass               = '//trim(valueString)
-                write (valueString,'(e12.6)')  darkMatterHaloScale_%virialRadius  (node) &
+                write (valueString,'(e12.6)') +darkMatterHaloScale_%virialRadius  (node) &
                      &                        *darkMatterHaloScale_%virialVelocity(node) &
                      &                        *spin                %spin          (    )
                 message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
@@ -553,18 +567,16 @@ contains
   subroutine Node_Component_Disk_Standard_Create(node)
     !% Create properties in an standard disk component.
     use Histories
-    use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type   (treeNode                        ), intent(inout), pointer :: node
-    class  (nodeComponentDisk               )               , pointer :: disk
-    class  (nodeComponentSpheroid           )               , pointer :: spheroid
-    class  (nodeComponentBasic              )               , pointer :: basic
-    class  (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
-    type   (history                         )                         :: starFormationHistory        , stellarPropertiesHistory      , &
-         &                                                               spheroidStarFormationHistory
-    logical                                                           :: createStarFormationHistory  , createStellarPropertiesHistory
-    double precision                                                  :: timeBegin
+    type   (treeNode             ), intent(inout), pointer :: node
+    class  (nodeComponentDisk    )               , pointer :: disk
+    class  (nodeComponentSpheroid)               , pointer :: spheroid
+    class  (nodeComponentBasic   )               , pointer :: basic
+    type   (history              )                         :: starFormationHistory        , stellarPropertiesHistory      , &
+         &                                                    spheroidStarFormationHistory
+    logical                                                :: createStarFormationHistory  , createStellarPropertiesHistory
+    double precision                                       :: timeBegin
     
     ! Get the disk component.
     disk => node%disk()
@@ -580,7 +592,6 @@ contains
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
        ! Create the stellar properties history.
-       stellarPopulationProperties_ => stellarPopulationProperties()
        call stellarPopulationProperties_%historyCreate(node,stellarPropertiesHistory)
        call disk%stellarPropertiesHistorySet(stellarPropertiesHistory)
     end if
@@ -609,50 +620,36 @@ contains
     !% Compute the standard disk node mass rate of change.
     use Abundances_Structure
     use Histories
-    use Star_Formation_Feedback_Disks
-    use Star_Formation_Feedback_Expulsion_Disks
     use Galactic_Structure_Options
-    use Galactic_Dynamics_Bar_Instabilities
     use Galacticus_Output_Star_Formation_Histories
-    use Stellar_Population_Properties
     use Numerical_Constants_Astronomical
-    use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
-    use Tidal_Stripping_Mass_Loss_Rate_Disks
-    use Dark_Matter_Halo_Scales
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                                ), intent(inout), pointer :: node
-    logical                                                   , intent(in   )          :: odeConverged
-    class           (nodeComponentDisk                       )               , pointer :: disk
-    class           (nodeComponentSpheroid                   )               , pointer :: spheroid
-    class           (nodeComponentHotHalo                    )               , pointer :: hotHalo
-    class           (darkMatterHaloScaleClass                )               , pointer :: darkMatterHaloScale_
-    logical                                                   , intent(inout)          :: interrupt
-    procedure       (interruptTask                           ), intent(inout), pointer :: interruptProcedureReturn
-    integer                                                   , intent(in   )          :: propertyType
-    procedure       (interruptTask                           )               , pointer :: interruptProcedure
-    class           (starFormationFeedbackDisksClass         )               , pointer :: starFormationFeedbackDisks_
-    class           (starFormationExpulsiveFeedbackDisksClass)               , pointer :: starFormationExpulsiveFeedbackDisks_
-    class           (galacticDynamicsBarInstabilityClass     )               , pointer :: galacticDynamicsBarInstability_
-    class           (tidalStrippingDisksClass                )               , pointer :: tidalStrippingDisks_
-    class           (ramPressureStrippingDisksClass          )               , pointer :: ramPressureStrippingDisks_
-    class           (stellarPopulationPropertiesClass        )               , pointer :: stellarPopulationProperties_
-    type            (abundances                              ), save                   :: fuelAbundances                      , fuelAbundancesRates        , &
-         &                                                                                stellarAbundancesRates
+    type            (treeNode             ), intent(inout), pointer :: node
+    logical                                , intent(in   )          :: odeConverged
+    class           (nodeComponentDisk    )               , pointer :: disk
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
+    class           (nodeComponentHotHalo )               , pointer :: hotHalo
+    logical                                , intent(inout)          :: interrupt
+    procedure       (interruptTask        ), intent(inout), pointer :: interruptProcedureReturn
+    integer                                , intent(in   )          :: propertyType
+    procedure       (interruptTask        )               , pointer :: interruptProcedure
+    type            (abundances           ), save                   :: fuelAbundances              , fuelAbundancesRates       , &
+         &                                                             stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                                    :: angularMomentum                    , angularMomentumOutflowRate, &
-         &                                                                                 barInstabilitySpecificTorque       , barInstabilityTimescale   , &
-         &                                                                                 diskDynamicalTime                  , diskMass                  , &
-         &                                                                                 energyInputRate                    , fractionGas               , &
-         &                                                                                 fractionStellar                    , fuelMass                  , &
-         &                                                                                 fuelMassRate                       , gasMass                   , &
-         &                                                                                 massLossRate                       , massOutflowRate           , &
-         &                                                                                 massOutflowRateFromHalo            , massOutflowRateToHotHalo  , &
-         &                                                                                 outflowToHotHaloFraction           , starFormationRate         , &
-         &                                                                                 stellarMassRate                    , transferRate
-    type            (history                               )                            :: historyTransferRate                , stellarHistoryRate
-    type            (stellarLuminosities                   ), save                      :: luminositiesStellarRates           , luminositiesTransferRate
-    logical                                                                             :: luminositiesCompute
+    double precision                                                :: angularMomentum             , angularMomentumOutflowRate, &
+         &                                                             barInstabilitySpecificTorque, barInstabilityTimescale   , &
+         &                                                             diskDynamicalTime           , diskMass                  , &
+         &                                                             energyInputRate             , fractionGas               , &
+         &                                                             fractionStellar             , fuelMass                  , &
+         &                                                             fuelMassRate                , gasMass                   , &
+         &                                                             massLossRate                , massOutflowRate           , &
+         &                                                             massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
+         &                                                             outflowToHotHaloFraction    , starFormationRate         , &
+         &                                                             stellarMassRate             , transferRate
+    type            (history              )                         :: historyTransferRate         , stellarHistoryRate
+    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
+    logical                                                         :: luminositiesCompute
     !$omp threadprivate(luminositiesStellarRates,luminositiesTransferRate)
     !GCC$ attributes unused :: odeConverged
 
@@ -689,7 +686,6 @@ contains
             &              .or.                                                                               &
             &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarHistoryRate=disk%stellarPropertiesHistory()     
        call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,disk,node,stellarHistoryRate&
             &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRates,stellarAbundancesRates,luminositiesStellarRates,luminositiesCompute)
@@ -709,11 +705,9 @@ contains
        call Star_Formation_History_Record(node,stellarHistoryRate,fuelAbundances,starFormationRate)
        if (stellarHistoryRate%exists()) call disk%starFormationHistoryRate(stellarHistoryRate)
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
-       starFormationFeedbackDisks_          => starFormationFeedbackDisks                      (                                      )
-       starFormationExpulsiveFeedbackDisks_ => starFormationExpulsiveFeedbackDisks             (                                      )
-       massOutflowRateToHotHalo             =  starFormationFeedbackDisks_         %outflowRate(node,energyInputRate,starFormationRate)
-       massOutflowRateFromHalo              =  starFormationExpulsiveFeedbackDisks_%outflowRate(node,starFormationRate,energyInputRate)
-       massOutflowRate                      =  massOutflowRateToHotHalo+massOutflowRateFromHalo
+       massOutflowRateToHotHalo=starFormationFeedbackDisks_         %outflowRate(node,energyInputRate,starFormationRate)
+       massOutflowRateFromHalo =starFormationExpulsiveFeedbackDisks_%outflowRate(node,starFormationRate,energyInputRate)
+       massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then
           ! Find the fraction of material which outflows to the hot halo.
           outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
@@ -754,7 +748,6 @@ contains
        ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
        if (node%isPhysicallyPlausible) then
           ! Disk has positive angular momentum, so compute an instability timescale.
-          galacticDynamicsBarInstability_ => galacticDynamicsBarInstability()
           call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilitySpecificTorque)
        else
           ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
@@ -807,7 +800,6 @@ contains
           end if
           call historyTransferRate%destroy()
           ! Additional external torque.
-          darkMatterHaloScale_ => darkMatterHaloScale()
           if (spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) .and. spheroid%radius() < darkMatterHaloScale_%virialRadius(node)) then
              call spheroid%angularMomentumRate(+barInstabilitySpecificTorque*(spheroid%massGas()+spheroid%massStellar()),interrupt,interruptProcedure)
           end if
@@ -815,8 +807,7 @@ contains
 
        ! Apply mass loss rate due to ram pressure stripping.
        if (disk%massGas() > 0.0d0) then
-          ramPressureStrippingDisks_ => ramPressureStrippingDisks              (    )
-          massLossRate               =  ramPressureStrippingDisks_%rateMassLoss(node)
+          massLossRate=ramPressureStrippingDisks_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo => node%hotHalo()
              call    disk%                  massGasRate(-massLossRate                                                                       )
@@ -830,8 +821,7 @@ contains
 
        ! Apply mass loss rate due to tidal stripping.
        if (disk%massGas()+disk%massStellar() > 0.0d0) then
-          tidalStrippingDisks_ => tidalStrippingDisks              (    )
-          massLossRate         =  tidalStrippingDisks_%rateMassLoss(node)
+          massLossRate=tidalStrippingDisks_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo    => node%hotHalo()
              fractionGas    =  min(1.0d0,max(0.0d0,disk%massGas()/(disk%massGas()+disk%massStellar())))
@@ -875,7 +865,6 @@ contains
   subroutine Node_Component_Disk_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use Histories
-    use Stellar_Population_Properties
     use Galacticus_Output_Star_Formation_Histories
     use Abundances_Structure
     use Stellar_Luminosities_Structure
@@ -883,7 +872,6 @@ contains
     type            (treeNode                        ), intent(inout), pointer :: node
     class           (nodeComponentDisk               )               , pointer :: disk
     class           (nodeComponentSpheroid           )               , pointer :: spheroid
-    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
     double precision                                  , parameter              :: massMinimum                   =1.0d+00
     double precision                                  , parameter              :: angularMomentumMinimum        =1.0d-1
     double precision                                  , parameter              :: luminosityMinimum             =1.0d0
@@ -934,7 +922,6 @@ contains
        call disk       %luminositiesStellarScale(stellarLuminositiesScale                      )
 
        ! Set scales for stellar population properties and star formation histories.
-       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarPopulationHistoryScales=disk%stellarPropertiesHistory()
        call stellarPopulationProperties_%scales (disk%massStellar(),disk%abundancesStellar(),stellarPopulationHistoryScales)
        call disk%stellarPropertiesHistoryScale  (                                            stellarPopulationHistoryScales)
@@ -1116,12 +1103,10 @@ contains
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
-    use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout) :: node
-    class           (nodeComponentDisk       ), pointer       :: disk
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    double precision                                          :: angularMomentumScale
+    type            (treeNode         ), intent(inout) :: node
+    class           (nodeComponentDisk), pointer       :: disk
+    double precision                                   :: angularMomentumScale
 
     ! Return immediately if our method is not selected.
     if     (                                                &
@@ -1149,7 +1134,6 @@ contains
                &  ) then
              node%isPhysicallyPlausible=.false.
           else
-             darkMatterHaloScale_ => darkMatterHaloScale()
              angularMomentumScale=(                                           &
                   &                 disk%massStellar()                        &
                   &                +disk%massGas    ()                        &
@@ -1294,23 +1278,17 @@ contains
 
   double precision function Node_Component_Disk_Standard_Star_Formation_Rate(self)
     !% Return the star formation rate of the standard disk.
-    use Star_Formation_Timescales_Disks
     implicit none
-    class           (nodeComponentDiskStandard       ), intent(inout) :: self
-    type            (treeNode                        ), pointer       :: node
-    class           (starFormationTimescaleDisksClass), pointer       :: starFormationTimescaleDisks_
-    double precision                                                  :: gasMass                     , starFormationTimescale
+    class           (nodeComponentDiskStandard), intent(inout) :: self
+    type            (treeNode                 ), pointer       :: node
+    double precision                                           :: gasMass, starFormationTimescale
 
     ! Get the associated node.
     node => self%host()
-
     ! Get the star formation timescale.
-    starFormationTimescaleDisks_ => starFormationTimescaleDisks           (    )
-    starFormationTimescale       =  starFormationTimescaleDisks_%timescale(node)
-
+    starFormationTimescale=starFormationTimescaleDisks_%timescale(node)
     ! Get the gas mass.
     gasMass=self%massGas()
-
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
     if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (diskStarFormationInSatellites .or. .not.node%isSatellite())) then
        Node_Component_Disk_Standard_Star_Formation_Rate=gasMass/starFormationTimescale

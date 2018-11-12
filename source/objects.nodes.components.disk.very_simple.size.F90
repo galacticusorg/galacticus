@@ -64,9 +64,6 @@ module Node_Component_Disk_Very_Simple_Size
   ! Parameters controlling the physical implementation.
   double precision :: diskMassToleranceAbsolute
 
-  ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized        =.false.
-
 contains
 
   !# <mergerTreePreTreeConstructionTask>
@@ -77,9 +74,7 @@ contains
     use Input_Parameters
     implicit none
 
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Disk_Very_Simple_Size_Initialize)
-    if (defaultDiskComponent%verySimpleSizeIsActive().and..not.moduleInitialized) then
+    if (defaultDiskComponent%verySimpleSizeIsActive()) then
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>diskMassToleranceAbsolute</name>
@@ -89,10 +84,7 @@ contains
        !#   <source>globalParameters</source>
        !#   <type>double</type>
        !# </inputParameter>
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Disk_Very_Simple_Size_Initialize)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Initialize
   

@@ -23,11 +23,14 @@ module Node_Component_Basic_Standard_Extended
   !% Extends the standard implementation of basic component to track the Bertschinger mass.
   use Virial_Density_Contrast
   use Galacticus_Nodes
+  use Cosmology_Functions
+  use Cosmology_Parameters
   implicit none
   private
   public :: Node_Component_Basic_Standard_Extended_Initialize, Node_Component_Basic_Standard_Extended_Node_Merger , &
        &    Node_Component_Basic_Standard_Extended_Promote   , Node_Component_Basic_Standard_Extended_Rate_Compute, &
-       &    Node_Component_Basic_Standard_Extended_Scale_Set , Node_Component_Basic_Extended_Bindings
+       &    Node_Component_Basic_Standard_Extended_Scale_Set , Node_Component_Basic_Extended_Bindings             , &
+       &    Node_Component_Basic_Extended_Thread_Initialize
 
   !# <component>
   !#  <class>basic</class>
@@ -68,15 +71,17 @@ module Node_Component_Basic_Standard_Extended
   !#   </property>
   !#  </properties>
   !# </component>
-
+  
+  ! Objects used by this component.
+  class(cosmologyParametersClass), pointer :: cosmologyParameters_
+  class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+  !$omp threadprivate(cosmologyParameters_,cosmologyFunctions_)
+  
   ! Options controlling spherical collapse model to use.
   integer                                        :: nodeComponentBasicExtendedSphericalCollapseType                 , nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt
   integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeLambda         =0
   integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeDE             =1
   integer                            , parameter :: nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998=2
-
-  ! Initialization state.
-  logical                                          :: moduleInitialized                                           =.false.
 
   ! Virial density contrast object.
   logical                                          :: virialDensityContrastInitialized                            =.false.
@@ -99,71 +104,71 @@ contains
     type(varying_string                    )                :: nodeComponentBasicExtendedSphericalCollapseTypeText, nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText
     type(nodeComponentBasicStandardExtended)                :: basic
 
-    ! Initialize the bindings.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Basic_Extended_Bindings)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>nodeComponentBasicExtendedSphericalCollapseType</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('matterLambda')</defaultValue>
-          !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
-          !#   <group>cosmology</group>
-          !#   <source>parameters</source>
-          !#   <type>string</type>
-          !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
-          !# </inputParameter>
-          select case (char(nodeComponentBasicExtendedSphericalCollapseTypeText))
-          case ('matterLambda'    )
-             nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeLambda
-          case ('matterDarkEnergy')
-             nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeDE
-             !# <inputParameter>
-             !#   <name>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>var_str('turnaround')</defaultValue>
-             !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
-             !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
-             !#     \citealt{percival_cosmological_2005}; \S8.).</description>
-             !#   <group>cosmology</group>
-             !#   <source>parameters</source>
-             !#   <type>string</type>
-             !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
-             !# </inputParameter>
-             nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt=enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode(char(nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText),includesPrefix=.false.)
-          case ('bryanNorman')
-             nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998
-          end select
-          ! Bind deferred functions.
-          call basic%massBertschingerFunction(Node_Component_Basic_Extended_Mass_Bertschinger)
-          call basic%radiusTurnaroundFunction(Node_Component_Basic_Extended_Radius_Turnaround)
-          ! Record that the module is now initialize.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Basic_Extended_Bindings)
-    end if
+    !# <inputParameter>
+    !#   <name>nodeComponentBasicExtendedSphericalCollapseType</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('matterLambda')</defaultValue>
+    !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
+    !#   <group>cosmology</group>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
+    !# </inputParameter>
+    select case (char(nodeComponentBasicExtendedSphericalCollapseTypeText))
+    case ('matterLambda'    )
+       nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeLambda
+    case ('matterDarkEnergy')
+       nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeDE
+       !# <inputParameter>
+       !#   <name>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('turnaround')</defaultValue>
+       !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
+       !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
+       !#     \citealt{percival_cosmological_2005}; \S8.).</description>
+       !#   <group>cosmology</group>
+       !#   <source>parameters</source>
+       !#   <type>string</type>
+       !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
+       !# </inputParameter>
+       nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt=enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode(char(nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText),includesPrefix=.false.)
+    case ('bryanNorman')
+       nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998
+    end select
+    ! Bind deferred functions.
+    call basic%massBertschingerFunction(Node_Component_Basic_Extended_Mass_Bertschinger)
+    call basic%radiusTurnaroundFunction(Node_Component_Basic_Extended_Radius_Turnaround)
     return
   end subroutine Node_Component_Basic_Extended_Bindings
   
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Basic_Extended_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Basic_Extended_Thread_Initialize(parameters)
+    !% Initializes the tree node random spin module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+    
+    if (defaultBasicComponent%standardExtendedIsActive()) then
+       !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+       !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Basic_Extended_Thread_Initialize
+
   subroutine Node_Component_Basic_Extended_Bertschinger_Solver(self)
     !% Compute the Bertschinger mass and turnaround radii
     use Dark_Matter_Profile_Mass_Definitions
-    use Dark_Matter_Halo_Scales
     use Dark_Matter_Profile_Scales
-    use Cosmology_Functions
-    use Cosmology_Parameters
     implicit none
     class           (nodeComponentBasicStandardExtended), intent(inout) :: self
     type            (treeNode                          ), pointer       :: selfNode
-    class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
-    class           (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
     double precision                                                    :: radiusVirial
 
     ! Initialize virial density contrast objects.
     if (.not.virialDensityContrastInitialized) then
-       cosmologyParameters_ => cosmologyParameters()
-       cosmologyFunctions_  => cosmologyFunctions ()
-       select case (nodeComponentBasicExtendedSphericalCollapseType)
+      select case (nodeComponentBasicExtendedSphericalCollapseType)
        case (nodeComponentBasicExtendedSphericalCollapseTypeLambda         )
           allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
           select type (virialDensityContrast_)

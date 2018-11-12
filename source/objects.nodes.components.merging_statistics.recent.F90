@@ -22,11 +22,13 @@ module Node_Component_Merging_Statistics_Recent
   !% Implements the recent merging statistics component.
   use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
+  use Dark_Matter_Halo_Scales
   implicit none
   private
-  public :: Node_Component_Merging_Statistics_Recent_Merger_Tree_Init, Node_Component_Merging_Statistics_Recent_Node_Merger , &
-       &    Node_Component_Merging_Statistics_Recent_Node_Promotion  , Node_Component_Merging_Statistics_Recent_Output_Names, &
-       &    Node_Component_Merging_Statistics_Recent_Output_Count    , Node_Component_Merging_Statistics_Recent_Output
+  public :: Node_Component_Merging_Statistics_Recent_Merger_Tree_Init , Node_Component_Merging_Statistics_Recent_Node_Merger , &
+       &    Node_Component_Merging_Statistics_Recent_Node_Promotion   , Node_Component_Merging_Statistics_Recent_Output_Names, &
+       &    Node_Component_Merging_Statistics_Recent_Output_Count     , Node_Component_Merging_Statistics_Recent_Output      , &
+       &    Node_Component_Merging_Statistics_Recent_Thread_Initialize
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -43,15 +45,16 @@ module Node_Component_Merging_Statistics_Recent
   !#  </properties>
   !# </component>
 
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterHaloScale_)
+
   ! Parameters controlling the statistics gathered.
   double precision                             :: nodeMajorMergerFraction                           , nodeRecentMajorMergerInterval
   integer                                      :: nodeRecentMajorMergerIntervalType
   integer          , parameter                 :: nodeRecentMajorMergerIntervalTypeAbsolute =0
   integer          , parameter                 :: nodeRecentMajorMergerIntervalTypeDynamical=1
   logical                                      :: nodeRecentMajorMergerFromInfall
-
-  ! Record of whether this module has been initialized.
-  logical                                     :: moduleInitialized                         =.false.
 
   ! Initialization array for count of recent mergers.
   integer(c_size_t)                            :: outputCount
@@ -69,62 +72,68 @@ contains
     implicit none
     type(varying_string) :: nodeRecentMajorMergerIntervalTypeText
     
-    ! Test whether module is already initialize.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Merging_Statistics_Recent_Initialize)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>nodeMajorMergerFraction</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.25d0</defaultValue>
-          !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>nodeRecentMajorMergerInterval</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>2.0d0</defaultValue>
-          !#   <description>The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>nodeRecentMajorMergerIntervalType</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('dynamical')</defaultValue>
-          !#   <description>Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !#   <variable>nodeRecentMajorMergerIntervalTypeText</variable>
-          !# </inputParameter>
-          select case (char(nodeRecentMajorMergerIntervalTypeText))
-          case ("absolute" )
-             nodeRecentMajorMergerIntervalType=nodeRecentMajorMergerIntervalTypeAbsolute
-          case ("dynamical")
-             nodeRecentMajorMergerIntervalType=nodeRecentMajorMergerIntervalTypeDynamical
-          case default
-             call Galacticus_Error_Report('[nodeRecentMajorMergerIntervalType] has unrecognized value'//{introspection:location})
-          end select
-          !# <inputParameter>
-          !#   <name>nodeRecentMajorMergerFromInfall</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          ! Determine the number of output times.
-          outputCount=Galacticus_Output_Time_Count()
-          call allocateArray(zeroCount,[outputCount])
-          zeroCount=0
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Merging_Statistics_Recent_Initialize)
-    end if
+    !# <inputParameter>
+    !#   <name>nodeMajorMergerFraction</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.25d0</defaultValue>
+    !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>nodeRecentMajorMergerInterval</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <description>The time interval used to define ``recent'' mergers in the {\normalfont \ttfamily recent} merging statistics component. This parameter is in units of Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or in units of the halo dynamical time if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynmical}.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>nodeRecentMajorMergerIntervalType</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('dynamical')</defaultValue>
+    !#   <description>Specifies the units for the {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} parameter. If set to {\normalfont \ttfamily absolute} then {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in Gyr, while if set to {\normalfont \ttfamily dynamical} {\normalfont \ttfamily [nodeRecentMajorMergerInterval]} is given in units of the halo dynamical time.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>double</type>
+    !#   <variable>nodeRecentMajorMergerIntervalTypeText</variable>
+    !# </inputParameter>
+    select case (char(nodeRecentMajorMergerIntervalTypeText))
+    case ("absolute" )
+       nodeRecentMajorMergerIntervalType=nodeRecentMajorMergerIntervalTypeAbsolute
+    case ("dynamical")
+       nodeRecentMajorMergerIntervalType=nodeRecentMajorMergerIntervalTypeDynamical
+    case default
+       call Galacticus_Error_Report('[nodeRecentMajorMergerIntervalType] has unrecognized value'//{introspection:location})
+    end select
+    !# <inputParameter>
+    !#   <name>nodeRecentMajorMergerFromInfall</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether ``recent'' for satellite galaxies is measured from the current time, or from the time at which they were last isolated.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    ! Determine the number of output times.
+    outputCount=Galacticus_Output_Time_Count()
+    call allocateArray(zeroCount,[outputCount])
+    zeroCount=0
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Initialize
+
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Merging_Statistics_Recent_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(parameters)
+    !% Initializes the tree node recent merging flow statistics module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultMergingStatisticsComponent%recentIsActive()) then
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Merger_Tree_Init</unitName>
@@ -157,7 +166,6 @@ contains
     !% Record any major merger of {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
-    use Dark_Matter_Halo_Scales
     use Galacticus_Output_Times
     implicit none
     type            (treeNode                      ), intent(inout)         , pointer :: node
@@ -165,7 +173,6 @@ contains
     class           (nodeComponentMergingStatistics)                        , pointer :: mergingStatisticsParent
     class           (nodeComponentBasic            )                        , pointer :: basicDescendentParent  , basicParent, &
          &                                                                               basic
-    class           (darkMatterHaloScaleClass      )                        , pointer :: darkMatterHaloScale_
     integer                                         , dimension(outputCount)          :: mergerIncrement
     integer         (c_size_t                      )                                  :: i
     double precision                                                                  :: recentTimeInterval     , timeBase
@@ -185,7 +192,6 @@ contains
           case (nodeRecentMajorMergerIntervalTypeAbsolute)
              recentTimeInterval=nodeRecentMajorMergerInterval
           case (nodeRecentMajorMergerIntervalTypeDynamical)
-             darkMatterHaloScale_ => darkMatterHaloScale()
              recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%dynamicalTimescale(node)
           case default
              call Galacticus_Error_Report('unrecognized time interval type'//{introspection:location})

@@ -23,14 +23,20 @@ module Node_Component_Hot_Halo_Cold_Mode
   !% Implements an extension to the standard hot halo node component which supports a cold mode
   !% reservoir.
   use Galacticus_Nodes
+  use Cosmology_Parameters
   use Radiation_Fields
   use ISO_Varying_String
+  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles
+  use Cooling_Cold_Mode_Infall_Rates
+  use Accretion_Halos
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Cold_Mode_Initialize , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute     , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set  , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger, Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging, &
-       &    Node_Component_Hot_Halo_Cold_Mode_Promote    , Node_Component_Hot_Halo_Cold_Mode_Formation
+  public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute     , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize  , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging, &
+       &    Node_Component_Hot_Halo_Cold_Mode_Promote          , Node_Component_Hot_Halo_Cold_Mode_Formation        , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -72,6 +78,14 @@ module Node_Component_Hot_Halo_Cold_Mode
   !#  </properties>
   !#  <functions>objects.nodes.components.hot_halo.cold_mode.bound_functions.inc</functions>
   !# </component>
+  
+  ! Objects used by this component.
+  class(accretionHaloClass      ), pointer :: accretionHalo_
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
+  class(coldModeInfallRateClass ), pointer :: coldModeInfallRate_
+  class(cosmologyParametersClass), pointer :: cosmologyParameters_
+  !$omp threadprivate(accretionHalo_,darkMatterHaloScale_,darkMatterProfile_,coldModeInfallRate_,cosmologyParameters_)
 
   ! Options controlling the behavior of the cold mode gas.
   logical :: hotHaloOutflowToColdMode   
@@ -113,6 +127,28 @@ contains
     !$omp end critical (Node_Component_Hot_Halo_Cold_Mode_Initialize)
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize
+
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(parameters)
+    !% Initializes the tree node hot halo cold mode methods module.
+    use Input_Parameters
+    use Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
+    use Hot_Halo_Cold_Mode_Density_Core_Radii
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultHotHaloComponent%coldModeIsActive()) then
+       !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
+       !# <objectBuilder class="darkMatterProfile"        name="darkMatterProfile_"        source="parameters"/>
+       !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="parameters"/>
+       !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="parameters"/>
+       !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
 
   subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.
@@ -178,12 +214,9 @@ contains
     use Abundances_Structure
     use Accretion_Halos
     use Dark_Matter_Halo_Spins
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
     use Numerical_Constants_Astronomical
     use Hot_Halo_Ram_Pressure_Stripping
     use Node_Component_Hot_Halo_Standard_Data
-    use Cooling_Cold_Mode_Infall_Rates
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
     implicit none
@@ -194,10 +227,6 @@ contains
     integer                                   , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo    )               , pointer :: hotHalo
     class           (nodeComponentBasic      )               , pointer :: basic
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass  )               , pointer :: darkMatterProfile_
-    class           (accretionHaloClass      )               , pointer :: accretionHalo_
-    class           (coldModeInfallRateClass )               , pointer :: coldModeInfallRate_
     double precision                                                   :: angularMomentumAccretionRate, densityAtOuterRadius , &
          &                                                                massAccretionRate           , massLossRate         , &
          &                                                                outerRadius                 , outerRadiusGrowthRate, &
@@ -210,10 +239,6 @@ contains
     if (.not.defaultHotHaloComponent%coldModeIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
-    ! Get required objects.
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    accretionHalo_       => accretionHalo      ()
-    coldModeInfallRate_  => coldModeInfallRate ()
     ! Find the rate of gas mass accretion onto the halo.
     massAccretionRate=accretionHalo_%accretionRate(node,accretionModeCold)
     ! Get the basic component.
@@ -229,7 +254,6 @@ contains
     ! Next block of tasks occur only if the accretion rate is non-zero.
     if (massAccretionRate > 0.0d0) then
        ! Compute the rate of accretion of angular momentum.
-       darkMatterProfile_ => darkMatterProfile()
        angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfile_)*(massAccretionRate &
             &/basic%accretionRate())
        if (hotHaloOutflowAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
@@ -277,7 +301,6 @@ contains
     !% Return outflowed gas to the cold mode reservoir.
     use Galacticus_Error
     use Abundances_Structure
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Atomic
     use Numerical_Constants_Math
     use Numerical_Constants_Prefixes
@@ -285,15 +308,12 @@ contains
     use Galactic_Structure_Densities
     use Galactic_Structure_Options
     use Node_Component_Hot_Halo_Standard_Data
-    use Cosmology_Parameters
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     type            (treeNode                    ), pointer                :: selfNode
     class           (nodeComponentBasic          ), pointer                :: selfBasic
-    class           (cosmologyParametersClass    ), pointer                :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass    ), pointer                :: darkMatterHaloScale_
     double precision                                                       :: outflowedMass            , massReturnRate, &
          &                                                                    angularMomentumReturnRate, radiusVirial  , &
          &                                                                    densityAtOuterRadius     , densityMinimum, &
@@ -303,8 +323,6 @@ contains
 
     select type (self)
     class is (nodeComponentHotHaloColdMode)
-       ! Get required objects.
-       darkMatterHaloScale_ => darkMatterHaloScale()
        ! Get the hosting node.
        selfNode => self%hostNode
        ! Next tasks occur only for systems in which outflowed gas is being recycled.
@@ -332,7 +350,6 @@ contains
              ! Limit the density at the outer radius to one third of the mean virial density (for baryons, assuming a
              ! universal baryon fraction) to prevent arbitrarily rapid growth of the outer radius in halos containing almost
              ! no gas.
-             cosmologyParameters_ => cosmologyParameters()
              selfBasic => selfNode%basic()
              densityMinimum=(cosmologyParameters_%omegaBaryon()/cosmologyParameters_%omegaMatter())*selfBasic%mass()/radiusVirial**3/4.0d0/Pi
              call self%outerRadiusRate(                           &
@@ -363,24 +380,20 @@ contains
   subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use Abundances_Structure
-    use Dark_Matter_Halo_Scales
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo    )               , pointer :: hotHalo
-    class           (nodeComponentBasic      )               , pointer :: basic
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    double precision                          , parameter              :: scaleMassRelative   =1.0d-3
-    double precision                          , parameter              :: scaleRadiusRelative =1.0d+0
-    double precision                                                   :: massVirial                 , radiusVirial, &
-         &                                                                velocityVirial
+    type            (treeNode            ), intent(inout), pointer :: node
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    class           (nodeComponentBasic  )               , pointer :: basic
+    double precision                      , parameter              :: scaleMassRelative   =1.0d-3
+    double precision                      , parameter              :: scaleRadiusRelative =1.0d+0
+    double precision                                               :: massVirial                 , radiusVirial, &
+         &                                                            velocityVirial
 
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of the cold mode class.
     select type (hotHalo)
     class is (nodeComponentHotHaloColdMode)
-       ! Get required objects.
-       darkMatterHaloScale_ => darkMatterHaloScale()
        ! The the basic component.
        basic => node%basic()
        ! Get virial properties.
@@ -403,18 +416,14 @@ contains
   subroutine Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize(node)
     !% Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been
     !% accreted if the merger tree had infinite resolution).
-    use Accretion_Halos
     use Dark_Matter_Halo_Spins
-    use Dark_Matter_Profiles
     use Abundances_Structure
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo  )               , pointer :: hotHalo
-    class           (nodeComponentBasic    )               , pointer :: basic
-    class           (accretionHaloClass    )               , pointer :: accretionHalo_
-    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
-    class           (nodeEvent             )               , pointer :: event
-    double precision                                                 :: angularMomentum   , coldModeMass
+    type            (treeNode            ), intent(inout), pointer :: node
+    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    class           (nodeComponentBasic  )               , pointer :: basic
+    class           (nodeEvent           )               , pointer :: event
+    double precision                                               :: angularMomentum   , coldModeMass
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(node%firstChild).or..not.defaultHotHaloComponent%coldModeIsActive()) return
@@ -431,8 +440,6 @@ contains
        end select
        event => event%next
     end do
-    ! Get required objects.
-    accretionHalo_ => accretionHalo()
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Get the mass of cold mode gas accreted.
@@ -442,7 +449,6 @@ contains
        ! Ensure that it is of unspecified class.
        hotHalo            => node             %hotHalo(autoCreate=.true.)
        basic              => node             %basic  (                 )
-       darkMatterProfile_ => darkMatterProfile        (                 )
        call hotHalo%massColdSet(coldModeMass)
        ! Also add the appropriate angular momentum.
        angularMomentum=coldModeMass*Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
@@ -459,30 +465,24 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
-    use Accretion_Halos
     use Abundances_Structure
     use Dark_Matter_Halo_Spins
-    use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
-    use Cosmology_Parameters
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    type            (treeNode                )               , pointer :: nodeParent
-    class           (nodeComponentHotHalo    )               , pointer :: hotHaloParent          , hotHalo
-    class           (nodeComponentSpin       )               , pointer :: spinParent
-    class           (nodeComponentBasic      )               , pointer :: basicParent            , basic
-    class           (cosmologyParametersClass)               , pointer :: cosmologyParameters_
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    class           (accretionHaloClass      )               , pointer :: accretionHalo_
-    double precision                                                   :: baryonicMassCurrent    , baryonicMassMaximum   , &
-         &                                                                fractionRemove         , massAccretedCold      , &
-         &                                                                massAccreted           , massUnaccreted        , &
-         &                                                                angularMomentumAccreted, massReaccreted        , &
-         &                                                                fractionAccreted
-    type            (abundances              ), save                   :: massMetalsAccreted     , fractionMetalsAccreted, &
-         &                                                                massMetalsReaccreted
+    type            (treeNode            ), intent(inout), pointer :: node
+    type            (treeNode            )               , pointer :: nodeParent
+    class           (nodeComponentHotHalo)               , pointer :: hotHaloParent          , hotHalo
+    class           (nodeComponentSpin   )               , pointer :: spinParent
+    class           (nodeComponentBasic  )               , pointer :: basicParent            , basic
+    double precision                                               :: baryonicMassCurrent    , baryonicMassMaximum   , &
+         &                                                            fractionRemove         , massAccretedCold      , &
+         &                                                            massAccreted           , massUnaccreted        , &
+         &                                                            angularMomentumAccreted, massReaccreted        , &
+         &                                                            fractionAccreted
+    type            (abundances          ), save                   :: massMetalsAccreted     , fractionMetalsAccreted, &
+         &                                                            massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
 
     ! Get the hot halo component.
@@ -490,9 +490,6 @@ contains
     ! Ensure that it is of cold mode class.
     select type (hotHalo)
     class is (nodeComponentHotHaloColdMode)
-       ! Get required objects.
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       accretionHalo_       => accretionHalo      ()
        ! Find the parent node and its hot halo and spin components.
        nodeParent    => node  %parent
        hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
@@ -572,11 +569,10 @@ contains
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
           ! some of the mass to the failed accretion reservoir.
           if (hotHaloNodeMergerLimitBaryonFraction) then
-             cosmologyParameters_ => cosmologyParameters()
-             baryonicMassMaximum  =  basicParent         %mass       () &
-                  &                 *cosmologyParameters_%omegaBaryon() &	
-                  &                 /cosmologyParameters_%omegaMatter()
-             baryonicMassCurrent  =  Galactic_Structure_Enclosed_Mass(                                &
+             baryonicMassMaximum=+basicParent         %mass       () &
+                  &              *cosmologyParameters_%omegaBaryon() &	
+                  &              /cosmologyParameters_%omegaMatter()
+             baryonicMassCurrent= Galactic_Structure_Enclosed_Mass(                                &
                   &                                                   nodeParent                    , &
                   &                                                   radiusLarge                   , &
                   &                                                   massType     =massTypeBaryonic, &
@@ -604,14 +600,12 @@ contains
   subroutine Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging(node)
     !% Remove any cold mode gas associated with {\normalfont \ttfamily node} before it merges with its host halo.
     use Abundances_Structure
-    use Dark_Matter_Halo_Scales
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
-    type (treeNode                ), intent(inout), pointer :: node
-    type (treeNode                )               , pointer :: nodeHost
-    class(nodeComponentHotHalo    )               , pointer :: hotHaloHost         , hotHalo
-    class(nodeComponentSpin       )               , pointer :: spinHost
-    class(darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
+    type (treeNode            ), intent(inout), pointer :: node
+    type (treeNode            )               , pointer :: nodeHost
+    class(nodeComponentHotHalo)               , pointer :: hotHaloHost         , hotHalo
+    class(nodeComponentSpin   )               , pointer :: spinHost
 
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
     if (starveSatellites) return
@@ -620,8 +614,6 @@ contains
     ! Ensure that it is of unspecified class.
     select type (hotHalo)
     class is (nodeComponentHotHaloColdMode)
-       ! Get required objects.
-       darkMatterHaloScale_ => darkMatterHaloScale()
        ! Find the node with which to merge.
        nodeHost    => node    %mergesWith(                 )
        hotHaloHost => nodeHost%hotHalo   (autoCreate=.true.)

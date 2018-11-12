@@ -70,9 +70,6 @@ module Node_Component_Age_Statistics_Standard
   ! Record of whether variables in this component are inactive.
   logical :: ageStatisticsStandardIsInactive
   
-  ! Initialization status.
-  logical :: moduleInitialized              =.false.
-
 contains
 
   !# <nodeComponentInitializationTask>
@@ -84,9 +81,7 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Age_Statistics_Standard_Initialize)
-    if (defaultAgeStatisticsComponent%standardIsActive().and..not.moduleInitialized) then
+    if (defaultAgeStatisticsComponent%standardIsActive()) then
        !# <inputParameter>
        !#   <name>ageStatisticsStandardIsInactive</name>
        !#   <cardinality>1</cardinality>
@@ -95,10 +90,7 @@ contains
        !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Age_Statistics_Standard_Initialize)
     return
   end subroutine Node_Component_Age_Statistics_Standard_Initialize
 

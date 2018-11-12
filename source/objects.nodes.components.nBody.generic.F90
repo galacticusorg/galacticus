@@ -82,9 +82,6 @@ module Node_Component_NBody_Generic
   !#  </bindings>
   !# </component>
 
-  ! Record of whether this module has been initialized.
-  logical                                            :: moduleInitialized=.false.
-
   ! Property names.
   type   (varying_string), allocatable, dimension(:) :: propertyNamesReal        , propertyNamesInteger
   
@@ -102,15 +99,12 @@ contains
     !GCC$ attributes unused :: parameters
 
     ! Initialize the module if necessary.
-    !$omp critical (Node_Component_NBody_Generic_Initialize)
-    if (defaultNBodyComponent%genericIsActive().and..not.moduleInitialized) then
+    if (defaultNBodyComponent%genericIsActive()) then
        call nbodyComponent%addRealPropertyFunction   (Node_Component_NBody_Generic_Add_Real_Property   )
        call nbodyComponent%addIntegerPropertyFunction(Node_Component_NBody_Generic_Add_Integer_Property)
        call nbodyComponent%setRealPropertyFunction   (Node_Component_NBody_Generic_Set_Real_Property   )
        call nbodyComponent%setIntegerPropertyFunction(Node_Component_NBody_Generic_Set_Integer_Property)
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_NBody_Generic_Initialize)
     return
   end subroutine Node_Component_NBody_Generic_Initialize
 
