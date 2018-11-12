@@ -42,9 +42,6 @@ module Node_Component_Formation_Times_Cole2000
   !#  <functions>objects.nodes.components.formation_times.Cole2000.bound_functions.inc</functions>
   !# </component>
 
-  ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized             =.false.
-
   ! Factor by which mass must increase to trigger a new formation event.
   double precision :: haloReformationMassFactor
 
@@ -58,32 +55,23 @@ contains
     use Input_Parameters
     implicit none
 
-    ! Initialize the module if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Formation_Times_Cole2000_Initialize)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>haloReformationMassFactor</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>2.0d0</defaultValue>
-          !#   <description>Factor by which halo mass must have increased to trigger a new formation event.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>haloReformationOnPromotionOnly</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
-          !#      the halo mass has increased sufficiently in mass.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Formation_Times_Cole2000_Initialize)
-    end if
+    !# <inputParameter>
+    !#   <name>haloReformationMassFactor</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <description>Factor by which halo mass must have increased to trigger a new formation event.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>haloReformationOnPromotionOnly</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
+    !#      the halo mass has increased sufficiently in mass.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     return
   end subroutine Node_Component_Formation_Times_Cole2000_Initialize
 

@@ -55,9 +55,6 @@ module Node_Component_Hot_Halo_VS_Delayed
   !#   </property>
   !#  </properties>
   !# </component>
-
-  ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized                        =.false.
   
   ! Options controlling the numerical implementation.
   double precision :: hotHaloVerySimpleDelayedMassScaleRelative
@@ -70,27 +67,18 @@ contains
     implicit none
     type(nodeComponentHotHaloVerySimpleDelayed) :: hotHaloComponent
 
-    ! Initialize the module if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Hot_Halo_VS_Delayed_Initialize)
-       if (.not.moduleInitialized) then
-          ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-          call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
-          call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
-          ! Read parameters controlling the physical implementation.
-          !# <inputParameter>
-          !#   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1.0d-2</defaultValue>
-          !#   <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Hot_Halo_VS_Delayed_Initialize)
-    end if
+    ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
+    call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
+    call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
+    ! Read parameters controlling the physical implementation.
+    !# <inputParameter>
+    !#   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d-2</defaultValue>
+    !#   <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize
 

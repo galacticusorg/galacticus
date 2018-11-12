@@ -24,7 +24,14 @@ module Node_Component_Spheroid_Standard
   use Galacticus_Nodes
   use Histories
   use Stellar_Population_Properties
+  use Star_Formation_Feedback_Spheroids
   use Node_Component_Spheroid_Standard_Data
+  use Star_Formation_Feedback_Expulsion_Spheroids
+  use Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids
+  use Tidal_Stripping_Mass_Loss_Rate_Spheroids
+  use Dark_Matter_Halo_Scales
+  use Satellites_Tidal_Fields
+  use Star_Formation_Timescales_Spheroids
   implicit none
   private
   public :: Node_Component_Spheroid_Standard_Rate_Compute     , Node_Component_Spheroid_Standard_Scale_Set                    , &
@@ -152,6 +159,17 @@ module Node_Component_Spheroid_Standard
   !#  <functions>objects.nodes.components.spheroid.standard.bound_functions.inc</functions>
   !# </component>
 
+  ! Objects used by this component.
+  class(stellarPopulationPropertiesClass            ), pointer :: stellarPopulationProperties_
+  class(starFormationFeedbackSpheroidsClass         ), pointer :: starFormationFeedbackSpheroids_
+  class(starFormationExpulsiveFeedbackSpheroidsClass), pointer :: starFormationExpulsiveFeedbackSpheroids_
+  class(ramPressureStrippingSpheroidsClass          ), pointer :: ramPressureStrippingSpheroids_
+  class(tidalStrippingSpheroidsClass                ), pointer :: tidalStrippingSpheroids_
+  class(darkMatterHaloScaleClass                    ), pointer :: darkMatterHaloScale_
+  class(satelliteTidalFieldClass                    ), pointer :: satelliteTidalField_
+  class(starFormationTimescaleSpheroidsClass        ), pointer :: starFormationTimescaleSpheroids_
+  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,starFormationExpulsiveFeedbackSpheroids_,ramPressureStrippingSpheroids_,tidalStrippingSpheroids_,darkMatterHaloScale_,satelliteTidalField_,starFormationTimescaleSpheroids_)
+  
   ! Internal count of abundances.
   integer                                     :: abundancesCount
 
@@ -254,6 +272,14 @@ contains
 
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultSpheroidComponent%standardIsActive()) then
+       !# <objectBuilder class="stellarPopulationProperties"             name="stellarPopulationProperties_"             source="parameters"/>
+       !# <objectBuilder class="starFormationFeedbackSpheroids"          name="starFormationFeedbackSpheroids_"          source="parameters"/>
+       !# <objectBuilder class="starFormationExpulsiveFeedbackSpheroids" name="starFormationExpulsiveFeedbackSpheroids_" source="parameters"/>
+       !# <objectBuilder class="starFormationTimescaleSpheroids"         name="starFormationTimescaleSpheroids_"         source="parameters"/>
+       !# <objectBuilder class="ramPressureStrippingSpheroids"           name="ramPressureStrippingSpheroids_"           source="parameters"/>
+       !# <objectBuilder class="tidalStrippingSpheroids"                 name="tidalStrippingSpheroids_"                 source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"                     name="darkMatterHaloScale_"                     source="parameters"/>
+       !# <objectBuilder class="satelliteTidalField"                     name="satelliteTidalField_"                     source="parameters"/>
        !# <objectBuilder class="massDistribution" parameterName="spheroidMassDistribution" name="spheroidMassDistribution" source="parameters" threadPrivate="yes">
        !#  <default>
        !#   <spheroidMassDistribution value="hernquist">
@@ -555,50 +581,37 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the standard spheroid node mass rate of change.
-    use Star_Formation_Feedback_Spheroids
-    use Star_Formation_Feedback_Expulsion_Spheroids
     use Abundances_Structure
     use Galactic_Structure_Options
     use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
-    use Dark_Matter_Halo_Scales
-    use Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids
-    use Tidal_Stripping_Mass_Loss_Rate_Spheroids
-    use Satellites_Tidal_Fields
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                                    ), intent(inout), pointer :: node
-    logical                                                       , intent(in   )          :: odeConverged
-    logical                                                       , intent(inout)          :: interrupt
-    procedure       (                                            ), intent(inout), pointer :: interruptProcedure
-    integer                                                       , intent(in   )          :: propertyType
-    class           (nodeComponentSpheroid                       )               , pointer :: spheroid
-    class           (nodeComponentHotHalo                        )               , pointer :: hotHalo
-    class           (darkMatterHaloScaleClass                    )               , pointer :: darkMatterHaloScale_
-    class           (starFormationFeedbackSpheroidsClass         )               , pointer :: starFormationFeedbackSpheroids_
-    class           (starFormationExpulsiveFeedbackSpheroidsClass)               , pointer :: starFormationExpulsiveFeedbackSpheroids_
-    class           (tidalStrippingSpheroidsClass                )               , pointer :: tidalStrippingSpheroids_
-    class           (ramPressureStrippingSpheroidsClass          )               , pointer :: ramPressureStrippingSpheroids_
-    class           (satelliteTidalFieldClass                    )               , pointer :: satelliteTidalField_
-    class           (stellarPopulationPropertiesClass            )               , pointer :: stellarPopulationProperties_
-    double precision                                              , parameter              :: radiusMinimum                           =1.0d-12
-    double precision                                              , parameter              :: massMinimum                             =1.0d-06
-    double precision                                              , parameter              :: angularMomentumMinimum                  =1.0d-20
-    type            (abundances                                  ), save                   :: fuelAbundances                                  , fuelAbundancesRates     , &
-         &                                                                                    stellarAbundancesRates
+    type            (treeNode             ), intent(inout), pointer :: node
+    logical                                , intent(in   )          :: odeConverged
+    logical                                , intent(inout)          :: interrupt
+    procedure       (                     ), intent(inout), pointer :: interruptProcedure
+    integer                                , intent(in   )          :: propertyType
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
+    class           (nodeComponentHotHalo )               , pointer :: hotHalo
+    double precision                       , parameter              :: radiusMinimum             =1.0d-12
+    double precision                       , parameter              :: massMinimum               =1.0d-06
+    double precision                       , parameter              :: angularMomentumMinimum    =1.0d-20
+    type            (abundances           ), save                   :: fuelAbundances                    , fuelAbundancesRates     , &
+         &                                                             stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                                       :: angularMomentumOutflowRate                      , energyInputRate         , &
-         &                                                                                    fractionGas                                     , fractionStellar         , &
-         &                                                                                    fuelMass                                        , fuelMassRate            , &
-         &                                                                                    gasMass                                         , massLossRate            , &
-         &                                                                                    massOutflowRate                                 , massOutflowRateFromHalo , &
-         &                                                                                    massOutflowRateToHotHalo                        , outflowToHotHaloFraction, &
-         &                                                                                    spheroidDynamicalTime                           , spheroidMass            , &
-         &                                                                                    starFormationRate                               , stellarMassRate         , &
-         &                                                                                    tidalField                                      , tidalTorque
-    type            (history                                     )                         :: historyTransferRate                             , stellarHistoryRate
-    type            (stellarLuminosities                         ), save                   :: luminositiesStellarRates
-    logical                                                                                :: luminositiesCompute
+    double precision                                                :: angularMomentumOutflowRate        , energyInputRate         , &
+         &                                                             fractionGas                       , fractionStellar         , &
+         &                                                             fuelMass                          , fuelMassRate            , &
+         &                                                             gasMass                           , massLossRate            , &
+         &                                                             massOutflowRate                   , massOutflowRateFromHalo , &
+         &                                                             massOutflowRateToHotHalo          , outflowToHotHaloFraction, &
+         &                                                             spheroidDynamicalTime             , spheroidMass            , &
+         &                                                             starFormationRate                 , stellarMassRate         , &
+         &                                                             tidalField                        , tidalTorque
+    type            (history              )                         :: historyTransferRate               , stellarHistoryRate
+    type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
+    logical                                                         :: luminositiesCompute
     !$omp threadprivate(luminositiesStellarRates)
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
@@ -627,8 +640,7 @@ contains
             &              .or.                                                                                   &
             &                propertyType == propertyTypeAll
        ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
-       stellarPopulationProperties_ => stellarPopulationProperties()
-       stellarHistoryRate           =  spheroid%stellarPropertiesHistory()
+       stellarHistoryRate=spheroid%stellarPropertiesHistory()
        call stellarPopulationProperties_%rates(starFormationRate,fuelAbundances,spheroid,node,stellarHistoryRate&
             &,stellarMassRate,fuelMassRate,energyInputRate,fuelAbundancesRates,stellarAbundancesRates,luminositiesStellarRates,luminositiesCompute)
        if (stellarHistoryRate%exists()) call spheroid%stellarPropertiesHistoryRate(stellarHistoryRate)
@@ -649,11 +661,9 @@ contains
        if (stellarHistoryRate%exists()) call spheroid%starFormationHistoryRate(stellarHistoryRate)
 
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
-       starFormationFeedbackSpheroids_          => starFormationFeedbackSpheroids                      (                                      )
-       starFormationExpulsiveFeedbackSpheroids_ => starFormationExpulsiveFeedbackSpheroids             (                                      )
-       massOutflowRateToHotHalo                 =  starFormationFeedbackSpheroids_         %outflowRate(node,energyInputRate,starFormationRate)
-       massOutflowRateFromHalo                  =  starFormationExpulsiveFeedbackSpheroids_%outflowRate(node,starFormationRate,energyInputRate)
-       massOutflowRate                          =  massOutflowRateToHotHalo+massOutflowRateFromHalo
+       massOutflowRateToHotHalo=starFormationFeedbackSpheroids_         %outflowRate(node,energyInputRate,starFormationRate)
+       massOutflowRateFromHalo =starFormationExpulsiveFeedbackSpheroids_%outflowRate(node,starFormationRate,energyInputRate)
+       massOutflowRate         =massOutflowRateToHotHalo+massOutflowRateFromHalo
        if (massOutflowRate > 0.0d0) then
           ! Find the fraction of material which outflows to the hot halo.
           outflowToHotHaloFraction=massOutflowRateToHotHalo/massOutflowRate
@@ -688,8 +698,7 @@ contains
 
        ! Apply mass loss rate due to ram pressure stripping.
        if (spheroid%massGas() > 0.0d0) then
-          ramPressureStrippingSpheroids_ => ramPressureStrippingSpheroids              (    )
-          massLossRate                   =  ramPressureStrippingSpheroids_%rateMassLoss(node)
+          massLossRate=ramPressureStrippingSpheroids_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo => node%hotHalo()
              call spheroid%                  massGasRate(-massLossRate                                                                       )
@@ -703,8 +712,7 @@ contains
 
        ! Apply mass loss rate due to tidal stripping.
        if (spheroid%massGas()+spheroid%massStellar() > 0.0d0) then
-          tidalStrippingSpheroids_ => tidalStrippingSpheroids              (    )
-          massLossRate             =  tidalStrippingSpheroids_%rateMassLoss(node)
+          massLossRate=tidalStrippingSpheroids_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo    => node%hotHalo()
              fractionGas    =  min(1.0d0,max(0.0d0,spheroid%massGas()/(spheroid%massGas()+spheroid%massStellar())))
@@ -737,11 +745,9 @@ contains
        end if
 
        ! Apply tidal heating.
-       darkMatterHaloScale_ => darkMatterHaloScale()
        if (node%isSatellite() .and. spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) .and. spheroid%radius() < darkMatterHaloScale_%virialRadius(node)) then
-          satelliteTidalField_ => satelliteTidalField                   (    )
-          tidalField           =  satelliteTidalField_%tidalTensorRadial(node)
-          tidalTorque          =  abs(tidalField)*(spheroid%massGas()+spheroid%massStellar())*spheroid%radius()**2
+          tidalField =satelliteTidalField_%tidalTensorRadial(node)
+          tidalTorque=abs(tidalField)*(spheroid%massGas()+spheroid%massStellar())*spheroid%radius()**2
           call spheroid%angularMomentumRate(+tidalTorque)
        end if
 
@@ -839,17 +845,16 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Stellar_Luminosities_Structure
     implicit none
-    type            (treeNode                        ), intent(inout), pointer :: node
-    class           (nodeComponentSpheroid           )               , pointer :: spheroid
-    class           (nodeComponentDisk               )               , pointer :: disk
-    class           (stellarPopulationPropertiesClass)               , pointer :: stellarPopulationProperties_
-    double precision                                  , parameter              :: massMinimum                   =1.0d0
-    double precision                                  , parameter              :: angularMomentumMinimum        =0.1d0
-    double precision                                  , parameter              :: gasMassScaling                =0.1d0
-    double precision                                  , parameter              :: luminosityMinimum             =1.0d0
-    double precision                                                           :: angularMomentum                     , mass
-    type            (history                         )                         :: stellarPopulationHistoryScales
-    type            (stellarLuminosities             )                         :: stellarLuminositiesScale
+    type            (treeNode             ), intent(inout), pointer :: node
+    class           (nodeComponentSpheroid)               , pointer :: spheroid
+    class           (nodeComponentDisk    )               , pointer :: disk
+    double precision                       , parameter              :: massMinimum                   =1.0d0
+    double precision                       , parameter              :: angularMomentumMinimum        =0.1d0
+    double precision                       , parameter              :: gasMassScaling                =0.1d0
+    double precision                       , parameter              :: luminosityMinimum             =1.0d0
+    double precision                                                :: angularMomentum                     , mass
+    type            (history              )                         :: stellarPopulationHistoryScales
+    type            (stellarLuminosities  )                         :: stellarLuminositiesScale
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
@@ -904,7 +909,6 @@ contains
        call spheroid   %luminositiesStellarScale(stellarLuminositiesScale                      )
 
        ! Set scales for stellar population properties history.
-       stellarPopulationProperties_ => stellarPopulationProperties()
        stellarPopulationHistoryScales=spheroid%stellarPropertiesHistory()
        call stellarPopulationProperties_%scales   (spheroid%massStellar(),spheroid%abundancesStellar(),stellarPopulationHistoryScales)
        call spheroid%stellarPropertiesHistoryScale(                                                    stellarPopulationHistoryScales)
@@ -1276,7 +1280,6 @@ contains
     implicit none
     type            (treeNode                ), intent(inout) :: node
     class           (nodeComponentSpheroid   ), pointer       :: spheroid
-    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     double precision                          , parameter     :: angularMomentumMaximum=1.0d+1
     double precision                          , parameter     :: angularMomentumMinimum=1.0d-6
     double precision                                          :: angularMomentumScale
@@ -1308,7 +1311,6 @@ contains
                &  ) then
              node%isPhysicallyPlausible=.false.
           else
-             darkMatterHaloScale_ => darkMatterHaloScale()
              angularMomentumScale=(                                           &
                   &                 spheroid%massStellar()                    &
                   &                +spheroid%massGas    ()                    &
@@ -1431,15 +1433,14 @@ contains
     !% Initializes a standard spheroid component.
     use Galacticus_Output_Star_Formation_Histories
     implicit none
-    type            (nodeComponentSpheroidStandard   )          :: self
-    type            (treeNode                        ), pointer :: selfNode
-    class           (nodeComponentDisk               ), pointer :: disk
-    class           (nodeComponentBasic              ), pointer :: basic
-    class           (stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_
-    type            (history                         )          :: starFormationHistory        , stellarPropertiesHistory      , &
-         &                                                         diskStarFormationHistory
-    logical                                                     :: createStarFormationHistory  , createStellarPropertiesHistory
-    double precision                                            :: timeBegin
+    type            (nodeComponentSpheroidStandard)          :: self
+    type            (treeNode                     ), pointer :: selfNode
+    class           (nodeComponentDisk            ), pointer :: disk
+    class           (nodeComponentBasic           ), pointer :: basic
+    type            (history                      )          :: starFormationHistory        , stellarPropertiesHistory      , &
+         &                                                      diskStarFormationHistory
+    logical                                                  :: createStarFormationHistory  , createStellarPropertiesHistory
+    double precision                                         :: timeBegin
     
     ! Return if already initialized.
     if (self%isInitialized()) return
@@ -1454,7 +1455,6 @@ contains
     call                                stellarPropertiesHistory%destroy()
     ! Create the stellar properties history.
     if (createStellarPropertiesHistory) then
-       stellarPopulationProperties_ => stellarPopulationProperties()
        call stellarPopulationProperties_%historyCreate(selfNode,stellarPropertiesHistory)
        call self%stellarPropertiesHistorySet(                     stellarPropertiesHistory)
     end if
@@ -1478,23 +1478,17 @@ contains
 
   double precision function Node_Component_Spheroid_Standard_Star_Formation_Rate(self)
     !% Return the star formation rate of the standard spheroid.
-    use Star_Formation_Timescales_Spheroids
     implicit none
-    class           (nodeComponentSpheroidStandard       ), intent(inout) :: self
-    type            (treeNode                            ), pointer       :: node
-    class           (starFormationTimescaleSpheroidsClass), pointer       :: starFormationTimescaleSpheroids_
-    double precision                                                      :: gasMass                         , starFormationTimescale
+    class           (nodeComponentSpheroidStandard), intent(inout) :: self
+    type            (treeNode                     ), pointer       :: node
+    double precision                                               :: gasMass, starFormationTimescale
 
     ! Get the associated node.
     node => self%host()
-
     ! Get the star formation timescale.
-    starFormationTimescaleSpheroids_ => starFormationTimescaleSpheroids           (    )
-    starFormationTimescale           =  starFormationTimescaleSpheroids_%timescale(node)
-
+    starFormationTimescale=starFormationTimescaleSpheroids_%timescale(node)
     ! Get the gas mass.
     gasMass=self%massGas()
-
     ! If timescale is finite and gas mass is positive, then compute star formation rate.
     if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.node%isSatellite())) then
        Node_Component_Spheroid_Standard_Star_Formation_Rate=gasMass/starFormationTimescale

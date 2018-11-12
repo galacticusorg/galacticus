@@ -21,12 +21,13 @@
 module Node_Component_Dark_Matter_Profile_Scale
   !% Implements a dark matter profile method that provides a scale radius.
   use Galacticus_Nodes
+  use Dark_Matter_Halo_Scales
   implicit none
   private
-  public :: Node_Component_Dark_Matter_Profile_Scale_Rate_Compute, Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize, &
-       &    Node_Component_Dark_Matter_Profile_Scale_Promote     , Node_Component_Dark_Matter_Profile_Scale_Scale_Set      , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Tree_Output , Node_Component_Dark_Matter_Profile_Scale_Plausibility   , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Initialize
+  public :: Node_Component_Dark_Matter_Profile_Scale_Rate_Compute, Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize  , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Promote     , Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Tree_Output , Node_Component_Dark_Matter_Profile_Scale_Plausibility     , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Initialize  , Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
 
   !# <component>
   !#  <class>darkMatterProfile</class>
@@ -57,14 +58,15 @@ module Node_Component_Dark_Matter_Profile_Scale
   !#  </properties>
   !# </component>
 
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass), pointer:: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterHaloScale_)
+  
   ! Parameters of the method.
   double precision                                      :: darkMatterProfileMaximumConcentration                  , darkMatterProfileMinimumConcentration
 
   ! Flag indicating whether scale radius data should be output when full merger trees are output.
   logical                                               :: mergerTreeStructureOutputDarkMatterProfileScale
-
-  ! Record of whether the module has been initialized.
-  logical                                               :: moduleInitialized                              =.false.
 
   ! Queriable dark matter profile object.
   type            (nodeComponentDarkMatterProfileScale) :: darkMatterProfile
@@ -80,54 +82,58 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
-    ! Check if this implementation is selected.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Dark_Matter_Profile_Scale_Initialize)
-       if (.not.moduleInitialized) then
-          ! Get parameters.
-          !# <inputParameter>
-          !#   <name>darkMatterProfileMinimumConcentration</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>4.0d0</defaultValue>
-          !#   <description>The minimum concentration allowed for dark matter profiles.</description>
-          !#   <source>parameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>darkMatterProfileMaximumConcentration</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>100.0d0</defaultValue>
-          !#   <description>The maximum concentration allowed for dark matter profiles.</description>
-          !#   <source>parameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergerTreeStructureOutputDarkMatterProfileScale</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Determines whether or not dark matter halo scale radius is included in outputs of merger trees.</description>
-          !#   <group>output</group>
-          !#   <source>parameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          ! Bind the scale get function.
-          call darkMatterProfile%scaleFunction(Node_Component_Dark_Matter_Profile_Scale_Scale)
-          ! Record that the module is now initialize.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Dark_Matter_Profile_Scale_Initialize)
-    end if
+    ! Get parameters.
+    !# <inputParameter>
+    !#   <name>darkMatterProfileMinimumConcentration</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>4.0d0</defaultValue>
+    !#   <description>The minimum concentration allowed for dark matter profiles.</description>
+    !#   <source>parameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>darkMatterProfileMaximumConcentration</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>100.0d0</defaultValue>
+    !#   <description>The maximum concentration allowed for dark matter profiles.</description>
+    !#   <source>parameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>mergerTreeStructureOutputDarkMatterProfileScale</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Determines whether or not dark matter halo scale radius is included in outputs of merger trees.</description>
+    !#   <group>output</group>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    ! Bind the scale get function.
+    call darkMatterProfile%scaleFunction(Node_Component_Dark_Matter_Profile_Scale_Scale)
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize
 
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters)
+    !% Initializes the tree node scale dark matter profile module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
+
   double precision function Node_Component_Dark_Matter_Profile_Scale_Scale(self)
     !% Return the scale radius in the dark matter halo profile.
-    use Dark_Matter_Halo_Scales
     use Dark_Matter_Profile_Scales
     implicit none
     class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
     type            (treeNode                           ), pointer       :: selfNode
-    class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     double precision                                                     :: scaleLengthMaximum  , scaleLengthMinimum, &
          &                                                                  radiusVirial
 
@@ -135,10 +141,9 @@ contains
     selfNode => self%host()
     if (self%scaleValue() < 0.0d0) call self%scaleSet(Dark_Matter_Profile_Scale(selfNode))
     if (self%scaleIsLimited()) then
-       darkMatterHaloScale_ => darkMatterHaloScale()
-       radiusVirial         =  darkMatterHaloScale_%virialRadius(selfNode)
-       scaleLengthMaximum   =  radiusVirial/darkMatterProfileMinimumConcentration
-       scaleLengthMinimum   =  radiusVirial/darkMatterProfileMaximumConcentration
+       radiusVirial      =darkMatterHaloScale_%virialRadius(selfNode)
+       scaleLengthMaximum=radiusVirial/darkMatterProfileMinimumConcentration
+       scaleLengthMinimum=radiusVirial/darkMatterProfileMaximumConcentration
        Node_Component_Dark_Matter_Profile_Scale_Scale= &
             & min(                                     &
             &     scaleLengthMaximum    ,              &
@@ -158,7 +163,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the rate of change of the scale radius.
-    use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     logical                                         , intent(in   )          :: odeConverged
@@ -166,7 +170,6 @@ contains
     procedure       (                              ), intent(inout), pointer :: interruptProcedure
     integer                                         , intent(in   )          :: propertyType
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    class           (darkMatterHaloScaleClass      )               , pointer :: darkMatterHaloScale_
     double precision                                                         :: concentration       , growthRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
@@ -178,7 +181,6 @@ contains
     select type (darkMatterProfile)
     class is (nodeComponentDarkMatterProfileScale)
        ! Find the concentration of this halo.
-       darkMatterHaloScale_ => darkMatterHaloScale()
        concentration=darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
        ! Find the growth rate and limit to ensure minimum and maximum concentrations are not exceeded.
        growthRate=darkMatterProfile%scaleGrowthRate()

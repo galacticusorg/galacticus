@@ -85,9 +85,6 @@ module Node_Component_Merging_Statistics_Standard
   double precision                                         :: nodeFormationMassFraction        , nodeMajorMergerFraction, &
        &                                                      hierarchyLevelResetFactor
 
-  ! Record of whether this module has been initialized.
-  logical                                                  :: moduleInitialized        =.false.
-
   ! Queriable merging statistics object.
   type            (nodeComponentMergingStatisticsStandard) :: mergingStatistics
 
@@ -102,42 +99,33 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
-    ! Test whether module is already initialize.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Merging_Statistics_Standard_Initialize)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>nodeMajorMergerFraction</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.25d0</defaultValue>
-          !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-          !#   <source>parameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>nodeFormationMassFraction</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.5d0</defaultValue>
-          !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
-          !#   <source>parameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>hierarchyLevelResetFactor</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1.0d100</defaultValue>
-          !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
-          !#   <source>parameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          ! Bind the hierarchy level get functions.
-          call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)
-          call mergingStatistics%nodeHierarchyLevelMaximumFunction(Node_Component_Merging_statistics_Standard_HLM            )
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Merging_Statistics_Standard_Initialize)
-    end if
+    !# <inputParameter>
+    !#   <name>nodeMajorMergerFraction</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.25d0</defaultValue>
+    !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
+    !#   <source>parameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>nodeFormationMassFraction</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.5d0</defaultValue>
+    !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
+    !#   <source>parameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>hierarchyLevelResetFactor</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d100</defaultValue>
+    !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
+    !#   <source>parameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    ! Bind the hierarchy level get functions.
+    call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)
+    call mergingStatistics%nodeHierarchyLevelMaximumFunction(Node_Component_Merging_statistics_Standard_HLM            )
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Initialize
 

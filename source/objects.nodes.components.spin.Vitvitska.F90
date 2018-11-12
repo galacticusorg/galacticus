@@ -30,11 +30,12 @@ module Node_Component_Spin_Vitvitska
   use Numerical_Constants_Physical
   use Dark_Matter_Profiles
   use ISO_Varying_String
+  use Halo_Spin_Distributions
   implicit none
   private
-  public :: Node_Component_Spin_Vitvitska_Promote     , Node_Component_Spin_Vitvitska_Initialize_Spins, &
-       &    Node_Component_Spin_Vitvitska_Bindings    , Node_Component_Spin_Vitvitska_Scale_Set       , &
-       &    Node_Component_Spin_Vitvitska_Rate_Compute
+  public :: Node_Component_Spin_Vitvitska_Promote     , Node_Component_Spin_Vitvitska_Initialize_Spins , &
+       &    Node_Component_Spin_Vitvitska_Bindings    , Node_Component_Spin_Vitvitska_Scale_Set        , &
+       &    Node_Component_Spin_Vitvitska_Rate_Compute, Node_Component_Spin_Vitvitska_Thread_Initialize
 
   !# <component>
   !#  <class>spin</class>
@@ -64,9 +65,11 @@ module Node_Component_Spin_Vitvitska
   !#   </property>
   !#  </properties>
   !# </component>
-
-  ! Module initialization state.
-  logical :: moduleInitialized=.false.
+  
+  ! Objects used by this component.
+  class(haloSpinDistributionClass), pointer :: haloSpinDistribution_
+  class(darkMatterProfileClass   ), pointer :: darkMatterProfile_
+  !$omp threadprivate(haloSpinDistribution_,darkMatterProfile_)
   
 contains
 
@@ -81,52 +84,51 @@ contains
     type(nodeComponentspinVitvitska)                :: spin
     !GCC$ attributes unused :: parameters
     
-    ! Initialize the bindings.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Spin_Vitvitska_Bindings)
-       if (.not.moduleInitialized) then
-          ! Bind deferred functions.
-          call spin%spinFunction          (Node_Component_Spin_Vitvitska_Spin            )
-          call spin%spinVectorFunction    (Node_Component_Spin_Vitvitska_Spin_Vector     )
-          call spin%spinGrowthRateFunction(Node_Component_Spin_Vitvitska_Spin_Growth_Rate)
-          ! Record that the module is now initialize.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Spin_Vitvitska_Bindings)
-    end if
+    ! Bind deferred functions.
+    call spin%spinFunction          (Node_Component_Spin_Vitvitska_Spin            )
+    call spin%spinVectorFunction    (Node_Component_Spin_Vitvitska_Spin_Vector     )
+    call spin%spinGrowthRateFunction(Node_Component_Spin_Vitvitska_Spin_Growth_Rate)
     return
   end subroutine Node_Component_Spin_Vitvitska_Bindings
   
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Spin_Vitvitska_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(parameters)
+    !% Initializes the tree node Vitvitsake spin module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultSpheroidComponent%verySimpleIsActive()) then
+       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
+       !# <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Spin_Vitvitska_Thread_Initialize
+
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Initialize_Spins</unitName>
   !#  <sortName>spin</sortName>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Vitvitska_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
-    use Halo_Spin_Distributions
-    use Dark_Matter_Halo_Spins
-    use Dark_Matter_Profiles
     use ISO_Varying_String
     implicit none
-    type            (treeNode                 ), intent(inout), pointer :: node
-    type            (treeNode                 )               , pointer :: nodeChild             , nodeSibling
-    class           (nodeComponentBasic       )               , pointer :: basicChild            , basicSibling        , &
-         &                                                                 basic
-    class           (nodeComponentSpin        )               , pointer :: spin                  , spinSibling         , &
-         &                                                                 spinChild
-    class           (nodeComponentSatellite   )               , pointer :: satelliteSibling
-    class           (haloSpinDistributionClass)               , pointer :: haloSpinDistribution_
-    class           (darkMatterProfileClass   )               , pointer :: darkMatterProfile_
-    double precision                           , dimension(3)           :: angularMomentumOrbital, angularMomentumTotal, &
-         &                                                                 spinVector
-    double precision                                                    :: spinValue             , massRatio           , &
-         &                                                                 theta                 , phi
+    type            (treeNode              ), intent(inout), pointer :: node
+    type            (treeNode              )               , pointer :: nodeChild             , nodeSibling
+    class           (nodeComponentBasic    )               , pointer :: basicChild            , basicSibling        , &
+         &                                                              basic
+    class           (nodeComponentSpin     )               , pointer :: spin                  , spinSibling         , &
+         &                                                              spinChild
+    class           (nodeComponentSatellite)               , pointer :: satelliteSibling
+    double precision                        , dimension(3)           :: angularMomentumOrbital, angularMomentumTotal, &
+         &                                                              spinVector
+    double precision                                                 :: spinValue             , massRatio           , &
+         &                                                              theta                 , phi
     
     ! Check if we are the default method.
     if (defaultSpinComponent%vitvitskaIsActive()) then
-       ! Get required objects.
-       darkMatterProfile_    => darkMatterProfile   ()
-       haloSpinDistribution_ => haloSpinDistribution()
        ! Get the spin component.
        spin => node%spin(autoCreate=.true.)
        ! Ensure that the spin has not yet been assigned for this node.
@@ -224,16 +226,13 @@ contains
 
   double precision function Node_Component_Spin_Vitvitska_Spin_Growth_Rate(self)
     !% Return the growth rate of the spin parameter.
-    use Dark_Matter_Profiles
     implicit none
     class(nodeComponentSpinVitvitska), intent(inout) :: self
     class(nodeComponentBasic        ), pointer       :: basic
-    class(darkMatterProfileClass    ), pointer       :: darkMatterProfile_
 
     ! Assumes that the angular momentum of the halo remains unchanged during differential evolution, so changes in spin arise only
     ! from changes in the mass and energy of the halo.
     basic                                          =>  self             %hostNode%basic     (             )
-    darkMatterProfile_                             =>  darkMatterProfile                    (             )
     Node_Component_Spin_Vitvitska_Spin_Growth_Rate =  +self             %spin               (             ) &
          &                                            *(                                                    &
          &                                              +0.5d0                                              &

@@ -21,12 +21,16 @@
 module Node_Component_Hot_Halo_Very_Simple
   !% Implements a very simple hot halo node component.
   use Galacticus_Nodes
+  use Dark_Matter_Halo_Scales
+  use Cooling_Rates
+  use Accretion_Halos
   implicit none
   private
   public :: Node_Component_Hot_Halo_Very_Simple_Reset            , Node_Component_Hot_Halo_Very_Simple_Rate_Compute   , &
        &    Node_Component_Hot_Halo_Very_Simple_Scale_Set        , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize, &
        &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merging, Node_Component_Hot_Halo_Very_Simple_Promote        , &
-       &    Node_Component_Hot_Halo_Very_Simple_Post_Evolve      , Node_Component_Hot_Halo_Very_Simple_Node_Merger
+       &    Node_Component_Hot_Halo_Very_Simple_Post_Evolve      , Node_Component_Hot_Halo_Very_Simple_Node_Merger    , &
+       &    Node_Component_Hot_Halo_Very_Simple_Thread_Initialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -86,13 +90,17 @@ module Node_Component_Hot_Halo_Very_Simple
   !#   </property>
   !#  </properties>
   !# </component>
+  
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  class(coolingRateClass        ), pointer :: coolingRate_
+  class(accretionHaloClass      ), pointer :: accretionHalo_
+  !$omp threadprivate(darkMatterHaloScale_,coolingRate_,accretionHalo_)
 
   ! Quantities stored to avoid repeated computation.
   logical          :: gotCoolingRate   =.false.
   double precision :: rateCooling
   !$omp threadprivate(gotCoolingRate,rateCooling)
-  ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized=.false.
 
 contains
 
@@ -101,22 +109,30 @@ contains
     implicit none
     type(nodeComponentHotHaloVerySimple) :: hotHalo
     
-    ! Initialize the module if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
-       if (.not.moduleInitialized) then
-          ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-          call hotHalo%      outflowingMassRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate      )
-          call hotHalo%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate)
-          ! Bind outer radius function.
-          call hotHalo%             outerRadiusFunction(Node_Component_Hot_Halo_Very_Simple_Outer_Radius              )
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Hot_Halo_Very_Simple_Initialize)
-    end if
+    ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
+    call hotHalo%      outflowingMassRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate      )
+    call hotHalo%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate)
+    ! Bind outer radius function.
+    call hotHalo%             outerRadiusFunction(Node_Component_Hot_Halo_Very_Simple_Outer_Radius              )
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Initialize
+
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(parameters)
+    !% Initializes the tree node very simple disk profile module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultHotHaloComponent%verySimpleIsActive()) then
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+       !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
+       !# <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize
 
   !# <calculationResetTask>
   !# <unitName>Node_Component_Hot_Halo_Very_Simple_Reset</unitName>
@@ -195,12 +211,9 @@ contains
   
   double precision function Node_Component_Hot_Halo_Very_Simple_Outer_Radius(self)
     !% Return the outer radius of the hot halo. Assumes a simple model in which this always equals the virial radius.
-    use Dark_Matter_Halo_Scales
     implicit none
     class(nodeComponentHotHaloVerySimple), intent(inout) :: self
-    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
 
-    darkMatterHaloScale_ => darkMatterHaloScale()
     Node_Component_Hot_Halo_Very_Simple_Outer_Radius=darkMatterHaloScale_%virialRadius(self%hostNode)
     return
   end function Node_Component_Hot_Halo_Very_Simple_Outer_Radius
@@ -210,7 +223,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
-    use Accretion_Halos
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     logical                               , intent(in   )          :: odeConverged
@@ -218,7 +230,6 @@ contains
     procedure       (                    ), intent(inout), pointer :: interruptProcedure
     integer                               , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
-    class           (accretionHaloClass  )               , pointer :: accretionHalo_
     double precision                                               :: massAccretionRate   , failedMassAccretionRate
     !GCC$ attributes unused :: odeConverged
     
@@ -228,8 +239,6 @@ contains
     hotHalo => node%hotHalo()
     select type (hotHalo)
     class is (nodeComponentHotHaloVerySimple)
-       ! Get required objects.
-       accretionHalo_ => accretionHalo()
        ! Find the rate of gas mass accretion onto the halo.
        massAccretionRate      =accretionHalo_%accretionRate      (node,accretionModeTotal)
        failedMassAccretionRate=accretionHalo_%failedAccretionRate(node,accretionModeTotal)
@@ -284,12 +293,10 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Tree_Initialize(node)
     !% Initialize the contents of the very simple hot halo component.
     use Cosmology_Parameters
-    use Accretion_Halos
     use Abundances_Structure
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHaloCurrent, hotHalo
-    class           (accretionHaloClass  )               , pointer :: accretionHalo_
     class           (nodeEvent           )               , pointer :: event
     double precision                                               :: hotHaloMass   , failedHotHaloMass
     
@@ -317,8 +324,6 @@ contains
     ! Ensure that it is of unspecified class.
     select type (hotHaloCurrent)
     type is (nodeComponentHotHalo)
-       ! Get required objects.
-       accretionHalo_ => accretionHalo()
        ! Get the mass of hot gas accreted and the mass that failed to accrete.
        hotHaloMass      =accretionHalo_%accretedMass      (node,accretionModeTotal)
        failedHotHaloMass=accretionHalo_%failedAccretedMass(node,accretionModeTotal)       
@@ -452,13 +457,11 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
     use Abundances_Structure
-    use Accretion_Halos
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     type            (treeNode            )               , pointer :: nodeParent
     class           (nodeComponentHotHalo)               , pointer :: hotHaloParent       , hotHalo
     class           (nodeComponentBasic  )               , pointer :: basic               , basicParent
-    class           (accretionHaloClass  )               , pointer :: accretionHalo_
     type            (abundances          ), save                   :: massMetalsAccreted  , fractionMetalsAccreted, &
          &                                                            massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
@@ -469,8 +472,6 @@ contains
     hotHalo => node%hotHalo()
     select type (hotHalo)
     class is (nodeComponentHotHaloVerySimple)
-       ! Get required objects.
-       accretionHalo_ => accretionHalo()
        ! Find the parent node and its hot halo component.
        nodeParent    => node      %parent
        hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
@@ -527,19 +528,16 @@ contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Cooling_Rate(node)
     !% Get and store the cooling rate for {\normalfont \ttfamily node}.
-    use Cooling_Rates
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     class(nodeComponentHotHalo)               , pointer :: hotHalo
-    class(coolingRateClass    )               , pointer :: coolingRate_
 
     if (.not.gotCoolingRate) then
        ! Get the hot halo component.
        hotHalo => node%hotHalo()
        if (hotHalo%mass() > 0.0d0) then
           ! Get the cooling time.
-          coolingRate_ => coolingRate      (    )
-          rateCooling  =  coolingRate_%rate(node)
+          rateCooling=coolingRate_%rate(node)
        else
           rateCooling=0.0d0
        end if
