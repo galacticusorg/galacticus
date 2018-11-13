@@ -78,10 +78,11 @@ contains
     class           (mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout)               :: self
     double precision                                                     , intent(  out), dimension(:) :: x
     type            (fgsl_qrng                                          )                              :: quasiSequenceObject
-    logical                                                                                            :: quasiSequenceReset =.true.
+    logical                                                                                            :: quasiSequenceReset
     integer         (c_size_t                                           )                              :: iTree
     !GCC$ attributes unused :: self
 
+    quasiSequenceReset=.true.
     do iTree=1,size(x)
        x(iTree)=Quasi_Random_Get(quasiSequenceObject,reset=quasiSequenceReset)
     end do
