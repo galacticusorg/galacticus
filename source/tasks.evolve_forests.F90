@@ -98,6 +98,7 @@ contains
     class           (mergerTreeOperatorClass    ), pointer       :: mergerTreeOperator_
     class           (evolveForestsWorkShareClass), pointer       :: evolveForestsWorkShare_
     class           (mergerTreeConstructorClass ), pointer       :: mergerTreeConstructor_
+    type            (inputParameters            ), pointer       :: parametersRoot
     logical                                                      :: evolveSingleForest           , limitLoadAverage  , &
          &                                                          threadLock                   , suspendToRAM
     integer                                                      :: evolveSingleForestSections   , threadsMaximum
@@ -105,10 +106,20 @@ contains
     type            (varying_string             )                :: loadAverageMaximumText       , threadsMaximumText, &
          &                                                          threadLockName               , suspendPath
     character       (len=32                     )                :: text
- 
+    
     ! Ensure the nodes objects are initialized.
-    call nodeClassHierarchyInitialize(          )
-    call Node_Components_Initialize  (parameters)
+    if (associated(parameters%parent)) then
+       parametersRoot => parameters%parent
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       call nodeClassHierarchyInitialize(              )
+       call Node_Components_Initialize  (parametersRoot)
+    else
+       parametersRoot => null()
+       call nodeClassHierarchyInitialize(              )
+       call Node_Components_Initialize  (parameters    )
+    end if
     !# <inputParameter>
     !#   <name>evolveSingleForest</name>
     !#   <cardinality>1</cardinality>
@@ -207,7 +218,11 @@ contains
     !# <objectBuilder class="mergerTreeConstructor"  name="mergerTreeConstructor_"  source="parameters"/>
     !# <objectBuilder class="mergerTreeOperator"     name="mergerTreeOperator_"     source="parameters"/>
     !# <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
-    self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,parameters)
+    if (associated(parametersRoot)) then
+       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,parametersRoot)
+    else
+       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,parameters    )
+    end if
     !# <inputParametersValidate source="parameters"/>
     return
   end function evolveForestsConstructorParameters
@@ -397,6 +412,7 @@ contains
     !#  <callWith>self%universeWaiting</callWith>
     !# </eventHook>
     !$omp end master
+    !$omp barrier
     ! Begin processing trees.
     treeProcess : do while (.not.finished)
        ! For single forest evolution, only the master thread should retrieve a merger tree.
