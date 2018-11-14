@@ -115,14 +115,14 @@ module Node_Component_Disk_Very_Simple
 
   ! Record of whether to use the simple disk analytic solver.
   logical                             :: diskVerySimpleUseAnalyticSolver
-  double precision                    :: diskVerySimpleAnalyticSolverPruneMassStars        , diskVerySimpleAnalyticSolverPruneMassGas, &
-       &                                 timePresentDay
+  double precision                    :: diskVerySimpleAnalyticSolverPruneMassStars         , diskVerySimpleAnalyticSolverPruneMassGas, &
+       &                                 timePresentDay                              =-1.0d0
  
   ! Parameters controlling the physical implementation.
-  double precision                    :: diskOutflowTimescaleMinimum                       , diskStarFormationTimescaleMinimum       , &
-       &                                 diskVerySimpleMassScaleAbsolute                   , diskVerySimpleSurfaceDensityThreshold   , &
-       &                                 diskVerySimpleSurfaceDensityVelocityExponent      , surfaceDensityNormalization
-  logical                             :: diskVerySimpleTrackAbundances                     , diskVerySimpleTrackLuminosities
+  double precision                    :: diskOutflowTimescaleMinimum                        , diskStarFormationTimescaleMinimum       , &
+       &                                 diskVerySimpleMassScaleAbsolute                    , diskVerySimpleSurfaceDensityThreshold   , &
+       &                                 diskVerySimpleSurfaceDensityVelocityExponent       , surfaceDensityNormalization
+  logical                             :: diskVerySimpleTrackAbundances                      , diskVerySimpleTrackLuminosities
 
   ! Fast exponentiation tables for rapid computation of the surface density threshold.
   type            (fastExponentiator) :: velocityExponentiator
@@ -227,8 +227,6 @@ contains
        velocityExponentiator=fastExponentiator(1.0d+0,1.0d+3,diskVerySimpleSurfaceDensityVelocityExponent,1.0d+1,abortOutsideRange=.false.)
        ! Compute normalization factor for surface density.
        surfaceDensityNormalization=diskVerySimpleSurfaceDensityThreshold/velocityNormalization**diskVerySimpleSurfaceDensityVelocityExponent
-       ! If using the analytic solver, find the time at the present day.
-       if (diskVerySimpleUseAnalyticSolver) timePresentDay=cosmologyFunctions_%cosmicTime(1.0d0)
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()
        ! Bind the star formation rate function.
@@ -252,7 +250,11 @@ contains
        !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters"/>
        !# <objectBuilder class="darkMatterProfile"           name="darkMatterProfile_"           source="parameters"/>
        !# <objectBuilder class="starFormationFeedbackDisks"  name="starFormationFeedbackDisks_"  source="parameters"/>
-       !# <objectBuilder class="starFormationTimescaleDisks" name="starFormationTimescaleDisks_" source="parameters"/>
+       !# <objectBuilder class="starFormationTimescaleDisks" name="starFormationTimescaleDisks_" source="parameters"/>       
+       ! If using the analytic solver, find the time at the present day.
+       !$omp critical (Node_Component_Disk_Very_Simple_Thread_Initialize)
+       if (diskVerySimpleUseAnalyticSolver.and.timePresentDay < 0.0d0) timePresentDay=cosmologyFunctions_%cosmicTime(1.0d0)
+       !$omp end critical (Node_Component_Disk_Very_Simple_Thread_Initialize)
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Initialize
