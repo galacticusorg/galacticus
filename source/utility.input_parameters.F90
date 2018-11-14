@@ -94,11 +94,11 @@ module Input_Parameters
      !@     <description>Set a pointer to the object corresponding to this parameter.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                  inputParameterFinalize
      procedure :: isParameter   => inputParameterIsParameter
      procedure :: objectCreated => inputParameterObjectCreated
      procedure :: objectGet     => inputParameterObjectGet
      procedure :: objectSet     => inputParameterObjectSet
+     procedure :: destroy       => inputParameterDestroy
   end type inputParameter
 
   type :: inputParameters
@@ -432,13 +432,14 @@ contains
     type(inputParameters)                :: inputParametersConstructorCopy
     type(inputParameters), intent(in   ) :: parameters    
 
-    inputParametersConstructorCopy        =  inputParameters(parameters%rootNode)
-    inputParametersConstructorCopy%parent =>                 parameters%parent
-    inputParametersConstructorCopy%global =                  parameters%global
+    inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
+    inputParametersConstructorCopy%parameters =>                 parameters%parameters
+    inputParametersConstructorCopy%parent     =>                 parameters%parent
+    inputParametersConstructorCopy%global     =                  parameters%global
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     use Galacticus_Error
     use Galacticus_Display
@@ -450,7 +451,7 @@ contains
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     character(len=*          )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
-    logical                                 , intent(in   ), optional :: noOutput
+    logical                                 , intent(in   ), optional :: noOutput                      , noBuild
     type     (node           ), pointer                               :: thisNode                      , allowedParameterDoc    , &
          &                                                               versionElement
     type     (nodeList       ), pointer                               :: allowedParameterList
@@ -460,6 +461,7 @@ contains
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
     !# <optionalArgument name="noOutput" defaultsTo=".false." />
+    !# <optionalArgument name="noBuild"  defaultsTo=".false." />
     
     inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
@@ -467,10 +469,12 @@ contains
     inputParametersConstructorNode%rootNode =>                  parametersNode
     inputParametersConstructorNode%parent   => null            (              )
     !$omp critical (FoX_DOM_Access)
+    if (.not.noBuild_) then
     allocate(inputParametersConstructorNode%parameters)
     inputParametersConstructorNode%parameters%firstChild => null()
     call inputParametersConstructorNode%buildTree        (inputParametersConstructorNode%parameters,parametersNode)    
     call inputParametersConstructorNode%resolveReferences(                                                        )
+ end if
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
@@ -656,6 +660,8 @@ contains
     call destroy(self%document)
     !$omp end critical (FoX_DOM_Access)
     nullify(self%document)
+    call self%parameters%destroy()
+    deallocate(self%parameters)
     call inputParametersFinalize(self)
     return
   end subroutine inputParametersDestroy
@@ -672,7 +678,6 @@ contains
        call destroy(self%document)
        !$omp end critical (FoX_DOM_Access)
     end if
-    if (associated(self%parameters)) deallocate(self%parameters)
     nullify(self%document  )
     nullify(self%rootNode  )
     nullify(self%parameters)
@@ -694,22 +699,23 @@ contains
     return
   end subroutine inputParametersFinalize
   
-  recursive subroutine inputParameterFinalize(self)
-    !% Finalizer for the {\normalfont \ttfamily inputParameter} class.
-    type(inputParameter), intent(inout) :: self
-    type(inputParameter), pointer       :: child, childNext
+  recursive subroutine inputParameterDestroy(self)
+    !% Destructor for the {\normalfont \ttfamily inputParameter} class.
+    class(inputParameter), intent(inout) :: self
+    type (inputParameter), pointer       :: child, childNext
 
     ! We do not destroy the XML node content here as it may be used elsewhere.
     ! Destroy all children - this will trigger recursive destruction of all grandchildren, etc.
     child => self%firstChild
     do while (associated(child))
        childNext => child%sibling
+       call child%destroy()
        deallocate(child)
        child => childNext
     end do
     nullify(self%firstChild)
     return
-  end subroutine inputParameterFinalize
+  end subroutine inputParameterDestroy
   
   logical function inputParameterIsParameter(self)
     !% Return true if this is a valid parameter.
@@ -1167,8 +1173,9 @@ contains
           inputParametersSubParameters=inputParameters()
        end if
     else
-       parameterNode                => self%node      (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
-       inputParametersSubParameters =  inputParameters(parameterNode%content,noOutput    =.true.                                )
+       parameterNode                           => self%node      (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
+       inputParametersSubParameters            =  inputParameters(parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
+       inputParametersSubParameters%parameters => parameterNode       
     end if
     inputParametersSubParameters%parent => self
     inputParametersSubParameters%global =  self%global
