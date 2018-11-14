@@ -359,7 +359,7 @@
     <version>0.9.4</version>
     <blackHoleBinaryInitialSeparationMethod value="spheroidRadiusFraction"/>
     <blackHoleBinaryInitialSeparationMethod value="tidalRadius">
-      <blackHoleBinaryRecoilMethod value="null" parameterLevel="top"/>
+      <blackHoleBinaryRecoilMethod value="zero" parameterLevel="top"/>
       <blackHoleBinaryRecoilMethod value="campanelli2007" parameterLevel="top">
  	<blackHoleBinarySeparationGrowthRateMethod value="zero" parameterLevel="top"/>
  	<blackHoleBinarySeparationGrowthRateMethod value="standard" parameterLevel="top">
