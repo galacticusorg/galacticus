@@ -45,22 +45,25 @@ contains
     type (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                :: self
     type (inputParameters                                   ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
+    class(outputTimesClass                           ), pointer       :: outputTimes_
     class(nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_ 
   
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
-    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyFunctions_,nbodyHaloMassError_)
+    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     nullify(cosmologyFunctions_)
     nullify(nbodyHaloMassError_)
+    nullify(outputTimes_       )
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorParameters
 
-  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyFunctions_,nbodyHaloMassError_) result (self)
+  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result (self)
     !% Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
     use ISO_Varying_String
     use Numerical_Constants_Astronomical
-    use Galacticus_Output_Times
+    use Output_Times
     use Cosmology_Functions
     use Output_Analysis_Property_Operators
     use Output_Analysis_Property_Extractions
@@ -77,6 +80,7 @@ contains
     type            (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                                :: self
     class           (cosmologyFunctionsClass                           ), target       , intent(in   )  :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass                           ), target       , intent(in   )  :: nbodyHaloMassError_ 
+    class           (outputTimesClass                                  ), target       , intent(inout)  :: outputTimes_
     integer         (c_size_t                                          ), parameter                     :: massHaloCount                         =26
     double precision                                                    , parameter                     :: massHaloMinimum                       = 1.0d10, massHaloMaximum                    =1.0d15
     integer                                                             , parameter                     :: covarianceBinomialBinsPerDecade       =10
@@ -105,10 +109,10 @@ contains
     !$ call hdf5Access%unset()
     massHaloLogarithmic=log10(massHaloLogarithmic)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[size(massHaloLogarithmic,kind=c_size_t),Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[size(massHaloLogarithmic,kind=c_size_t),outputTimes_%count()])
     outputWeight=0.0d0
-    do iOutput=1,Galacticus_Output_Time_Count()
-       if (Values_Agree(Galacticus_Output_Redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
+    do iOutput=1,outputTimes_%count()
+       if (Values_Agree(outputTimes_%redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
     end do
     if (any(sum(outputWeight,dim=2) /= 1.0d0)) call Galacticus_Error_Report('zero redshift output is required'//{introspection:location})
     ! Build a filter which select isolated halos with M200c mass above some coarse lower limit suitable for this sample.
@@ -169,6 +173,7 @@ contains
          &                                                         outputAnalysisWeightOperator_                        , &
          &                                                         outputAnalysisDistributionOperator_                  , &
          &                                                         galacticFilterAll_                                   , &
+         &                                                         outputTimes_                                         , &
          &                                                         outputAnalysisCovarianceModelBinomial                , &
          &                                                         covarianceBinomialBinsPerDecade                      , &
          &                                                         covarianceBinomialMassHaloMinimum                    , &

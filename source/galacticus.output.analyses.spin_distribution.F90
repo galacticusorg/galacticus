@@ -50,6 +50,7 @@ contains
     type            (outputAnalysisSpinDistribution)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    class           (outputTimesClass              ), pointer       :: outputTimes_
     class           (nbodyHaloMassErrorClass       ), pointer       :: nbodyHaloMassError_ 
     class           (haloMassFunctionClass         ), pointer       :: haloMassFunction_            
     class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_         
@@ -64,11 +65,12 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="outputTimes"         name="outputTimes_"  source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
     !# <objectBuilder class="haloMassFunction"    name="haloMassFunction_"    source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
-    self=outputAnalysisSpinDistribution(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_)
+    self=outputAnalysisSpinDistribution(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     nullify(nbodyHaloMassError_ )
     nullify(haloMassFunction_   )
@@ -77,10 +79,10 @@ contains
     return
   end function spinDistributionConstructorParameters
 
-  function spinDistributionConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_) result(self)
+  function spinDistributionConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_,outputTimes_) result(self)
     !% Internal constructor for the ``spinDistribution'' output analysis class.
     use ISO_Varying_String
-    use Galacticus_Output_Times
+    use Output_Times
     use Output_Analyses_Options
     use Galacticus_Error
     use Galacticus_Paths
@@ -92,6 +94,7 @@ contains
     type            (outputAnalysisSpinDistribution                   )                              :: self
     double precision                                                                , intent(in   )  :: timeRecent
     class           (cosmologyFunctionsClass                          ), target     , intent(in   )  :: cosmologyFunctions_
+    class           (outputTimesClass                                 ), target     , intent(inout)  :: outputTimes_
     class           (nbodyHaloMassErrorClass                          ), target     , intent(in   )  :: nbodyHaloMassError_ 
     class           (haloMassFunctionClass                            ), target     , intent(in   )  :: haloMassFunction_            
     class           (darkMatterHaloScaleClass                         ), target     , intent(in   )  :: darkMatterHaloScale_         
@@ -132,10 +135,10 @@ contains
     !$ call hdf5Access%unset()
     self%binCount=size(spins)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     outputWeight=0.0d0
-    do iOutput=1,Galacticus_Output_Time_Count()
-       if (Values_Agree(Galacticus_Output_Redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
+    do iOutput=1,outputTimes_%count()
+       if (Values_Agree(outputTimes_%redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
     end do
     if (any(sum(outputWeight,dim=2) /= 1.0d0)) call Galacticus_Error_Report('zero redshift output is required'//{introspection:location})
     ! Build an N-body halo spin distribution class.
@@ -240,6 +243,7 @@ contains
          &                                outputAnalysisDistributionOperator_                , &
          &                                outputAnalysisDistributionNormalizer_              , &
          &                                galacticFilterAll_                                 , &
+         &                                outputTimes_                                       , &
          &                                outputAnalysisCovarianceModelPoisson               , &
          &                                covarianceBinomialBinsPerDecade                    , &
          &                                covarianceBinomialMassHaloMinimum                  , &

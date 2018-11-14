@@ -21,6 +21,7 @@
   !$use OMP_Lib
   use Gravitational_Lensing
   use Locks
+  use Output_Times
   
   type :: grvtnlLnsngTransferMatrix
      double precision, allocatable, dimension(:,:) :: matrix
@@ -33,6 +34,7 @@
      !% A gravitational lensing output distribution operator class.
      private
      class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_
+     class           (outputTimesClass         ), pointer                   :: outputTimes_
      type            (grvtnlLnsngTransferMatrix), allocatable, dimension(:) :: transfer_
      double precision                                                       :: sizeSource
      !$ type         (ompReadWriteLock         ), allocatable, dimension(:) :: tabulateLock
@@ -62,6 +64,7 @@ contains
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (gravitationalLensingClass                    ), pointer       :: gravitationalLensing_
+    class           (outputTimesClass                             ), pointer       :: outputTimes_
     double precision                                                               :: sizeSource
     
     ! Check and read parameters.
@@ -74,27 +77,28 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     ! Construct the object.
-    self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,sizeSource)
+    self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,outputTimes_,sizeSource)
     !# <inputParametersValidate source="parameters"/>
     return
   end function grvtnlLnsngConstructorParameters
 
-  function grvtnlLnsngConstructorInternal(gravitationalLensing_,sizeSource) result(self)
+  function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource) result(self)
     !% Internal constructor for the ``gravitational lensing'' output analysis distribution operator class.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Output_Times
     implicit none
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                        :: self
     class           (gravitationalLensingClass                    ), intent(in   ), target :: gravitationalLensing_
+    class           (outputTimesClass                             ), intent(in   ), target :: outputTimes_
     double precision                                               , intent(in   )         :: sizeSource
     !$ integer      (c_size_t                                     )                        :: i
-    !# <constructorAssign variables="*gravitationalLensing_, sizeSource"/>
+    !# <constructorAssign variables="*gravitationalLensing_, *outputTimes_, sizeSource"/>
 
     ! Allocate transfer matrices for all outputs.
-    allocate   (self%transfer_   (Galacticus_Output_Time_Count()))
-    !$ allocate(self%tabulateLock(Galacticus_Output_Time_Count()))
-    !$ do i=1,Galacticus_Output_Time_Count()
+    allocate   (self%transfer_   (self%outputTimes_%count()))
+    !$ allocate(self%tabulateLock(self%outputTimes_%count()))
+    !$ do i=1,self%outputTimes_%count()
     !$    self%tabulateLock(i)=ompReadWriteLock()
     !$ end do
     return
@@ -106,6 +110,7 @@ contains
     type(outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout) :: self
 
     !# <objectDestructor name="self%gravitationalLensing_"/>
+    !# <objectDestructor name="self%outputTimes_"         />
     return
   end subroutine grvtnlLnsngDestructor
   
@@ -132,7 +137,6 @@ contains
     use Memory_Management
     use FGSL
     use Numerical_Integration
-    use Galacticus_Output_Times
     use Output_Analyses_Options
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self

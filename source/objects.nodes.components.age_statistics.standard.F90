@@ -158,7 +158,7 @@ contains
   subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
     use Galacticus_Nodes
-    use Galacticus_Output_Times
+    use Output_Times
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged

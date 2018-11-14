@@ -139,8 +139,6 @@ contains
     self%covariance       =self%covarianceMatrix
     self%inverseCovariance=self%covariance      %invert()
     call self%inverseCovariance%makeSemiPositiveDefinite()
-    ! Ensure the nodes objects are initialized.
-    call nodeClassHierarchyInitialize()
     return
   end function projectedCorrelationFunctionConstructorInternal
 

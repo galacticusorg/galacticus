@@ -1251,7 +1251,7 @@ contains
   subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
     !% Modify the input list of luminosities for special cases.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Output_Times
+    use Output_Times
     use Cosmology_Functions
     use Memory_Management
     use String_Handling
@@ -1272,6 +1272,7 @@ contains
     double precision                                              , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
     class           (stellarPopulationSpectraClass), pointer                                  :: stellarPopulationSpectra_
     class           (cosmologyFunctionsClass      ), pointer                                  :: cosmologyFunctions_
+    class           (outputTimesClass             ), pointer                                  :: outputTimes_
     character       (len=32                       )                                           :: redshiftLabel            , word                     , &
          &                                                                                       wavelengthCentralLabel   , resolutionLabel
     character       (len=256                      )                                           :: newFilterName            , lineName
@@ -1285,7 +1286,8 @@ contains
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Get number of output redshifts.
-    outputCount=Galacticus_Output_Time_Count()
+    outputTimes_        => outputTimes       ()
+    outputCount         =  outputTimes_%count()
     ! Iterate over all luminosities.
     i=1
     do while (i <= size(luminosityRedshiftText))
@@ -1312,7 +1314,7 @@ contains
                &                                     )
           ! Modify new filters.
           do j=1,outputCount
-             outputRedshift=Galacticus_Output_Redshift(j)
+             outputRedshift=outputTimes_%redshift(j)
              write (redshiftLabel,*) outputRedshift
              luminosityRedshiftText   (j+i-1)=redshiftLabel
              luminosityRedshift       (j+i-1)=outputRedshift

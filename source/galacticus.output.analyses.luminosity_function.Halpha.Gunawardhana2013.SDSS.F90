@@ -43,6 +43,7 @@ contains
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                           ), pointer                     :: gravitationalLensing_
     class           (stellarSpectraDustAttenuationClass                  ), pointer                     :: stellarSpectraDustAttenuation_
     double precision                                                      , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
@@ -143,15 +144,16 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"            name="cosmologyFunctions_"            source="parameters"/>
+    !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
     !# <objectBuilder class="gravitationalLensing"          name="gravitationalLensing_"          source="parameters"/>
     !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionGunawardhana2013SDSS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
+    self=outputAnalysisLuminosityFunctionGunawardhana2013SDSS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
     return
   end function luminosityFunctionGunawardhana2013SDSSConstructorParameters
 
-  function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
+  function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionGunawardhana2013SDSS'' output analysis class for internal use.
     use Input_Parameters
     use Galacticus_Paths
@@ -161,6 +163,7 @@ contains
     implicit none
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), intent(in   ), target       :: outputTimes_
     class           (gravitationalLensingClass                           ), intent(in   ), target       :: gravitationalLensing_
     class           (stellarSpectraDustAttenuationClass                  ), intent(in   ), target       :: stellarSpectraDustAttenuation_
     double precision                                                      , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
@@ -214,6 +217,7 @@ contains
     allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
     outputAnalysisDistributionOperatorGrvtnlLnsng_       =  outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &
          &                                                                                                       gravitationalLensing_           , &
+         &                                                                                                       outputTimes_                    , &
          &                                                                                                       sizeSourceLensing                 &
          &                                                                                                      )
     ! Construct sequence distribution operator.
@@ -240,6 +244,7 @@ contains
          &                                  cosmologyFunctionsData                                                                                                       , &
          &                                  outputAnalysisPropertyOperator_                                                                                              , &
          &                                  outputAnalysisDistributionOperator_                                                                                          , &
+         &                                  outputTimes_                                                                                                                 , &
          &                                  covarianceBinomialBinsPerDecade                                                                                              , &
          &                                  covarianceBinomialMassHaloMinimum                                                                                            , &
          &                                  covarianceBinomialMassHaloMaximum                                                                                              &

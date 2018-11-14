@@ -23,6 +23,7 @@
   use Power_Spectrum_Window_Functions
   use Power_Spectra_Nonlinear
   use Linear_Growth
+  use Output_Times
 
   !# <task name="taskPowerSpectra" defaultThreadPrivate="yes">
   !#  <description>A task which computes and outputs the power spectrum and related quantities.</description>
@@ -37,6 +38,7 @@
      class           (powerSpectrumNonlinearClass      ), pointer :: powerSpectrumNonlinear_
      class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_
      class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_
+     class           (outputTimesClass                 ), pointer :: outputTimes_
      double precision                                             :: wavenumberMinimum           , wavenumberMaximum
      integer                                                      :: pointsPerDecade
      logical                                                      :: includeNonLinear
@@ -67,6 +69,7 @@ contains
     class           (powerSpectrumNonlinearClass     ), pointer       :: powerSpectrumNonlinear_
     class           (powerSpectrumWindowFunctionClass), pointer       :: powerSpectrumWindowFunction_
     class           (cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
+    class           (outputTimesClass                ), pointer       :: outputTimes_
     double precision                                                  :: wavenumberMinimum           , wavenumberMaximum
     integer                                                           :: pointsPerDecade
     logical                                                           :: includeNonLinear
@@ -119,6 +122,7 @@ contains
     !# <objectBuilder class="powerSpectrumNonlinear"      name="powerSpectrumNonlinear_"      source="parameters"/>
     !# <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance"    name="cosmologicalMassVariance_"    source="parameters"/>
+    !# <objectBuilder class="outputTimes"                 name="outputTimes_"                 source="parameters"/>
     self=taskPowerSpectra(                               &
          &                 wavenumberMinimum           , &
          &                 wavenumberMaximum           , &
@@ -131,7 +135,8 @@ contains
          &                 powerSpectrum_              , &
          &                 powerSpectrumNonlinear_     , &
          &                 powerSpectrumWindowFunction_, &
-         &                 cosmologicalMassVariance_     &
+         &                 cosmologicalMassVariance_   , &
+         &                 outputTimes_                  &
          &                )
     !# <inputParametersValidate source="parameters"/>
     return
@@ -149,7 +154,8 @@ contains
        &                                    powerSpectrum_              , &
        &                                    powerSpectrumNonlinear_     , &
        &                                    powerSpectrumWindowFunction_, &
-       &                                    cosmologicalMassVariance_     &
+       &                                    cosmologicalMassVariance_   , &
+       &                                    outputTimes_                  &
        &                                   ) result(self)
     !% Internal constructor for the {\normalfont \ttfamily powerSpectrum} task class.
     implicit none
@@ -161,11 +167,12 @@ contains
     class           (powerSpectrumNonlinearClass     ), intent(in   ), target :: powerSpectrumNonlinear_
     class           (powerSpectrumWindowFunctionClass), intent(in   ), target :: powerSpectrumWindowFunction_
     class           (cosmologicalMassVarianceClass   ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (outputTimesClass                ), intent(in   ), target :: outputTimes_
     double precision                                  , intent(in   )         :: wavenumberMinimum           , wavenumberMaximum
     integer                                           , intent(in   )         :: pointsPerDecade
     logical                                           , intent(in   )         :: includeNonLinear
     type            (varying_string                  ), intent(in   )         :: outputGroup
-    !# <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_"/>
+    !# <constructorAssign variables="wavenumberMinimum, wavenumberMaximum, pointsPerDecade, includeNonLinear, outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*linearGrowth_,*powerSpectrum_,*powerSpectrumNonlinear_,*powerSpectrumWindowFunction_,*cosmologicalMassVariance_, *outputTimes_"/>
     
     return
   end function powerSpectraConstructorInternal
@@ -182,6 +189,7 @@ contains
     !# <objectDestructor name="self%powerSpectrumNonlinear_"     />
     !# <objectDestructor name="self%powerSpectrumWindowFunction_"/>
     !# <objectDestructor name="self%cosmologicalMassVariance_"   />
+    !# <objectDestructor name="self%outputTimes_"                />
     return
   end subroutine powerSpectraDestructor
 
@@ -193,7 +201,6 @@ contains
     use            :: Numerical_Ranges
     use            :: FGSL
     use            :: Memory_Management
-    use            :: Galacticus_Output_Times
     use            :: Numerical_Constants_Astronomical
     use            :: IO_HDF5
     use            :: String_Handling
@@ -216,7 +223,7 @@ contains
 
     call Galacticus_Display_Indent('Begin task: power spectrum')
     ! Get the requested output redshifts.
-    outputCount      =Galacticus_Output_Time_Count()
+    outputCount      =self%outputTimes_%count()
     ! Compute number of tabulation points.
     wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*dble(self%pointsPerDecade))+1
     ! Allocate arrays for power spectra.
@@ -252,17 +259,17 @@ contains
     end do
     ! Iterate over outputs.
     do iOutput=1,outputCount
-       epochTime    (iOutput)=                                                            Galacticus_Output_Time(iOutput)
+       epochTime    (iOutput)=                                                            self%outputTimes_%time(iOutput)
        epochRedshift(iOutput)=self%cosmologyFunctions_ %redshiftFromExpansionFactor(                                      &
             &                  self%cosmologyFunctions_%expansionFactor             (                                     &
-            &                                                                             Galacticus_Output_Time(iOutput) &
+            &                                                                             self%outputTimes_%time(iOutput) &
             &                                                                       )                                     &
             &                                                                      )
-       growthFactor (iOutput)=self%linearGrowth_       %value                      ( time=Galacticus_Output_Time(iOutput))
+       growthFactor (iOutput)=self%linearGrowth_       %value                      ( time=self%outputTimes_%time(iOutput))
        ! Iterate over all wavenumbers computing non-linear power spectrum.
        if (self%includeNonLinear) then
           do iWavenumber=1,wavenumberCount
-             powerSpectrumNonLinear(iWavenumber,iOutput)=self%powerSpectrumNonlinear_%value(wavenumber(iWavenumber),Galacticus_Output_Time(iOutput))
+             powerSpectrumNonLinear(iWavenumber,iOutput)=self%powerSpectrumNonlinear_%value(wavenumber(iWavenumber),self%outputTimes_%time(iOutput))
              ! Compute the variance in the non-linear power spectrum.
              wavenumberMinimum=    0.0d0
              wavenumberMaximum=min(1.0d3*wavenumber(iWavenumber),self%powerSpectrumWindowFunction_%wavenumberMaximum(massScale(iWavenumber)))

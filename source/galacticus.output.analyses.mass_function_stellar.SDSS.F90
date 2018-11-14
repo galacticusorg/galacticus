@@ -43,6 +43,7 @@ contains
     type            (outputAnalysisMassFunctionStellarSDSS)                              :: self
     type            (inputParameters                      ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass              ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                     ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass            ), pointer                     :: gravitationalLensing_
     double precision                                       , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                              :: covarianceBinomialBinsPerDecade
@@ -134,14 +135,15 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMassFunctionStellarSDSS(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionStellarSDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !# <inputParametersValidate source="parameters"/>
     return
   end function massFunctionStellarSDSSConstructorParameters
 
-  function massFunctionStellarSDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionStellarSDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarSDSS'' output analysis class for internal use.
     use Input_Parameters
     use Galacticus_Paths
@@ -150,6 +152,7 @@ contains
     implicit none
     type            (outputAnalysisMassFunctionStellarSDSS              )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
+    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
          &                                                                                                sizeSourceLensing
@@ -202,6 +205,7 @@ contains
     allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
     outputAnalysisDistributionOperatorGrvtnlLnsng_       =  outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &
          &                                                                                                       gravitationalLensing_           , &
+         &                                                                                                       outputTimes_                    , &
          &                                                                                                       sizeSourceLensing                 &
          &                                                                                                      )
     ! Construct sequence distribution operator.
@@ -214,20 +218,21 @@ contains
          &                                                                                                       distributionOperatorSequence      &
          &                                                                                                      )
     ! Build the object.
-    self%outputAnalysisMassFunctionStellar=                                                                                                                     &
-         & outputAnalysisMassFunctionStellar(                                                                                                                   &
-         &                                   var_str('LiWhite2009SDSS'                                              )                                         , &
-         &                                   var_str('Stellar mass function for the Li & White (2009) SDSS analysis')                                         , &
+    self%outputAnalysisMassFunctionStellar=                                                                                                                           &
+         & outputAnalysisMassFunctionStellar(                                                                                                                         &
+         &                                   var_str('LiWhite2009SDSS'                                              )                                               , &
+         &                                   var_str('Stellar mass function for the Li & White (2009) SDSS analysis')                                               , &
          &                                   char(galacticusPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/Stellar_Mass_Function_Li_White_2009.hdf5'), &
-         &                                   galacticFilter_                                                                                                  , &
-         &                                   surveyGeometry_                                                                                                  , &
-         &                                   cosmologyFunctions_                                                                                              , &
-         &                                   cosmologyFunctionsData                                                                                           , &
-         &                                   outputAnalysisPropertyOperator_                                                                                  , &
-         &                                   outputAnalysisDistributionOperator_                                                                              , &
-         &                                   covarianceBinomialBinsPerDecade                                                                                  , &
-         &                                   covarianceBinomialMassHaloMinimum                                                                                , &
-         &                                   covarianceBinomialMassHaloMaximum                                                                                  &
+         &                                   galacticFilter_                                                                                                        , &
+         &                                   surveyGeometry_                                                                                                        , &
+         &                                   cosmologyFunctions_                                                                                                    , &
+         &                                   cosmologyFunctionsData                                                                                                 , &
+         &                                   outputAnalysisPropertyOperator_                                                                                        , &
+         &                                   outputAnalysisDistributionOperator_                                                                                    , &
+         &                                   outputTimes_                                                                                                           , &
+         &                                   covarianceBinomialBinsPerDecade                                                                                        , &
+         &                                   covarianceBinomialMassHaloMinimum                                                                                      , &
+         &                                   covarianceBinomialMassHaloMaximum                                                                                        &
          &                                  )
     ! Clean up.
     nullify(surveyGeometry_                                     )

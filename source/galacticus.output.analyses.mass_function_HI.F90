@@ -52,6 +52,7 @@ contains
     class           (galacticFilterClass                    ), pointer                    :: galacticFilter_
     class           (surveyGeometryClass                    ), pointer                    :: surveyGeometry_
     class           (cosmologyFunctionsClass                ), pointer                    :: cosmologyFunctions_                , cosmologyFunctionsData
+    class           (outputTimesClass                       ), pointer                    :: outputTimes_
     class           (outputAnalysisDistributionOperatorClass), pointer                    :: outputAnalysisDistributionOperator_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                    :: outputAnalysisPropertyOperator_
     class           (outputAnalysisMolecularRatioClass      ), pointer                    :: outputAnalysisMolecularRatio_
@@ -113,18 +114,19 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                     source="parameters"            />
+    !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctionsData"              source="dataAnalysisParameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
     !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
     !# <objectBuilder class="outputAnalysisMolecularRatio"       name="outputAnalysisMolecularRatio_"       source="parameters"            />
     !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
-    self=outputAnalysisMassFunctionHI(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisMassFunctionHI(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !# <inputParametersValidate source="parameters"/>
     return
   end function massFunctionHIConstructorParameters
 
-  function massFunctionHIConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function massFunctionHIConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``massFunctionHI'' output analysis class which reads bin information from a standard format file.
     use IO_HDF5
     use Output_Analysis_Molecular_Ratios
@@ -135,6 +137,7 @@ contains
     class           (galacticFilterClass                    ), intent(in   ), target      :: galacticFilter_
     class           (surveyGeometryClass                    ), intent(in   ), target      :: surveyGeometry_
     class           (cosmologyFunctionsClass                ), intent(in   ), target      :: cosmologyFunctions_                , cosmologyFunctionsData
+    class           (outputTimesClass                       ), intent(inout), target      :: outputTimes_
     class           (outputAnalysisPropertyOperatorClass    ), intent(in   ), target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ), target      :: outputAnalysisDistributionOperator_
     class           (outputAnalysisMolecularRatioClass      ), intent(in   ), target      :: outputAnalysisMolecularRatio_
@@ -149,15 +152,15 @@ contains
     call dataFile%close      (                        )
     !$ call hdf5Access%unset()
     ! Construct the object.
-    self=outputAnalysisMassFunctionHI(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    self=outputAnalysisMassFunctionHI(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     return
   end function massFunctionHIConstructorFile
 
-  function massFunctionHIConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result(self)
+  function massFunctionHIConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result(self)
     !% Constructor for the ``massFunctionHI'' output analysis class which takes a parameter set as input.
     use ISO_Varying_String
     use Memory_Management
-    use Galacticus_Output_Times
+    use Output_Times
     use String_Handling
     use Galacticus_Error
     use Output_Analyses_Options
@@ -171,6 +174,7 @@ contains
     class           (galacticFilterClass                            ), intent(in   ), target         :: galacticFilter_
     class           (surveyGeometryClass                            ), intent(in   ), target         :: surveyGeometry_
     class           (cosmologyFunctionsClass                        ), intent(in   ), target         :: cosmologyFunctions_                                   , cosmologyFunctionsData
+    class           (outputTimesClass                               ), intent(inout), target         :: outputTimes_
     class           (outputAnalysisPropertyOperatorClass            ), intent(in   ), target         :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target         :: outputAnalysisDistributionOperator_
     class           (outputAnalysisMolecularRatioClass              ), intent(in   ), target         :: outputAnalysisMolecularRatio_
@@ -194,22 +198,22 @@ contains
 
     ! Compute weights that apply to each output redshift.
     self%binCount=size(masses,kind=c_size_t)
-    call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,masses(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,outputTimes_,masses(iBin))
     end do
     ! Create a HI mass property extractor.
     allocate(outputAnalysisPropertyExtractor_)
-    outputAnalysisPropertyExtractor_                =outputAnalysisPropertyExtractorMassISM         (                                                    )
+    outputAnalysisPropertyExtractor_                =outputAnalysisPropertyExtractorMassISM         (                                                                 )
     ! Prepend log10, cosmological luminosity distance, and HI mass property operators.
     allocate(outputAnalysisPropertyOperatorHIMass_           )
-    outputAnalysisPropertyOperatorHIMass_           =outputAnalysisPropertyOperatorHIMass           (outputAnalysisMolecularRatio_                       )
+    outputAnalysisPropertyOperatorHIMass_           =outputAnalysisPropertyOperatorHIMass           (outputAnalysisMolecularRatio_                                    )
     allocate(outputAnalysisPropertyOperatorLog10_            )
-    outputAnalysisPropertyOperatorLog10_            =outputAnalysisPropertyOperatorLog10            (                                                    )
+    outputAnalysisPropertyOperatorLog10_            =outputAnalysisPropertyOperatorLog10            (                                                                 )
     allocate(outputAnalysisPropertyOperatorAntiLog10_        )
-    outputAnalysisPropertyOperatorAntiLog10_        =outputAnalysisPropertyOperatorAntiLog10        (                                                    )
+    outputAnalysisPropertyOperatorAntiLog10_        =outputAnalysisPropertyOperatorAntiLog10        (                                                                 )
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_          ,cosmologyFunctionsData)
+    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_          ,cosmologyFunctionsData,outputTimes_)
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
        ! Existing property operator is a sequence operator - simply prepend our log10, and cosmological luminosity distance operators to it.
@@ -276,6 +280,7 @@ contains
          &                                outputAnalysisDistributionOperator_                    , &
          &                                outputAnalysisDistributionNormalizer_                  , &
          &                                galacticFilter_                                        , &
+         &                                outputTimes_                                           , &
          &                                outputAnalysisCovarianceModelBinomial                  , &
          &                                covarianceBinomialBinsPerDecade                        , &
          &                                covarianceBinomialMassHaloMinimum                      , &

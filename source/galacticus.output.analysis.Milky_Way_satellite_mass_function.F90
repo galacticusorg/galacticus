@@ -80,7 +80,7 @@ contains
     use ISO_Varying_String
     use Input_Parameters
     use Galactic_Structure_Enclosed_Masses
-    use Galacticus_Output_Times
+    use Output_Times
     use Cosmology_Functions
     use Cosmology_Parameters
     use Numerical_Comparison
@@ -102,6 +102,7 @@ contains
     class           (cosmologyFunctionsClass )               , pointer        :: cosmologyFunctionsModel
     class           (cosmologyParametersClass)               , pointer        :: cosmologyParametersModel
     class           (darkMatterHaloScaleClass)               , pointer        :: darkMatterHaloScale_
+    class           (outputTimesClass        )               , pointer        :: outputTimes_
     type            (treeNode                )               , pointer        :: host                           , node
     double precision                          , parameter                     :: redshiftPresentDay       =0.0d0
     double precision                          , parameter                     :: massMinimum              =1.0d0
@@ -212,18 +213,19 @@ contains
           if (any(analysisActive)) then
              ! Find the output corresponding to the present day.
              cosmologyFunctionsModel => cosmologyFunctions()
+             outputTimes_            => outputTimes       ()
              outputPresentDay=-1
-             do k=1,Galacticus_Output_Time_Count()
-                if     (                                                                                             &
-                     &  Values_Agree(                                                                                &
-                     &               redshiftPresentDay                                                            , &
-                     &               cosmologyFunctionsModel%redshiftFromExpansionFactor(                            &
-                     &               cosmologyFunctionsModel%expansionFactor             (                           &
-                     &                                                                    Galacticus_Output_Time(k)  &
-                     &                                                                   )                           &
-                     &                                                                  )                          , &
-                     &               absTol=0.001d0                                                                  &
-                     &              )                                                                                &
+             do k=1,outputTimes_%count()
+                if     (                                                                                        &
+                     &  Values_Agree(                                                                           &
+                     &               redshiftPresentDay                                                       , &
+                     &               cosmologyFunctionsModel%redshiftFromExpansionFactor(                       &
+                     &               cosmologyFunctionsModel%expansionFactor             (                      &
+                     &                                                                    outputTimes_%time(k)  &
+                     &                                                                   )                      &
+                     &                                                                  )                     , &
+                     &               absTol=0.001d0                                                             &
+                     &              )                                                                           &
                      & ) then
                    outputPresentDay=k
                    exit

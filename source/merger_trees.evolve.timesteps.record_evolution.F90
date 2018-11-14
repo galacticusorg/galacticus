@@ -206,20 +206,22 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Nodes
     use Galacticus_HDF5
-    use Galacticus_Output_Times
+    use Output_Times
     use ISO_Varying_String
     use String_Handling
     use Numerical_Constants_Astronomical
     implicit none
-    type   (treeNode      ), intent(inout), pointer :: node
-    integer(c_size_t      ), intent(in   )          :: iOutput
-    integer(kind=kind_int8), intent(in   )          :: treeIndex
-    logical                , intent(in   )          :: nodePassesFilter
-    type   (varying_string)                         :: datasetName
-    type   (hdf5Object    )                         :: outputGroup     , thisDataset
+    type   (treeNode        ), intent(inout), pointer :: node
+    integer(c_size_t        ), intent(in   )          :: iOutput
+    integer(kind=kind_int8  ), intent(in   )          :: treeIndex
+    logical                  , intent(in   )          :: nodePassesFilter
+    class  (outputTimesClass)               , pointer :: outputTimes_
+    type   (varying_string  )                         :: datasetName
+    type   (hdf5Object      )                         :: outputGroup     , thisDataset
 
     ! If halo model output was requested, output the Fourier-space halo profiles.
-    if (nodePassesFilter.and.timestepRecordEvolution.and.iOutput == Galacticus_Output_Time_Count().and.node%isOnMainBranch())&
+    outputTimes_ => outputTimes()
+    if (nodePassesFilter.and.timestepRecordEvolution.and.iOutput == outputTimes_%count().and.node%isOnMainBranch())&
          & then
        ! Create a group for the profile datasets.
        outputGroup=galacticusOutputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")

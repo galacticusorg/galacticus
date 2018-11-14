@@ -48,6 +48,7 @@ contains
     type            (outputAnalysisGalaxySizesSDSS)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class           (outputTimesClass             ), pointer       :: outputTimes_
     double precision                                               :: massStellarRatio
     integer                                                        :: distributionNumber
 
@@ -67,15 +68,16 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=outputAnalysisGalaxySizesSDSS(distributionNumber,massStellarRatio,cosmologyFunctions_)
+    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    self=outputAnalysisGalaxySizesSDSS(distributionNumber,massStellarRatio,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function galaxySizesSDSSConstructorParameters
 
-  function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,cosmologyFunctions_) result(self)
+  function galaxySizesSDSSConstructorInternal(distributionNumber,massStellarRatio,cosmologyFunctions_,outputTimes_) result(self)
     !% Internal constructor for the ``galaxySizesSDSS'' output analysis class.
     use ISO_Varying_String
-    use Galacticus_Output_Times
+    use Output_Times
     use Output_Analyses_Options
     use Output_Analysis_Utilities
     use Galacticus_Error
@@ -90,6 +92,7 @@ contains
     integer                                                                       , intent(in   )  :: distributionNumber
     double precision                                                              , intent(in   )  :: massStellarRatio
     class           (cosmologyFunctionsClass                        ), target     , intent(in   )  :: cosmologyFunctions_
+    class           (outputTimesClass                               ), target     , intent(inout)  :: outputTimes_
     type            (cosmologyParametersSimple                      ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                 ), pointer                     :: cosmologyFunctionsData
     type            (outputAnalysisPropertyExtractorHalfMassRadius  ), pointer                     :: outputAnalysisPropertyExtractor_
@@ -134,13 +137,13 @@ contains
     !$ call hdf5Access%set()
     call dataFile    %openFile     (char(galacticusPath(pathTypeDataStatic)//'observations/galaxySizes/Galaxy_Sizes_By_Mass_SDSS_Shen_2003.hdf5'),readOnly=.true.            )
     distribution=dataFile%openGroup(distributionName)
-    call distribution%readDataset  (                              'radius'                                                                 ,         radii             )
-    call distribution%readAttribute(                              'massMinimum'                                                            ,         massStellarMinimum)
-    call distribution%readAttribute(                              'massMaximum'                                                            ,         massStellarMaximum)
-    call distribution%readAttribute(                              'sersicIndexMinimum'                                                     ,         indexSersicMinimum)
-    call distribution%readAttribute(                              'sersicIndexMaximum'                                                     ,         indexSersicMaximum)
-    call distribution%close        (                                                                                                                                   )
-    call dataFile    %close        (                                                                                                                                   )
+    call distribution%readDataset  (                                         'radius'                                                            ,         radii             )
+    call distribution%readAttribute(                                         'massMinimum'                                                       ,         massStellarMinimum)
+    call distribution%readAttribute(                                         'massMaximum'                                                       ,         massStellarMaximum)
+    call distribution%readAttribute(                                         'sersicIndexMinimum'                                                ,         indexSersicMinimum)
+    call distribution%readAttribute(                                         'sersicIndexMaximum'                                                ,         indexSersicMaximum)
+    call distribution%close        (                                                                                                                                         )
+    call dataFile    %close        (                                                                                                                                         )
     !$ call hdf5Access%unset()
     self %binCount=size(radii)
     ! Determine if this distribution is for late-type galaxies.
@@ -162,9 +165,9 @@ contains
     allocate(surveyGeometry_)
     surveyGeometry_=surveyGeometryLiWhite2009SDSS(redshiftMinimum=1.0d-3,redshiftMaximum=huge(0.0d0),cosmologyFunctions_=cosmologyFunctions_)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,self%cosmologyFunctions_,massStellarMinimum)
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,self%cosmologyFunctions_,outputTimes_,massStellarMinimum)
     end do
     ! Create a half-mass radius property extractor.
     allocate(outputAnalysisPropertyExtractor_        )
@@ -178,9 +181,9 @@ contains
     allocate(outputAnalysisPropertyOperatorLog10_            )
     outputAnalysisPropertyOperatorLog10_            =outputAnalysisPropertyOperatorLog10               (                                                                                                                                                            )
     allocate(outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_)
-    outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_ =outputAnalysisPropertyOperatorCsmlgyAnglrDstnc    (cosmologyFunctions_             ,cosmologyFunctionsData                                                                                                     )
+    outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_ =outputAnalysisPropertyOperatorCsmlgyAnglrDstnc    (cosmologyFunctions_             ,cosmologyFunctionsData,outputTimes_                                                                                        )
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   (cosmologyFunctions_             ,cosmologyFunctionsData                                                                                                     )
+    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   (cosmologyFunctions_             ,cosmologyFunctionsData,outputTimes_                                                                                        )
     allocate(propertyOperatorSequence          )
     allocate(propertyOperatorSequence%next     )
     allocate(propertyOperatorSequence%next%next)
@@ -286,6 +289,7 @@ contains
          &                                outputAnalysisDistributionOperator_                   , &
          &                                outputAnalysisDistributionNormalizer_                 , &
          &                                galacticFilterAll_                                    , &
+         &                                outputTimes_                                          , &
          &                                outputAnalysisCovarianceModelPoisson                  , &
          &                                covarianceBinomialBinsPerDecade                       , &
          &                                covarianceBinomialMassHaloMinimum                     , &

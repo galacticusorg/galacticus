@@ -25,6 +25,7 @@
   use Atomic_Cross_Sections_Ionization_Photo
   use Accretion_Disk_Spectra
   use Stellar_Population_Selectors
+  use Output_Times
 
   !# <radiationField name="radiationFieldIntergalacticBackgroundInternal" autoHook="yes">
   !#  <description>A radiation field class for intergalactic background light with properties computed internally.</description>
@@ -38,6 +39,7 @@
      class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_
      class           (accretionDiskSpectraClass             ), pointer                     :: accretionDiskSpectra_
      class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_
+     class           (outputTimesClass                      ), pointer                     :: outputTimes_
      integer                                                                               :: wavelengthCountPerDecade          , wavelengthCount
      double precision                                                                      :: wavelengthMinimum                 , wavelengthMaximum
      integer                                                                               :: timeCountPerDecade                , timeCount
@@ -90,6 +92,7 @@ contains
     class           (atomicCrossSectionIonizationPhotoClass       ), pointer       :: atomicCrossSectionIonizationPhoto_
     class           (accretionDiskSpectraClass                    ), pointer       :: accretionDiskSpectra_
     class           (stellarPopulationSelectorClass               ), pointer       :: stellarPopulationSelector_
+    class           (outputTimesClass                             ), pointer       :: outputTimes_
     integer                                                                        :: wavelengthCountPerDecade          , timeCountPerDecade
     double precision                                                               :: wavelengthMinimum                 , wavelengthMaximum , &
          &                                                                            redshiftMinimum                   , redshiftMaximum
@@ -148,12 +151,13 @@ contains
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
     !# <objectBuilder class="accretionDiskSpectra"              name="accretionDiskSpectra_"              source="parameters"/>
     !# <objectBuilder class="stellarPopulationSelector"         name="stellarPopulationSelector_"         source="parameters"/>
-    self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_)
+    !# <objectBuilder class="outputTimes"                       name="outputTimes_"                       source="parameters"/>
+    self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function intergalacticBackgroundInternalConstructorParameters
 
-  function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_) result(self)
+  function intergalacticBackgroundInternalConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundInternal} radiation field class.
     use Numerical_Ranges
     use Memory_Management
@@ -168,8 +172,9 @@ contains
     class           (atomicCrossSectionIonizationPhotoClass       ), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
     class           (accretionDiskSpectraClass                    ), intent(in   ), target :: accretionDiskSpectra_
     class           (stellarPopulationSelectorClass               ), intent(in   ), target :: stellarPopulationSelector_
+    class           (outputTimesClass                             ), intent(in   ), target :: outputTimes_
     integer                                                                                :: iTime                             , iWavelength
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *stellarPopulationSelector_"/>
+    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, redshiftMinimum, redshiftMaximum, timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_, *atomicCrossSectionIonizationPhoto_, *accretionDiskSpectra_, *stellarPopulationSelector_, *outputTimes_"/>
 
     ! Build tables of wavelength and time for cosmic background radiation.
     self%timeMaximum=self%cosmologyFunctions_%cosmicTime                 (                      &
@@ -366,7 +371,6 @@ contains
     !% Update the radiation background for a given universe.
     use, intrinsic :: ISO_C_Binding
     use            :: Kind_Numbers
-    use            :: Galacticus_Output_Times
     use            :: Galacticus_Nodes
     use            :: Galacticus_Display
     use            :: Galactic_Structure_Options
@@ -569,12 +573,12 @@ contains
           !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
           state%timeNext=self%time(iNow+1)
           !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
-          if     (                                                                            &
-               &                           iNow    <                        self%timeCount    &
-               &  .and.                                                                       &
-               &   self%time(iNow+1) < treeTimeLatest                                         &
-               &  .and.                                                                       &
-               &   self%time(iNow+1) < Galacticus_Output_Time(Galacticus_Output_Time_Count()) &
+          if     (                                                                           &
+               &             iNow    <                        self             %timeCount    &
+               &  .and.                                                                      &
+               &   self%time(iNow+1) < treeTimeLatest                                        &
+               &  .and.                                                                      &
+               &   self%time(iNow+1) < self%outputTimes_%time(self%outputTimes_%count    ()) &
                & ) then
              !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
              state%timePrevious=self%time(iNow)

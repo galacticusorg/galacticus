@@ -27,6 +27,7 @@
   use Virial_Density_Contrast
   use Transfer_Functions
   use Cosmological_Density_Field
+  use Output_Times
 
   !# <task name="taskHaloMassFunction" defaultThreadPrivate="yes">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
@@ -47,6 +48,7 @@
      class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_
      class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_
      class           (transferFunctionClass            ), pointer :: transferFunction_
+     class           (outputTimesClass                 ), pointer :: outputTimes_
      double precision                                             :: haloMassMinimum              , haloMassMaximum
      integer                                                      :: pointsPerDecade
      type            (varying_string                   )          :: outputGroup
@@ -84,11 +86,12 @@ contains
     class           (cosmologicalMassVarianceClass    ), pointer       :: cosmologicalMassVariance_
     class           (darkMatterHaloBiasClass          ), pointer       :: darkMatterHaloBias_
     class           (transferFunctionClass            ), pointer       :: transferFunction_
+    class           (outputTimesClass                 ), pointer       :: outputTimes_
     type            (varying_string                   )                :: outputGroup
     double precision                                                   :: haloMassMinimum              , haloMassMaximum
     integer                                                            :: pointsPerDecade
 
-    call nodeClassHierarchyInitialize(          )
+    call nodeClassHierarchyInitialize(parameters)
     call Node_Components_Initialize  (parameters)
     !# <inputParameter>
     !#   <name>haloMassMinimum</name>
@@ -135,6 +138,7 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance"     name="cosmologicalMassVariance_"     source="parameters"/>
     !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
     !# <objectBuilder class="transferFunction"             name="transferFunction_"             source="parameters"/>
+    !# <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     self=taskHaloMassFunction(                               &
          &                    haloMassMinimum              , &
          &                    haloMassMaximum              , &
@@ -152,7 +156,8 @@ contains
          &                    darkMatterHaloScale_         , &
          &                    cosmologicalMassVariance_    , &
          &                    darkMatterHaloBias_          , &
-         &                    transferFunction_              &
+         &                    transferFunction_            , &
+         &                    outputTimes_                   &
          &                   )
     !# <inputParametersValidate source="parameters"/>
     return
@@ -175,7 +180,8 @@ contains
        &                                       darkMatterHaloScale_         , &
        &                                       cosmologicalMassVariance_    , &
        &                                       darkMatterHaloBias_          , &
-       &                                       transferFunction_              &
+       &                                       transferFunction_            , &
+       &                                       outputTimes_                   &
        &                                      ) result(self)
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
     implicit none
@@ -193,10 +199,11 @@ contains
     class           (cosmologicalMassVarianceClass    ), intent(in   ), target :: cosmologicalMassVariance_
     class           (darkMatterHaloBiasClass          ), intent(in   ), target :: darkMatterHaloBias_
     class           (transferFunctionClass            ), intent(in   ), target :: transferFunction_
+    class           (outputTimesClass                 ), intent(in   ), target :: outputTimes_
     type            (varying_string                   ), intent(in   )         :: outputGroup
     double precision                                   , intent(in   )         :: haloMassMinimum              , haloMassMaximum
     integer                                            , intent(in   )         :: pointsPerDecade
-    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfile_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_,*cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_"/>
+    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfile_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_,*cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
     
     return
   end function haloMassFunctionConstructorInternal
@@ -219,6 +226,7 @@ contains
     !# <objectDestructor name="self%cosmologicalMassVariance_"    />
     !# <objectDestructor name="self%darkMatterHaloBias_"          />
     !# <objectDestructor name="self%transferFunction_"            />
+    !# <objectDestructor name="self%outputTimes_"                 />
     return
   end subroutine haloMassFunctionDestructor
 
@@ -229,7 +237,6 @@ contains
     use               Galacticus_Display    
     use               Galacticus_Nodes
     use               Galacticus_Calculations_Resets
-    use               Galacticus_Output_Times
     use               Galacticus_HDF5
     use               Numerical_Constants_Astronomical
     use               Memory_Management
@@ -273,7 +280,7 @@ contains
    
     call Galacticus_Display_Indent('Begin task: halo mass function')
     ! Get the requested output redshifts.
-    outputCount=Galacticus_Output_Time_Count()
+    outputCount=self%outputTimes_%count()
     call allocateArray(outputTimes                                   ,[          outputCount])
     call allocateArray(outputRedshifts                               ,[          outputCount])
     call allocateArray(outputExpansionFactors                        ,[          outputCount])
@@ -302,7 +309,7 @@ contains
     call allocateArray(velocityMaximum                               ,[massCount,outputCount])
     ! Compute output time properties.
     do iOutput=1,outputCount
-       outputTimes                   (iOutput)=Galacticus_Output_Time                                 (                                                                       iOutput )
+       outputTimes                   (iOutput)=self%outputTimes_%time                                 (                                                                       iOutput )
        outputExpansionFactors        (iOutput)=self%cosmologyFunctions_   %expansionFactor            (                                                outputTimes           (iOutput))
        outputRedshifts               (iOutput)=self%cosmologyFunctions_   %redshiftFromExpansionFactor(                                                outputExpansionFactors(iOutput))
        outputGrowthFactors           (iOutput)=self%linearGrowth_         %value                      (                                                outputTimes           (iOutput))

@@ -28,6 +28,7 @@
   use Virial_Orbits
   use Kind_Numbers
   use MPI_Utilities
+  use Output_Times
   
   !# <mergerTreeConstructor name="mergerTreeConstructorRead">
   !#  <description>Merger tree constructor class which builds merger trees assuming smooth accretion.</description>
@@ -43,6 +44,7 @@
      class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_
      class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_
      class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
+     class           (outputTimesClass                   ), pointer                   :: outputTimes_
      integer                                                                          :: fileCurrent
      type            (varying_string                     ), allocatable, dimension(:) :: fileNames                             , presetNamedReals                    , &
           &                                                                              presetNamedIntegers
@@ -396,6 +398,7 @@ contains
     class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_
     class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_
     class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
+    class           (outputTimesClass                   ), pointer                   :: outputTimes_
     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                              presetNamedIntegers
     integer                                                                          :: fileCount
@@ -651,6 +654,7 @@ contains
     !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                                                  />
     !# <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                                                  />
     !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                                                  />    
+    !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                                                  />
     !# <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolutionMethod" threadPrivate="yes" >
     !#  <default>
     !#   <satelliteMergingTimescalesSubresolutionMethod value="zero"/>
@@ -692,17 +696,17 @@ contains
          &                                                                               darkMatterProfileConcentration_                              , &
          &                                                                               haloSpinDistribution_                                        , &
          &                                                                               satelliteMergingTimescales_                                  , &
-         &                                                                               virialOrbit_                                                   &
+         &                                                                               virialOrbit_                                                 , &
+         &                                                                               outputTimes_                                                   &
          &                        )
     !# <inputParametersValidate source="parameters"/>
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_) result(self)
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
     use Galacticus_Error
     use Galacticus_Display
-    use Galacticus_Output_Times
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Boolean
     use Memory_Management
@@ -716,6 +720,7 @@ contains
     class           (haloSpinDistributionClass          ), intent(in   ), target       :: haloSpinDistribution_
     class           (satelliteMergingTimescalesClass    ), intent(in   ), target       :: satelliteMergingTimescales_
     class           (virialOrbitClass                   ), intent(in   ), target       :: virialOrbit_
+    class           (outputTimesClass                   ), intent(in   ), target       :: outputTimes_
     type            (varying_string                     ), intent(in   ), dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                                presetNamedIntegers
     integer         (c_size_t                           ), intent(in   )               :: forestSizeMaximum
@@ -734,7 +739,7 @@ contains
          &                                                                                presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     integer         (c_size_t                           )                              :: iOutput                             , i
     type            (varying_string                     )                              :: message
-    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_"/>
+    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_"/>
 
     ! Initialize statuses.
     self%warningNestedHierarchyIssued           =.false.                                            
@@ -742,10 +747,10 @@ contains
     ! Initialize split forests counter.
     readSplitForestUniqueID=mpiCounter()
     ! Get array of output times.
-    self%outputTimesCount=Galacticus_Output_Time_Count()
+    self%outputTimesCount=self%outputTimes_%count()
     call allocateArray(self%outputTimes,[self%outputTimesCount])
     do iOutput=1,self%outputTimesCount
-       self%outputTimes(iOutput)=Galacticus_Output_Time(iOutput)
+       self%outputTimes(iOutput)=self%outputTimes_%time(iOutput)
     end do
     ! Open the file.
     self%treeNumberOffset=0_c_size_t
@@ -926,6 +931,7 @@ contains
     !# <objectDestructor name="self%haloSpinDistribution_"          />
     !# <objectDestructor name="self%satelliteMergingTimescales_"    />
     !# <objectDestructor name="self%virialOrbit_"                   />
+    !# <objectDestructor name="self%outputTimes_"                   />
     return
   end subroutine readDestructor
 

@@ -225,7 +225,7 @@ contains
     use Cosmology_Parameters
     use Galactic_Structure_Enclosed_Masses
     use Input_Parameters
-    use Galacticus_Output_Times
+    use Output_Times
     use Galacticus_Error
     use Cosmology_Functions
     use Pseudo_Random
@@ -251,6 +251,7 @@ contains
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
+    class           (outputTimesClass              )               , pointer        :: outputTimes_
     integer                                         , parameter                     :: metallicityCountPerDecade    =10
     double precision                                , parameter                     :: massRandomErrorMinimum       =1.0d-3
     double precision                                , parameter                     :: metallicityRandomErrorMinimum=1.0d-3
@@ -341,6 +342,7 @@ contains
           else
              analysisActive=.true.
              cosmologyFunctionsModel => cosmologyFunctions()
+             outputTimes_            => outputTimes       ()
              ! Establish survey geometries.
              allocate(surveyGeometryLiWhite2009SDSS :: metallicityDistributionDescriptors(1)%geometry)
              select type (g => metallicityDistributionDescriptors(1)%geometry)
@@ -733,13 +735,13 @@ contains
                          call Galacticus_Error_Report('unknown metallicity function'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
-                      call allocateArray(metallicityDistributions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
-                      do jOutput=1,Galacticus_Output_Time_Count()
-                         redshift=                                                                                      &
-                              &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
-                              &    cosmologyFunctionsModel%expansionFactor             (                                &
-                              &                                                         Galacticus_Output_Time(jOutput) &
-                              &                                                        )                                &
+                      call allocateArray(metallicityDistributions(currentAnalysis)%cosmologyConversionMass,[outputTimes_%count()])
+                      do jOutput=1,outputTimes_%count()
+                         redshift=                                                                                 &
+                              &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                            &
+                              &    cosmologyFunctionsModel%expansionFactor             (                           &
+                              &                                                         outputTimes_%time(jOutput) &
+                              &                                                        )                           &
                               &                                                       )
                          call Cosmology_Conversion_Factors(                                                                                                       &
                               &                            redshift                                                                                             , &
@@ -751,20 +753,20 @@ contains
                       end do
                       nullify(cosmologyParametersObserved)
                       ! Compute output weights for metallicity distribution.
-                      call allocateArray(metallicityDistributions(currentAnalysis)%outputWeight,[int(metallicityDistributions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                      call allocateArray(metallicityDistributions(currentAnalysis)%outputWeight,[int(metallicityDistributions(currentAnalysis)%massesCount,kind=c_size_t),outputTimes_%count()])
                       metallicityDistributions(currentAnalysis)%outputWeight=0.0d0
                       do k=1,metallicityDistributions(currentAnalysis)%massesCount
-                         do jOutput=1,Galacticus_Output_Time_Count()
+                         do jOutput=1,outputTimes_%count()
                             do l=1,metallicityDistributions(currentAnalysis)%descriptor%geometry%fieldCount()
-                               if (jOutput == Galacticus_Output_Time_Count()) then
-                                  timeMaximum=     Galacticus_Output_Time(jOutput)
+                               if (jOutput == outputTimes_%count()) then
+                                  timeMaximum=     outputTimes_%time(jOutput)
                                else
-                                  timeMaximum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput+1))
+                                  timeMaximum=sqrt(outputTimes_%time(jOutput)*outputTimes_%time(jOutput+1))
                                end if
                                if (jOutput ==                              1) then
-                                  timeMinimum=     Galacticus_Output_Time(jOutput)
+                                  timeMinimum=     outputTimes_%time(jOutput)
                                else
-                                  timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
+                                  timeMinimum=sqrt(outputTimes_%time(jOutput)*outputTimes_%time(jOutput-1))
                                end if
                                distanceMinimum=max(                                                                                                                                            &
                                     &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                                     , &

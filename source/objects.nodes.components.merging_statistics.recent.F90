@@ -21,8 +21,10 @@
 module Node_Component_Merging_Statistics_Recent
   !% Implements the recent merging statistics component.
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
-  use Dark_Matter_Halo_Scales
+  use            :: Galacticus_Nodes
+  use            :: Dark_Matter_Halo_Scales
+  use            :: Output_Times
+  use            :: Node_Component_Merging_Statistics_Recent_Data
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Recent_Merger_Tree_Init , Node_Component_Merging_Statistics_Recent_Node_Merger , &
@@ -40,17 +42,18 @@ module Node_Component_Merging_Statistics_Recent
   !#     <type>integer</type>
   !#     <rank>1</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault modules="Galacticus_Output_Times" count="Galacticus_Output_Time_Count()">0</classDefault>
+  !#     <classDefault modules="Node_Component_Merging_Statistics_Recent_Data" count="Node_Component_Merging_Statistics_Recent_Count()">0</classDefault>
   !#   </property>
   !#  </properties>
   !# </component>
 
   ! Objects used by this component.
   class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(darkMatterHaloScale_)
+  class(outputTimesClass        ), pointer :: outputTimes_
+  !$omp threadprivate(darkMatterHaloScale_,outputTimes_)
 
   ! Parameters controlling the statistics gathered.
-  double precision                             :: nodeMajorMergerFraction                           , nodeRecentMajorMergerInterval
+  double precision                             :: nodeMajorMergerFraction                     , nodeRecentMajorMergerInterval
   integer                                      :: nodeRecentMajorMergerIntervalType
   integer          , parameter                 :: nodeRecentMajorMergerIntervalTypeAbsolute =0
   integer          , parameter                 :: nodeRecentMajorMergerIntervalTypeDynamical=1
@@ -66,7 +69,6 @@ contains
     !% Initializes the recent merging statistics component.
     use ISO_Varying_String
     use Input_Parameters
-    use Galacticus_Output_Times
     use Galacticus_Error
     use Memory_Management
     implicit none
@@ -113,10 +115,6 @@ contains
     !#   <source>globalParameters</source>
     !#   <type>double</type>
     !# </inputParameter>
-    ! Determine the number of output times.
-    outputCount=Galacticus_Output_Time_Count()
-    call allocateArray(zeroCount,[outputCount])
-    zeroCount=0
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Initialize
 
@@ -126,11 +124,20 @@ contains
   subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(parameters)
     !% Initializes the tree node recent merging flow statistics module.
     use Input_Parameters
+    use Memory_Management
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
     if (defaultMergingStatisticsComponent%recentIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+       !$omp critical (Node_Component_Merging_Statistics_Recent_Thread_Initialize)
+       if (.not.allocated(zeroCount)) then
+          mergingStatisticsRecentCount=outputTimes_%count()
+          call allocateArray(zeroCount,[mergingStatisticsRecentCount])
+          zeroCount=0
+       end if
+       !$omp end critical (Node_Component_Merging_Statistics_Recent_Thread_Initialize)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize
@@ -166,7 +173,6 @@ contains
     !% Record any major merger of {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
     use Galacticus_Error
-    use Galacticus_Output_Times
     implicit none
     type            (treeNode                      ), intent(inout)         , pointer :: node
     type            (treeNode                      )                        , pointer :: nodeDescendent
@@ -200,7 +206,7 @@ contains
              if (node%parent%isSatellite()) then
                 timeBase=basicParent%timeLastIsolated()
              else
-                timeBase=Galacticus_Output_Time(i)
+                timeBase=outputTimes_%time(i)
                 nodeDescendent => node%parent
                 do while (associated(nodeDescendent))
                    if (nodeDescendent%isPrimaryProgenitor()) then
@@ -215,7 +221,7 @@ contains
                 end do
              end if
           else
-             timeBase=Galacticus_Output_Time(i)
+             timeBase=outputTimes_%time(i)
           end if
           if     (                                                        &
                &   basic%time() <= timeBase                               &
@@ -319,7 +325,6 @@ contains
        &,doubleProperty ,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
     use Kind_Numbers
-    use Galacticus_Output_Times
     use Multi_Counters
     implicit none
     double precision                                , intent(in   )                   :: time
@@ -336,9 +341,9 @@ contains
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
        ! Store the properties.
        mergingStatistics => node             %mergingStatistics     ()
-       mergerIncrement       =  mergingStatistics%recentMajorMergerCount()
+       mergerIncrement   =  mergingStatistics%recentMajorMergerCount()
        integerProperty=integerProperty+1
-       integerBuffer(integerBufferCount,integerProperty)=mergerIncrement(Galacticus_Output_Time_Index(time,findClosest=.true.))
+       integerBuffer(integerBufferCount,integerProperty)=mergerIncrement(outputTimes_%index(time,findClosest=.true.))
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Output

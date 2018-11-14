@@ -19,6 +19,7 @@
   !% Implements a stellar population properties class based on the noninstantaneous recycling approximation.
 
   use Stellar_Population_Selectors
+  use Output_Times
 
   !# <stellarPopulationProperties name="stellarPopulationPropertiesNoninstantaneous">
   !#  <description>A stellar population properties class based on the noninstantaneous recycling approximation.</description>
@@ -26,17 +27,18 @@
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesNoninstantaneous
      !% A stellar population properties class based on the noninstantaneous recycling approximation.
      private
-     class(stellarPopulationSelectorClass), pointer :: stellarPopulationSelector_
+     class (stellarPopulationSelectorClass), pointer :: stellarPopulationSelector_
+     class (outputTimesClass              ), pointer :: outputTimes_
      ! Count of number of elements (plus total metals) that are to be tracked.
-     integer                                        :: elementsCount
+     integer                                         :: elementsCount
      ! Count of the number of histories required by this implementation.
-     integer                                        :: historyCount_
+     integer                                         :: historyCount_
      ! Indices for histories.
-     integer                                        :: recycledRateIndex          , rateEnergyInputIndex     , &
-          &                                            returnedMetalRateBeginIndex, metalYieldRateBeginIndex , &
-          &                                            metalYieldRateEndIndex     , returnedMetalRateEndIndex
+     integer                                         :: recycledRateIndex          , rateEnergyInputIndex     , &
+          &                                             returnedMetalRateBeginIndex, metalYieldRateBeginIndex , &
+          &                                             metalYieldRateEndIndex     , returnedMetalRateEndIndex
      ! Number of times to store in histories.
-     integer                                        :: countHistoryTimes
+     integer                                         :: countHistoryTimes
    contains
      final     ::                  noninstantaneousDestructor
      procedure :: rates         => noninstantaneousRates
@@ -61,6 +63,7 @@ contains
     type   (stellarPopulationPropertiesNoninstantaneous)                :: self
     type   (inputParameters                            ), intent(inout) :: parameters
     class  (stellarPopulationSelectorClass             ), pointer       :: stellarPopulationSelector_
+    class  (outputTimesClass                           ), pointer       :: outputTimes_
     integer                                                             :: countHistoryTimes
 
     !# <inputParameter>
@@ -71,19 +74,21 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
+    !# <objectBuilder class="outputTimes"               name="outputTimes_"               source="parameters"/>
     !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
-    self=stellarPopulationPropertiesNoninstantaneous(countHistoryTimes,stellarPopulationSelector_)
+    self=stellarPopulationPropertiesNoninstantaneous(countHistoryTimes,stellarPopulationSelector_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function noninstantaneousConstructorParameters
 
-  function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_) result(self)
+  function noninstantaneousConstructorInternal(countHistoryTimes,stellarPopulationSelector_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily noninstantaneous} stellar population properties class.
     implicit none
     type   (stellarPopulationPropertiesNoninstantaneous)                        :: self
     integer                                             , intent(in   )         :: countHistoryTimes
     class  (stellarPopulationSelectorClass             ), intent(in   ), target :: stellarPopulationSelector_
-    !# <constructorAssign variables="countHistoryTimes, *stellarPopulationSelector_"/>
+    class  (outputTimesClass                           ), intent(in   ), target :: outputTimes_
+    !# <constructorAssign variables="countHistoryTimes, *stellarPopulationSelector_, *outputTimes_"/>
 
     ! Get a count of the number of elements (plus total metals) that will be tracked.
     self%elementsCount=Abundances_Property_Count()
@@ -106,6 +111,7 @@ contains
     type(stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
 
     !# <objectDestructor name="self%stellarPopulationSelector_"/>
+    !# <objectDestructor name="self%outputTimes_"              />
     return
   end subroutine noninstantaneousDestructor
  
@@ -245,7 +251,6 @@ contains
   subroutine noninstantaneousHistoryCreate(self,node,history_)
     !% Create any history required for storing stellar population properties.
     use Numerical_Ranges
-    use Galacticus_Output_Times
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node
@@ -256,7 +261,7 @@ contains
     ! Decide on start and end times for the history.
     basic     => node %basic()
     timeBegin =  basic%time ()
-    timeEnd   =  Galacticus_Output_Time(Galacticus_Output_Time_Count())
+    timeEnd   =  self%outputTimes_%time(self%outputTimes_%count())
     ! Create the history.
     call history_%create(self%historyCount_,self%countHistoryTimes,timeBegin,timeEnd,rangeTypeLogarithmic)
     return

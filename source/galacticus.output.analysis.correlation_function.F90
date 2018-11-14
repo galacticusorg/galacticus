@@ -182,7 +182,7 @@ contains
     use Cosmology_Parameters
     use Galactic_Structure_Enclosed_Masses
     use Input_Parameters
-    use Galacticus_Output_Times
+    use Output_Times
     use Galacticus_Error
     use Cosmology_Functions
     use String_Handling
@@ -204,6 +204,7 @@ contains
     double precision                                , parameter                     :: wavenumberMinimum=0.001d0, wavenumberMaximum=10000.0d0
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     ), pointer                       :: cosmologyParametersObserved => null()
+    class           (outputTimesClass              ), pointer                       :: outputTimes_
     double precision                                                                :: mass, massLogarithmic, dataHubbleParameter, dataOmegaMatter, dataOmegaDarkEnergy, redshift, timeMinimum, timeMaximum, distanceMinimum, distanceMaximum, weight
     integer                                                                         :: i,j,k,m, currentAnalysis, activeAnalysisCount,massCount
     integer         (c_size_t                      )                                :: jOutput
@@ -259,6 +260,7 @@ contains
           else
              analysisActive=.true.
              cosmologyFunctionsModel => cosmologyFunctions()
+             outputTimes_            => outputTimes       ()
              ! Establish survey geometries.
              allocate(surveyGeometryHearin2014SDSS :: correlationFunctionDescriptors(1)%geometry)
              select type (g => correlationFunctionDescriptors(1)%geometry)
@@ -392,14 +394,14 @@ contains
                          call Galacticus_Error_Report('unknown size function'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
-                      call allocateArray(correlationFunctions(currentAnalysis)%cosmologyConversionMass,[Galacticus_Output_Time_Count()])
-                      call allocateArray(correlationFunctions(currentAnalysis)%cosmologyConversionSize,[Galacticus_Output_Time_Count()])
-                      do jOutput=1,Galacticus_Output_Time_Count()
-                         redshift=                                                                                      &
-                              &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
-                              &    cosmologyFunctionsModel%expansionFactor             (                                &
-                              &                                                         Galacticus_Output_Time(jOutput) &
-                              &                                                        )                                &
+                      call allocateArray(correlationFunctions(currentAnalysis)%cosmologyConversionMass,[outputTimes_%count()])
+                      call allocateArray(correlationFunctions(currentAnalysis)%cosmologyConversionSize,[outputTimes_%count()])
+                      do jOutput=1,outputTimes_%count()
+                         redshift=                                                                                 &
+                              &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                            &
+                              &    cosmologyFunctionsModel%expansionFactor             (                           &
+                              &                                                         outputTimes_%time(jOutput) &
+                              &                                                        )                           &
                               &                                                       )
                          call Cosmology_Conversion_Factors(                                                                                                        &
                               &                            redshift                                                                                              , &
@@ -413,22 +415,22 @@ contains
                       end do
                       nullify(cosmologyParametersObserved)
                       ! Compute output weights for correlation function. We assume a volume limited survey at the minimum mass.
-                      call allocateArray(correlationFunctions(currentAnalysis)%linearGrowthFactor,[    massCount                                              ])
-                      call allocateArray(correlationFunctions(currentAnalysis)%outputWeight      ,[int(massCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                      call allocateArray(correlationFunctions(currentAnalysis)%linearGrowthFactor,[    massCount                                    ])
+                      call allocateArray(correlationFunctions(currentAnalysis)%outputWeight      ,[int(massCount,kind=c_size_t),outputTimes_%count()])
                       correlationFunctions(currentAnalysis)%outputWeight      =0.0d0
                       correlationFunctions(currentAnalysis)%linearGrowthFactor=0.0d0
                       do k=1,massCount
-                         do jOutput=1,Galacticus_Output_Time_Count()
+                         do jOutput=1,outputTimes_%count()
                             do m=1,correlationFunctions(currentAnalysis)%descriptor%geometry%fieldCount()
-                               if (jOutput == Galacticus_Output_Time_Count()) then
-                                  timeMaximum=     Galacticus_Output_Time(jOutput)
+                               if (jOutput == outputTimes_%count()) then
+                                  timeMaximum=     outputTimes_%time(jOutput)
                                else
-                                  timeMaximum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput+1))
+                                  timeMaximum=sqrt(outputTimes_%time(jOutput)*outputTimes_%time(jOutput+1))
                                end if
                                if (jOutput ==                              1) then
-                                  timeMinimum=     Galacticus_Output_Time(jOutput)
+                                  timeMinimum=     outputTimes_%time(jOutput)
                                else
-                                  timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
+                                  timeMinimum=sqrt(outputTimes_%time(jOutput)*outputTimes_%time(jOutput-1))
                                end if
                                distanceMinimum=max(                                                                                                                                         &
                                     &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                                  , &
@@ -452,7 +454,7 @@ contains
                                correlationFunctions        (currentAnalysis)%linearGrowthFactor(k)= &
                                     & +correlationFunctions(currentAnalysis)%linearGrowthFactor(k)  &
                                     & +weight                                                       &
-                                    & *linearGrowth_%value(Galacticus_Output_Time(jOutput))**2
+                                    & *linearGrowth_%value(outputTimes_%time(jOutput))**2
                             end do
                          end do
                          where(correlationFunctions(currentAnalysis)%outputWeight(k,:) < 0.0d0)

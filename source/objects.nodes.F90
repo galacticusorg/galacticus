@@ -113,9 +113,6 @@ module Galacticus_Nodes
     type   (mergerTree    ), intent(in   ), optional, target :: hostTree
     integer                                                  :: allocErr
 
-    ! Initialize tree node methods if necessary.
-    call nodeClassHierarchyInitialize()
-
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
     if (allocErr/=0) call Galacticus_Error_Report('unable to allocate node'//{introspection:location})

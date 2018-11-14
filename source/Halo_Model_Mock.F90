@@ -91,7 +91,7 @@ program Halo_Model_Mock
   !#   <name>haloModelMockMassMinimum</name>
   !#   <cardinality>1</cardinality>
   !#   <description>The minimum mass galaxy to include in a mock halo model realization.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>float</type>
   !# </inputParameter>
   !# <inputParameter>
@@ -99,11 +99,11 @@ program Halo_Model_Mock
   !#   <cardinality>1</cardinality>
   !#   <defaultValue>1.0d16</defaultValue>
   !#   <description>The minimum mass galaxy to include in a mock halo model realization.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>float</type>
   !# </inputParameter>
   ! Initialize nodes infrastructure.
-  call nodeClassHierarchyInitialize(          )
+  call nodeClassHierarchyInitialize(parameters)
   call Node_Components_Initialize  (parameters)
   ! Get required objects.
   cosmologyFunctions_      => cosmologyFunctions     ()

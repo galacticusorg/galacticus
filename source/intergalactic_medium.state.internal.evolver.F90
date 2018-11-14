@@ -73,13 +73,14 @@
      use Numerical_Constants_Atomic
      use Numerical_Constants_Astronomical
      use Numerical_Comparison
-     use Galacticus_Output_Times
+     use Output_Times
      use Galacticus_Error
      implicit none
      type            (universe                     ), intent(inout) :: universe_
      type            (universeEvent                ), pointer       :: event
      class           (linearGrowthClass            ), pointer       :: linearGrowth_
      class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+     class           (outputTimesClass             ), pointer       :: outputTimes_
      double precision                               , dimension(3)  :: massFilteringODEs
      integer                                                        :: iTime                       , atomicNumber          , &
           &                                                            ionizationState
@@ -137,6 +138,7 @@
         cosmologyFunctions_       => cosmologyFunctions             (                                                      )
         linearGrowth_             => linearGrowth                   (                                                      )
         cosmologicalMassVariance_ => cosmologicalMassVariance       (                                                      )
+        outputTimes_              => outputTimes                    (                                                      )
         igmInitialState           =  intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
         timeMaximum                                                                                 &
              & =cosmologyFunctions_%cosmicTime                 (                                    &
@@ -179,8 +181,8 @@
              &            )
         ! Convert times to redshifts.
         do iTime=1,timeCount
-           if (Values_Agree(time(iTime),Galacticus_Output_time(Galacticus_Output_time_Count()),relTol=1.0d-6)) &
-                & time(iTime)=Galacticus_Output_Time(Galacticus_Output_time_Count())
+           if (Values_Agree(time(iTime),outputTimes_%time(outputTimes_%count()),relTol=1.0d-6)) &
+                & time(iTime)=outputTimes_%time(outputTimes_%count())
            redshift(itime)                                                       &
                 & =cosmologyFunctions_ %redshiftFromExpansionFactor(             &
                 &   cosmologyFunctions_%expansionFactor             (            &
@@ -283,7 +285,7 @@
      use, intrinsic :: ISO_C_Binding
      use               Galacticus_Nodes
      use               Galacticus_Display
-     use               Galacticus_Output_Times
+     use               Output_Times
      use               Galactic_Structure_Options
      use               Galacticus_Error
      use               Stellar_Population_Spectra
@@ -310,6 +312,7 @@
      class           (intergalacticMediumStateClass), pointer                  :: igmState_
      class           (linearGrowthClass            ), pointer                  :: linearGrowth_
      class           (cosmologicalMassVarianceClass), pointer                  :: cosmologicalMassVariance_
+     class           (outputTimesClass             ), pointer                  :: outputTimes_
      double precision                               , parameter                :: odeToleranceAbsolute        =1.0d-3,                  &
           &                                                                       odeToleranceRelative        =1.0d-3,                  &
           &                                                                       timeToleranceRelative       =1.0d-6
@@ -346,6 +349,7 @@
         cosmologyFunctions_       => cosmologyFunctions      ()
         linearGrowth_             => linearGrowth            ()
         cosmologicalMassVariance_ => cosmologicalMassVariance()
+        outputTimes_              => outputTimes             ()
         node_                     => universe_%trees%tree%baseNode
         ! Map properties to a contiguous array.
         properties( 1   )=temperature           (iNow-1    )
@@ -417,7 +421,7 @@
        forest => forest%next
     end do
     ! Add the next event to the universe.
-    timeMaximum=min(treetimeLatest,Galacticus_Output_time(Galacticus_Output_time_Count()))
+    timeMaximum=min(treetimeLatest,outputTimes_%time(outputTimes_%count()))
     if (iNow < timeCount .and. time(iNow+1) <= timeMaximum) then
        newEvent      => universe_%createEvent()
        newEvent%time =  min(time(iNow+1),timeMaximum*(1.0d0-timeToleranceRelative))

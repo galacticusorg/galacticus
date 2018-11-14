@@ -48,6 +48,7 @@ contains
     implicit none
     type            (outputAnalysisLuminosityFunction       )                             :: self
     type            (inputParameters                        ), intent(inout)              :: parameters
+    class           (outputTimesClass                       ), pointer                    :: outputTimes_
     class           (galacticFilterClass                    ), pointer                    :: galacticFilter_
     class           (surveyGeometryClass                    ), pointer                    :: surveyGeometry_
     class           (cosmologyFunctionsClass                ), pointer                    :: cosmologyFunctions_                , cosmologyFunctionsData
@@ -118,12 +119,13 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
     !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
     !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
-    self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,char(filterName),char(filterType),redshiftBand)
+    !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
+    self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,char(filterName),char(filterType),redshiftBand)
     !# <inputParametersValidate source="parameters"/>
     return
   end function luminosityFunctionConstructorParameters
 
-  function luminosityFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result (self)
+  function luminosityFunctionConstructorFile(label,comment,fileName,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result (self)
     !% Constructor for the ``luminosityFunction'' output analysis class which reads bin information from a standard format file.
     use IO_HDF5
     implicit none
@@ -132,6 +134,7 @@ contains
     character       (len=*                                  ), intent(in   )              :: fileName
     class           (galacticFilterClass                    ), intent(in   ), target      :: galacticFilter_
     class           (surveyGeometryClass                    ), intent(in   ), target      :: surveyGeometry_
+    class           (outputTimesClass                       ), intent(in   ), target      :: outputTimes_
     class           (cosmologyFunctionsClass                ), intent(in   ), target      :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass    ), intent(in   ), target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ), target      :: outputAnalysisDistributionOperator_
@@ -148,15 +151,14 @@ contains
     call dataFile%close      (                                      )
     !$ call hdf5Access%unset()
     ! Construct the object.
-    self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand)
+    self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand)
     return
   end function luminosityFunctionConstructorFile
 
-  function luminosityFunctionConstructorInternal(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result(self)
+  function luminosityFunctionConstructorInternal(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result(self)
     !% Constructor for the ``luminosityFunction'' output analysis class which takes a parameter set as input.
     use ISO_Varying_String
     use Memory_Management
-    use Galacticus_Output_Times
     use String_Handling
     use Galacticus_Error
     use Numerical_Constants_Astronomical
@@ -168,6 +170,7 @@ contains
     double precision                                                  , intent(in   ), dimension(:  ) :: magnitudesAbsolute
     class           (galacticFilterClass                             ), intent(in   ), target         :: galacticFilter_
     class           (surveyGeometryClass                             ), intent(in   ), target         :: surveyGeometry_
+    class           (outputTimesClass                                ), intent(in   ), target         :: outputTimes_
     class           (cosmologyFunctionsClass                         ), intent(in   ), target         :: cosmologyFunctions_                                   , cosmologyFunctionsData
     class           (outputAnalysisPropertyOperatorClass             ), intent(in   ), target         :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass         ), intent(in   ), target         :: outputAnalysisDistributionOperator_
@@ -187,24 +190,24 @@ contains
     double precision                                                  , parameter                     :: bufferWidth                                     =7.5d0
     integer         (c_size_t                                        ), parameter                     :: bufferCountMinimum                              =5
     integer         (c_size_t                                        )                                :: iBin                                                  , bufferCount
-    !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *outputTimes_"/>
 
     ! Compute weights that apply to each output redshift.
     self%binCount=size(magnitudesAbsolute,kind=c_size_t)
-    call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[self%binCount,self%outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctionsData,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctionsData,self%outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
     end do
     ! Create a luminosity property extractor.
     allocate(outputAnalysisPropertyExtractor_)
-    outputAnalysisPropertyExtractor_                =outputAnalysisPropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
+    outputAnalysisPropertyExtractor_                =outputAnalysisPropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
     ! Prepend magnitude and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
     outputAnalysisPropertyOperatorMagnitude_        =outputAnalysisPropertyOperatorMagnitude         (                                                                                                  )
     allocate(outputAnalysisPropertyOperatorIdentity_         )
     outputAnalysisPropertyOperatorIdentity_         =outputAnalysisPropertyOperatorIdentity          (                                                                                                  )
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc (cosmologyFunctions_,cosmologyFunctionsData                                                        )
+    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                           )
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
        ! Existing property operator is a sequence operator - simply prepend our magnitude and cosmological luminosity distance operators to it.
@@ -254,6 +257,7 @@ contains
          &                                outputAnalysisDistributionOperator_                  , &
          &                                outputAnalysisDistributionNormalizer_                , &
          &                                galacticFilter_                                      , &
+         &                                outputTimes_                                         , &
          &                                outputAnalysisCovarianceModelBinomial                , &
          &                                covarianceBinomialBinsPerDecade                      , &
          &                                covarianceBinomialMassHaloMinimum                    , &

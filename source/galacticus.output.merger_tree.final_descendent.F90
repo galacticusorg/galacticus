@@ -145,7 +145,7 @@ contains
     !% Store descendent properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
-    use Galacticus_Output_Times
+    use Output_Times
     use Multi_Counters
     implicit none
     double precision                        , intent(in   )         :: time
