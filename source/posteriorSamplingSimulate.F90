@@ -56,12 +56,12 @@ program Posterior_Sampling_Simulate
   !#   <cardinality>1</cardinality>
   !#   <defaultValue>1</defaultValue>
   !#   <description>The level of verbosity for the {\normalfont \ttfamily Constrain\_Galacticus} code (higher values give more verbosity).</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>integer</type>
   !# </inputParameter>
   call Galacticus_Verbosity_Level_Set(verbosityLevel)
   ! Ensure the nodes objects are initialized.
-  call nodeClassHierarchyInitialize(          )
+  call nodeClassHierarchyInitialize(parameters)
   call Node_Components_Initialize  (parameters)
   ! Get the simulator.
   posteriorSampleSimulation_ => posteriorSampleSimulation()

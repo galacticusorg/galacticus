@@ -29,6 +29,7 @@
   use               Output_Analysis_Distribution_Normalizers
   use               Output_Analyses_Options
   use               Galactic_Filters
+  use               Output_Times
 
   !# <outputAnalysis name="outputAnalysisVolumeFunction1D" defaultThreadPrivate="yes">
   !#  <description>A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.</description>
@@ -49,6 +50,7 @@
      class           (outputAnalysisDistributionOperatorClass  ), pointer                     :: outputAnalysisDistributionOperator_   => null()
      class           (outputAnalysisDistributionNormalizerClass), pointer                     :: outputAnalysisDistributionNormalizer_ => null()
      class           (galacticFilterClass                      ), pointer                     :: galacticFilter_                       => null()
+     class           (outputTimesClass                         ), pointer                     :: outputTimes_                          => null()
      double precision                                           , dimension(:,:), allocatable :: outputWeight                                   , functionCovariance                               , &
           &                                                                                      weightMainBranch                               , weightSquaredMainBranch
      double precision                                           , dimension(:  ), allocatable :: binCenter                                      , functionValue
@@ -87,7 +89,6 @@ contains
   function volumeFunction1DConstructorParameters(parameters) result(self)
     !% Constructor for the ``volumeFunction1D'' output analysis class which takes a parameter set as input.
     use Input_Parameters
-    use Galacticus_Output_Times
     use Memory_Management
     use Galacticus_Error
     implicit none
@@ -99,6 +100,7 @@ contains
     class           (outputAnalysisDistributionOperatorClass  ), pointer                     :: outputAnalysisDistributionOperator_
     class           (outputAnalysisDistributionNormalizerClass), pointer                     :: outputAnalysisDistributionNormalizer_
     class           (galacticFilterClass                      ), pointer                     :: galacticFilter_
+    class           (outputTimesClass                         ), pointer                     :: outputTimes_
     double precision                                           , dimension(:  ), allocatable :: binCenter                            , outputWeight
     integer         (c_size_t                                 )                              :: bufferCount
     type            (varying_string                           )                              :: label                                , comment                          , &
@@ -114,8 +116,8 @@ contains
     ! Check and read parameters.
     unoperatorParameters=parameters%subParameters('unoperatorParameters',requireValue=.false.)
     call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                               ])
-    call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*Galacticus_Output_Time_Count()])
-    if (parameters%count('outputWeight') /= parameters%count('binCenter')*Galacticus_Output_Time_Count()) &
+    call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*self%outputTimes_%count()])
+    if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &
          & call Galacticus_Error_Report('incorrect number of output weights provided'//{introspection:location})
     !# <inputParameter>
     !#   <name>label</name>
@@ -260,38 +262,40 @@ contains
     !# <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"   source="parameters"          />
     !# <objectBuilder class="outputAnalysisDistributionNormalizer" name="outputAnalysisDistributionNormalizer_" source="parameters"          />
     !# <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
+    !# <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
     ! Build the object.
-    self=outputAnalysisVolumeFunction1D(                                                                                                         &
-         &                              label                                                                                                  , &
-         &                              comment                                                                                                , &
-         &                              propertyLabel                                                                                          , &
-         &                              propertyComment                                                                                        , &
-         &                              propertyUnits                                                                                          , &
-         &                              propertyUnitsInSI                                                                                      , &
-         &                              distributionLabel                                                                                      , &
-         &                              distributionComment                                                                                    , &
-         &                              distributionUnits                                                                                      , &
-         &                              distributionUnitsInSI                                                                                  , &
-         &                              binCenter                                                                                              , &
-         &                              bufferCount                                                                                            , &
-         &                              reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),Galacticus_Output_Time_Count()]), &
-         &                              outputAnalysisPropertyExtractor_                                                                       , &
-         &                              outputAnalysisPropertyOperator_                                                                        , &
-         &                              outputAnalysisPropertyUnoperator_                                                                      , &
-         &                              outputAnalysisWeightOperator_                                                                          , &
-         &                              outputAnalysisDistributionOperator_                                                                    , &
-         &                              outputAnalysisDistributionNormalizer_                                                                  , &
-         &                              galacticFilter_                                                                                        , &
-         &                              enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.)           , &
-         &                              covarianceBinomialBinsPerDecade                                                                        , &
-         &                              covarianceBinomialMassHaloMinimum                                                                      , &
-         &                              covarianceBinomialMassHaloMaximum                                                                        &                      
+    self=outputAnalysisVolumeFunction1D(                                                                                                    &
+         &                              label                                                                                             , &
+         &                              comment                                                                                           , &
+         &                              propertyLabel                                                                                     , &
+         &                              propertyComment                                                                                   , &
+         &                              propertyUnits                                                                                     , &
+         &                              propertyUnitsInSI                                                                                 , &
+         &                              distributionLabel                                                                                 , &
+         &                              distributionComment                                                                               , &
+         &                              distributionUnits                                                                                 , &
+         &                              distributionUnitsInSI                                                                             , &
+         &                              binCenter                                                                                         , &
+         &                              bufferCount                                                                                       , &
+         &                              reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),self%outputTimes_%count()]), &
+         &                              outputAnalysisPropertyExtractor_                                                                  , &
+         &                              outputAnalysisPropertyOperator_                                                                   , &
+         &                              outputAnalysisPropertyUnoperator_                                                                 , &
+         &                              outputAnalysisWeightOperator_                                                                     , &
+         &                              outputAnalysisDistributionOperator_                                                               , &
+         &                              outputAnalysisDistributionNormalizer_                                                             , &
+         &                              galacticFilter_                                                                                   , &
+         &                              outputTimes_                                                                                      , &
+         &                              enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.)      , &
+         &                              covarianceBinomialBinsPerDecade                                                                   , &
+         &                              covarianceBinomialMassHaloMinimum                                                                 , &
+         &                              covarianceBinomialMassHaloMaximum                                                                   &                      
          &                             )
     !# <inputParametersValidate source="parameters"/>
     return
   end function volumeFunction1DConstructorParameters
 
-  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``volumeFunction1D'' output analysis class for internal use.
     use Memory_Management
     implicit none
@@ -310,11 +314,12 @@ contains
     class           (outputAnalysisDistributionOperatorClass  ), intent(in   ), target         :: outputAnalysisDistributionOperator_
     class           (outputAnalysisDistributionNormalizerClass), intent(in   ), target         :: outputAnalysisDistributionNormalizer_
     class           (galacticFilterClass                      ), intent(in   ), target         :: galacticFilter_
+    class           (outputTimesClass                         ), intent(in   ), target         :: outputTimes_
     integer                                                    , intent(in   )                 :: covarianceModel
     integer                                                    , intent(in   ), optional       :: covarianceBinomialBinsPerDecade
     double precision                                           , intent(in   ), optional       :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
     integer         (c_size_t                                 )                                :: i
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
+    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
 
     ! Count bins.
     self%binCount     =size(binCenter,kind=c_size_t)
@@ -373,6 +378,7 @@ contains
     !# <objectDestructor name="self%outputAnalysisDistributionOperator_"  />
     !# <objectDestructor name="self%outputAnalysisDistributionNormalizer_"/>
     !# <objectDestructor name="self%galacticFilter_"                      />
+    !# <objectDestructor name="self%outputTimes_"                         />
     ! Destroy OpenMP lock.
     !$ call OMP_Destroy_Lock(self%accumulateLock)
     return

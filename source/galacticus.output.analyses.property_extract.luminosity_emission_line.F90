@@ -22,7 +22,8 @@
   use    ISO_Varying_String
   use    FGSL
   use    Stellar_Spectra_Dust_Attenuations
- 
+  use    Output_Times
+
   !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyEmssnLine" defaultThreadPrivate="yes">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
@@ -30,6 +31,7 @@
      !% A stellar luminosity output analysis property extractor class.
      private
      class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_
+     class           (outputTimesClass                  ), pointer                             :: outputTimes_
      type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
      double precision                                    , allocatable, dimension(:          ) :: metallicity                   , densityHydrogen             , &
           &                                                                                       ionizingFluxHydrogen          , ionizingFluxHeliumToHydrogen, &
@@ -91,6 +93,7 @@ contains
     type            (inputParameters                               ), intent(inout)               :: parameters
     type            (varying_string                                ), allocatable  , dimension(:) :: lineNames
     class           (stellarSpectraDustAttenuationClass            ), pointer                     :: stellarSpectraDustAttenuation_
+    class           (outputTimesClass                              ), pointer                     :: outputTimes_
     double precision                                                                              :: depthOpticalISMCoefficient
     
     allocate(lineNames(parameters%count('lineNames')))
@@ -110,16 +113,17 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
-    self=outputAnalysisPropertyExtractorLmnstyEmssnLine(stellarSpectraDustAttenuation_,lineNames,depthOpticalISMCoefficient)
+    !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
+    self=outputAnalysisPropertyExtractorLmnstyEmssnLine(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
     return
   end function lmnstyEmssnLineConstructorParameters
 
-  function lmnstyEmssnLineConstructorInternal(stellarSpectraDustAttenuation_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
+  function lmnstyEmssnLineConstructorInternal(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !% Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
     use, intrinsic :: ISO_C_Binding
     use               Instruments_Filters
-    use               Galacticus_Output_Times
+    use               Output_Times
     use               Galacticus_Paths
     use               Memory_Management
     use               Stellar_Luminosities_Structure
@@ -131,10 +135,11 @@ contains
     type            (varying_string                                ), intent(in   ), dimension(:)           :: lineNames
     logical                                                         , intent(in   ), dimension(:), optional :: outputMask
     class           (stellarSpectraDustAttenuationClass            ), intent(in   ), target                 :: stellarSpectraDustAttenuation_
+    class           (outputTimesClass                              ), intent(in   ), target                 :: outputTimes_
     type            (hdf5Object                                    )                                        :: emissionLinesFile             , lines, &
          &                                                                                                     lineDataset
     integer         (c_size_t                                      )                                        :: i
-    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *stellarSpectraDustAttenuation_"/>
+    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *stellarSpectraDustAttenuation_, *outputTimes_"/>
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
@@ -182,14 +187,14 @@ contains
     self%ionizingFluxOxygenToHydrogen=log10(self%ionizingFluxOxygenToHydrogen)
     self%luminosity                  =log10(self%luminosity                  )
     ! Find indices of ionizing continuua filters.
-    call allocateArray(self%ionizingContinuumIndex,[Galacticus_Output_Time_Count(),3_c_size_t])
-    do i=1,Galacticus_Output_Time_Count()
+    call allocateArray(self%ionizingContinuumIndex,[self%outputTimes_%count(),3_c_size_t])
+    do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
           self%ionizingContinuumIndex(i,:                        )=-1
        else
-          self%ionizingContinuumIndex(i,ionizingContinuumHydrogen)=unitStellarLuminosities%index('Lyc'            ,'rest',Galacticus_Output_Redshift(i))
-          self%ionizingContinuumIndex(i,ionizingContinuumHelium  )=unitStellarLuminosities%index('HeliumContinuum','rest',Galacticus_Output_Redshift(i))
-          self%ionizingContinuumIndex(i,ionizingContinuumOxygen  )=unitStellarLuminosities%index('OxygenContinuum','rest',Galacticus_Output_Redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumHydrogen)=unitStellarLuminosities%index('Lyc'            ,'rest',self%outputTimes_%redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumHelium  )=unitStellarLuminosities%index('HeliumContinuum','rest',self%outputTimes_%redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumOxygen  )=unitStellarLuminosities%index('OxygenContinuum','rest',self%outputTimes_%redshift(i))
        end if
     end do
     ! Read wavelength intervals of ionizing continuum filters.
@@ -217,13 +222,13 @@ contains
     end do
     !$ call OMP_Destroy_Lock(self%interpolateLock)
     !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
+    !# <objectDestructor name="self%outputTimes_"                  />
     return
   end subroutine lmnstyEmssnLineDestructor
 
   double precision function lmnstyEmssnLineExtract(self,node)
     !% Implement an emission line output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Output_Times
     use               Galacticus_Nodes
     use               Stellar_Luminosities_Structure
     use               Numerical_Constants_Physical
@@ -291,7 +296,7 @@ contains
     disk     => node%disk    ()
     spheroid => node%spheroid()
     ! Determine output index.
-    output   =  Galacticus_Output_Time_Index(basic%time())
+    output   =  self%outputTimes_%index(basic%time())
     ! Extract all required properties.
     luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar()
     luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar()

@@ -586,8 +586,9 @@ my @translations =
 	     "galacticStructureRadiusSolverInitialRadiusMethod"          => "galacticStructureRadiiInitialMethod"                                                   ,
 	     "adiabaticContractionGnedinA"                               => "galacticStructureRadiiInitialMethod.gnedin2004.--A"                                    ,
 	     "adiabaticContractionGnedinOmega"                           => "galacticStructureRadiiInitialMethod.gnedin2004.--omega"                                ,
-	     "virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt" => "virialDensityContrastMethod.sphericalCollapseMatterDE.--energyFixedAt"
-
+	     "virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt" => "virialDensityContrastMethod.sphericalCollapseMatterDE.--energyFixedAt"                 ,
+	     "outputRedshifts"                                           => "outputTimesMethod.list.--redshifts"                                                    ,
+	     "outputTimes"                                               => "outputTimesMethod.list.--times" 
 	 },
 	 values        =>
 	 {

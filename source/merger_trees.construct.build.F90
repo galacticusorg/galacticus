@@ -23,7 +23,8 @@
   use Halo_Mass_Functions
   use Merger_Trees_Build_Masses
   use Merger_Trees_Builders
-
+  use Output_Times
+  
   !# <mergerTreeConstructor name="mergerTreeConstructorBuild">
   !#  <description>Merger tree constructor class which builds merger trees.</description>
   !# </mergerTreeConstructor>
@@ -35,6 +36,7 @@
      class           (mergerTreeBuildMassesClass), pointer                   :: mergerTreeBuildMasses_
      class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_
      class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_
+     class           (outputTimesClass          ), pointer                   :: outputTimes_
      ! Variables giving the mass range and sampling frequency for mass function sampling.
      double precision                                                        :: timeBase               , timeSnapTolerance
      integer                                                                 :: treeBeginAt
@@ -82,6 +84,7 @@ contains
     class           (mergerTreeBuilderClass    ), pointer       :: mergerTreeBuilder_
     class           (haloMassFunctionClass     ), pointer       :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), pointer       :: mergerTreeBuildMasses_
+    class           (outputTimesClass          ), pointer       :: outputTimes_
     double precision                                            :: redshiftBase          , timeSnapTolerance
     integer                                                     :: treeBeginAt
     logical                                                     :: processDescending
@@ -123,6 +126,7 @@ contains
     !# <objectBuilder class="mergerTreeBuilder"     name="mergerTreeBuilder_"     source="parameters"/>
     !# <objectBuilder class="haloMassFunction"      name="haloMassFunction_"      source="parameters"/>
     !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     self=mergerTreeConstructorBuild(                                                                                                        &
          &                          cosmologyFunctions_    %cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftBase     )), &
          &                                                                                                             timeSnapTolerance  , &
@@ -132,16 +136,16 @@ contains
          &                          cosmologyFunctions_                                                                                   , &
          &                          mergerTreeBuildMasses_                                                                                , &
          &                          mergerTreeBuilder_                                                                                    , &
-         &                          haloMassFunction_                                                                                       &
+         &                          haloMassFunction_                                                                                     , &
+         &                          outputTimes_                                                                                            &
          &                         )
     !# <inputParametersValidate source="parameters"/>
     return
   end function buildConstructorParameters
 
-  function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_) result(self)
+  function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_,outputTimes_) result(self)
     !% Initializes the merger tree building module.
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Output_Times
     use            :: Numerical_Comparison
     implicit none
     type            (mergerTreeConstructorBuild)                        :: self
@@ -153,8 +157,9 @@ contains
     class           (mergerTreeBuilderClass    ), intent(in   ), target :: mergerTreeBuilder_
     class           (haloMassFunctionClass     ), intent(in   ), target :: haloMassFunction_
     class           (mergerTreeBuildMassesClass), intent(in   ), target :: mergerTreeBuildMasses_
+    class           (outputTimesClass          ), intent(in   ), target :: outputTimes_
     integer         (c_size_t                  )                        :: i
-    !# <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_"/>
+    !# <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_, *outputTimes_"/>
 
     ! Set offset for tree numbers.
     if (self%treeBeginAt == 0) then
@@ -164,8 +169,8 @@ contains
     end if
     ! Snap tree base time if necessary.
     if (self%timeSnapTolerance > 0.0d0) then
-       do i=1_c_size_t,Galacticus_Output_Time_Count()
-          if (Values_Agree(self%timeBase,Galacticus_Output_Time(i),relTol=self%timeSnapTolerance)) self%timeBase=Galacticus_Output_Time(i)
+       do i=1_c_size_t,self%outputTimes_%count()
+          if (Values_Agree(self%timeBase,self%outputTimes_%time(i),relTol=self%timeSnapTolerance)) self%timeBase=self%outputTimes_%time(i)
        end do
     end if
     return
@@ -181,6 +186,7 @@ contains
     !# <objectDestructor name="self%mergerTreeBuilder_"    />
     !# <objectDestructor name="self%haloMassFunction_"     />
     !# <objectDestructor name="self%mergerTreeBuildMasses_"/>
+    !# <objectDestructor name="self%outputTimes_"          />
     return
   end subroutine buildDestructor
   

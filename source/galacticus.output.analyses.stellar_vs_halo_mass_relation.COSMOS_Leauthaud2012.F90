@@ -43,6 +43,7 @@ contains
     type            (inputParameters                                     ), intent(inout)               :: parameters
     double precision                                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     integer                                                                                             :: redshiftInterval
     logical                                                                                             :: computeMeanSquare
     
@@ -79,17 +80,17 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,computeMeanSquare,systematicErrorPolynomialCoefficient,cosmologyFunctions_)
+    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,computeMeanSquare,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
-  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,computeMeanSquare,systematicErrorPolynomialCoefficient,cosmologyFunctions_) result (self)
+  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,computeMeanSquare,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     use ISO_Varying_String
     use Numerical_Constants_Astronomical
-    use Galacticus_Output_Times
     use Numerical_Ranges
     use Numerical_Comparison
     use Output_Analysis_Property_Operators
@@ -109,6 +110,7 @@ contains
     logical                                                               , intent(in   )                 :: computeMeanSquare
     double precision                                                      , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), intent(inout), target         :: outputTimes_
     integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
     double precision                                                      , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                  =1.0d15
     integer                                                               , parameter                     :: covarianceBinomialBinsPerDecade                       =10
@@ -161,8 +163,8 @@ contains
     end select
     surveyGeometry_=surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
     ! Create output time weights.
-    call allocateArray(outputWeight,[massHaloCount,Galacticus_Output_Time_Count()])
-    outputWeight(1,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,massStellarLimit,allowSingleEpoch=.true.)
+    call allocateArray(outputWeight,[massHaloCount,outputTimes_%count()])
+    outputWeight(1,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massStellarLimit,allowSingleEpoch=.true.)
     forall(iBin=2:massHaloCount)
        outputWeight(iBin,:)=outputWeight(1,:)
     end forall
@@ -194,24 +196,24 @@ contains
     galacticFilterAll_                       =  galacticFilterAll          (              filters_)
     ! Build identity distribution operator.
     allocate   (outputAnalysisDistributionOperator_                   )
-    outputAnalysisDistributionOperator_                    =  outputAnalysisDistributionOperatorIdentity            (                                                                  )
+    outputAnalysisDistributionOperator_                    =  outputAnalysisDistributionOperatorIdentity            (                                                                                 )
     ! Build identity weight operator.
     allocate   (outputAnalysisWeightOperator_                         )
-    outputAnalysisWeightOperator_                          =  outputAnalysisWeightOperatorIdentity                  (                                                                  )
+    outputAnalysisWeightOperator_                          =  outputAnalysisWeightOperatorIdentity                  (                                                                                 )
     ! Build log10() property operator.
     allocate   (outputAnalysisPropertyOperator_                       )
-    outputAnalysisPropertyOperator_                        =  outputAnalysisPropertyOperatorLog10                   (                                                                  )
+    outputAnalysisPropertyOperator_                        =  outputAnalysisPropertyOperatorLog10                   (                                                                                 )
     ! Build a sequence (log10, polynomial systematic, anti-log10, cosmological luminosity distance, high-pass filter) of weight property operators.
     allocate   (outputAnalysisWeightPropertyOperatorFilterHighPass_)
-    outputAnalysisWeightPropertyOperatorFilterHighPass_    =  outputAnalysisPropertyOperatorFilterHighPass          (log10(massStellarLimit)                                           )
+    outputAnalysisWeightPropertyOperatorFilterHighPass_    =  outputAnalysisPropertyOperatorFilterHighPass          (log10(massStellarLimit)                                                          )
     allocate   (outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_)
-    outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc       (cosmologyFunctions_     ,cosmologyFunctionsData                   )
+    outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc       (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_       )
     allocate   (outputAnalysisWeightPropertyOperatorSystmtcPolynomial_)
-    outputAnalysisWeightPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial       (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient     )
+    outputAnalysisWeightPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial       (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient                    )
     allocate   (outputAnalysisWeightPropertyOperatorLog10_            )
-    outputAnalysisWeightPropertyOperatorLog10_             =  outputAnalysisPropertyOperatorLog10                   (                                                                  )
+    outputAnalysisWeightPropertyOperatorLog10_             =  outputAnalysisPropertyOperatorLog10                   (                                                                                 )
     allocate   (outputAnalysisWeightPropertyOperatorAntiLog10_        )
-    outputAnalysisWeightPropertyOperatorAntiLog10_         =  outputAnalysisPropertyOperatorAntiLog10               (                                                                  )
+    outputAnalysisWeightPropertyOperatorAntiLog10_         =  outputAnalysisPropertyOperatorAntiLog10               (                                                                                 )
     allocate       (propertyOperators_                              )
     allocate       (propertyOperators_%next                         )
     allocate       (propertyOperators_%next%next                    )
@@ -232,18 +234,18 @@ contains
        propertyOperators_%next%next%next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorSquare_
     end if
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    outputAnalysisWeightPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence                (propertyOperators_                                               )
+    outputAnalysisWeightPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                              )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    outputAnalysisPropertyUnoperator_                      =  outputAnalysisPropertyOperatorAntiLog10               (                                                                 )
+    outputAnalysisPropertyUnoperator_                      =  outputAnalysisPropertyOperatorAntiLog10               (                                                                                )
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    outputAnalysisWeightPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellar            (                                                                 )
+    outputAnalysisWeightPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellar            (                                                                                )
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrast_                                )
-    virialDensityContrast_                                 =  virialDensityContrastFixed                            (200.0d0                 ,fixedDensityTypeMean,cosmologyFunctions_)
+    virialDensityContrast_                                 =  virialDensityContrastFixed                            (200.0d0                 ,fixedDensityTypeMean                ,cosmologyFunctions_)
     allocate(outputAnalysisPropertyExtractor_                      )
-    outputAnalysisPropertyExtractor_                       =  outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                           )
+    outputAnalysisPropertyExtractor_                       =  outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                                          )
     ! Build the object.
     if (computeMeanSquare) then
        analysisLabel            =var_str('stellarHaloMassSquaredRelationLeauthaud2012z')//redshiftInterval
@@ -276,6 +278,7 @@ contains
          &                                                         outputAnalysisWeightOperator_            , &
          &                                                         outputAnalysisDistributionOperator_      , &
          &                                                         galacticFilterAll_                       , &
+         &                                                         outputTimes_                             , &
          &                                                         outputAnalysisCovarianceModelBinomial    , &
          &                                                         covarianceBinomialBinsPerDecade          , &
          &                                                         covarianceBinomialMassHaloMinimum        , &

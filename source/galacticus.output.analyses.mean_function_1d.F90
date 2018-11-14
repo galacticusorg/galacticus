@@ -27,6 +27,7 @@
   use               Output_Analysis_Distribution_Operators
   use               Output_Analysis_Distribution_Normalizers
   use               Output_Analyses_Options
+  use               Output_Times
   use               Galactic_Filters
 
   !# <outputAnalysis name="outputAnalysisMeanFunction1D" defaultThreadPrivate="yes">
@@ -58,7 +59,6 @@ contains
   function meanFunction1DConstructorParameters(parameters) result(self)
     !% Constructor for the ``meanFunction1D'' output analysis class which takes a parameter set as input.
     use Input_Parameters
-    use Galacticus_Output_Times
     use Memory_Management
     use Galacticus_Error
     implicit none
@@ -70,6 +70,7 @@ contains
     class           (outputAnalysisWeightOperatorClass      ), pointer                     :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
     class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
+    class           (outputTimesClass                       ), pointer                     :: outputTimes_ 
     double precision                                         , dimension(:  ), allocatable :: binCenter                            , outputWeight
     integer         (c_size_t                               )                              :: bufferCount
     type            (varying_string                         )                              :: label                                , comment                               , &
@@ -83,12 +84,20 @@ contains
     double precision                                                                       :: propertyUnitsInSI                    , meanUnitsInSI                         , &
          &                                                                                    covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
 
-    ! Check and read parameters.
+    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"       source="parameters"          />
+    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
+    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"        source="parameters"          />
+    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisWeightPropertyOperator_"  source="weightParameters"    />
+    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"      source="unoperatorParameters"/>
+    !# <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"          source="parameters"          />
+    !# <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"    source="parameters"          />
+    !# <objectBuilder class="galacticFilter"                       name="galacticFilter_"                        source="parameters"          />
+    !# <objectBuilder class="outputTimes"                          name="outputTimes_"                           source="parameters"          />
     unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
     weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
-    call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                               ])
-    call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*Galacticus_Output_Time_Count()])
-    if (parameters%count('outputWeight') /= parameters%count('binCenter')*Galacticus_Output_Time_Count()) &
+    call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                     ])
+    call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*outputTimes_%count()])
+    if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Galacticus_Error_Report('incorrect number of output weights provided'//{introspection:location})
     !# <inputParameter>
     !#   <name>label</name>
@@ -226,47 +235,40 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"       source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"        source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisWeightPropertyOperator_"  source="weightParameters"    />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"      source="unoperatorParameters"/>
-    !# <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"          source="parameters"          />
-    !# <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"    source="parameters"          />
-    !# <objectBuilder class="galacticFilter"                       name="galacticFilter_"                        source="parameters"          />
     ! Build the object.
-    self=outputAnalysisMeanFunction1D(                                                                                                         &
-         &                            label                                                                                                  , &
-         &                            comment                                                                                                , &
-         &                            propertyLabel                                                                                          , &
-         &                            propertyComment                                                                                        , &
-         &                            propertyUnits                                                                                          , &
-         &                            propertyUnitsInSI                                                                                      , &
-         &                            meanLabel                                                                                              , &
-         &                            meanComment                                                                                            , &
-         &                            meanUnits                                                                                              , &
-         &                            meanUnitsInSI                                                                                          , &
-         &                            binCenter                                                                                              , &
-         &                            bufferCount                                                                                            , &
-         &                            reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),Galacticus_Output_Time_Count()]), &
-         &                            outputAnalysisPropertyExtractor_                                                                       , &
-         &                            outputAnalysisWeightPropertyExtractor_                                                                 , &
-         &                            outputAnalysisPropertyOperator_                                                                        , &
-         &                            outputAnalysisWeightPropertyOperator_                                                                  , &
-         &                            outputAnalysisPropertyUnoperator_                                                                      , &
-         &                            outputAnalysisWeightOperator_                                                                          , &
-         &                            outputAnalysisDistributionOperator_                                                                    , &
-         &                            galacticFilter_                                                                                        , &
-         &                            enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.)           , &
-         &                            covarianceBinomialBinsPerDecade                                                                        , &
-         &                            covarianceBinomialMassHaloMinimum                                                                      , &
-         &                            covarianceBinomialMassHaloMaximum                                                                        &                      
+    self=outputAnalysisMeanFunction1D(                                                                                               &
+         &                            label                                                                                        , &
+         &                            comment                                                                                      , &
+         &                            propertyLabel                                                                                , &
+         &                            propertyComment                                                                              , &
+         &                            propertyUnits                                                                                , &
+         &                            propertyUnitsInSI                                                                            , &
+         &                            meanLabel                                                                                    , &
+         &                            meanComment                                                                                  , &
+         &                            meanUnits                                                                                    , &
+         &                            meanUnitsInSI                                                                                , &
+         &                            binCenter                                                                                    , &
+         &                            bufferCount                                                                                  , &
+         &                            reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &
+         &                            outputAnalysisPropertyExtractor_                                                             , &
+         &                            outputAnalysisWeightPropertyExtractor_                                                       , &
+         &                            outputAnalysisPropertyOperator_                                                              , &
+         &                            outputAnalysisWeightPropertyOperator_                                                        , &
+         &                            outputAnalysisPropertyUnoperator_                                                            , &
+         &                            outputAnalysisWeightOperator_                                                                , &
+         &                            outputAnalysisDistributionOperator_                                                          , &
+         &                            galacticFilter_                                                                              , &
+         &                            outputTimes_                                                                                 , &
+         &                            enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &
+         &                            covarianceBinomialBinsPerDecade                                                              , &
+         &                            covarianceBinomialMassHaloMinimum                                                            , &
+         &                            covarianceBinomialMassHaloMaximum                                                              &                      
          &                           )
     !# <inputParametersValidate source="parameters"/>
     return
   end function meanFunction1DConstructorParameters
 
-  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``meanFunction1D'' output analysis class for internal use.
     use Memory_Management
     implicit none
@@ -285,6 +287,7 @@ contains
     class           (outputAnalysisWeightOperatorClass           ), intent(in   ), target         :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass     ), intent(in   ), target         :: outputAnalysisDistributionOperator_
     class           (galacticFilterClass                         ), intent(in   ), target         :: galacticFilter_
+    class           (outputTimesClass                            ), intent(in   ), target         :: outputTimes_
     integer                                                       , intent(in   )                 :: covarianceModel
     integer                                                       , intent(in   ), optional       :: covarianceBinomialBinsPerDecade
     double precision                                              , intent(in   ), optional       :: covarianceBinomialMassHaloMinimum      , covarianceBinomialMassHaloMaximum
@@ -400,6 +403,7 @@ contains
          &                                                       outputAnalysisDistributionOperator_    , &
          &                                                       outputAnalysisDistributionNormalizer_  , &
          &                                                       galacticFilter_                        , &
+         &                                                       outputTimes_                           , &
          &                                                       covarianceModel                        , &
          &                                                       covarianceBinomialBinsPerDecade        , &
          &                                                       covarianceBinomialMassHaloMinimum      , &
@@ -426,6 +430,7 @@ contains
          &                                                       outputAnalysisDistributionOperator_    , &
          &                                                       outputAnalysisDistributionNormalizer_  , &
          &                                                       galacticFilter_                        , &
+         &                                                       outputTimes_                           , &
          &                                                       covarianceModel                        , &
          &                                                       covarianceBinomialBinsPerDecade        , &
          &                                                       covarianceBinomialMassHaloMinimum      , &
@@ -452,6 +457,7 @@ contains
          &                                                       outputAnalysisDistributionOperator_    , &
          &                                                       outputAnalysisDistributionNormalizer_  , &
          &                                                       galacticFilter_                        , &
+         &                                                       outputTimes_                           , &
          &                                                       covarianceModel                        , &
          &                                                       covarianceBinomialBinsPerDecade        , &
          &                                                       covarianceBinomialMassHaloMinimum      , &

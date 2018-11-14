@@ -45,6 +45,7 @@ contains
     type            (outputAnalysisConcentrationDistributionCDMCOCO)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
+    class           (outputTimesClass                               ), pointer       :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), pointer       :: nbodyHaloMassError_ 
     integer                                                                         :: distributionNumber
     double precision                                                                :: formationTimeRecent
@@ -64,18 +65,20 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
-    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,formationTimeRecent,cosmologyFunctions_,nbodyHaloMassError_)
+    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,formationTimeRecent,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     nullify(cosmologyFunctions_)
     nullify(nbodyHaloMassError_)
+    nullify(outputTimes_       )
     return
   end function concentrationDistributionCDMCOCOConstructorParameters
 
-  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,formationTimeRecent,cosmologyFunctions_,nbodyHaloMassError_) result(self)
+  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,formationTimeRecent,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
     !% Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
     use ISO_Varying_String
-    use Galacticus_Output_Times
+    use Output_Times
     use Output_Analyses_Options
     use Output_Analysis_Utilities
     use Galacticus_Error
@@ -89,6 +92,7 @@ contains
     implicit none
     type            (outputAnalysisConcentrationDistributionCDMCOCO  )                              :: self
     class           (cosmologyFunctionsClass                         ), target     , intent(in   )  :: cosmologyFunctions_
+    class           (outputTimesClass                                ), target     , intent(inout)  :: outputTimes_
     class           (nbodyHaloMassErrorClass                         ), target     , intent(in   )  :: nbodyHaloMassError_ 
     integer                                                                        , intent(in   )  :: distributionNumber
     double precision                                                               , intent(in   )  :: formationTimeRecent
@@ -137,10 +141,10 @@ contains
     massMinimum=masses(distributionNumber)/sqrt(masses(2)/masses(1))
     massMaximum=masses(distributionNumber)*sqrt(masses(2)/masses(1))
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     outputWeight=0.0d0
-    do iOutput=1,Galacticus_Output_Time_Count()
-       if (Values_Agree(Galacticus_Output_Redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
+    do iOutput=1,outputTimes_%count()
+       if (Values_Agree(outputTimes_%redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
     end do
     ! Build a filter which selects isolated halos, and rejects halos which formed too recently.
     allocate(galacticFilter_                  )
@@ -251,6 +255,7 @@ contains
          &                                outputAnalysisDistributionOperator_                                , &
          &                                outputAnalysisDistributionNormalizer_                              , &
          &                                galacticFilter_                                                    , &
+         &                                outputTimes_                                                       , &
          &                                outputAnalysisCovarianceModelPoisson                               , &
          &                                covarianceBinomialBinsPerDecade                                    , &
          &                                covarianceBinomialMassHaloMinimum                                  , &

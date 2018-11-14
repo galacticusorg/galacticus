@@ -21,11 +21,13 @@
 module Node_Component_Inter_Output_Standard
   !% Implements the standard indices component.
   use Galacticus_Nodes
+  use Output_Times
   implicit none
   private
   public :: Node_Component_Inter_Output_Standard_Rate_Compute     , Node_Component_Inter_Output_Standard_Reset    , &
-       &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set
-
+       &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set, &
+       &    Node_Component_Interoutput_Standard_Thread_Initialize
+  
   !# <component>
   !#  <class>interOutput</class>
   !#  <name>standard</name>
@@ -50,7 +52,26 @@ module Node_Component_Inter_Output_Standard
   !#  </properties>
   !# </component>
 
+  ! Objects used by this component.
+  class(outputTimesClass), pointer :: outputTimes_
+  !$omp threadprivate(outputTimes_)
+
 contains
+
+  !# <mergerTreeEvolveThreadInitialize>
+  !#  <unitName>Node_Component_Interoutput_Standard_Thread_Initialize</unitName>
+  !# </mergerTreeEvolveThreadInitialize>
+  subroutine Node_Component_Interoutput_Standard_Thread_Initialize(parameters)
+    !% Initializes the tree node standard interoutput module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultInteroutputComponent%standardIsActive()) then
+       !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>     
+    end if
+    return
+  end subroutine Node_Component_Interoutput_Standard_Thread_Initialize
 
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Scale_Set</unitName>
@@ -88,7 +109,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
-    use Galacticus_Output_Times
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -118,8 +138,8 @@ contains
     ! Find the time interval between previous and next outputs.
     basic              => node %basic()
     timeCurrent        =  basic%time ()
-    timeOutputPrevious =  Galacticus_Previous_Output_Time(timeCurrent)
-    timeOutputNext     =  Galacticus_Next_Output_Time    (timeCurrent)
+    timeOutputPrevious =  outputTimes_%timePrevious(timeCurrent)
+    timeOutputNext     =  outputTimes_%timeNext    (timeCurrent)
     ! Return if there is no next output.
     if (timeOutputNext     < 0.0d0) return
     ! Set previous time to zero if there is no previous output.

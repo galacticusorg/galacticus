@@ -142,7 +142,7 @@ contains
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store descendent properties in the \glc\ output file buffers.
     use Kind_Numbers
-    use Galacticus_Output_Times
+    use Output_Times
     use Multi_Counters
     implicit none
     double precision                        , intent(in   )         :: time
@@ -155,6 +155,7 @@ contains
     type            (treeNode              ), pointer               :: nodeDescendent
     class           (nodeComponentBasic    ), pointer               :: basic
     class           (nodeComponentSatellite), pointer               :: satellite
+    class           (outputTimesClass      ), pointer               :: outputTimes_
     double precision                                                :: outputTimeNext
     logical                                                         :: foundDescendent
     !GCC$ attributes unused :: doubleBuffer, doubleBufferCount, doubleProperty, instance
@@ -169,7 +170,8 @@ contains
        satellite => node%satellite()
 
        ! Get the time of the next output.
-       outputTimeNext=Galacticus_Next_Output_Time(time)
+       outputTimes_   => outputTimes          (    )
+       outputTimeNext =  outputTimes_%timeNext(time)
 
        foundDescendent=.false.
        integerProperty=integerProperty+1

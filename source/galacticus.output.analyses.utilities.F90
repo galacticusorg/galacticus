@@ -26,10 +26,10 @@ module Output_Analysis_Utilities
 
 contains
 
-  function Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,massLimit,magnitudeAbsoluteLimit,luminosity,allowSingleEpoch) result (outputWeight)
+  function Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massLimit,magnitudeAbsoluteLimit,luminosity,allowSingleEpoch) result (outputWeight)
     !% Compute output weights corresponding to the cosmological volumes associated with the given survey.
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Output_Times
+    use            :: Output_Times
     use            :: Geometry_Surveys
     use            :: Cosmology_Functions
     use            :: Galacticus_Error
@@ -37,6 +37,7 @@ contains
     double precision                         , dimension(:) , allocatable :: outputWeight
     class           (surveyGeometryClass    ), intent(inout)              :: surveyGeometry_
     class           (cosmologyFunctionsClass), intent(inout)              :: cosmologyFunctions_
+    class           (outputTimesClass       ), intent(inout)              :: outputTimes_
     double precision                         , intent(in   ), optional    :: massLimit                 , magnitudeAbsoluteLimit, &
          &                                                                   luminosity
     logical                                  , intent(in   ), optional    :: allowSingleEpoch
@@ -49,15 +50,15 @@ contains
          &                                                                   time
     !# <optionalArgument name="allowSingleEpoch" defaultsTo=".false." />
     
-    allocate(outputWeight(Galacticus_Output_Time_Count()))
+    allocate(outputWeight(outputTimes_%count()))
     outputWeight=0.0d0
-    if (Galacticus_Output_Time_Count() == 1_c_size_t) then
+    if (outputTimes_%count() == 1_c_size_t) then
        ! Handle cases where we have just a single epoch output.
        if (allowSingleEpoch_) then
           ! Iterate over all fields.
           do iField=1,surveyGeometry_%fieldCount()
              ! Test whether the output epoch lies within the range of comoving distances for this field.
-             time       =cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(Galacticus_Output_Redshift(1_c_size_t)                                                    ))
+             time       =cosmologyFunctions_%cosmicTime            (cosmologyFunctions_%expansionFactorFromRedshift(outputTimes_%redshift(1_c_size_t)                                                         ))
              timeMinimum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMaximum            (mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
              timeMaximum=cosmologyFunctions_%timeAtDistanceComoving(surveyGeometry_    %distanceMinimum            (mass=massLimit,magnitudeAbsolute=magnitudeAbsoluteLimit,luminosity=luminosity,field=iField))
              if     (                                           &
@@ -71,17 +72,17 @@ contains
           call Galacticus_Error_Report('single epoch output not permitted'//{introspection:location})
        end if
     else
-       do iOutput=1,Galacticus_Output_Time_Count()
+       do iOutput=1,outputTimes_%count()
           do iField=1,surveyGeometry_%fieldCount()
-             if (iOutput == Galacticus_Output_Time_Count()) then
-                redshiftMinimum=     Galacticus_Output_Redshift(iOutput)
+             if (iOutput == outputTimes_%count()) then
+                redshiftMinimum=     outputTimes_%redshift(iOutput)
              else
-                redshiftMinimum=sqrt(Galacticus_Output_Redshift(iOutput)*Galacticus_Output_Redshift(iOutput+1))
+                redshiftMinimum=sqrt(outputTimes_%redshift(iOutput)*outputTimes_%redshift(iOutput+1))
              end if
              if (iOutput ==                              1) then
-                redshiftMaximum=     Galacticus_Output_Redshift(iOutput)
+                redshiftMaximum=     outputTimes_%redshift(iOutput)
              else
-                redshiftMaximum=sqrt(Galacticus_Output_Redshift(iOutput)*Galacticus_Output_Redshift(iOutput-1))
+                redshiftMaximum=sqrt(outputTimes_%redshift(iOutput)*outputTimes_%redshift(iOutput-1))
              end if
              timeMinimum    =    cosmologyFunctions_%cosmicTime      (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
              timeMaximum    =    cosmologyFunctions_%cosmicTime      (cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))

@@ -16,13 +16,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of timesteps for merger tree evolution.
+!% Contains a module which implements a class for merger tree evolution timestepping.
 
 module Merger_Tree_Timesteps
-  !% Implements calculations of timesteps for merger tree evolution.
+  !% Implements a class for merger tree evolution timestepping.
+  use Galacticus_Nodes
   implicit none
   private
-  public :: Time_Step_Get
+
+  !# <functionClass>
+  !#  <name>mergerTreeEvolveTimestep</name>
+  !#  <descriptiveName>Merger Tree Evolution Timesteps</descriptiveName>
+  !#  <description>Class providing timestep control for merger tree evolution.</description>
+  !#  <default>default</default>
+  !#  <method name="timeEvolveTo" >
+  !#   <description>Return the time to which the node can be evolved.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode      ), intent(inout)                    :: node        </argument>
+  !#   <argument>double precision                , intent(in   )                    :: evolveToTime</argument>
+  !#   <argument>procedure       (timestepTask  ), intent(  out)          , pointer :: task        </argument>
+  !#   <argument>logical                         , intent(in   )                    :: report      </argument>
+  !#   <argument>type            (treeNode      ), intent(inout), optional, pointer :: lockNode    </argument>
+  !#   <argument>type            (varying_string), intent(inout), optional          :: lockType    </argument>
+  !#  </method>
+  !# </functionClass>
+  
+  abstract interface
+     subroutine timestepTask(thisTree,thisNode,deadlockStatus)
+       import mergerTree, treeNode
+       type   (mergerTree), intent(in   ) :: tree
+       type   (treeNode  ), intent(inout) :: node
+       integer            , intent(inout) :: deadlockStatus
+     end subroutine timestepTask
+  end interface
 
 contains
 

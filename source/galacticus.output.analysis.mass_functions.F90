@@ -688,7 +688,7 @@ contains
     use Memory_Management
     use Galactic_Structure_Enclosed_Masses
     use Input_Parameters
-    use Galacticus_Output_Times
+    use Output_Times
     use Galacticus_Error
     use Cosmology_Parameters
     use Cosmology_Functions
@@ -707,6 +707,7 @@ contains
     double precision                                , allocatable  , dimension(:  ) :: randomError, randomErrorWeight
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
     class           (cosmologyParametersClass      )               , pointer        :: cosmologyParametersModel
+    class           (outputTimesClass              )               , pointer        :: outputTimes_
     double precision                                , parameter                     :: massBufferFactor              =100.0d+0 ! Multiplicative buffer size in mass to add below/above observed masses.
     integer         (c_size_t                      )                                :: jOutput
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,iError
@@ -908,6 +909,7 @@ contains
              analysisActive=.true.
              cosmologyFunctionsModel  => cosmologyFunctions ()
              cosmologyParametersModel => cosmologyParameters()
+             outputTimes_             => outputTimes        ()
              ! Establish survey geometries.
              allocate(surveyGeometryLiWhite2009SDSS      :: massFunctionDescriptors( 1)%geometry)
              allocate(surveyGeometryBernardi2013SDSS     :: massFunctionDescriptors( 2)%geometry)
@@ -1206,18 +1208,18 @@ contains
                          call Galacticus_Error_Report('unknown mass function "'//trim(massFunctionLabels(j))//'"'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
-                      call allocateArray(massFunctions(currentAnalysis)%cosmologyConversionMass        ,[Galacticus_Output_Time_Count()])
-                      call allocateArray(massFunctions(currentAnalysis)%cosmologyConversionMassFunction,[Galacticus_Output_Time_Count()])
-                      do jOutput=1,Galacticus_Output_Time_Count()
+                      call allocateArray(massFunctions(currentAnalysis)%cosmologyConversionMass        ,[outputTimes_%count()])
+                      call allocateArray(massFunctions(currentAnalysis)%cosmologyConversionMassFunction,[outputTimes_%count()])
+                      do jOutput=1,outputTimes_%count()
                          redshift=                                                                                      &
                               &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
                               &    cosmologyFunctionsModel%expansionFactor             (                                &
-                              &                                                         Galacticus_Output_Time(jOutput) &
+                              &                                                         outputTimes_%time(jOutput) &
                               &                                                        )                                &
                               &                                                       )
                          if (analysisMassFunctionsApplyCosmologyConversion) then
                             ! Cosmology conversion is requested, compute the necessary factors.
-                            call Cosmology_Conversion_Factors(                                                                                                          &
+                            call Cosmology_Conversion_Factors(                                                                                                         &
                                  &                            redshift                                                                                               , &
                                  &                            cosmologyFunctionsModel                                                                                , &
                                  &                            cosmologyFunctionsObserved                                                                             , &
@@ -1237,20 +1239,20 @@ contains
                    end if
                 end do
                 ! Compute output weights for mass function.
-                call allocateArray(massFunctions(currentAnalysis)%outputWeight,[int(massFunctions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                call allocateArray(massFunctions(currentAnalysis)%outputWeight,[int(massFunctions(currentAnalysis)%massesCount,kind=c_size_t),outputTimes_%count()])
                 massFunctions(currentAnalysis)%outputWeight=0.0d0
                 do k=1,massFunctions(currentAnalysis)%massesCount
-                   do jOutput=1,Galacticus_Output_Time_Count()
+                   do jOutput=1,outputTimes_%count()
                       do j=1,massFunctions(currentAnalysis)%descriptor%geometry%fieldCount()
-                         if (jOutput == Galacticus_Output_Time_Count()) then
-                            timeMaximum=     Galacticus_Output_Time(jOutput)
+                         if (jOutput == outputTimes_%count()) then
+                            timeMaximum=     outputTimes_%time(jOutput)
                          else
-                            timeMaximum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput+1))
+                            timeMaximum=sqrt(outputTimes_%time(jOutput)*outputTimes_%time(jOutput+1))
                          end if
                          if (jOutput ==                              1) then
-                            timeMinimum=     Galacticus_Output_Time(jOutput)
+                            timeMinimum=     outputTimes_%time(jOutput)
                          else
-                            timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
+                            timeMinimum=sqrt(outputTimes_%time(jOutput)*outputTimes_%time(jOutput-1))
                          end if
                          distanceMinimum=max(                                                                                                                      &
                               &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                               , &
@@ -1298,10 +1300,10 @@ contains
                         &         )                                                                                                                                                   &
                         &    )                                                                                                                                                        &
                         & +1
-                   call allocateArray(massFunctions(i)%lensingTransfer                 ,[                                                                                      &
+                   call allocateArray(massFunctions(i)%lensingTransfer                 ,[                                                                                    &
                         &                                                              int(massFunctions(i)%massesCount+2*massFunctions(i)%massesBufferCount,kind=c_size_t), &
                         &                                                              int(massFunctions(i)%massesCount                                     ,kind=c_size_t), &
-                        &                                                              Galacticus_Output_Time_Count()                                                        &
+                        &                                                              outputTimes_%count()                                                                  &
                         &                                                             ]                                                                                      &
                         &          )
                 else
@@ -1357,13 +1359,13 @@ contains
                    massFunctions(i)%lensingTransfer=0.0d0
                 end do                
                 !$omp parallel do private(integrationReset,integrandFunction,integrationWorkspace) schedule (dynamic)
-                do jOutput=1,Galacticus_Output_Time_Count()
+                do jOutput=1,outputTimes_%count()
                    gravitationalLensing_ => gravitationalLensing()
-                   redshift=                                                                                      &
-                        &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
-                        &    cosmologyFunctionsModel%expansionFactor             (                                &
-                        &                                                         Galacticus_Output_Time(jOutput) &
-                        &                                                        )                                &
+                   redshift=                                                                                 &
+                        &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                            &
+                        &    cosmologyFunctionsModel%expansionFactor             (                           &
+                        &                                                         outputTimes_%time(jOutput) &
+                        &                                                        )                           &
                         &                                                       )
                    do i=1,size(massFunctions)
                       ! If this redshift makes no contribution to this mass function, there's no need to compute lensing transfer

@@ -88,7 +88,7 @@ contains
   double precision function csmlgyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an csmlgyVolume output analysis weight operator.
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Output_Times
+    use            :: Output_Times
     use            :: Galacticus_Error
     use            :: Output_Analyses_Options
     implicit none

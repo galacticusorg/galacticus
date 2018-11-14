@@ -43,6 +43,7 @@ contains
     type            (outputAnalysisMassFunctionStellarULTRAVISTA)                              :: self
     type            (inputParameters                            ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                    ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                           ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                  ), pointer                     :: gravitationalLensing_
     double precision                                             , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                    :: covarianceBinomialBinsPerDecade  , redshiftInterval
@@ -142,14 +143,15 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMassFunctionStellarULTRAVISTA(cosmologyFunctions_,gravitationalLensing_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionStellarULTRAVISTA(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !# <inputParametersValidate source="parameters"/>
     return
   end function massFunctionStellarULTRAVISTAConstructorParameters
 
-  function massFunctionStellarULTRAVISTAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionStellarULTRAVISTAConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionStellarULTRAVISTA'' output analysis class for internal use.
     use Input_Parameters
     use Galacticus_Paths
@@ -161,6 +163,7 @@ contains
     implicit none
     type            (outputAnalysisMassFunctionStellarULTRAVISTA        )                              :: self
     class           (cosmologyFunctionsClass                            ), intent(in   ), target       :: cosmologyFunctions_
+    class           (outputTimesClass                                   ), intent(in   ), target       :: outputTimes_
     class           (gravitationalLensingClass                          ), intent(in   ), target       :: gravitationalLensing_
     integer                                                              , intent(in   )               :: redshiftInterval
     double precision                                                     , intent(in   )               :: randomErrorMinimum                                         , randomErrorMaximum                  , &
@@ -242,6 +245,7 @@ contains
     allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
     outputAnalysisDistributionOperatorGrvtnlLnsng_       =  outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &
          &                                                                                                       gravitationalLensing_           , &
+         &                                                                                                       outputTimes_                    , &
          &                                                                                                       sizeSourceLensing                 &
          &                                                                                                      )
     ! Construct sequence distribution operator.
@@ -254,20 +258,21 @@ contains
          &                                                                                                       distributionOperatorSequence      &
          &                                                                                                      )
     ! Build the object.
-    self%outputAnalysisMassFunctionStellar=                                                                                                                                  &
-         & outputAnalysisMassFunctionStellar(                                                                                                                                &
-         &                                   var_str('Muzzin2013ULTRAVISTAz')//redshiftInterval                                                                            , &
-         &                                   var_str('Stellar mass function for the Muzzin et al. (2013) ULTRAVISTA analysis')                                             , &
+    self%outputAnalysisMassFunctionStellar=                                                                                             &
+         & outputAnalysisMassFunctionStellar(                                                                                           &
+         &                                   var_str('Muzzin2013ULTRAVISTAz')//redshiftInterval                                       , &
+         &                                   var_str('Stellar mass function for the Muzzin et al. (2013) ULTRAVISTA analysis')        , &
          &                                   char(galacticusPath(pathTypeDataStatic)//'/observations/massFunctionsStellar/'//fileName), &
-         &                                   galacticFilter_                                                                                                               , &
-         &                                   surveyGeometry_                                                                                                               , &
-         &                                   cosmologyFunctions_                                                                                                           , &
-         &                                   cosmologyFunctionsData                                                                                                        , &
-         &                                   outputAnalysisPropertyOperator_                                                                                               , &
-         &                                   outputAnalysisDistributionOperator_                                                                                           , &
-         &                                   covarianceBinomialBinsPerDecade                                                                                               , &
-         &                                   covarianceBinomialMassHaloMinimum                                                                                             , &
-         &                                   covarianceBinomialMassHaloMaximum                                                                                               &
+         &                                   galacticFilter_                                                                          , &
+         &                                   surveyGeometry_                                                                          , &
+         &                                   cosmologyFunctions_                                                                      , &
+         &                                   cosmologyFunctionsData                                                                   , &
+         &                                   outputAnalysisPropertyOperator_                                                          , &
+         &                                   outputAnalysisDistributionOperator_                                                      , &
+         &                                   outputTimes_                                                                             , &
+         &                                   covarianceBinomialBinsPerDecade                                                          , &
+         &                                   covarianceBinomialMassHaloMinimum                                                        , &
+         &                                   covarianceBinomialMassHaloMaximum                                                          &
          &                                  )
     ! Clean up.
     nullify(surveyGeometry_                                     )

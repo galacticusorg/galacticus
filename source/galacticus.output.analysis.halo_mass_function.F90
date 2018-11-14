@@ -89,7 +89,7 @@ contains
     use Galacticus_Nodes
     use Memory_Management
     use Input_Parameters
-    use Galacticus_Output_Times
+    use Output_Times
     use Galacticus_Error
     use Cosmology_Functions
     use Numerical_Comparison
@@ -107,6 +107,7 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: basic
     class           (nodeComponentMergingStatistics)               , pointer        :: mergingStatistics
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctions_
+    class           (outputTimesClass              )               , pointer        :: outputTimes_
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,massBin,i,k
     double precision                                                                :: massLogarithmic,redshift,outputTime
     type            (varying_string                )                                :: analysisHaloMassFunctionCovarianceModelText
@@ -218,6 +219,7 @@ contains
           else
              analysisActive=.true.
              cosmologyFunctions_ => cosmologyFunctions()
+             outputTimes_        => outputTimes       ()
              ! Initialize analyses.
              currentAnalysis=0
              allocate(massFunctions(activeAnalysisCount))
@@ -284,8 +286,8 @@ contains
                    ! Find the index of the output corresponding to the requested redshift.
                    read (redshiftLabel,*) redshift
                    outputTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
-                   massFunctions(currentAnalysis)%outputIndex=Galacticus_Output_Time_Index(outputTime,findClosest=.true.)
-                   if (Values_Differ(Galacticus_Output_Time(massFunctions(currentAnalysis)%outputIndex),outputTime,relTol=1.0d-3)) &
+                   massFunctions(currentAnalysis)%outputIndex=outputTimes_%index(outputTime,findClosest=.true.)
+                   if (Values_Differ(outputTimes_%time(massFunctions(currentAnalysis)%outputIndex),outputTime,relTol=1.0d-3)) &
                         & call Galacticus_Error_Report('no output available for requested analysis'//{introspection:location})
                 end if
              end do

@@ -21,6 +21,7 @@
   use Merger_Tree_Construction
   use Task_Evolve_Forests_Work_Shares
   use Input_Parameters
+  use Output_Times
 
   !# <task name="taskEvolveForests" defaultThreadPrivate="yes">
   !#  <description>A task which evolves galaxies within a set of merger tree forests.</description>
@@ -46,6 +47,7 @@
      class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_
      class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_
      class           (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_
+     class           (outputTimesClass           ), pointer :: outputTimes_
      ! State of node component thread initialization.
      logical                                                :: threadsInitialized
      ! Pointer to the parameters for this task.
@@ -98,6 +100,7 @@ contains
     class           (mergerTreeOperatorClass    ), pointer       :: mergerTreeOperator_
     class           (evolveForestsWorkShareClass), pointer       :: evolveForestsWorkShare_
     class           (mergerTreeConstructorClass ), pointer       :: mergerTreeConstructor_
+    class           (outputTimesClass           ), pointer       :: outputTimes_
     type            (inputParameters            ), pointer       :: parametersRoot
     logical                                                      :: evolveSingleForest           , limitLoadAverage  , &
          &                                                          threadLock                   , suspendToRAM
@@ -113,11 +116,11 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       call nodeClassHierarchyInitialize(              )
+       call nodeClassHierarchyInitialize(parametersRoot)
        call Node_Components_Initialize  (parametersRoot)
     else
        parametersRoot => null()
-       call nodeClassHierarchyInitialize(              )
+       call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
     !# <inputParameter>
@@ -218,16 +221,17 @@ contains
     !# <objectBuilder class="mergerTreeConstructor"  name="mergerTreeConstructor_"  source="parameters"/>
     !# <objectBuilder class="mergerTreeOperator"     name="mergerTreeOperator_"     source="parameters"/>
     !# <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"            name="outputTimes_"            source="parameters"/>
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,parametersRoot)
+       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,parametersRoot)
     else
-       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,parameters    )
+       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,parameters) result(self)
+  function evolveForestsConstructorInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,parameters) result(self)
     !% Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
     implicit none
     type            (taskEvolveForests          )                        :: self
@@ -239,8 +243,9 @@ contains
     class           (mergerTreeConstructorClass ), intent(in   ), target :: mergerTreeConstructor_
     class           (mergerTreeOperatorClass    ), intent(in   ), target :: mergerTreeOperator_
     class           (evolveForestsWorkShareClass), intent(in   ), target :: evolveForestsWorkShare_
+    class           (outputTimesClass           ), intent(in   ), target :: outputTimes_
     type            (inputParameters            ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_"/>
+    !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_, *outputTimes_"/>
 
     self%parameters        =inputParameters(parameters)
     self%threadsInitialized=.false.
@@ -252,9 +257,10 @@ contains
     implicit none
     type(taskEvolveForests), intent(inout) :: self
     
-    !# <objectDestructor name="self%mergerTreeConstructor_"  />
-    !# <objectDestructor name="self%mergerTreeOperator_"     />
-    !# <objectDestructor name="self%evolveForestsWorkShare_" />
+    !# <objectDestructor name="self%mergerTreeConstructor_" />
+    !# <objectDestructor name="self%mergerTreeOperator_"    />
+    !# <objectDestructor name="self%evolveForestsWorkShare_"/>
+    !# <objectDestructor name="self%outputTimes_"           />
     if (associated(self%universeWaiting  )) deallocate(self%universeWaiting  )
     if (associated(self%universeProcessed)) deallocate(self%universeProcessed)
     return
@@ -268,7 +274,6 @@ contains
     use               Merger_Tree_Walkers
     use               Galacticus_Output_Merger_Tree
     use               Galacticus_Display
-    use               Galacticus_Output_Times
     use               Galacticus_Error
     use               Memory_Management
     use               System_Load
@@ -484,22 +489,22 @@ contains
              end if
              ! Get the next time to which the tree should be evolved.
              treeTimeEarliest=tree%earliestTime()
-             outputTimeNext  =Galacticus_Next_Output_Time(treeTimeEarliest,outputIndex=iOutput)
+             outputTimeNext  =self%outputTimes_%timeNext(treeTimeEarliest,indexOutput=iOutput)
              ! For new trees, if the earliest time in the tree exactly coincides with an output
              ! time, then process the tree to that output. This ensures that we include all
              ! halos from this time in the output, even though they will be devoid of any
              ! galaxies.
              if (treeIsNew .and. iOutput > 1) then
-                if (treeTimeEarliest == Galacticus_Output_Time(iOutput-1)) iOutput=iOutput-1
+                if (treeTimeEarliest == self%outputTimes_%time(iOutput-1)) iOutput=iOutput-1
              end if
              ! Resumed trees must always be allowed to evolve - since they by definition were not finished (otherwise they would
              ! not have been suspended).
-             if (.not.treeIsNew .and. iOutput > Galacticus_Output_Time_Count()) iOutput=Galacticus_Output_Time_Count()
+             if (.not.treeIsNew .and. iOutput > self%outputTimes_%count()) iOutput=self%outputTimes_%count()
              ! Catch cases where there is no next output time.
              if (outputTimeNext > 0.0d0) then
                 treeIsFinished=.false.
              else
-                iOutput      =Galacticus_Output_Time_Count()+1
+                iOutput      =self%outputTimes_%count()+1
                 treeIsFinished=.true.
              end if
           end if singleForestEvolveTime
@@ -509,13 +514,13 @@ contains
              !$omp barrier
           end if
           ! Iterate evolving the tree until no more outputs are required.
-          treeEvolveLoop : do while (iOutput <= Galacticus_Output_Time_Count())
+          treeEvolveLoop : do while (iOutput <= self%outputTimes_%count())
              ! For single forest evolution, maximum evolution time is determined by the master thread only.
              singleForestMaximumTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                 ! We want to find the maximum time to which we can evolve this tree. This will be the minimum of the next output
                 ! time (at which we must stop and output the tree) and the next universal event time (at which we must stop and
                 ! perform the event task). Find the next output time.
-                evolveToTime=Galacticus_Output_Time(iOutput)
+                evolveToTime=self%outputTimes_%time(iOutput)
                 ! Find the earliest universe event.
                 !$omp critical(universeTransform)
                 event_                  => self%universeWaiting%event
@@ -742,7 +747,7 @@ contains
                    call Galacticus_Merger_Tree_Output(tree,iOutput,evolveToTime,.false.)
                    iOutput=iOutput+1
                    ! If all output times have been reached, we're finished.
-                   if (iOutput > Galacticus_Output_Time_Count()) then
+                   if (iOutput > self%outputTimes_%count()) then
                       treeIsFinished=.true.
                       ! For single forest evolution, record that we are exiting the evolution loop. This will be used to inform
                       ! all non-master threads to exit also.  Note that this barrier corresponds with the one labelled
