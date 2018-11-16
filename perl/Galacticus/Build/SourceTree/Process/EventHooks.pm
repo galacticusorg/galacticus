@@ -75,12 +75,12 @@ sub Process_EventHooks {
 		);
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
 	    # Create the code.
-	    $code::callWith  = $node->{'directive'}->{'callWith'};
+	    $code::callWith  = exists($node->{'directive'}->{'callWith'}) ? ",".$node->{'directive'}->{'callWith'} : "";
 	    $code::eventName = $node->{'directive'}->{'name'    };
 	    my $eventHookCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 hook_ => {$eventName}Event%first()
 do while (associated(hook_))
-   call hook_%function_(hook_%object_,{$callWith})
+   call hook_%function_(hook_%object_{$callWith})
    hook_ => hook_%next
 end do
 CODE
