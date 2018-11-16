@@ -12,7 +12,7 @@ use Fcntl qw(SEEK_SET);
 # RegEx's useful for matching Fortran code.
 our $label = qr/[a-zA-Z0-9_\{\}¦]+/;
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\((${label})\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
-our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class|complex)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
+our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class|complex|procedure)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
 # Specify unit opening regexs.
 our %unitOpeners = (
