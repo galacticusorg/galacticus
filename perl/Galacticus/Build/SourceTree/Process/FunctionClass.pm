@@ -1998,11 +1998,17 @@ CODE
 		    $argumentCode .= " :: self\n";
 		}
 		my $separator = "";
+		my $unusedCode = "if (sizeof(self)<0.and.sizeof(self)>0) then\nend if\n";
 		foreach my $argument ( @arguments ) {
 		    (my $variables = $argument) =~ s/^.*::\s*(.*?)\s*$/$1/;
 		    $argumentList .= $separator.$variables;
 		    $argumentCode .= "      ".$argument."\n";
 		    $separator     = ",";
+		    my $declaration = &Fortran::Utils::Unformat_Variables($argument);
+		    foreach ( @{$declaration->{'variables'}} ) {
+			my $function = $declaration->{'intrinsic'} eq "procedure" ? "loc" : "sizeof";
+			$unusedCode .= "if (".$function."(".$_.")<0.and.".$function."(".$_.")>0) then\nend if\n";
+		    }
 		}
 		my $type;
 		my $category;
@@ -2075,7 +2081,7 @@ CODE
 		    }
 		    $postContains->[0]->{'content'} .= "      return\n";
 		    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>
-		    $postContains->[0]->{'content'} .= join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} split(/,/,$argumentList eq "" ? "self" : "self,".$argumentList));
+		    $postContains->[0]->{'content'} .= $unusedCode;
 		}
 		$postContains->[0]->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
 	    }
