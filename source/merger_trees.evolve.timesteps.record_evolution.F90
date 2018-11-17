@@ -171,6 +171,11 @@ contains
     integer         (c_size_t                               )                         :: indexTime
     double precision                                                                  :: time
 
+    recordEvolutionTimeEvolveTo =  huge(0.0d0)
+    lockNode                    => null()
+    lockType                    =  ""
+    task                        => null()
+    taskSelf                    => null()
     if (node%isOnMainBranch()) then
        basic     => node %basic()
        time      =  basic%time ()
@@ -181,12 +186,6 @@ contains
           lockType                    =  "record evolution"
           task                        => recordEvolutionStore
           taskSelf                    => self
-       else
-          recordEvolutionTimeEvolveTo =  huge(0.0d0)
-          lockNode                    => null()
-          lockType                    =  ""
-          task                        => null()
-          taskSelf                    => null()
        end if
     end if
     if (report) call Evolve_To_Time_Report("record evolution: ",recordEvolutionTimeEvolveTo)

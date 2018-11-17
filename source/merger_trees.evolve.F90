@@ -516,7 +516,6 @@ contains
 
   recursive function Evolve_To_Time(node,endTime,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
     !% Determine the time to which {\normalfont \ttfamily node} should be evolved.
-    use Merger_Trees_Evolve_Timesteps_Template
     use Merger_Trees_Evolve_Node
     use Merger_Tree_Timesteps
     use Cosmology_Functions
