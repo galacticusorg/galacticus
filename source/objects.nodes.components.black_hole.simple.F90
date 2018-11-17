@@ -341,21 +341,8 @@ contains
     
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
-       !@ <outputPropertyGroup>
-       !@   <name>blackHole</name>
-       !@   <description>Black hole properities</description>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputPropertyGroup>
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>blackHoleAccretionRate</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Rest-mass accretion rate onto the black hole.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
           doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear

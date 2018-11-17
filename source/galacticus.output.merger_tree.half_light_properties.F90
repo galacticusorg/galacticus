@@ -94,26 +94,10 @@ contains
        do iLuminosity=1,luminositiesCount
           if (unitStellarLuminosities%isOutput(iLuminosity,time)) then
              doubleProperty=doubleProperty+1
-             !@ <outputProperty>
-             !@   <name>halfLightRadius</name>
-             !@   <datatype>real</datatype>
-             !@   <cardinality>0..1</cardinality>
-             !@   <description>Radius enclosing half the galaxy light [Mpc]</description>
-             !@   <label>???</label>
-             !@   <outputType>nodeData</outputType>
-             !@ </outputProperty>
              doublePropertyNames   (doubleProperty)='halfLightRadius'//unitStellarLuminosities%name(iLuminosity)
              doublePropertyComments(doubleProperty)='Radius enclosing half the galaxy light [Mpc]'
              doublePropertyUnitsSI (doubleProperty)=megaParsec
              doubleProperty=doubleProperty+1
-             !@ <outputProperty>
-             !@   <name>halfLightMass</name>
-             !@   <datatype>real</datatype>
-             !@   <cardinality>0..1</cardinality>
-             !@   <description>Mass enclosed within the galaxy half-light radius [Solar masses]</description>
-             !@   <label>???</label>
-             !@   <outputType>nodeData</outputType>
-             !@ </outputProperty>
              doublePropertyNames   (doubleProperty)='halfLightMass'//unitStellarLuminosities%name(iLuminosity)
              doublePropertyComments(doubleProperty)='Mass enclosed within the galaxy half-light radius [Solar masses]'
              doublePropertyUnitsSI (doubleProperty)=massSolar

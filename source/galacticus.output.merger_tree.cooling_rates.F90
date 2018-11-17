@@ -81,15 +81,6 @@ contains
 
     if (outputHotHaloCoolingRates) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>hotHaloCoolingRate</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Rate of mass cooling in the hot halo.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@   <group>hotHalo</group>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='hotHaloCoolingRate'
        doublePropertyComments(doubleProperty)='Rate of mass cooling in the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear

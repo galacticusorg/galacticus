@@ -148,14 +148,6 @@ contains
     ! Return property names if we are outputting satellite host data.
     if (outputSatelliteStatus) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>satelliteStatus</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Satellite status flag (0=not a satellite; 1=satellite with halo; 2=orphaned satellite).</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='satelliteStatus'
        integerPropertyComments(integerProperty)="Satellite status flag (0=not a satellite; 1=satellite with halo; 2=orphaned satellite)."
        integerPropertyUnitsSI (integerProperty)=0.0d0

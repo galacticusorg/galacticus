@@ -237,30 +237,6 @@ contains
           output  =outputs             %openGroup(char(outputGroupName)                                                                      )
           dynamics=output              %openGroup("dynamicsStatistics" ,"Group containing statistics of satellite galaxy bar dynamical state")
           tree    =dynamics            %openGroup(char(treeGroupName)  ,"Group containing statistics of satellite galaxy bar dynamical state")
-          !@ <outputProperty>
-          !@   <name>time</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..</cardinality>
-          !@   <description>The times at which bar dynamical state data are stored.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
-          !@ <outputProperty>
-          !@   <name>timeScale</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..</cardinality>
-          !@   <description>The bar instability timescale.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
-          !@ <outputProperty>
-          !@   <name>adiabaticRatio</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..</cardinality>
-          !@   <description>The adiabatic ratio.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
           timeDatasetName          ="time"
           timescaleDatasetName     ="timeScale"
           adiabaticRatioDatasetName="adiabaticRatio"

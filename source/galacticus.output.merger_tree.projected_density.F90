@@ -264,14 +264,6 @@ contains
 
     ! Return property names if we are outputting projected density data.
     if (outputProjectedDensityData) then
-       !@ <outputProperty>
-       !@   <name>projectedDensity</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>projected density at a given radius.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        do i=1,radiiCount
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='projectedDensity:'//char(radii(i)%name)

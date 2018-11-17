@@ -161,15 +161,6 @@ contains
 
     if (outputHaloAccretionMode) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>haloAccretionHotModeFraction</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Fraction of halo accretion rate occuring via the hot mode.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@   <group>hotHalo</group>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='haloAccretionHotModeFraction'
        doublePropertyComments(doubleProperty)='Fraction of halo accretion rate occuring via the hot mode.'
        doublePropertyUnitsSI (doubleProperty)=1.0d0

@@ -88,14 +88,6 @@ contains
     ! Return property names if we are outputting satellite host data.
     if (outputSatelliteHostData) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>satelliteHostMass</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Mass of the satellite's host halo [Msun].</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='satelliteHostMass'
        doublePropertyComments(doubleProperty)="Mass of the satellite's host halo [Msun]."
        doublePropertyUnitsSI (doubleProperty)=massSolar

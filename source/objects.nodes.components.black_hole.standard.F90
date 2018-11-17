@@ -773,61 +773,20 @@ contains
     !GCC$ attributes unused :: time
 
     if (Node_Component_Black_Hole_Standard_Matches(node)) then
-       !@ <outputPropertyGroup>
-       !@   <name>blackHole</name>
-       !@   <description>Black hole properities</description>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputPropertyGroup>
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>blackHoleCount</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Number of super-massive black holes in the galaxy.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@   <group>blackHole</group>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='blackHoleCount'
        integerPropertyComments(integerProperty)='Number of super-massive black holes in the galaxy.'
        integerPropertyUnitsSI (integerProperty)=0.0d0
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>blackHoleAccretionRate</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Rest-mass accretion rate onto the black hole.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@   <group>blackHole</group>
-          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
           doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear
           doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>blackHoleJetPower</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Power of the black hole-driven jet.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@   <group>blackHole</group>
-          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleJetPower'
           doublePropertyComments(doubleProperty)='Power of the black hole-driven jet.'
           doublePropertyUnitsSI (doubleProperty)=massSolar*kilo**2/gigaYear
           doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>blackHoleRadiativeEfficiency</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>The radiative efficiency of the black hole accretion system.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@   <group>blackHole</group>
-          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleRadiativeEfficiency'
           doublePropertyComments(doubleProperty)='The radiative efficiency of the black hole accretion system.'
           doublePropertyUnitsSI (doubleProperty)=0.0d0

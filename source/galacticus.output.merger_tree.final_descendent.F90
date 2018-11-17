@@ -100,14 +100,6 @@ contains
     ! Return property names if we are outputting final descendant data.
     if (outputFinalDescendentIndices) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>finalDescendentIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>ID of the node which this node will have descended into at the base of the tree.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='finalFescendentIndex'
        integerPropertyComments(integerProperty)='ID of the node which this node will have descended into at the base of the tree.'
        integerPropertyUnitsSI (integerProperty)=0.0d0

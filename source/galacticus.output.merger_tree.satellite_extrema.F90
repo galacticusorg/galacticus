@@ -98,26 +98,10 @@ contains
     ! Return property names if we are outputting satellite orbital pericenter data.
     if (outputSatellitePericenterData) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>satellitePericenterRadius</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Pericenteric radius of satellite orbit [Mpc].</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='satellitePericenterRadius'
        doublePropertyComments(doubleProperty)='Pericenteric radius of satellite orbit [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>satellitePericenterVelocity</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Pericenteric velocity of satellite orbit [km/s].</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='satellitePericenterVelocity'
        doublePropertyComments(doubleProperty)='Pericenteric velocity of satellite orbit [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo
@@ -125,26 +109,10 @@ contains
     ! Return property names if we are outputting satellite orbital apocenter data.
     if (outputSatelliteApocenterData) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>satelliteApocenterRadius</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Apocenteric radius of satellite orbit [Mpc].</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='satelliteApocenterRadius'
        doublePropertyComments(doubleProperty)='Apocenteric radius of satellite orbit [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>satelliteApocenterVelocity</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Apocenteric velocity of satellite orbit [km/s].</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='satelliteApocenterVelocity'
        doublePropertyComments(doubleProperty)='Apocenteric velocity of satellite orbit [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo

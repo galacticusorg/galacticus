@@ -304,14 +304,6 @@ contains
 
     ! Return property names if we are outputting velocity dispersion data.
     if (outputVelocityDispersionData) then
-       !@ <outputProperty>
-       !@   <name>velocityDispersion</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Velocity dispersion at a given radius.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        do i=1,radiiCount
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='velocityDispersion:'//char(radii(i)%name)
