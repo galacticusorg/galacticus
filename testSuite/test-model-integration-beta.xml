@@ -217,8 +217,13 @@
   <hotHaloVerySimpleDelayedMassScaleRelative value="1.0"/>
   <timestepHostAbsolute value="1.0"/>
   <timestepHostRelative value="0.01"/>
-  <timestepSimpleAbsolute value="1.0"/>
-  <timestepSimpleRelative value="0.01"/>
+  <mergerTreeEvolveTimestepMethod value="multi">
+    <mergerTreeEvolveTimestepMethod value="simple"    >
+      <timestepAbsolute value="1.00"/>
+      <timestepRelative value="0.01"/>
+    </mergerTreeEvolveTimestepMethod>
+    <mergerTreeEvolveTimestepMethod value="satellite"/>
+  </mergerTreeEvolveTimestepMethod>
   <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
   <diskVerySimpleAnalyticSolverPruneMassStars value="1.0e6"/>
   <diskVerySimpleUseAnalyticSolver value="true"/>

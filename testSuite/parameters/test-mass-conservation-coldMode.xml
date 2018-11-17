@@ -289,8 +289,6 @@
     <spheroidMassToleranceAbsolute value="1.0e-6"/>
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.1"/>
-    <timestepSimpleAbsolute value="1.0"/>
-    <timestepSimpleRelative value="0.1"/>
 
     <!-- Output options -->
     <mergerTreeOutput>

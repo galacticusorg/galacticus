@@ -90,8 +90,6 @@
   <odeToleranceRelative value="0.001"/>
   <timestepHostAbsolute value="1.000"/>
   <timestepHostRelative value="0.100"/>
-  <timestepSimpleAbsolute value="1.000"/>
-  <timestepSimpleRelative value="0.100"/>
 
   <!-- Output options -->
   <mergerTreeOutput>

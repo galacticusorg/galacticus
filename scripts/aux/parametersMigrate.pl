@@ -588,7 +588,17 @@ my @translations =
 	     "adiabaticContractionGnedinOmega"                           => "galacticStructureRadiiInitialMethod.gnedin2004.--omega"                                ,
 	     "virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt" => "virialDensityContrastMethod.sphericalCollapseMatterDE.--energyFixedAt"                 ,
 	     "outputRedshifts"                                           => "outputTimesMethod.list.--redshifts"                                                    ,
-	     "outputTimes"                                               => "outputTimesMethod.list.--times" 
+	     "outputTimes"                                               => "outputTimesMethod.list.--times"                                                        ,
+	     "mergeTargetTimeOffsetMaximumAbsolute"                      => "mergerTreeEvolveTimestepMethod.satellite.--timeOffsetMaximumAbsolute"                  ,
+	     "mergeTargetTimeOffsetMaximumRelative"                      => "mergerTreeEvolveTimestepMethod.satellite.--timeOffsetMaximumRelative"                  ,
+	     "timestepSimpleRelative"                                    => "mergerTreeEvolveTimestepMethod.simple.--timeStepRelative"                              ,
+	     "timestepSimpleAbsolute"                                    => "mergerTreeEvolveTimestepMethod.simple.--timeStepAbsolute"                              ,
+	     "timestepHistoryBegin"                                      => "mergerTreeEvolveTimestepMethod.history.--timeBegin"                                    ,
+	     "timestepHistoryEnd"                                        => "mergerTreeEvolveTimestepMethod.history.--timeEnd"                                      ,
+	     "timestepHistorySteps"                                      => "mergerTreeEvolveTimestepMethod.history.--historyCount"                                 ,
+	     "timestepRecordEvolutionBegin"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--timeBegin"                            ,
+	     "timestepRecordEvolutionEnd"                                => "mergerTreeEvolveTimestepMethod.recordEvolution.--timeEnd"                              ,
+	     "timestepRecordEvolutionSteps"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--countSteps"
 	 },
 	 values        =>
 	 {

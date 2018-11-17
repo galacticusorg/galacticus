@@ -32,7 +32,6 @@
     <sigma_8 value="0.807"/>
   </cosmologicalMassVarianceMethod>
 
-  <timestepSimpleAbsolute value="1"/>
   <bondiHoyleAccretionTemperatureSpheroid value="100"/>
   <darkMatterProfileMethod value="NFW"/>
   <coolingTimeAvailableMethod value="whiteFrenk1991">
@@ -71,7 +70,6 @@
   <spheroidMassDistribution value="hernquist">
     <dimensionless value="true"/>
   </spheroidMassDistribution>
-  <timestepSimpleRelative value="0.1"/>
   <treeNodeMethodBasic value="standard"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>

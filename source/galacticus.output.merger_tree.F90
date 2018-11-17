@@ -148,6 +148,7 @@ contains
     use               Galacticus_Output_Merger_Tree_Data
     use               Multi_Counters
     use               Merger_Tree_Walkers
+    use               Events_Hooks
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
@@ -304,6 +305,9 @@ contains
                    !#  <functionArgs>node,iOutput,currentTree%index,nodePassesFilter</functionArgs>
                    include 'galacticus.output.merger_tree.tasks.extra.inc'
                    !# </include>
+                   !# <eventHook name="mergerTreeExtraOutput">
+                   !#  <callWith>node,iOutput,currentTree%index,nodePassesFilter</callWith>
+                   !# </eventHook>
                 end if
              end do
              ! Finished output.
