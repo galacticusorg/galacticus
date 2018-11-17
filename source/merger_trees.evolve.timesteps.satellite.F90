@@ -16,136 +16,139 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a time-stepping criterion for merger tree evolution which stops evolution when a merger is
-!% about to happen.
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite" defaultThreadPrivate="yes">
+  !#  <description>A merger tree evolution timestepping class which limits the step to the next satellite merger.</description>
+  !# </mergerTreeEvolveTimestep>
+  type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatellite
+     !% Implementation of an output times class which reads a satellite of output times from a parameter.
+     private
+     double precision :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
+     logical          :: limitTimesteps
+   contains
+     procedure :: timeEvolveTo => satelliteTimeEvolveTo
+  end type mergerTreeEvolveTimestepSatellite
 
-module Merger_Tree_Timesteps_Satellite
-  implicit none
-  private
-  public :: Merger_Tree_Timestep_Satellite
-
-  ! Flag indicating whether this module is initialized.
-  logical          :: mergerTimestepsInitialized          =.false.
-
-  ! Flag indicating if this module is limiting timesteps.
-  logical          :: limitTimesteps
-
-  ! The largest time difference allowed between satellite and merge target at the time or merging.
-  double precision :: mergeTargetTimeOffsetMaximumAbsolute        , mergeTargetTimeOffsetMaximumRelative
+  interface mergerTreeEvolveTimestepSatellite
+     !% Constructors for the {\normalfont \ttfamily satellite} merger tree evolution timestep class.
+     module procedure satelliteConstructorParameters
+     module procedure satelliteConstructorInternal
+  end interface mergerTreeEvolveTimestepSatellite
 
 contains
 
-  !# <timeStepsTask>
-  !#  <unitName>Merger_Tree_Timestep_Satellite</unitName>
-  !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Satellite(node,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
-    !% Determines the timestep to go to the time at which the node merges.
-    use Evolve_To_Time_Reports
-    use Merger_Trees_Evolve_Timesteps_Template
+  function satelliteConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
     use Input_Parameters
+    implicit none
+    type            (mergerTreeEvolveTimestepSatellite)                :: self
+    type            (inputParameters                  ), intent(inout) :: parameters
+    double precision                                                   :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
+    
+    !# <inputParameter>
+    !#   <name>timeOffsetMaximumAbsolute</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.010d0</defaultValue>
+    !#   <description>The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.</description>
+    !#   <group>timeStepping</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timeOffsetMaximumRelative</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.001d0</defaultValue>
+    !#   <description>The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.</description>
+    !#   <group>timeStepping</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function satelliteConstructorParameters
+
+  function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative) result(self)
+    !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
+
+    implicit none
+    type            (mergerTreeEvolveTimestepSatellite)                :: self
+    double precision                                   , intent(in   ) :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
+    !# <constructorAssign variables="timeOffsetMaximumAbsolute, timeOffsetMaximumRelative"/>
+
+    self%limitTimesteps=defaultSatelliteComponent%mergeTimeIsGettable()
+    return
+  end function satelliteConstructorInternal
+
+  double precision function satelliteTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+    !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
+    use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type            (treeNode                     ), intent(inout)          , pointer :: node
-    procedure       (End_Of_Timestep_Task_Template), intent(inout)          , pointer :: End_Of_Timestep_Task
-    double precision                               , intent(inout)                    :: timeStep
-    logical                                        , intent(in   )                    :: report
-    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode
-    type            (varying_string               ), intent(inout), optional          :: lockType
-    type            (treeNode                     )                         , pointer :: hostNode
-    class           (nodeComponentBasic           )                         , pointer :: basicHost             , basic
-    class           (nodeComponentSatellite       )                         , pointer :: satellite
-    double precision                                                                  :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, &
-         &                                                                               timeStepAllowed       , timeUntilMerging
+    class           (mergerTreeEvolveTimestepSatellite), intent(inout), target  :: self
+    type            (treeNode                         ), intent(inout), target  :: node
+    procedure       (timestepTask                     ), intent(  out), pointer :: task
+    class           (*                                ), intent(  out), pointer :: taskSelf
+    logical                                            , intent(in   )          :: report
+    type            (treeNode                         ), intent(  out), pointer :: lockNode
+    type            (varying_string                   ), intent(  out)          :: lockType
+    type            (treeNode                         )               , pointer :: nodeHost
+    class           (nodeComponentBasic               )               , pointer :: basicHost             , basic
+    class           (nodeComponentSatellite           )               , pointer :: satellite
+    double precision                                                            :: mergeTargetTimeMinimum, mergeTargetTimeOffsetMaximum, &
+         &                                                                         timeUntilMerging
 
-    ! Initialize the module.
-    if (.not.mergerTimestepsInitialized) then
-       !$omp critical (Merger_Tree_Timestep_Satellite_Initialize)
-       if (.not.mergerTimestepsInitialized) then
-          ! Check that the merge time property exists.
-          limitTimesteps=defaultSatelliteComponent%mergeTimeIsGettable()
-
-          ! Get parameters controlling time maximum allowed time difference between galaxies at merging.
-          !# <inputParameter>
-          !#   <name>mergeTargetTimeOffsetMaximumAbsolute</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.010d0</defaultValue>
-          !#   <description>The maximum absolute time difference (in Gyr) allowed between merging pairs of galaxies.</description>
-          !#   <group>timeStepping</group>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>mergeTargetTimeOffsetMaximumRelative</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.001d0</defaultValue>
-          !#   <description>The maximum time difference (relative to the cosmic time at the merger epoch) allowed between merging pairs of galaxies.</description>
-          !#   <group>timeStepping</group>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !# </inputParameter>
-          ! Flag that the module is initialized.
-          mergerTimestepsInitialized=.true.
-       end if
-       !$omp end critical (Merger_Tree_Timestep_Satellite_Initialize)
-    end if
-
-    ! Exit if we are not limiting timesteps.
-    if (.not.limitTimesteps) return
-
-    ! Get the satellite component.
-    satellite => node%satellite()
-
-    ! Get the time until this node merges.
-    timeUntilMerging=satellite%mergeTime()
-
+    ! By default set a huge timestep so that this class has no effect,
+    satelliteTimeEvolveTo =  huge(0.0d0)
+    task                  => null(     )
+    taskSelf              => null(     )
+    lockNode              => null(     )
+    lockType              =  ""
+    ! If not limiting timesteps return.
+    if (.not.self%limitTimesteps) return
+    ! Find the time of merging.
+    satellite        => node     %satellite()
+    timeUntilMerging =  satellite%mergeTime()
     ! If time is negative, implies this is not a satellite, so return.
     if (timeUntilMerging < 0.0d0) return
-
-    ! Get the basic component.
-    basic => node%basic()
-
     ! Compute the minimum time to which the node we will merge with must have been evolved before merging is allowed.
-    mergeTargetTimeOffsetMaximum=min(mergeTargetTimeOffsetMaximumAbsolute,(basic%time()+timeUntilMerging)&
-         &*mergeTargetTimeOffsetMaximumRelative)
+    basic => node%basic()
+    mergeTargetTimeOffsetMaximum=min(&
+         &                           +self%timeOffsetMaximumAbsolute, &
+         &                           +self%timeOffsetMaximumRelative  &
+         &                           *(                               &
+         &                             +basic%time            ()      &
+         &                             +      timeUntilMerging        &
+         &                            )                               &
+         &                          )
     mergeTargetTimeMinimum=basic%time()+timeUntilMerging-mergeTargetTimeOffsetMaximum
-
     ! Find the node to merge with.
-    hostNode           => node%mergesWith()
-    basicHost => hostNode%basic     ()
-    if (basicHost%time() < mergeTargetTimeMinimum .and. associated(hostNode%parent)) then
-       timeStepAllowed=max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)
-
-       ! Set return value if our timestep is smaller than current one. Do not set an end of timestep task in this case - we want
-       ! to wait for the merge target to catch up before triggering a merger.
-       if (timeStepAllowed <= timeStep) then
-          if (present(lockNode)) lockNode => hostNode
-          if (present(lockType)) lockType =  "satellite (host)"
-          timeStep=timeStepAllowed
-          End_Of_Timestep_Task => null()
-       end if
-       if (report) call Evolve_To_Time_Report("satellite (host): ",timeStep)
+    nodeHost  => node    %mergesWith()
+    basicHost => nodeHost%basic     ()
+    if (basicHost%time() < mergeTargetTimeMinimum .and. associated(nodeHost%parent)) then
+       ! Do not set an end of timestep task in this case - we want to wait for the merge target to catch up before triggering a
+       ! merger.
+       satelliteTimeEvolveTo =  max(timeUntilMerging-0.5d0*mergeTargetTimeOffsetMaximum,0.0d0)+basic%time()
+       lockNode              => nodeHost
+       lockType              =  "satellite (host)"
+       if (report) call Evolve_To_Time_Report("satellite (host): ",satelliteTimeEvolveTo)
     else
        ! Set return value if our timestep is smaller than current one.
-       if (timeUntilMerging <= timeStep) then
-          if (present(lockNode)) lockNode => hostNode
-          if (present(lockType)) lockType =  "satellite (self)"
-          timeStep=timeUntilMerging
-          ! Trigger a merger event only if the target node has no children. If it has children, we need to wait for them to be
-          ! evolved before merging.
-          if (.not.associated(hostNode%firstChild)) then
-             End_Of_Timestep_Task => Satellite_Merger_Process
-          else
-             End_Of_Timestep_Task => null()
-          end if
+       lockNode              => nodeHost
+       lockType              =  "satellite (self)"
+       satelliteTimeEvolveTo =  timeUntilMerging+basic%time()
+       ! Trigger a merger event only if the target node has no children. If it has children, we need to wait for them to be
+       ! evolved before merging.
+       if (.not.associated(nodeHost%firstChild)) then
+          task     => satelliteMergerProcess
+          taskSelf => self
        end if
-       if (report) call Evolve_To_Time_Report("satellite (self): ",timeStep,hostNode%index())
     end if
+    if (report) call Evolve_To_Time_Report("satellite (self): ",satelliteTimeEvolveTo,nodeHost%index())
     return
-  end subroutine Merger_Tree_Timestep_Satellite
+  end function satelliteTimeEvolveTo
 
-  subroutine Satellite_Merger_Process(tree,node,deadlockStatus)
+  subroutine satelliteMergerProcess(self,tree,node,deadlockStatus)
     !% Process a satellite node which has undergone a merger with its host node.
-    use Galacticus_Nodes
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String
     use String_Handling
@@ -154,12 +157,13 @@ contains
     include 'merger_trees.evolve.timesteps.satellite.moduleUse.inc'
     !# </include>
     implicit none
+    class  (*             ), intent(inout)          :: self
     type   (mergerTree    ), intent(in   )          :: tree
     type   (treeNode      ), intent(inout), pointer :: node
     integer                , intent(inout)          :: deadlockStatus
     type   (treeNode      )               , pointer :: mergee        , mergeeNext
     type   (varying_string)                         :: message
-    !GCC$ attributes unused :: tree
+    !GCC$ attributes unused :: self, tree
     
     ! Report if necessary.
     if (Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -167,7 +171,7 @@ contains
        message=message//node%index()//'] is being merged'
        call Galacticus_Display_Message(message)
     end if
-    ! Allow arbitrary routines to process the merger.
+    ! Allow arbitrary functions to process the merger.
     !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
     !#  <functionArgs>node</functionArgs>
     include 'merger_trees.evolve.timesteps.satellite.inc'
@@ -191,6 +195,4 @@ contains
     ! The tree was changed, so mark that it is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     return
-  end subroutine Satellite_Merger_Process
-
-end module Merger_Tree_Timesteps_Satellite
+  end subroutine satelliteMergerProcess

@@ -16,254 +16,270 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a time-stepping criterion for merger tree evolution which permits evolution of the main
-!% branch galaxy to be stored.
+!% Implements a merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the
+!% main branch galaxy.
 
-module Merger_Tree_Timesteps_Record_Evolution
-  !% Implements a time-stepping criterion for merger tree evolution which permits evolution of the main
-  !% branch galaxy to be stored.
-  use FGSL
-  implicit none
-  private
-  public :: Merger_Tree_Timestep_Record_Evolution, Merger_Tree_Record_Evolution_Output
+  use FGSL               , only : fgsl_interp_accel
+  use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+  use Output_Times       , only : outputTimes       , outputTimesClass
 
-  ! Variable inidicating if module is initialized and active.
-  logical                                                        :: timestepRecordEvolutionInitialized=.false.
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution" defaultThreadPrivate="yes" autoHook="yes">
+  !#  <description>A merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.</description>
+  !# </mergerTreeEvolveTimestep>
+  type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepRecordEvolution
+     !% Implementation of a merger tree evolution timestepping class which limits the step to the next epoch at which to record
+     !% evolution of the main branch galaxy.
+     private
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     class           (outputTimesClass       ), pointer                   :: outputTimes_
+     logical                                                              :: oneTimeDatasetsWritten
+     integer                                                              :: countSteps
+     double precision                                                     :: timeBegin               , timeEnd
+     double precision                         , allocatable, dimension(:) :: expansionFactor         , massStellar, &
+          &                                                                  time                    , massTotal
+     type            (fgsl_interp_accel      )                            :: interpolationAccelerator
+   contains
+     !@ <objectMethods>
+     !@   <object>mergerTreeEvolveTimestepRecordEvolution</object>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <arguments></arguments>
+     !@     <type>\void</type>
+     !@     <description>Reset the record of galaxy evolution.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                 recordEvolutionDestructor
+     procedure :: timeEvolveTo => recordEvolutionTimeEvolveTo
+     procedure :: autoHook     => recordEvolutionAutoHook
+     procedure :: reset        => recordEvolutionReset
+  end type mergerTreeEvolveTimestepRecordEvolution
 
-  ! Variable indicating if one-time datasets have been written yet.
-  logical                                                        :: oneTimeDatasetsWritten            =.false.
+  interface mergerTreeEvolveTimestepRecordEvolution
+     !% Constructors for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
+     module procedure recordEvolutionConstructorParameters
+     module procedure recordEvolutionConstructorInternal
+  end interface mergerTreeEvolveTimestepRecordEvolution
 
-  ! Variable indicating if evolution should be recorded.
-  logical                                                        :: timestepRecordEvolution
-
-  ! Variables which control the distribution of timesteps.
-  integer                                                        :: timestepRecordEvolutionSteps
-  double precision                                               :: timestepRecordEvolutionBegin              , timestepRecordEvolutionEnd
-
-  ! Storage arrays.
-  double precision                   , allocatable, dimension(:) :: evolutionExpansion                        , evolutionStellarMass      , &
-       &                                                            evolutionTime                             , evolutionTotalMass
-
-  ! Interpolation variables.
-  type            (fgsl_interp_accel)                            :: interpolationAccelerator
-  !$omp threadprivate(interpolationAccelerator)
 contains
 
-  !# <timeStepsTask>
-  !#  <unitName>Merger_Tree_Timestep_Record_Evolution</unitName>
-  !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Record_Evolution(node,timeStep,End_Of_Timestep_Task,report,nodeLock,lockType)
+  function recordEvolutionConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type            (mergerTreeEvolveTimestepRecordEvolution)                :: self
+    type            (inputParameters                        ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
+    class           (outputTimesClass                       ), pointer       :: outputTimes_
+    double precision                                                         :: timeBegin          , timeEnd, &
+         &                                                                      ageUniverse
+    integer                                                                  :: countSteps
+    
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
+    !# <inputParameter>
+    !#   <name>timeBegin</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.05d0*ageUniverse</defaultValue>
+    !#   <description>The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timeEnd</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>ageUniverse</defaultValue>
+    !#   <description>The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>countSteps</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>100</defaultValue>
+    !#   <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.</description>
+    !#   <source>parameters</source>
+    !#   <type>integer</type>
+    !# </inputParameter>
+    self=mergerTreeEvolveTimestepRecordEvolution(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function recordEvolutionConstructorParameters
+
+  function recordEvolutionConstructorInternal(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
+    use, intrinsic :: ISO_C_Binding
+    use            :: Memory_Management
+    use            :: Numerical_Ranges
+    implicit none
+    type            (mergerTreeEvolveTimestepRecordEvolution)                        :: self
+    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_    
+    class           (outputTimesClass                       ), intent(in   ), target :: outputTimes_    
+    double precision                                         , intent(in   )         :: timeBegin          , timeEnd
+    integer                                                  , intent(in   )         :: countSteps
+    integer         (c_size_t                               )                        :: timeIndex
+    !# <constructorAssign variables="timeBegin, timeEnd, countSteps, *cosmologyFunctions_, *outputTimes_"/>
+    
+    call allocateArray(self%time           ,[self%countSteps])
+    call allocateArray(self%expansionFactor,[self%countSteps])
+    call allocateArray(self%massStellar    ,[self%countSteps])
+    call allocateArray(self%massTotal      ,[self%countSteps])
+    self%time=Make_Range(self%timeBegin,self%timeEnd,self%countSteps,rangeTypeLogarithmic)
+    do timeIndex=1,self%countSteps
+       self%expansionFactor(timeIndex)=self%cosmologyFunctions_%expansionFactor(self%time(timeIndex))
+    end do
+    call self%reset()
+    self%oneTimeDatasetsWritten=.false.
+    return
+  end function recordEvolutionConstructorInternal
+
+  subroutine recordEvolutionAutoHook(self)
+    !% Create a hook to the merger tree extra output event to allow us to write out our data.
+    use Events_Hooks
+    implicit none
+    class(mergerTreeEvolveTimestepRecordEvolution), intent(inout) :: self
+    
+    call mergerTreeExtraOutputEvent%attach(self,recordEvolutionOutput)
+   return
+  end subroutine recordEvolutionAutoHook
+
+  subroutine recordEvolutionDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily recordEvolution} merger tree evolution timestep class.
+    implicit none
+    type(mergerTreeEvolveTimestepRecordEvolution), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%outputTimes_"       />
+    return
+  end subroutine recordEvolutionDestructor
+
+  double precision function recordEvolutionTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     use, intrinsic :: ISO_C_Binding
-    use Input_Parameters
-    use Cosmology_Functions
-    use Memory_Management
-    use Numerical_Ranges
-    use Numerical_Interpolation
-    use Merger_Trees_Evolve_Timesteps_Template
-    use Evolve_To_Time_Reports
-    use ISO_Varying_String
+    use            :: Numerical_Interpolation
+    use            :: Evolve_To_Time_Reports
+    use            :: ISO_Varying_String
     implicit none
-    type            (treeNode                     ), intent(inout)          , pointer :: node
-    procedure       (End_Of_Timestep_Task_Template), intent(inout)          , pointer :: End_Of_Timestep_Task
-    double precision                               , intent(inout)                    :: timeStep
-    logical                                        , intent(in   )                    :: report
-    type            (treeNode                     ), intent(inout), optional, pointer :: nodeLock
-    type            (varying_string               ), intent(inout), optional          :: lockType
-    class           (nodeComponentBasic           )                         , pointer :: basic
-    class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctions_
-    integer         (c_size_t                     )                                   :: timeIndex
-    double precision                                                                  :: ourTimeStep         , time, &
-         &                                                                               universeAge
+    class           (mergerTreeEvolveTimestepRecordEvolution), intent(inout), target  :: self
+    type            (treeNode                               ), intent(inout), target  :: node
+    procedure       (timestepTask                           ), intent(  out), pointer :: task
+    class           (*                                      ), intent(  out), pointer :: taskSelf
+    logical                                                  , intent(in   )          :: report
+    type            (treeNode                               ), intent(  out), pointer :: lockNode
+    type            (varying_string                         ), intent(  out)          :: lockType
+    class           (nodeComponentBasic                     )               , pointer :: basic
+    integer         (c_size_t                               )                         :: indexTime
+    double precision                                                                  :: time
 
-    if (.not.timestepRecordEvolutionInitialized) then
-       !$omp critical (timestepRecordEvolutionInitialize)
-       if (.not.timestepRecordEvolutionInitialized) then
-          ! Get module parameters.
-          !# <inputParameter>
-          !#   <name>timestepRecordEvolution</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether or not the evolution of the main branch galaxy should be recorded.</description>
-          !#   <group>timeStepping</group>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          if (timestepRecordEvolution) then
-             ! Get the default cosmology functions object.
-             cosmologyFunctions_ => cosmologyFunctions()
-             ! Get time at present day.
-             universeAge=cosmologyFunctions_%cosmicTime(expansionFactor=0.999d0)
-             ! Get module parameters.
-             !# <inputParameter>
-             !#   <name>timestepRecordEvolutionBegin</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>0.05d0*universeAge</defaultValue>
-             !#   <description>The earliest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
-             !#   <group>timeStepping</group>
-             !#   <source>globalParameters</source>
-             !#   <type>real</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>timestepRecordEvolutionEnd</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>universeAge</defaultValue>
-             !#   <description>The latest time at which to tabulate the evolution of main branch progenitor galaxies (in Gyr).</description>
-             !#   <group>timeStepping</group>
-             !#   <source>globalParameters</source>
-             !#   <type>real</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>timestepRecordEvolutionSteps</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>100</defaultValue>
-             !#   <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the evolution of main branch progenitor galaxies.</description>
-             !#   <group>timeStepping</group>
-             !#   <source>globalParameters</source>
-             !#   <type>integer</type>
-             !# </inputParameter>
-             ! Allocate storage arrays.
-             call allocateArray(evolutionTime       ,[timestepRecordEvolutionSteps])
-             call allocateArray(evolutionExpansion  ,[timestepRecordEvolutionSteps])
-             call allocateArray(evolutionStellarMass,[timestepRecordEvolutionSteps])
-             call allocateArray(evolutionTotalMass  ,[timestepRecordEvolutionSteps])
-             ! Initialize arrays.
-             evolutionTime=Make_Range(timestepRecordEvolutionBegin,timestepRecordEvolutionEnd,timestepRecordEvolutionSteps,rangeTypeLogarithmic)
-             do timeIndex=1,timestepRecordEvolutionSteps
-                evolutionExpansion(timeIndex)=cosmologyFunctions_%expansionFactor(evolutionTime(timeIndex))
-             end do
-             call Reset_Records()
-          end if
-          timestepRecordEvolutionInitialized=.true.
-       end if
-       !$omp end critical (timestepRecordEvolutionInitialize)
-    end if
-
-    ! Adjust timestep if applicable.
-    if (timestepRecordEvolution.and.node%isOnMainBranch()) then
-       ! Get current cosmic time.
-       basic => node%basic()
-       time=basic%time()
-
-       ! Determine how long until next available timestep.
-       timeIndex=Interpolate_Locate(evolutionTime,interpolationAccelerator,time)
-       if (time < evolutionTime(timeIndex+1)) then
-          ! Find next time for storage.
-          ourTimeStep=evolutionTime(timeIndex+1)-time
-
-          ! Set return value if our timestep is smaller than current one.
-          if (ourTimeStep <= timeStep) then
-             if (present(nodeLock)) nodeLock => node
-             if (present(lockType)) lockType =  "record evolution"
-             timeStep=ourTimeStep
-             End_Of_Timestep_Task => Merger_Tree_Record_Evolution_Store
-          end if
+    if (node%isOnMainBranch()) then
+       basic     => node %basic()
+       time      =  basic%time ()
+       indexTime =  Interpolate_Locate(self%time,self%interpolationAccelerator,time)
+       if (time < self%time(indexTime+1)) then
+          recordEvolutionTimeEvolveTo =  self%time(indexTime+1)
+          lockNode                    => node
+          lockType                    =  "record evolution"
+          task                        => recordEvolutionStore
+          taskSelf                    => self
+       else
+          recordEvolutionTimeEvolveTo =  huge(0.0d0)
+          lockNode                    => null()
+          lockType                    =  ""
+          task                        => null()
+          taskSelf                    => null()
        end if
     end if
-    if (report) call Evolve_To_Time_Report("record evolution: ",timeStep)
+    if (report) call Evolve_To_Time_Report("record evolution: ",recordEvolutionTimeEvolveTo)
     return
-  end subroutine Merger_Tree_Timestep_Record_Evolution
+  end function recordEvolutionTimeEvolveTo
 
-  subroutine Merger_Tree_Record_Evolution_Store(thisTree,node,deadlockStatus)
+  subroutine recordEvolutionStore(self,tree,node,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
-    use Numerical_Interpolation
-    use Galactic_Structure_Options
-    use Galactic_Structure_Enclosed_Masses
+    use            :: Numerical_Interpolation
+    use            :: Galactic_Structure_Options
+    use            :: Galactic_Structure_Enclosed_Masses
+    use            :: Galacticus_Error
     implicit none
-    type            (mergerTree        ), intent(in   )          :: thisTree
+    class           (*                 ), intent(inout)          :: self
+    type            (mergerTree        ), intent(in   )          :: tree
     type            (treeNode          ), intent(inout), pointer :: node
     integer                             , intent(inout)          :: deadlockStatus
     class           (nodeComponentBasic)               , pointer :: basic
-    integer         (c_size_t          )                         :: timeIndex
+    integer         (c_size_t          )                         :: indexTime
     double precision                                             :: time
-    !GCC$ attributes unused :: deadlockStatus, thisTree
+    !GCC$ attributes unused :: deadlockStatus, tree
     
-    ! Get current cosmic time.
-    basic => node%basic()
-    time=basic%time()
-
-    ! Determine how long until next available timestep.
-    if (time == evolutionTime(timestepRecordEvolutionSteps)) then
-       timeIndex=timestepRecordEvolutionSteps
-    else
-       timeIndex=Interpolate_Locate(evolutionTime,interpolationAccelerator,time)
-    end if
-
-    ! Accumulate the properties.
-    evolutionStellarMass(timeIndex)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeStellar )
-    evolutionTotalMass  (timeIndex)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeGalactic)
-
-    return
-  end subroutine Merger_Tree_Record_Evolution_Store
-
-  !# <mergerTreeExtraOutputTask>
-  !#  <unitName>Merger_Tree_Record_Evolution_Output</unitName>
-  !# </mergerTreeExtraOutputTask>
-  subroutine Merger_Tree_Record_Evolution_Output(node,iOutput,treeIndex,nodePassesFilter)
-    !% Store Fourier-space halo profiles to the output file.
-    use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
-    use Galacticus_HDF5
-    use Output_Times
-    use ISO_Varying_String
-    use String_Handling
-    use Numerical_Constants_Astronomical
-    implicit none
-    type   (treeNode        ), intent(inout), pointer :: node
-    integer(c_size_t        ), intent(in   )          :: iOutput
-    integer(kind=kind_int8  ), intent(in   )          :: treeIndex
-    logical                  , intent(in   )          :: nodePassesFilter
-    class  (outputTimesClass)               , pointer :: outputTimes_
-    type   (varying_string  )                         :: datasetName
-    type   (hdf5Object      )                         :: outputGroup     , thisDataset
-
-    ! If halo model output was requested, output the Fourier-space halo profiles.
-    outputTimes_ => outputTimes()
-    if (nodePassesFilter.and.timestepRecordEvolution.and.iOutput == outputTimes_%count().and.node%isOnMainBranch())&
-         & then
-       ! Create a group for the profile datasets.
-       outputGroup=galacticusOutputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
-
-       ! Write one time datasets if necessary.
-       if (.not.oneTimeDatasetsWritten) then
-          ! Write the datasets.
-          call outputGroup%writeDataset(evolutionTime     ,"time"           ,"The time of the main progenitor."            ,datasetReturned=thisDataset)
-          call thisDataset%writeAttribute(gigaYear,"unitsInSI")
-          call thisDataset%close()
-          call outputGroup%writeDataset(evolutionExpansion,"expansionFactor","The expansion factor of the main progenitor."                            )
-          ! Record that these datasets have been written.
-          oneTimeDatasetsWritten=.true.
+    select type (self)
+    class is (mergerTreeEvolveTimestepRecordEvolution)
+       basic => node %basic()
+       time  =  basic%time ()
+       if (time == self%time(self%countSteps)) then
+          indexTime=self%countSteps
+       else
+          indexTime=Interpolate_Locate(self%time,self%interpolationAccelerator,time)
        end if
-
-       ! Write datasets to the group.
-       datasetName="stellarMass"
-       datasetName=datasetName//treeIndex
-       call outputGroup%writeDataset(evolutionStellarMass,char(datasetName),"The stellar mass of the main progenitor."       ,datasetReturned=thisDataset)
-       call thisDataset%writeAttribute(massSolar,"unitsInSI")
-       call thisDataset%close()
-       datasetName="totalMass"
-       datasetName=datasetName//treeIndex
-       call outputGroup%writeDataset(evolutionTotalMass  ,char(datasetName),"The total baryonic mass of the main progenitor.",datasetReturned=thisDataset)
-       call thisDataset%writeAttribute(massSolar,"unitsInSI")
-       call thisDataset%close()
-       ! Close the output group.
-       call outputGroup%close()
-       ! Reset the recorded masses to zero.
-       call Reset_Records()
-    end if
+       self%massStellar(indexTime)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeStellar )
+       self%massTotal  (indexTime)=Galactic_Structure_Enclosed_Mass(node,massType=massTypeGalactic)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
     return
-  end subroutine Merger_Tree_Record_Evolution_Output
+  end subroutine recordEvolutionStore
 
-  subroutine Reset_Records()
+  subroutine recordEvolutionOutput(self,node,iOutput,treeIndex,nodePassesFilter)
+    !% Store main branch evolution to the output file.
+    use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Error
+    use            :: Galacticus_HDF5
+    use            :: ISO_Varying_String
+    use            :: String_Handling
+    use            :: Numerical_Constants_Astronomical
+    implicit none
+    class  (*             ), intent(inout) :: self
+    type   (treeNode      ), intent(inout) :: node
+    integer(c_size_t      ), intent(in   ) :: iOutput
+    integer(kind=kind_int8), intent(in   ) :: treeIndex
+    logical                , intent(in   ) :: nodePassesFilter
+    type   (varying_string)                :: datasetName
+    type   (hdf5Object    )                :: outputGroup     , dataset
+
+    select type (self)
+    class is (mergerTreeEvolveTimestepRecordEvolution)
+       if (nodePassesFilter.and.iOutput == self%outputTimes_%count().and.node%isOnMainBranch()) then
+          !$ call hdf5Access%set()
+          outputGroup=galacticusOutputFile%openGroup("mainProgenitorEvolution","Evolution data of main progenitors.")
+          if (.not.self%oneTimeDatasetsWritten) then
+             call outputGroup%writeDataset  (self%time           ,"time"           ,"The time of the main progenitor."            ,datasetReturned=dataset)
+             call dataset    %writeAttribute(gigaYear            ,"unitsInSI"                                                                             )
+             call dataset    %close         (                                                                                                             )
+             call outputGroup%writeDataset  (self%expansionFactor,"expansionFactor","The expansion factor of the main progenitor."                        )
+             self%oneTimeDatasetsWritten=.true.
+          end if
+          datasetName=var_str("stellarMass")//treeIndex
+          call outputGroup%writeDataset  (self%massStellar,char(datasetName),"The stellar mass of the main progenitor."       ,datasetReturned=dataset)
+          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                )
+          call dataset    %close         (                                                                                                            )
+          datasetName=var_str("totalMass"  )//treeIndex
+          call outputGroup%writeDataset  (self%massTotal  ,char(datasetName),"The total baryonic mass of the main progenitor.",datasetReturned=dataset)
+          call dataset    %writeAttribute(massSolar       ,"unitsInSI"                                                                                )
+          call dataset    %close         (                                                                                                            )
+          call outputGroup%close         (                                                                                                            )
+          !$ call hdf5Access%unset()
+          call    self      %reset()
+       end if
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine recordEvolutionOutput
+
+  subroutine recordEvolutionReset(self)
     !% Resets recorded datasets to zero.
     implicit none
+    class(mergerTreeEvolveTimestepRecordEvolution), intent(inout) :: self
 
-    ! Reset all recorded values to zero.
-    evolutionStellarMass=0.0d0
-    evolutionTotalMass  =0.0d0
+    self%massStellar=0.0d0
+    self%massTotal  =0.0d0
     return
-  end subroutine Reset_Records
-
-end module Merger_Tree_Timesteps_Record_Evolution
+  end subroutine recordEvolutionReset

@@ -144,8 +144,6 @@
   <stellarPopulationSpectraMethod value="FSPS"/>
   <timestepHostAbsolute value="1"/>
   <timestepHostRelative value="0.1"/>
-  <timestepSimpleAbsolute value="1"/>
-  <timestepSimpleRelative value="0.1"/>
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>

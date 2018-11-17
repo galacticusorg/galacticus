@@ -56,7 +56,7 @@ contains
     !% Evolves all properties of a merger tree to the specified time.
     !$ use OMP_Lib
     use Merger_Trees_Evolve_Node
-    use Merger_Trees_Evolve_Timesteps_Template
+    use Merger_Tree_Timesteps
     use Merger_Trees_Initialize
     use Merger_Trees_Dump
     use Galacticus_Error
@@ -77,7 +77,8 @@ contains
     double precision                               , parameter                         :: timeTolerance              =1.0d-5
     double precision                               , parameter                         :: largeTime                  =1.0d10
     procedure       (interruptTask                )           , pointer                :: interruptProcedure
-    procedure       (End_Of_Timestep_Task_Template)           , pointer                :: End_Of_Timestep_Task
+    procedure       (timestepTask                 )           , pointer                :: timestepTask_
+    class           (*                            )           , pointer                :: timestepSelf
     integer                                        , parameter                         :: verbosityLevel             =3
     class           (nodeComponentBasic           )           , pointer                :: basicBase                         , basicParent      , &
          &                                                                                basic
@@ -365,12 +366,11 @@ contains
                             write (label,'(e12.6)') endTime
                             vMessage=vMessage//":"//label//")"
                             call Galacticus_Display_Indent(vMessage)
-                            endTimeThisNode=Evolve_To_Time(node,endTime,End_Of_Timestep_Task,report=.true.&
-                                 &,nodeLock=nodeLock,lockType=lockType)
+                            endTimeThisNode=Evolve_To_Time(node,endTime,timestepTask_,timestepSelf,report=.true. ,nodeLock=nodeLock,lockType=lockType)
                             call Galacticus_Display_Unindent("end node")
                             call Deadlock_Add_Node(node,currentTree%index,nodeLock,lockType)
                          else
-                            endTimeThisNode=Evolve_To_Time(node,endTime,End_Of_Timestep_Task,report=.false.)
+                            endTimeThisNode=Evolve_To_Time(node,endTime,timestepTask_,timestepSelf,report=.false.                                    )
                          end if
                          ! If this node is able to evolve by a finite amount, the tree is not deadlocked.
                          if (endTimeThisNode > basic%time()) then
@@ -390,7 +390,7 @@ contains
                             deadlockStatus=deadlockStatusIsNotDeadlocked
                          else
                             ! Call routine to handle end of timestep processing.                            
-                            if (associated(End_Of_Timestep_Task).and.associated(node)) call End_Of_Timestep_Task(currentTree,node,deadlockStatus)
+                            if (associated(timestepTask_).and.associated(node)) call timestepTask_(timestepSelf,currentTree,node,deadlockStatus)
                          end if
                       end do
                       ! If this halo has reached its parent halo, decide how to handle it.
@@ -514,7 +514,7 @@ contains
     return
   end subroutine Merger_Tree_Evolve_To
 
-  recursive function Evolve_To_Time(node,endTime,End_Of_Timestep_Task,report,nodeLock,lockType) result(evolveToTime)
+  recursive function Evolve_To_Time(node,endTime,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
     !% Determine the time to which {\normalfont \ttfamily node} should be evolved.
     use Merger_Trees_Evolve_Timesteps_Template
     use Merger_Trees_Evolve_Node
@@ -530,20 +530,24 @@ contains
     type            (treeNode                     ), intent(inout)          , pointer :: node
     double precision                               , intent(in   )                    :: endTime
     type            (treeNode                     )                         , pointer :: nodeSatellite                , nodeSibling
-    procedure       (End_Of_Timestep_Task_Template), intent(  out)          , pointer :: End_Of_Timestep_Task
+    procedure       (timestepTask                 ), intent(  out)          , pointer :: timestepTask_
+    class           (*                            ), intent(  out)          , pointer :: timestepSelf 
     logical                                        , intent(in   )                    :: report
     type            (treeNode                     ), intent(  out), optional, pointer :: nodeLock
     type            (varying_string               ), intent(  out), optional          :: lockType
-    procedure       (End_Of_Timestep_Task_Template)                         , pointer :: End_Of_Timestep_Task_Internal
+    procedure       (timestepTask                 )                         , pointer :: timestepTaskInternal
     class           (nodeComponentBasic           )                         , pointer :: basicParent                  , basicSatellite    , &
          &                                                                               basicSibling                 , basic
     class           (nodeComponentSatellite       )                         , pointer :: satelliteSatellite
     class           (nodeEvent                    )                         , pointer :: thisEvent
     class           (treeEvent                    )                         , pointer :: treeEvent_
     class           (cosmologyFunctionsClass      )                         , pointer :: cosmologyFunctions_
+    class           (mergerTreeEvolveTimestepClass)                         , pointer :: mergerTreeEvolveTimestep_
+    type            (treeNode                     )                         , pointer :: nodeLockStep
+    type            (varying_string               )                                   :: lockTypeStep
     double precision                                                                  :: expansionFactor              , expansionTimescale, &
          &                                                                               hostTimeLimit                , time              , &
-         &                                                                               timeEarliest
+         &                                                                               timeEarliest                 , evolveToTimeStep
     character       (len=9                        )                                   :: timeFormatted
     type            (varying_string               )                                   :: message
     
@@ -694,9 +698,17 @@ contains
     
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
     if (report) call Galacticus_Display_Indent("timestepping criteria")
-    End_Of_Timestep_Task_Internal => null()
-    evolveToTime=min(evolveToTime,basic%time()+Time_Step_Get(node,evolveToTime,End_Of_Timestep_Task_Internal,report,nodeLock,lockType))
-    End_Of_Timestep_Task => End_Of_Timestep_Task_Internal    
+    mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep              (                                                                       )
+    evolveToTimeStep          =  mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLockStep,lockTypeStep)
+    if (evolveToTimeStep <= evolveToTime) then
+       evolveToTime                    =  evolveToTimeStep
+       timestepTask_                   => timestepTaskInternal
+       if (present(nodeLock)) nodeLock => nodeLockStep
+       if (present(lockType)) lockType =  lockTypeStep
+    else
+       timestepTask_ => null()
+       timestepSelf  => null()
+    end if
     if (report) call Galacticus_Display_Unindent("done")
 
     ! Also ensure that the timestep doesn't exceed any event attached to the node.
@@ -717,7 +729,7 @@ contains
              lockType=lockType//")"
           end if
           evolveToTime=max(thisEvent%time,time)
-          End_Of_Timestep_Task => Perform_Node_Events
+          timestepTask_ => Perform_Node_Events
        end if
        if (report) then
           message="event ("
@@ -761,7 +773,7 @@ contains
           ! End time is well before current time. This is an error. Call ourself with reporting switched on to generate a report
           ! on the time limits.
           message=message//' Gyr)'
-          if (.not.report) time=Evolve_To_Time(node,endTime,End_Of_Timestep_Task,report=.true.)
+          if (.not.report) time=Evolve_To_Time(node,endTime,timestepTask_,timestepSelf,report=.true.)
           call Galacticus_Error_Report(message//{introspection:location})
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
@@ -915,10 +927,11 @@ contains
     return
   end subroutine Deadlock_Tree_Output
 
-  subroutine Perform_Node_Events(tree,node,deadlockStatus)
+  subroutine Perform_Node_Events(self,tree,node,deadlockStatus)
     !% Perform any events associated with {\normalfont \ttfamily node}.
     use Merger_Trees_Evolve_Deadlock_Status
     implicit none
+    class           (*                 ), intent(inout)          :: self
     type            (mergerTree        ), intent(in   )          :: tree
     type            (treeNode          ), intent(inout), pointer :: node
     integer                             , intent(inout)          :: deadlockStatus
@@ -927,7 +940,7 @@ contains
     class           (nodeComponentBasic)               , pointer :: basic
     double precision                                             :: nodeTime      , timeEventEarliest
     logical                                                      :: taskDone
-    !GCC$ attributes unused :: tree
+    !GCC$ attributes unused :: self, tree
     
     ! Get the current time.
     basic    => node %basic()

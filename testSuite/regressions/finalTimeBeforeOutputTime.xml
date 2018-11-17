@@ -24,7 +24,6 @@
     <sigma_8 value="0.9"/>
   </cosmologicalMassVarianceMethod>
   <mergerTreeBuildMassDistributionMethod value="uniform"/>
-  <timestepSimpleAbsolute value="1.0"/>
   <darkMatterProfileMethod value="isothermal"/>
   <cosmologyParametersMethod value="simple">
     <OmegaBaryon value="0.0455"/>
@@ -77,7 +76,6 @@
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
-  <timestepSimpleRelative value="0.1"/>
   <stellarPopulationMethod value="standard">
     <metalYield value="0.035"/>
     <recycledFraction value="0.46"/>

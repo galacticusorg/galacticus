@@ -19,7 +19,6 @@
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.9"/>
   </cosmologicalMassVarianceMethod>
-  <timestepSimpleAbsolute value="1.0"/>
   <darkMatterProfileMethod value="isothermal"/>
   <cosmologyParametersMethod value="simple">
     <OmegaBaryon value="0.0455"/>
@@ -45,7 +44,6 @@
   <cosmologyFunctionsMethod value="matterLambda"/>
   <treeNodeMethodBlackHole value="null"/>
   <treeNodeMethodSpheroid value="standard"/>
-  <timestepSimpleRelative value="0.1"/>
   <treeNodeMethodBasic value="standard"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <hotHaloAngularMomentumLossFraction value="0.0"/>

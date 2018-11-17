@@ -172,6 +172,7 @@ contains
     !% Close the \glc\ output file.
     use System_Command
     use Input_Parameters
+    use Events_Hooks
     !# <include directive="hdfPreCloseTask" type="moduleUse">
     include 'galacticus.output.HDF5.pre_close_tasks.moduleUse.inc'
     !# </include>
@@ -184,6 +185,7 @@ contains
           !# <include directive="hdfPreCloseTask" type="functionCall" functionType="void">
           include 'galacticus.output.HDF5.pre_close_tasks.inc'
           !# </include>
+          !# <eventHook name="hdf5PreClose"/>
           ! Close parameters.
           call globalParameters%destroy()          
           ! Close the file.
