@@ -295,8 +295,8 @@ contains
     type            (hdf5Object)                              :: historyDataset        , historyGroup
     
     select type (self)
-       class is (mergerTreeEvolveTimestepHistory)
-       call hdf5Access%set()
+    class is (mergerTreeEvolveTimestepHistory)
+      !$ call hdf5Access%set()
        historyGroup=galacticusOutputFile%openGroup('globalHistory','Global (volume averaged) history for this model.')
        if (.not.historyGroup%hasDataset('time')) then
           ! Write non-cumulative datasets on the first write.
@@ -307,8 +307,9 @@ contains
           call historyGroup  %writeDataset  (self%rateStarFormation          ,"rateStarFormation","Star formation rate [M⊙/Gyr/Mpc³]",datasetReturned=historyDataset)
           call historyDataset%writeAttribute(massSolar/gigaYear/megaParsec**3,"unitsInSI"                                                                           )
           call historyDataset%close         (                                                                                                                       )
+       else
           ! Read existing datasets, and accumulate.
-          call historyGroup%readDataset('rateStarformationDisk'    ,rateStarFormationDisk    )
+          call historyGroup%readDataset('rateStarFormationDisk'    ,rateStarFormationDisk    )
           call historyGroup%readDataset('rateStarFormationSpheroid',rateStarFormationSpheroid)
           call historyGroup%readDataset('densityStellar'           ,densityStellar           )
           call historyGroup%readDataset('densityStellarDisk'       ,densityStellarDisk       )
@@ -351,7 +352,7 @@ contains
        call historyDataset%writeAttribute(massSolar/megaParsec**3         ,"unitsInSI"                                                                                                )
        call historyDataset%close         (                                                                                                                                            )
        call historyGroup  %close         (                                                                                                                                            )
-       call hdf5Access    %unset         (                                                                                                                                            )
+       !$ call hdf5Access %unset         (                                                                                                                                            )
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
