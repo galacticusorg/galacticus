@@ -265,14 +265,6 @@ contains
 
     ! Return property names if we are outputting density data.
     if (outputDensityData) then
-       !@ <outputProperty>
-       !@   <name>densityProfile</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>density at a given radius.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        do i=1,radiiCount
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='densityProfile:'//char(radii(i)%name)

@@ -99,14 +99,6 @@ contains
     ! Return property names if we are outputting virial data.
     if (outputDescendentIndices) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>descendentIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>ID of the node which this node will have descended into by the next timestep.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='descendentIndex'
        integerPropertyComments(integerProperty)='ID of the node which this node will have descended into by the next timestep.'
        integerPropertyUnitsSI (integerProperty)=0.0d0

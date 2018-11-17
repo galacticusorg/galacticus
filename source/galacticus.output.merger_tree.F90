@@ -673,10 +673,6 @@ contains
 
        ! Create a group for the tree.
        !$ call hdf5Access%set()
-       !@ <outputType>
-       !@   <name>nodeData</name>
-       !@   <description>A representation of the state of all nodes in the simulation at a given time. It consists of numerous datasets which gives the properties of nodes in all merger trees at that time.</description>
-       !@ </outputType>
        outputGroups(iOutput)%hdf5Group    =outputsGroup                   %openGroup(char(groupName),char(commentText))
        outputGroups(iOutput)%nodeDataGroup=outputGroups(iOutput)%hdf5Group%openGroup("nodeData","Group containing data on all nodes at this output.")
        outputGroups(iOutput)%opened                  =.true.

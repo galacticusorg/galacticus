@@ -279,21 +279,7 @@ contains
     !GCC$ attributes unused :: time, doubleProperty, doublePropertyComments, doublePropertyNames, doublePropertyUnitsSI
     
     if (Node_Component_Merging_Statistics_Recent_Matches(node)) then
-       !@ <outputPropertyGroup>
-       !@   <name>mergingStatistics</name>
-       !@   <description>Statistics on mergers</description>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputPropertyGroup>
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>mergingStatisticsRecentMajorMergerCount</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Number of major mergers occuring in a recent time interval.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@   <group>mergingStatistics</group>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='mergingStatisticsRecentMajorMergerCount'
        integerPropertyComments(integerProperty)='Number of major mergers occuring in a recent time interval.'
        integerPropertyUnitsSI (integerProperty)=0.0d0

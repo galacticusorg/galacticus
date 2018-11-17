@@ -85,14 +85,6 @@ contains
     ! Return property names if we are outputting virial data.
     if (outputHostIndices) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>hostIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>ID of the node which hosts this node (or $-1$ if there is no host).</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='hostIndex'
        integerPropertyComments(integerProperty)='ID of the node which hosts this node (or -1 is there is no host).'
        integerPropertyUnitsSI (integerProperty)=0.0d0

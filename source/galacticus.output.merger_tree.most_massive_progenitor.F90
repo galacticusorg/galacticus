@@ -82,14 +82,6 @@ contains
 
     if (outputMostMassiveProgenitor) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>isMostMassiveProgenitor</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Flag indicating if this node is the most massive progenitor in its tree at this time.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='isMostMassiveProgenitor'
        integerPropertyComments(integerProperty)='Flag indicating if this node is the most massive progenitor in its tree at this time.'
        integerPropertyUnitsSI (integerProperty)=0.0d0

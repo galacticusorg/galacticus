@@ -86,14 +86,6 @@ contains
 
     if (outputMainBranchStatus) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>nodeIsOnMainBranch</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Indicates if the node is on the main branch of the merger tree (0|1).</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='nodeIsOnMainBranch'
        integerPropertyComments(integerProperty)='Indicates if the node is on the main branch of the merger tree (0|1).'
        integerPropertyUnitsSI (integerProperty)=0.0d0

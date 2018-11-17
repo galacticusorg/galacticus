@@ -83,14 +83,6 @@ contains
 
     if (outputTreeIndices) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>mergerTreeIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Tree index for this node.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='mergerTreeIndex'
        integerPropertyComments(integerProperty)='Tree index for this node.'
        integerPropertyUnitsSI (integerProperty)=0.0d0
