@@ -33,6 +33,7 @@ use Galacticus::Build::SourceTree::Process::HDF5FCInterop;
 use Galacticus::Build::SourceTree::Process::Constructors;
 use Galacticus::Build::SourceTree::Process::ConditionalCall;
 use Galacticus::Build::SourceTree::Process::EventHooks;
+use Galacticus::Build::SourceTree::Analyze::UseDuplication;
 
 sub ParseFile {    
     # Grab the file name.
@@ -116,6 +117,16 @@ sub ProcessTree {
     # Run all defined processors on the tree.
     &{$Galacticus::Build::SourceTree::Hooks::processHooks{$_}}($tree,\%options)
 	foreach ( sort(keys(%Galacticus::Build::SourceTree::Hooks::processHooks)) );
+    return $tree;
+}
+
+sub AnalyzeTree {
+    # Get the tree.
+    my $tree      = shift();
+    my (%options) = @_;
+    # Run all defined processors on the tree.
+    &{$Galacticus::Build::SourceTree::Hooks::analyzeHooks{$_}}($tree,\%options)
+	foreach ( sort(keys(%Galacticus::Build::SourceTree::Hooks::analyzeHooks)) );
     return $tree;
 }
 
