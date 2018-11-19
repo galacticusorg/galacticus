@@ -137,7 +137,13 @@ sub Process_FunctionClass {
 		    description => "Store the state of the object to file.",
 		    type        => "void",
 		    pass        => "yes",
-		    modules     => "FGSL",
+		    modules     =>
+			[
+			 {
+			     name => "FGSL",
+			     only => [ "fgsl_file" ]
+			 }
+			],
 		    argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
 		};
 		$methods{'stateRestore'} =
@@ -145,7 +151,13 @@ sub Process_FunctionClass {
 		    description => "Restore the state of the object to file.",
 		    type        => "void",
 		    pass        => "yes",
-		    modules     => "FGSL",
+		    modules     => 
+			[
+			 {
+			     name => "FGSL",
+			     only => [ "fgsl_file" ]
+			 }
+			],
 		    argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
 		};
 	    }
@@ -920,8 +932,8 @@ CODE
             if ( $directive->{'stateful'} eq "yes" ) {
 		my $stateStoreCode;
 		my $stateRestoreCode;
-		my %stateStoreModules   = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "FGSL" => 1, "ISO_C_Binding" => 1 );
-		my %stateRestoreModules = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "FGSL" => 1, "ISO_C_Binding" => 1 );
+		my %stateStoreModules   = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "FGSL,only:fgsl_file" => 1, "ISO_C_Binding" => 1 );
+		my %stateRestoreModules = ( "Galacticus_Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "FGSL,only:fgsl_file" => 1, "ISO_C_Binding" => 1 );
 		my @outputUnusedVariables;
 		my @inputUnusedVariables;
 		my $allocatablesFound = 0;
@@ -1908,11 +1920,11 @@ CODE
 		$postContains->[0]->{'content'} .= "  !# </galacticusStateStoreTask>\n";
 		$postContains->[0]->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateStore(stateFile,fgslStateFile,stateOperationID)\n";
 		$postContains->[0]->{'content'} .= "    !% Store the state to file.\n";
-		$postContains->[0]->{'content'} .= "    use, intrinsic :: ISO_C_Binding\n";
-		$postContains->[0]->{'content'} .= "    use            :: FGSL\n";
-		$postContains->[0]->{'content'} .= "    use            :: ISO_Varying_String\n";
-		$postContains->[0]->{'content'} .= "    use            :: String_Handling\n";
-		$postContains->[0]->{'content'} .= "    use            :: Galacticus_Display\n";
+		$postContains->[0]->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t\n";
+		$postContains->[0]->{'content'} .= "    use            :: FGSL              , only : fgsl_file\n";
+		$postContains->[0]->{'content'} .= "    use            :: ISO_Varying_String, only : var_str\n";
+		$postContains->[0]->{'content'} .= "    use            :: String_Handling   , only : operator(//)\n";
+		$postContains->[0]->{'content'} .= "    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking\n";
 		$postContains->[0]->{'content'} .= "    implicit none\n";
 		$postContains->[0]->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
 		$postContains->[0]->{'content'} .= "    integer(c_size_t ), intent(in   ) :: stateOperationID\n";
@@ -1932,11 +1944,11 @@ CODE
 		$postContains->[0]->{'content'} .= "  !# </galacticusStateRetrieveTask>\n";
 		$postContains->[0]->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateRetrieve(stateFile,fgslStateFile,stateOperationID)\n";
 		$postContains->[0]->{'content'} .= "    !% Retrieve the state from file.\n";
-		$postContains->[0]->{'content'} .= "    use, intrinsic :: ISO_C_Binding\n";
-		$postContains->[0]->{'content'} .= "    use            :: FGSL\n";
-		$postContains->[0]->{'content'} .= "    use            :: ISO_Varying_String\n";
-		$postContains->[0]->{'content'} .= "    use            :: String_Handling\n";
-		$postContains->[0]->{'content'} .= "    use            :: Galacticus_Display\n";
+		$postContains->[0]->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t\n";
+		$postContains->[0]->{'content'} .= "    use            :: FGSL              , only : fgsl_file\n";
+		$postContains->[0]->{'content'} .= "    use            :: ISO_Varying_String, only : var_str\n";
+		$postContains->[0]->{'content'} .= "    use            :: String_Handling   , only : operator(//)\n";
+		$postContains->[0]->{'content'} .= "    use            :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking\n";
 		$postContains->[0]->{'content'} .= "    implicit none\n";
 		$postContains->[0]->{'content'} .= "    integer           , intent(in   ) :: stateFile\n";
 		$postContains->[0]->{'content'} .= "    integer(c_size_t ), intent(in   ) :: stateOperationID\n";
@@ -2040,8 +2052,16 @@ CODE
 		$postContains->[0]->{'content'} .= "      !% ".$method->{'description'}."\n";
 		if ( exists($method->{'code'}) ) {
 		    if ( exists($method->{'modules'}) ) {
-			foreach ( split(/\s+/,$method->{'modules'}) ) {			    
-			    $postContains->[0]->{'content'} .= "      use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
+			if ( reftype($method->{'modules'}) ) {
+			    # Array of modules, with possible "only" clauses.
+			    foreach my $module ( @{$method->{'modules'}} ) {
+				$postContains->[0]->{'content'} .= "      use ".$module->{'name'}.(exists($module->{'only'}) ? ", only : ".join(",",@{$module->{'only'}}) : "")."\n";
+			    }
+			} else {
+			    # Simple space-separated list of modules.
+			    foreach ( split(/\s+/,$method->{'modules'}) ) {			    
+				$postContains->[0]->{'content'} .= "      use".($_ eq "ISO_C_Binding" ? ", intrinsic :: " : "")." ".$_."\n";
+			    }
 			}
 		    }
 		} else {
