@@ -28,7 +28,7 @@ PREPROCESSOR ?= cpp
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
 FCCOMPILER ?= mpif90
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
-FCCOMPILER ?= /usr/bin/time -f 'Compile statistics (file time memory): $* %E %M' gfortran
+FCCOMPILER ?= /usr/bin/time -f 'Compile statistics (file time memory): $* %e %M' gfortran
 else
 FCCOMPILER ?= gfortran
 endif
