@@ -363,7 +363,7 @@ contains
 
   double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
     !% Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Comparison
     use Numerical_Integration
     implicit none

@@ -149,7 +149,6 @@ contains
 
   double precision function coldModeAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -162,7 +161,6 @@ contains
   
   double precision function coldModeAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -175,7 +173,6 @@ contains
 
   double precision function coldModeFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -188,7 +185,6 @@ contains
 
   double precision function coldModeFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -201,7 +197,6 @@ contains
 
   function coldModeAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     implicit none
     type  (abundances           )                :: coldModeAccretionRateMetals
     class (accretionHaloColdMode), intent(inout) :: self
@@ -215,7 +210,6 @@ contains
 
   function coldModeAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     implicit none
     type   (abundances           )                :: coldModeAccretedMassMetals
     class  (accretionHaloColdMode), intent(inout) :: self

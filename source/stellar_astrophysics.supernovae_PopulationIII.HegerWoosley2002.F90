@@ -18,8 +18,8 @@
 
   !% Implements a Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.
 
-  use FGSL
-  use Stellar_Astrophysics
+  use FGSL                , only : fgsl_interp        , fgsl_interp_accel
+  use Stellar_Astrophysics, only : stellarAstrophysics, stellarAstrophysicsClass
 
   !# <supernovaePopulationIII name="supernovaePopulationIIIHegerWoosley2002">
   !#  <description>A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}.</description>
@@ -109,9 +109,7 @@ contains
   double precision function hegerWoosley2002EnergyCumulative(self,initialMass,age,metallicity)
     !% Compute the cumulative energy input from Population III star pair instability supernovae using the results of
     !% \cite{heger_nucleosynthetic_2002}.
-    use Stellar_Astrophysics
     use Numerical_Interpolation
-    use FGSL
     implicit none
     class           (supernovaePopulationIIIHegerWoosley2002), intent(inout) :: self
     double precision                                         , intent(in   ) :: age        , initialMass   , &

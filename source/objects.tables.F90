@@ -20,7 +20,9 @@
 
 module Tables
   !% Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
-  use FGSL
+  use FGSL        , only : fgsl_interp               , fgsl_interp_accel , &
+       &                   fgsl_interp_type          , fgsl_function     , &
+       &                   fgsl_integration_workspace, FGSL_Interp_Linear
   use Table_Labels
   private
   public :: table                          , table1D                          , table1DGeneric                    , &
@@ -1031,7 +1033,6 @@ contains
 
   function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
-    use FGSL
     use Numerical_Integration
     use Galacticus_Error
     implicit none

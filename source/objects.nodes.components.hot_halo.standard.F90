@@ -25,6 +25,7 @@ module Node_Component_Hot_Halo_Standard
   use Cosmology_Functions
   use Radiation_Fields
   use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles
   use Accretion_Halos
   use Chemical_Reaction_Rates
   use Hot_Halo_Ram_Pressure_Stripping
@@ -211,6 +212,7 @@ module Node_Component_Hot_Halo_Standard
   ! Objects used by this component.
   class(cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_
   class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileClass             ), pointer :: darkMatterProfile_
   class(coolingSpecificAngularMomentumClass), pointer :: coolingSpecificAngularMomentum_
   class(coolingInfallRadiusClass           ), pointer :: coolingInfallRadius_
   class(hotHaloMassDistributionClass       ), pointer :: hotHaloMassDistribution_
@@ -221,7 +223,7 @@ module Node_Component_Hot_Halo_Standard
   class(chemicalStateClass                 ), pointer :: chemicalState_
   class(coolingRateClass                   ), pointer :: coolingRate_
   class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
-  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_)
+  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_)
   
   ! Internal count of abundances and chemicals.
   integer                                                             :: abundancesCount                            , chemicalsCount
@@ -445,6 +447,7 @@ contains
        !# <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="parameters"/>
        !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
        !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
+       !# <objectBuilder class="darkMatterProfile"              name="darkMatterProfile_"              source="parameters"/>
        !# <objectBuilder class="coolingSpecificAngularMomentum" name="coolingSpecificAngularMomentum_" source="parameters"/>
        !# <objectBuilder class="coolingInfallRadius"            name="coolingInfallRadius_"            source="parameters"/>
        !# <objectBuilder class="hotHaloMassDistribution"        name="hotHaloMassDistribution_"        source="parameters"/>
@@ -945,8 +948,6 @@ contains
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Dark_Matter_Halo_Spins
-    use Dark_Matter_Profiles
-    use Chemical_States
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     use Numerical_Constants_Astronomical
@@ -959,7 +960,6 @@ contains
     integer                                            , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo  )                          , pointer :: hotHalo
     class           (nodeComponentBasic    )                          , pointer :: basic
-    class           (darkMatterProfileClass)                          , pointer :: darkMatterProfile_
     type            (chemicalAbundances    ), save                              :: chemicalDensitiesRates      , chemicalMasses         , &
          &                                                                         chemicalMassesRates         , chemicalsCoolingRate   , &
          &                                                                         chemicalDensities
@@ -977,7 +977,7 @@ contains
     if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Reset calculations if necessary.
     if (node%uniqueID() /= uniqueIDPrevious) call Node_Component_Hot_Halo_Standard_Reset(node)
-   ! Get the hot halo component.
+    ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that the standard hot halo implementation is active.
     if (defaultHotHaloComponent%standardIsActive()) then
@@ -1002,7 +1002,6 @@ contains
        ! Next block of tasks occur only if the accretion rate is non-zero.
        if (basic%accretionRate() /= 0.0d0) then
           ! Compute the rate of accretion of angular momentum.
-          darkMatterProfile_ => darkMatterProfile()
           angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfile_)*(massAccretionRate &
                &/basic%accretionRate())
              if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
@@ -1318,14 +1317,12 @@ contains
     !% Initialize the contents of the hot halo component for any sub-resolution accretion (i.e. the gas that would have been
     !% accreted if the merger tree had infinite resolution).
     use Dark_Matter_Halo_Spins
-    use Dark_Matter_Profiles
     use Chemical_Abundances_Structure
     use Abundances_Structure
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo  )               , pointer :: currentHotHaloComponent, hotHalo
     class           (nodeComponentBasic    )               , pointer :: basic
-    class           (darkMatterProfileClass)               , pointer :: darkMatterProfile_
     class           (nodeEvent             )               , pointer :: event
     double precision                                                 :: angularMomentum        , failedMass          , &
          &                                                              hotHaloMass
@@ -1358,9 +1355,8 @@ contains
        ! If either is non-zero, then create a hot halo component and add these masses to it.
        if (hotHaloMass > 0.0d0 .or. failedMass > 0.0d0) then
           call Node_Component_Hot_Halo_Standard_Create(node)
-          hotHalo            => node              %hotHalo()
-          basic              => node              %basic  ()
-          darkMatterProfile_ => darkMatterProfile         ()
+          hotHalo => node%hotHalo()
+          basic   => node%basic  ()
           call hotHalo%           massSet(hotHaloMass)
           call hotHalo% unaccretedMassSet( failedMass)
           ! Also add the appropriate angular momentum.

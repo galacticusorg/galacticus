@@ -174,7 +174,7 @@ contains
     !% scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
     use Numerical_Interpolation
     use Table_Labels
-    use FGSL
+    use FGSL                   , only : FGSL_Interp_CSpline
     use Galacticus_Error
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
@@ -281,7 +281,7 @@ contains
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
     use Numerical_Interpolation
     use Table_Labels
-    use FGSL
+    use FGSL                   , only : FGSL_Interp_CSpline
     use Galacticus_Error
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self

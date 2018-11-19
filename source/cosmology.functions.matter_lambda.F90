@@ -15,12 +15,16 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
+  
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter plus a cosmological constant.
-
-  use FGSL
-  use Cosmology_Parameters
+  
+  use FGSL                , only : fgsl_interp        , fgsl_interp_accel          , &
+       &                           fgsl_odeiv_step    , fgsl_odeiv_control         , &
+       &                           fgsl_odeiv_evolve  , fgsl_odeiv_system          , &
+       &                           fgsl_function      , fgls_integeration_workspace, &
+       &                           FGSL_Success
+  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
   !$ use OMP_Lib
 
   integer         , parameter :: matterLambdaAgeTableNPointsPerDecade     =300
@@ -141,7 +145,6 @@ contains
   function matterLambdaConstructorInternal(cosmologyParameters_) result(self)
     !% Constructor for the matter plus cosmological constant cosmological functions class.
     use Numerical_Comparison
-    use Cosmology_Parameters
     use ISO_Varying_String
     use ODE_Solver
     implicit none
@@ -558,7 +561,6 @@ contains
 
   double precision function matterLambdaExpansionRate(self,expansionFactor)
     !% Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\normalfont \ttfamily expansionFactor}.
-    use Cosmology_Parameters
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: expansionFactor
@@ -574,7 +576,6 @@ contains
   double precision function matterLambdaHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
     !% Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
     use Galacticus_Error
-    use Cosmology_Parameters
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -623,7 +624,6 @@ contains
   double precision function matterLambdaHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
     !% Returns the rate of change of the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
     use Galacticus_Error
-    use Cosmology_Parameters
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor      , time
@@ -781,7 +781,6 @@ contains
   end function matterLambdaTemperatureCMBEpochal
 
   subroutine matterLambdaDensityScalingEarlyTime(self,dominateFactor,densityPower,expansionFactorDominant,OmegaDominant)
-    use Cosmology_Parameters
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   )           :: dominateFactor
@@ -799,7 +798,6 @@ contains
 
   double precision function matterLambdaDominationEpochMatter(self,dominateFactor)
     use Cosmology_Functions_Parameters
-    use Cosmology_Parameters
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
     double precision                                , intent(in   ) :: dominateFactor
@@ -832,7 +830,6 @@ contains
   double precision function matterLambdaEqualityEpochMatterDarkEnergy(self,requestType)
     !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
     use Cosmology_Functions_Parameters
-    use Cosmology_Parameters
     implicit none
     class  (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     integer                                , intent(in   ), optional :: requestType
@@ -857,7 +854,6 @@ contains
   double precision function matterLambdaEqualityEpochMatterCurvature(self,requestType)
     !% Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
     use Cosmology_Functions_Parameters
-    use Cosmology_Parameters
     implicit none
     class  (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     integer                                , intent(in   ), optional :: requestType
@@ -881,8 +877,6 @@ contains
     use Numerical_Ranges
     use ODE_Solver
     use Memory_Management
-    use Cosmology_Parameters
-    use FGSL
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout), target       :: self
     double precision                                , intent(in   ), optional     :: time

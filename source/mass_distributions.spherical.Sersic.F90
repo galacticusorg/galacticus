@@ -18,7 +18,8 @@
   
   !% Implementation of a S\'ersic mass distribution class.
 
-  use FGSL
+  use FGSL      , only : fgsl_function, fgsl_integration_workspace, &
+       &                 fgsl_interp  , fgsl_interp_accel
   !$ use OMP_Lib
   
   !# <massDistribution name="massDistributionSersic">
@@ -373,7 +374,6 @@ contains
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Constants_Math
-    use FGSL
     use Root_Finder
     implicit none
     class           (massDistributionSersic    ), intent(inout), target   :: self
