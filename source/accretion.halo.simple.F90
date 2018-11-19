@@ -208,7 +208,6 @@ contains
 
   logical function simpleBranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
-    use Galacticus_Nodes
     use Merger_Tree_Walkers
     implicit none
     class(accretionHaloSimple                ), intent(inout)          :: self
@@ -229,7 +228,6 @@ contains
 
   double precision function simpleAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -267,7 +265,6 @@ contains
 
   double precision function simpleAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class           (accretionHaloSimple), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node
@@ -287,8 +284,7 @@ contains
 
   double precision function simpleFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
-     implicit none
+    implicit none
     class           (accretionHaloSimple ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
     integer                               , intent(in   ) :: accretionMode
@@ -322,7 +318,6 @@ contains
 
   double precision function simpleFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class           (accretionHaloSimple), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node
@@ -342,7 +337,6 @@ contains
   
   function simpleAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     implicit none
     type  (abundances         )                :: simpleAccretionRateMetals
     class (accretionHaloSimple), intent(inout) :: self
@@ -357,7 +351,6 @@ contains
 
   function simpleAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     implicit none
     type   (abundances         )                :: simpleAccretedMassMetals
     class  (accretionHaloSimple), intent(inout) :: self
@@ -374,7 +367,6 @@ contains
     !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
     !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
     !% temperature.
-    use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
     type            (chemicalAbundances )                :: simpleAccretionRateChemicals
@@ -396,7 +388,6 @@ contains
 
   function simpleAccretedMassChemicals(self,node,accretionMode)
     !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
     type            (chemicalAbundances )                :: simpleAccretedMassChemicals
@@ -419,7 +410,6 @@ contains
 
   function simpleChemicalMasses(self,node,massAccreted)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     use Numerical_Constants_Astronomical
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
@@ -453,7 +443,6 @@ contains
 
   double precision function simpleVelocityScale(self,node)
     !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the virial velocity.
-    use Galacticus_Nodes
     implicit none
     class(accretionHaloSimple), intent(inout) :: self
     type (treeNode           ), intent(inout) :: node
@@ -464,7 +453,6 @@ contains
 
   double precision function simpleFailedFraction(self,node)
     !% Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.
-    use Galacticus_Nodes
     implicit none
     class(accretionHaloSimple), intent(inout) :: self
     type (treeNode           ), intent(inout) :: node

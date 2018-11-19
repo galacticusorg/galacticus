@@ -373,7 +373,7 @@ contains
   double precision function heatedPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc).
-    use FGSL
+    use FGSL                        , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical

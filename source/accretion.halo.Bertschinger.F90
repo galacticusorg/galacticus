@@ -87,7 +87,6 @@ contains
 
   double precision function bertschingerVelocityScale(self,node)
     !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the maximum circular velocity.
-    use Galacticus_Nodes
     implicit none
     class(accretionHaloBertschinger), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node

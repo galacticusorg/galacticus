@@ -257,7 +257,7 @@ contains
     !% Construct a tabulation of the mass enclosed by a sphere in a Miyamoto-Nagai mass distribution.
     use Numerical_Integration
     use Numerical_Constants_Math
-    use FGSL
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use Table_Labels
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
@@ -363,8 +363,8 @@ contains
 
   subroutine miyamotoNagaiSurfaceDensityTabulate(self)
     !% Construct a tabulation of the surface density profile in a Miyamoto-Nagai mass distribution.
-    use Numerical_Integration
-    use FGSL
+    use Numerical_Integration    
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Table_Labels
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self

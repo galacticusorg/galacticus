@@ -20,7 +20,7 @@
 !% cosmological constant.
 
 module Spherical_Collapse_Matter_Lambda
-  use FGSL
+  use            :: FGSL         , only : fgsl_function, fgsl_integration_workspace
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
@@ -320,7 +320,6 @@ contains
     use Linear_Growth
     use Table_Labels
     use Root_Finder
-    use FGSL
     use Numerical_Integration
     use Numerical_Ranges
     use Array_Utilities
@@ -547,7 +546,6 @@ contains
   end subroutine Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
 
   double precision function Radius_Root(radiusNow)
-    use FGSL
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: radiusNow

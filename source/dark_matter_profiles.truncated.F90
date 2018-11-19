@@ -209,7 +209,7 @@ contains
   double precision function truncatedEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use FGSL
+    use FGSL                   , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Dark_Matter_Halo_Scales
     implicit none
