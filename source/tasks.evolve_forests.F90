@@ -22,6 +22,7 @@
   use Task_Evolve_Forests_Work_Shares
   use Input_Parameters
   use Output_Times
+  use Universe_Operators             , only : universeOperator, universeOperatorClass
 
   !# <task name="taskEvolveForests" defaultThreadPrivate="yes">
   !#  <description>A task which evolves galaxies within a set of merger tree forests.</description>
@@ -48,6 +49,7 @@
      class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_
      class           (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_
      class           (outputTimesClass           ), pointer :: outputTimes_
+     class           (universeOperatorClass      ), pointer :: universeOperator_
      ! State of node component thread initialization.
      logical                                                :: threadsInitialized
      ! Pointer to the parameters for this task.
@@ -101,6 +103,7 @@ contains
     class           (evolveForestsWorkShareClass), pointer       :: evolveForestsWorkShare_
     class           (mergerTreeConstructorClass ), pointer       :: mergerTreeConstructor_
     class           (outputTimesClass           ), pointer       :: outputTimes_
+    class           (universeOperatorClass      ), pointer       :: universeOperator_
     type            (inputParameters            ), pointer       :: parametersRoot
     logical                                                      :: evolveSingleForest           , limitLoadAverage  , &
          &                                                          threadLock                   , suspendToRAM
@@ -222,16 +225,17 @@ contains
     !# <objectBuilder class="mergerTreeOperator"     name="mergerTreeOperator_"     source="parameters"/>
     !# <objectBuilder class="evolveForestsWorkShare" name="evolveForestsWorkShare_" source="parameters"/>
     !# <objectBuilder class="outputTimes"            name="outputTimes_"            source="parameters"/>
+    !# <objectBuilder class="universeOperator"       name="universeOperator_"       source="parameters"/>
     if (associated(parametersRoot)) then
-       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,parametersRoot)
+       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,parametersRoot)
     else
-       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,parameters    )
+       self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
     return
   end function evolveForestsConstructorParameters
 
-  function evolveForestsConstructorInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,parameters) result(self)
+  function evolveForestsConstructorInternal(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,parameters) result(self)
     !% Internal constructor for the {\normalfont \ttfamily evolveForests} task class.
     implicit none
     type            (taskEvolveForests          )                        :: self
@@ -244,8 +248,9 @@ contains
     class           (mergerTreeOperatorClass    ), intent(in   ), target :: mergerTreeOperator_
     class           (evolveForestsWorkShareClass), intent(in   ), target :: evolveForestsWorkShare_
     class           (outputTimesClass           ), intent(in   ), target :: outputTimes_
+    class           (universeOperatorClass      ), intent(in   ), target :: universeOperator_
     type            (inputParameters            ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_, *outputTimes_"/>
+    !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_"/>
 
     self%parameters        =inputParameters(parameters)
     self%threadsInitialized=.false.
@@ -261,6 +266,7 @@ contains
     !# <objectDestructor name="self%mergerTreeOperator_"    />
     !# <objectDestructor name="self%evolveForestsWorkShare_"/>
     !# <objectDestructor name="self%outputTimes_"           />
+    !# <objectDestructor name="self%universeOperator_"      />
     if (associated(self%universeWaiting  )) deallocate(self%universeWaiting  )
     if (associated(self%universeProcessed)) deallocate(self%universeProcessed)
     return
@@ -409,6 +415,7 @@ contains
     !# <eventHook name="universePreEvolve">
     !#  <callWith>self%universeWaiting</callWith>
     !# </eventHook>
+    call self%universeOperator_%operate(self%universeWaiting)
     !$omp end master
     !$omp barrier
     ! Begin processing trees.

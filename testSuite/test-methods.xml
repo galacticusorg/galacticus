@@ -535,8 +535,11 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputRedshifts value="0.0 0.1"/>
-    <outputHalfLightData value="true"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0 0.1"/>
+  </outputTimesMethod>
+
+  <outputHalfLightData value="true"/>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
@@ -616,7 +619,10 @@
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="all all all all"/>
-    <outputRedshifts value="0.064 0.041 0.020 0.000"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.064 0.041 0.020 0.000"/>
+  </outputTimesMethod>
+
   </parameters>
 
   <!-- Calculation of luminosities with top-hat filters -->
@@ -626,7 +632,10 @@
     <luminosityFilter value="fixedResolutionTopHat_2000_10 fixedResolutionTopHat_4000_5 fixedResolutionTopHat_6000_3 fixedResolutionTopHat_7000_2"/>
     <luminosityType value="rest rest rest rest"/>
     <luminosityRedshift value="0.0 0.0 0.0 0.0"/>
-    <outputRedshifts value="0.0"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
   </parameters>
 
   <!-- Calculation of luminosities with array of top-hat filters -->
@@ -636,7 +645,10 @@
     <luminosityFilter value="fixedResolutionTopHat_2000_7000_10"/>
     <luminosityType value="rest"/>
     <luminosityRedshift value="0.0"/>
-    <outputRedshifts value="0.0"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
   </parameters>
 
   <!-- Black hole wind efficiencies -->
@@ -722,9 +734,10 @@
       <darkEnergyEquationOfStateW1 value="0.0"/>
     </cosmologyFunctionsMethod>
     <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
-    <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
-    <virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt value="turnaround"/>
-  </parameters>
+    <virialDensityContrastMethod value="sphericalCollapseMatterDE">
+  <energyFixedAt value="turnaround"/>
+  </virialDensityContrastMethod>
+    </parameters>
 
   <!-- Intergalactic medium state and internal background calculation -->
   <parameters>
@@ -759,19 +772,20 @@
     <version>0.9.4</version>
     <!-- IGM evolver -->
     <intergalacticMediumStateMethod value="internal"/>
-    <igmPropertiesTimeCountPerDecade value="2"/>
-    <igmPropertiesCompute value="true"/>
-    <igmPropertiesRedshiftMaximum value="150"/>
+    <universeOperatorMethod value="intergalacticMediumStateEvolve">
+      <timeCountPerDecade value="2"/>
+      <redshiftMaximum value="150"/>
+    </universeOperatorMethod>    
     <!-- Background radiation -->
-    <backgroundRadiationCompute value="true"/>
-    <radiationFieldIntergalacticBackgroundMethod value="intergalacticBackgroundInternal"/>
-    <backgroundRadiationWavelengthCountPerDecade value="5"/>
-    <backgroundRadiationTimeCountPerDecade value="2"/>
+    <radiationFieldIntergalacticBackgroundMethod value="intergalacticBackgroundInternal">
+      <wavelengthCountPerDecade value="5"/>
+      <timeCountPerDecade value="2"/>
+    </radiationFieldIntergalacticBackgroundMethod>
     <!-- Halo mass ranges -->
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
-    <massTreeMaximum value="1.0e15"/>
-    <massTreeMinimum value="1.0e10"/>
-    <treesPerDecade value="5"/>
+      <massTreeMaximum value="1.0e15"/>
+      <massTreeMinimum value="1.0e10"/>
+      <treesPerDecade value="5"/>
     </mergerTreeBuildMassesMethod>
     <mergerTreeMassResolutionMethod value="fixed">
       <massResolution value="5.0e9"/>
@@ -1580,15 +1594,18 @@
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>
     <mergerTreeEvolveTimestepMethod value="multi">
-      <mergerTreeEvolveTimestepMethod value="simple"    >
+      <mergerTreeEvolveTimestepMethod value="simple">
 	<timestepAbsolute value="10.00"/>
 	<timestepRelative value="10.00"/>
       </mergerTreeEvolveTimestepMethod>
       <mergerTreeEvolveTimestepMethod value="satellite"/>
     </mergerTreeEvolveTimestepMethod>
     <outputTimestepHistory value="false"/>
-    <outputRedshifts value="0.0"/>
-    <verbosityLevel value="1"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
+  <verbosityLevel value="1"/>
   </parameters>
 
   <!-- Power spectrum calculation -->
@@ -1608,7 +1625,10 @@
       <OmegaBaryon value="0.04541"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
-    <outputRedshifts value="0.0 1.0"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0 1.0"/>
+  </outputTimesMethod>
+
   </parameters>
 
 </parameterGrid>
