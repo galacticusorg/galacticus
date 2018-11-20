@@ -598,7 +598,10 @@ my @translations =
 	     "timestepHistorySteps"                                      => "mergerTreeEvolveTimestepMethod.history.--historyCount"                                 ,
 	     "timestepRecordEvolutionBegin"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--timeBegin"                            ,
 	     "timestepRecordEvolutionEnd"                                => "mergerTreeEvolveTimestepMethod.recordEvolution.--timeEnd"                              ,
-	     "timestepRecordEvolutionSteps"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--countSteps"
+	     "timestepRecordEvolutionSteps"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--countSteps"                           ,
+	     "igmPropertiesTimeCountPerDecade"                           => "universeOperatorMethod.intergalacticMediumStateEvolve.--timeCountPerDecade"            ,
+	     "igmPropertiesRedshiftMinimum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMinimum"               ,
+	     "igmPropertiesRedshiftMaximum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMaximum"
 	 },
 	 values        =>
 	 {
@@ -1090,7 +1093,11 @@ sub Translate {
 		$parameterNode->addChild($input     ->createTextNode("\n    "  ));
 		$parameterNode->addChild($parameters->removeChild   ($parameter));
 		$parameterNode->addChild($input     ->createTextNode("\n  "    ));
-		$parameters->insertBefore($parameterNode,$sibling);
+		if ( defined($sibling) ) {
+		    $parameters->insertBefore($parameterNode,$sibling);
+		} else {
+		    $parameters->insertBefore($parameterNode,undef());
+		}
 	    }
 	}
     }
