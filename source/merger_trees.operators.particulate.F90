@@ -665,13 +665,14 @@ contains
     double precision                                            :: radiusMinimum                                   , energyPotentialTruncate                  , &
          &                                                         particulateSmoothingIntegrationRangeLower       , particulateSmoothingIntegrationRangeUpper, &
          &                                                         radiusFactorAsymptote                           , integralAsymptotic                       , &
-         &                                                         gradientDensityPotentialLower                   , gradientDensityPotentialUpper
+         &                                                         gradientDensityPotentialLower                   , gradientDensityPotentialUpper            , &
+         &                                                         densitySmoothedIntegralLower                    , densitySmoothedIntegralUpper
     logical                                                     :: tableRebuild
     integer                                                     :: i
     integer                                                     :: radiusCount
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-
+    
     ! Determine the minimum of the given radius and some small fraction of the virial radius.
     radiusMinimum=min(radius/2.0d0,radiusVirialFraction*particulateSelf%darkMatterHaloScale_%virialRadius(particulateNode))
     ! Rebuild the density vs. potential table to have sufficient range if necessary.
@@ -742,21 +743,49 @@ contains
                 particulateSmoothingIntegrationRangeUpper=min(particulateSmoothingIntegrationRangeUpper,+2.8d0*particulateLengthSoftening)
                 particulateSmoothingIntegrationRangeLower=max(particulateSmoothingIntegrationRangeLower,-2.8d0*particulateLengthSoftening)
              end select
-             call particulateEnergyDistribution%populate(                                                                                 &
-                  &                                              +Integrate(                                                              &
-                  &                                                                           +particulateSmoothingIntegrationRangeLower, &
-                  &                                                                           +particulateSmoothingIntegrationRangeUpper, &
-                  &                                                                            particulateSmoothingIntegrandZ           , &
-                  &                                                                            integrandFunction                        , &
-                  &                                                                            integrationWorkspace                     , &
-                  &                                                         toleranceAbsolute=+0.0d0                                    , &
-                  &                                                         toleranceRelative=+1.0d-9                                     &
-                  &                                                       )                                                             , &
-                  &                                                                                                                   i , &
-                  &                                table        =energyDistributionTableDensitySmoothed                                 , &
-                  &                                computeSpline=i==radiusCount                                                           &
-                  &                               )            
+             ! The integral here is performed in two parts - below and above the current radius where the integrand has a
+             ! discontinuous gradient - for improved speed and stability.
+             if (particulateSmoothingIntegrationRangeLower < particulateRadius) then
+                densitySmoothedIntegralLower=Integrate(                                                                   &
+                     &                                                         particulateSmoothingIntegrationRangeLower, &
+                     &                                                     min(                                           &
+                     &                                                         particulateRadius                        , &
+                     &                                                         particulateSmoothingIntegrationRangeUpper  &
+                     &                                                     )                                            , &
+                     &                                                     particulateSmoothingIntegrandZ               , &
+                     &                                                     integrandFunction                            , &
+                     &                                                     integrationWorkspace                         , &
+                     &                                  toleranceAbsolute=+0.0d0                                        , &
+                     &                                  toleranceRelative=+1.0d-9                                         &
+                     &                                )
+             else
+                densitySmoothedIntegralLower=0.0d0
+             end if
              call Integrate_Done(integrandFunction,integrationWorkspace)
+             if (particulateSmoothingIntegrationRangeUpper > particulateRadius) then
+                densitySmoothedIntegralUpper=Integrate(                                                                   &
+                     &                                                     max(                                           &
+                     &                                                         particulateRadius                        , &
+                     &                                                         particulateSmoothingIntegrationRangeLower  &
+                     &                                                     )                                            , &
+                     &                                                         particulateSmoothingIntegrationRangeUpper, &
+                     &                                                     particulateSmoothingIntegrandZ               , &
+                     &                                                     integrandFunction                            , &
+                     &                                                     integrationWorkspace                         , &
+                     &                                  toleranceAbsolute=+0.0d0                                        , &
+                     &                                  toleranceRelative=+1.0d-9                                         &
+                     &                                )
+                call Integrate_Done(integrandFunction,integrationWorkspace)
+             else
+                densitySmoothedIntegralUpper=0.0d0
+             end if
+             call particulateEnergyDistribution%populate(                                                       &
+                  &                                                    +densitySmoothedIntegralLower            &
+                  &                                                    +densitySmoothedIntegralUpper          , &
+                  &                                                     i                                     , &
+                  &                                      table        = energyDistributionTableDensitySmoothed, &
+                  &                                      computeSpline= i==radiusCount                          &
+                  &                                     )  
           end select
        end do
        ! If necessary, compute the potential from the smoothed density profile.
