@@ -818,7 +818,7 @@ contains
 
     ! Determine whether we should be verbose.
     verbose=Galacticus_Verbosity_Level() > verbositySilent
-    if (verbose .and. self%isPresent('verbosityLevel')) then
+    if (self%isPresent('verbosityLevel')) then
        call self%value('verbosityLevel',verbosityLevel)
        verbose=verbosityLevel > verbositySilent
     end if
