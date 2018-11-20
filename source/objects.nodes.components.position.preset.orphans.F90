@@ -100,9 +100,9 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Orphans_Initialize
   
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(parameters)
     !% Initializes the tree node preset orphans position module.
     use Input_Parameters

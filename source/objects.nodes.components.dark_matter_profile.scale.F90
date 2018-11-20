@@ -113,9 +113,9 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize
 
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters)
     !% Initializes the tree node scale dark matter profile module.
     use Input_Parameters

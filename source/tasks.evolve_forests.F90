@@ -282,6 +282,7 @@ contains
     use               Sort
     use               Merger_Trees_Initialize
     use               Events_Hooks
+    use               Node_Components
     !$ use            OMP_Lib
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
@@ -295,9 +296,6 @@ contains
     !# </include>
     !# <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
-    !# </include>
-    !# <include directive="mergerTreeEvolveThreadInitialize" type="moduleUse">
-    include 'merger_trees.evolve.threadInitialize.moduleUse.inc'
     !# </include>
     !# <include directive="mergerTreePreTreeConstructionTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.preConstructionTask.moduleUse.inc'
@@ -400,12 +398,7 @@ contains
     self             %threadsInitialized=.true.
     !$omp end master
     !$omp barrier
-    if (initializeThreads) then
-       !# <include directive="mergerTreeEvolveThreadInitialize" type="functionCall" functionType="void">
-       !#  <functionArgs>self%parameters</functionArgs>
-       include 'merger_trees.evolve.threadInitialize.inc'
-       !# </include>
-    end if
+    if (initializeThreads) call Node_Components_Thread_Initialize(self%parameters)
     ! Allow events to be attached to the universe.
     !$omp master
     self%universeWaiting%event => null()

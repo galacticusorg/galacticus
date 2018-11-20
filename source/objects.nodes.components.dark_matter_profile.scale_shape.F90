@@ -90,9 +90,9 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize
 
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters

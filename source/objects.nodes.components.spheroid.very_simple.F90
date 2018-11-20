@@ -204,9 +204,9 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Initialize
 
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters)
     !% Initializes the tree node very simple satellite module.
     use Input_Parameters
