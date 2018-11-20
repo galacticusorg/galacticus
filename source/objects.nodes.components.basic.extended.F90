@@ -141,9 +141,9 @@ contains
     return
   end subroutine Node_Component_Basic_Extended_Bindings
   
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Basic_Extended_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Basic_Extended_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters

@@ -93,9 +93,9 @@ contains
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Initialize
 
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(parameters)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
@@ -128,6 +128,8 @@ contains
     double precision                                                               :: time
     !GCC$ attributes unused :: odeConverged, propertyType
 
+    ! Do not compute rates if this component is not active.
+    if (.not.defaultDynamicsStatisticsComponent%barsIsActive()) return
     ! Determine the allowed timestep.
     dynamicsStatistics => node%dynamicsStatistics()
     select type (dynamicsStatistics)

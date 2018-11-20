@@ -128,9 +128,9 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize
 
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(parameters)
     !% Initializes the tree node hot halo cold mode methods module.
     use Input_Parameters

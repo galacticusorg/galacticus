@@ -91,9 +91,9 @@ contains
     return
   end subroutine Node_Component_Spin_Vitvitska_Bindings
   
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(parameters)
     !% Initializes the tree node Vitvitsake spin module.
     use Input_Parameters

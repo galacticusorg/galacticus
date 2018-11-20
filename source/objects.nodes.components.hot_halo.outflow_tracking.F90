@@ -65,9 +65,9 @@ module Node_Component_Hot_Halo_Outflow_Tracking
 
 contains
 
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(parameters)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters

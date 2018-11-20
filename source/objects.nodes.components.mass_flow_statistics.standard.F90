@@ -68,9 +68,9 @@ contains
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize
 
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize(parameters)
     !% Initializes the tree node standard mass flow statistics module.
     use Input_Parameters

@@ -118,9 +118,9 @@ contains
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Initialize
 
-  !# <mergerTreeEvolveThreadInitialize>
+  !# <nodeComopnentThreadInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Thread_Initialize</unitName>
-  !# </mergerTreeEvolveThreadInitialize>
+  !# </nodeComopnentThreadInitializationTask>
   subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(parameters)
     !% Initializes the tree node recent merging flow statistics module.
     use Input_Parameters
