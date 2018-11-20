@@ -18,7 +18,7 @@ export BUILDPATH = ./work/buildODEProf
 export SUFFIX = _odeProf
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
 export BUILDPATH = ./work/buildCompileProf
-export SUFFIX = _compileProf
+export SUFFIX =
 endif
 
 # Preprocessor:
