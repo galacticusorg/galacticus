@@ -71,9 +71,9 @@ contains
     use IO_HDF5
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
-    class           (cosmologyFunctionsClass        ), intent(inout), target       :: cosmologyFunctions_
-    class           (cosmologyParametersClass       ), intent(inout), target       :: cosmologyParameters_
-    class           (linearGrowthClass              ), intent(inout), target       :: linearGrowth_
+    class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
+    class           (cosmologyParametersClass       ), intent(in   ), target       :: cosmologyParameters_
+    class           (linearGrowthClass              ), intent(in   ), target       :: linearGrowth_
     double precision                                 , allocatable  , dimension(:) :: redshift            , electronFraction , &
          &                                                                            hIonizedFraction    , heIonizedFraction, &
          &                                                                            matterTemperature
