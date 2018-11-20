@@ -55,6 +55,9 @@ sub Process_ObjectBuilder {
 		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
 		    $builderCode               .=  "  end if\n";
 		} else {
+		    $builderCode               .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";
+		    $builderCode               .= "      parametersCurrent => parametersCurrent%parent\n";
+		    $builderCode               .= "   end do\n";
 		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		}
 	    } else {	    
