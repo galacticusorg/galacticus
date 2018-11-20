@@ -348,19 +348,22 @@ contains
     
     select type (self)
     class is (radiationFieldIntergalacticBackgroundInternal)
-       ! Create the first interrupt event in the universe object.
-       event                       => universe_%createEvent( ) 
-       event%time                  =  self     %time       (1)
-       event%creator               => self
-       event%task                  => intergalacticBackgroundInternalUpdate
-       !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
-       allocate(state                                          )
-       allocate(state%flux(self%wavelengthCount,self%timeCount))
-       state%timeNext    =self%time(1)
-       state%timePrevious=0.0d0
-       state%flux        =0.0d0
-       call universe_%attributes%set('radiationFieldIntergalacticBackgroundInternal',state)
-       !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+       ! If the universe object already has an "radiationFieldIntergalacticBackgroundInternal" attribute, then do not add a new event here - we want only one event per universe.
+       if (.not.universe_%attributes%exists('radiationFieldIntergalacticBackgroundInternal')) then
+          ! Create the first interrupt event in the universe object.
+          event                       => universe_%createEvent( ) 
+          event%time                  =  self     %time       (1)
+          event%creator               => self
+          event%task                  => intergalacticBackgroundInternalUpdate
+          !$omp critical (radiationFieldIntergalacticBackgroundInternalCritical)
+          allocate(state                                          )
+          allocate(state%flux(self%wavelengthCount,self%timeCount))
+          state%timeNext    =self%time(1)
+          state%timePrevious=0.0d0
+          state%flux        =0.0d0
+          call universe_%attributes%set('radiationFieldIntergalacticBackgroundInternal',state)
+          !$omp end critical (radiationFieldIntergalacticBackgroundInternalCritical)
+       end if
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
