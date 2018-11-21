@@ -95,7 +95,7 @@ contains
     use Galacticus_Error
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016Fit), intent(inout), target  :: self
-    type            (treeNode                                   ), intent(inout), pointer :: node
+    type            (treeNode                                   ), intent(inout), target  :: node
     class           (nodeComponentBasic                         ), pointer                :: basic
     double precision                                             , parameter              :: criticalOverdensitySphericalCollapse=1.686d0
     double precision                                                                      :: peakHeight                                  , expansionFactor, &

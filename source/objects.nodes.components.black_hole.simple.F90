@@ -144,9 +144,9 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Simple_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Black_Hole_Simple_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters

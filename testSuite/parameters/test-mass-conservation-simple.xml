@@ -54,8 +54,11 @@
       <phi1 value="1.37"/>
     </darkMatterProfileConcentrationMethod>
     <darkMatterProfileMethod value="NFW"/>
-    <darkMatterProfileScaleCorrectForConcentrationDefinition value="true"/>
-    <diskMassToleranceAbsolute value="1.0e-6"/>
+    <darkMatterProfileScaleRadiusMethod value="concentration">
+    <correctForConcentrationDefinition value="true"/>
+  </darkMatterProfileScaleRadiusMethod>
+
+  <diskMassToleranceAbsolute value="1.0e-6"/>
     <diskOutflowTimescaleMinimum value="2.1949631313087498E-002"/>
     <diskStarFormationTimescaleMinimum value="2.6271201525734244E-005"/>
     <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
@@ -135,8 +138,11 @@
     <odeAlgorithm value="Runge-Kutta-Second-Order"/>
     <odeToleranceAbsolute value="1.0e-3"/>
     <odeToleranceRelative value="0.1"/>
-    <outputRedshifts value="0"/>
-    <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0"/>
+  </outputTimesMethod>
+
+  <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
     <powerSpectrumPrimordialMethod value="powerLaw">
       <index value="0.958781924494571"/>
       <running value="0.0"/>
@@ -163,7 +169,7 @@
     <timestepHostAbsolute value="1.0"/>
     <timestepHostRelative value="0.01"/>
     <mergerTreeEvolveTimestepMethod value="multi">
-      <mergerTreeEvolveTimestepMethod value="simple"    >
+      <mergerTreeEvolveTimestepMethod value="simple">
 	<timestepAbsolute value="1.00"/>
 	<timestepRelative value="0.01"/>
       </mergerTreeEvolveTimestepMethod>

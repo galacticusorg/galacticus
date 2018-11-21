@@ -16,6 +16,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
   
+  use Dark_Matter_Profile_Scales      , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use Halo_Mass_Functions
   use Unevolved_Subhalo_Mass_Functions
   use Dark_Matter_Halo_Biases
@@ -49,6 +50,7 @@
      class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_
      class           (transferFunctionClass            ), pointer :: transferFunction_
      class           (outputTimesClass                 ), pointer :: outputTimes_
+     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_
      double precision                                             :: haloMassMinimum              , haloMassMaximum
      integer                                                      :: pointsPerDecade
      type            (varying_string                   )          :: outputGroup
@@ -87,6 +89,7 @@ contains
     class           (darkMatterHaloBiasClass          ), pointer       :: darkMatterHaloBias_
     class           (transferFunctionClass            ), pointer       :: transferFunction_
     class           (outputTimesClass                 ), pointer       :: outputTimes_
+    class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
     type            (varying_string                   )                :: outputGroup
     double precision                                                   :: haloMassMinimum              , haloMassMaximum
     integer                                                            :: pointsPerDecade
@@ -140,6 +143,7 @@ contains
     !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
     !# <objectBuilder class="transferFunction"             name="transferFunction_"             source="parameters"/>
     !# <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     self=taskHaloMassFunction(                               &
          &                    haloMassMinimum              , &
          &                    haloMassMaximum              , &
@@ -155,6 +159,7 @@ contains
          &                    haloEnvironment_             , &
          &                    unevolvedSubhaloMassFunction_, &
          &                    darkMatterHaloScale_         , &
+         &                    darkMatterProfileScaleRadius_, &
          &                    cosmologicalMassVariance_    , &
          &                    darkMatterHaloBias_          , &
          &                    transferFunction_            , &
@@ -179,6 +184,7 @@ contains
        &                                       haloEnvironment_             , &
        &                                       unevolvedSubhaloMassFunction_, &
        &                                       darkMatterHaloScale_         , &
+       &                                       darkMatterProfileScaleRadius_, &
        &                                       cosmologicalMassVariance_    , &
        &                                       darkMatterHaloBias_          , &
        &                                       transferFunction_            , &
@@ -197,6 +203,7 @@ contains
     class           (haloEnvironmentClass             ), intent(in   ), target :: haloEnvironment_
     class           (unevolvedSubhaloMassFunctionClass), intent(in   ), target :: unevolvedSubhaloMassFunction_
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (cosmologicalMassVarianceClass    ), intent(in   ), target :: cosmologicalMassVariance_
     class           (darkMatterHaloBiasClass          ), intent(in   ), target :: darkMatterHaloBias_
     class           (transferFunctionClass            ), intent(in   ), target :: transferFunction_
@@ -204,7 +211,7 @@ contains
     type            (varying_string                   ), intent(in   )         :: outputGroup
     double precision                                   , intent(in   )         :: haloMassMinimum              , haloMassMaximum
     integer                                            , intent(in   )         :: pointsPerDecade
-    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfile_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_,*cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
+    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfile_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
     
     return
   end function haloMassFunctionConstructorInternal
@@ -224,6 +231,7 @@ contains
     !# <objectDestructor name="self%haloEnvironment_"             />
     !# <objectDestructor name="self%unevolvedSubhaloMassFunction_"/>
     !# <objectDestructor name="self%darkMatterHaloScale_"         />
+    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     !# <objectDestructor name="self%cosmologicalMassVariance_"    />
     !# <objectDestructor name="self%darkMatterHaloBias_"          />
     !# <objectDestructor name="self%transferFunction_"            />
@@ -342,9 +350,9 @@ contains
           ! Reset calculations.
           call Galacticus_Calculations_Reset(tree%baseNode)
           ! Set the mass in the node.
-          call basic                %massSet (massHalo                 (iMass        ))
+          call basic                %massSet (massHalo                                 (iMass        ))
           ! Set the node scale radius.
-          call darkMatterProfileHalo%scaleSet(Dark_Matter_Profile_Scale(tree%baseNode))
+          call darkMatterProfileHalo%scaleSet(self%darkMatterProfileScaleRadius_%radius(tree%baseNode))
           ! Compute bin interval.
           massHaloBinMinimum=massHalo(iMass)*exp(-0.5*massHaloLogarithmicInterval)
           massHaloBinMaximum=massHalo(iMass)*exp(+0.5*massHaloLogarithmicInterval)

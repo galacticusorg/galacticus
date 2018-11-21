@@ -38,13 +38,13 @@ module Dark_Matter_Profiles_Concentration
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !#  <method name="concentrationMean" >
   !#   <description>Returns the mean concentration parameter for a {\normalfont \ttfamily node} of the given mass.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#   <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
   !#  </method>
   !#  <method name="densityContrastDefinition" >

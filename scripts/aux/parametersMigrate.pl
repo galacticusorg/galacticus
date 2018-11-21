@@ -601,7 +601,8 @@ my @translations =
 	     "timestepRecordEvolutionSteps"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--countSteps"                           ,
 	     "igmPropertiesTimeCountPerDecade"                           => "universeOperatorMethod.intergalacticMediumStateEvolve.--timeCountPerDecade"            ,
 	     "igmPropertiesRedshiftMinimum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMinimum"               ,
-	     "igmPropertiesRedshiftMaximum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMaximum"
+	     "igmPropertiesRedshiftMaximum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMaximum"               ,
+	     "darkMatterProfileScaleCorrectForConcentrationDefinition"   => "darkMatterProfileScaleRadiusMethod.concentration.--correctForConcentrationDefinition"
 	 },
 	 values        =>
 	 {

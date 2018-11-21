@@ -112,7 +112,7 @@ contains
     use Root_Finder
     implicit none
     class           (darkMatterProfileConcentrationCorrea2015), intent(inout), target  :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
+    type            (treeNode                                ), intent(inout), target  :: node
     class           (nodeComponentBasic                      )               , pointer :: basic
     double precision                                          , parameter              :: toleranceRelative=1.0d-6
     double precision                                          , parameter              :: toleranceAbsolute=0.0d+0

@@ -216,7 +216,7 @@ contains
     !% algorithm.
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout), target  :: self
-    type            (treeNode                                      ), intent(inout), pointer :: node
+    type            (treeNode                                      ), intent(inout), target  :: node
     class           (nodeComponentBasic                            )               , pointer :: basic
     double precision                                                , parameter              :: littleHubbleConstantDuttonMaccio2014= 0.671d0
     double precision                                                , parameter              :: massNormalization                   =12.000d0

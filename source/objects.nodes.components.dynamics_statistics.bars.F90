@@ -93,9 +93,9 @@ contains
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(parameters)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters

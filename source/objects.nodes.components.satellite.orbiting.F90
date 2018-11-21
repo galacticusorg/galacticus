@@ -153,9 +153,9 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters)
     !% Initializes the tree node orbiting satellite module.
     use Input_Parameters

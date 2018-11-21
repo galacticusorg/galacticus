@@ -98,7 +98,7 @@ contains
     use Dark_Matter_Halo_Formation_Times
     implicit none
     class           (darkMatterProfileConcentrationZhao2009), intent(inout), target  :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
+    type            (treeNode                              ), intent(inout), target  :: node
     class           (nodeComponentBasic                    )               , pointer :: basic
     double precision                                        , parameter              :: concentrationMinimum =4.00d0
     double precision                                        , parameter              :: formationMassFraction=0.04d0

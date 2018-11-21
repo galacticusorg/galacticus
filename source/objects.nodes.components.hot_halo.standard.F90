@@ -431,9 +431,9 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Standard_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize(parameters)
     !% Initializes the tree node hot halo methods module.
     use Input_Parameters

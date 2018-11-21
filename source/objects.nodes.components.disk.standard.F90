@@ -262,9 +262,9 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Disk_Standard_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Disk_Standard_Thread_Initialize(parameters)
     !% Initializes the standard disk component module for each thread.
     use Input_Parameters

@@ -123,7 +123,7 @@ contains
     use Dark_Matter_Profile_Mass_Definitions
     implicit none
     class           (darkMatterProfileConcentrationBullock2001), intent(inout), target  :: self
-    type            (treeNode                                 ), intent(inout), pointer :: node
+    type            (treeNode                                 ), intent(inout), target  :: node
     class           (virialDensityContrastClass               ), pointer                :: virialDensityContrast_
     class           (nodeComponentBasic                       )               , pointer :: basic
     double precision                                                                    :: massHalo              , massHaloFormation       , &

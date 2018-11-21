@@ -127,7 +127,7 @@ contains
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self
-    type            (treeNode                                   ), intent(inout), pointer :: node
+    type            (treeNode                                   ), intent(inout), target  :: node
     class           (nodeComponentBasic                         )               , pointer :: basic
     double precision                                             , parameter              :: toleranceAbsolute          =0.0d00, toleranceRelative=1.0d-6, &
          &                                                                                   massReferenceMaximum       =1.0d20

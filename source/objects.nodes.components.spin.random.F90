@@ -75,9 +75,9 @@ contains
     return
   end subroutine Node_Component_Spin_Random_Initialize
   
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spin_Random_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spin_Random_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters

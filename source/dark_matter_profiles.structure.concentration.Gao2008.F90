@@ -87,7 +87,7 @@ contains
     !% algorithm.
     implicit none
     class           (darkMatterProfileConcentrationGao2008), intent(inout), target  :: self
-    type            (treeNode                             ), intent(inout), pointer :: node
+    type            (treeNode                             ), intent(inout), target  :: node
     class           (nodeComponentBasic                   )               , pointer :: basic
     double precision                                       , parameter              :: littleHubbleConstantGao2008=0.73d0
     double precision                                                                :: logarithmExpansionFactor          , logarithmHaloMass, &

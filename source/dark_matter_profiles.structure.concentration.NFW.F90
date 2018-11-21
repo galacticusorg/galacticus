@@ -135,7 +135,7 @@ contains
     use Virial_Density_Contrast
     implicit none
     class           (darkMatterProfileConcentrationNFW1996), intent(inout), target  :: self
-    type            (treeNode                             ), intent(inout), pointer :: node
+    type            (treeNode                             ), intent(inout), target  :: node
     double precision                                       , parameter              :: fitParameterNuHalf         =0.47693628d0
     double precision                                       , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6
     class           (nodeComponentBasic                   )               , pointer :: basic

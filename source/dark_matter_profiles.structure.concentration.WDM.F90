@@ -90,7 +90,7 @@ contains
     !% using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
     implicit none
     class           (darkMatterProfileConcentrationWDM), intent(inout), target  :: self
-    type            (treeNode                         ), intent(inout), pointer :: node
+    type            (treeNode                         ), intent(inout), target  :: node
     class           (nodeComponentBasic               )               , pointer :: basic
     ! Parameters of Schneider et al. (2012)'s fitting formula.
     double precision                                   , parameter              :: gamma1=15.0d0, gamma2=0.3d0
