@@ -88,7 +88,7 @@ contains
     !% \cite{munoz-cuartas_redshift_2011} algorithm.
     implicit none
     class           (darkMatterProfileConcentrationMunozCuartas2011), intent(inout), target  :: self
-    type            (treeNode                                      ), intent(inout), pointer :: node
+    type            (treeNode                                      ), intent(inout), target  :: node
     class           (nodeComponentBasic                            )               , pointer :: basic
     double precision                                                , parameter              :: alpha                   =-110.001d0, beta               =2469.720d0, &
          &                                                                                      gamma                   =  16.885d0, m                  =0.097d0   , &

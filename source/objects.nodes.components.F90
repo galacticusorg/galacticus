@@ -49,13 +49,13 @@ contains
   subroutine Node_Components_Thread_Initialize(parameters)
     !% Perform initialization tasks for node components.
     use Input_Parameters
-    !# <include directive="nodeComopnentThreadInitializationTask" type="moduleUse">
+    !# <include directive="nodeComponentThreadInitializationTask" type="moduleUse">
     include 'node_components.threadInitialize.moduleUse.inc'
     !# </include>
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
-    !# <include directive="nodeComopnentThreadInitializationTask" type="functionCall" functionType="void">
+    !# <include directive="nodeComponentThreadInitializationTask" type="functionCall" functionType="void">
     !#  <functionArgs>parameters</functionArgs>
     include 'node_components.threadInitialize.inc'
     !# </include>

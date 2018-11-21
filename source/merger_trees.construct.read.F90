@@ -1916,29 +1916,30 @@ contains
   subroutine readAssignScaleRadii(self,nodes,nodeList)
     !% Assign scale radii to nodes.
     use Root_Finder
-    use Dark_Matter_Profile_Scales
+    use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
     use Galacticus_Display
     use Galacticus_Error
     use Input_Parameters
     implicit none
-    class           (mergerTreeConstructorRead     ), target                       , intent(inout) :: self
-    class           (nodeData                      )                 , dimension(:), intent(inout) :: nodes                                                                 
-    type            (treeNodeList                  )                 , dimension(:), intent(inout) :: nodeList                                                              
-    double precision                                , parameter                                    :: scaleRadiusMaximumAllowed  =100.0d0, toleranceAbsolute  =1.0d-9, & 
-         &                                                                                            toleranceRelative          =1.0d-9                                 
-    logical                                                    , save                              :: excessiveScaleRadiiReported=.false.                                
-    class           (nodeComponentBasic            ), pointer                                      :: basic                                      
-    class           (nodeComponentDarkMatterProfile), pointer                                      :: darkMatterProfile                          
-    integer                                                                                        :: iNode                              , status                     , &
-         &                                                                                            messageVerbosity
-    integer         (c_size_t                      )                                               :: iIsolatedNode                                           
-    double precision                                                                               :: radiusScale                                             
-    logical                                                                                        :: excessiveHalfMassRadii             , excessiveScaleRadii        , &
-         &                                                                                            useFallbackScaleMethod
-    type            (rootFinder                    )           , save                              :: finder                                                     
+    class           (mergerTreeConstructorRead        ), target                       , intent(inout) :: self
+    class           (nodeData                         )                 , dimension(:), intent(inout) :: nodes                                                                 
+    type            (treeNodeList                     )                 , dimension(:), intent(inout) :: nodeList                                                              
+    double precision                                   , parameter                                    :: scaleRadiusMaximumAllowed    =100.0d0, toleranceAbsolute  =1.0d-9, & 
+         &                                                                                               toleranceRelative            =1.0d-9                                 
+    logical                                                       , save                              :: excessiveScaleRadiiReported  =.false.                                
+    class           (nodeComponentBasic               ), pointer                                      :: basic                                      
+    class           (nodeComponentDarkMatterProfile   ), pointer                                      :: darkMatterProfile
+    class           (darkMatterProfileScaleRadiusClass), pointer                                      :: darkMatterProfileScaleRadius_
+    integer                                                                                           :: iNode                                , status                     , &
+         &                                                                                               messageVerbosity
+    integer         (c_size_t                         )                                               :: iIsolatedNode                                           
+    double precision                                                                                  :: radiusScale                                             
+    logical                                                                                           :: excessiveHalfMassRadii               , excessiveScaleRadii        , &
+         &                                                                                               useFallbackScaleMethod
+    type            (rootFinder                       )           , save                              :: finder                                                     
     !$omp threadprivate(finder)
-    type            (varying_string                )                                               :: message
-    character       (len=16                        )                                               :: label
+    type            (varying_string                   )                                               :: message
+    character       (len=16                           )                                               :: label
 
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
@@ -1947,8 +1948,9 @@ contains
     end if
     readSelf => self
     ! Find the scale radius.
-    excessiveScaleRadii   =.false.
-    excessiveHalfMassRadii=.false.
+    excessiveScaleRadii           =  .false.
+    excessiveHalfMassRadii        =  .false.
+    darkMatterProfileScaleRadius_ => darkMatterProfileScaleRadius()
     do iNode=1,size(nodes)
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
@@ -1960,20 +1962,20 @@ contains
           darkMatterProfile => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)          
           if (basic%mass() >= self%presetScaleRadiiMinimumMass) then
              ! Check if we have scale radii read directly from file.
-             if     (                                                                   &
-                  &     nodes(iNode)%scaleRadius                                        &
-                  &   >                                                                 &
-                  &     0.0d0                                                           &
-                  &  .and.                                                              &
-                  &     nodes(iNode)%scaleRadius                                        &
-                  &   <                                                                 &
+             if     (                                                                        &
+                  &     nodes(iNode)%scaleRadius                                             &
+                  &   >                                                                      &
+                  &     0.0d0                                                                &
+                  &  .and.                                                                   &
+                  &     nodes(iNode)%scaleRadius                                             &
+                  &   <                                                                      &
                   &     self%darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
-                  &    /self%presetScaleRadiiConcentrationMinimum              &
-                  &  .and.                                                              &
-                  &     nodes(iNode)%scaleRadius                                        &
-                  &   >                                                                 &
+                  &    /self%presetScaleRadiiConcentrationMinimum                            &
+                  &  .and.                                                                   &
+                  &     nodes(iNode)%scaleRadius                                             &
+                  &   >                                                                      &
                   &     self%darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
-                  &    /self%presetScaleRadiiConcentrationMaximum              &
+                  &    /self%presetScaleRadiiConcentrationMaximum                            &
                   & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call darkMatterProfile%scaleSet(nodes(iNode)%scaleRadius)
@@ -1989,10 +1991,10 @@ contains
                 call finder%rangeExpand    (                                                                                   &
                      &                      rangeExpandDownward          =0.5d0                                              , &
                      &                      rangeExpandUpward            =2.0d0                                              , &
-                     &                      rangeDownwardLimit           = self%darkMatterHaloScale_%virialRadius(readNode)       &
-                     &                                                    /self%presetScaleRadiiConcentrationMaximum, &
-                     &                      rangeUpwardLimit             = self%darkMatterHaloScale_%virialRadius(readNode)       &
-                     &                                                    /self%presetScaleRadiiConcentrationMinimum, &
+                     &                      rangeDownwardLimit           = self%darkMatterHaloScale_%virialRadius(readNode)    &
+                     &                                                    /self%presetScaleRadiiConcentrationMaximum         , &
+                     &                      rangeUpwardLimit             = self%darkMatterHaloScale_%virialRadius(readNode)    &
+                     &                                                    /self%presetScaleRadiiConcentrationMinimum         , &
                      &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                      , &
                      &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                      , &
                      &                      rangeExpandType              =rangeExpandMultiplicative                            &
@@ -2001,7 +2003,7 @@ contains
                 if (status == errorStatusSuccess) then
                    call darkMatterProfile%scaleSet(radiusScale)
                    ! Check for scale radii exceeding the virial radius.
-                   if (radiusScale    > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveScaleRadii   =.true.
+                   if (radiusScale        > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveScaleRadii   =.true.
                    ! Check for half-mass radii exceeding the virial radius.
                    if (readRadiusHalfMass > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveHalfMassRadii=.true.
                    useFallbackScaleMethod=.false.
@@ -2037,12 +2039,12 @@ contains
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
              ! the fallback concentration method.
              readNode => nodeList(iIsolatedNode)%node
-             radiusScale=max(                                                                                                       &
-                  &          min(                                                                                                   &
-                  &              Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,concentrationMethod=self%darkMatterProfileConcentration_), &
-                  &              self%darkMatterHaloScale_%virialRadius(readNode)/self%presetScaleRadiiConcentrationMinimum   &
-                  &             )                                                                                                 , &
-                  &              self%darkMatterHaloScale_%virialRadius(readNode)/self%presetScaleRadiiConcentrationMaximum   &
+             radiusScale=max(                                                                                                &
+                  &          min(                                                                                            &
+                  &              darkMatterProfileScaleRadius_%radius(nodeList(iIsolatedNode)%node)                        , &
+                  &              self%darkMatterHaloScale_%virialRadius(readNode)/self%presetScaleRadiiConcentrationMinimum  &
+                  &             )                                                                                          , &
+                  &              self%darkMatterHaloScale_%virialRadius(readNode)/self%presetScaleRadiiConcentrationMaximum  &
                   &         )
              call darkMatterProfile%scaleSet(radiusScale)
           end if

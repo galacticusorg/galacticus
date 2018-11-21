@@ -192,8 +192,8 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{diemer_universal_2014} algorithm.
     implicit none
-    class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout), target  :: self
-    type (treeNode                                        ), intent(inout), pointer :: node
+    class(darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout), target :: self
+    type (treeNode                                        ), intent(inout), target :: node
 
     ! Get the mean concentration.
     diemerKravtsov2014Concentration=self%concentrationMean(node)
@@ -215,7 +215,7 @@ contains
     use Math_Exponentiation
     implicit none
     class           (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)          :: self
-    type            (treeNode                                        ), intent(inout), pointer :: node
+    type            (treeNode                                        ), intent(inout), target  :: node
     class           (nodeComponentBasic                              )               , pointer :: basic
     double precision                                                                           :: radiusHaloLagrangian, peakHeight        , &
          &                                                                                        wavenumber          , powerSpectrumSlope, &

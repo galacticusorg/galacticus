@@ -139,9 +139,9 @@ contains
      return
    end subroutine Node_Component_Satellite_Standard_Initialize
    
-   !# <nodeComopnentThreadInitializationTask>
+   !# <nodeComponentThreadInitializationTask>
    !#  <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
-   !# </nodeComopnentThreadInitializationTask>
+   !# </nodeComponentThreadInitializationTask>
    subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters)
      !% Initializes the tree node standard satellite module.
      use Input_Parameters

@@ -270,9 +270,9 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Standard_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Black_Hole_Standard_Thread_Initialize(parameters)
     !% Initializes the tree node standard black hole module.
     use Input_Parameters

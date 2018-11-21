@@ -23,6 +23,7 @@
   use Statistics_NBody_Halo_Mass_Errors
   use Dark_Matter_Profiles
   use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution" defaultThreadPrivate="yes">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for halo spin distributions.</description>
@@ -30,19 +31,20 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSpinDistribution
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
      private
-     class           (cosmologyFunctionsClass ), pointer                     :: cosmologyFunctions_
-     class           (haloMassFunctionClass   ), pointer                     :: haloMassFunction_
-     class           (nbodyHaloMassErrorClass ), pointer                     :: nbodyHaloMassError_
-     class           (darkMatterProfileClass  ), pointer                     :: darkMatterProfile_
-     class           (darkMatterHaloScaleClass), pointer                     :: darkMatterHaloScale_
-     double precision                          , dimension(:  ), allocatable :: spin                , distribution                      , &
-          &                                                                     spinMinimum         , spinMaximum                       , &
-          &                                                                     distributionError
-     double precision                                                        :: time                , massParticle                      , &
-          &                                                                     massHaloMinimum     , energyEstimateParticleCountMaximum, &
-          &                                                                     redshift
-     integer                                                                 :: particleCountMinimum, distributionType
-     type            (varying_string          )                              :: fileName
+     class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_
+     class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_
+     class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_
+     class           (darkMatterProfileClass           ), pointer                     :: darkMatterProfile_
+     class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_
+     class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_
+     double precision                                   , dimension(:  ), allocatable :: spin                         , distribution                      , &
+          &                                                                              spinMinimum                  , spinMaximum                       , &
+          &                                                                              distributionError
+     double precision                                                                 :: time                         , massParticle                      , &
+          &                                                                              massHaloMinimum              , energyEstimateParticleCountMaximum, &
+          &                                                                              redshift
+     integer                                                                          :: particleCountMinimum         , distributionType
+     type            (varying_string                   )                              :: fileName
    contains
      final     ::                    spinDistributionDestructor
      procedure :: evaluate        => spinDistributionEvaluate
@@ -77,9 +79,10 @@ contains
     class           (nbodyHaloMassErrorClass                  ), pointer       :: nbodyHaloMassError_
     class           (darkMatterProfileClass                   ), pointer       :: darkMatterProfile_
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
-    type            (varying_string                           )                :: fileName               , distributionType
-    double precision                                                           :: redshift               , massHaloMinimum                   , &
-         &                                                                        massParticle           , energyEstimateParticleCountMaximum
+    class           (darkMatterProfileScaleRadiusClass        ), pointer       :: darkMatterProfileScaleRadius_
+    type            (varying_string                           )                :: fileName                     , distributionType
+    double precision                                                           :: redshift                     , massHaloMinimum                   , &
+         &                                                                        massParticle                 , energyEstimateParticleCountMaximum
     integer                                                                    :: particleCountMinimum
 
     !# <inputParameter>
@@ -131,17 +134,18 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"    name="haloMassFunction_"    source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=posteriorSampleLikelihoodSpinDistribution(char(fileName),enumerationSpinDistributionTypeEncode(char(distributionType),includesPrefix=.false.),redshift,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterProfile_,darkMatterHaloScale_)
+    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    self=posteriorSampleLikelihoodSpinDistribution(char(fileName),enumerationSpinDistributionTypeEncode(char(distributionType),includesPrefix=.false.),redshift,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterProfile_,darkMatterHaloScale_,darkMatterProfileScaleRadius_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function spinDistributionConstructorParameters
 
-  function spinDistributionConstructorInternal(fileName,distributionType,redshift,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterProfile_,darkMatterHaloScale_) result(self)
+  function spinDistributionConstructorInternal(fileName,distributionType,redshift,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterProfile_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
     !% Constructor for ``spinDistribution'' posterior sampling likelihood class.
     use IO_HDF5
     use Memory_Management
@@ -150,18 +154,19 @@ contains
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
     character       (len=*                                    ), intent(in   )         :: fileName
-    double precision                                           , intent(in   )         :: redshift               , massHaloMinimum                   , &
-         &                                                                                massParticle           , energyEstimateParticleCountMaximum
-    integer                                                    , intent(in   )         :: particleCountMinimum   , distributionType
+    double precision                                           , intent(in   )         :: redshift                     , massHaloMinimum                   , &
+         &                                                                                massParticle                 , energyEstimateParticleCountMaximum
+    integer                                                    , intent(in   )         :: particleCountMinimum         , distributionType
     class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
     class           (haloMassFunctionClass                    ), intent(in   ), target :: haloMassFunction_
     class           (nbodyHaloMassErrorClass                  ), intent(in   ), target :: nbodyHaloMassError_
     class           (darkMatterProfileClass                   ), intent(in   ), target :: darkMatterProfile_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileScaleRadiusClass        ), intent(in   ), target :: darkMatterProfileScaleRadius_
     type            (hdf5Object                               )                        :: spinDistributionFile
     double precision                                                                   :: spinIntervalLogarithmic
     integer                                                                            :: i
-    !# <constructorAssign variables="fileName, distributionType, redshift, massHaloMinimum, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, *cosmologyFunctions_, *haloMassFunction_, *nbodyHaloMassError_, *darkMatterProfile_, *darkMatterHaloScale_"/>
+    !# <constructorAssign variables="fileName, distributionType, redshift, massHaloMinimum, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, *cosmologyFunctions_, *haloMassFunction_, *nbodyHaloMassError_, *darkMatterProfile_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_"/>
 
     ! Convert redshift to time.
     self%time=self%cosmologyFunctions_ %cosmicTime                 (          &
@@ -200,11 +205,12 @@ contains
     implicit none
     type(posteriorSampleLikelihoodSpinDistribution), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%haloMassFunction_"   />
-    !# <objectDestructor name="self%nbodyHaloMassError_" />
-    !# <objectDestructor name="self%darkMatterProfile_"  />
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"          />
+    !# <objectDestructor name="self%haloMassFunction_"            />
+    !# <objectDestructor name="self%nbodyHaloMassError_"          />
+    !# <objectDestructor name="self%darkMatterProfile_"           />
+    !# <objectDestructor name="self%darkMatterHaloScale_"         />
+    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     return
   end subroutine spinDistributionDestructor
 
@@ -277,7 +283,8 @@ contains
                &                                                self%nbodyHaloMassError_                   , &
                &                                                self%haloMassFunction_                     , &
                &                                                self%darkMatterHaloScale_                  , &
-               &                                                self%darkMatterProfile_                      &
+               &                                                self%darkMatterProfile_                    , &
+               &                                                self%darkMatterProfileScaleRadius_           &
                &                                               )
        end select
     case (spinDistributionTypeBett2007)
@@ -302,7 +309,8 @@ contains
                &                                                self%nbodyHaloMassError_                   , &
                &                                                self%haloMassFunction_                     , &
                &                                                self%darkMatterHaloScale_                  , &
-               &                                                self%darkMatterProfile_                      &
+               &                                                self%darkMatterProfile_                    , &
+               &                                                self%darkMatterProfileScaleRadius_           &
                &                                               )
        end select
     end select

@@ -141,9 +141,9 @@ contains
     return
   end subroutine Node_Component_Basic_Extended_Bindings
   
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Basic_Extended_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Basic_Extended_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters
@@ -160,7 +160,6 @@ contains
   subroutine Node_Component_Basic_Extended_Bertschinger_Solver(self)
     !% Compute the Bertschinger mass and turnaround radii
     use Dark_Matter_Profile_Mass_Definitions
-    use Dark_Matter_Profile_Scales
     implicit none
     class           (nodeComponentBasicStandardExtended), intent(inout) :: self
     type            (treeNode                          ), pointer       :: selfNode

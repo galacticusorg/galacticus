@@ -58,9 +58,9 @@ module Node_Component_Inter_Output_Standard
 
 contains
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Interoutput_Standard_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Interoutput_Standard_Thread_Initialize(parameters)
     !% Initializes the tree node standard interoutput module.
     use Input_Parameters

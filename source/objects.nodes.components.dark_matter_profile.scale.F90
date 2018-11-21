@@ -22,6 +22,7 @@ module Node_Component_Dark_Matter_Profile_Scale
   !% Implements a dark matter profile method that provides a scale radius.
   use Galacticus_Nodes
   use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profile_Scales
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Rate_Compute, Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize  , &
@@ -59,8 +60,9 @@ module Node_Component_Dark_Matter_Profile_Scale
   !# </component>
 
   ! Objects used by this component.
-  class(darkMatterHaloScaleClass), pointer:: darkMatterHaloScale_
-  !$omp threadprivate(darkMatterHaloScale_)
+  class(darkMatterHaloScaleClass         ), pointer:: darkMatterHaloScale_
+  class(darkMatterProfileScaleRadiusClass), pointer:: darkMatterProfileScaleRadius_
+  !$omp threadprivate(darkMatterHaloScale_,darkMatterProfileScaleRadius_)
   
   ! Parameters of the method.
   double precision                                      :: darkMatterProfileMaximumConcentration                  , darkMatterProfileMinimumConcentration
@@ -113,9 +115,9 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters)
     !% Initializes the tree node scale dark matter profile module.
     use Input_Parameters
@@ -123,14 +125,14 @@ contains
     type(inputParameters), intent(inout) :: parameters
 
     if (defaultDarkMatterProfileComponent%scaleIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
 
   double precision function Node_Component_Dark_Matter_Profile_Scale_Scale(self)
     !% Return the scale radius in the dark matter halo profile.
-    use Dark_Matter_Profile_Scales
     implicit none
     class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
     type            (treeNode                           ), pointer       :: selfNode
@@ -139,7 +141,7 @@ contains
 
     ! Set the scale if it isn't already set.
     selfNode => self%host()
-    if (self%scaleValue() < 0.0d0) call self%scaleSet(Dark_Matter_Profile_Scale(selfNode))
+    if (self%scaleValue() < 0.0d0) call self%scaleSet(darkMatterProfileScaleRadius_%radius(selfNode))
     if (self%scaleIsLimited()) then
        radiusVirial      =darkMatterHaloScale_%virialRadius(selfNode)
        scaleLengthMaximum=radiusVirial/darkMatterProfileMinimumConcentration

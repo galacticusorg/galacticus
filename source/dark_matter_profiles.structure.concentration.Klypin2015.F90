@@ -635,7 +635,7 @@ contains
     use Galacticus_Error
     implicit none
     class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
+    type            (treeNode                                ), intent(inout), target  :: node
     class           (nodeComponentBasic                      )               , pointer :: basic
     double precision                                          , parameter              :: massReference            =1.0d12
     double precision                                                                   :: massLittleH                     , concentration0, &

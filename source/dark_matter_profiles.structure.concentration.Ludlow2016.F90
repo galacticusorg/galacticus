@@ -176,7 +176,7 @@ contains
     use Merger_Tree_Walkers
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016), intent(inout), target       :: self
-    type            (treeNode                                ), intent(inout), pointer      :: node
+    type            (treeNode                                ), intent(inout), target       :: node
     type            (treeNode                                )               , pointer      :: nodeBranch
     class           (nodeComponentBasic                      )               , pointer      :: basic                     , basicBranch
     class           (nodeComponentDarkMatterProfile          )               , pointer      :: darkMatterProfile_

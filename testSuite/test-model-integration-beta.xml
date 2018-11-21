@@ -117,8 +117,10 @@
     <phi0 value="7.1395684741179295"/>
     <phi1 value="1.37"/>
   </darkMatterProfileConcentrationMethod>
-  <darkMatterProfileScaleCorrectForConcentrationDefinition value="true"/>
-  
+  <darkMatterProfileScaleRadiusMethod value="concentration">
+    <correctForConcentrationDefinition value="true"/>
+  </darkMatterProfileScaleRadiusMethod>
+
   <!-- Dark matter halo spin -->
   <haloSpinDistributionMethod value="bett2007">
     <alpha value="2.5051096022584427"/>
@@ -218,7 +220,7 @@
   <timestepHostAbsolute value="1.0"/>
   <timestepHostRelative value="0.01"/>
   <mergerTreeEvolveTimestepMethod value="multi">
-    <mergerTreeEvolveTimestepMethod value="simple"    >
+    <mergerTreeEvolveTimestepMethod value="simple">
       <timestepAbsolute value="1.00"/>
       <timestepRelative value="0.01"/>
     </mergerTreeEvolveTimestepMethod>
@@ -235,6 +237,8 @@
     <outputMergerTrees value="true"/>
     <outputReferences value="false"/>
   </mergerTreeOutput>
-  <outputRedshifts value="0.0"/>
-  
-</parameters>
+  <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
+  </parameters>

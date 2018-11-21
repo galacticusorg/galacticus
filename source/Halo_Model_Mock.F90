@@ -41,39 +41,40 @@ program Halo_Model_Mock
   use String_Handling
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Astronomical
-  use Dark_Matter_Profile_Scales
+  use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profiles
   use Galacticus_Calculations_Resets
   implicit none
-  double precision                                , allocatable, dimension(  :) :: haloMass                  , galaxyMass
-  double precision                                , allocatable, dimension(:,:) :: haloPosition              , haloVelocity             , &
-       &                                                                           galaxyPosition            , galaxyVelocity
-  double precision                                             , dimension(3  ) :: satellitePosition         , satelliteVelocity
-  class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_
-  class           (darkMatterProfileClass        ), pointer                     :: darkMatterProfile_
-  class           (darkMatterHaloScaleClass      ), pointer                     :: darkMatterHaloScale_
-  class           (conditionalMassFunctionClass  ), pointer                     :: conditionalMassFunction_
-  type            (treeNode                      ), pointer                     :: node
-  class           (nodeComponentBasic            ), pointer                     :: basic
-  class           (nodeComponentDarkMatterProfile), pointer                     :: profile
-  integer                                                                       :: iHalo                     , galaxyCount              , &
-       &                                                                           satelliteNumberActual     , iSatellite               , &
-       &                                                                           iAxis
-  type            (varying_string                )                              :: parameterFileName         , haloCatalogFileName      , & 
-       &                                                                           galaxyCatalogFileName     , message
-  type            (irate                         )                              :: haloFile                  , galaxyFile
-  double precision                                                              :: haloModelMockMassMinimum  , haloModelMockMassMaximum , &
-       &                                                                           probabilityCentral        , xCentral                 , &
-       &                                                                           massGalaxy                , satelliteNumberMean      , &
-       &                                                                           xSatellite                , redshift                 , &
-       &                                                                           satelliteRadius           , satelliteTheta           , &
-       &                                                                           satellitePhi              , satelliteVelocityCircular, &
-       &                                                                           simulationBoxSize         , populatedHaloMassMinimum
-  type            (pseudoRandom                  )                              :: randomSequence
-  type            (rootFinder                    )                              :: finderCentral             , finderSatellite
-  character       (len=6                         )                              :: label
-  type            (inputParameters               )                              :: parameters
+  double precision                                   , allocatable, dimension(  :) :: haloMass                     , galaxyMass
+  double precision                                   , allocatable, dimension(:,:) :: haloPosition                 , haloVelocity             , &
+       &                                                                              galaxyPosition               , galaxyVelocity
+  double precision                                                , dimension(3  ) :: satellitePosition            , satelliteVelocity
+  class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_
+  class           (darkMatterProfileClass           ), pointer                     :: darkMatterProfile_
+  class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_
+  class           (conditionalMassFunctionClass     ), pointer                     :: conditionalMassFunction_
+  type            (treeNode                         ), pointer                     :: node
+  class           (nodeComponentBasic               ), pointer                     :: basic
+  class           (nodeComponentDarkMatterProfile   ), pointer                     :: profile
+  class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_
+  integer                                                                          :: iHalo                        , galaxyCount              , &
+       &                                                                              satelliteNumberActual        , iSatellite               , &
+       &                                                                              iAxis
+  type            (varying_string                   )                              :: parameterFileName            , haloCatalogFileName      , & 
+       &                                                                              galaxyCatalogFileName        , message
+  type            (irate                            )                              :: haloFile                     , galaxyFile
+  double precision                                                                 :: haloModelMockMassMinimum     , haloModelMockMassMaximum , &
+       &                                                                              probabilityCentral           , xCentral                 , &
+       &                                                                              massGalaxy                   , satelliteNumberMean      , &
+       &                                                                              xSatellite                   , redshift                 , &
+       &                                                                              satelliteRadius              , satelliteTheta           , &
+       &                                                                              satellitePhi                 , satelliteVelocityCircular, &
+       &                                                                              simulationBoxSize            , populatedHaloMassMinimum
+  type            (pseudoRandom                     )                              :: randomSequence
+  type            (rootFinder                       )                              :: finderCentral                , finderSatellite
+  character       (len=6                            )                              :: label
+  type            (inputParameters                  )                              :: parameters
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('Halo_Model_Mock.size')
@@ -106,10 +107,11 @@ program Halo_Model_Mock
   call nodeClassHierarchyInitialize(parameters)
   call Node_Components_Initialize  (parameters)
   ! Get required objects.
-  cosmologyFunctions_      => cosmologyFunctions     ()
-  darkMatterProfile_       => darkMatterProfile      ()
-  darkMatterHaloScale_     => darkMatterHaloScale    ()
-  conditionalMassFunction_ => conditionalMassFunction()
+  cosmologyFunctions_           => cosmologyFunctions          ()
+  darkMatterProfile_            => darkMatterProfile           ()
+  darkMatterHaloScale_          => darkMatterHaloScale         ()
+  conditionalMassFunction_      => conditionalMassFunction     ()
+  darkMatterProfileScaleRadius_ => darkMatterProfileScaleRadius()
   ! Read the halo catalog.
   call Galacticus_Display_Indent("Reading halo catalog")
   haloFile=irate(char(haloCatalogFileName))
@@ -174,10 +176,10 @@ program Halo_Model_Mock
      satelliteNumberActual=+randomSequence%poissonSample(satelliteNumberMean)
      if (satelliteNumberActual > 0) then
         ! Construct the dark matter halo profile.
-        call basic  %massSet              (haloMass                 (iHalo))
-        call Galacticus_Calculations_Reset(                          node  )
-        call profile%scaleSet             (Dark_Matter_Profile_Scale(node ))
-        call Galacticus_Calculations_Reset(                          node  )
+        call basic  %massSet              (haloMass                            (iHalo))
+        call Galacticus_Calculations_Reset(                                     node  )
+        call profile%scaleSet             (darkMatterProfileScaleRadius_%radius(node ))
+        call Galacticus_Calculations_Reset(                                     node  )
         do iSatellite=1,satelliteNumberActual
            ! Sample satellite galaxy mass.        
            xSatellite               =     randomSequence%uniformSample()*satelliteNumberMean
