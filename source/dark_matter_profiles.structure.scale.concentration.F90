@@ -145,17 +145,17 @@ contains
     use Numerical_Constants_Math
     use Numerical_Comparison
     implicit none
-    class           (darkMatterProfileScaleRadiusConcentration), intent(inout) :: self
-    type            (treeNode                                 ), intent(inout) :: node
-    class           (nodeComponentBasic                       ), pointer       :: basic
-    type            (treeNode                                 ), pointer       :: workNode
-    class           (nodeComponentBasic                       ), pointer       :: workBasic
-    class           (nodeComponentDarkMatterProfile           ), pointer       :: workDarkMatterProfile
-    double precision                                           , parameter     :: massRatioBuffer      =1.1d0, massRatioShrink=0.99d0
-    type            (rootFinder                               )                :: finder
-    double precision                                                           :: mass                       , massDefinition        , &
-         &                                                                        concentration              , massRatio
-    double precision                                                           :: concentrationOriginal
+    class           (darkMatterProfileScaleRadiusConcentration), intent(inout), target :: self
+    type            (treeNode                                 ), intent(inout), target :: node
+    class           (nodeComponentBasic                       ), pointer               :: basic
+    type            (treeNode                                 ), pointer               :: workNode
+    class           (nodeComponentBasic                       ), pointer               :: workBasic
+    class           (nodeComponentDarkMatterProfile           ), pointer               :: workDarkMatterProfile
+    double precision                                           , parameter             :: massRatioBuffer      =1.1d0, massRatioShrink=0.99d0
+    type            (rootFinder                               )                        :: finder
+    double precision                                                                   :: mass                       , massDefinition        , &
+         &                                                                                concentration              , massRatio
+    double precision                                                                   :: concentrationOriginal
 
     ! Find the original concentration.
     if (self%useMeanConcentration) then
