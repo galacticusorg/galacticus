@@ -19,16 +19,15 @@
   !% An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2014}
   !% algorithm.
   
-  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2014">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.</description>
-  !# </darkMatterProfileConcentration>
-  type, extends(darkMatterProfileConcentrationLudlow2016) :: darkMatterProfileConcentrationLudlow2014
-     !% A dark matter halo profile concentration class implementing the algorithm of
-     !% \cite{ludlow_mass-concentration-redshift_2014}.
+  !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2014">
+  !#  <description>Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.</description>
+  !# </darkMatterProfileScaleRadius>
+  type, extends(darkMatterProfileScaleRadiusLudlow2016) :: darkMatterProfileScaleRadiusLudlow2014
+     !% A dark matter halo profile scale radii class implementing the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.
      private
    contains
      !@ <objectMethods>
-     !@   <object>darkMatterProfileConcentrationLudlow2014</object>
+     !@   <object>darkMatterProfileScaleRadiusLudlow2014</object>
      !@   <objectMethod>
      !@     <method>formationTimeRoot</method>
      !@     <type>\doublezero</type>
@@ -44,13 +43,13 @@
      !@ </objectMethods>
      procedure, nopass :: formationTimeRoot            => ludlow2014FormationTimeRoot
      procedure         :: formationTimeRootFunctionSet => ludlow2014FormationTimeRootFunctionSet
-  end type darkMatterProfileConcentrationLudlow2014
+  end type darkMatterProfileScaleRadiusLudlow2014
 
-  interface darkMatterProfileConcentrationLudlow2014
+  interface darkMatterProfileScaleRadiusLudlow2014
      !% Constructors for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
      module procedure ludlow2014ConstructorParameters
      module procedure ludlow2014ConstructorInternal
-  end interface darkMatterProfileConcentrationLudlow2014
+  end interface darkMatterProfileScaleRadiusLudlow2014
 
 contains
 
@@ -58,27 +57,26 @@ contains
     !% Default constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
     use Input_Parameters
     implicit none
-    type(darkMatterProfileConcentrationLudlow2014)                :: self
-    type(inputParameters                         ), intent(inout) :: parameters
+    type(darkMatterProfileScaleRadiusLudlow2014)                :: self
+    type(inputParameters                       ), intent(inout) :: parameters
 
-    self%darkMatterProfileConcentrationLudlow2016=darkMatterProfileConcentrationLudlow2016(parameters)
+    self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(parameters)
     return
   end function ludlow2014ConstructorParameters
   
-  function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileConcentration_,darkMatterHaloScale_,darkMatterProfile_) result(self)
+  function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfile_) result(self)
     !% Constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
-    type            (darkMatterProfileConcentrationLudlow2014)                        :: self
-    double precision                                          , intent(in   )         :: C                              , f, &
-         &                                                                               timeFormationSeekDelta
-    class           (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctions_
-    class           (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_     
-    class           (darkMatterProfileConcentrationClass     ), intent(in   ), target :: darkMatterProfileConcentration_
-    class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileClass                  ), intent(in   ), target :: darkMatterProfile_
+    type            (darkMatterProfileScaleRadiusLudlow2014)                        :: self
+    double precision                                        , intent(in   )         :: C                            , f, &
+         &                                                                             timeFormationSeekDelta
+    class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
+    class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_     
+    class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
+    class           (darkMatterProfileClass                ), intent(in   ), target :: darkMatterProfile_
 
-    self%darkMatterProfileConcentrationLudlow2016=darkMatterProfileConcentrationLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileConcentration_,darkMatterHaloScale_,darkMatterProfile_)
+    self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfile_)
     return
   end function ludlow2014ConstructorInternal
 
@@ -86,9 +84,9 @@ contains
     !% Initialize the finder object to compute the relevant formation history.
     use Root_Finder
     implicit none
-    class           (darkMatterProfileConcentrationLudlow2014), intent(inout) :: self
-    type            (rootFinder                              ), intent(inout) :: finder
-    double precision                                          , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-4
+    class           (darkMatterProfileScaleRadiusLudlow2014), intent(inout) :: self
+    type            (rootFinder                            ), intent(inout) :: finder
+    double precision                                        , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-4
     !GCC$ attributes unused :: self
 
     if (.not.finder%isInitialized()) then
@@ -100,6 +98,7 @@ contains
   
   double precision function ludlow2014FormationTimeRoot(timeFormation)
     !% Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2014} concentration algorithm.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
     implicit none
     double precision                    , intent(in   ) :: timeFormation

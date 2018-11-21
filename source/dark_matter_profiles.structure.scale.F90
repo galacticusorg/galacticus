@@ -34,7 +34,8 @@ module Dark_Matter_Profile_Scales
   !#   <description>Returns the scale radius for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !# </functionClass>
   
