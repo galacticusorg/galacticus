@@ -602,7 +602,11 @@ my @translations =
 	     "igmPropertiesTimeCountPerDecade"                           => "universeOperatorMethod.intergalacticMediumStateEvolve.--timeCountPerDecade"            ,
 	     "igmPropertiesRedshiftMinimum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMinimum"               ,
 	     "igmPropertiesRedshiftMaximum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMaximum"               ,
-	     "darkMatterProfileScaleCorrectForConcentrationDefinition"   => "darkMatterProfileScaleRadiusMethod.concentration.--correctForConcentrationDefinition"
+	     "darkMatterProfileScaleCorrectForConcentrationDefinition"   => "darkMatterProfileScaleRadiusMethod.concentration.--correctForConcentrationDefinition"  ,
+	     "allTreesExistAtFinalTime"                                  => "mergerTreeEvolverMethod.standard.--allTreesExistAtFinalTime"                           ,
+	     "mergerTreesDumpStructure"                                  => "mergerTreeEvolverMethod.standard.--dumpTreeStructure"                                  ,
+	     "timestepHostRelative"                                      => "mergerTreeEvolverMethod.standard.--timestepHostRelative"                               ,
+	     "timestepHostAbsolute"                                      => "mergerTreeEvolverMethod.standard.--timestepHostAbsolute"		 
 	 },
 	 values        =>
 	 {

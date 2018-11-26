@@ -69,7 +69,12 @@
     <presetSubhaloMasses value="false"/>
   </mergerTreeConstructorMethod>
   <galacticusOutputFileName value="testSuite/outputs/regressions/treeWithInitialSatelliteInProgenitorlessHost.hdf5"/>
-  <allTreesExistAtFinalTime value="false"/>
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
+
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -226,13 +231,12 @@
   <odeToleranceRelative value="0.01"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.1"/>
-
   <!-- Output options -->
   <mergerTreeOutput>
     <outputReferences value="false"/>
   </mergerTreeOutput>
-  <outputRedshifts value="0.0 1.0 2.0 3.0"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0.0 1.0 2.0 3.0"/>
+  </outputTimesMethod>
 
-</parameters>
+  </parameters>

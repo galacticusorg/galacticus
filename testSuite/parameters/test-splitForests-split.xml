@@ -62,8 +62,12 @@
     <forestSizeMaximum value="1000"/>
     <presetScaleRadii value="false"/>
   </mergerTreeConstructorMethod>
-  <allTreesExistAtFinalTime value="false"/>
-  
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
+
   <!-- Substructure hierarchy options -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
 
@@ -222,9 +226,6 @@
   <odeToleranceRelative value="0.01"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.1"/>
-
   <!-- Output options -->
   <mergerTreeOutput>
     <outputReferences value="false"/>

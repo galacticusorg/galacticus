@@ -1354,8 +1354,11 @@
       <OmegaBaryon value="0.045"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
+    <mergerTreeEvolverMethod value="standard">
     <allTreesExistAtFinalTime value="false"/>
-    <mergerTreeOperatorMethod value="perturbMasses">
+  </mergerTreeEvolverMethod>
+
+  <mergerTreeOperatorMethod value="perturbMasses">
       <nbodyHaloMassErrorMethod value="friendsOfFriends">
  	<massParticle value="1.0e9"/>
       </nbodyHaloMassErrorMethod>
@@ -1401,8 +1404,11 @@
       <OmegaBaryon value="0.045"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
+    <mergerTreeEvolverMethod value="standard">
     <allTreesExistAtFinalTime value="false"/>
-    <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
+  </mergerTreeEvolverMethod>
+
+  <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1444,8 +1450,11 @@
     <presetSpins value="false"/>
     <presetOrbits value="false"/>
   </mergerTreeConstructorMethod>
+    <mergerTreeEvolverMethod value="standard">
     <allTreesExistAtFinalTime value="false"/>
-    <mergerTreeOperatorMethod value="outputRootMasses">
+  </mergerTreeEvolverMethod>
+
+  <mergerTreeOperatorMethod value="outputRootMasses">
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperatorMethod>
@@ -1591,9 +1600,12 @@
     <mergerRemnantSizeMethod value="null"/>
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
+    <mergerTreeEvolverMethod value="standard">
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>
-    <mergerTreeEvolveTimestepMethod value="multi">
+  </mergerTreeEvolverMethod>
+
+  <mergerTreeEvolveTimestepMethod value="multi">
       <mergerTreeEvolveTimestepMethod value="simple">
 	<timestepAbsolute value="10.00"/>
 	<timestepRelative value="10.00"/>

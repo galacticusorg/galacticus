@@ -28,7 +28,7 @@
       <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
 	<massTreeMinimum value="1.0e10"/>
 	<massTreeMaximum value="1.0e13"/>
-	<treesPerDecade  value="20"    />
+	<treesPerDecade value="20"/>
       </mergerTreeBuildMassesMethod>
     </mergerTreeConstructorMethod>
     <mergerTreeConstructorMethod value="read">

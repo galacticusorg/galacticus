@@ -17,7 +17,10 @@
     <presetScaleRadii value="true"/>
   </mergerTreeConstructorMethod>
   <galacticusOutputFileName value="testSuite/outputs/bug1066052.hdf5"/>
-  <allTreesExistAtFinalTime value="false"/>
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+  </mergerTreeEvolverMethod>
+
   <treeNodeMethodPosition value="preset"/>
   <treeNodeMethodSatellite value="preset"/>
   <cosmologyParametersMethod value="simple">
@@ -40,7 +43,10 @@
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
   <verbosityLevel value="1"/>
   <nodePromotionIndexShift value="false"/>
-  <outputRedshifts value="0.000"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0.000"/>
+  </outputTimesMethod>
+
   <galacticDynamicsBarInstabilityMethod value="stable"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <efficiency value="0.0"/>

@@ -236,8 +236,10 @@
   <odeToleranceRelative value="0.01"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.1"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
 
   <!-- Output options -->
   <mergerTreeOutput>

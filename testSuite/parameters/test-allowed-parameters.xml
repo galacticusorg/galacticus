@@ -153,10 +153,13 @@
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
-  <timestepHostAbsolute value="1.00"/>
-  <timestepHostRelative value="0.10"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.00"/>
+    <timestepHostRelative value="0.10"/>
+  </mergerTreeEvolverMethod>
+
   <mergerTreeEvolveTimestepMethod value="multi">
-    <mergerTreeEvolveTimestepMethod value="simple"    >
+    <mergerTreeEvolveTimestepMethod value="simple">
       <timestepAbsolute value="10.00"/>
       <timestepRelative value="10.00"/>
     </mergerTreeEvolveTimestepMethod>
@@ -171,7 +174,9 @@
   <!-- Output options -->
   <outputTimestepHistory value="false"/>
   <outputVirialData value="true"/>
-  <outputRedshifts value="0.0"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
 
   <!-- Output file -->
   <galacticusOutputFileName value="subhalosWDM.hdf5"/>

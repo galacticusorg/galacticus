@@ -103,7 +103,10 @@
   <nodeMergersMethod value="single level hierarchy"/>
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
-  <outputRedshifts value="0"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0"/>
+  </outputTimesMethod>
+
   <outputVirialData value="false"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="0.961"/>
@@ -142,8 +145,11 @@
   <starveSatellites value="true"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSpectraMethod value="FSPS"/>
-  <timestepHostAbsolute value="1"/>
-  <timestepHostRelative value="0.1"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
+
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
