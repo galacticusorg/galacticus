@@ -81,7 +81,12 @@
   </mergerTreeMassResolutionMethod>
   <starveSatellites value="true"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
-  <allTreesExistAtFinalTime value="false"/>
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+    <timestepHostRelative value="0.1"/>
+    <timestepHostAbsolute value="1.0"/>
+  </mergerTreeEvolverMethod>
+
   <hotHaloTemperatureProfileMethod value="virial"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -124,7 +129,6 @@
   
   <initialMassFunctionMethod value="chabrier2001"/>
   <treeNodeMethodHotHalo value="verySimple"/>
-  <timestepHostRelative value="0.1"/>
   <randomSeed value="828"/>
   <starFormationFeedbackDisksMethod value="haloScaling">
     <fraction value="1.0"/>
@@ -138,9 +142,11 @@
   </coolingRateMethod>
   <treeNodeMethodSpin value="null"/>
   <treeNodeMethodPosition value="preset"/>
-  <outputRedshifts value="0.0700"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0.0700"/>
+  </outputTimesMethod>
+
   <coolingRadiusMethod value="isothermal"/>
-  <timestepHostAbsolute value="1.0"/>
   <galacticStructureRadiusSolverMethod value="fixed"/>
   <mergerTreeConstructorMethod value="read">
   <presetMergerTimes value="true"/>

@@ -167,7 +167,7 @@ contains
           case ('multistepAdams')
              Galacticus_ODE_Algorithm=Fodeiv2_Step_msAdams
           case ('Bulirsch-Stoer')
-             Galacticus_ODE_Algorithm=Fodeiv2_step_BSImp
+             Galacticus_ODE_Algorithm=Fodeiv2_step_BSimp
              useJacobian             =.true.
           case ('BDF')
              Galacticus_ODE_Algorithm=Fodeiv2_step_MSBDFActive
