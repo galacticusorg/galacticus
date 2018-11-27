@@ -255,7 +255,6 @@
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
   <!-- Output options -->
   <mergerTreeOutputterMethod value="standard">
-    <outputMergerTrees value="true"/>
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
   <galacticusOutputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>

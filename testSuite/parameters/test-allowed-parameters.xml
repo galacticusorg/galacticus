@@ -182,7 +182,6 @@
   <galacticusOutputFileName value="subhalosWDM.hdf5"/>
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-    <outputMergerTrees value="true"/>
     <outputAnalysisMethod value="volumeFunction1D">
       <label value="dummy"/>
       <comment value="dummy"/>

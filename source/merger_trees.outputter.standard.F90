@@ -42,7 +42,7 @@
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterStandard
      !% Implementation of the standars merger tree outputter.
      private
-     logical                                                                     :: outputReferences                 , outputMergerTrees
+     logical                                                                     :: outputReferences
      type            (hdf5Object                  )                              :: outputsGroup
      logical                                                                     :: outputsGroupOpened     
      integer         (c_size_t                    )                              :: outputGroupsCount      
@@ -150,17 +150,9 @@ contains
     type   (outputAnalyses             ), allocatable  , dimension(:) :: outputAnalysisList
     class  (galacticFilterClass        ), pointer                     :: galacticFilter_
     class  (cosmologyFunctionsClass    ), pointer                     :: cosmologyFunctions_
-    logical                                                           :: outputReferences   , outputMergerTrees
+    logical                                                           :: outputReferences
     integer                                                           :: i                  , analysisCount
     
-    !# <inputParameter>
-    !#   <name>outputMergerTrees</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not merger tree datasets should be output.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputReferences</name>
     !#   <source>parameters</source>
@@ -186,12 +178,12 @@ contains
     end if
     !# <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>          
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>          
-    self=mergerTreeOutputterStandard(outputMergerTrees,outputReferences,outputAnalysisList,analyses,galacticFilter_,cosmologyFunctions_)
+    self=mergerTreeOutputterStandard(outputReferences,outputAnalysisList,analyses,galacticFilter_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(outputMergerTrees,outputReferences,outputAnalysisList,analyses,galacticFilter_,cosmologyFunctions_) result(self)
+  function standardConstructorInternal(outputReferences,outputAnalysisList,analyses,galacticFilter_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree outputter class.
     implicit none
     type   (mergerTreeOutputterStandard)                              :: self
@@ -199,8 +191,8 @@ contains
     type   (outputAnalyses             ), intent(in   ), dimension(:) :: outputAnalysisList
     class  (galacticFilterClass        ), intent(in   ), target       :: galacticFilter_
     class  (cosmologyFunctionsClass    ), intent(in   ), target       :: cosmologyFunctions_
-    logical                             , intent(in   )               :: outputReferences   , outputMergerTrees
-    !# <constructorAssign variables="outputMergerTrees, outputReferences, outputAnalysisList, analyses, *galacticFilter_, *cosmologyFunctions_"/>
+    logical                             , intent(in   )               :: outputReferences
+    !# <constructorAssign variables="outputReferences, outputAnalysisList, analyses, *galacticFilter_, *cosmologyFunctions_"/>
 
     self%outputsGroupOpened      =.false.
     self%outputGroupsCount       = 0
@@ -305,143 +297,141 @@ contains
        currentTree => currentTree%nextTree
     end do
     ! Main output block.
-    if (self%outputMergerTrees) then
-       !$omp critical(mergerTreeOutputterStandard)
-       ! Create an output group.
-       call self%outputGroupCreate(indexOutput,time)
-       ! Iterate over trees.
-       currentTree => tree
-       do while (associated(currentTree))          
-          ! Get the base node of the tree.
-          node => currentTree%baseNode
-          ! Skip empty trees.
-          if (associated(node)) then          
-             ! Initialize output buffers.
-             ! Count up the number of properties to be output.
-             call self%propertiesCount        (time,node)          
-             ! Ensure buffers are allocated for temporary property storage.
-             call self%buffersAllocate        (indexOutput      )
-             ! Get names for all properties to be output.
-             call self%propertyNamesEstablish(time,node)
-             ! Loop over all nodes in the tree.
-             self%integerPropertiesWritten=0
-             self%doublePropertiesWritten =0
-             treeWalker=mergerTreeWalkerAllNodes(currentTree)
-             do while (treeWalker%next(node))
-                ! Get the basic component.
-                basic => node%basic()
-                if (basic%time() == time) then
-                   ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
-                   ! calculations would not be automatically reset because the node unique ID will not have changed).
-                   call Galacticus_Calculations_Reset (node)
-                    ! Test whether this node passes all output filters.
-                   nodePassesFilter=self%galacticFilter_%passes(node)
-                   if (nodePassesFilter) then
-                      ! Initialize the instance counter.
-                      instance=multiCounter([1_c_size_t])
-                      !# <include directive="mergerTreeOutputInstances" type="functionCall" functionType="void">
-                      !#  <functionArgs>node,indexOutput,instance</functionArgs>
-                      include 'galacticus.output.merger_tree.instances.inc'
-                      !# </include>
-                      do while (instance%increment())
-                         if (self%integerPropertyCount > 0) then
-                            integerProperty=0
-                            self%integerBufferCount=self%integerBufferCount+1
-                         end if
-                         if (self%doublePropertyCount > 0) then
-                            doubleProperty=0
-                            self%doubleBufferCount=self%doubleBufferCount+1
-                         end if
-                         ! Populate the output buffers with properties. We first populate with any "extra" properites that may be
-                         ! being computed, and then call the standard treeNode output method to populate with all "standard"
-                         ! properties. This order of operation is chosen because the treeNode output method will perform some clean
-                         ! up (e.g. removing stellar luminosities no longer needed after this output). These quantities may be
-                         ! required by the "extra" property calculations, thus requiring the extra property calculations to be
-                         ! carried out first.                      
-                         !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
-                         !#  <functionArgs>node,integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance</functionArgs>
-                         include 'galacticus.output.merger_tree.tasks.inc'
-                         !# </include>
-                         call node%output(integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance)
-                         ! If buffer is full, dump it to file.
-                         if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
-                         if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
-                      end do                      
-                   end if
-                   ! Do any extra output tasks.
-                   !# <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
-                   !#  <functionArgs>node,indexOutput,currentTree%index,nodePassesFilter</functionArgs>
-                   include 'galacticus.output.merger_tree.tasks.extra.inc'
+    !$omp critical(mergerTreeOutputterStandard)
+    ! Create an output group.
+    call self%outputGroupCreate(indexOutput,time)
+    ! Iterate over trees.
+    currentTree => tree
+    do while (associated(currentTree))          
+       ! Get the base node of the tree.
+       node => currentTree%baseNode
+       ! Skip empty trees.
+       if (associated(node)) then          
+          ! Initialize output buffers.
+          ! Count up the number of properties to be output.
+          call self%propertiesCount        (time,node)          
+          ! Ensure buffers are allocated for temporary property storage.
+          call self%buffersAllocate        (indexOutput      )
+          ! Get names for all properties to be output.
+          call self%propertyNamesEstablish(time,node)
+          ! Loop over all nodes in the tree.
+          self%integerPropertiesWritten=0
+          self%doublePropertiesWritten =0
+          treeWalker=mergerTreeWalkerAllNodes(currentTree)
+          do while (treeWalker%next(node))
+             ! Get the basic component.
+             basic => node%basic()
+             if (basic%time() == time) then
+                ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
+                ! calculations would not be automatically reset because the node unique ID will not have changed).
+                call Galacticus_Calculations_Reset (node)
+                ! Test whether this node passes all output filters.
+                nodePassesFilter=self%galacticFilter_%passes(node)
+                if (nodePassesFilter) then
+                   ! Initialize the instance counter.
+                   instance=multiCounter([1_c_size_t])
+                   !# <include directive="mergerTreeOutputInstances" type="functionCall" functionType="void">
+                   !#  <functionArgs>node,indexOutput,instance</functionArgs>
+                   include 'galacticus.output.merger_tree.instances.inc'
                    !# </include>
-                   !# <eventHook name="mergerTreeExtraOutput">
-                   !#  <callWith>node,indexOutput,currentTree%index,nodePassesFilter</callWith>
-                   !# </eventHook>
-                end if
-             end do
-             ! Finished output.
-             if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
-             if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
-             ! Compute the start and length of regions to reference.
-             !$ call hdf5Access%set()
-             referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
-             if      (self%integerPropertiesWritten > 0) then
-                toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerPropertyNames(1))
-             else if (self% doublePropertiesWritten > 0) then
-                toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doublePropertyNames(1))
-             else
-                call Galacticus_Error_Report('unable to determine starting point for tree output'//{introspection:location})
-             end if
-             referenceStart(1)=toDataset%size(1)-referenceLength(1)
-             call toDataset%close()
-             ! Create references to the datasets if requested.
-             if (self%outputReferences) then
-                ! Ensure that a group has been made for this merger tree.
-                call self%makeGroup(currentTree,indexOutput)             
-                ! Create references for this tree.
-                if (self%integerPropertyCount > 0 .and. self%integerPropertiesWritten > 0) then
-                   do iProperty=1,self%integerPropertyCount
-                      toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerPropertyNames(iProperty))
-                      call currentTree%hdf5Group%createReference1D(toDataset,self%integerPropertyNames(iProperty),referenceStart+1,referenceLength)
-                      call toDataset%close()
+                   do while (instance%increment())
+                      if (self%integerPropertyCount > 0) then
+                         integerProperty=0
+                         self%integerBufferCount=self%integerBufferCount+1
+                      end if
+                      if (self%doublePropertyCount > 0) then
+                         doubleProperty=0
+                         self%doubleBufferCount=self%doubleBufferCount+1
+                      end if
+                      ! Populate the output buffers with properties. We first populate with any "extra" properites that may be
+                      ! being computed, and then call the standard treeNode output method to populate with all "standard"
+                      ! properties. This order of operation is chosen because the treeNode output method will perform some clean
+                      ! up (e.g. removing stellar luminosities no longer needed after this output). These quantities may be
+                      ! required by the "extra" property calculations, thus requiring the extra property calculations to be
+                      ! carried out first.                      
+                      !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
+                      !#  <functionArgs>node,integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance</functionArgs>
+                      include 'galacticus.output.merger_tree.tasks.inc'
+                      !# </include>
+                      call node%output(integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance)
+                      ! If buffer is full, dump it to file.
+                      if (self%integerBufferCount == self%integerBufferSize) call self%extendIntegerBuffer()
+                      if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
                    end do
                 end if
-                if (self%doublePropertyCount > 0  .and. self%doublePropertiesWritten  > 0) then
-                   do iProperty=1,self%doublePropertyCount
-                      toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doublePropertyNames(iProperty))
-                      call currentTree%hdf5Group%createReference1D(toDataset,self%doublePropertyNames(iProperty),referenceStart+1,referenceLength)
-                      call toDataset%close()
-                   end do
-                end if
-                ! Close the tree group.
-                call currentTree%hdf5Group%close()
+                ! Do any extra output tasks.
+                !# <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
+                !#  <functionArgs>node,indexOutput,currentTree%index,nodePassesFilter</functionArgs>
+                include 'galacticus.output.merger_tree.tasks.extra.inc'
+                !# </include>
+                !# <eventHook name="mergerTreeExtraOutput">
+                !#  <callWith>node,indexOutput,currentTree%index,nodePassesFilter</callWith>
+                !# </eventHook>
              end if
-             ! Store the start position and length of the node data for this tree, along with its volume weight.
-             call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
-             call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceStart            ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
-             call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceLength           ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
-             call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
-             !$ call hdf5Access%unset()
+          end do
+          ! Finished output.
+          if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
+          if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
+          ! Compute the start and length of regions to reference.
+          !$ call hdf5Access%set()
+          referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
+          if      (self%integerPropertiesWritten > 0) then
+             toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerPropertyNames(1))
+          else if (self% doublePropertiesWritten > 0) then
+             toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doublePropertyNames(1))
+          else
+             call Galacticus_Error_Report('unable to determine starting point for tree output'//{introspection:location})
           end if
-          ! Skip to the next tree.
-          currentTree => currentTree%nextTree
-       end do
-       ! Close down if this is the final output.
-       if (present(isLastOutput)) then
-          if (isLastOutput) then
-             ! Close any open output groups.
-             !$ call hdf5Access%set()
-             do iGroup=1,self%outputGroupsCount
-                if (self%outputGroups(iGroup)%opened) then
-                   if (self%outputGroups(iGroup)%nodeDataGroup%isOpen()) call self%outputGroups(iGroup)%nodeDataGroup%close()
-                   if (self%outputGroups(iGroup)%hdf5Group    %isOpen()) call self%outputGroups(iGroup)%hdf5Group    %close()
-                end if
-             end do
-             if (self%outputsGroup%isOpen()) call self%outputsGroup%close()
-             !$ call hdf5Access%unset()
+          referenceStart(1)=toDataset%size(1)-referenceLength(1)
+          call toDataset%close()
+          ! Create references to the datasets if requested.
+          if (self%outputReferences) then
+             ! Ensure that a group has been made for this merger tree.
+             call self%makeGroup(currentTree,indexOutput)             
+             ! Create references for this tree.
+             if (self%integerPropertyCount > 0 .and. self%integerPropertiesWritten > 0) then
+                do iProperty=1,self%integerPropertyCount
+                   toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerPropertyNames(iProperty))
+                   call currentTree%hdf5Group%createReference1D(toDataset,self%integerPropertyNames(iProperty),referenceStart+1,referenceLength)
+                   call toDataset%close()
+                end do
+             end if
+             if (self%doublePropertyCount > 0  .and. self%doublePropertiesWritten  > 0) then
+                do iProperty=1,self%doublePropertyCount
+                   toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%doublePropertyNames(iProperty))
+                   call currentTree%hdf5Group%createReference1D(toDataset,self%doublePropertyNames(iProperty),referenceStart+1,referenceLength)
+                   call toDataset%close()
+                end do
+             end if
+             ! Close the tree group.
+             call currentTree%hdf5Group%close()
           end if
+          ! Store the start position and length of the node data for this tree, along with its volume weight.
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%index]       ,"mergerTreeIndex"     ,"Index of each merger tree."                                  ,appendTo=.true.)
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceStart            ,"mergerTreeStartIndex","Index in nodeData datasets at which each merger tree begins.",appendTo=.true.)
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceLength           ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
+          call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
+          !$ call hdf5Access%unset()
        end if
-       !$omp end critical(mergerTreeOutputterStandard)
+       ! Skip to the next tree.
+       currentTree => currentTree%nextTree
+    end do
+    ! Close down if this is the final output.
+    if (present(isLastOutput)) then
+       if (isLastOutput) then
+          ! Close any open output groups.
+          !$ call hdf5Access%set()
+          do iGroup=1,self%outputGroupsCount
+             if (self%outputGroups(iGroup)%opened) then
+                if (self%outputGroups(iGroup)%nodeDataGroup%isOpen()) call self%outputGroups(iGroup)%nodeDataGroup%close()
+                if (self%outputGroups(iGroup)%hdf5Group    %isOpen()) call self%outputGroups(iGroup)%hdf5Group    %close()
+             end if
+          end do
+          if (self%outputsGroup%isOpen()) call self%outputsGroup%close()
+          !$ call hdf5Access%unset()
+       end if
     end if
+    !$omp end critical(mergerTreeOutputterStandard)
     return
   end subroutine standardOutput
 
