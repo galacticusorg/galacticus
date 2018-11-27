@@ -237,10 +237,10 @@
   </mergerTreeEvolverMethod>
 
   <!-- Output options -->
-  <mergerTreeOutput value="">
+  <mergerTreeOutputterMethod value="standard">
     <outputMergerTrees value="true"/>
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <galacticusOutputFileName value="testSuite/outputs/test-model-integration/default/galacticus.hdf5"/>
   
 </parameters>

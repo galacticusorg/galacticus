@@ -296,9 +296,9 @@
   </mergerTreeEvolverMethod>
 
   <!-- Output options -->
-    <mergerTreeOutput>
+    <mergerTreeOutputterMethod value="standard">
       <outputReferences value="false"/>
-    </mergerTreeOutput>
+    </mergerTreeOutputterMethod>
 
   </parameters>
 
