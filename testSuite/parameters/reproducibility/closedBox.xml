@@ -93,9 +93,9 @@
   </mergerTreeEvolverMethod>
 
   <!-- Output options -->
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/closedBox.hdf5"/>

@@ -95,9 +95,9 @@
   </mergerTreeEvolverMethod>
 
   <!-- Output options -->
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   
   <!-- Merger tree operations -->
   <mergerTreeOperatorMethod value="sequence">

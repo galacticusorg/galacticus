@@ -87,9 +87,9 @@
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
   <!-- Output options -->
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   
   <mergerTreeOperatorMethod value="sequence">
 

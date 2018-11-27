@@ -119,10 +119,10 @@
       <massResolutionFractional value="0.00005"/>
       <massResolutionMinimum value="1.0e7"/>
     </mergerTreeMassResolutionMethod>
-    <mergerTreeOutput>
+    <mergerTreeOutputterMethod value="standard">
       <outputMergerTrees value="true"/>
       <outputReferences value="false"/>
-    </mergerTreeOutput>
+    </mergerTreeOutputterMethod>
     <mergerTreePruneBaryons value="true"/>
     <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
       <G0 value="+0.570"/>

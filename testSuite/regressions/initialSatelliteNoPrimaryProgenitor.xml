@@ -122,9 +122,9 @@
   </accretionHaloMethod>
   <hdf5CompressionLevel value="-1"/>
   <stellarPopulationSelectorMethod value="fixed"/>
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <timePerTreeFitFileName value="projects/constraints2/verySimplisticToStellarMassFunction/data/treeTiming.xml"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/initialSatelliteNoPrimaryProgenitor.hdf5"/>

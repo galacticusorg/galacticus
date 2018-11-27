@@ -246,8 +246,8 @@
     <redshifts value="0.0 1.0"/>
   </outputTimesMethod>
 
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
 
 </parameters>

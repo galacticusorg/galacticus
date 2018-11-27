@@ -236,10 +236,10 @@
   <!-- Output -->
   <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
   <hdf5CompressionLevel value="-1"/>
-  <mergerTreeOutput value="">
+  <mergerTreeOutputterMethod value="standard">
     <outputMergerTrees value="true"/>
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <outputTimesMethod value="list">
     <redshifts value="0.0"/>
   </outputTimesMethod>

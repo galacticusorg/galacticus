@@ -606,7 +606,8 @@ my @translations =
 	     "allTreesExistAtFinalTime"                                  => "mergerTreeEvolverMethod.standard.--allTreesExistAtFinalTime"                           ,
 	     "mergerTreesDumpStructure"                                  => "mergerTreeEvolverMethod.standard.--dumpTreeStructure"                                  ,
 	     "timestepHostRelative"                                      => "mergerTreeEvolverMethod.standard.--timestepHostRelative"                               ,
-	     "timestepHostAbsolute"                                      => "mergerTreeEvolverMethod.standard.--timestepHostAbsolute"		 
+	     "timestepHostAbsolute"                                      => "mergerTreeEvolverMethod.standard.--timestepHostAbsolute"                               ,
+	     "mergerTreeOutput"                                          => "mergerTreeOutputterMethod"	 
 	 },
 	 values        =>
 	 {
@@ -629,6 +630,10 @@ my @translations =
 	     blackHoleBinaryMergersMethod                     =>
 	     {
 		 "Rezzolla2008"      => "rezzolla2008"
+	     },
+	     mergerTreeOutput =>
+	     {
+		 ""                  => "standard"
 	     },
 	     stellarSpectraDustAttenuationMethod              =>
 	     {

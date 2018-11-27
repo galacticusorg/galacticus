@@ -232,9 +232,9 @@
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
   <!-- Output options -->
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <outputTimesMethod value="list">
     <redshifts value="0.0 1.0 2.0 3.0"/>
   </outputTimesMethod>

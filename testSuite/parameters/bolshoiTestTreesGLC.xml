@@ -254,10 +254,10 @@
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
   <!-- Output options -->
-  <mergerTreeOutput value="">
+  <mergerTreeOutputterMethod value="standard">
     <outputMergerTrees value="true"/>
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <galacticusOutputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
   <outputTimesMethod value="list">
     <redshifts value="0 0.1 2 4"/>

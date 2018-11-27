@@ -64,9 +64,9 @@
     <opticalDepthReionization value="0.0883790456"/>
     <velocitySuppressionReionization value="35.0"/>
   </accretionHaloMethod>
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <stellarPopulationSelectorMethod value="fixed"/>
   <treeNodeMethodBlackHole value="null"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
