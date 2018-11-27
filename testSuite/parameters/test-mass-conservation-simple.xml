@@ -120,7 +120,6 @@
       <massResolutionMinimum value="1.0e7"/>
     </mergerTreeMassResolutionMethod>
     <mergerTreeOutputterMethod value="standard">
-      <outputMergerTrees value="true"/>
       <outputReferences value="false"/>
     </mergerTreeOutputterMethod>
     <mergerTreePruneBaryons value="true"/>

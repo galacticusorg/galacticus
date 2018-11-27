@@ -236,7 +236,6 @@
 
   <!-- Output options -->
   <mergerTreeOutputterMethod value="standard">
-    <outputMergerTrees value="true"/>
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
 
