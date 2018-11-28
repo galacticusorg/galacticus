@@ -495,7 +495,6 @@ contains
     use Numerical_Interpolation
     use Numerical_Ranges
     use Memory_Management
-    use, intrinsic :: ISO_C_Binding
     use Cosmology_Parameters
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy)             , intent(inout), target   :: self
