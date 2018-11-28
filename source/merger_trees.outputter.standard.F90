@@ -19,7 +19,6 @@
   !% Implements the standard class for outputting merger trees.
   
   use IO_HDF5            , only : hdf5Object
-  use Output_Analyses    , only : outputAnalyses    , outputAnalysis         , outputAnalysisClass
   use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   use Galactic_Filters   , only : galacticFilter    , galacticFilterClass
   use Kind_Numbers       , only : kind_int8
@@ -57,7 +56,6 @@
      double precision                              , allocatable, dimension(:  ) :: doublePropertyUnitsSI            , integerPropertyUnitsSI
      type            (outputGroup                 ), allocatable, dimension(:  ) :: outputGroups
      type            (varying_string              ), allocatable, dimension(:  ) :: analyses
-     type            (outputAnalyses              ), allocatable, dimension(:  ) :: outputAnalysisList
      class           (galacticFilterClass         ), pointer                     :: galacticFilter_         => null()
      class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_     => null()
    contains
@@ -147,11 +145,9 @@ contains
     type   (mergerTreeOutputterStandard)                              :: self
     type   (inputParameters            ), intent(inout)               :: parameters
     type   (varying_string             ), allocatable  , dimension(:) :: analyses
-    type   (outputAnalyses             ), allocatable  , dimension(:) :: outputAnalysisList
     class  (galacticFilterClass        ), pointer                     :: galacticFilter_
     class  (cosmologyFunctionsClass    ), pointer                     :: cosmologyFunctions_
     logical                                                           :: outputReferences
-    integer                                                           :: i                  , analysisCount
     
     !# <inputParameter>
     !#   <name>outputReferences</name>
@@ -162,11 +158,6 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     allocate(analyses(parameters%count('analyses',zeroIfNotPresent=.true.)))
-    analysisCount=parameters%copiesCount('outputAnalysisMethod',zeroIfNotPresent=.true.)
-    allocate(outputAnalysisList(analysisCount))
-    if (analysisCount > 0) then
-       !# <objectBuilder class="outputAnalysis" name="outputAnalysisList(i)%outputAnalysis" source="parameters" copy="i=1,analysisCount"/>
-    end if
     if (parameters%isPresent('analyses')) then
        !# <inputParameter>
        !#   <name>analyses</name>
@@ -178,21 +169,20 @@ contains
     end if
     !# <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>          
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>          
-    self=mergerTreeOutputterStandard(outputReferences,outputAnalysisList,analyses,galacticFilter_,cosmologyFunctions_)
+    self=mergerTreeOutputterStandard(outputReferences,analyses,galacticFilter_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(outputReferences,outputAnalysisList,analyses,galacticFilter_,cosmologyFunctions_) result(self)
+  function standardConstructorInternal(outputReferences,analyses,galacticFilter_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree outputter class.
     implicit none
     type   (mergerTreeOutputterStandard)                              :: self
     type   (varying_string             ), intent(in   ), dimension(:) :: analyses
-    type   (outputAnalyses             ), intent(in   ), dimension(:) :: outputAnalysisList
     class  (galacticFilterClass        ), intent(in   ), target       :: galacticFilter_
     class  (cosmologyFunctionsClass    ), intent(in   ), target       :: cosmologyFunctions_
     logical                             , intent(in   )               :: outputReferences
-    !# <constructorAssign variables="outputReferences, outputAnalysisList, analyses, *galacticFilter_, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="outputReferences, analyses, *galacticFilter_, *cosmologyFunctions_"/>
 
     self%outputsGroupOpened      =.false.
     self%outputGroupsCount       = 0
@@ -212,6 +202,7 @@ contains
     implicit none
     type(mergerTreeOutputterStandard), intent(inout) :: self
 
+    call self%finalize()
     !# <objectDestructor name="self%galacticFilter_"    />
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
@@ -253,8 +244,7 @@ contains
     type            (mergerTree                 )               , pointer  :: currentTree
     type            (mergerTreeWalkerAllNodes   )                          :: treeWalker
     integer                                                                :: doubleProperty  , nodeStatus     , &
-         &                                                                    iProperty       , integerProperty, &
-         &                                                                    i
+         &                                                                    iProperty       , integerProperty
     integer         (c_size_t                   )                          :: iGroup
     logical                                                                :: nodePassesFilter
     type            (hdf5Object                 )                          :: toDataset
@@ -280,11 +270,6 @@ contains
              !#  <functionArgs>currentTree,node,nodeStatus,indexOutput,self%analyses</functionArgs>
              include 'galacticus.output.merger_tree.analysis.inc'
              !# </include>
-             if (size(self%outputAnalysisList) > 0) then
-                do i=1,size(self%outputAnalysisList)
-                   call self%outputAnalysisList(i)%outputAnalysis%analyze(node,indexOutput)
-                end do
-             end if             
           end if
           ! Move to the next node.
           nodeStatus=nodeStatusNull
@@ -436,12 +421,11 @@ contains
   end subroutine standardOutput
 
   subroutine standardFinalize(self)
-    !% Finalize merger tree output by closing any open groups and finalizing analyses.
+    !% Finalize merger tree output by closing any open groups.
     use IO_HDF5, only : hdf5Access
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   )                :: iGroup, iDataset
-    integer                                             :: i
 
     ! Close any open output groups.
     !$ call hdf5Access%set()
@@ -463,13 +447,6 @@ contains
     end do
     if (self%outputsGroup%isOpen()) call self%outputsGroup%close()
     !$ call hdf5Access%unset()
-    ! Finalize analyses.
-    if (size(self%outputAnalysisList) > 0) then
-       do i=1,size(self%outputAnalysisList)
-          call self%outputAnalysisList(i)%outputAnalysis%finalize()
-       end do
-    end if
-    deallocate(self%outputAnalysisList)
     return
   end subroutine standardFinalize
 

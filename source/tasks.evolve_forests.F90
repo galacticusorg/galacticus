@@ -924,11 +924,19 @@ contains
        end if       
     end do treeProcess
     ! Finalize any merger tree operator.
-    call mergerTreeOperator_ %finalize()
-    ! Finalize outputs.
-    call mergerTreeOutputter_%finalize()
+    call mergerTreeOperator_ %finalize(                         )
+    ! Reduce outputs back into the original outputter object.
+    call mergerTreeOutputter_%reduce  (self%mergerTreeOutputter_)
+    ! Explicitly deallocate objects.
+    deallocate(mergerTreeOutputter_  )
+    deallocate(mergerTreeEvolver_    )
+    deallocate(mergerTreeConstructor_)
+    deallocate(mergerTreeOperator_   )
     !$omp end parallel
 
+    ! Finalize outputs.
+    call self%mergerTreeOutputter_%finalize()
+    
     ! Destroy tree initialization lock.
     !$ call OMP_Destroy_Lock(initializationLock)
 

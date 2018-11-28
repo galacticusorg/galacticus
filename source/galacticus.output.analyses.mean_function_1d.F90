@@ -46,6 +46,7 @@
      final     ::             meanFunction1DDestructor
      procedure :: analyze  => meanFunction1DAnalyze
      procedure :: finalize => meanFunction1DFinalize
+     procedure :: reduce   => meanFunction1DReduce
   end type outputAnalysisMeanFunction1D
 
   interface outputAnalysisMeanFunction1D
@@ -495,6 +496,24 @@ contains
     call self%volumeFunctionCross     %analyze(node,iOutput)
     return
   end subroutine meanFunction1DAnalyze
+
+  subroutine meanFunction1DReduce(self,reduced)
+    !% Implement a volumeFunction1D output analysis reduction.
+    use Galacticus_Error
+    implicit none
+    class(outputAnalysisMeanFunction1D), intent(inout) :: self
+    class(outputAnalysisClass         ), intent(inout) :: reduced
+
+    select type (reduced)
+    class is (outputAnalysisMeanFunction1D)
+       call self%volumeFunctionUnweighted%reduce(reduced%volumeFunctionUnweighted)
+       call self%volumeFunctionWeighted  %reduce(reduced%volumeFunctionWeighted  )
+       call self%volumeFunctionCross     %reduce(reduced%volumeFunctionCross     )
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine meanFunction1DReduce
 
   subroutine meanFunction1DFinalize(self)
     !% Implement a {\normalfont \ttfamily meanFunction1D} output analysis finalization.

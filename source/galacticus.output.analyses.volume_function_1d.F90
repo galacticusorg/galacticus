@@ -76,6 +76,7 @@
      procedure :: analyze  => volumeFunction1DAnalyze
      procedure :: finalize => volumeFunction1DFinalize
      procedure :: results  => volumeFunction1DResults
+     procedure :: reduce   => volumeFunction1DReduce
   end type outputAnalysisVolumeFunction1D
 
   interface outputAnalysisVolumeFunction1D
@@ -463,6 +464,27 @@ contains
     deallocate(covariance  )
     return
   end subroutine volumeFunction1DAnalyze
+
+  subroutine volumeFunction1DReduce(self,reduced)
+    !% Implement a volumeFunction1D output analysis reduction.
+    use Galacticus_Error
+    implicit none
+    class(outputAnalysisVolumeFunction1D), intent(inout) :: self
+    class(outputAnalysisClass           ), intent(inout) :: reduced
+
+    select type (reduced)
+    class is (outputAnalysisVolumeFunction1D)
+       !$ call OMP_Set_Lock(reduced%accumulateLock)
+       reduced%weightMainBranch       =reduced%weightMainBranch       +self%weightMainBranch
+       reduced%weightSquaredMainBranch=reduced%weightSquaredMainBranch+self%weightSquaredMainBranch
+       reduced%functionCovariance     =reduced%functionCovariance     +self%functionCovariance
+       reduced%functionValue          =reduced%functionValue          +self%functionValue
+       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine volumeFunction1DReduce
 
   subroutine volumeFunction1DFinalize(self)
     !% Implement a volumeFunction1D output analysis finalization.
