@@ -20,7 +20,7 @@
   
   use, intrinsic :: ISO_C_Binding
   use            :: Cosmology_Functions
-  use            :: FGSL
+  use            :: FGSL               , only : fgsl_interp_accel
 
   !# <radiationField name="radiationFieldIntergalacticBackgroundFile">
   !#  <description>A radiation field class for intergalactic background light with properties read from file.</description>

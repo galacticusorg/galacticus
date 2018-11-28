@@ -1709,7 +1709,7 @@ contains
     !% Write the luminosities state to file.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Display
-    use            :: FGSL
+    use            :: FGSL              , only : fgsl_file
     use            :: String_Handling
     use            :: ISO_Varying_String
     implicit none
@@ -1747,7 +1747,7 @@ contains
     use            :: Galacticus_Display
     use            :: Instruments_Filters
     use            :: Stellar_Population_Spectra_Postprocess
-    use            :: FGSL
+    use            :: FGSL                                  , only : fgsl_file
     use            :: String_Handling
     use            :: ISO_Varying_String
     implicit none

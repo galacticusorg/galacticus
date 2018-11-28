@@ -131,7 +131,7 @@ contains
     use            :: Stellar_Luminosities_Structure
     use            :: Stellar_Populations
     use            :: Numerical_Interpolation
-    use            :: FGSL
+    use            :: FGSL                          , only : fgsl_interp_accel
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                 :: self
     double precision                                             , intent(  out)                 :: rateEnergyInput              , rateMassFuel          , &

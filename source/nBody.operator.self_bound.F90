@@ -151,12 +151,14 @@ contains
        countBoundPrevious =     particleCount
        weightBoundPrevious=dble(particleCount)*self%bootstrapSampleRate
        ! Initialize potentials.
-       energyPotential  =0.0d0
-       velocityPotential=0.0d0
-       isBound          =sampleWeight > 0.0d0
-       isBoundCompute   =isBound
-       compute          =isBound
-       addSubtract      =+1
+       energyPotential        =0.0d0
+       velocityPotential      =0.0d0
+       velocityPotentialChange=0.0d0
+       energyPotentialChange  =0.0d0
+       isBound                =sampleWeight > 0.0d0
+       isBoundCompute         =isBound
+       compute                =isBound
+       addSubtract            =+1
        ! Begin iterations.
        countIteration=0
        do while (.true.)
