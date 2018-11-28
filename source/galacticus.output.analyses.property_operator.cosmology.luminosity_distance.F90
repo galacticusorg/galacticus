@@ -28,8 +28,8 @@
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !% A cosmological luminosity distance corrector analysis property operator class.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel, cosmologyFunctionsData
-     class           (outputTimesClass       ), pointer                   :: outputTimes_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_            => null()
      double precision                         , allocatable, dimension(:) :: correctionFactor
    contains
      final     ::            csmlgyLuminosityDistanceDestructor
@@ -124,7 +124,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
 
-    call deallocateArray(self%correctionFactor)
+    if (allocated(self%correctionFactor)) call deallocateArray(self%correctionFactor)
     !# <objectDestructor name="self%cosmologyFunctionsModel"/>
     !# <objectDestructor name="self%cosmologyFunctionsData" />
     !# <objectDestructor name="self%outputTimes_"           />
