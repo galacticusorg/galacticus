@@ -22,7 +22,7 @@ module Sort
   !% Implements sorting.
   use, intrinsic :: ISO_C_Binding
   use            :: ISO_Varying_String
-  use            :: FGSL
+  use            :: FGSL              , only : FGSL_HeapSort, FGSL_HeapSort_Index, FGSL_SizeOf
   implicit none
   private
   public :: Sort_Do, Sort_Index_Do, sortByIndex

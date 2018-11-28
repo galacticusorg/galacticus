@@ -372,7 +372,7 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
     !% Trim histories attached to the spheroid.
-    use FGSL
+    use FGSL                           , only : FGSL_Failure
     use Galacticus_Display
     use String_Handling
     use ISO_Varying_String
@@ -1564,7 +1564,7 @@ contains
     !% Write the tablulation state to file.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Display
-    use               FGSL
+    use               FGSL              , only : fgsl_file
     implicit none
     integer           , intent(in   ) :: stateFile
     integer(c_size_t ), intent(in   ) :: stateOperatorID
@@ -1584,7 +1584,7 @@ contains
     !% Retrieve the tabulation state from the file.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Display
-    use            :: FGSL
+    use            :: FGSL              , only : fgsl_file
     use            :: Galacticus_Error
     implicit none
     integer           , intent(in   ) :: stateFile

@@ -199,7 +199,7 @@ contains
     use            :: Galacticus_HDF5
     use            :: Galacticus_Display
     use            :: Numerical_Ranges
-    use            :: FGSL
+    use            :: FGSL                            , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     use            :: Memory_Management
     use            :: Numerical_Constants_Astronomical
     use            :: IO_HDF5

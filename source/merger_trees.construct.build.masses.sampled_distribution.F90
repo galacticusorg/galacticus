@@ -113,7 +113,7 @@ contains
     !% Construct a set of merger tree masses by sampling from a distribution.
     use, intrinsic :: ISO_C_Binding
     use            :: Memory_Management
-    use            :: FGSL
+    use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
     use            :: Numerical_Integration
     use            :: Numerical_Interpolation
     use            :: Numerical_Ranges

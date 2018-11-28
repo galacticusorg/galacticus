@@ -21,7 +21,7 @@
 module Stellar_Population_Luminosities
   !% Implements calculations of stellar population luminosities in the AB magnitude system.
   use, intrinsic :: ISO_C_Binding
-  use            :: FGSL
+  use            :: FGSL                                  , only : fgsl_interp_accel, fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
   use            :: Abundances_Structure
   use            :: ISO_Varying_String
   use            :: Locks

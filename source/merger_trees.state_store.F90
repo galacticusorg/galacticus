@@ -36,7 +36,7 @@ contains
   subroutine mergerTreeStateStore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
     use, intrinsic :: ISO_C_Binding
-    use            :: FGSL
+    use            :: FGSL         , only : fgsl_file
     implicit none
     integer            , intent(in   ) :: stateFile
     integer(c_size_t  ), intent(in   ) :: stateOperatorID
@@ -53,7 +53,7 @@ contains
   subroutine mergerTreeStateRestore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
     use, intrinsic :: ISO_C_Binding
-    use            :: FGSL
+    use            :: FGSL         , only : fgsl_file
     implicit none
     integer            , intent(in   ) :: stateFile
     integer(c_size_t  ), intent(in   ) :: stateOperatorID

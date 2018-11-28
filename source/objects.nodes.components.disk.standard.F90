@@ -398,7 +398,7 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Disk_Standard_Post_Step(node,status)
     !% Trim histories attached to the disk.
-    use FGSL
+    use FGSL                           , only : FGSL_Failure
     use Galacticus_Display
     use String_Handling
     use ISO_Varying_String
@@ -1334,7 +1334,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Display
     use               Node_Component_Disk_Standard_Data
-    use               FGSL
+    use               FGSL                             , only : fgsl_file
     implicit none
     integer           , intent(in   ) :: stateFile
     integer(c_size_t ), intent(in   ) :: stateOperationID
@@ -1355,7 +1355,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Display
     use            :: Node_Component_Disk_Standard_Data
-    use            :: FGSL
+    use            :: FGSL                             , only : fgsl_file
     use            :: Galacticus_Error
     implicit none
     integer           , intent(in   ) :: stateFile
