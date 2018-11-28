@@ -320,6 +320,7 @@ contains
     use IO_HDF5
     use File_Utilities
     use Table_Labels
+    use System_Command
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout)               :: self
     double precision                                   , intent(in   )               :: redshift                                 , scaleSource
@@ -447,6 +448,7 @@ contains
                      & call Galacticus_Error_Report('convergence PDF does not satisfy consistency criterion'//{introspection:location})
              end do
              ! Store the results to file.
+             call System_Command_Do('mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'largeScaleStructure')
              !$ call hdf5Access%set()
              call parametersFile%openFile(char(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
              call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )
