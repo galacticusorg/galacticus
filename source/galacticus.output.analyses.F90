@@ -23,7 +23,6 @@ module Output_Analyses
   use, intrinsic :: ISO_C_Binding
   use               Galacticus_Nodes
   private
-  public :: outputAnalyses
   
   !# <functionClass>
   !#  <name>outputAnalysis</name>
@@ -42,10 +41,15 @@ module Output_Analyses
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="reduce" >
+  !#   <description>Reduce the object onto another object of the class.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(outputAnalysisClass), intent(inout) :: reduced</argument>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, reduced
+  !#   </code>
+  !#  </method>
   !# </functionClass>
 
-  type :: outputAnalyses
-     class(outputAnalysisClass), pointer :: outputAnalysis
-  end type outputAnalyses
-  
 end module Output_Analyses

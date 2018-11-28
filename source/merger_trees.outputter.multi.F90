@@ -34,6 +34,7 @@
      final     ::             multiDestructor
      procedure :: output   => multiOutput
      procedure :: finalize => multiFinalize
+     procedure :: reduce   => multiReduce
      procedure :: deepCopy => multiDeepCopy
   end type mergerTreeOutputterMulti
 
@@ -128,6 +129,29 @@ contains
     end do
     return
   end subroutine multiFinalize
+
+  subroutine multiReduce(self,reduced)
+    !% Reduce over the outputter.
+    use Galacticus_Error
+    implicit none
+    class(mergerTreeOutputterMulti), intent(inout) :: self
+    class(mergerTreeOutputterClass), intent(inout) :: reduced
+    type (multiOutputterList      ), pointer       :: outputter_, outputterReduced_
+
+    select type (reduced)
+    type is (mergerTreeOutputterMulti)
+       outputter_        => self   %outputters
+       outputterReduced_ => reduced%outputters
+       do while (associated(outputter_))
+          call outputter_%outputter_%reduce(outputterReduced_%outputter_)
+          outputter_        => outputter_%next
+          outputterReduced_ => outputterReduced_%next
+       end do
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine multiReduce
 
   subroutine multiDeepCopy(self,destination)
     !% Perform a deep copy for the {\normalfont \ttfamily multi} outputter class.

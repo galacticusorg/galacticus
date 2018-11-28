@@ -43,6 +43,15 @@ module Merger_Tree_Outputters
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="reduce" >
+  !#   <description>Reduce the object onto another object of the class.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(mergerTreeOutputterClass), intent(inout) :: reduced</argument>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, reduced
+  !#   </code>
+  !#  </method>
   !# </functionClass>
 
 end module Merger_Tree_Outputters
