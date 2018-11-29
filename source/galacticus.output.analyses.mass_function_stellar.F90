@@ -45,20 +45,23 @@ contains
   function massFunctionStellarConstructorParameters(parameters) result (self)
     !% Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
     use Input_Parameters
+    use Galacticus_Error
     implicit none
-    type            (outputAnalysisMassFunctionStellar      )                             :: self
-    type            (inputParameters                        ), intent(inout)              :: parameters
-    class           (galacticFilterClass                    ), pointer                    :: galacticFilter_
-    class           (surveyGeometryClass                    ), pointer                    :: surveyGeometry_
-    class           (cosmologyFunctionsClass                ), pointer                    :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputAnalysisDistributionOperatorClass), pointer                    :: outputAnalysisDistributionOperator_
-    class           (outputAnalysisPropertyOperatorClass    ), pointer                    :: outputAnalysisPropertyOperator_
-    class           (outputTimesClass                       ), pointer                    :: outputTimes_ 
-    double precision                                         , dimension(:) , allocatable :: masses
-    integer                                                                               :: covarianceBinomialBinsPerDecade
-    double precision                                                                      :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
-    type            (inputParameters                        )                             :: dataAnalysisParameters
-    type            (varying_string                         )                             :: label                              , comment
+    type            (outputAnalysisMassFunctionStellar      )                              :: self
+    type            (inputParameters                        ), intent(inout)               :: parameters
+    class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
+    class           (surveyGeometryClass                    ), pointer                     :: surveyGeometry_
+    class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_                , cosmologyFunctionsData
+    class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
+    class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_
+    class           (outputTimesClass                       ), pointer                     :: outputTimes_ 
+    double precision                                         , dimension(:  ), allocatable :: masses                             , functionValueTarget              , &
+         &                                                                                    functionCovarianceTarget1D
+    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
+    integer                                                                                :: covarianceBinomialBinsPerDecade
+    double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
+    type            (inputParameters                        )                              :: dataAnalysisParameters
+    type            (varying_string                         )                              :: label                              , comment
     
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
@@ -111,6 +114,35 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    if (parameters%isPresent('functionValueTarget')) then
+       if (parameters%isPresent('functionCovarianceTarget')) then
+          !# <inputParameter>
+          !#   <name>functionValueTarget</name>
+          !#   <source>parameters</source>
+          !#   <description>The target function for likelihood calculations.</description>
+          !#   <type>real</type>
+          !#   <cardinality>0..1</cardinality>
+          !# </inputParameter> 
+          !# <inputParameter>
+          !#   <name>functionCovarianceTarget</name>
+          !#   <source>parameters</source>
+          !#   <variable>functionCovarianceTarget1D</variable>
+          !#   <description>The target function covariance for likelihood calculations.</description>
+          !#   <type>real</type>
+          !#   <cardinality>0..1</cardinality>
+          !# </inputParameter>
+          if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
+             allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
+             functionCovarianceTarget=reshape(functionCovarianceTarget1D,shape(functionCovarianceTarget))
+          else
+             call Galacticus_Error_Report('functionCovariance has wrong size'//{introspection:location})
+          end if
+       else
+          call Galacticus_Error_Report('functionCovariance must be specified if functionTarget is present'//{introspection:location})
+       end if
+    else
+       if (parameters%isPresent('functionCovariance')) call Galacticus_Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
+    end if
     !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                     source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctionsData"              source="dataAnalysisParameters"/>
@@ -118,7 +150,11 @@ contains
     !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
     !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"          />
-    self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    !# <conditionalCall>
+    !#  <call>self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+    !#  <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
+    !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+    !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
     return
   end function massFunctionStellarConstructorParameters
@@ -127,31 +163,42 @@ contains
     !% Constructor for the ``massFunctionStellar'' output analysis class which reads bin information from a standard format file.
     use IO_HDF5
     implicit none
-    type            (outputAnalysisMassFunctionStellar      )                             :: self
-    type            (varying_string                         ), intent(in   )              :: label                              , comment
-    character       (len=*                                  ), intent(in   )              :: fileName
-    class           (galacticFilterClass                    ), intent(in   ), target      :: galacticFilter_
-    class           (surveyGeometryClass                    ), intent(in   ), target      :: surveyGeometry_
-    class           (cosmologyFunctionsClass                ), intent(in   ), target      :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass    ), intent(in   ), target      :: outputAnalysisPropertyOperator_
-    class           (outputAnalysisDistributionOperatorClass), intent(in   ), target      :: outputAnalysisDistributionOperator_
-    class           (outputTimesClass                       ), intent(in   ), target      :: outputTimes_
-    double precision                                         , dimension(:) , allocatable :: masses
-    integer                                                                               :: covarianceBinomialBinsPerDecade
-    double precision                                                                      :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
-    type            (hdf5Object                             )                             :: dataFile
+    type            (outputAnalysisMassFunctionStellar      )                              :: self
+    type            (varying_string                         ), intent(in   )               :: label                              , comment
+    character       (len=*                                  ), intent(in   )               :: fileName
+    class           (galacticFilterClass                    ), intent(in   ) , target      :: galacticFilter_
+    class           (surveyGeometryClass                    ), intent(in   ) , target      :: surveyGeometry_
+    class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
+    class           (outputAnalysisPropertyOperatorClass    ), intent(in   ) , target      :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
+    class           (outputTimesClass                       ), intent(in   ) , target      :: outputTimes_
+    double precision                                         , dimension(:  ), allocatable :: masses                             , functionValueTarget
+    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
+    integer                                                                                :: covarianceBinomialBinsPerDecade
+    double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
+    type            (hdf5Object                             )                              :: dataFile
+    logical                                                                                :: haveTarget
     
     !$ call hdf5Access%set()
     call dataFile%openFile   (fileName,readOnly=.true.)
     call dataFile%readDataset('mass'  ,masses         )
+    haveTarget=dataFile%hasDataset('massFunctionObserved').and.dataFile%hasDataset('covariance')
+    if (haveTarget) then
+       call dataFile%readDataset('massFunctionObserved',functionValueTarget     )
+       call dataFile%readDataset('covariance'          ,functionCovarianceTarget)
+    end if
     call dataFile%close      (                        )
     !$ call hdf5Access%unset()
     ! Construct the object.
-    self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+    !# <conditionalCall>
+    !#  <call>self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+    !#  <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
+    !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
+    !# </conditionalCall>
     return
   end function massFunctionStellarConstructorFile
 
-  function massFunctionStellarConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result(self)
+  function massFunctionStellarConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,functionValueTarget,functionCovarianceTarget) result(self)
     !% Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
     use ISO_Varying_String
     use Memory_Management
@@ -161,30 +208,32 @@ contains
     use Output_Analyses_Options
     use Output_Analysis_Utilities
     implicit none
-    type            (outputAnalysisMassFunctionStellar              )                                :: self
-    type            (varying_string                                 ), intent(in   )                 :: label                                                 , comment
-    double precision                                                 , intent(in   ), dimension(:  ) :: masses
-    class           (galacticFilterClass                            ), intent(in   ), target         :: galacticFilter_
-    class           (surveyGeometryClass                            ), intent(in   ), target         :: surveyGeometry_
-    class           (cosmologyFunctionsClass                        ), intent(in   ), target         :: cosmologyFunctions_                                   , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass            ), intent(in   ), target         :: outputAnalysisPropertyOperator_
-    class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target         :: outputAnalysisDistributionOperator_
-    class           (outputTimesClass                               ), intent(in   ), target         :: outputTimes_
-    integer                                                          , intent(in   )                 :: covarianceBinomialBinsPerDecade
-    double precision                                                 , intent(in   )                 :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
-    type            (outputAnalysisPropertyExtractorMassStellar     )               , pointer        :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyOperatorLog10            )               , pointer        :: outputAnalysisPropertyOperatorLog10_
-    type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer        :: outputAnalysisPropertyOperatorAntiLog10_
-    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)               , pointer        :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
-    type            (outputAnalysisPropertyOperatorSequence         )               , pointer        :: outputAnalysisPropertyOperatorSequence_
-    type            (outputAnalysisWeightOperatorCsmlgyVolume       )               , pointer        :: outputAnalysisWeightOperator_
-    type            (outputAnalysisDistributionNormalizerSequence   )               , pointer        :: outputAnalysisDistributionNormalizer_
-    type            (normalizerList                                 )               , pointer        :: normalizerSequence                                    , normalizer_
-    type            (propertyOperatorList                           )               , pointer        :: propertyOperatorSequence
-    double precision                                                 , allocatable  , dimension(:,:) :: outputWeight
-    double precision                                                 , parameter                     :: bufferWidthLogarithmic                          =3.0d0
-    integer         (c_size_t                                       ), parameter                     :: bufferCountMinimum                              =5
-    integer         (c_size_t                                       )                                :: iBin                                                  , bufferCount
+    type            (outputAnalysisMassFunctionStellar              )                                          :: self
+    type            (varying_string                                 ), intent(in   )                           :: label                                                 , comment
+    double precision                                                 , intent(in   )          , dimension(:  ) :: masses
+    class           (galacticFilterClass                            ), intent(in   ), target                   :: galacticFilter_
+    class           (surveyGeometryClass                            ), intent(in   ), target                   :: surveyGeometry_
+    class           (cosmologyFunctionsClass                        ), intent(in   ), target                   :: cosmologyFunctions_                                   , cosmologyFunctionsData
+    class           (outputAnalysisPropertyOperatorClass            ), intent(in   ), target                   :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
+    class           (outputTimesClass                               ), intent(in   ), target                   :: outputTimes_
+    integer                                                          , intent(in   )                           :: covarianceBinomialBinsPerDecade
+    double precision                                                 , intent(in   )                           :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
+    double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
+    double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
+    type            (outputAnalysisPropertyExtractorMassStellar     )               , pointer                  :: outputAnalysisPropertyExtractor_
+    type            (outputAnalysisPropertyOperatorLog10            )               , pointer                  :: outputAnalysisPropertyOperatorLog10_
+    type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    type            (outputAnalysisPropertyOperatorSequence         )               , pointer                  :: outputAnalysisPropertyOperatorSequence_
+    type            (outputAnalysisWeightOperatorCsmlgyVolume       )               , pointer                  :: outputAnalysisWeightOperator_
+    type            (outputAnalysisDistributionNormalizerSequence   )               , pointer                  :: outputAnalysisDistributionNormalizer_
+    type            (normalizerList                                 )               , pointer                  :: normalizerSequence                                    , normalizer_
+    type            (propertyOperatorList                           )               , pointer                  :: propertyOperatorSequence
+    double precision                                                 , allocatable            , dimension(:,:) :: outputWeight
+    double precision                                                 , parameter                               :: bufferWidthLogarithmic                          =3.0d0
+    integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
+    integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
     !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *outputTimes_"/>
 
     ! Compute weights that apply to each output redshift.
@@ -270,7 +319,9 @@ contains
          &                                outputAnalysisCovarianceModelBinomial                  , &
          &                                covarianceBinomialBinsPerDecade                        , &
          &                                covarianceBinomialMassHaloMinimum                      , &
-         &                                covarianceBinomialMassHaloMaximum                        &
+         &                                covarianceBinomialMassHaloMaximum                      , &
+         &                                functionValueTarget                                    , &
+         &                                functionCovarianceTarget                                 &
          &                               )
     ! Clean up.
     nullify(outputAnalysisPropertyExtractor_                )
