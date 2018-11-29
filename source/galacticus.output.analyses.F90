@@ -50,6 +50,11 @@ module Output_Analyses
   !#    !GCC$ attributes unused :: self, reduced
   !#   </code>
   !#  </method>
+  !#  <method name="logLikelihood" >
+  !#   <description>Return the log-likelihood of the analysis.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !# </functionClass>
 
 end module Output_Analyses
