@@ -41,8 +41,7 @@ my %moduleLibararies = (
     vectors           => "blas",
     yeplibrary        => "yeppp",
     yepcore           => "yeppp",
-    yepmath           => "yeppp",
-    mpi_f08           => "mpi_f08"
+    yepmath           => "yeppp"
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the
 # name of the required library.
