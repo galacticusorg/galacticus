@@ -29,7 +29,7 @@ module Nearest_Neighbors
 
   type :: nearestNeighbors
      !% Wrapper object for nearest neighbor searching.
-     type(c_ptr) :: ANNkd_tree
+     type(c_ptr) :: ANNkd_tree=C_Null_Ptr
    contains
      !@ <objectMethods>
      !@   <object>nearestNeighbors</object>
