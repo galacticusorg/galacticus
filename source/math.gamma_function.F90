@@ -29,7 +29,7 @@ contains
 
   double precision function Gamma_Function_Incomplete(exponent,argument)
     !% Computes the incomplete gamma function.
-    use FGSL
+    use FGSL, only : FGSL_SF_Gamma_Inc_Q
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
@@ -39,7 +39,7 @@ contains
 
   double precision function Gamma_Function_Incomplete_Complementary(exponent,argument)
     !% Computes the complementary incomplete gamma function.
-    use FGSL
+    use FGSL, only : FGSL_SF_Gamma_Inc_P
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
@@ -58,7 +58,7 @@ contains
 
   double precision function Gamma_Function_Logarithmic(argument)
     !% Computes the logarithm of the gamma function.
-    use FGSL
+    use FGSL, only : FGSL_SF_lnGamma
     implicit none
     double precision, intent(in   ) :: argument
 

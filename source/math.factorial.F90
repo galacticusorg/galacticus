@@ -28,7 +28,7 @@ contains
 
   double precision function Factorial(argument)
     !% Computes the factorial of {\normalfont \ttfamily argument}.
-    use FGSL
+    use FGSL, only : FGSL_SF_Fact
     implicit none
     integer, intent(in   ) :: argument
 

@@ -42,7 +42,7 @@ contains
 
   double precision function Error_Function_Real(argument)
     !% Computes the error function.
-    use FGSL
+    use FGSL, only : FGSL_SF_Erf
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -52,7 +52,7 @@ contains
 
   double precision function Error_Function_Complementary_Real(argument)
     !% Computes the complementary error function.
-    use FGSL
+    use FGSL, only : FGSL_SF_ErfC
     implicit none
     double precision, intent(in   ) :: argument
 
