@@ -202,8 +202,10 @@ module MPI_Utilities
   ! Define an MPI counter type.
   type :: mpiCounter
      !% An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
+#ifdef USEMPI
      type   (MPI_Win     )                            :: window
      type   (MPI_Datatype)                            :: typeClass
+#endif
      integer(c_size_t    ), allocatable, dimension(:) :: counter
      !$ type(ompLock )                                :: ompLock_
    contains
