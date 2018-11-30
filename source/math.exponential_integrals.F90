@@ -20,7 +20,7 @@
 
 module Exponential_Integrals
   !% Implements exponential integrals.
-  use FGSL
+  use FGSL, only : FGSL_SF_Si, FGSL_SF_Ci
   implicit none
   private
   public :: Sine_Integral, Cosine_Integral, Exponential_Integral

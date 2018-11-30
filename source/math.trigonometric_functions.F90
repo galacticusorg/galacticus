@@ -20,7 +20,6 @@
 
 module Trigonometric_Functions
   !% Implements trigonometric functions.
-  use FGSL
   implicit none
   private
   public :: cot, cosec
