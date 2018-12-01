@@ -646,6 +646,7 @@ contains
   integer function Tree_Node_ODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
+    use FGSL                  , only : FGSL_Success
     implicit none
     double precision                     , intent(in   )               :: time
     double precision                     , intent(in   ), dimension(:) :: y
@@ -721,6 +722,7 @@ contains
     use Galactic_Structure_Radii
     use Numerical_Comparison
     use Galacticus_Error
+    use FGSL                    , only : FGSL_Success
     implicit none
     double precision                                                                   , intent(in   ) :: time
     double precision               , dimension(:                                      ), intent(in   ) :: propertyValues0
@@ -906,7 +908,7 @@ contains
   subroutine Tree_Node_Post_Step(y,status) bind(c)
     !% Perform any post-step actions on the node.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL         , only : FGSL_Success
     !# <include directive="postStepTask" type="moduleUse">
     include 'objects.tree_node.post_step.modules.inc'
     !# </include>
@@ -926,7 +928,7 @@ contains
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL                            , only : FGSL_Success
     use               Galacticus_Meta_Evolver_Profiler
     implicit none
     real            (kind=c_double ), dimension(propertyCountActive), intent(in   )        :: currentPropertyValue

@@ -42,7 +42,7 @@ contains
 
   function Search_Array_Double(arrayToSearch,valueToFind)
     !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that $x(i) \le v < x(i+1)$.
-    use FGSL
+    use FGSL, only : fgsl_size_t, FGSL_Interp_BSearch
     implicit none
     integer         (c_size_t)                              :: Search_Array_Double
     double precision          , dimension(:), intent(in   ) :: arrayToSearch
@@ -151,7 +151,7 @@ contains
     !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
     !% \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
     !% within which the two values must match.
-    use FGSL
+    use FGSL, only : fgsl_size_t, FGSL_Interp_BSearch
     use Galacticus_Error
     use Numerical_Comparison
     implicit none

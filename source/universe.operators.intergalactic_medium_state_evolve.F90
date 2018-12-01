@@ -564,6 +564,7 @@ contains
      use Numerical_Constants_Atomic
      use Intergalactic_Medium_Filtering_Masses
      use Numerical_Integration
+     use FGSL                                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Success
      implicit none
      double precision                                          , intent(in  )                :: time
      double precision                                          , intent(in   ), dimension(:) :: properties

@@ -75,6 +75,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Numerical_Integration2
+    use FGSL                  , only : FGSL_Success, FGSL_Failure
     implicit none
     double precision                              , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
     integer                                       , intent(in   )                         :: yCount

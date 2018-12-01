@@ -45,7 +45,11 @@ contains
   subroutine ODE_Solve(odeStepper,odeController,odeEvolver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative,yScale,reset)
     !% Interface to the GNU Scientific Library ODEIV differential equation solvers.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Error
+    use            :: Galacticus_Error
+    use            :: FGSL            , only : FGSL_Well_Defined       , FGSL_ODEiv_Step_Alloc  , FGSL_ODEiv_Step_RKCK  , FGSL_ODEiv_Control_Scaled_New, &
+         &                                     FGSL_ODEiv_Control_y_New, FGSL_ODEiv_Evolve_Alloc, FGSL_ODEiv_System_Init, FGSL_ODEiv_Evolve_Apply      , &
+         &                                     FGSL_Success            , fgsl_odeiv_step        , fgsl_odeiv_control    , fgsl_odeiv_evolve            , &
+         &                                     fgsl_odeiv_system
     implicit none
     double precision                    , intent(in   )           :: toleranceAbsolute              , toleranceRelative              , x1
     integer                             , intent(in   )           :: yCount
@@ -134,6 +138,8 @@ contains
     
   subroutine ODE_Solver_Free(odeStepper,odeController,odeEvolver,odeSystem)
     !% Free up workspace allocated to ODE solving.
+    use FGSL, only : FGSL_ODEiv_Evolve_Free, FGSL_ODEiv_Control_Free, FGSL_ODEiv_Step_Free, FGSL_ODEiv_System_Free, &
+         &           fgsl_odeiv_step       , fgsl_odeiv_control     , fgsl_odeiv_evolve   , fgsl_odeiv_system
     implicit none
     type(fgsl_odeiv_step   ), intent(inout) :: odeStepper
     type(fgsl_odeiv_control), intent(inout) :: odeController

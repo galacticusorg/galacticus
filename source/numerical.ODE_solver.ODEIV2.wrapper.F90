@@ -17,7 +17,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 module fodeiv2
-  use FGSL
+  use FGSL, only : fgsl_int, fgsl_long, fgsl_char, fgsl_double, fgsl_size_t, fgsl_strmax, fgsl_name
   use, intrinsic :: iso_c_binding
   implicit none
   private

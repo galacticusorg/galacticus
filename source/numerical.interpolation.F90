@@ -22,7 +22,10 @@
 module Numerical_Interpolation
   !% A simple interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
   !% \href{http://www.gnu.org/software/gsl/manual/html_node/Interpolation.html}{interpolation routines}.
-  use FGSL
+  use FGSL, only : fgsl_interp           , fgsl_interp_accel       , fgsl_interp_type      , fgsl_int          , &
+       &           fgsl_well_defined     , fgsl_interp_accel_alloc , fgsl_interp_alloc     , fgsl_interp_init  , &
+       &           fgsl_success          , fgsl_interp_eval_deriv_e, FGSL_EDOM             , fgsl_interp_eval_e, &
+       &           fgsl_interp_accel_find, fgsl_interp_free        , fgsl_interp_accel_free, fgsl_interp_linear
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
