@@ -20,7 +20,8 @@
 
 module Quasi_Random
   !% Implements quasi-random sequences.
-  use FGSL
+  use FGSL, only : fgsl_qrng      , fgsl_qrng_type, FGSL_qRng_Sobol, FGSL_Well_Defined, &
+       &           FGSL_qRng_Alloc, FGSL_qRng_Get , FGSL_qRng_Free
   implicit none
   private
   public :: Quasi_Random_Get, Quasi_Random_Free

@@ -20,7 +20,14 @@
 module Root_Finder
   !% Implements root finding.
   use, intrinsic :: ISO_C_Binding
-  use               FGSL
+  use               FGSL         , only : fgsl_function            , fgsl_function_fdf        , fgsl_root_fsolver        , fgsl_root_fdfsolver           , &
+       &                                  fgsl_root_fsolver_type   , fgsl_root_fdfsolver_type , FGSL_Root_fSolver_Brent  , FGSL_Root_fdfSolver_Steffenson, &
+       &                                  FGSL_Root_FdFSolver_Free , FGSL_Function_FdF_Free   , FGSL_Root_FSolver_Free   , FGSL_Function_Free            , &
+       &                                  fgsl_error_handler_t     , FGSL_Well_Defined        , FGSL_Function_fdf_Init   , FGSL_Root_fdfSolver_Alloc     , &
+       &                                  FGSL_Function_Init       , FGSL_Root_fSolver_Alloc  , FGSL_Root_fdfSolver_Set  , FGSL_Root_fSolver_Set         , &
+       &                                  FGSL_Error_Handler_Init  , FGSL_Set_Error_Handler   , FGSL_Success             , FGSL_Root_fdfSolver_Iterate   , &
+       &                                  FGSL_Root_fdfSolver_Root , FGSL_Root_Test_Delta     , FGSL_Root_fSolver_Iterate, FGSL_Root_fSolver_Root        , &
+       &                                  FGSL_Root_fSolver_x_Lower, FGSL_Root_fSolver_x_Upper, FGSL_Root_Test_Interval
   implicit none
   private
   public :: rootFinder

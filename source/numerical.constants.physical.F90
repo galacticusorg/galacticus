@@ -20,7 +20,10 @@
 
 module Numerical_Constants_Physical
   !% Contains various useful physical constants.
-  use FGSL
+  use FGSL                        , only : FGSL_CONST_MKSA_SPEED_OF_LIGHT           , FGSL_CONST_MKSA_GRAVITATIONAL_CONSTANT   , FGSL_CONST_MKSA_SOLAR_MASS     , FGSL_CONST_MKSA_PARSEC               , &
+       &                                   FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT, FGSL_CONST_MKSA_STEFAN_BOLTZMANN_CONSTANT, FGSL_CONST_MKSA_BOLTZMANN      , FGSL_CONST_MKSA_THOMSON_CROSS_SECTION, &
+       &                                   FGSL_CONST_MKSA_MASS_ELECTRON            , FGSL_CONST_MKSA_PLANCKS_CONSTANT_H       , FGSL_CONST_MKSA_ELECTRON_CHARGE, FGSL_CONST_MKSA_VACUUM_PERMITTIVITY  , &
+       &                                   FGSL_CONST_NUM_FINE_STRUCTURE
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Math
   implicit none

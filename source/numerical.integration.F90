@@ -20,7 +20,9 @@
 
 module Numerical_Integration
   !% Implements numerical integration.
-  use FGSL
+  use FGSL, only : fgsl_function                   , fgsl_integration_workspace, fgsl_error_handler_t   , FGSL_Integ_Gauss61             , &
+       &           FGSL_Integration_Workspace_Alloc, FGSL_Function_Init        , FGSL_Error_Handler_Init, FGSL_Set_Error_Handler         , &
+       &           FGSL_Integration_QAG            , FGSL_Integration_QAGS     , FGSL_Function_Free     , FGSL_Integration_Workspace_Free
   implicit none
   private
   public :: Integrate_Done, Integrate

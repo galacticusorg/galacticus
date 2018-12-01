@@ -20,7 +20,7 @@
 
 module Numerical_Constants_Units
   !% Contains various useful unit conversions.
-  use FGSL
+  use FGSL                        , only : FGSL_CONST_MKSA_RYDBERG, FGSL_CONST_MKSA_ELECTRON_VOLT
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Math
   implicit none
