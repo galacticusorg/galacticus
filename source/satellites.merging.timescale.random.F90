@@ -57,7 +57,6 @@ contains
     use Kepler_Orbits
     use Satellite_Orbits
     use Pseudo_Random
-    use FGSL
     implicit none
     class           (satelliteMergingTimescalesRandom), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node

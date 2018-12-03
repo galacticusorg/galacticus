@@ -18,7 +18,7 @@
 
   !% Implements a standard stellar population class.
   
-  use FGSL
+  use FGSL                                      , only : fgsl_interp_accel            , fgsl_interp
   use Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass     , initialMassFunction
   use Stellar_Astrophysics                      , only : stellarAstrophysicsClass     , stellarAstrophysics
   use Stellar_Feedback                          , only : stellarFeedbackClass         , stellarFeedback

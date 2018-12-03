@@ -20,7 +20,7 @@
 
   !% Implements a file-based stellar population spectra class.
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
 
   type spectralTable
      !% Structure to hold tabulated stellar population  data.

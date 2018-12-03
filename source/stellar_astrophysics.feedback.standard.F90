@@ -124,7 +124,7 @@ contains
     !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
     use Numerical_Integration
     use Numerical_Constants_Astronomical
-    use FGSL
+    use FGSL                            , only : fgsl_function, fgsl_integration_workspace
     implicit none
     class           (stellarFeedbackStandard   ), intent(inout), target :: self
     double precision                            , intent(in   )         :: age                                                    , initialMass, metallicity

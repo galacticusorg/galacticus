@@ -169,7 +169,6 @@ contains
     !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     !% \cite{gnedin_response_2004}.
     use Root_Finder
-    use FGSL
     implicit none
     class           (galacticStructureRadiiInitialGnedin2004), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node

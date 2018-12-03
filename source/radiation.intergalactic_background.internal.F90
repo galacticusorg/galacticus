@@ -18,7 +18,7 @@
 
   !% Implements a class for intergalactic background light which computes the background internally.
 
-  use FGSL
+  use FGSL                                  , only : fgsl_interp_accel
   use Cosmology_Functions
   use Cosmology_Parameters
   use Intergalactic_Medium_State
@@ -392,6 +392,7 @@ contains
     use            :: ISO_Varying_String
     use            :: Galacticus_HDF5
     use            :: IO_HDF5
+    use            :: FGSL                       , only : fgsl_function, fgsl_integration_workspace, FGSL_Success
     implicit none
     class           (universeEvent                       ), intent(in   ) :: event
     type            (universe                            ), intent(inout) :: universe_

@@ -18,7 +18,7 @@
 
   !% Implements a chemical state class which reads and interpolates a collisional ionization equilibrium chemical state from a file.
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
   
   !# <chemicalState name="chemicalStateCIEFile" defaultThreadPrivate="yes">
   !#  <description>

@@ -20,7 +20,7 @@
 
   !% An implementation of the intergalactic medium state class in which state is read from file.
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel, fgsl_interp
 
   ! Current file format version for intergalactic medium state files.
   integer, parameter :: fileFormatVersionCurrent=1

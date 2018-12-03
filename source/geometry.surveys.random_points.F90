@@ -77,7 +77,6 @@ contains
     use               FFTW3
     use               Vectors
     use               Pseudo_Random
-    use               FGSL
     use               Meshes
     use               Numerical_Constants_Math
     use               Memory_Management

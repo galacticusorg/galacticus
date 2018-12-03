@@ -18,7 +18,7 @@
 
   !% Implements a stellar tracks class in which the tracks are read from file and interpolated.
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
   
   !# <stellarTracks name="stellarTracksFile">
   !#  <description>A stellar tracks class in which the tracks are read from file and interpolated.</description>

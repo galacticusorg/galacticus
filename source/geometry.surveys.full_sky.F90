@@ -173,7 +173,6 @@ contains
     use FFTW3
     use Vectors
     use Pseudo_Random
-    use FGSL
     use Meshes
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math
