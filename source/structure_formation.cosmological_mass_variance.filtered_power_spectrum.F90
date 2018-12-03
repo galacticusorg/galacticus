@@ -411,8 +411,9 @@ contains
     double precision function rootVariance(useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       use, intrinsic :: ISO_C_Binding
-      use               Numerical_Constants_Math
-      use               Numerical_Integration
+      use            :: Numerical_Constants_Math
+      use            :: Numerical_Integration
+      use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
       implicit none
       logical                                     , intent(in   ) :: useTopHat
       double precision                                            :: topHatRadius        , wavenumberMaximum, &

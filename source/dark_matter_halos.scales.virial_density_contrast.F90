@@ -159,6 +159,7 @@ contains
   double precision function virialDensityContrastDefinitionVirialVelocity(self,node)
     !% Returns the virial velocity scale for {\normalfont \ttfamily node}.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : nodeComponentBasic
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -183,6 +184,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,node)
     !% Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -227,6 +229,7 @@ contains
     !% Returns the virial radius scale for {\normalfont \ttfamily node}.
     use Numerical_Constants_Math
     use Math_Exponentiation
+    use Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -263,6 +266,7 @@ contains
 
   double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,node)
     !% Returns the growth rate of the virial radius scale for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -278,6 +282,7 @@ contains
 
   double precision function virialDensityContrastDefinitionMeanDensity(self,node)
     !% Returns the mean density for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type            (treeNode                                          ), intent(inout) :: node
@@ -330,6 +335,7 @@ contains
 
   double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,node)
     !% Returns the growth rate of the mean density for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type            (treeNode                                          ), intent(inout) :: node

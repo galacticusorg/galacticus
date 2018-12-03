@@ -254,6 +254,7 @@ contains
     use               Dark_Matter_Profile_Scales
     use               IO_HDF5
     use               String_Handling
+    use               FGSL                            , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (taskHaloMassFunction          ), intent(inout)                 :: self
     double precision                                , allocatable  , dimension(:,:) :: massFunctionDifferentialLogarithmicBinAveraged       , biasHalo                     , &

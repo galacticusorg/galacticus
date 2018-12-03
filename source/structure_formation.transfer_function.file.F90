@@ -255,6 +255,7 @@ contains
     use Galacticus_Display
     use Table_Labels
     use File_Utilities
+    use FGSL                , only : FGSL_Interp_cSpline
     implicit none
     class           (transferFunctionFile    ), intent(inout)             :: self
     character       (len=*                   ), intent(in   )             :: fileName
