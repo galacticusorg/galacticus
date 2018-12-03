@@ -20,7 +20,6 @@
 
 module Cosmological_Density_Field
   !% Provides an object that implements critical overdensities and halo environments.
-  use FGSL
   use Cosmology_Functions
   use Galacticus_Nodes
   private

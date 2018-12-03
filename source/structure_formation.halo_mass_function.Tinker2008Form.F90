@@ -80,7 +80,6 @@ contains
 
   double precision function tinker2008FormDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use FGSL
     use Numerical_Interpolation
     use Table_Labels
     implicit none

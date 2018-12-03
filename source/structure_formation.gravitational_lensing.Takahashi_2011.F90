@@ -310,17 +310,17 @@ contains
   subroutine takahashi2011LensingDistributionConstruct(self,redshift,scaleSource)
     !% Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
-    use Numerical_Integration
-    use Numerical_Ranges
-    use Numerical_Comparison
-    use Root_Finder
-    use Galacticus_Error
-    use Galacticus_Paths
-    use IO_HDF5
-    use File_Utilities
-    use Table_Labels
-    use System_Command
+    use            :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use            :: Numerical_Integration
+    use            :: Numerical_Ranges
+    use            :: Numerical_Comparison
+    use            :: Root_Finder
+    use            :: Galacticus_Error
+    use            :: Galacticus_Paths
+    use            :: IO_HDF5
+    use            :: File_Utilities
+    use            :: Table_Labels
+    use            :: System_Command
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout)               :: self
     double precision                                   , intent(in   )               :: redshift                                 , scaleSource

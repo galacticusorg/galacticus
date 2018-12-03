@@ -19,7 +19,7 @@
   !% Contains a module which implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
   
   use Excursion_Sets_Barriers
-  use FGSL
+  use FGSL                   , only : fgsl_interp_accel
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui">
   !#  <description>An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.</description>
@@ -363,7 +363,7 @@ contains
 
   double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
     !% Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     use Numerical_Comparison
     use Numerical_Integration
     implicit none

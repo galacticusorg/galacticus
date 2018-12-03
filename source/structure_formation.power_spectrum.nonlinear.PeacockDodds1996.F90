@@ -19,7 +19,6 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
 !% algorithm of \cite{peacock_non-linear_1996}.
 
-  use FGSL
   use Cosmology_Functions
   use Linear_Growth
   use Power_Spectra
