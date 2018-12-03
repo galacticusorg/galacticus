@@ -171,7 +171,7 @@ contains
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
     !% Construct a table of electron scattering optical depth as a function of cosmological time.
     use Numerical_Integration
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target :: self
     double precision                               , intent(in   )         :: time
@@ -349,6 +349,7 @@ contains
       use Numerical_Constants_Astronomical
       use Numerical_Constants_Atomic
       use Intergalactic_Medium_Filtering_Masses
+      use FGSL                                 , only : FGSL_Success
       implicit none
       double precision, intent(in  )                :: time
       double precision, intent(in   ), dimension(:) :: properties

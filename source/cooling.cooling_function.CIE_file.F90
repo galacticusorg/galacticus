@@ -18,7 +18,7 @@
 
   !% Implements a cooling function class which interpolates in a tabulated cooling function read from file.
   
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
 
   !# <coolingFunction name="coolingFunctionCIEFile" defaultThreadPrivate="yes">
   !#  <description>

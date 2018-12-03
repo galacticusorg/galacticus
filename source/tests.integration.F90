@@ -25,6 +25,7 @@ program Test_Integration
   use Test_Integration_Functions
   use Numerical_Constants_Math
   use Galacticus_Display
+  use FGSL                      , only : fgsl_function, fgsl_integration_workspace
   implicit none
   double precision                             :: integral
   type            (fgsl_function             ) :: integrandFunction

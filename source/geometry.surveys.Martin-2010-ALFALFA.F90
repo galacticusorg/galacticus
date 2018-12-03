@@ -140,7 +140,6 @@ contains
     !% Initialize random points for the survey.
     use Vectors
     use File_Utilities
-    use FGSL
     use Meshes
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math

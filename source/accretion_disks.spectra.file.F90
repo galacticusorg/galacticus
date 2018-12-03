@@ -22,7 +22,7 @@
   !#  <description>Accretion disk spectra are interpolated from tables read from file.</description>
   !# </accretionDiskSpectra>
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
 
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraFile
      !% An accretion disk spectra class which interpolates in spectra read from file.

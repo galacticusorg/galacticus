@@ -68,6 +68,7 @@ contains
     use Numerical_Integration
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
+    use FGSL                        , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (radiationFieldClass       ), target      , intent(inout) :: self
     double precision                            , dimension(2), intent(in   ) :: wavelengthRange

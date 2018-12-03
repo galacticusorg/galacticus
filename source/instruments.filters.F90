@@ -23,7 +23,7 @@
 module Instruments_Filters
   !% Implements calculations of filter response curves.
   use ISO_Varying_String
-  use FGSL
+  use FGSL              , only : fgsl_interp_accel, fgsl_interp
   implicit none
   private
   public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name, Filter_Wavelength_Effective
