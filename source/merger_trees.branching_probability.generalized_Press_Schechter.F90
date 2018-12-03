@@ -280,6 +280,7 @@ contains
   double precision function generalizedPressSchechterMassBranchRoot(massMaximum)
     !% Root function used in solving for the branch mass.
     use Numerical_Integration
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     double precision                            , intent(in   ) :: massMaximum
     type            (fgsl_function             )                :: integrandFunction
@@ -334,6 +335,7 @@ contains
     !% time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont
     !% \ttfamily massResolution}.
     use Numerical_Integration
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical       , haloMass   , &
@@ -374,6 +376,7 @@ contains
     use Galacticus_Error
     use ISO_Varying_String
     use Galacticus_Display
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (mergerTreeBranchingProbabilityGnrlzdPrssSchchtr), intent(inout), target :: self
     double precision                                                 , intent(in   )         :: deltaCritical                                 , haloMass   , &

@@ -95,6 +95,7 @@ contains
   double precision function intgrtdSurfaceDensityTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node}, by integrating
     !% over the surface density of star formation rate.
+    use FGSL                    , only : FGSL_Integ_Gauss15
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none

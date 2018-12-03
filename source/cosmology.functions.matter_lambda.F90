@@ -19,10 +19,10 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter plus a cosmological constant.
   
-  use FGSL                , only : fgsl_interp        , fgsl_interp_accel          , &
-       &                           fgsl_odeiv_step    , fgsl_odeiv_control         , &
-       &                           fgsl_odeiv_evolve  , fgsl_odeiv_system          , &
-       &                           fgsl_function      , fgls_integeration_workspace, &
+  use FGSL                , only : fgsl_interp        , fgsl_interp_accel         , &
+       &                           fgsl_odeiv_step    , fgsl_odeiv_control        , &
+       &                           fgsl_odeiv_evolve  , fgsl_odeiv_system         , &
+       &                           fgsl_function      , fgsl_integration_workspace, &
        &                           FGSL_Success
   use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
   !$ use OMP_Lib

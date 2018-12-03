@@ -20,7 +20,6 @@
 
 module Linear_Growth
   !% Provides an object that implements linear growth of cosmological structure.
-  use FGSL
   private
   
   ! Enumeration for normalization options.

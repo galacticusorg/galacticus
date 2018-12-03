@@ -19,7 +19,7 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
 !% code of \cite{lawrence_coyote_2010}.
 
-  use FGSL
+  use FGSL                      , only : fgsl_interp, fgsl_interp_accel
   use Cosmology_Parameters
   use Cosmology_Functions
   use Cosmological_Density_Field

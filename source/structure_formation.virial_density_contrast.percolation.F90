@@ -18,7 +18,6 @@
 
   !% An implementation of dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.
   
-  use FGSL
   use Tables
   use Cosmology_Functions
 

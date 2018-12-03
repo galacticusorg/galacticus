@@ -20,7 +20,7 @@
 
 module Spherical_Collapse_Matter_Dark_Energy
   !% Implements calculations of spherical top hat collapse in cosmologies containing matter and dark energy.
-  use FGSL
+  use FGSL               , only : FGSL_Success
   use ISO_Varying_String
   use Cosmology_Functions
   implicit none

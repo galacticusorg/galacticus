@@ -19,7 +19,8 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
 
-  use FGSL
+  use FGSL                , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
+       &                           FGSL_Success
   use Cosmology_Parameters
 
   integer         , parameter :: matterDarkEnergyAgeTableNPointsPerDecade     =300

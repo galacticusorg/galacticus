@@ -21,10 +21,10 @@
 !% Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
 
   use, intrinsic :: ISO_C_Binding
-  use               FGSL
-  use               Excursion_Sets_Barriers
-  use               File_Utilities
-  use               Cosmology_Functions
+  use            :: FGSL                   , only : fgsl_interp_accel
+  use            :: Excursion_Sets_Barriers
+  use            :: File_Utilities
+  use            :: Cosmology_Functions
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi">
   !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.</description>
