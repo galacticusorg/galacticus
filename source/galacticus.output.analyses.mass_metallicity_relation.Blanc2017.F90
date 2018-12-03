@@ -121,6 +121,7 @@ contains
     use Numerical_Constants_Astronomical
     use Abundances_Structure
     use Atomic_Data
+    use Galacticus_Error
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2017             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
@@ -156,7 +157,8 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (surveyGeometryLiWhite2009SDSS                      )                                :: surveyGeometry_
     type            (hdf5Object                                         )                                :: dataFile
-
+    integer                                                                                              :: indexOxygen
+    
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2017.hdf5",readOnly=.true.)
@@ -253,8 +255,18 @@ contains
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisPropertyExtractor_                      )
     outputAnalysisPropertyExtractor_                      =  outputAnalysisPropertyExtractorMassStellar             (                                                             )
+    ! Find the index for the oxygen abundance.
+    indexOxygen=Abundances_Index_From_Name("O")
+    if (indexOxygen < 0)                                                                                           &
+         & call Galacticus_Error_Report(                                                                           &
+         &                              'oxygen abundance is required for this analysis'    //char(10)//           &
+         &                              'HELP: you can track oxygen abundance by including:'//char(10)//char(10)// &
+         &                              '         <elementsToTrack value="O"/>'             //char(10)//char(10)// &
+         &                              '      in your parameter file'                      //                     &
+         &                              {introspection:location}                                                   &
+         &                             )
     ! Create an ISM metallicity weight property extractor.
-    allocate(outputAnalysisWeightPropertyExtractor_                )
+    allocate(outputAnalysisWeightPropertyExtractor_                )    
     outputAnalysisWeightPropertyExtractor_                =  outputAnalysisPropertyExtractorMetallicityISM          (Abundances_Index_From_Name("O")                              )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                &
