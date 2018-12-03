@@ -20,8 +20,7 @@
 
 module Dark_Matter_Halo_Scales
   !% Provides a class implementing scales of dark matter halo scales.
-  use Galacticus_Nodes
-  use FGSL
+  use Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

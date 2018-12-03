@@ -18,6 +18,7 @@
 
   !% An implementation of ``Einasto'' dark matter halo profiles.
 
+  use FGSL                   , only : fgsl_interp, fgsl_interp_accel, fgsl_function, fgsl_integration_workspace
   use Dark_Matter_Halo_Scales
   use Tables
   use Kind_Numbers

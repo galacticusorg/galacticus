@@ -166,6 +166,7 @@ contains
   double precision function bett2007Distribution(self,node)
     !% Compute the spin parameter distribution for the given {\normalfont \ttfamily node} assuming the fitting function of
     !% \cite{bett_spin_2007}.
+    use Galacticus_Nodes, only : nodeComponentSpin
     implicit none
     class(haloSpinDistributionBett2007), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node

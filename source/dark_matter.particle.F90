@@ -20,7 +20,6 @@
 
 module Dark_Matter_Particles
   !% Provides a class that implements dark matter parrticle physics.
-  use FGSL
   
   !# <functionClass>
   !#  <name>darkMatterParticle</name>

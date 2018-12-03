@@ -82,7 +82,8 @@ contains
   double precision function zhao2009Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily
     !% thisNode} using the algorithm of \cite{zhao_accurate_2009}.
-    use FGSL
+    use FGSL            , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
+         &                       FGSL_Success
     use ODE_Solver
     use Galacticus_Error
     implicit none

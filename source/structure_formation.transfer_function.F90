@@ -20,7 +20,6 @@
 
 module Transfer_Functions
   !% Provides an object that implements transfer functions.
-  use FGSL
   
   !# <functionClass>
   !#  <name>transferFunction</name>

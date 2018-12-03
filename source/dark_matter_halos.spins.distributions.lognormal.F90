@@ -107,6 +107,8 @@ contains
     !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}
     !% assuming a log-normal distribution.
     use Numerical_Constants_Math
+    use Galacticus_Nodes        , only : nodeComponentSpin
+    use Galacticus_Nodes        , only : nodeComponentSpin
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
