@@ -137,7 +137,7 @@ contains
   
   double precision function diskSizeInclntnRoot(xHalf)
     !% Function used in solving for the half-light radii of inclined disks.
-    use FGSL
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Numerical_Constants_Math
     implicit none
@@ -157,7 +157,7 @@ contains
     !% Integral for half-light radius.
     use Numerical_Integration
     use Numerical_Constants_Math
-    use FGSL
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
     implicit none
     double precision                            , intent(in   ) :: x
     type            (fgsl_function             )                :: integrandFunction

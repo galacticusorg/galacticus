@@ -43,7 +43,7 @@ contains
        &                                      projectedCorrelationBinned                    &
        &                                     )
     !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
-    use FGSL
+    use FGSL                                     , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
     use Memory_Management
     use Galacticus_Error
     use Geometry_Surveys

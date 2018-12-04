@@ -20,7 +20,7 @@
 
   !$ use OMP_Lib
   use    ISO_Varying_String
-  use    FGSL
+  use    FGSL                             , only : fgsl_interp_accel
   use    Stellar_Spectra_Dust_Attenuations
   use    Output_Times
 

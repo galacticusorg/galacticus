@@ -312,7 +312,7 @@ contains
   subroutine Galacticus_Output_Tree_Projected_Density(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store projected density properties in the \glc\ output file buffers.
-    use FGSL
+    use FGSL                               , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Galacticus_Nodes
     use Kind_Numbers

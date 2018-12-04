@@ -274,7 +274,7 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Spheroid_Very_Simple_Post_Step(node,status)
     !% Catch rounding errors in the very simple spheroid gas evolution.
-    use FGSL
+    use FGSL                          , only : FGSL_Failure
     use Galacticus_Display
     use String_Handling
     use Abundances_Structure

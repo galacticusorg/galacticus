@@ -21,7 +21,7 @@
 
 program Conditional_Mass_Function
   !% Computes the conditional mass function in bins of mass for a fixed halo mass for use in calculation of constraints.
-  use FGSL
+  use FGSL                           , only : fgsl_function, fgsl_integration_workspace
   use IO_HDF5
   use Memory_Management
   use Numerical_Ranges

@@ -1167,7 +1167,6 @@ contains
      !% designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
      !% the times in {\normalfont \ttfamily thisHistory} and added to the rates in {\normalfont \ttfamily thisHistory}.
      use, intrinsic :: ISO_C_Binding
-     use FGSL
      use Numerical_Interpolation
      use Galacticus_Error
      implicit none

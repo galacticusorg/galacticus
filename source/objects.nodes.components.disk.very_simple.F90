@@ -314,7 +314,7 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
     !% Catch rounding errors in the very simple disk gas evolution.
-    use FGSL
+    use FGSL                          , only : FGSL_Failure
     use Galacticus_Display
     use String_Handling
     use Abundances_Structure

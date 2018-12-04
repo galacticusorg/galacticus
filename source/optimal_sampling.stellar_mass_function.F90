@@ -27,7 +27,7 @@ program Optimal_Sampling_SMF
   use Input_Parameters
   use Galacticus_Error
   use ISO_Varying_String
-  use FGSL
+  use FGSL                                    , only : fgsl_function, fgsl_integration_workspace
   use Numerical_Integration
   use Halo_Mass_Functions
   use Galacticus_Meta_Compute_Times

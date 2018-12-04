@@ -323,7 +323,7 @@ contains
       !% \ttfamily probability}. Typically, {\normalfont \ttfamily probabilityFraction} is found by multiplying {\normalfont \ttfamily probability}
       !% by a random variable drawn in the interval 0--1 if a halo branches. This routine then finds the progenitor mass
       !% corresponding to this value.
-      use FGSL
+      use FGSL         , only : FGSL_Root_fSolver_Brent
       use Pseudo_Random
       use Root_Finder
       implicit none
@@ -374,7 +374,7 @@ contains
   double precision function parkinsonColeHellyMassBranchRoot(logMassMaximum)
     !% Used to find the mass of a merger tree branching event.
     use Numerical_Integration
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     double precision                            , intent(in   ) :: logMassMaximum
     type            (fgsl_function             )                :: integrandFunction
@@ -456,7 +456,7 @@ contains
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use Numerical_Integration
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical       , haloMass   , &
@@ -564,7 +564,7 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     use Hypergeometric_Functions
-    use FGSL
+    use FGSL                     , only : FGSL_Int, FGSL_Success
     use Numerical_Comparison
     use Numerical_Constants_Math
     implicit none

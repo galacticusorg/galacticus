@@ -37,7 +37,7 @@ contains
 
   double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType,haloLoaded)
     !% Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
-    use FGSL
+    use FGSL                              , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Densities

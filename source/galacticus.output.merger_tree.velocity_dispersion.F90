@@ -344,7 +344,7 @@ contains
     use Kind_Numbers
     use Galactic_Structure_Velocity_Dispersions
     use Dark_Matter_Halo_Scales
-    use FGSL
+    use FGSL                                   , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
@@ -573,7 +573,7 @@ contains
     use Galactic_Structure_Surface_Densities
     use Numerical_Constants_Math
     use Numerical_Integration
-    use FGSL
+    use FGSL                                   , only : fgsl_function, fgsl_integration_workspace
     implicit none
     double precision                            , intent(in   ) :: radius
     double precision                            , parameter     :: fractionSmall=1.0d-3
@@ -683,7 +683,6 @@ contains
     use Galactic_Structure_Surface_Densities
     use Numerical_Integration
     use Numerical_Constants_Math
-    use FGSL
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: densityDisk, velocityDisk
@@ -791,7 +790,7 @@ contains
 
   double precision function Galacticus_Output_Trees_Line_of_Sight_Velocity_Dispersion(radius)
     !% Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: radius

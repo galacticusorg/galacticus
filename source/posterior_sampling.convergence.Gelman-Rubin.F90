@@ -194,7 +194,7 @@ contains
     use Posterior_Sampling_State
     use Memory_Management
     use MPI_Utilities
-    use FGSL
+    use FGSL                    , only : FGSL_CDF_tDist_Qinv
     use ISO_Varying_String
     use Galacticus_Display
     use String_Handling

@@ -20,7 +20,7 @@
 
 module Test_ODE_Solver_Functions
   !% Contains ODEs for unit tests.
-  use FGSL
+  use FGSL, only : FGSL_Success
   implicit none
   private
   public :: ODE_Set_1     , ODE_Set_2       , &

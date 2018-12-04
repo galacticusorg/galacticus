@@ -72,7 +72,7 @@ contains
   subroutine sampledDistributionQuasiRandomSampleCMF(self,x)
     !% Generate a quasiRandom sample of points from the merger tree mass distribution.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL         , only : fgsl_qrng
     use               Quasi_Random
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout)               :: self

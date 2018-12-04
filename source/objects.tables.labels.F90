@@ -20,7 +20,6 @@
 
 module Table_Labels
   !% Defines labels for the {\normalfont \ttfamily table} class.
-  use FGSL
   private
 
   ! Enumeration for extrapolation options in tables.
