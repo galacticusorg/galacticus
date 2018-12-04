@@ -27,7 +27,6 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_BH_Dstrbtins
   !% \end{itemize}
   use, intrinsic :: ISO_C_Binding
   use Galacticus_Nodes
-  use FGSL
   use Tables
   use Galactic_Structure_Options
   use Geometry_Surveys

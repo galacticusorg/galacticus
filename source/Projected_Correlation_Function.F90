@@ -23,7 +23,6 @@ program Projected_Correlation_Function
   !% Computes the projected correlation function for galaxies in a given mass range based on a
   !% halo occupation model.
   use, intrinsic :: ISO_C_Binding
-  use               FGSL
   use               Command_Arguments
   use               ISO_Varying_String
   use               Memory_Management

@@ -149,7 +149,7 @@ contains
 
   double precision function stellarMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate optimized to minimize errors in the stellar mass function.
-    use FGSL
+    use FGSL                         , only : fgsl_function, fgsl_integration_workspace
     use Galacticus_Meta_Compute_Times
     use Numerical_Integration
     implicit none

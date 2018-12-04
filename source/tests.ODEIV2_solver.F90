@@ -22,7 +22,6 @@ program Test_ODE_Solver
   !% Tests that ODE solver routines work.
   use, intrinsic :: ISO_C_Binding
   use               Unit_Tests
-  use               FGSL
   use               FODEIV2
   use               ODEIV2_Solver
   use               Test_ODE_Solver_Functions

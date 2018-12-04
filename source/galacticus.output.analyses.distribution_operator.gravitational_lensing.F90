@@ -135,7 +135,7 @@ contains
   function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
     use Memory_Management
-    use FGSL
+    use FGSL                   , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Output_Analyses_Options
     implicit none

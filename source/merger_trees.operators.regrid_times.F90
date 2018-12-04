@@ -241,7 +241,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Nodes
     use               Galacticus_Error
-    use               FGSL
+    use               FGSL                   , only : fgsl_interp_accel
     use               Numerical_Interpolation
     use               Numerical_Comparison
     use               Kind_Numbers

@@ -71,7 +71,7 @@ contains
 
   double precision function studentTDensity(self,x)
     !% Return the density of a Student-t distribution.
-    use FGSL
+    use FGSL, only : FGSL_Ran_tDist_PDF
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: x
@@ -82,7 +82,7 @@ contains
 
   double precision function studentTCumulative(self,x)
     !% Return the cumulative probability of a Student-t distribution.
-    use FGSL
+    use FGSL, only : FGSL_CDF_tDist_P
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: x
@@ -94,7 +94,7 @@ contains
   double precision function studentTInverse(self,p)
     !% Return the cumulative probability of a Student-t distribution.
     use Galacticus_Error
-    use FGSL
+    use FGSL            , only : FGSL_CDF_tDist_Pinv
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: p

@@ -21,7 +21,7 @@
 program Test_ODE_Solver
   !% Tests that ODE solver routines work.
   use Unit_Tests
-  use FGSL
+  use FGSL                     , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system
   use ODE_Solver
   use Test_ODE_Solver_Functions
   use Galacticus_Display

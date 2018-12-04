@@ -1052,7 +1052,7 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Black_Hole_Standard_Post_Evolve(node,status)
     !% Keep black hole spin in physical range.
-    use FGSL
+    use FGSL, only : FGSL_Failure
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     integer                                 , intent(inout)          :: status

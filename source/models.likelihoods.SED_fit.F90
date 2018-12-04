@@ -228,7 +228,7 @@ contains
     !% Return the log-likelihood for the SED fitting likelihood function.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Error
-    use               FGSL
+    use               FGSL                             , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
     use               Models_Likelihoods_Constants
     use               Posterior_Sampling_State
     use               Posterior_Sampling_Convergence

@@ -20,7 +20,7 @@
 
 module Test_Integration_Functions
   !% Contains integrands for unit tests.
-  use FGSL
+  use FGSL              , only : fgsl_function, fgsl_integration_workspace
   use Galacticus_Display
   implicit none
   private

@@ -679,7 +679,7 @@ contains
   subroutine Galacticus_Output_Analysis_Mass_Functions(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct a mass functions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
+    use FGSL                                           , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Galacticus_Nodes
     use Galacticus_Paths

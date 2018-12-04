@@ -21,7 +21,6 @@
 module Merger_Trees_Builders
   !% Provides a class of merger tree builders.
   use Galacticus_Nodes
-  use FGSL
   private
 
   !# <functionClass>

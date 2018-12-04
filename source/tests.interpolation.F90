@@ -22,7 +22,7 @@ program Test_Interpolation
   !% Tests that numerical interpolation code works correctly.
   use Unit_Tests
   use Numerical_Interpolation
-  use FGSL
+  use FGSL                   , only : fgsl_interp, fgsl_interp_accel
   use Table_Labels
   use Galacticus_Display
   implicit none
