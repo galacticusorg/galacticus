@@ -205,7 +205,7 @@ contains
     self%binCount=size(luminosities,kind=c_size_t)
     call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctionsData,luminosity=luminosities(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,luminosity=luminosities(iBin))
     end do
     ! Create a luminosity property extractor.
     allocate(outputAnalysisPropertyExtractor_)
