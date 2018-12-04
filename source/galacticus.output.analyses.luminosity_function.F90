@@ -196,7 +196,7 @@ contains
     self%binCount=size(magnitudesAbsolute,kind=c_size_t)
     call allocateArray(outputWeight,[self%binCount,self%outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctionsData,self%outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
     end do
     ! Create a luminosity property extractor.
     allocate(outputAnalysisPropertyExtractor_)
