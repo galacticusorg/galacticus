@@ -86,6 +86,7 @@ contains
   double precision function munozCuartas2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{munoz-cuartas_redshift_2011} algorithm.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationMunozCuartas2011), intent(inout), target  :: self
     type            (treeNode                                      ), intent(inout), target  :: node

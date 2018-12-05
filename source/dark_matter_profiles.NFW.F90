@@ -18,7 +18,7 @@
 
   !% An implementation of \cite{navarro_universal_1997} dark matter halo profiles.
 
-  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
   use Tables
   use Kind_Numbers
 
@@ -201,6 +201,7 @@ contains
   function nfwConstructorInternal(darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
     use Galacticus_Error
+    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type (darkMatterProfileNFW    )                        :: self
     class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
@@ -367,7 +368,7 @@ contains
   double precision function nfwDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -390,7 +391,7 @@ contains
   double precision function nfwDensityLogSlope(self,node,radius)
     !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -412,8 +413,7 @@ contains
   double precision function nfwRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     use Numerical_Constants_Math
     use Numerical_Comparison
     implicit none
@@ -485,7 +485,7 @@ contains
   double precision function nfwEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -508,8 +508,8 @@ contains
   double precision function nfwPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
+    use Galacticus_Nodes          , only : nodeComponentDarkMatterProfile
     use Galactic_Structure_Options
-    use Dark_Matter_Halo_Scales
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
@@ -569,6 +569,7 @@ contains
   double precision function nfwCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -604,6 +605,7 @@ contains
   double precision function nfwRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
@@ -650,7 +652,7 @@ contains
 
   double precision function nfwRotationNormalization(self,node)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -674,7 +676,7 @@ contains
 
   double precision function nfwEnergy(self,node)
     !% Return the energy of an NFW halo density profile.
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -701,7 +703,7 @@ contains
 
   double precision function nfwEnergyGrowthRate(self,node)
     !% Return the rate of change of the energy of an NFW halo density profile.
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), target  :: node
@@ -858,6 +860,7 @@ contains
     !% Returns the radius (in units of the scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
     !% concentration} which encloses a given density (in units of the virial mass per cubic scale radius).
     use Numerical_Constants_Math
+    use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -1051,7 +1054,7 @@ contains
   double precision function nfwKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the NFW density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes     , only : nodeComponentDarkMatterProfile
     use Exponential_Integrals
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout)          :: self
@@ -1085,8 +1088,8 @@ contains
 
   double precision function nfwFreefallRadius(self,node,time)
     !% Returns the freefall radius in the NFW density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -1132,8 +1135,8 @@ contains
   double precision function nfwFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the NFW density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileNFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node

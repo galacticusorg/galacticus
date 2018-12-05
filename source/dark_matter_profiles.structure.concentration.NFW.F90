@@ -21,7 +21,7 @@
   use Cosmology_Parameters
   use Cosmology_Functions
   use Cosmological_Density_Field
-  use Virial_Density_Contrast
+  use Virial_Density_Contrast   , only : virialDensityContrastClass, virialDensityContrast
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{navarro_structure_1996}.</description>
@@ -133,6 +133,7 @@ contains
     !% using the \cite{navarro_structure_1996} algorithm.
     use Root_Finder
     use Virial_Density_Contrast
+    use Galacticus_Nodes       , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationNFW1996), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node
@@ -189,6 +190,7 @@ contains
   function nfw1996DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of
     !% concentration in the \cite{navarro_structure_1996} algorithm.
+    use Virial_Density_Contrast, only : virialDensityContrastFixed
     implicit none
     class(virialDensityContrastClass           ), pointer       :: nfw1996DensityContrastDefinition
     class(darkMatterProfileConcentrationNfw1996), intent(inout) :: self

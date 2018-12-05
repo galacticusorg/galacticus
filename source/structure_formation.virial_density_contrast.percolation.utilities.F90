@@ -20,7 +20,7 @@
 
 module Virial_Density_Contrast_Percolation_Utilities
   !% Provides utilities needed by the {\normalfont \ttfamily percolation} virial density contrast class.
-  use Galacticus_Nodes
+  use Galacticus_Nodes          , only : treeNode                                 , nodeComponentDarkMatterProfile
   use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius             , darkMatterProfileScaleRadiusClass, &
        &                                 darkMatterProfileScaleRadiusConcentration
   use Dark_Matter_Profiles      , only : darkMatterProfile                        , darkMatterProfileClass
@@ -56,6 +56,7 @@ contains
     use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale           , darkMatterHaloScaleClass
     use Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration, darkMatterProfileConcentrationClass
     use Virial_Density_Contrast           , only : virialDensityContrast         , virialDensityContrastClass
+    use Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
     double precision                                     , intent(in   )         :: mass                                      , time, &
          &                                                                          linkingLength

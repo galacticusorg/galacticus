@@ -23,7 +23,7 @@ program Test_Dark_Matter_Profiles
   use ISO_Varying_String
   use Memory_Management
   use Input_Parameters
-  use Galacticus_Nodes
+  use Galacticus_Nodes       , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
   use Node_Components
   use Unit_Tests
   use Cosmology_Functions

@@ -124,6 +124,7 @@ contains
   double precision function schneider2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
     !% \cite{schneider_structure_2015}.
+    use Galacticus_Nodes        , only : nodeComponentBasic
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self

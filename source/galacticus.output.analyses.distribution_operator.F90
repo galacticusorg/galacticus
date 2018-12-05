@@ -20,8 +20,8 @@
 
 module Output_Analysis_Distribution_Operators
   !% Provides a class that operators on distributions used in on-the-fly output analyses.
-  use, intrinsic :: ISO_C_Binding
-  use            :: Galacticus_Nodes
+  use, intrinsic :: ISO_C_Binding   , only : c_size_t
+  use            :: Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>

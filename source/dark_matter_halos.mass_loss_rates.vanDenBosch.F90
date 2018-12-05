@@ -103,6 +103,7 @@ contains
 
   double precision function vanDenBoschRate(self,node)
     !% Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     implicit none
     class           (darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node

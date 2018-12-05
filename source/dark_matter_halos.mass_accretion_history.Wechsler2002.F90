@@ -116,6 +116,7 @@ contains
   double precision function wechsler2002Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily thisNode} using the algorithm of
     !% \cite{wechsler_concentrations_2002}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node

@@ -167,6 +167,7 @@ contains
   double precision function normalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
     use Kind_Numbers
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (haloEnvironmentNormal               ), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
@@ -217,6 +218,7 @@ contains
 
   double precision function normalOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node

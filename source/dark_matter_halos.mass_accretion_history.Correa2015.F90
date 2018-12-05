@@ -91,6 +91,7 @@ contains
     !% thisNode} using the algorithm of \cite{correa_accretion_2015}.
     use Root_Finder
     use Dark_Matter_Halos_Correa2015
+    use Galacticus_Nodes            , only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node

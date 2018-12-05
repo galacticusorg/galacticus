@@ -21,7 +21,7 @@
 
 module Excursion_Sets_First_Crossings
   !% Provides a class for first crossing distributions for excursion set calculations.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>

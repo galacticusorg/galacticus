@@ -20,7 +20,7 @@
 
 module Dark_Matter_Profiles_Shape
   !% Provides a class that implements shape parameters of dark matter halo profiles.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
 
   !# <functionClass>
   !#  <name>darkMatterProfileShape</name>

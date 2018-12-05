@@ -20,7 +20,7 @@
 
 module Dark_Matter_Profiles_Concentration
   !% Provides a class that implements concentrations of dark matter halo profiles.
-  use Galacticus_Nodes
+  use Galacticus_Nodes       , only : treeNode
   use Virial_Density_Contrast
   use Dark_Matter_Profiles
   implicit none

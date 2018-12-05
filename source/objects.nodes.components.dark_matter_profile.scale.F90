@@ -20,7 +20,7 @@
 
 module Node_Component_Dark_Matter_Profile_Scale
   !% Implements a dark matter profile method that provides a scale radius.
-  use Galacticus_Nodes
+  use Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScale
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profile_Scales
   implicit none
@@ -121,6 +121,7 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters)
     !% Initializes the tree node scale dark matter profile module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -133,6 +134,7 @@ contains
 
   double precision function Node_Component_Dark_Matter_Profile_Scale_Scale(self)
     !% Return the scale radius in the dark matter halo profile.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
     type            (treeNode                           ), pointer       :: selfNode
@@ -165,6 +167,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the rate of change of the scale radius.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, propertyTypeInactive
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     logical                                         , intent(in   )          :: odeConverged
@@ -199,6 +202,7 @@ contains
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(node)
     !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile
     implicit none
     type   (treeNode                      ), intent(inout) :: node
     class  (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
@@ -222,7 +226,8 @@ contains
   subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(node)
     !% Initialize the scale radius of {\normalfont \ttfamily node}.
     use Galacticus_Error
-    use Merger_Tree_Walkers    
+    use Merger_Tree_Walkers
+    use Galacticus_Nodes   , only : treeNode, nodeComponentDarkMatterProfile, nodeComponentBasic, defaultDarkMatterProfileComponent
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile, &
@@ -287,6 +292,7 @@ contains
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
@@ -314,6 +320,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -337,6 +344,7 @@ contains
     use IO_HDF5
     use Numerical_Constants_Astronomical
     use Merger_Tree_Walkers
+    use Galacticus_Nodes                , only : treeNode, nodeComponentDarkMatterProfile
     implicit none
     type            (treeNode                      )              , intent(in   ), pointer :: baseNode
     double precision                                , dimension(:), intent(inout)          :: nodeProperty

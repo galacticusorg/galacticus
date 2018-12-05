@@ -107,7 +107,7 @@ contains
   double precision function klypin2015Shape(self,node)
     !% Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Galacticus_Error
     implicit none
     class           (darkMatterProfileShapeKlypin2015), intent(inout)          :: self

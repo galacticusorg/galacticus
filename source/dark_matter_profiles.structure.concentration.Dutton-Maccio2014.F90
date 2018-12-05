@@ -214,6 +214,7 @@ contains
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
     !% algorithm.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout), target  :: self
     type            (treeNode                                      ), intent(inout), target  :: node
