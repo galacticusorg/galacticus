@@ -87,8 +87,7 @@ contains
     implicit none
     class  (mergerTreeOperatorPruneBaryons), intent(inout), target :: self
     type   (mergerTree                    ), intent(inout), target :: tree
-    type   (treeNode                      ), pointer               :: nodeNext       , node, &
-         &                                                            nodePrevious
+    type   (treeNode                      ), pointer               :: nodeNext       , node
     class  (nodeComponentBasic            ), pointer               :: basic
     type   (mergerTree                    ), pointer               :: treeCurrent
     type   (mergerTreeWalkerIsolatedNodes )                        :: treeWalker
@@ -133,8 +132,9 @@ contains
                 basic => node%basic()
                 if (.not.self%accretionHalo_%branchHasBaryons(node).and.node%uniqueID() /= node%parent%uniqueID()) then
                    didPruning=.true.
-                   ! Return to parent node.
-                   call treeWalker%previous(nodePrevious)
+                   ! Set the tree walker back to the base node so that it exits - we've changed the tree structure so need to
+                   ! begin the walk again.
+                   call treeWalker%setNode(treeCurrent%baseNode)
                    ! Decouple from other nodes.
                    call Merger_Tree_Prune_Unlink_Parent(node,node%parent,.not.self%accretionHalo_%branchHasBaryons(node%parent),.true.)
                    ! Clean the branch.
