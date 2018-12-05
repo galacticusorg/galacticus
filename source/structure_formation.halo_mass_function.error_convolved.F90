@@ -107,7 +107,7 @@ contains
     !% Return the differential halo mass function at the given time and mass.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes     , only : treeNode, nodeComponentBasic
     implicit none
     class           (haloMassFunctionErrorConvolved), intent(inout)           :: self
     double precision                                , intent(in   )           :: time                    , mass

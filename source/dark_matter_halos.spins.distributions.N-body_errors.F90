@@ -211,7 +211,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
     use               Memory_Management
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes              , only : treeNode, nodeComponentBasic, nodeComponentSpin, nodeComponentDarkMatterProfile
     use               Galacticus_Error
     use               Numerical_Constants_Math
     use               Galacticus_Calculations_Resets
@@ -779,7 +779,7 @@ contains
 
   double precision function nbodyErrorsDistribution(self,node)
     !% Compute the spin distribution.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -816,7 +816,7 @@ contains
 
   double precision function nbodyErrorsDistributionFixedPoint(self,node,spinMeasured)
     !% Compute the spin distribution for a fixed point in intrinsic mass and spin.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -847,7 +847,7 @@ contains
 
   double precision function nbodyErrorsDistributionAveraged(self,node,massLimit)
     !% Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Galacticus_Calculations_Resets
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self

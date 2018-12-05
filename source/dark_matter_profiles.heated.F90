@@ -23,7 +23,7 @@
   !# </darkMatterProfile>
 
   use Kind_Numbers
-  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
 
   type, extends(darkMatterProfileClass) :: darkMatterProfileHeated
      !% A dark matter halo profile class implementing heated dark matter halos.
@@ -375,7 +375,6 @@ contains
     !% \ttfamily radius} (given in units of Mpc).
     use FGSL                        , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     use Galactic_Structure_Options
     implicit none

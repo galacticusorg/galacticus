@@ -85,6 +85,7 @@ contains
   double precision function gao2008Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{gao_redshift_2008}
     !% algorithm.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationGao2008), intent(inout), target  :: self
     type            (treeNode                             ), intent(inout), target  :: node

@@ -20,7 +20,7 @@
 
 module Dark_Matter_Halo_Biases
   !% Implements a dark matter halo bias class.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode, nodeComponentBasic
   implicit none
   private
 

@@ -121,6 +121,7 @@ contains
     !% using the \cite{bullock_profiles_2001} algorithm.
     use Virial_Density_Contrast
     use Dark_Matter_Profile_Mass_Definitions
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationBullock2001), intent(inout), target  :: self
     type            (treeNode                                 ), intent(inout), target  :: node

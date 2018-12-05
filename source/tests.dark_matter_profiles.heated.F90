@@ -29,7 +29,7 @@ program Test_Dark_Matter_Profiles_Heated
   !% the final profile is found as $\rho(r) = (4 \pi r^2)^{-1} \mathrm{d} M(r) / \mathrm{d} r$.
   use Unit_Tests
   use Memory_Management
-  use Galacticus_Nodes
+  use Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentSatellite, treeNode
   use Input_Parameters
   use ISO_Varying_String
   use Galacticus_Display

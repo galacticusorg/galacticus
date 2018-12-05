@@ -96,6 +96,7 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{zhao_accurate_2009} algorithm.
     use Dark_Matter_Halo_Formation_Times
+    use Galacticus_Nodes                , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationZhao2009), intent(inout), target  :: self
     type            (treeNode                              ), intent(inout), target  :: node

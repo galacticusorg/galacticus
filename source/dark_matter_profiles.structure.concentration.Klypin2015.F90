@@ -633,6 +633,7 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
     use Galacticus_Error
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node

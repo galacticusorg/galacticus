@@ -19,7 +19,7 @@
   !% An implementation of \cite{burkert_structure_1995} dark matter halo profiles.
 
 
-  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
   use Tables
   use Kind_Numbers
 
@@ -173,6 +173,7 @@ contains
   function burkertConstructorInternal(darkMatterHaloScale_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
     use Galacticus_Error
+    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type (darkMatterProfileBurkert)                        :: self
     class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
@@ -328,7 +329,7 @@ contains
   double precision function burkertDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -350,7 +351,7 @@ contains
   double precision function burkertEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -373,8 +374,8 @@ contains
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
     use Galactic_Structure_Options
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Math
+    use Galacticus_Nodes          , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
@@ -446,6 +447,7 @@ contains
   double precision function burkertCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -470,6 +472,7 @@ contains
   double precision function burkertRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily
     !% specificAngularMomentum} (given in units of km s$^{-1}$ Mpc)
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
@@ -517,7 +520,7 @@ contains
 
   double precision function burkertRotationNormalization(self,node)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -541,7 +544,7 @@ contains
 
   double precision function burkertEnergy(self,node)
     !% Return the energy of an Burkert halo density profile.
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -567,7 +570,7 @@ contains
 
   double precision function burkertEnergyGrowthRate(self,node)
     !% Return the rate of change of the energy of an Burkert halo density profile.
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), target  :: node
@@ -778,9 +781,9 @@ contains
   double precision function burkertKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the Burkert density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$), using the
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
-    use Dark_Matter_Halo_Scales
     use Exponential_Integrals
     use Numerical_Constants_Math
+    use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
@@ -831,8 +834,8 @@ contains
 
   double precision function burkertFreefallRadius(self,node,time)
     !% Returns the freefall radius in the Burkert density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -878,8 +881,8 @@ contains
   double precision function burkertFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the Burkert density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileBurkert      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -1024,8 +1027,7 @@ contains
 
   double precision function burkertRadiusEnclosingDensity(self,node,density)
     !% Null implementation of function to compute the radius enclosing a given density for Burkert dark matter halo profiles.
-     use Galacticus_Nodes
-   use Galacticus_Error
+    use Galacticus_Error
     implicit none
     class           (darkMatterProfileBurkert), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node

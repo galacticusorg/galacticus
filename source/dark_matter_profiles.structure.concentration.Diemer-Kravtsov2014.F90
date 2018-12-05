@@ -213,6 +213,7 @@ contains
     !% using the \cite{diemer_universal_2014} algorithm.
     use Numerical_Constants_Math
     use Math_Exponentiation
+    use Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationDiemerKravtsov2014), intent(inout)          :: self
     type            (treeNode                                        ), intent(inout), target  :: node

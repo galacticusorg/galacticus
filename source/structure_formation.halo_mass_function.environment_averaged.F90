@@ -93,7 +93,7 @@ contains
     !% Return the differential halo mass function at the given time and mass.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes     , only : treeNode, nodeComponentBasic, mergerTree
     use               Root_Finder
     implicit none
     class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self

@@ -21,7 +21,7 @@
 module Cosmological_Density_Field
   !% Provides an object that implements critical overdensities and halo environments.
   use Cosmology_Functions
-  use Galacticus_Nodes
+  use Galacticus_Nodes   , only : treeNode
   private
   
   !# <functionClass>

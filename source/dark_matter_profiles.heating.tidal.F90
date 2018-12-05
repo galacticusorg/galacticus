@@ -52,6 +52,7 @@ contains
 
   double precision function tidalSpecificEnergy(self,node,darkMatterProfile_,radius)
     !% Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -73,6 +74,7 @@ contains
 
   double precision function tidalSpecificEnergyGradient(self,node,darkMatterProfile_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -95,6 +97,7 @@ contains
 
   logical function tidalSpecificEnergyIsEverywhereZero(self,node,darkMatterProfile_)
     !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class(darkMatterProfileHeatingTidal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node

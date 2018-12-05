@@ -143,7 +143,7 @@ contains
   double precision function fofBiasDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use Galacticus_Error
-    use Galacticus_Nodes
+    use Galacticus_Nodes        , only : treeNode, nodeComponentBasic
     use Numerical_Constants_Math
     implicit none
     class           (haloMassFunctionFofBias), intent(inout)           :: self

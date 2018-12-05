@@ -31,7 +31,7 @@ contains
 
   subroutine Dark_Matter_Halo_Spins_Initialize()
     !% Initialize the halo spins module.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : defaultSpinComponent, defaultBasicComponent
     use Galacticus_Error
     use ISO_Varying_String
     implicit none
@@ -70,7 +70,7 @@ contains
 
   double precision function Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)
     !% Returns the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
-    use Galacticus_Nodes
+    use Galacticus_Nodes            , only : treeNode, nodeComponentBasic, nodeComponentSpin
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none
@@ -93,7 +93,7 @@ contains
 
   double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfile_)
     !% Returns the rate of change of the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
-    use Galacticus_Nodes
+    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentSpin
     use Dark_Matter_Profiles
     implicit none
     type (treeNode              ), intent(inout) :: node
@@ -122,7 +122,7 @@ contains
 
   double precision function Dark_Matter_Halo_Spin(node,angularMomentum)
     !% Returns the spin of {\normalfont \ttfamily node} given its angular momentum.
-    use Galacticus_Nodes
+    use Galacticus_Nodes            , only : treeNode, nodeComponentBasic
     use Numerical_Constants_Physical
     use Dark_Matter_Profiles
     implicit none

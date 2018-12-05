@@ -27,7 +27,7 @@ contains
 
   function Dark_Matter_Profile_Mass_Definition(node,densityContrast,radius,velocity) result(massHalo)
     !% Compute the mass of {\normalfont \ttfamily node} under the given density contrast definition.
-    use Galacticus_Nodes
+    use Galacticus_Nodes            , only : treeNode, nodeComponentBasic
     use Cosmology_Parameters
     use Cosmology_Functions
     use Dark_Matter_Profiles

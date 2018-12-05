@@ -20,7 +20,7 @@
 
 module Excursion_Sets_Barriers
   !% Provides a class that implements barriers for the excursion set problem.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>

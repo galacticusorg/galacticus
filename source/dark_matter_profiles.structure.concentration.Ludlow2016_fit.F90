@@ -93,6 +93,7 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{ludlow_mass-concentration-redshift_2016} fitting function.
     use Galacticus_Error
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016Fit), intent(inout), target  :: self
     type            (treeNode                                   ), intent(inout), target  :: node

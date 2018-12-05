@@ -20,7 +20,7 @@
 
 module Dark_Matter_Profiles
   !% Provides an object that implements dark matter halo profiles.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

@@ -21,7 +21,7 @@
 module Halo_Mass_Functions
   use, intrinsic :: ISO_C_Binding
   use            :: FGSL            , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
-  use            :: Galacticus_Nodes
+  use            :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 

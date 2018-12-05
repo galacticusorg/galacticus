@@ -18,7 +18,7 @@
 
   !% An implementation of truncated dark matter halo profiles.
 
-  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
 
   !# <darkMatterProfile name="darkMatterProfileTruncated">
   !#  <description>truncated dark matter halo profiles.</description>
@@ -126,7 +126,6 @@ contains
   double precision function truncatedDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Dark_Matter_Halo_Scales
     implicit none
     class           (darkMatterProfileTruncated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -209,9 +208,8 @@ contains
   double precision function truncatedEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use FGSL                   , only : fgsl_function, fgsl_integration_workspace
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
-    use Dark_Matter_Halo_Scales
     implicit none
     class           (darkMatterProfileTruncated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node

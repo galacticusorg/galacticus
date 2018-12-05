@@ -88,6 +88,7 @@ contains
   double precision function wdmConcentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationWDM), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout), target  :: node

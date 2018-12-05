@@ -212,7 +212,7 @@ contains
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Calculations_Resets
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                  , only : mergerTree, treeNode, nodeComponentBasic
     use               Input_Parameters
     use               Galacticus_Output_Merger_Tree_Data
     use               Multi_Counters
@@ -455,7 +455,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use            :: Numerical_Constants_Astronomical
     use            :: String_Handling
-    use            :: Galacticus_Nodes
+    use            :: Galacticus_Nodes                , only : mergerTree
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     type   (mergerTree                 ), intent(inout) :: tree
@@ -579,7 +579,7 @@ contains
 
   subroutine standardPropertiesCount(self,time,node)
     !% Count up the number of properties that will be output.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     !# <include directive="mergerTreeOutputPropertyCount" type="moduleUse">
     include 'galacticus.output.merger_tree.property_count.modules.inc'
     !# </include>
@@ -638,7 +638,7 @@ contains
 
   subroutine standardPropertyNamesEstablish(self,time,node)
     !% Set names for the properties.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     !# <include directive="mergerTreeOutputNames" type="moduleUse">
     include 'galacticus.output.merger_tree.names.modules.inc'
     !# </include>

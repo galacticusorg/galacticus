@@ -110,6 +110,7 @@ contains
     !% \cite{correa_accretion_2015} algorithm.
     use Dark_Matter_Halos_Correa2015
     use Root_Finder
+    use Galacticus_Nodes            , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationCorrea2015), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout), target  :: node
