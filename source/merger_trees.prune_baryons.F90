@@ -45,8 +45,7 @@ contains
     use Merger_Tree_Walkers
     implicit none
     type   (mergerTree                   ), intent(in   ), target :: tree
-    type   (treeNode                     ), pointer               :: nodeNext              , node, &
-         &                                                           nodePrevious
+    type   (treeNode                     ), pointer               :: nodeNext              , node
     class  (nodeComponentBasic           ), pointer               :: basic
     type   (mergerTree                   ), pointer               :: treeCurrent
     class  (accretionHaloClass           ), pointer               :: accretionHalo_
@@ -116,8 +115,9 @@ contains
                    basic => node%basic()
                    if (.not.accretionHalo_%branchHasBaryons(node).and.node%uniqueID() /= node%parent%uniqueID()) then
                       didPruning=.true.
-                      ! Return to parent node.
-                      call treeWalker%previous(nodePrevious)
+                      ! Set the tree walker back to the base node so that it exits - we've changed the tree structure so need to
+                      ! begin the walk again.
+                      call treeWalker%setNode(treeCurrent%baseNode)
                       ! Decouple from other nodes.
                       call Merger_Tree_Prune_Unlink_Parent(node,node%parent,.not.accretionHalo_%branchHasBaryons(node%parent),.true.)
                       ! Clean the branch.
