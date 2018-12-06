@@ -35,7 +35,7 @@
      double precision                                    :: temperatureCMB27      , distanceSoundWave      , &
           &                                                 neutrinoMassFraction  , neutrinoNumberEffective, &
           &                                                 neutrinoFactor        , betaDarkMatter         , &
-          &                                                 neutrinoMassSummed
+          &                                                 neutrinoMassSummed    , shapeParameterEffective
      double precision                                    :: C                     , L                      , &
           &                                                 wavenumberEffective   , wavenumberNeutrino     , &
           &                                                 wavenumberEffectivePow, wavenumberPrevious
@@ -195,7 +195,7 @@ contains
          &                                                           )
     ! Specify properties of neutrinos. Mass fraction formula is from Komatsu et al. (2007; http://adsabs.harvard.edu/abs/2010arXiv1001.4538K).
     eisensteinHu1999ConstructorInternal%neutrinoMassSummed     =+neutrinoMassSummed
-    eisensteinHu1999ConstructorInternal%neutrinoMassFraction   =+neutrinoMassSummed                                                                           &
+    eisensteinHu1999ConstructorInternal%neutrinoMassFraction   =+neutrinoMassSummed                                                                             &
          &                                                      /94.0d0                                                                                         &
          &                                                      /eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
          &                                                      /eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )
@@ -297,30 +297,29 @@ contains
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
     double precision                                  , intent(in   ) :: wavenumber
     double precision                                                  :: wavenumberScaleFree
-    double precision                                                  :: shapeParameterEffective
 
     
     ! If called again with the same wavenumber, return without recomputing result.
     if (wavenumber == self%wavenumberPrevious) return
     self%wavenumberPrevious=wavenumber
     ! Compute rescaled shape parameter (eqn. 16)
-    shapeParameterEffective=+self%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                  *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                  *(                                                               &
-         &                    +       sqrt(self%neutrinoFactor)                              &
-         &                    +(1.0d0-sqrt(self%neutrinoFactor))                             &
-         &                    /(                                                             &
-         &                      +1.0d0                                                       &
-         &                      +(                                                           &
-         &                        +0.43d0                                                    &
-         &                        *wavenumber                                                &
-         &                        *self%distanceSoundWave                                    &
-         &                       )**4                                                        &
-         &                     )                                                             &
-         &                   )
+    self%shapeParameterEffective=+self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                       *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                       *(                                                               &
+         &                         +       sqrt(self%neutrinoFactor)                              &
+         &                         +(1.0d0-sqrt(self%neutrinoFactor))                             &
+         &                         /(                                                             &
+         &                           +1.0d0                                                       &
+         &                           +(                                                           &
+         &                             +0.43d0                                                    &
+         &                             *wavenumber                                                &
+         &                             *self%distanceSoundWave                                    &
+         &                            )**4                                                        &
+         &                          )                                                             &
+         &                       )
     self%wavenumberEffective    =+wavenumber                                                 &
          &                       *self%temperatureCMB27**2                                   &
-         &                       /shapeParameterEffective
+         &                       /self%shapeParameterEffective
     self%wavenumberEffectivePow=+self%wavenumberEffective**1.11d0
     self%L                      =+log(                                                       & ! Eqn. 19.
          &                       +exp(1.0d0)                                                 &
@@ -399,8 +398,10 @@ contains
     implicit none
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
     double precision                                  , intent(in   ) :: wavenumber
-    double precision                                                  :: transferFunction      , dLdwavenumberEffective, &
-         &                                                               dCdwavenumberEffective
+    double precision                                                  :: transferFunction             , dLdwavenumberEffective       , &
+         &                                                               dCdwavenumberEffective       , suppressionNeutrino          , &
+         &                                                               wavenumberEffectiveDerivative, suppressionNeutrinoDerivative, &
+         &                                                               wavenumberNeutrinoDerivative
 
     ! Compute common factors.
     call self%computeFactors(wavenumber)
@@ -425,6 +426,29 @@ contains
          &                                  /sqrt(self%neutrinoFactor)   &
          &                                  +self%wavenumberEffective    &
          &                                 )
+    wavenumberEffectiveDerivative=+self%wavenumberEffective&
+         &                        /     wavenumber&
+         &                        +2.0d0&
+         &                        *self%wavenumberEffective&
+         &                        /self%shapeParameterEffective                                **2 &
+         &                        *self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                        *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                        *(1.0d0-sqrt(self%neutrinoFactor))                               &
+         &                        /(                                                               &
+         &                          +1.0d0                                                         &
+         &                          +(                                                             &
+         &                            +0.43d0                                                      &
+         &                            *wavenumber                                                  &
+         &                            *self%distanceSoundWave                                      &
+         &                           )**4                                                          &
+         &                         )                                                           **2 &
+         &                        *4.0d0                                                           &
+         &                        *(                                                               &
+         &                          +0.43d0                                                        &
+         &                          *wavenumber                                                    &
+         &                          *self%distanceSoundWave                                        &
+         &                         )**4                                                            &
+         &                        /wavenumber
     ! Compute logarithmic derivative of transfer function.
     eisensteinHu1999LogarithmicDerivative=+(                                                                                                                       &
          &                                  +dLdwavenumberEffective                                                                                                &
@@ -432,15 +456,50 @@ contains
          &                                                                          - self%L                                                                       &
          &                                  *(+2.0d0*self%C*self%wavenumberEffective+dLdwavenumberEffective+dCdwavenumberEffective*self%wavenumberEffective**2)    &
          &                                  /(                                      + self%L               + self%C               *self%wavenumberEffective**2)**2 &
-         &                                 )                                                                                                                       &
-         &                                 *self%wavenumberEffective                                                                                               &
-         &                                 /transferFunction
+         &                                 )&
+         &*wavenumberEffectiveDerivative&
+         &*wavenumber&
+         &/transferFunction
     ! Apply correction for scales close to horizon.
     if     (                                    &
          &   self%neutrinoMassFraction >  0.0d0 &
          &  .and.                               &
          &   self%neutrinoMassFraction <= 0.3d0 &
-         & ) eisensteinHu1999LogarithmicDerivative=eisensteinHu1999LogarithmicDerivative+0.8d0*(3.0d0/(1.0d0+self%wavenumberNeutrino**2.4d0)-1.0d0)
+         & ) then
+       suppressionNeutrino                  =+1.0d0                                                                    &
+            &                                +(                                                                        &
+            &                                  +1.2d0                                                                  &
+            &                                  *self%neutrinoMassFraction   ** 0.64d0                                  &
+            &                                  *self%neutrinoNumberEffective**(0.30d0+0.6d0*self%neutrinoMassFraction) &
+            &                                 )                                                                        &
+            &                                /(                                                                        &
+            &                                  +self%wavenumberNeutrino**(-1.6d0)                                      &
+            &                                  +self%wavenumberNeutrino**(+0.8d0)                                      &
+            &                                 )
+       suppressionNeutrinoDerivative        =-(                                                                        &
+            &                                  +1.2d0                                                                  &
+            &                                  *self%neutrinoMassFraction   ** 0.64d0                                  &
+            &                                  *self%neutrinoNumberEffective**(0.30d0+0.6d0*self%neutrinoMassFraction) &
+            &                                 )                                                                        &
+            &                                /(                                                                        &
+            &                                  +      self%wavenumberNeutrino**(-1.6d0)                                &
+            &                                  +      self%wavenumberNeutrino**(+0.8d0)                                &
+            &                                 )**2                                                                     &
+            &                                *(                                                                        &
+            &                                  -1.6d0*self%wavenumberNeutrino**(-2.6d0)                                &
+            &                                  +0.8d0*self%wavenumberNeutrino**(-0.2d0)                                &
+            &                                 )
+       wavenumberNeutrinoDerivative         =+3.92d0&
+            &                                *sqrt(self%neutrinoNumberEffective)                              &
+            &                                /     self%neutrinoMassFraction                                  &
+            &                                *self%temperatureCMB27                                       **2 &
+            &                                /self%cosmologyParameters_%OmegaMatter   (                  )    &
+            &                                /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       eisensteinHu1999LogarithmicDerivative=+eisensteinHu1999LogarithmicDerivative   &
+            &                                *suppressionNeutrino                     &
+            &                                +suppressionNeutrinoDerivative           &
+            &                                *wavenumberNeutrinoDerivative*wavenumber
+    end if
     return
   end function eisensteinHu1999LogarithmicDerivative
 
