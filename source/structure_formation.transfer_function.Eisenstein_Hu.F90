@@ -426,11 +426,10 @@ contains
          &                                  /sqrt(self%neutrinoFactor)   &
          &                                  +self%wavenumberEffective    &
          &                                 )
-    wavenumberEffectiveDerivative=+self%wavenumberEffective&
-         &                        /     wavenumber&
-         &                        +2.0d0&
-         &                        *self%wavenumberEffective&
-         &                        /self%shapeParameterEffective                                **2 &
+    wavenumberEffectiveDerivative=+self%wavenumberEffective                                        &
+         &                        /     wavenumber                                                 &
+         &                        +self%wavenumberEffective                                        &
+         &                        /self%shapeParameterEffective                                    &
          &                        *self%cosmologyParameters_%OmegaMatter   (                  )    &
          &                        *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
          &                        *(1.0d0-sqrt(self%neutrinoFactor))                               &
@@ -447,8 +446,9 @@ contains
          &                          +0.43d0                                                        &
          &                          *wavenumber                                                    &
          &                          *self%distanceSoundWave                                        &
-         &                         )**4                                                            &
-         &                        /wavenumber
+         &                         )**3                                                            &
+         &                        *0.43d0                                                          &
+         &                        *self%distanceSoundWave
     ! Compute logarithmic derivative of transfer function.
     eisensteinHu1999LogarithmicDerivative=+(                                                                                                                       &
          &                                  +dLdwavenumberEffective                                                                                                &
@@ -498,7 +498,8 @@ contains
        eisensteinHu1999LogarithmicDerivative=+eisensteinHu1999LogarithmicDerivative   &
             &                                *suppressionNeutrino                     &
             &                                +suppressionNeutrinoDerivative           &
-            &                                *wavenumberNeutrinoDerivative*wavenumber
+            &                                *wavenumberNeutrinoDerivative            &
+            &                                *wavenumber
     end if
     return
   end function eisensteinHu1999LogarithmicDerivative
