@@ -384,6 +384,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.transfer_functions.exe",                                       # Transfer functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.black_hole_fundamentals.exe",                                  # Black hole fundamentals.
 	valgrind => 0,
 	mpi      => 0
