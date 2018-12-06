@@ -29,10 +29,12 @@ program Tests_Transfer_Functions
   type            (cosmologyParametersSimple       )               :: cosmologyParameters_
   type            (transferFunctionEisensteinHu1999)               :: transferFunctionEisensteinHu1999_
   type            (darkMatterParticleCDM           )               :: darkMatterParticle_
-  double precision                                  , parameter    :: wavenumberReference                  =1.0d0, stepLogarithmic                                      =1.0d-3
-  double precision                                  , dimension(2) :: wavenumber                                 , transferFunctionValue
-  double precision                                                 :: transferFunctionLogarithmicDerivative      , transferFunctionLogarithmicDerivativeFiniteDifference
-  integer                                                          :: i
+  double precision                                  , parameter    :: stepLogarithmic                     =1.0d-3
+  double precision                                  , dimension(2) :: wavenumber                                  , transferFunctionValue                                , &
+       &                                                              wavenumberReference
+  double precision                                                 :: transferFunctionLogarithmicDerivative       , transferFunctionLogarithmicDerivativeFiniteDifference
+  integer                                                          :: i                                           , j
+  character       (len=9                          )                :: label
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -54,16 +56,21 @@ program Tests_Transfer_Functions
        &                                                             darkMatterParticle_    =darkMatterParticle_ , &
        &                                                             cosmologyParameters_   =cosmologyParameters_  &
        &                                                            )
-  ! Compute logarithmic derivative of transfer function via finite difference.
-  wavenumber(1)=wavenumberReference
-  wavenumber(2)=wavenumberReference*exp(stepLogarithmic)
-  do i=1,2
-     transferFunctionValue(i)=transferFunctionEisensteinHu1999_%value(wavenumber(i))
+  ! Iterate over reference wavenumbers.
+  wavenumberReference=[1.0d-2,1.0d+0]
+  do j=1,size(wavenumberReference)
+     ! Compute logarithmic derivative of transfer function via finite difference.
+     wavenumber(1)=wavenumberReference(j)
+     wavenumber(2)=wavenumberReference(j)*exp(stepLogarithmic)
+     do i=1,2
+        transferFunctionValue(i)=transferFunctionEisensteinHu1999_%value(wavenumber(i))
+     end do
+     transferFunctionLogarithmicDerivative                =transferFunctionEisensteinHu1999_%logarithmicDerivative(wavenumber(1))
+     transferFunctionLogarithmicDerivativeFiniteDifference=+log(transferFunctionValue(2)/transferFunctionValue(1)) &
+          &                                                /log(wavenumber           (2)/wavenumber           (1))
+     write (label,'(e8.2)') wavenumberReference(j)
+     call Assert('Eisenstein-Hu T(k) log-derivative with non-zero neutrino mass at k='//trim(label)//'Mpc',transferFunctionLogarithmicDerivative,transferFunctionLogarithmicDerivativeFiniteDifference,relTol=stepLogarithmic)
   end do
-  transferFunctionLogarithmicDerivative                =transferFunctionEisensteinHu1999_%logarithmicDerivative(wavenumber(1))
-  transferFunctionLogarithmicDerivativeFiniteDifference=+log(transferFunctionValue(2)/transferFunctionValue(1)) &
-       &                                                /log(wavenumber           (2)/wavenumber           (1))
-  call Assert('Eisenstein-Hu T(k) log-derivative with non-zero neutrino mass',transferFunctionLogarithmicDerivative,transferFunctionLogarithmicDerivativeFiniteDifference,relTol=stepLogarithmic)
   ! End unit tests.
   call Unit_Tests_End_Group()
   call Unit_Tests_Finish   ()
