@@ -97,6 +97,7 @@ contains
 
   subroutine pruneNonEssentialOperate(self,tree)
     !% Perform a prune-non-essential operation on a merger tree.
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Merger_Trees_Pruning_Utilities
     use Merger_Tree_Walkers
     implicit none

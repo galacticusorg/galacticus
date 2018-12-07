@@ -100,6 +100,7 @@ contains
   function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
     use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
     use            :: Memory_Management
     use            :: Numerical_Ranges
     implicit none
@@ -163,6 +164,7 @@ contains
 
   double precision function historyTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the history method.
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic
     use, intrinsic :: ISO_C_Binding
     use            :: Numerical_Interpolation
     use            :: Evolve_To_Time_Reports
@@ -200,6 +202,7 @@ contains
 
   subroutine historyStore(self,tree,node,deadlockStatus)
     !% Store various properties in global arrays.
+    use            :: Galacticus_Nodes                  , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use, intrinsic :: ISO_C_Binding
     use            :: Numerical_Interpolation
     use            :: Galactic_Structure_Options

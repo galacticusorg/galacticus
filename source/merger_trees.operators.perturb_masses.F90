@@ -89,6 +89,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use            :: Linear_Algebra
     use            :: Merger_Tree_Walkers
+    use            :: Galacticus_Nodes   , only : treeNode, nodeComponentBasic
     implicit none
     class           (mergerTreeOperatorPerturbMasses), intent(inout), target         :: self
     type            (mergerTree                     ), intent(inout), target         :: tree

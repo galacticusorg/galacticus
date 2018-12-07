@@ -115,7 +115,7 @@ contains
   
   subroutine outputRootMassesOperate(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentMergingStatistics
     use Numerical_Comparison
     use Galacticus_Error
     use Merger_Tree_Walkers

@@ -129,7 +129,7 @@ contains
     use Numerical_Interpolation
     use Merger_Tree_Data_Structure
     use Merger_Tree_Walkers
-    use Galacticus_Nodes
+    use Galacticus_Nodes                , only : treeNode, nodeComponentBasic, nodeComponentPosition, defaultPositionComponent
     use Input_Parameters
     use Memory_Management
     use Sort

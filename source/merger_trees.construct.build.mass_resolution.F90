@@ -20,7 +20,7 @@
 
 module Merger_Trees_Build_Mass_Resolution
   !% Provides a class of merger tree mass resolutions.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : mergerTree
   private
 
   !# <functionClass>

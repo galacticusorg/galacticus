@@ -192,6 +192,7 @@ contains
   
   function buildConstruct(self,treeNumber) result(tree)
     !% Build a merger tree.
+    use    Galacticus_Nodes        , only : nodeComponentBasic
     use    Galacticus_State
     use    Kind_Numbers
     use    String_Handling

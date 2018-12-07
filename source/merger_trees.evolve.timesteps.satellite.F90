@@ -69,7 +69,7 @@ contains
 
   function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative) result(self)
     !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
-
+    use Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type            (mergerTreeEvolveTimestepSatellite)                :: self
     double precision                                   , intent(in   ) :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
@@ -81,6 +81,7 @@ contains
 
   double precision function satelliteTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
+    use Galacticus_Nodes      , only : nodeComponentBasic, nodeComponentSatellite
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none

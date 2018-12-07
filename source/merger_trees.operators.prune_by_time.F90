@@ -111,6 +111,7 @@ contains
 
   subroutine pruneByTimeOperate(self,tree)
     !% Perform a prune-by-time operation on a merger tree.
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Merger_Trees_Pruning_Utilities
     use Merger_Tree_Walkers
     implicit none

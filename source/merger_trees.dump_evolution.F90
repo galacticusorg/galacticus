@@ -44,7 +44,7 @@ contains
   !# </postEvolveTask>
   subroutine Merger_Tree_Dump_Evolution(thisNode)
     !% Trim histories attached to the disk.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Input_Parameters
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode

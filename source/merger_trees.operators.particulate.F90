@@ -28,6 +28,7 @@
   use Kind_Numbers
   use Tables
   use Input_Parameters
+  use Galacticus_Nodes       , only : treeNode
 
   !# <mergerTreeOperator name="mergerTreeOperatorParticulate" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which create particle representations of \glc\ halos.</description>
@@ -318,6 +319,7 @@ contains
     use Galacticus_Display
     use Merger_Tree_Walkers
     use Node_Components
+    use Galacticus_Nodes                  , only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite
     implicit none
     class           (mergerTreeOperatorParticulate), intent(inout) , target      :: self
     type            (mergerTree                   ), intent(inout) , target      :: tree

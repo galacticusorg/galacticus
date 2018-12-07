@@ -239,7 +239,8 @@ contains
   subroutine regridTimesOperate(self,tree)
     !% Perform a regrid times operation on a merger tree.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes       , only : treeNode              , treeNodeList, nodeComponentBasic, nodeEvent, &
+         &                                            nodeComponentSatellite
     use               Galacticus_Error
     use               FGSL                   , only : fgsl_interp_accel
     use               Numerical_Interpolation

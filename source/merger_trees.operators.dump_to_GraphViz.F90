@@ -121,7 +121,7 @@ contains
 
   subroutine dumpToGraphVizOperate(self,tree)
     !% Output the structure of {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes , only : nodeComponentBasic
     use Merger_Trees_Dump
     implicit none
     class(mergerTreeOperatorDumpToGraphViz), intent(inout), target :: self

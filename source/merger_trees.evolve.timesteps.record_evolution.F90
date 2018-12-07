@@ -156,6 +156,7 @@ contains
   double precision function recordEvolutionTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic
     use            :: Numerical_Interpolation
     use            :: Evolve_To_Time_Reports
     use            :: ISO_Varying_String
@@ -195,6 +196,7 @@ contains
   subroutine recordEvolutionStore(self,tree,node,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
     use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Nodes                  , only : nodeComponentBasic
     use            :: Numerical_Interpolation
     use            :: Galactic_Structure_Options
     use            :: Galactic_Structure_Enclosed_Masses

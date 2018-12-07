@@ -18,6 +18,7 @@
   
   !% Implements a merger tree constructor class which constructs trees by reading their definitions from file.
   
+  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
   use Cosmology_Functions
   use Merger_Tree_Read_Importers
   use Halo_Spin_Distributions
@@ -705,6 +706,7 @@ contains
 
   function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    use Galacticus_Nodes                , only : defaultNBodyComponent, nodeComponentNBodyGeneric
     use Galacticus_Error
     use Galacticus_Display
     use Numerical_Constants_Astronomical
@@ -937,6 +939,8 @@ contains
 
   function readConstruct(self,treeNumber) result(tree)
     !% Construct a merger tree by reading its definition from file.
+    use Galacticus_Nodes       , only : treeNodeList            , defaultDarkMatterProfileComponent, defaultSpinComponent, defaultSatelliteComponent, &
+         &                              defaultPositionComponent
     use Galacticus_State
     use Merger_Tree_State_Store
     use Galacticus_Error
@@ -1564,6 +1568,7 @@ contains
 
   subroutine readScanForSubhaloPromotions(self,nodes,nodeList)
     !% Scan for cases where a subhalo stops being a subhalo and so must be promoted.
+    use Galacticus_Nodes       , only : nodeEvent, treeNodeList, nodeEventSubhaloPromotion
     use Node_Subhalo_Promotions
     implicit none
     class  (mergerTreeConstructorRead), intent(inout)                              :: self
@@ -1677,6 +1682,7 @@ contains
   subroutine readCreateNodeArray(self,tree,nodes,nodeList,isolatedNodeCount,childIsSubhalo)
     !% Create an array of standard nodes and associated structures.
     use Memory_Management
+    use Galacticus_Nodes , only : treeNodeList
     implicit none
     class  (mergerTreeConstructorRead)                           , intent(inout) :: self
     type   (mergerTree               )                           , intent(inout) :: tree                                 
@@ -1735,6 +1741,7 @@ contains
     use String_Handling
     use Galacticus_Error
     use Pseudo_Random
+    use Galacticus_Nodes, only : treeNodeList
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout)          :: self
     type            (mergerTree               )                       , intent(inout) , target :: tree
@@ -1826,6 +1833,7 @@ contains
   subroutine readBuildChildAndSiblingLinks(nodes,nodeList,childIsSubhalo)
     !% Build child and sibling links between nodes.
     use Memory_Management
+    use Galacticus_Nodes , only : treeNodeList
     implicit none
     class  (nodeData          )             , dimension(:), intent(inout) :: nodes                                     
     type   (treeNodeList      )             , dimension(:), intent(inout) :: nodeList                                  
@@ -1917,6 +1925,7 @@ contains
     !% Assign scale radii to nodes.
     use Root_Finder
     use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+    use Galacticus_Nodes          , only : treeNodeList
     use Galacticus_Display
     use Galacticus_Error
     use Input_Parameters
@@ -2067,6 +2076,7 @@ contains
     !% Assign spin parameters to nodes.
     use Numerical_Constants_Physical
     use Galacticus_Error
+    use Galacticus_Nodes            , only : treeNodeList, nodeComponentSpin
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout) :: self
     class           (nodeData                 )         , dimension(:), intent(inout) :: nodes              
@@ -2131,6 +2141,7 @@ contains
   subroutine readAssignNamedProperties(self,nodes,nodeList)
     !% Assign named properties to nodes.
     use Galacticus_Error
+    use Galacticus_Nodes , only : treeNodeList, nodeComponentNBody, nodeComponentNBodyGeneric
     implicit none
     class  (mergerTreeConstructorRead)                       , intent(inout) :: self
     class  (nodeData                 )         , dimension(:), intent(inout) :: nodes              
@@ -2226,6 +2237,7 @@ contains
     use Kepler_Orbits
     use String_Handling
     use Galacticus_Error
+    use Galacticus_Nodes , only : treeNodeList, nodeComponentSatellite, nodeComponentPosition
     implicit none
     class           (mergerTreeConstructorRead)                         , intent(inout) :: self
     class           (nodeData                 ), target   , dimension(:), intent(inout) :: nodes                                                                
@@ -2528,6 +2540,7 @@ contains
     !% Assign pointers to merge targets.
     use Galacticus_Error
     use String_Handling
+    use Galacticus_Nodes, only : treeNodeList
     implicit none
     class  (mergerTreeConstructorRead)              , intent(inout) :: self
     class  (nodeData                 ), dimension(:), intent(inout) :: nodes    
@@ -2573,6 +2586,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
+    use Galacticus_Nodes  , only : treeNodeList
     implicit none
     class           (mergerTreeConstructorRead)              , intent(inout)          :: self
     class           (nodeData                 ), dimension(:), intent(inout), target  :: nodes                                                        
@@ -2763,6 +2777,7 @@ contains
 
   subroutine readCreateBranchJumpEvent(node,jumpToHost,timeOfJump)
     !% Create a matched-pair of branch jump events in the given nodes.
+    use Galacticus_Nodes , only : nodeEvent, nodeEventBranchJump
     use Node_Branch_Jumps
     implicit none
     type            (treeNode ), intent(inout), pointer :: jumpToHost, node  
@@ -2788,6 +2803,7 @@ contains
     use Galacticus_Error
     use String_Handling
     use Histories
+    use Galacticus_Nodes, only : treeNodeList, nodeComponentSatellite, nodeComponentPosition, defaultSatelliteComponent
     implicit none
     class           (mergerTreeConstructorRead)                         , intent(inout) :: self
     class           (nodeData                 ), target , dimension(:  ), intent(inout) :: nodes                                    
@@ -2981,6 +2997,7 @@ contains
 
   subroutine readAssignUniqueIDsToClones(nodeList)
     !% Assign new uniqueID values to any cloned nodes inserted into the trees.
+    use Galacticus_Nodes, only : treeNodeList
     implicit none
     type   (treeNodeList), dimension(:), intent(inout) :: nodeList 
     integer                                            :: iNode    
@@ -3121,6 +3138,7 @@ contains
     use Galacticus_Error
     use String_Handling
     use Galacticus_Display
+    use Galacticus_Nodes , only : treeNodeList, nodeComponentPosition
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout) :: self
     class           (nodeData                 )                       , intent(in   ) :: lastSeenNode                                                                      
@@ -3730,6 +3748,7 @@ contains
     use Galacticus_Error
     use String_Handling
     use Node_Events_Inter_Tree
+    use Galacticus_Nodes      , only : treeNodeList, nodeEvent, nodeEventSubhaloPromotionInterTree, nodeEventBranchJumpInterTree
     implicit none
     class           (mergerTreeConstructorRead)              , intent(inout), target :: self
     class           (nodeData                 ), dimension(:), intent(inout), target :: nodes
@@ -3932,6 +3951,7 @@ contains
     use Kepler_Orbits
     use Galacticus_Error
     use String_Handling
+    use Galacticus_Nodes , only : nodeComponentSatellite, nodeComponentPosition
     implicit none
     class           (*                       ), intent(inout)          :: self
     type            (treeNode                ), intent(inout), target  :: nodeSatellite               , nodeHost
