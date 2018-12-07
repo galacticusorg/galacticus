@@ -265,6 +265,7 @@ contains
 
   function jiang2014Orbit(self,node,host,acceptUnboundOrbits)
     !% Return jiang2014 orbital parameters for a satellite.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
     use Galacticus_Error
     use Root_Finder

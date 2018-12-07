@@ -20,7 +20,7 @@
 
 module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
-  use Galacticus_Nodes
+  use Galacticus_Nodes    , only : treeNode
   use Kind_Numbers
   use Dark_Matter_Profiles
   implicit none
@@ -146,18 +146,19 @@ contains
     use Galacticus_Error
     use Galactic_Structure_Options
     use Galactic_Structure_Potentials
+    use Galacticus_Nodes             , only : nodeComponentBasic
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: nodeHost
-    type            (keplerOrbit      ), intent(inout)          :: orbit
-    integer                            , intent(in   )          :: extremumType
-    double precision                   , intent(  out)          :: radius                 , velocity
-    class          (nodeComponentBasic), pointer                :: basicHost
-    double precision                   , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder       ), save                   :: finder
-    !$omp threadprivate(finder)
-    type            (keplerOrbit      )                         :: orbitCurrent
-    integer                                                     :: status
-    double precision                                            :: potential
+    type            (treeNode          ), intent(inout), pointer :: nodeHost
+    type            (keplerOrbit       ), intent(inout)          :: orbit
+    integer                             , intent(in   )          :: extremumType
+    double precision                    , intent(  out)          :: radius                 , velocity
+    class           (nodeComponentBasic), pointer                :: basicHost
+    double precision                    , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder        ), save                   :: finder
+    !$omp threadprivate(finder )
+    type            (keplerOrbit       )                         :: orbitCurrent
+    integer                                                      :: status
+    double precision                                             :: potential
 
 
     

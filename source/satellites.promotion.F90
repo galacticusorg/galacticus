@@ -28,7 +28,7 @@ contains
 
   subroutine Satellite_Move_To_New_Host(satelliteNode,newHostNode)
     !% Move {\normalfont \ttfamily satelliteNode} to be a satellite of {\normalfont \ttfamily newHostNode}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes  , only : treeNode, nodeComponentBasic
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling

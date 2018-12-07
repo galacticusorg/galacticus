@@ -21,7 +21,7 @@
 
 module Satellite_Merging_Mass_Movements
   !% Implements a class for determining how mass is moved around as a consequence of a satellite merging event.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

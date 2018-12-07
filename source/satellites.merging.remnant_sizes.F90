@@ -20,7 +20,7 @@
 
 module Satellite_Merging_Remnant_Sizes
   !% Implements a class for calculations of merger remnant sizes.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

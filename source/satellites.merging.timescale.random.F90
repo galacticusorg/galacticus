@@ -53,7 +53,7 @@ contains
   
   double precision function randomTimeUntilMerging(self,node,orbit)
     !% Return a randomly chosen timescale for merging satellites.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Kepler_Orbits
     use Satellite_Orbits
     use Pseudo_Random

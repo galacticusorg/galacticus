@@ -101,6 +101,7 @@ contains
 
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Galacticus_Error
     use Galacticus_Display
     use Dark_Matter_Profile_Mass_Definitions

@@ -99,7 +99,7 @@ contains
 
   double precision function zentner2005MassLossRate(self,node)
     !% Return a mass loss rate for satellites due to tidal stripping using the formulation of \cite{zentner_physics_2005}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                  , only : nodeComponentSatellite
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical

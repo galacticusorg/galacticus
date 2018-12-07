@@ -16,7 +16,7 @@
 module Satellite_Dynamical_Friction
   !% Implements calculations of dynamical friction for satellites.
 
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   
   !# <functionClass>
   !#  <name>satelliteDynamicalFriction</name>

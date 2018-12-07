@@ -148,6 +148,7 @@ contains
 
   function wetzel2010Orbit(self,node,host,acceptUnboundOrbits)
     !% Return wetzel2010 orbital parameters for a satellite.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
     use Galacticus_Error
     implicit none

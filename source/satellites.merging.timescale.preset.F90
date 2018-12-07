@@ -50,7 +50,7 @@ contains
 
   double precision function presetTimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the preset value.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponentSatellite
     use Kepler_Orbits
     implicit none
     class(satelliteMergingTimescalesPreset), intent(inout) :: self

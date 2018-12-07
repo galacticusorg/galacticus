@@ -42,6 +42,7 @@ contains
 
   function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simple} merger progenitor properties class which takes a parameter list as input.
+    use Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
     use Galacticus_Error
     use Array_Utilities
     use Input_Parameters
@@ -114,6 +115,7 @@ contains
   
   subroutine simpleGet(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
+    use Galacticus_Nodes                  , only : nodeComponentDisk, nodeComponentSpheroid
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical

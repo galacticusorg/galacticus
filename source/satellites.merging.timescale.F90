@@ -20,7 +20,7 @@
 
 module Satellite_Merging_Timescales
   !% Provides and object that implements satellite merging timescales.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   use Kepler_Orbits
   private
 
