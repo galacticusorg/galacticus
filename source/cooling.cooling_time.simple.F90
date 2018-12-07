@@ -18,8 +18,8 @@
 
   !% Implementation of a simple cooling time class.
 
-  use Cooling_Functions
-  use Chemical_States
+  use Cooling_Functions, only : coolingFunctionClass, coolingFunction
+  use Chemical_States  , only : chemicalStateClass  , chemicalState
   
   !# <coolingTime name="coolingTimeSimple" defaultThreadPrivate="yes">
   !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>

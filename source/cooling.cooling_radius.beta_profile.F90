@@ -96,6 +96,7 @@ contains
 
   function betaProfileConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the $\beta$-profile cooling radius class.
+    use Galacticus_Nodes             , only : defaultHotHaloComponent
     use ISO_Varying_String
     use Galacticus_Error
     use Array_Utilities
@@ -193,6 +194,7 @@ contains
 
   double precision function betaProfileRadiusGrowthRate(self,node)
     !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities

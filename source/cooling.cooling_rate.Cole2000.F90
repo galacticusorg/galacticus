@@ -83,6 +83,7 @@ contains
   double precision function cole2000Rate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
     !% model.
+    use Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentHotHalo
     use Numerical_Constants_Math
     implicit none
     class           (coolingRateCole2000 ), intent(inout) :: self

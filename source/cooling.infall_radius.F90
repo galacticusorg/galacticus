@@ -20,7 +20,7 @@
 
 module Cooling_Infall_Radii
   !% Provides a class that implements calculations of the infall radius for cooling calculations.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

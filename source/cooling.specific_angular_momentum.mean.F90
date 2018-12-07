@@ -52,6 +52,7 @@ contains
 
   double precision function meanAngularMomentumSpecific(self,node,radius)
     !% Return the specific angular momentum of cooling gas in the mean model.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class           (coolingSpecificAngularMomentumMean ), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

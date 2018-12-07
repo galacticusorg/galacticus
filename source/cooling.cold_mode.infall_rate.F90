@@ -20,7 +20,7 @@
 
 module Cooling_Cold_Mode_Infall_Rates
   !% Implements calculations of the infall rate from the cold mode.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

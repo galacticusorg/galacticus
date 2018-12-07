@@ -22,7 +22,7 @@ module Chemical_Reaction_Rates
   !% Provides a class implementing chemical reaction rates.
   use Chemical_Abundances_Structure
   use Radiation_Fields
-  use Galacticus_Nodes
+  use Galacticus_Nodes             , only : treeNode
   private
   
   !# <functionClass>

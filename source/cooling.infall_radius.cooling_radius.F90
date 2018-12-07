@@ -18,7 +18,7 @@
 
   !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
 
-  use Cooling_Radii
+  use Cooling_Radii, only : coolingRadiusClass, coolingRadius
   
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius" defaultThreadPrivate="yes">
   !#  <description>A simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.</description>

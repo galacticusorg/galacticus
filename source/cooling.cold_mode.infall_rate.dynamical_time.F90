@@ -66,6 +66,7 @@ contains
 
   function dynamicalTimeConstructorInternal(dynamicalRateFraction,darkMatterHaloScale_) result(self)
     !% Internal constructor for the dynamical time cooling time class.
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     use Galacticus_Error
     implicit none
     type            (coldModeInfallRateDynamicalTime)                        :: self
@@ -93,6 +94,8 @@ contains
 
   double precision function dynamicalTimeInfallRate(self,node)
     !% Computes the cold mode infall rate as a fraction of the halo dynamical time.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
+    implicit none
     class(coldModeInfallRateDynamicalTime), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
     class(nodeComponentHotHalo           ), pointer       :: hotHalo
