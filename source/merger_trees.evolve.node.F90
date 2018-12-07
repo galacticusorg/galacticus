@@ -20,7 +20,7 @@
 
 module Merger_Trees_Evolve_Node
   !% Implements evolution of a single node in a merger tree.
-  use Galacticus_Nodes
+  use Galacticus_Nodes  , only : treeNode, interruptTask
   use Kind_Numbers
   use ISO_Varying_String
   use FODEIV2
@@ -249,6 +249,8 @@ contains
 
   subroutine Tree_Node_Evolve(thisTree,node,timeEnd,interrupted,functionInterrupt)
     !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
+    use Galacticus_Nodes               , only : nodeComponentBasic  , mergerTree      , propertyTypeAll , propertyTypeActive, &
+         &                                      propertyTypeInactive, rateComputeState, propertyTypeNone
     use ODEIV2_Solver
     use Memory_Management
     use Galacticus_Calculations_Resets
@@ -604,6 +606,7 @@ contains
 
   subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,evaluate,integrands)
     !% A set of integrands for unit tests.
+    use Galacticus_Nodes, only : rateComputeState
     implicit none
     integer                        , intent(in   )                                              :: propertyCountActive       , propertyCountInactive
     double precision               , intent(in   ), dimension(                              : ) :: time
@@ -646,6 +649,7 @@ contains
   integer function Tree_Node_ODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
+    use Galacticus_Nodes      , only : nodeComponentBasic
     use FGSL                  , only : FGSL_Success
     implicit none
     double precision                     , intent(in   )               :: time

@@ -372,6 +372,7 @@ contains
     use Numerical_Ranges
     use Memory_Management
     use Galacticus_Error
+    use Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
     double precision                                 , intent(in   ), dimension(:) :: parentRedshifts                 , progenitorRedshifts
@@ -614,7 +615,7 @@ contains
 
   subroutine conditionalMFOperate(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes     , only : treeNode, nodeComponentBasic, nodeComponentMergingStatistics
     use Input_Parameters
     use Memory_Management
     use Numerical_Comparison
@@ -1044,6 +1045,7 @@ contains
 
   function conditionalMFBinWeights(self,mass,time,massLogarithmicMinimumBins,massLogarithmicWidthInverseBins,countBins)
     !% Computes the weight that a given halo contributes to an array of bins.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)        :: self
     double precision                                 , intent(in   )        :: mass                      , time                           , &
@@ -1110,6 +1112,7 @@ contains
   function conditionalMFBinWeights2D(self,mass1,time1,mass2,time2,massLogarithmicMinimumBins1,massLogarithmicWidthInverseBins1,countBins1,massRatioLogarithmicMinimumBins2,massRatioLogarithmicWidthInverseBins2,countBins2,moment)
     !% Computes the weight that a given halo contributes to a 2D array of bins.
     use FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use Galacticus_Nodes     , only : treeNode     , nodeComponentBasic
     use Numerical_Integration
     use Galacticus_Error
     implicit none

@@ -157,7 +157,8 @@ contains
   subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,initializationLock)
     !% Evolves all properties of a merger tree to the specified time.
     !$ use OMP_Lib
-    use Galacticus_Nodes                  , only : nodeEvent   , nodeComponentBasic
+    use Galacticus_Nodes                  , only : nodeEvent                         , nodeComponentBasic, interruptTask, nodeEventBranchJumpInterTree, &
+         &                                         nodeEventSubhaloPromotionInterTree
     use Merger_Tree_Timesteps             , only : timestepTask
     use Merger_Trees_Evolve_Node
     use Merger_Trees_Initialize

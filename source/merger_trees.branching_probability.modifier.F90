@@ -20,7 +20,6 @@
 
 module Merger_Tree_Branching_Modifiers
   !% Provides a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
-  use Galacticus_Nodes
   private
 
   !# <functionClass>

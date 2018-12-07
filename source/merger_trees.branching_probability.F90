@@ -21,7 +21,7 @@
 module Merger_Tree_Branching
   !% Implements a merger tree branching probability class.
   use Pseudo_Random
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

@@ -167,7 +167,7 @@ contains
     !% Construct a set of merger tree masses by sampling from a distribution.
     use Root_Finder
     use Galacticus_Calculations_Resets
-    use Galacticus_Nodes
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Memory_Management
     use Sort
     implicit none

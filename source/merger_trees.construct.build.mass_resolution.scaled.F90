@@ -80,6 +80,7 @@ contains
 
   double precision function scaledResolution(self,tree)
     !% Returns a scaled mass resolution to use when building merger trees.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(mergerTreeMassResolutionScaled), intent(inout) :: self
     type (mergerTree                    ), intent(in   ) :: tree

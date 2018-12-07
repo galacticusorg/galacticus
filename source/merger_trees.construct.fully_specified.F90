@@ -70,7 +70,7 @@ contains
   function fullySpecifiedConstruct(self,treeNumber) result(tree)
     !% Construct a fully-specified merger tree.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes   , only : treeNodeList
     use               FoX_DOM
     use               Kind_Numbers
     use               Galacticus_Error
@@ -207,7 +207,7 @@ contains
 
     function nodeLookup(nodeArray,indexValue) result (node)
       !% Find the position of a node in the {\normalfont \ttfamily nodeArray} array given its {\normalfont \ttfamily indexValue}.
-      use Galacticus_Nodes
+      use Galacticus_Nodes, only : treeNode, treeNodeList
       use Kind_Numbers
       use Galacticus_Error
       implicit none

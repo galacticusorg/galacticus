@@ -64,6 +64,7 @@ contains
 
   subroutine monotonizeMassGrowthOperate(self,tree)
     !% Perform a mass growth monotonizing operation on a merger tree.
+    use Galacticus_Nodes   , only : treeNode, nodeComponentBasic
     use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorMonotonizeMassGrowth), intent(inout), target :: self

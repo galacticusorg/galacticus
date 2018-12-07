@@ -95,6 +95,7 @@ contains
   double precision function simpleTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the simple method. This simply selects the smaller of {\normalfont \ttfamily
     !% timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
+    use Galacticus_Nodes      , only : nodeComponentBasic
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none

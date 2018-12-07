@@ -16,7 +16,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a tree walker for trees under construction.
+  !% Contains a module which implements a tree walker for trees under construction.
+  use Galacticus_Nodes, only : mergerTree, treeNode
 
   !# <mergerTreeWalker name="mergerTreeWalkerTreeConstruction">
   !#  <description>Provides a merger tree walker for trees under construction.</description>

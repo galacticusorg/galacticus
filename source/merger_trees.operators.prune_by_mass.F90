@@ -92,6 +92,7 @@ contains
 
   subroutine pruneByMassOperate(self,tree)
     !% Perform a prune-by-mass operation on a merger tree.
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Merger_Trees_Pruning_Utilities
     use Merger_Tree_Walkers
     implicit none

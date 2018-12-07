@@ -21,7 +21,6 @@
 module Merger_Tree_State_Store
   !% Provides state store/restore functionality for merger trees.
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes
   use               Pseudo_Random
   public
 

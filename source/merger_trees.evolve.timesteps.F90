@@ -20,7 +20,7 @@
 
 module Merger_Tree_Timesteps
   !% Implements a class for merger tree evolution timestepping.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode, mergerTree
   implicit none
   private
   public :: timestepTask

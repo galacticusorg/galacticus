@@ -44,7 +44,7 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Structure_Output(tree)
     !% Output the structure of {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                 , only : mergerTree, treeNode, nodeComponentBasic
     use Input_Parameters
     use Memory_Management
     use Galacticus_HDF5

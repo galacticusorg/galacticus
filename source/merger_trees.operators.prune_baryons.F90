@@ -84,6 +84,7 @@ contains
     use Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Unlink_Parent, Merger_Tree_Prune_Clean_Branch, &
          &                                     Merger_Tree_Prune_Uniqueify_IDs
     use Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
+    use Galacticus_Nodes              , only : treeNode                       , nodeComponentBasic
     implicit none
     class  (mergerTreeOperatorPruneBaryons), intent(inout), target :: self
     type   (mergerTree                    ), intent(inout), target :: tree

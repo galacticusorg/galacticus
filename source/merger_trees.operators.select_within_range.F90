@@ -91,6 +91,7 @@ contains
   subroutine selectWithinRangeOperate(self,tree)
     !% Perform a select-within-range operation on a merger tree.
     use Merger_Trees_Pruning_Utilities
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     implicit none
     class  (mergerTreeOperatorSelectWithinRange), intent(inout), target :: self
     type   (mergerTree                         ), intent(inout), target :: tree

@@ -23,7 +23,7 @@ module Merger_Tree_Read_Importers
   use, intrinsic :: ISO_C_Binding
   use               ISO_Varying_String
   use               Kind_Numbers
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes  , only : treeNode
   use               Pseudo_Random
   private
   public :: nodeData, nodeDataMinimal

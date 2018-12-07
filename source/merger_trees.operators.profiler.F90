@@ -159,7 +159,8 @@ contains
 
   subroutine profilerOperate(self,tree)
     !% Perform a information content operation on a merger tree.
-    use Merger_Tree_Walkers
+    use Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
+    use Galacticus_Nodes   , only : treeNode                     , nodeComponentBasic
     implicit none
     class  (mergerTreeOperatorProfiler   ), intent(inout), target   :: self
     type   (mergerTree                   ), intent(inout), target  :: tree

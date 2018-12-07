@@ -63,6 +63,7 @@ contains
     use Merger_Trees_Pruning_Utilities
     use Numerical_Comparison
     use Merger_Tree_Walkers
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     implicit none
     class(mergerTreeOperatorPruneClones), intent(inout), target :: self
     type (mergerTree                   ), intent(inout), target :: tree
