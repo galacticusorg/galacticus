@@ -45,7 +45,7 @@ program Galacticus
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
 #ifdef USEMPI
-  integer                                         :: parentCommunicator         , status
+  integer                                         :: status
 #endif
   
   ! Initialize MPI.
@@ -55,13 +55,6 @@ program Galacticus
   !$ else
       call mpiInitialize(MPI_Thread_Single  )
   !$ end if
-  ! If we have been spawned by another MPI process, immediately disconnect.
-  call MPI_Comm_Get_Parent(parentCommunicator,status)
-  if (status /= 0) call Galacticus_Error_Report('failed to get MPI parent communicator'//{introspection:location})
-  if (parentCommunicator /= MPI_Comm_Null) then
-     call MPI_Comm_Disconnect(parentCommunicator,status)
-     if (status /= 0) call Galacticus_Error_Report('failed to disconnect from MPI parent process'//{introspection:location})
-  end if
 #endif
   ! Register error handlers.
   call Galacticus_Error_Handler_Register()
