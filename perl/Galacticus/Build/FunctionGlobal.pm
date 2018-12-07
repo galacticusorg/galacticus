@@ -30,6 +30,9 @@ sub FunctionGlobal_Parse_Directive {
     $buildData->{'functionGlobals'}->{$buildData->{'currentDocument'}->{'unitName'}}->{'arguments'} =
 	$buildData->{'currentDocument'}->{'arguments'}
     if ( exists($buildData->{'currentDocument'}->{'arguments'}) );    
+    $buildData->{'functionGlobals'}->{$buildData->{'currentDocument'}->{'unitName'}}->{'module'   } =
+	$buildData->{'currentDocument'}->{'module'   }
+    if ( exists($buildData->{'currentDocument'}->{'module'   }) );    
 }
 
 sub FunctionGlobal_Establish_Generate_Output {
@@ -78,11 +81,14 @@ sub FunctionGlobal_Pointers_Generate_Output {
     $buildData->{'content'} .= "\ncontains\n\n";
     # Output pointer definitions.
     foreach ( keys(%{$buildData->{'functionGlobals'}}) ) {
-	my $opener = "subroutine";
-	my $closer = "subroutine";
-	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} ne "void" ) {
-	    $opener = $buildData->{'functionGlobals'}->{$_}->{'type'}." function";
-	    $closer =                                                  "function";
+	my $opener;
+	my $closer;
+	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} eq "void" ) {
+	    $opener = "subroutine";
+	    $closer = "subroutine";
+	} else {
+	    $opener = "function";
+	    $closer = "function";
 	}
 	my @names;
 	foreach ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'arguments'}) ) {
@@ -92,12 +98,22 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	}
 	$buildData->{'content'} .= " ".$opener." ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null(".join(",",@names).")\n";
 	$buildData->{'content'} .= "  use Galacticus_Error\n";
+	if ( exists($buildData->{'functionGlobals'}->{$_}->{'module'}) ) {
+	    foreach my $module ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'module'}) ) {
+		$buildData->{'content'} .= "use :: ".$module."\n";
+	    }
+	}
+	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} ne "void" ) {
+	    $buildData->{'content'} .= "  ".$buildData->{'functionGlobals'}->{$_}->{'type'}." :: ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null\n";
+	}
 	foreach ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'arguments'}) ) {
 	    $buildData->{'content'} .= "  ".$_."\n";
 	}
 	$buildData->{'content'} .= "  !GCC\$ attributes unused :: ".join(",",@names)."\n";
 	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} eq "double precision" ) {
 	    $buildData->{'content'} .= "  ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null=0.0d0\n";
+	} elsif ( $buildData->{'functionGlobals'}->{$_}->{'type'} =~ m/,\s*pointer/ ) {
+	    $buildData->{'content'} .= "  ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null => null()\n";
 	}
 	$buildData->{'content'} .= "  call Galacticus_Error_Report('global functions have not been initialized'//{introspection:location})\n";
 	$buildData->{'content'} .= " end ".$closer." ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null\n";
