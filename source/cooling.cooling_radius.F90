@@ -20,7 +20,7 @@
 
 module Cooling_Radii
   !% Provides a class that implements calculations of the cooling radius.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
   

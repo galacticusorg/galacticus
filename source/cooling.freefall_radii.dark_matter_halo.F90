@@ -18,8 +18,8 @@
 
   !% Implementation of a simple freefall radius class.
 
-  use Dark_Matter_Profiles
-  use Cooling_Freefall_Times_Available
+  use Dark_Matter_Profiles            , only : darkMatterProfileClass    , darkMatterProfile
+  use Cooling_Freefall_Times_Available, only : freefallTimeAvailableClass, freefallTimeAvailable
 
   !# <freefallRadius name="freefallRadiusDarkMatterHalo" defaultThreadPrivate="yes">
   !#  <description>

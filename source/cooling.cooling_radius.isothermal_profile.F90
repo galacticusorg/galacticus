@@ -92,6 +92,7 @@ contains
 
   function isothermalConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the isothermal cooling radius class.
+    use Galacticus_Nodes              , only : defaultHotHaloComponent
     use ISO_Varying_String
     use Galacticus_Error
     use Array_Utilities
@@ -205,6 +206,7 @@ contains
 
   double precision function isothermalRadius(self,node)
     !% Return the cooling radius in the isothermal model.
+    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities

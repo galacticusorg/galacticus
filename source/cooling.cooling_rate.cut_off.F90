@@ -18,8 +18,8 @@
 
   !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.
 
-  use Cosmology_Functions    , only : cosmologyFunctionsClass, cosmologyFunctions
-  use Dark_Matter_Halo_Scales
+  use Cosmology_Functions    , only : cosmologyFunctionsClass , cosmologyFunctions
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
   
   !# <coolingRate name="coolingRateCutOff" defaultThreadPrivate="yes">
   !#  <description>A cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.</description>
@@ -152,6 +152,7 @@ contains
   double precision function cutOffRate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is cut off
     !% before/after a given epoch and below a given virial velocity.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (coolingRateCutOff ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node

@@ -74,6 +74,7 @@ contains
 
   function whiteFrenk1991ConstructorInternal(velocityCutOff,darkMatterHaloScale_,coolingInfallRadius_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the \cite{white_galaxy_1991} cooling rate class.
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     use Galacticus_Error
     use Array_Utilities
     implicit none
@@ -119,6 +120,7 @@ contains
   double precision function whiteFrenk1991Rate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
     !% model.
+    use Galacticus_Nodes        , only : nodeComponentHotHalo
     use Numerical_Constants_Math
     implicit none
     class           (coolingRateWhiteFrenk1991), intent(inout) :: self

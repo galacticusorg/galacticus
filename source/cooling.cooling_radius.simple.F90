@@ -98,6 +98,7 @@ contains
 
   function simpleConstructorInternal(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the simple cooling radius class.
+    use Galacticus_Nodes              , only : defaultHotHaloComponent
     use ISO_Varying_String
     use Galacticus_Error
     use Array_Utilities
@@ -175,6 +176,7 @@ contains
 
   double precision function simpleRadiusGrowthRate(self,node)
     !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    use Galacticus_Nodes             , only : nodeComponentBasic, nodeComponentHotHalo
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none

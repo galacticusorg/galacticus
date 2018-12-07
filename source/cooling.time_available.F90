@@ -20,7 +20,7 @@
 
 module Cooling_Times_Available
   !% Provides a class that implements calculations of the time available for cooling.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   
   !# <functionClass>
   !#  <name>coolingTimeAvailable</name>

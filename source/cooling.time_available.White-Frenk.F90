@@ -93,6 +93,7 @@ contains
 
   double precision function whiteFrenk1991TimeAvailable(self,node)
     !% Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{white_galaxy_1991} model.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node

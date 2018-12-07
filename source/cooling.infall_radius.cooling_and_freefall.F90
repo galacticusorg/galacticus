@@ -18,8 +18,8 @@
 
   !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
   
-  use Cooling_Radii
-  use Freefall_Radii
+  use Cooling_Radii , only : coolingRadiusClass , coolingRadius
+  use Freefall_Radii, only : freefallRadiusClass, freefallRadius
 
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall" defaultThreadPrivate="yes">
   !#  <description>An infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.</description>
