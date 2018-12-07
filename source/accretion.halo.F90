@@ -21,7 +21,7 @@
 module Accretion_Halos
   !% Implements a class implementing accretion of gas from the \gls{igm} onto halos.
   use ISO_Varying_String
-  use Galacticus_Nodes
+  use Galacticus_Nodes             , only : treeNode
   use Abundances_Structure
   use Chemical_Abundances_Structure
   use Kind_Numbers

@@ -158,6 +158,7 @@ contains
        
   function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
+    use Galacticus_Nodes, only : defaultBasicComponent
     use Galacticus_Error
     use Atomic_Data
     implicit none
@@ -228,6 +229,7 @@ contains
 
   double precision function simpleAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -265,6 +267,7 @@ contains
 
   double precision function simpleAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionHaloSimple), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node
@@ -284,6 +287,7 @@ contains
 
   double precision function simpleFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (accretionHaloSimple ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -318,6 +322,7 @@ contains
 
   double precision function simpleFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionHaloSimple), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node
@@ -410,6 +415,7 @@ contains
 
   function simpleChemicalMasses(self,node,massAccreted)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    use Galacticus_Nodes                  , only : nodeComponentBasic
     use Numerical_Constants_Astronomical
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
@@ -453,6 +459,7 @@ contains
 
   double precision function simpleFailedFraction(self,node)
     !% Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(accretionHaloSimple), intent(inout) :: self
     type (treeNode           ), intent(inout) :: node
