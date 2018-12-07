@@ -19,7 +19,7 @@
 !% Contains a module which implements a sequence output analysis property operator class.
 
   type, public :: propertyOperatorList
-     class(outputAnalysisPropertyOperatorClass), pointer :: operator_
+     class(outputAnalysisPropertyOperatorClass), pointer :: operator_ => null()
      type (propertyOperatorList               ), pointer :: next      => null()
   end type propertyOperatorList
 
