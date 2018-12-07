@@ -95,7 +95,7 @@ contains
 
   double precision function villalobos2013TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{villalobos_improved_2013} method.
-    use Galacticus_Nodes
+    use Galacticus_Nodes   , only : nodeComponentBasic
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none

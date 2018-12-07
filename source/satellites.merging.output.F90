@@ -37,7 +37,7 @@ contains
   !# </satelliteMergerTask>
   subroutine Satellite_Merging_Output(node)
     !% Outputs properties of merging nodes.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     use Galacticus_HDF5
     use IO_HDF5
     use Input_Parameters

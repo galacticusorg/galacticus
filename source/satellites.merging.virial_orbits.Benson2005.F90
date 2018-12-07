@@ -90,6 +90,7 @@ contains
 
   function benson2005Orbit(self,node,host,acceptUnboundOrbits)
     !% Return benson2005 orbital parameters for a satellite.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
     use Galacticus_Error
     implicit none

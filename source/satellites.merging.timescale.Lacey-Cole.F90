@@ -124,6 +124,7 @@ contains
 
   double precision function laceyCole1993TimeUntilMergingMassDependence(self,node)
     !% Return the mass-dependent part of the timescale for merging satellites using the \cite{lacey_merger_1993} method.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node

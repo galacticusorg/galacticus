@@ -93,7 +93,7 @@ contains
 
   double precision function boylanKolchin2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Galacticus_Error
     use Kepler_Orbits
     use Satellite_Orbits

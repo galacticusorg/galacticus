@@ -20,7 +20,7 @@
 
 module Satellite_Merging_Progenitor_Properties
   !% Implements a class for calculations for progenitor properties for mergers.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

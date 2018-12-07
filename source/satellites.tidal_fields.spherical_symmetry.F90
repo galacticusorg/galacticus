@@ -70,6 +70,7 @@ contains
 
   double precision function sphericalSymmetryTidalTensorRadial(self,node)
     !% Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
+    use Galacticus_Nodes                  , only : nodeComponentSatellite
     use Kepler_Orbits
     use Satellite_Orbits
     use Galactic_Structure_Enclosed_Masses

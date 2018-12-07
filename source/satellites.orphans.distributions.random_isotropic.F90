@@ -74,6 +74,7 @@ contains
 
   function randomIsotropicPosition(self,node)
     !% Return the position of an orphan satellite in a random isotropic distribution.
+    use Galacticus_Nodes        , only : nodeComponentPosition
     use Pseudo_Random
     use Numerical_Constants_Math
     use Coordinates
@@ -104,6 +105,7 @@ contains
 
   function randomIsotropicVelocity(self,node)
     !% Return the velocity of an orphan satellite in a random isotropic distribution.
+    use Galacticus_Nodes        , only : nodeComponentPosition
     use Pseudo_Random
     use Numerical_Constants_Math
     use Coordinates

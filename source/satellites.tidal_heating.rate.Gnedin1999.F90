@@ -103,6 +103,7 @@ contains
 
   double precision function gnedin1999HeatingRate(self,node)
     !% Return the tidal heating rate for satellite halos assuming the model of \cite{gnedin_tidal_1999}.
+    use Galacticus_Nodes                  , only : nodeComponentBasic, nodeComponentSatellite
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical

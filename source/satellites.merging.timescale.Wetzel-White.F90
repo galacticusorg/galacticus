@@ -88,6 +88,7 @@ contains
 
   double precision function wetzelWhite2010TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{wetzel_what_2010} method.
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Kepler_Orbits
     implicit none
     class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
