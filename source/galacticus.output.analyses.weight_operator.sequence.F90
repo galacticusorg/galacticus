@@ -19,7 +19,7 @@
 !% Contains a module which implements a sequence output analysis weight operator class.
 
   type, public :: weightOperatorList
-     class(outputAnalysisWeightOperatorClass), pointer :: operator_
+     class(outputAnalysisWeightOperatorClass), pointer :: operator_ => null()
      type (weightOperatorList               ), pointer :: next      => null()
   end type weightOperatorList
 
