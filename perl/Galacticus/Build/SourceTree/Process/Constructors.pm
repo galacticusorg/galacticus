@@ -55,7 +55,7 @@ sub Process_Constructors {
 		if ( $allocate eq "yes" && grep {$_ =~ m/dimension\s*\([:,]+\)/} @{$declaration->{'attributes'}} ) {
 		    # Determine the rank of the variable.
 		    my $rank = join("",map {$_ =~ m/dimension\s*\(([:,]+)\)/ ? $1 : ""} @{$declaration->{'attributes'}}) =~ tr/://;
-		    $assignmentSource .= "   allocate(".$returnValueLabel."%".$argumentName."(".join(",",map {"size(".$argumentName.",dim=".$_.")"} 1..$rank)."))\n";
+		    $assignmentSource .= "   ".$optional."allocate(".$returnValueLabel."%".$argumentName."(".join(",",map {"size(".$argumentName.",dim=".$_.")"} 1..$rank)."))\n";
 		}
 		# Build the assignment.
 		$assignmentSource   .= "   ".$optional.$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
