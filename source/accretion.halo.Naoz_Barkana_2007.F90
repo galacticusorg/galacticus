@@ -140,6 +140,7 @@ contains
 
   logical function naozBarkana2007BranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
+    use Galacticus_Nodes   , only : nodeComponentBasic
     use Merger_Tree_Walkers
     implicit none
     class           (accretionHaloNaozBarkana2007       ), intent(inout)          :: self
@@ -167,6 +168,7 @@ contains
 
   double precision function naozBarkana2007FilteredFraction(self,node)
     !% Returns the baryonic mass fraction in a halo after the effects of the filtering mass.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
     implicit none
     class           (accretionHaloNaozBarkana2007 ), intent(inout) :: self
@@ -193,6 +195,7 @@ contains
 
   double precision function naozBarkana2007FilteredFractionRate(self,node)
     !% Returns the baryonic mass accretion rate fraction in a halo after the effects of the filtering mass.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
     use Math_Exponentiation
     implicit none
@@ -256,6 +259,7 @@ contains
 
   double precision function naozBarkana2007AccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -311,6 +315,7 @@ contains
 
   double precision function naozBarkana2007AccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -335,6 +340,7 @@ contains
 
   double precision function naozBarkana2007FailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    use Galacticus_Nodes     , only : nodeComponentBasic, nodeComponentHotHalo
     use Accretion_Halo_Totals
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
@@ -395,6 +401,7 @@ contains
 
   double precision function naozBarkana2007FailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionHaloNaozBarkana2007), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node

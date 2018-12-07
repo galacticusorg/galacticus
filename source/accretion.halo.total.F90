@@ -21,7 +21,7 @@
 module Accretion_Halo_Totals
   !% Provides a class for calculations of the total accretion rate onto halos for use by the halo accretion classes which compute
   !% the accretion rates of baryonic material.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>

@@ -267,6 +267,7 @@ contains
 
   function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    use Galacticus_Nodes                 , only : nodeComponentBasic
     use Numerical_Constants_Astronomical
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
@@ -319,6 +320,7 @@ contains
 
   double precision function coldModeColdModeFraction(self,node,accretionMode)
     !% Computes the fraction of accretion occuring in the specified mode.
+    use Galacticus_Nodes                  , only : nodeComponentBasic
     use Galacticus_Error
     use Shocks_1D
     use Numerical_Constants_Atomic

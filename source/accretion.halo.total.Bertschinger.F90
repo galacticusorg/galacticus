@@ -50,6 +50,7 @@ contains
 
   double precision function bertschingerAccretionRate(self,node)
     !% Return the accretion rate onto a halo.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
@@ -63,6 +64,7 @@ contains
 
   double precision function bertschingerAccretedMass(self,node)
     !% Return the mass accreted onto a halo.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
