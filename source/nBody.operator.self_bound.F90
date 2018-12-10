@@ -103,7 +103,8 @@ contains
     type            (nBodyData             ), intent(inout)                          :: simulation
     integer                                 , parameter                              :: countIterationMaximum=30
     logical                                 , allocatable  , dimension(:  )          :: isBound                 , compute                , &
-         &                                                                              isBoundNew              , isBoundCompute
+         &                                                                              isBoundNew              , isBoundCompute         , &
+         &                                                                              isBoundComputeActual
     integer                                 , allocatable  , dimension(:,:), target  :: boundStatus             , weight
     integer                                                , dimension(:  ), pointer :: boundStatusSingle
     double precision                        , allocatable  , dimension(:,:)          :: positionRelative        , positionOffset
@@ -153,8 +154,6 @@ contains
        ! Initialize potentials.
        energyPotential        =0.0d0
        velocityPotential      =0.0d0
-       velocityPotentialChange=0.0d0
-       energyPotentialChange  =0.0d0
        isBound                =sampleWeight > 0.0d0
        isBoundCompute         =isBound
        compute                =isBound
@@ -163,11 +162,14 @@ contains
        countIteration=0
        do while (.true.)
           countIteration=countIteration+1
-          !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential)
-          call allocateArray(positionRelative ,[3_c_size_t,particleCount])
-          call allocateArray(separation       ,[           particleCount])
-          call allocateArray(separationSquared,[           particleCount])
-          call allocateArray(potential        ,[           particleCount])
+          velocityPotentialChange=0.0d0
+          energyPotentialChange  =0.0d0
+          !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential,isBoundComputeActual)
+          call allocateArray(positionRelative    ,[3_c_size_t,particleCount])
+          call allocateArray(separation          ,[           particleCount])
+          call allocateArray(separationSquared   ,[           particleCount])
+          call allocateArray(potential           ,[           particleCount])
+          call allocateArray(isBoundComputeActual,[           particleCount])
           separation       =0.0d0
           separationSquared=0.0d0
           positionRelative =0.0d0
@@ -176,15 +178,27 @@ contains
           do i=1,particleCount-1
              ! Skip particles we do not need to compute.
              if (.not.compute(i)) cycle
+             ! Check how to accumulate changes to potentials.
+             if (addSubtract == +1) then
+               ! Recomute potentials for all self-bound partiles.
+               isBoundComputeActual = isBoundCompute
+             else
+               ! Subtract potentials due to particles which are marked as unbound in the previous iteration.
+               where(isBoundCompute)
+                  isBoundComputeActual = isBound .neqv. isBound(i)
+               else where
+                  isBoundComputeActual = .false.
+               end where
+             end if
              ! Compute "potentials" in velocity space in order to find a particle which best represents the velocity of the particles.
              ! Find particle velocity separations.
              forall(k=1:3)
-                where(isBoundCompute(i+1:particleCount))
+                where(isBoundComputeActual(i+1:particleCount))
                    positionRelative(k,i+1:particleCount)=+simulation%velocity(k,i+1:particleCount) &
                         &                                -simulation%velocity(k,i                )
                 end where
              end forall
-             where(isBoundCompute(i+1:particleCount))
+             where(isBoundComputeActual(i+1:particleCount))
                 separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1)
                 separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
                 ! Compute potentials.
@@ -202,12 +216,12 @@ contains
              ! Compute gravitational potential energies.
              ! Find particle separations.
              forall(k=1:3)
-                where(isBoundCompute(i+1:particleCount))
+                where(isBoundComputeActual(i+1:particleCount))
                    positionRelative(k,i+1:particleCount)=+simulation%position(k,i+1:particleCount) &
                         &                                -simulation%position(k,i                )
                 end where
              end forall
-             where(isBoundCompute(i+1:particleCount))
+             where(isBoundComputeActual(i+1:particleCount))
                 separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1) &
                      &                               /simulation%lengthSoftening**2
                 separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
@@ -279,10 +293,11 @@ contains
           weightBound=sum  (sampleWeight,mask=isBoundNew)
           !$omp end workshare
           ! Free workspaces.
-          call deallocateArray(positionRelative )
-          call deallocateArray(separation       )
-          call deallocateArray(separationSquared)
-          call deallocateArray(potential        )
+          call deallocateArray(positionRelative    )
+          call deallocateArray(separation          )
+          call deallocateArray(separationSquared   )
+          call deallocateArray(potential           )
+          call deallocateArray(isBoundComputeActual)
           !$omp end parallel
           ! Test for convergence.
           if (abs(weightBound-weightBoundPrevious) < 0.5d0*self%tolerance*(weightBound+weightBoundPrevious)) then
@@ -295,7 +310,7 @@ contains
              if (2*(countBoundPrevious-countBound) < countBound+1) then
                 ! Number of particles that have become unbound is sufficiently small that it is faster to simply subtract off their
                 ! contribution to the potential.
-                compute       =isBound.and..not.isBoundNew
+                compute       =isBound
                 isBoundCompute=isBound
                 addSubtract   =-1
              else
