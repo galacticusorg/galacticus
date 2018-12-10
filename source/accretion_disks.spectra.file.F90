@@ -81,6 +81,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     use Galacticus_Error
     use Array_Utilities
+    use Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
     type     (accretionDiskSpectraFile), target        :: fileConstructorInternal
     character(len=*                   ), intent(in   ) :: fileName
@@ -165,6 +166,7 @@ contains
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
+    use Galacticus_Nodes                , only : nodeComponentBlackHole
     implicit none
     class           (accretionDiskSpectraFile), intent(inout)  :: self
     type            (treeNode                ), intent(inout)  :: node

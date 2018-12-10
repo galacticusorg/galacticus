@@ -42,6 +42,7 @@ contains
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} stellar population class which takes a parameter list as input.
     use Input_Parameters
+    use Stellar_Populations , only : stellarPopulation
     implicit none
     type (stellarPopulationSelectorFixed)                :: self
     type (inputParameters               ), intent(inout) :: parameters

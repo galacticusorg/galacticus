@@ -96,6 +96,7 @@ contains
     use Stellar_Feedback
     use Stellar_Populations
     use Galactic_Structure_Options
+    use Galacticus_Nodes          , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (stellarPopulationPropertiesInstantaneous), intent(inout) :: self
     double precision                                          , intent(  out) :: rateEnergyInput              , rateMassFuel              , &

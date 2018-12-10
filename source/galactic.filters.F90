@@ -20,7 +20,7 @@
 
 module Galactic_Filters
   !% Provides an object that implements galactic filters.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>

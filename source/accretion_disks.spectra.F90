@@ -20,7 +20,7 @@
 
 module Accretion_Disk_Spectra
   !% Implements calculations of accretion disk spectra.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
 
   !# <functionClass>
   !#  <name>accretionDiskSpectra</name>

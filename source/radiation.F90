@@ -20,7 +20,7 @@
 
 module Radiation_Fields
   !% Implements a class to describe radiation fields.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

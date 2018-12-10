@@ -71,6 +71,7 @@ contains
 
   logical function stellarMassPasses(self,node)
     !% Implement a  stellar mass high-pass galactic filter.
+    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (galacticFilterStellarMass), intent(inout) :: self
     type            (treeNode                 ), intent(inout) :: node

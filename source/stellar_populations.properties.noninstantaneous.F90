@@ -132,6 +132,7 @@ contains
     use            :: Stellar_Populations
     use            :: Numerical_Interpolation
     use            :: FGSL                          , only : fgsl_interp_accel
+    use            :: Galacticus_Nodes              , only : nodeComponentBasic
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                 :: self
     double precision                                             , intent(  out)                 :: rateEnergyInput              , rateMassFuel          , &
@@ -251,6 +252,7 @@ contains
   subroutine noninstantaneousHistoryCreate(self,node,history_)
     !% Create any history required for storing stellar population properties.
     use Numerical_Ranges
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node

@@ -42,6 +42,7 @@ contains
   function diskSpheroidConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily diskSpheroid} stellar population class which takes a parameter list as input.
     use Input_Parameters
+    use Stellar_Populations , only : stellarPopulation
     implicit none
     type (stellarPopulationSelectorDiskSpheroid)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
@@ -77,6 +78,7 @@ contains
   function diskSpheroidSelect(self,rateStarFormation,abundances_,component)
     !% Return a diskSpheroid stellar population.
     use Galacticus_Error
+    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (stellarPopulationClass               ), pointer       :: diskSpheroidSelect
     class           (stellarPopulationSelectorDiskSpheroid), intent(inout) :: self

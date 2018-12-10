@@ -20,7 +20,7 @@
 
 module Accretion_Disks
   !% Provides a class that implements accretion disks.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : nodeComponentBlackHole 
   
   !# <functionClass>
   !#  <name>accretionDisks</name>

@@ -210,7 +210,6 @@ contains
 
   double precision function switchedFractionADAF(self,blackHole,accretionRateMass)
     !% Decide which type of accretion disk to use.
-    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     implicit none
     class           (accretionDisksSwitched), intent(inout) :: self
@@ -251,7 +250,6 @@ contains
 
   double precision function switchedEfficiencyRadiativeScalingADAF(self,blackHole,accretionRateMass)
     !% Determine the scaling of radiative efficiency of the ADAF component in a switched accretion disk.
-    use Galacticus_Nodes
     use Black_Hole_Fundamentals
     implicit none
     class           (accretionDisksSwitched), intent(inout) :: self
