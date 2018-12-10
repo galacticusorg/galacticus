@@ -18,7 +18,7 @@
 
 !% Contains a module which implements an N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.
 
-  use Cosmology_Functions
+  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
   
   !# <nbodyHaloMassError name="nbodyHaloMassErrorTrenti2010">
   !#  <description>An N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.</description>
@@ -146,6 +146,7 @@ contains
   
   double precision function trenti2010Correlation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (nbodyHaloMassErrorTrenti2010), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node1    , node2

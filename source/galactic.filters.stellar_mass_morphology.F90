@@ -72,6 +72,7 @@ contains
 
   logical function stellarMassMorphologyPasses(self,node)
     !% Implement a stellar mass-weighted morphology high-pass galactic filter.
+    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (galacticFilterStellarMassMorphology), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

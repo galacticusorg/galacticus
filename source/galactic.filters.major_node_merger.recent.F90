@@ -73,6 +73,7 @@ contains
 
   logical function nodeMajorMergerRecentPasses(self,node)
     !% Implement a low-pass filter for time since the last major node merger.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics
     implicit none
     class(galacticFilterNodeMajorMergerRecent), intent(inout) :: self
     type (treeNode                           ), intent(inout) :: node

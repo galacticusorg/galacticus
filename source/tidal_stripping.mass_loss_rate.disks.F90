@@ -20,7 +20,7 @@
 
 module Tidal_Stripping_Mass_Loss_Rate_Disks
   !% Provides a class that implements calculations of tidal stripping in disks.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   
   !# <functionClass>
   !#  <name>tidalStrippingDisks</name>

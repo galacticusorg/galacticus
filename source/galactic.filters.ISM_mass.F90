@@ -71,6 +71,7 @@ contains
 
   logical function ismMassPasses(self,node)
     !% Implement an ismMass-pass galactic filter.
+    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (galacticFilterISMMass), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node

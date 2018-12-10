@@ -101,6 +101,7 @@ contains
 
   logical function starFormationRatePasses(self,node)
     !% Implement an starFormationRate-pass galactic filter.
+    use Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentDisk
     implicit none
     class           (galacticFilterStarFormationRate), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node

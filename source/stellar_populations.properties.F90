@@ -20,7 +20,7 @@
 
 module Stellar_Population_Properties
   !% Implements a class for computing properties of stellar populations.
-  use Galacticus_Nodes
+  use Galacticus_Nodes    , only : treeNode, nodeComponent
   use Abundances_Structure
   use Histories
   implicit none

@@ -19,8 +19,8 @@
 !% Contains a module which implements an N-body dark matter halo mass error class which
 !% implements a model for errors in spherical overdensity halo finders.
 
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
+  use Dark_Matter_Profiles   , only : darkMatterProfileClass  , darkMatterProfile
   
   !# <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
   !#  <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
@@ -95,7 +95,8 @@ contains
   
   double precision function soHaloFinderErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
-    use Numerical_Constants_Math
+    use Numerical_Constants_Math, only : Pi
+    use Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
     class           (nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -143,6 +144,7 @@ contains
   
   double precision function soHaloFinderCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node1 , node2

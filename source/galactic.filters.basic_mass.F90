@@ -71,6 +71,7 @@ contains
 
   logical function basicMassPasses(self,node)
     !% Implement a  basic mass high-pass galactic filter.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(galacticFilterBasicMass), intent(inout) :: self
     type (treeNode               ), intent(inout) :: node

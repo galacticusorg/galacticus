@@ -100,7 +100,7 @@ contains
     !% F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
     !% \end{equation}
     !% is the gravitational restoring force in the disk at the half-mass radius, $r_\mathrm{1/2}$.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                  , only : nodeComponentDisk
     use Galactic_Structure_Options
     use Galactic_Structure_Rotation_Curves
     use Numerical_Constants_Math

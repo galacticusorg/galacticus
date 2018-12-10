@@ -101,6 +101,7 @@ contains
     !# <objectBuilder class="coolingFunction" name="self%coolingFunction_" source="parameters"/>
     !# <inputParametersValidate source="parameters"/>
     self%coldFractionComputed=.false.
+    self%lastUniqueID        =-1_kind_int8
     return
   end function coldModeConstructorParameters
 
@@ -124,6 +125,7 @@ contains
 
     self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     self%coldFractionComputed=.false.
+    self%lastUniqueID        =-1_kind_int8
     return
   end function coldModeConstructorInternal
 

@@ -20,7 +20,7 @@
 !% N-body simulations.
 
 module Statistics_NBody_Halo_Mass_Errors
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

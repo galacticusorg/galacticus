@@ -359,8 +359,8 @@ contains
    
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
      !% Update the properties for a given universe.
-     use, intrinsic :: ISO_C_Binding
-     use               Galacticus_Nodes
+     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+     use               Galacticus_Nodes                , only : universeEvent, mergerTree, nodeComponentBasic, mergerTreeList
      use               Galacticus_Display
      use               Galactic_Structure_Options
      use               Galacticus_Error
