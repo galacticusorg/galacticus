@@ -45,7 +45,8 @@
           &                                                 timeSnapshot        , lengthSoftening
      logical                                             :: satelliteOffset     , nonCosmological               , &
           &                                                 positionOffset      , addHubbleFlow                 , &
-          &                                                 haloIdToParticleType, sampleParticleNumber
+          &                                                 haloIdToParticleType, sampleParticleNumber          , &
+          &                                                 subtractRandomOffset
      integer                                             :: selection           , kernelSoftening               , &
           &                                                 chunkSize
      integer         (kind_int8               )          :: idMultiplier
@@ -117,7 +118,8 @@ contains
          &                                                            timeSnapshot        , lengthSoftening
     logical                                                        :: satelliteOffset     , nonCosmological               , &
          &                                                            positionOffset      , addHubbleFlow                 , &
-         &                                                            haloIdToParticleType, sampleParticleNumber
+         &                                                            haloIdToParticleType, sampleParticleNumber          , &
+         &                                                            subtractRandomOffset
     integer                                                        :: selection           , chunkSize                     , &
          &                                                            kernelSoftening
     class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
@@ -176,6 +178,14 @@ contains
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>If true, offset particle representations to the positions/velocities of nodes.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>subtractRandomOffset</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, the center-of-mass postions and velocities of the host and satellite are enforced to be matched with the values specified by the offset parameters. If false, due to limited number of particles in the representations, the center-of-mass postions and velocities may deviate slightly from the specified values, i.e. have small random offsets.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
@@ -256,15 +266,15 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parametersRoot)
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parametersRoot)
     else
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parameters    )
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parameters) result(self)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parameters) result(self)
     !% Internal constructor for the particulate merger tree operator class.
     use Galacticus_Error
     implicit none
@@ -275,7 +285,8 @@ contains
          &                                                                    timeSnapshot        , lengthSoftening
     logical                                        , intent(in   )         :: satelliteOffset     , nonCosmological               , &
          &                                                                    positionOffset      , addHubbleFlow                 , &
-         &                                                                    haloIdToParticleType, sampleParticleNumber
+         &                                                                    haloIdToParticleType, sampleParticleNumber          , &
+         &                                                                    subtractRandomOffset
     integer                                        , intent(in   )         :: selection           , chunkSize                     , &
          &                                                                    kernelSoftening
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
@@ -283,7 +294,7 @@ contains
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileClass       ), intent(in   ), target :: darkMatterProfile_
     type            (inputParameters              ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfile_"/>
+    !# <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfile_"/>
     
     self%parameters=inputParameters(parameters)
     ! Validate input.
@@ -333,7 +344,8 @@ contains
     double precision                               , parameter                   :: unitGadgetVelocity        =1.0d+00
     double precision                               , parameter                   :: distributionFunctionBuffer=0.3d0
     double precision                               , dimension(3  )              :: positionVector                       , velocityVector             , &
-         &                                                                          randomDeviates
+         &                                                                          randomDeviates                       , positionRandomOffset       , &
+         &                                                                          velocityRandomOffset
     integer                                        , dimension(6  )              :: particleCounts
     double precision                               , dimension(:,:), allocatable :: particlePosition                     , particleVelocity
     integer         (kind_int8                    ), dimension(  :), allocatable :: particleIDs
@@ -454,11 +466,13 @@ contains
           particulateSofteningKernel =  self%kernelSoftening
           ! Iterate over particles.
           isNew=.true.
+          positionRandomOffset = 0.0d0
+          velocityRandomOffset = 0.0d0
           !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates)
           call Node_Components_Thread_Initialize(self%parameters)
           allocate(particulateSelf,mold=self)
           call self%deepCopy(particulateSelf)
-          !$omp do
+          !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual
              if (OMP_Get_Thread_Num() == 0) then
                 call Galacticus_Display_Counter(max(1,int(100.0d0*dble(i-1)/dble(particleCountActual))),isNew=isNew,verbosity=verbosityStandard)
@@ -581,6 +595,15 @@ contains
              call velocitySpherical%    rSet(speed                                                                           )
              ! Get the corresponding cartesian coordinates.
              velocityCartesian=velocitySpherical
+             ! Accumulate the particle postion and velocity.
+             if (self%subtractRandomOffset) then
+                positionRandomOffset(1)=+positionRandomOffset(1)+positionCartesian%x()
+                positionRandomOffset(2)=+positionRandomOffset(2)+positionCartesian%y()
+                positionRandomOffset(3)=+positionRandomOffset(3)+positionCartesian%z()
+                velocityRandomOffset(1)=+velocityRandomOffset(1)+velocityCartesian%x()
+                velocityRandomOffset(2)=+velocityRandomOffset(2)+velocityCartesian%y()
+                velocityRandomOffset(3)=+velocityRandomOffset(3)+velocityCartesian%z()
+             end if
              ! Offset position and velocity to the position and velocity of the node.
              if (self%positionOffset) then
                 positionVector=position%position()
@@ -615,6 +638,15 @@ contains
           deallocate(particulateSelf)
           !$omp end parallel
           call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
+          ! Subtract random offsets of the center-of-mass postion and velocity.
+          positionRandomOffset = positionRandomOffset/particleCountActual
+          velocityRandomOffset = velocityRandomOffset/particleCountActual
+          !$omp parallel do
+          do i=1,particleCountActual
+             particlePosition(:,i) = particlePosition(:,i)-positionRandomOffset
+             particleVelocity(:,i) = particleVelocity(:,i)-velocityRandomOffset
+          end do
+          !$omp end parallel do
           ! Perform unit conversion.
           particlePosition=particlePosition/unitGadgetLength
           particleVelocity=particleVelocity/unitGadgetVelocity
