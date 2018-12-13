@@ -89,6 +89,9 @@ delete($libraries{'yeppp'})
 # Remove ANN library if not used.
 delete($libraries{'ANN'})
     if ( exists($libraries{'ANN'}) && ! grep {$_ eq "-DANNAVAIL"} @compilerOptions );
+# Remove libmatheval if not used.
+delete($libraries{'matheval'})
+    if ( exists($libraries{'matheval'}) && ! grep {$_ eq "-DMATHEVALAVAIL"} @compilerOptions );
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
 my @sortedLibraries = toposort(sub { @{$staticLinkDependencies{$_[0]} || []}; }, [keys(%libraries)]);
 # Add static link options.
