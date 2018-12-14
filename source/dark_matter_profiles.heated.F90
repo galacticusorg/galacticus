@@ -247,9 +247,9 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     implicit none
-    class           (darkMatterProfileHeated), intent(inout) :: self
-    type            (treeNode               ), intent(inout) :: node
-    double precision                         , intent(in   ) :: density
+    class           (darkMatterProfileHeated), intent(inout), target :: self
+    type            (treeNode               ), intent(inout), target :: node
+    double precision                         , intent(in   )         :: density
 
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then

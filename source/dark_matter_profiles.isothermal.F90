@@ -347,10 +347,10 @@ contains
     use Numerical_Constants_Math
     use Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
-    class           (darkMatterProfileIsothermal), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: density
-    class           (nodeComponentBasic         ), pointer       :: basic
+    class           (darkMatterProfileIsothermal), intent(inout), target :: self
+    type            (treeNode                   ), intent(inout), target :: node
+    double precision                             , intent(in   )         :: density
+    class           (nodeComponentBasic         ), pointer               :: basic
 
     basic                            =>             node                %basic       (    )
     isothermalRadiusEnclosingDensity =  +sqrt(                                              &

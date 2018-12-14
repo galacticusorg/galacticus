@@ -173,9 +173,9 @@ contains
     !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileTruncated), intent(inout) :: self
-    type            (treeNode                  ), intent(inout) :: node
-    double precision                            , intent(in   ) :: density
+    class           (darkMatterProfileTruncated), intent(inout), target :: self
+    type            (treeNode                  ), intent(inout), target :: node
+    double precision                            , intent(in   )         :: density
     
     if (self%unimplementedIsFatal) then
        truncatedRadiusEnclosingDensity=0.0d0

@@ -859,16 +859,16 @@ contains
   double precision function nfwRadiusEnclosingDensity(self,node,density)
     !% Returns the radius (in units of the scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
     !% concentration} which encloses a given density (in units of the virial mass per cubic scale radius).
-    use Numerical_Constants_Math
     use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile, nodeComponentBasic
+    use Numerical_Constants_Math
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
-    double precision                                , intent(in   ) :: density
-    class           (nodeComponentBasic            ), pointer       :: basic
-    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
-    double precision                                                :: scaleRadius                , densityScaleFree, &
-         &                                                             virialRadiusOverScaleRadius
+    class           (darkMatterProfileNFW          ), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: density
+    class           (nodeComponentBasic            ), pointer               :: basic
+    class           (nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile
+    double precision                                                        :: scaleRadius                , densityScaleFree, &
+         &                                                                     virialRadiusOverScaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)   
