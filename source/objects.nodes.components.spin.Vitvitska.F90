@@ -71,6 +71,9 @@ module Node_Component_Spin_Vitvitska
   class(darkMatterProfileClass   ), pointer :: darkMatterProfile_
   !$omp threadprivate(haloSpinDistribution_,darkMatterProfile_)
   
+  ! Parameter controlling scaling of orbital angular momentum with mass ratio.
+  double precision :: spinVitvitskaMassExponent
+  
 contains
 
   !# <nodeComponentInitializationTask>
@@ -84,6 +87,14 @@ contains
     type(nodeComponentspinVitvitska)                :: spin
     !GCC$ attributes unused :: parameters
     
+    !# <inputParameter>
+    !#   <name>spinVitvitskaMassExponent</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <source>globalParameters</source>
+    !#   <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska spin model.</description>
+    !#   <type>double</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     ! Bind deferred functions.
     call spin%spinFunction          (Node_Component_Spin_Vitvitska_Spin            )
     call spin%spinVectorFunction    (Node_Component_Spin_Vitvitska_Spin_Vector     )
@@ -167,7 +178,7 @@ contains
                         &               /(                      &
                         &                 +1.0d0                &
                         &                 +massRatio            &
-                        &               )
+                        &               )**spinVitvitskaMassExponent
                    ! Add the spin angular momentum of the sibling.
                    angularMomentumTotal=+angularMomentumTotal                                              &
                         &               +Dark_Matter_Halo_Angular_Momentum(nodeSibling,darkMatterProfile_) &
