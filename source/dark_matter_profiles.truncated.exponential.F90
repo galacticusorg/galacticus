@@ -172,9 +172,9 @@ contains
     !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileTruncatedExponential), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: density
+    class           (darkMatterProfileTruncatedExponential), intent(inout), target :: self
+    type            (treeNode                             ), intent(inout), target :: node
+    double precision                                       , intent(in   )         :: density
     
     if (self%unimplementedIsFatal) then
        truncatedExponentialRadiusEnclosingDensity=0.0d0

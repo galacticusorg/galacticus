@@ -193,6 +193,12 @@
   integer, parameter :: einastoFourierProfileTableWavenumberPointsPerDecade   = 10
   integer, parameter :: einastoFourierProfileTableAlphaPointsPerUnit          =100
 
+  ! Module-scope variables used in root finding.
+  class           (darkMatterProfileEinasto), pointer :: einastoSelf
+  type            (treeNode                ), pointer :: einastoNode
+  double precision                                    :: einastoDensityEnclosed
+  !$omp threadprivate(einastoSelf,einastoNode,einastoDensityEnclosed)
+  
 contains
 
   function einastoConstructorParameters(parameters) result(self)
@@ -1567,16 +1573,48 @@ contains
   end function einastoFreefallTimeScaleFree
 
   double precision function einastoRadiusEnclosingDensity(self,node,density)
-    !% Null implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles.
-    use Galacticus_Error
+    !% Implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles. This
+    !% function uses a numerical root finder to find the enclosing radius---this is likely not the most efficient solution\ldots
+    use Galacticus_Nodes
+    use Root_Finder
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    double precision                          , intent(in   ) :: density
-    !GCC$ attributes unused :: self, node, density
-
-    einastoRadiusEnclosingDensity=0.0d0
-    call Galacticus_Error_Report('function is not implemented'//{introspection:location})
+    class           (darkMatterProfileEinasto), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , intent(in   )         :: density
+    type            (rootFinder              ), save                  :: finder
+    double precision                          , parameter             :: toleranceAbsolute=0.0d0
+    double precision                          , parameter             :: toleranceRelative=1.0d-3
+    !$omp threadprivate(finder)
+    
+    if (.not.finder%isInitialized()) then
+       call finder%rootFunction(einastoRadiusEnclosingDensityRoot  )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandType              =rangeExpandMultiplicative    , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+            &                  )
+    end if
+    einastoDensityEnclosed        =  density
+    einastoNode                   => node
+    einastoSelf                   => self
+    einastoRadiusEnclosingDensity =  finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
     return
   end function einastoRadiusEnclosingDensity
   
+  double precision function einastoRadiusEnclosingDensityRoot(radius)
+    !% Root function used in finding the radius enclosing a given density in Einasto profiles.
+    use Numerical_Constants_Math
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    einastoRadiusEnclosingDensityRoot=+einastoDensityEnclosed                       &
+         &                            -einastoSelf%enclosedMass(einastoNode,radius) &
+         &                            *3.0d0                                        &
+         &                            /4.0d0                                        &
+         &                            /Pi                                           &
+         &                            /radius**3
+    return
+  end function einastoRadiusEnclosingDensityRoot

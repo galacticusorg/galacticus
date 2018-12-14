@@ -1029,9 +1029,9 @@ contains
     !% Null implementation of function to compute the radius enclosing a given density for Burkert dark matter halo profiles.
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileBurkert), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    double precision                          , intent(in   ) :: density
+    class           (darkMatterProfileBurkert), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , intent(in   )         :: density
     !GCC$ attributes unused :: self, node, density
 
     burkertRadiusEnclosingDensity=0.0d0
