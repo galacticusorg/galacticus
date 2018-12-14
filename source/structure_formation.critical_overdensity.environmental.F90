@@ -1,0 +1,196 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements an environmental critical overdensity class.
+
+  use Linear_Growth
+  
+  !# <criticalOverdensity name="criticalOverdensityEnvironmental">
+  !#  <description>The critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.</description>
+  !# </criticalOverdensity>
+  type, extends(criticalOverdensityClass) :: criticalOverdensityEnvironmental
+     !% A critical overdensity class in which critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.
+     private
+     class           (criticalOverdensityClass), pointer :: criticalOverdensity_
+     class           (linearGrowthClass       ), pointer :: linearGrowth_
+     class           (haloEnvironmentClass    ), pointer :: haloEnvironment_
+     double precision                                    :: a                   , massEnvironment
+    contains
+     final     ::                    environmentalDestructor
+     procedure :: value           => environmentalValue
+     procedure :: gradientTime    => environmentalGradientTime
+     procedure :: gradientMass    => environmentalGradientMass
+     procedure :: isMassDependent => environmentalIsMassDependent
+  end type criticalOverdensityEnvironmental
+
+  interface criticalOverdensityEnvironmental
+     !% Constructors for the {\normalfont \ttfamily environmental} critical overdensity class.
+     module procedure environmentalConstructorParameters
+     module procedure environmentalConstructorInternal
+  end interface criticalOverdensityEnvironmental
+
+contains
+  
+  function environmentalConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily environmental} critical overdensity class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type            (criticalOverdensityEnvironmental)                :: self
+    type            (inputParameters                 ), intent(inout) :: parameters
+    class           (criticalOverdensityClass        ), pointer       :: criticalOverdensity_
+    class           (haloEnvironmentClass            ), pointer       :: haloEnvironment_
+    class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    class           (linearGrowthClass               ), pointer       :: linearGrowth_
+    double precision                                                  :: a
+
+    ! Check and read parameters.
+    !# <inputParameter>
+    !#   <name>a</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>Parameter.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
+    !# <objectBuilder class="haloEnvironment"     name="haloEnvironment_"     source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
+    self=criticalOverdensityEnvironmental(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function environmentalConstructorParameters
+
+  function environmentalConstructorInternal(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily environmental} critical overdensity class.
+    implicit none
+    type            (criticalOverdensityEnvironmental)                        :: self
+    class           (criticalOverdensityClass        ), target, intent(in   ) :: criticalOverdensity_    
+    class           (haloEnvironmentClass            ), target, intent(in   ) :: haloEnvironment_    
+    class           (cosmologyFunctionsClass         ), target, intent(in   ) :: cosmologyFunctions_    
+    class           (linearGrowthClass               ), target, intent(in   ) :: linearGrowth_
+    double precision                                                          :: a
+    !# <constructorAssign variables="a, *criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *linearGrowth_"/>
+
+    self%massEnvironment=self%haloEnvironment_%environmentMass()
+    return
+  end function environmentalConstructorInternal
+
+  subroutine environmentalDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily environmental} critical overdensity class.
+    implicit none
+    type(criticalOverdensityEnvironmental), intent(inout) :: self
+
+    !# <objectDestructor name="self%criticalOverdensity_"/>
+    !# <objectDestructor name="self%haloEnvironment_"    />
+    !# <objectDestructor name="self%linearGrowth_"       />
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    return
+  end subroutine environmentalDestructor
+
+  double precision function environmentalValue(self,time,expansionFactor,collapsing,mass,node)
+    !% Return the critical overdensity for collapse at the given time and mass.
+    implicit none
+    class           (criticalOverdensityEnvironmental), intent(inout)           :: self
+    double precision                                  , intent(in   ), optional :: time      , expansionFactor
+    logical                                           , intent(in   ), optional :: collapsing
+    double precision                                  , intent(in   ), optional :: mass
+    type            (treeNode                        ), intent(inout), optional :: node
+    class           (nodeComponentBasic              ), pointer                 :: basic
+
+    ! Get the critical overdensity at zero environmental overdensity and scale by some power of the linear growth factor.
+    environmentalValue   =  +  self%criticalOverdensity_         %value            (time,expansionFactor,collapsing,mass,node                  )
+    basic                =>    node%hostTree            %baseNode%basic            (                                                           )
+    if (basic%mass() < self%massEnvironment) then
+       environmentalValue=  +environmentalValue                                                                                                  &
+            &               *  self%linearGrowth_                %value            (time,expansionFactor,collapsing                            ) &
+            &               **(                                                                                                                  &
+            &                  +self%a                                                                                                           &
+            &                  *self%haloEnvironment_            %overdensityLinear(                                     node,presentDay=.true.) &
+            &                 )
+    end if
+    return
+  end function environmentalValue
+
+  double precision function environmentalGradientTime(self,time,expansionFactor,collapsing,mass,node)
+    !% Return the gradient with respect to time of critical overdensity at the given time and mass.
+    implicit none
+    class           (criticalOverdensityEnvironmental), intent(inout)           :: self
+    double precision                                  , intent(in   ), optional :: time      , expansionFactor
+    logical                                           , intent(in   ), optional :: collapsing
+    double precision                                  , intent(in   ), optional :: mass
+    type            (treeNode                        ), intent(inout), optional :: node
+    class           (nodeComponentBasic              ), pointer                 :: basic
+    !# <optionalArgument name="expansionFactor" defaultsTo="self%cosmologyFunctions_%expansionFactor(time)" />
+
+    basic => node%hostTree%baseNode%basic()
+    if (basic%mass() < self%massEnvironment) then
+       environmentalGradientTime=+   self%criticalOverdensity_%gradientTime                        (time,expansionFactor ,collapsing,mass,node                  ) &
+            &                    *   self%linearGrowth_       %value                               (time,expansionFactor ,collapsing                            ) &
+            &                    **(                                                                                                                              &
+            &                       +self%a                                                                                                                       &
+            &                       *self%haloEnvironment_    %overdensityLinear                   (                                      node,presentDay=.true.) &
+            &                      )                                                                                                                              &
+            &                    +   self%criticalOverdensity_%value                               (time,expansionFactor ,collapsing,mass,node                  ) &
+            &                    *   self%a                                                                                                                       &
+            &                    *   self%haloEnvironment_    %overdensityLinear                   (                                      node,presentDay=.true.) &
+            &                    *   self%linearGrowth_       %value                               (time,expansionFactor ,collapsing                            ) &
+            &                    **(                                                                                                                              &
+            &                       +self%a                                                                                                                       &
+            &                       *self%haloEnvironment_    %overdensityLinear                   (                                      node,presentDay=.true.) &
+            &                      )                                                                                                                              &
+            &                    *   self%linearGrowth_       %logarithmicDerivativeExpansionFactor(time,expansionFactor ,collapsing                            ) &
+            &                    *   self%cosmologyFunctions_ %expansionRate                       (     expansionFactor_                                       )
+    else
+       environmentalGradientTime=+   self%criticalOverdensity_%gradientTime                        (time,expansionFactor ,collapsing,mass,node                  ) 
+    end if
+    return
+  end function environmentalGradientTime
+  
+  double precision function environmentalGradientMass(self,time,expansionFactor,collapsing,mass,node)
+    !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    implicit none
+    class           (criticalOverdensityEnvironmental), intent(inout)           :: self
+    double precision                                  , intent(in   ), optional :: time      , expansionFactor
+    logical                                           , intent(in   ), optional :: collapsing
+    double precision                                  , intent(in   ), optional :: mass
+    type            (treeNode                        ), intent(inout), optional :: node
+    class           (nodeComponentBasic              ), pointer                 :: basic
+
+    basic => node%hostTree%baseNode%basic()
+    if (basic%mass() < self%massEnvironment) then
+       environmentalGradientMass=  +self%criticalOverdensity_%gradientMass     (time,expansionFactor,collapsing,mass,node                  ) &
+            &                    *  self%linearGrowth_       %value            (time,expansionFactor,collapsing                            ) &
+            &                    **(                                                                                                         &
+            &                       +self%a                                                                                                  &
+            &                       *self%haloEnvironment_   %overdensityLinear(                                     node,presentDay=.true.) &
+            &                      )
+    else
+       environmentalGradientMass=  +self%criticalOverdensity_%gradientMass     (time,expansionFactor,collapsing,mass,node                  ) 
+    end if
+    return
+  end function environmentalGradientMass
+
+  logical function environmentalIsMassDependent(self)
+    !% Return whether the critical overdensity is mass dependent.
+    implicit none
+    class(criticalOverdensityEnvironmental), intent(inout) :: self
+    
+    environmentalIsMassDependent=self%criticalOverdensity_%isMassDependent()
+    return
+  end function environmentalIsMassDependent
