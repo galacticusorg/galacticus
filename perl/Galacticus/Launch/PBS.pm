@@ -315,7 +315,7 @@ sub SubmitJobs {
 	    }
 	}
 	# If fewer than maximum number of jobs are in the queue, pop one off the stack.
-	my $limitingJobs = $limitQueuedOnly ? scalar(grep {($runningPBSJobs{$_} eq "Q" || $runningPBSJobs{$_} eq "H") && exists($pbsJobs{$_})} keys(%runningPBSJobs)) : scalar(keys(%runningPBSJobs));
+	my $limitingJobs = $limitQueuedOnly ? scalar(grep {($runningPBSJobs{$_} eq "Q" || $runningPBSJobs{$_} eq "H") && exists($pbsJobs{$_})} keys(%runningPBSJobs)) : scalar(keys(%pbsJobs));
 	if ( scalar(@pbsStack) > 0 && $limitingJobs < $jobMaximum ) {
 	    my $newJob = pop(@pbsStack);
 	    my $batchScript;
