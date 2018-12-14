@@ -18,7 +18,7 @@
 
 !% Contains a module which implements an environmental critical overdensity class.
 
-  use Linear_Growth
+  use Linear_Growth, only : linearGrowthClass, linearGrowth
   
   !# <criticalOverdensity name="criticalOverdensityEnvironmental">
   !#  <description>The critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.</description>
@@ -105,6 +105,7 @@ contains
 
   double precision function environmentalValue(self,time,expansionFactor,collapsing,mass,node)
     !% Return the critical overdensity for collapse at the given time and mass.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: time      , expansionFactor
@@ -129,6 +130,7 @@ contains
 
   double precision function environmentalGradientTime(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to time of critical overdensity at the given time and mass.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: time      , expansionFactor
@@ -164,6 +166,7 @@ contains
   
   double precision function environmentalGradientMass(self,time,expansionFactor,collapsing,mass,node)
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: time      , expansionFactor
