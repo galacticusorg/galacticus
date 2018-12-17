@@ -129,9 +129,10 @@ contains
 
   subroutine analyzerFinalize(self)
     !% Finalize merger tree output by finalizing analyses.
+    use Galacticus_HDF5, only : galacticusOutputFileIsOpen
     implicit none
     class  (mergerTreeOutputterAnalyzer), intent(inout) :: self
 
-    call self%outputAnalysis_%finalize()
+    if (galacticusOutputFileIsOpen) call self%outputAnalysis_%finalize()
     return
   end subroutine analyzerFinalize
