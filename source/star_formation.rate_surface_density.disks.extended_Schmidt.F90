@@ -129,6 +129,7 @@ contains
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
+    use Galacticus_Nodes                    , only : nodeComponentDisk
     implicit none
     class           (starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
     type            (treeNode                                           ), intent(inout) :: node

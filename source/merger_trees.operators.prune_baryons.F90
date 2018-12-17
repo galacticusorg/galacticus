@@ -21,7 +21,7 @@
   use Accretion_Halos        , only : accretionHalo        , accretionHaloClass
   use Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneBaryons">
+  !# <mergerTreeOperator name="mergerTreeOperatorPruneBaryons" defaultThreadPrivate="yes">
   !#  <description>Provides a pruning operator on merger trees that removes all branches that can not contain any baryons.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBaryons

@@ -41,7 +41,7 @@ contains
     !% Shifts the index of {\normalfont \ttfamily thisNode} to its parent node just prior to promotion, thereby allowing indices to track galaxies
     !% through the tree.
     use Input_Parameters
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(treeNode)               , pointer :: parentNode

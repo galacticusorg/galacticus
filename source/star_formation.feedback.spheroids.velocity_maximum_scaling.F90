@@ -130,6 +130,7 @@ contains
   
   double precision function vlctyMxSclngOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic spheroid of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationFeedbackSpheroidsVlctyMxSclng), intent(inout) :: self
     type            (treeNode                                  ), intent(inout) :: node

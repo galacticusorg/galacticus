@@ -1575,7 +1575,6 @@ contains
   double precision function einastoRadiusEnclosingDensity(self,node,density)
     !% Implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles. This
     !% function uses a numerical root finder to find the enclosing radius---this is likely not the most efficient solution\ldots
-    use Galacticus_Nodes
     use Root_Finder
     implicit none
     class           (darkMatterProfileEinasto), intent(inout), target :: self

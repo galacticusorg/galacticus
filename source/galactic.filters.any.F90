@@ -96,11 +96,10 @@ contains
 
   logical function anyPasses(self,node)
     !% Apply a set of filters to a {\normalfont \ttfamily node} combined with ``any'' operations.
-    use Galacticus_Nodes
     implicit none
     class(galacticFilterAny), intent(inout) :: self
-    type (treeNode        ), intent(inout) :: node
-    type (filterList      ), pointer       :: filter_
+    type (treeNode         ), intent(inout) :: node
+    type (filterList       ), pointer       :: filter_
 
     ! Assume the node fails to pass initially. Iterate through filters and evaluate each one. If any one evaluates to true, exit
     ! the iteration.

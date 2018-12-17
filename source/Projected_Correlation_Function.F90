@@ -29,7 +29,7 @@ program Projected_Correlation_Function
   use               Input_Parameters
   use               Galacticus_Error
   use               Geometry_Surveys
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes                        , only : nodeClassHierarchyInitialize
   use               Cosmology_Functions
   use               Conditional_Mass_Functions
   use               Numerical_Integration

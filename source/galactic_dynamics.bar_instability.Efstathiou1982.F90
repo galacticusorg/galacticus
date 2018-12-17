@@ -106,6 +106,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
+    use Galacticus_Nodes                , only : nodeComponentDisk
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -158,6 +159,7 @@ contains
   double precision function efstathiou1982Estimator(self,node)
     !% Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDisk
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node

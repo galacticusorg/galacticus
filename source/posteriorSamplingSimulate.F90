@@ -29,6 +29,7 @@ program Posterior_Sampling_Simulate
   use Galacticus_Nodes
   use Node_Components
   use Posterior_Sampling_Simulation
+  use Functions_Global_Utilities
   implicit none
   integer                                  , parameter :: fileNameLengthMaximum     =1024
   character(len=fileNameLengthMaximum     )            :: parameterFileCharacter
@@ -50,6 +51,8 @@ program Posterior_Sampling_Simulate
   ! Open the parameter file.
   parameters=inputParameters(parameterFile,allowedParametersFile='posteriorSamplingSimulate.parameters.xml')
   call parameters%markGlobal()
+  ! Establish global functions.
+  call Functions_Global_Set()
   ! Set the verbosity level.
   !# <inputParameter>
   !#   <name>verbosityLevel</name>

@@ -51,6 +51,7 @@ contains
 
   double precision function spinExtract(self,node)
     !% Implement a spin output property extractor.
+    use Galacticus_Nodes, only : nodeComponentSpin
     implicit none
     class(outputAnalysisPropertyExtractorSpin), intent(inout) :: self
     type (treeNode                           ), intent(inout) :: node

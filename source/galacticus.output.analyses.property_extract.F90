@@ -20,7 +20,7 @@
 
 module Output_Analysis_Property_Extractions
   !% Provides a class that implements extraction of properties for on-the-fly analyses.
-  use Galacticus_Nodes
+  use Galacticus_Nodes       , only : treeNode
   use Output_Analyses_Options
   private
   

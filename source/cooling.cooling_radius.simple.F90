@@ -243,6 +243,7 @@ contains
     !% Return the cooling radius in the simple model.
     use Chemical_Reaction_Rates_Utilities
     use Root_Finder
+    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (coolingRadiusSimple ), intent(inout), target :: self
     type            (treeNode            ), intent(inout), target :: node

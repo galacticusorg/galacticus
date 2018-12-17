@@ -28,7 +28,7 @@ contains
 
   logical function Node_Branch_Jump(thisEvent,thisNode,deadlockStatus)
     !% Moves a satellite node to a different branch of the merger tree.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                   , only : treeNode, nodeEvent
     use Galacticus_Display
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String

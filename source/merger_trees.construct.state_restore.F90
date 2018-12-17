@@ -96,7 +96,6 @@ contains
   subroutine mergerTreeStateStore(tree,storeFile,snapshot,append)
     !% Store the complete internal state of a merger tree to file.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
     use               Galacticus_State
     use               Galacticus_Error
     use               Merger_Tree_Walkers

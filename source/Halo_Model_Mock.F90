@@ -29,7 +29,7 @@ program Halo_Model_Mock
   use Galacticus_Error
   use Galacticus_Display
   use Geometry_Surveys
-  use Galacticus_Nodes
+  use Galacticus_Nodes                   , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize
   use Node_Components
   use Cosmology_Functions
   use Conditional_Mass_Functions

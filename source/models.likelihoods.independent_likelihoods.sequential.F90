@@ -34,9 +34,10 @@
   type, extends(posteriorSampleLikelihoodIndependentLikelihoods) :: posteriorSampleLikelihoodIndpndntLklhdsSqntl
      !% Implementation of a posterior sampling likelihood class which sequanetially combines other likelihoods assumed to be independent.
      private
-     integer :: evaluateCount                , evaluateCountGlobal, &
-          &     forceCount
-     logical :: finalLikelihoodFullEvaluation
+     integer                                     :: evaluateCount                , evaluateCountGlobal, &
+          &                                         forceCount
+     logical                                     :: finalLikelihoodFullEvaluation
+     double precision, dimension(:), allocatable :: likelihoodMultiplier         , likelihoodAccept
    contains
      procedure :: evaluate => independentLikelihoodsSequantialEvaluate
   end type posteriorSampleLikelihoodIndpndntLklhdsSqntl
@@ -53,10 +54,12 @@ contains
     !% Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
     !% parameter set.
     use Input_Parameters
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
-
+    integer                                                              :: i
+    
     !# <inputParameter>
     !#   <name>finalLikelihoodFullEvaluation</name>
     !#   <variable>self%finalLikelihoodFullEvaluation</variable>
@@ -68,6 +71,23 @@ contains
     !# </inputParameter>
     ! Initialize the parent class.
     self%posteriorSampleLikelihoodIndependentLikelihoods=posteriorSampleLikelihoodIndependentLikelihoods(parameters)
+    ! Get likelihood multipliers and acceptances.
+    if     (                                                                                   &
+         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
+         &  /=                                                                                 &
+         &   parameters%copiesCount('likelihoodMultiplier'           ,zeroIfNotPresent=.true.) &
+         & ) call Galacticus_Error_Report('number of likelihood multipliers must match number of likelihoods'//{introspection:location})
+    if     (                                                                                   &
+         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
+         &  /=                                                                                 &
+         &   parameters%copiesCount('likelihoodAccept'               ,zeroIfNotPresent=.true.) &
+         & ) call Galacticus_Error_Report('number of likelihood accepts must match number of likelihoods'    //{introspection:location})
+    allocate(self%likelihoodMultiplier(parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)))
+    allocate(self%likelihoodAccept    (parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)))
+    do i=1,parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)
+       call parameters%value('likelihoodMultiplier',self%likelihoodMultiplier(i),copyInstance=i)
+       call parameters%value('likelihoodAccept'    ,self%likelihoodAccept    (i),copyInstance=i)
+    end do
     ! The evaluateCount value is the likelihood number at which we have achieved success so far.
     self%evaluateCount                                  =0
     self%evaluateCountGlobal                            =0
@@ -75,13 +95,14 @@ contains
     return
   end function independentLikelihoodsSequentialConstructorParameters
 
-  function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation) result(self)
+  function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation,likelihoodMultiplier,likelihoodAccept) result(self)
     !% Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
     implicit none
-    type   (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                        :: self
-    type   (posteriorSampleLikelihoodList               ), target, intent(in   ) :: modelLikelihoods
-    logical                                                      , intent(in   ) :: finalLikelihoodFullEvaluation
-    !# <constructorAssign variables="*modelLikelihoods, finalLikelihoodFullEvaluation"/>
+    type            (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                              :: self
+    type            (posteriorSampleLikelihoodList               ), intent(in   ), target       :: modelLikelihoods
+    logical                                                       , intent(in   )               :: finalLikelihoodFullEvaluation
+    double precision                                              , intent(in   ), dimension(:) :: likelihoodMultiplier         , likelihoodAccept
+    !# <constructorAssign variables="*modelLikelihoods, finalLikelihoodFullEvaluation, likelihoodMultiplier, likelihoodAccept"/>
     
     ! The evaluateCount value is the likelihood number at which we have achieved success so far.
     self%evaluateCount      =0
@@ -142,11 +163,11 @@ contains
        call Galacticus_Display_Message(message)
     end if
     ! Initialize a local copy of the proposed log prior. In order to ensure MPI synchronization between processes we must always
-    ! call evaluate on each independent likelihood. For example, the "Galacticus" likelihood class can spawn Galacticus runs under
-    ! MPI, one at a time, and the MPI processes must coordinate to ensure only one such Galacticus is spawned at a time. To avoid
-    ! unneccesary calculation we will force this local proposed log prior to an impossible value if we don't need to evaluate
-    ! it. The called model likelihood functions are expected to instantly return in such cases without actually computing their
-    ! likelihood.
+    ! call evaluate on each independent likelihood. For example, the "Galacticus" likelihood class runs each chain under MPI
+    ! across all processes, one at a time, and the MPI processes must coordinate to ensure only one such Galacticus is spawned at
+    ! a time. To avoid unneccesary calculation we will force this local proposed log prior to an impossible value if we don't need
+    ! to evaluate it. The called model likelihood functions are expected to instantly return in such cases without actually
+    ! computing their likelihood.
     logPriorProposed_=logPriorProposed
     ! If this chain has already reached beyond the current evaluate level then we do not want to evaluate it again. Set the
     ! proposed prior to an impossible value to prevent the model likehood being evaluated. This will result in the chain remaining
@@ -212,6 +233,11 @@ contains
             &                                                                                                                  timeEvaluate            , &
             &                                                                                                                  logLikelihoodVariance     &
             &                                                                                                                 )
+       ! Modify the likelihood.
+       !! First shift it so that acceptable likelihoods are always positive.
+       logLikelihood=logLikelihood-self%likelihoodAccept    (likelihoodCount)
+       !! Scale by a multilying factor to steepen the likelihood function.
+       logLikelihood=logLikelihood*self%likelihoodMultiplier(likelihoodCount)
        ! Accumulate the likelihood unless our local proposed prior is impossible (in which case we did not actually need to
        ! compute this likelihood, but were calling the evaluate method just to ensure MPI synchronization).
        if (logPriorProposed_ > logImpossible)                                                               &

@@ -162,7 +162,7 @@ contains
   double precision function lmnstyStllrChrltFll2000Extract(self,node)
     !% Implement a stellar luminosity output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use               Abundances_Structure
     use               Stellar_Luminosities_Structure
     use               Numerical_Constants_Atomic

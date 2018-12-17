@@ -73,6 +73,7 @@ contains
 
   double precision function metallicityISMExtract(self,node)
     !% Extracts the metallicity (defined as the mass ratio of a specified element to hydrogen) in the ISM.
+    use Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid
     use Abundances_Structure
     implicit none
     class           (outputAnalysisPropertyExtractorMetallicityISM), intent(inout)               :: self

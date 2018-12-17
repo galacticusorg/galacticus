@@ -82,6 +82,7 @@ contains
     !% Returns an initial separation for binary black holes using the method of \cite{volonteri_assembly_2003}, with the
     !% assumption that the local velocity dispersion is approximately the dark matter halo virial velocity.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : nodeComponentBlackHole
     implicit none
     class(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout)         :: self
     type (treeNode                                     ), intent(inout), target :: nodeHost     , node

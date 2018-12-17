@@ -224,7 +224,7 @@ contains
     use               Posterior_Sampling_Convergence
     use               Galacticus_Error
     use               Halo_Spin_Distributions
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes              , only : treeNode, nodeComponentBasic, nodeComponentSpin
     implicit none
     class           (posteriorSampleLikelihoodSpinDistribution), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState

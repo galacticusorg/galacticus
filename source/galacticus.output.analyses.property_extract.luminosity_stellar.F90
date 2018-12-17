@@ -152,7 +152,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Galactic_Structure_Enclosed_Masses
     use               Galactic_Structure_Options
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
     class  (outputAnalysisPropertyExtractorLuminosityStellar), intent(inout) :: self
     type   (treeNode                                        ), intent(inout) :: node

@@ -21,7 +21,7 @@
 module Galacticus_Output_Analyses_Correlation_Functions
   !% Performs analysis to compute a variety of correlation functions.
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
+  use            :: Galacticus_Nodes, only : treeNode
   use Galactic_Structure_Options
   use Geometry_Surveys
   use Numerical_Constants_Astronomical
@@ -175,7 +175,7 @@ contains
   subroutine Galacticus_Output_Analysis_Correlation_Functions(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct correlation functions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
+    use            :: Galacticus_Nodes, only : mergerTree
     use Galacticus_Paths
     use ISO_Varying_String
     use Memory_Management
@@ -545,6 +545,7 @@ contains
     !% taken into account when evaluating the one- and two-halo terms from this halo in the halo
     !% model.
     use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic
     use Dark_Matter_Halo_Biases
     use Cosmology_Functions
     use Dark_Matter_Profiles

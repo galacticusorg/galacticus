@@ -96,7 +96,6 @@ contains
 
   logical function allPasses(self,node)
     !% Apply a set of filters to a {\normalfont \ttfamily node} combined with ``all'' operations.
-    use Galacticus_Nodes
     implicit none
     class(galacticFilterAll), intent(inout) :: self
     type (treeNode         ), intent(inout) :: node

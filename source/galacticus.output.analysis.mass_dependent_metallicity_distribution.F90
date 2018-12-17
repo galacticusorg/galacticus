@@ -25,7 +25,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_Met_Dstrbtins
   !% \item The \gls{sdss} gas-phase distributions from \cite{andrews_mass-metallicity_2013}.
   !% \end{itemize}
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
+  use Galacticus_Nodes                , only : treeNode
   use Tables
   use Galactic_Structure_Options
   use Geometry_Surveys
@@ -217,7 +217,8 @@ contains
   subroutine Galacticus_Output_Analysis_Mass_Dpndnt_Met_Dstrbtins(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct metallicity distributions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
+    use            :: Galacticus_Nodes, only : mergerTree          , nodeComponentBasic      , nodeComponentDisk, nodeComponentSpheroid, &
+         &                                     defaultDiskComponent, defaultSpheroidComponent
     use Galacticus_Paths
     use ISO_Varying_String
     use Memory_Management

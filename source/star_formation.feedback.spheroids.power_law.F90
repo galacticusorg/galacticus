@@ -85,6 +85,7 @@ contains
     !% $V_\mathrm{spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
+    use Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
     class           (starFormationFeedbackSpheroidsPowerLaw), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node

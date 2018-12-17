@@ -60,6 +60,7 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     use Root_Finder
+    use Galacticus_Nodes                  , only : nodeComponentBlackHole
     implicit none
     class(blackHoleBinaryInitialSeparationTidalRadius), intent(inout)         :: self
     type (treeNode                                   ), intent(inout), target :: nodeHost , node

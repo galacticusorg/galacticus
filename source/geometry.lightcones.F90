@@ -21,7 +21,7 @@
 module Geometry_Lightcones
   !% Implements geometries of lightcones.
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>

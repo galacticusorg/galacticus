@@ -78,6 +78,7 @@ contains
     !% Return a ram pressure force due to the hot halo using the model of \cite{font_colours_2008}.
     use Kepler_Orbits
     use Satellite_Orbits
+    use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (hotHaloRamPressureForceFont2008), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node

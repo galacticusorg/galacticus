@@ -229,7 +229,7 @@ contains
   double precision function lmnstyEmssnLineExtract(self,node)
     !% Implement an emission line output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use               Stellar_Luminosities_Structure
     use               Numerical_Constants_Physical
     use               Numerical_Constants_Astronomical

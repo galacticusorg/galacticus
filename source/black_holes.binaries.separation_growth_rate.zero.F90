@@ -52,7 +52,6 @@ contains
 
   double precision function zeroGrowthRate(self,blackHole)
     !% Returns a separation growth rate for a binary black hole that is always zero.
-    use Galacticus_Nodes
     implicit none
     class(blackHoleBinarySeparationGrowthRateZero), intent(inout) :: self
     class(nodeComponentBlackHole                 ), intent(inout) :: blackHole

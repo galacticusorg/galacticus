@@ -81,6 +81,7 @@ contains
   double precision function massHaloExtract(self,node)
     !% Implement a massHalo output analysis.
     use Dark_Matter_Profile_Mass_Definitions
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
     class(outputAnalysisPropertyExtractorMassHalo), intent(inout) :: self
     type (treeNode                               ), intent(inout) :: node

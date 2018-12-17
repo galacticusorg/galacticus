@@ -82,6 +82,7 @@ contains
   double precision function concentrationExtract(self,node)
     !% Implement a concentration output analysis.
     use Dark_Matter_Profile_Mass_Definitions
+    use Galacticus_Nodes                    , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (outputAnalysisPropertyExtractorConcentration), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node

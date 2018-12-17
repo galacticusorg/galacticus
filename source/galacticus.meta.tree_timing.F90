@@ -103,7 +103,7 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Meta_Tree_Timing_Pre_Evolve(tree)
     !% Record the CPU time prior to evolving {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : mergerTree, treeNode, nodeComponentBasic
     implicit none
     type (mergerTree        ), intent(in   ) :: tree
     type (treeNode          ), pointer       :: node
@@ -202,6 +202,7 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     type(hdf5Object) :: metaDataDataset, metaDataGroup, timingDataGroup
+
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
     ! Output tree evolution meta-data if any was collected.

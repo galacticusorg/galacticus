@@ -90,6 +90,7 @@ contains
   function growingConstructorInternal(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_) result(self)
     !% Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
     use Galacticus_Error
+    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type            (hotHaloMassDistributionCoreRadiusGrowing)                        :: self
     double precision                                          , intent(in   )         :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
@@ -124,6 +125,7 @@ contains
 
   double precision function growingRadius(self,node)
     !% Return the core radius of the hot halo mass distribution.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentDarkMatterProfile
     implicit none
     class           (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node

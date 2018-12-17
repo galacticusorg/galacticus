@@ -124,6 +124,7 @@ contains
   
   double precision function haloScalingOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationFeedbackDisksHaloScaling), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node

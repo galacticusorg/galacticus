@@ -86,7 +86,7 @@ contains
     use Numerical_Comparison
     use Numerical_Ranges
     use Galacticus_Error
-    use Galacticus_Nodes
+    use Galacticus_Nodes                  , only : mergerTree, treeNode, nodeComponentBasic
     use Galactic_Structure_Options
     use Galacticus_Output_Merger_Tree_Data
     use Memory_Management

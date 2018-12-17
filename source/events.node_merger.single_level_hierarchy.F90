@@ -46,7 +46,7 @@ contains
     use Galacticus_Error
     use ISO_Varying_String
     use String_Handling
-    use Galacticus_Nodes
+    use Galacticus_Nodes   , only : treeNode
     use Satellite_Promotion
     implicit none
     type(treeNode      ), intent(inout), pointer :: thisNode

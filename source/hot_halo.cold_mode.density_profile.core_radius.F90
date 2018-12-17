@@ -20,7 +20,7 @@
 
 module Hot_Halo_Cold_Mode_Density_Core_Radii
   !% Provides a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>

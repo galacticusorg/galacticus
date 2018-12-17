@@ -105,6 +105,7 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                  , only : nodeComponentSpheroid
     implicit none
     class           (ramPressureStrippingSpheroidsSimple), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
