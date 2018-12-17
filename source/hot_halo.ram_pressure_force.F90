@@ -20,7 +20,7 @@
 
 module Hot_Halo_Ram_Pressure_Forces
   !% Implements a class which provides calculations of ram pressure force.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   
   !# <functionClass>
   !#  <name>hotHaloRamPressureForce</name>

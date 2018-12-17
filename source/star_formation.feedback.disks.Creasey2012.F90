@@ -118,7 +118,8 @@ contains
     use Numerical_Constants_Math
     use Stellar_Feedback
     use Numerical_Integration
-    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
+    use FGSL                    , only : fgsl_function    , fgsl_integration_workspace
+    use Galacticus_Nodes        , only : nodeComponentDisk
     implicit none
     class           (starFormationFeedbackDisksCreasey2012), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node

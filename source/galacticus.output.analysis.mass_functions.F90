@@ -21,11 +21,11 @@
 module Galacticus_Output_Analyses_Mass_Functions
   !% Performs analysis to compute a variety of mass functions.
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
-  use Galactic_Structure_Options
-  use Geometry_Surveys
-  use Mass_Function_Incompletenesses
-  use Gravitational_Lensing
+  use            :: Galacticus_Nodes              , only : treeNode
+  use            :: Galactic_Structure_Options
+  use            :: Geometry_Surveys
+  use            :: Mass_Function_Incompletenesses
+  use            :: Gravitational_Lensing
   implicit none
   private
   public :: Galacticus_Output_Analysis_Mass_Functions, Galacticus_Output_Analysis_Mass_Functions_Output
@@ -681,7 +681,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use FGSL                                           , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
-    use Galacticus_Nodes
+    use Galacticus_Nodes                               , only : mergerTree   , nodeComponentBasic
     use Galacticus_Paths
     use IO_HDF5
     use ISO_Varying_String
@@ -1946,6 +1946,7 @@ contains
     !% Compute the molecular ratio, $R_\mathrm{mol}=M_\mathrm{H_2}/M_\mathrm{HI}$ for the ALFALFA survey analysis. Assumes the model of
     !% \cite{obreschkow_simulation_2009}.
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDisk
     implicit none
     double precision                   , intent(in   )          :: mass
     type            (treeNode         ), intent(inout), pointer :: node
@@ -1998,6 +1999,7 @@ contains
     use Cosmology_Functions
     use Geometry_Surveys
     use Memory_Management
+    use Galacticus_Nodes   , only : nodeComponentBasic
     double precision                                   , intent(in   )                            :: mass
     type            (treeNode                         ), intent(inout), pointer                   :: node
     double precision                                   , intent(inout), allocatable, dimension(:) :: error                  , weight

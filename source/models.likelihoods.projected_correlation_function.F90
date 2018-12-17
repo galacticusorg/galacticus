@@ -107,7 +107,6 @@ contains
     use IO_HDF5
     use Memory_Management
     use Node_Component_Dark_Matter_Profile_Scale
-    use Galacticus_Nodes
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                :: self
     double precision                                                    , intent(in   ) :: haloMassMinimum    , haloMassMaximum, &

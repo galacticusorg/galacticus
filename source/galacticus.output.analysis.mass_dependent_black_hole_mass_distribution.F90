@@ -26,7 +26,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_BH_Dstrbtins
   !% \item The compilation from \cite{kormendy_coevolution_2013}.
   !% \end{itemize}
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
+  use            :: Galacticus_Nodes, only : treeNode
   use Tables
   use Galactic_Structure_Options
   use Geometry_Surveys
@@ -149,7 +149,8 @@ contains
   subroutine Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct black hole mass distributions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
+    use            :: Galacticus_Nodes, only : mergerTree               , nodeComponentBasic, nodeComponentBlackHole, defaultSpheroidComponent, &
+         &                                     defaultBlackHoleComponent
     use Galacticus_Paths
     use ISO_Varying_String
     use Memory_Management

@@ -21,7 +21,8 @@
 program haloSpinDistributions
   !% Computes dark matter halo spin distributions.
   use Galacticus_Error
-  use Galacticus_Nodes
+  use Galacticus_Nodes          , only : treeNode                    , nodeComponentBasic, nodeComponentSpin, nodeComponentDarkMatterProfile, &
+       &                                 nodeClassHierarchyInitialize
   use Input_Parameters
   use Memory_Management
   use Functions_Global_Utilities

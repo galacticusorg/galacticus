@@ -20,7 +20,7 @@
 
 module Black_Hole_Binary_Initial_Separation
   !% Implements a class for black hole binary initial separations.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

@@ -41,7 +41,7 @@ contains
     !% Compute properties for satellite merger remnants.
     use Satellite_Merging_Mass_Movements
     use Satellite_Merging_Remnant_Sizes
-    use Galacticus_Nodes
+    use Galacticus_Nodes                , only : treeNode
     implicit none
     type (treeNode                ), intent(inout), pointer :: node
     class(mergerMassMovementsClass)               , pointer :: mergerMassMovements_

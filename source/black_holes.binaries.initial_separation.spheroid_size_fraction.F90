@@ -75,7 +75,7 @@ contains
   double precision function spheroidRadiusFractionSeparationInitial(self,node,nodeHost)
     !% Returns an initial separation for a binary black holes that is a fixed fraction of the scale radius of the larger of the
     !% host and satellite spheroids.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
     class(blackHoleBinaryInitialSeparationSpheroidRadiusFraction), intent(inout)         :: self
     type (treeNode                                              ), intent(inout), target :: nodeHost    , node

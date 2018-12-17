@@ -20,7 +20,7 @@
 
 module Ram_Pressure_Stripping_Mass_Loss_Rate_Spheroids
   !% Provides a class that implements calculations of ram pressure stripping in spheroids.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   
   !# <functionClass>
   !#  <name>ramPressureStrippingSpheroids</name>

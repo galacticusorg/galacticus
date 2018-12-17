@@ -20,7 +20,7 @@
 
 module Star_Formation_Timescales_Disks
   !% Provides a class that implements calculations of timescales for star formation in disks.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   
   !# <functionClass>
   !#  <name>starFormationTimescaleDisks</name>

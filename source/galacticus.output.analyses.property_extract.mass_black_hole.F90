@@ -53,6 +53,7 @@ contains
     !% Implement a massBlackHole output analysis.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
+    use Galacticus_Nodes                  , only : nodeComponentBlackHole
     implicit none
     class(outputAnalysisPropertyExtractorMassBlackHole), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node

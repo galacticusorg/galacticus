@@ -275,6 +275,7 @@ contains
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     use Hot_Halo_Mass_Distributions
+    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout), target  :: self
     type            (treeNode                ), intent(inout), target  :: node

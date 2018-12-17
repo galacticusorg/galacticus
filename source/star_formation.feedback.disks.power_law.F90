@@ -85,6 +85,7 @@ contains
     !% $V_\mathrm{disk}$ is whatever characteristic value returned by the disk method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000}, except that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
+    use Galacticus_Nodes, only : nodeComponentDisk
     implicit none
     class           (starFormationFeedbackDisksPowerLaw), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node

@@ -97,6 +97,7 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentHotHalo
     implicit none
     class           (hotHaloRamPressureTimescaleRamPressureAcceleration), intent(inout) :: self
     type            (treeNode                                          ), intent(inout) :: node

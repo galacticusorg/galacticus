@@ -149,6 +149,7 @@ contains
 
   double precision function velocityMaxScalingTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic spheroid of {\normalfont \ttfamily node} in the halo scaling timescale model.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationTimescaleSpheroidsVelocityMaxScaling), intent(inout)         :: self
     type            (treeNode                                         ), intent(inout), target :: node

@@ -102,7 +102,7 @@ contains
   double precision function standardGrowthRate(self,blackHole)
     !% Returns an initial separation growth rate for a binary black holes that follows a modified version of
     !% \cite{volonteri_assembly_2003}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                           , only : treeNode, nodeComponentSpheroid
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     use Galactic_Structure_Densities

@@ -22,7 +22,7 @@
 
 module Black_Hole_Binary_Recoil_Velocities
   !% Implements a class for black hole binary recoil velocities.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : nodeComponentBlackHole
   implicit none
   private
 

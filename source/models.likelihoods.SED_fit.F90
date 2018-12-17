@@ -238,7 +238,7 @@ contains
     use               Cosmology_Functions
     use               Stellar_Spectra_Dust_Attenuations
     use               Stellar_Population_Luminosities
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                 , only : nodeComponentDisk
     use               Stellar_Populations
     implicit none
     class           (posteriorSampleLikelihoodSEDFit   ), intent(inout)                 :: self

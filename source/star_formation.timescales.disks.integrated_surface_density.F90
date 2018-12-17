@@ -96,6 +96,7 @@ contains
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node}, by integrating
     !% over the surface density of star formation rate.
     use FGSL                    , only : FGSL_Integ_Gauss15
+    use Galacticus_Nodes        , only : nodeComponentDisk
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none

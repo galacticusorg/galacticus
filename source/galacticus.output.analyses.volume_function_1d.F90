@@ -430,6 +430,7 @@ contains
   
   subroutine volumeFunction1DAnalyze(self,node,iOutput)
     !% Implement a volumeFunction1D output analysis.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
     type            (treeNode                      ), intent(inout)                 :: node

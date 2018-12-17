@@ -84,6 +84,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily dynamicalTime} timescale for star formation in disks class.
     use Galacticus_Error
     use Array_Utilities
+    use Galacticus_Nodes, only : defaultDiskComponent
     implicit none
     type            (starFormationTimescaleDisksDynamicalTime)                :: self
     double precision                                          , intent(in   ) :: efficiency      , exponentVelocity, &
@@ -121,6 +122,7 @@ contains
     !% scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the
     !% half-mass radius and circular velocity at that radius.
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDisk
     implicit none
     class           (starFormationTimescaleDisksDynamicalTime), intent(inout), target :: self
     type            (treeNode                                ), intent(inout), target :: node

@@ -20,7 +20,7 @@
 
 module Hot_Halo_Mass_Distributions
   !% Provides an object which provides a hot halo mass distribution class.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   public :: hotHaloMassDistributionDensity     , hotHaloMassDistributionRotationCurve        , &
        &    hotHaloMassDistributionEnclosedMass, hotHaloMassDistributionRotationCurveGradient
@@ -75,6 +75,7 @@ contains
   double precision function hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
+    use Galacticus_Nodes          , only : nodeComponentHotHalo
     implicit none
     type            (treeNode                    ), intent(inout)           :: node
     integer                                       , intent(in   )           :: componentType           , massType   , &

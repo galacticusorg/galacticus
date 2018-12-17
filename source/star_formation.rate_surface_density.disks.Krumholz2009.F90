@@ -168,6 +168,7 @@ contains
   subroutine krumholz2009ComputeFactors(self,node)
     !% Compute constant factors needed in the \cite{krumholz_star_2009} star formation rule.
     use Numerical_Constants_Prefixes
+    use Galacticus_Nodes            , only : nodeComponentDisk
     implicit none
     class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type (treeNode                                        ), intent(inout) :: node
@@ -385,6 +386,7 @@ contains
   
   logical function krumholz2009Unchanged(self,node)
     !% Determine if the surface rate density of star formation is unchanged.
+    use Galacticus_Nodes, only : nodeComponentDisk
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node

@@ -22,7 +22,7 @@ module Node_Events_Inter_Tree
   !% Handles inter-tree node events.
   use, intrinsic :: ISO_C_Binding
   use               Kind_Numbers
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes, only : treeNode
   implicit none
   private
   public :: Node_Push_From_Tree, Node_Pull_From_Tree, Inter_Tree_Event_Post_Evolve
@@ -51,6 +51,8 @@ contains
     use Galacticus_Error
     use String_Handling
     use Merger_Trees_Evolve_Deadlock_Status
+    use Galacticus_Nodes                   , only : nodeEvent                   , nodeComponentBasic, treeNodeLinkedList, nodeEventSubhaloPromotionInterTree, &
+         &                                          nodeEventBranchJumpInterTree
     implicit none
     class    (nodeEvent         ), intent(in   )          :: event
     type     (treeNode          ), intent(inout), pointer :: node
@@ -172,6 +174,7 @@ contains
     use String_Handling
     use Galacticus_Error
     use Merger_Trees_Evolve_Deadlock_Status
+    use Galacticus_Nodes                   , only : nodeEvent, nodeComponentBasic, nodeEventSubhaloPromotionInterTree, nodeEventBranchJumpInterTree
     !# <include directive="interTreeSatelliteAttach" type="moduleUse">
     include 'events.inter_tree.satellite_attach.modules.inc'
     !# </include>
