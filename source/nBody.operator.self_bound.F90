@@ -102,250 +102,310 @@ contains
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
     type            (nBodyData             ), intent(inout)                          :: simulation
     integer                                 , parameter                              :: countIterationMaximum=30
-    logical                                 , allocatable  , dimension(:  )          :: isBound                 , compute                , &
-         &                                                                              isBoundNew              , isBoundCompute         , &
-         &                                                                              isBoundComputeActual
-    integer                                 , allocatable  , dimension(:,:), target  :: boundStatus             , weight
-    integer                                                , dimension(:  ), pointer :: boundStatusSingle
+    logical                                 , allocatable  , dimension(:,:)          :: isBound                 , isBoundNew             , &
+         &                                                                              isBoundCompute          , isBoundComputeActual
+    logical                                 , allocatable  , dimension(:  )          :: compute                 , computeActual
+    integer                                 , allocatable  , dimension(:,:)          :: boundStatus
     double precision                        , allocatable  , dimension(:,:)          :: positionRelative        , positionOffset
     double precision                        , allocatable  , dimension(:  )          :: separation              , potential              , &
-         &                                                                              energyPotential         , separationSquared      , &
-         &                                                                              velocityPotential       , energyKinetic          , &
-         &                                                                              energyPotentialChange   , velocityPotentialChange, &
-         &                                                                              sampleWeight
+         &                                                                              separationSquared       , potentialActual
+    double precision                        , allocatable  , dimension(:,:)          :: energyPotential         , velocityPotential      , &
+         &                                                                              energyKinetic           , energyPotentialChange  , &
+         &                                                                              velocityPotentialChange , sampleWeight
     integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound          , indexVelocityMostBound
     integer         (c_size_t              )                                         :: particleCount           , i                      , &
-         &                                                                              k                       , iSample                , &
-         &                                                                              countBound              , countBoundPrevious
-    double precision                                                                 :: weightBound             , weightBoundPrevious
+         &                                                                              k                       , iSample
+    integer         (c_size_t              ), allocatable  , dimension(:  )          :: countBound              , countBoundPrevious
+    double precision                        , allocatable  , dimension(:  )          :: weightBound             , weightBoundPrevious
+    logical                                 , allocatable  , dimension(:  )          :: isConverged
     integer                                                                          :: addSubtract             , countIteration
     type            (pseudoRandom          )                                         :: randomSequence
     type            (varying_string        )                                         :: message
 
     ! Allocate workspaces.
     particleCount=size(simulation%position,dim=2)
-    call allocateArray(isBound                ,[           particleCount                          ])    
-    call allocateArray(isBoundNew             ,[           particleCount                          ])    
-    call allocateArray(isBoundCompute         ,[           particleCount                          ])    
-    call allocateArray(energyKinetic          ,[           particleCount                          ])    
-    call allocateArray(energyPotential        ,[           particleCount                          ])    
-    call allocateArray(velocityPotential      ,[           particleCount                          ])
+    call allocateArray(isBound                ,[           particleCount,self%bootstrapSampleCount])    
+    call allocateArray(isBoundNew             ,[           particleCount,self%bootstrapSampleCount])    
+    call allocateArray(isBoundCompute         ,[           particleCount,self%bootstrapSampleCount])    
+    call allocateArray(energyKinetic          ,[           particleCount,self%bootstrapSampleCount])    
+    call allocateArray(energyPotential        ,[           particleCount,self%bootstrapSampleCount])    
+    call allocateArray(velocityPotential      ,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(compute                ,[           particleCount                          ])
-    call allocateArray(energyPotentialChange  ,[           particleCount                          ])
-    call allocateArray(velocityPotentialChange,[           particleCount                          ])
-    call allocateArray(sampleWeight           ,[           particleCount                          ])
+    call allocateArray(energyPotentialChange  ,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(velocityPotentialChange,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(sampleWeight           ,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(positionOffset         ,[3_c_size_t,particleCount                          ])
     call allocateArray(boundStatus            ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(weight                 ,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(indexMostBound         ,[                         self%bootstrapSampleCount])
     call allocateArray(indexVelocityMostBound ,[                         self%bootstrapSampleCount])
+    call allocateArray(countBound             ,[                         self%bootstrapSampleCount])
+    call allocateArray(countBoundPrevious     ,[                         self%bootstrapSampleCount])
+    call allocateArray(weightBound            ,[                         self%bootstrapSampleCount])
+    call allocateArray(weightBoundPrevious    ,[                         self%bootstrapSampleCount])
+    call allocateArray(isConverged            ,[                         self%bootstrapSampleCount])
     ! Iterate over bootstrap samplings.
+    message='Performing self-bound analysis on bootstrap samples.'
+    call Galacticus_Display_Message(message)
+    compute=.false.
     do iSample=1,self%bootstrapSampleCount
-       message='Performing self-bound analysis on bootstrap sample '
-       message=message//iSample//' of '//self%bootstrapSampleCount
-       call Galacticus_Display_Message(message)
        ! Determine weights for particles.
        do i=1,particleCount
-          sampleWeight(i)=dble(randomSequence%poissonSample(self%bootstrapSampleRate))
+          sampleWeight(i,iSample)=dble(randomSequence%poissonSample(self%bootstrapSampleRate))
        end do
        ! Initialize count of bound particles.
-       countBoundPrevious =     particleCount
-       weightBoundPrevious=dble(particleCount)*self%bootstrapSampleRate
+       countBoundPrevious (iSample)=     particleCount
+       weightBoundPrevious(iSample)=dble(particleCount)*self%bootstrapSampleRate
        ! Initialize potentials.
-       energyPotential        =0.0d0
-       velocityPotential      =0.0d0
-       isBound                =sampleWeight > 0.0d0
-       isBoundCompute         =isBound
-       compute                =isBound
-       addSubtract            =+1
-       ! Begin iterations.
-       countIteration=0
-       do while (.true.)
-          countIteration=countIteration+1
-          velocityPotentialChange=0.0d0
-          energyPotentialChange  =0.0d0
-          !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential,isBoundComputeActual)
-          call allocateArray(positionRelative    ,[3_c_size_t,particleCount])
-          call allocateArray(separation          ,[           particleCount])
-          call allocateArray(separationSquared   ,[           particleCount])
-          call allocateArray(potential           ,[           particleCount])
-          call allocateArray(isBoundComputeActual,[           particleCount])
-          separation       =0.0d0
-          separationSquared=0.0d0
-          positionRelative =0.0d0
-          potential        =0.0d0
-          !$omp do schedule(dynamic) reduction(+: energyPotentialChange, velocityPotentialChange)
-          do i=1,particleCount-1
-             ! Skip particles we do not need to compute.
-             if (.not.compute(i)) cycle
-             ! Check how to accumulate changes to potentials.
-             if (addSubtract == +1) then
-               ! Recomute potentials for all self-bound partiles.
-               isBoundComputeActual = isBoundCompute
-             else
-               ! Subtract potentials due to particles which are marked as unbound in the previous iteration.
-               where(isBoundCompute)
-                  isBoundComputeActual = isBound .neqv. isBound(i)
-               else where
-                  isBoundComputeActual = .false.
-               end where
+       energyPotential  (:,iSample)      =0.0d0
+       velocityPotential(:,iSample)      =0.0d0
+       isBound          (:,iSample)      =        sampleWeight(:,iSample) > 0.0d0
+       isBoundCompute   (:,iSample)      =             isBound(:,iSample)
+       compute                           =compute .or. isBound(:,iSample)
+    end do
+    addSubtract =+1
+    isConverged = .false.
+    ! Begin iterations.
+    countIteration=0
+    do while (.true.)
+       countIteration         =countIteration+1
+       velocityPotentialChange=0.0d0
+       energyPotentialChange  =0.0d0
+       !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential,potentialActual,computeActual,isBoundComputeActual)
+       call allocateArray(positionRelative    ,[3_c_size_t,particleCount                          ])
+       call allocateArray(separation          ,[           particleCount                          ])
+       call allocateArray(separationSquared   ,[           particleCount                          ])
+       call allocateArray(potential           ,[           particleCount                          ])
+       call allocateArray(potentialActual     ,[           particleCount                          ])
+       call allocateArray(computeActual       ,[           particleCount                          ])
+       call allocateArray(isBoundComputeActual,[           particleCount,self%bootstrapSampleCount])
+       separation       =0.0d0
+       separationSquared=0.0d0
+       positionRelative =0.0d0
+       potential        =0.0d0
+       potentialActual  =0.0d0
+       !$omp do schedule(dynamic) reduction(+: energyPotentialChange, velocityPotentialChange)
+       do i=1,particleCount-1
+          ! Skip particles we do not need to compute.
+          if (.not.compute(i)) cycle
+          ! Check how to accumulate changes to potentials.
+          if (addSubtract == +1) then
+             ! Recomute potentials for all self-bound partiles.
+             computeActual        = compute
+             isBoundComputeActual = isBoundCompute
+          else
+             ! Subtract potentials due to particles which are marked as unbound in the previous iteration.
+             computeActual = .false.
+             do iSample=1,self%bootstrapSampleCount
+                where(isBoundCompute(:,iSample))
+                   isBoundComputeActual(:,iSample) = isBound(:,iSample) .neqv. isBound(i,iSample)
+                else where
+                   isBoundComputeActual(:,iSample) = .false.
+                end where
+                computeActual = computeActual .or. isBoundComputeActual(:,iSample)
+             end do
+          end if
+          ! Compute "potentials" in velocity space in order to find a particle which best represents the velocity of the particles.
+          ! Find particle velocity separations.
+          forall(k=1:3)
+             where(computeActual(i+1:particleCount))
+                positionRelative(k,i+1:particleCount)=+simulation%velocity(k,i+1:particleCount) &
+                     &                                -simulation%velocity(k,i                )
+             end where
+          end forall
+          where(computeActual(i+1:particleCount))
+             separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1)
+             separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
+             ! Compute potentials.
+             potential        (i+1:particleCount)=+selfBoundPotential(                                      &
+                  &                                                   separation       (i+1:particleCount), &
+                  &                                                   separationSquared(i+1:particleCount)  &
+                  &                                                  )
+          elsewhere
+             ! For particles not participating in this computation, set potential to zero.
+             potential        (i+1:particleCount)=0.0d0
+          end where
+          do iSample=1,self%bootstrapSampleCount
+             ! Skip bootstrap samples for which we have already got converged results.
+             if (isConverged(iSample)) cycle
+             if (isBoundCompute(i,iSample)) then
+                ! Compute "potentials" needed in the analysis of a particular sample.
+                where(isBoundComputeActual(i+1:particleCount,iSample))
+                   potentialActual(i+1:particleCount) = potential(i+1:particleCount)
+                else where
+                   potentialActual(i+1:particleCount) = 0.0d0
+                end where
+                ! Accumulate potential energy.
+                velocityPotentialChange(i                ,iSample)=+velocityPotentialChange(i                ,iSample)                             &
+                     &                                             +sum(potentialActual(i+1:particleCount)*sampleWeight(i+1:particleCount,iSample))
+                velocityPotentialChange(i+1:particleCount,iSample)=+velocityPotentialChange(i+1:particleCount,iSample)                             &
+                     &                                             +    potentialActual(i+1:particleCount)*sampleWeight(i                ,iSample)
              end if
-             ! Compute "potentials" in velocity space in order to find a particle which best represents the velocity of the particles.
-             ! Find particle velocity separations.
-             forall(k=1:3)
-                where(isBoundComputeActual(i+1:particleCount))
-                   positionRelative(k,i+1:particleCount)=+simulation%velocity(k,i+1:particleCount) &
-                        &                                -simulation%velocity(k,i                )
-                end where
-             end forall
-             where(isBoundComputeActual(i+1:particleCount))
-                separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1)
-                separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
-                ! Compute potentials.
-                potential        (i+1:particleCount)=+selfBoundPotential(                                      &
-                     &                                                   separation       (i+1:particleCount), &
-                     &                                                   separationSquared(i+1:particleCount)  &
-                     &                                                  )
-             elsewhere
-                ! For particles not participating in this computation, set potential to zero.
-                potential        (i+1:particleCount)=0.0d0
-             end where
-             ! Accumulate potential energy.
-             velocityPotentialChange(i                )=velocityPotentialChange(i                )+sum(potential(i+1:particleCount)*sampleWeight(i+1:particleCount))
-             velocityPotentialChange(i+1:particleCount)=velocityPotentialChange(i+1:particleCount)+    potential(i+1:particleCount)*sampleWeight(i                )
-             ! Compute gravitational potential energies.
-             ! Find particle separations.
-             forall(k=1:3)
-                where(isBoundComputeActual(i+1:particleCount))
-                   positionRelative(k,i+1:particleCount)=+simulation%position(k,i+1:particleCount) &
-                        &                                -simulation%position(k,i                )
-                end where
-             end forall
-             where(isBoundComputeActual(i+1:particleCount))
-                separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1) &
-                     &                               /simulation%lengthSoftening**2
-                separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
-                ! Compute potentials.
-                potential        (i+1:particleCount)=+selfBoundPotential(                                      &
-                     &                                                   separation       (i+1:particleCount), &
-                     &                                                   separationSquared(i+1:particleCount)  &
-                     &                                                  )
-             elsewhere
-                ! For particles not participating in this computation, set potential to zero.
-                potential        (i+1:particleCount)=0.0d0
-             end where
-             ! Accumulate potential energy.
-             energyPotentialChange(i                )=energyPotentialChange(i                )+sum(potential(i+1:particleCount)*sampleWeight(i+1:particleCount))
-             energyPotentialChange(i+1:particleCount)=energyPotentialChange(i+1:particleCount)+    potential(i+1:particleCount)*sampleWeight(i                )
           end do
-          !$omp end do
+          ! Compute gravitational potential energies.
+          ! Find particle separations.
+          forall(k=1:3)
+             where(computeActual(i+1:particleCount))
+                positionRelative(k,i+1:particleCount)=+simulation%position(k,i+1:particleCount) &
+                     &                                -simulation%position(k,i                )
+             end where
+          end forall
+          where(computeActual(i+1:particleCount))
+             separationSquared(i+1:particleCount)=+sum (positionRelative (:,i+1:particleCount)**2,dim=1) &
+                  &                               /simulation%lengthSoftening**2
+             separation       (i+1:particleCount)=+sqrt(separationSquared(  i+1:particleCount)         )
+             ! Compute potentials.
+             potential        (i+1:particleCount)=+selfBoundPotential(                                      &
+                  &                                                   separation       (i+1:particleCount), &
+                  &                                                   separationSquared(i+1:particleCount)  &
+                  &                                                  )
+          elsewhere
+             ! For particles not participating in this computation, set potential to zero.
+             potential        (i+1:particleCount)=0.0d0
+          end where
+          do iSample=1,self%bootstrapSampleCount
+             ! Skip bootstrap samples for which we have already got converged results.
+             if (isConverged(iSample)) cycle
+             if (isBoundCompute(i,iSample)) then
+                ! Compute potentials needed in the analysis of a particular sample.
+                where(isBoundComputeActual(i+1:particleCount,iSample))
+                   potentialActual(i+1:particleCount) = potential(i+1:particleCount)
+                else where
+                   potentialActual(i+1:particleCount) = 0.0d0
+                end where
+                ! Accumulate potential energy.
+                energyPotentialChange(i                ,iSample)=+energyPotentialChange(i                ,iSample)                               &
+                     &                                           +sum(potentialActual(i+1:particleCount)*sampleWeight(i+1:particleCount,iSample))
+                energyPotentialChange(i+1:particleCount,iSample)=+energyPotentialChange(i+1:particleCount,iSample)                               &
+                     &                                           +    potentialActual(i+1:particleCount)*sampleWeight(i                ,iSample)
+             end if
+          end do
+       end do
+       !$omp end do
+       !$omp workshare
+       ! Apply constant multipliers to potential energy.
+       where(isBoundCompute)
+          energyPotentialChange=+energyPotentialChange                                     &
+               &                *gravitationalConstantGalacticus                           &
+               &                *simulation%massParticle                                   &
+               &                /self%bootstrapSampleRate                                  &
+               &                /simulation%lengthSoftening                                &
+               &                * dble(particleCount)                                      &
+               &                /(dble(particleCount-1_c_size_t)-self%bootstrapSampleRate)
+       end where
+       !$omp end workshare
+       ! Accumulate changes to potentials.
+       if (addSubtract == +1) then
           !$omp workshare
-          ! Apply constant multipliers to potential energy.
           where(isBoundCompute)
-             energyPotentialChange=+energyPotentialChange                                     &
-                  &                *gravitationalConstantGalacticus                           &
-                  &                *simulation%massParticle                                   &
-                  &                /self%bootstrapSampleRate                                  &
-                  &                /simulation%lengthSoftening                                &
-                  &                * dble(particleCount)                                      &
-                  &                /(dble(particleCount-1_c_size_t)-self%bootstrapSampleRate)
+             energyPotential  =  energyPotential+  energyPotentialChange
+             velocityPotential=velocityPotential+velocityPotentialChange
           end where
           !$omp end workshare
-          ! Accumulate changes to potentials.
-          if (addSubtract == +1) then
-             !$omp workshare
-             where(isBoundCompute)
-                energyPotential  =  energyPotential+  energyPotentialChange
-                velocityPotential=velocityPotential+velocityPotentialChange
-             end where
-             !$omp end workshare
-          else
-             !$omp workshare
-             where(isBoundCompute)
-                energyPotential  =  energyPotential-  energyPotentialChange
-                velocityPotential=velocityPotential-velocityPotentialChange
-             end where
-             !$omp end workshare
-          end if
+       else
+          !$omp workshare
+          where(isBoundCompute)
+             energyPotential  =  energyPotential-  energyPotentialChange
+             velocityPotential=velocityPotential-velocityPotentialChange
+          end where
+          !$omp end workshare
+       end if
+       do iSample=1,self%bootstrapSampleCount
+          ! Skip bootstrap samples for which we have already got converged results.
+          if (isConverged(iSample)) cycle
           !$omp workshare
           ! Find the index of the most bound particle.
-          indexMostBound        (iSample)=minloc(energyPotential  ,dim=1,mask=isBound)
+          indexMostBound        (iSample) =minloc(energyPotential  (:,iSample),dim=1,mask=isBound(:,iSample))
           ! Find the index of the most bound particle in velocity space.
-          indexVelocityMostBound(iSample)=minloc(velocityPotential,dim=1,mask=isBound)
+          indexVelocityMostBound(iSample) =minloc(velocityPotential(:,iSample),dim=1,mask=isBound(:,iSample))
           ! Compute kinetic energies.
           forall(k=1:3)
-             where(isBound)
+             where(isBound(:,iSample))
                 positionOffset(k,:)=+simulation%velocity(k,                             : ) &
                      &              -simulation%velocity(k,indexVelocityMostBound(iSample))
              end where
           end forall
-          where(isBound)
-             energyKinetic=0.5d0*sum(positionOffset**2,dim=1)
+          where(isBound(:,iSample))
+             energyKinetic(:,iSample)=0.5d0*sum(positionOffset**2,dim=1)
           end where
           ! Determine which particles are bound.
-          where (isBound)
-             isBoundNew=(energyKinetic+energyPotential < 0.0d0)
+          where (isBound(:,iSample))
+             isBoundNew(:,iSample)=(energyKinetic(:,iSample)+energyPotential(:,iSample) < 0.0d0)
           elsewhere
-             isBoundNew=.false.
+             isBoundNew(:,iSample)=.false.
           end where
           ! Count bound particles.
-          countBound =count(                  isBoundNew)
-          weightBound=sum  (sampleWeight,mask=isBoundNew)
+          countBound (iSample)=count(                             isBoundNew(:,iSample))
+          weightBound(iSample)=sum  (sampleWeight(:,iSample),mask=isBoundNew(:,iSample))
           !$omp end workshare
-          ! Free workspaces.
-          call deallocateArray(positionRelative    )
-          call deallocateArray(separation          )
-          call deallocateArray(separationSquared   )
-          call deallocateArray(potential           )
-          call deallocateArray(isBoundComputeActual)
-          !$omp end parallel
-          ! Test for convergence.
-          if (abs(weightBound-weightBoundPrevious) < 0.5d0*self%tolerance*(weightBound+weightBoundPrevious)) then
+       end do
+       ! Free workspaces.
+       call deallocateArray(positionRelative    )
+       call deallocateArray(separation          )
+       call deallocateArray(separationSquared   )
+       call deallocateArray(potential           )
+       call deallocateArray(potentialActual     )
+       call deallocateArray(computeActual       )
+       call deallocateArray(isBoundComputeActual)
+       !$omp end parallel
+       ! Decide if it is faster to recompute potentials fully for the new bound set, or to subtract potential due
+       ! to particles which are now unbound.
+       if (2*sum(countBoundPrevious-countBound) < sum(countBound+1)) then
+          addSubtract   =-1
+       else
+          addSubtract   =+1
+       end if
+       ! Test for convergence.
+       compute = .false.
+       do iSample=1,self%bootstrapSampleCount
+          if (abs(weightBound(iSample)-weightBoundPrevious(iSample)) < 0.5d0*self%tolerance                 &
+               &                                                            *(                              &
+               &                                                              +weightBound        (iSample) &
+               &                                                              +weightBoundPrevious(iSample) &
+               &                                                             )) then
              ! Converged.
-             isBound=isBoundNew
-             exit
+             isBound       (:,iSample)=isBoundNew(:,iSample)
+             isBoundCompute(:,iSample)=.false.
+             isConverged   (  iSample)=.true.
           else
-             ! Not converged. Decide if it is faster to recompute potentials fully for the new bound set, or to subtract potential due
-             ! to particles which are now unbound.
-             if (2*(countBoundPrevious-countBound) < countBound+1) then
+             ! Not converged.
+             if (addSubtract==-1) then
                 ! Number of particles that have become unbound is sufficiently small that it is faster to simply subtract off their
                 ! contribution to the potential.
-                compute       =isBound
-                isBoundCompute=isBound
-                addSubtract   =-1
+                compute                     =compute .or. isBound(:,iSample)
+                isBoundCompute(:,iSample)   =             isBound(:,iSample)
              else
                 ! Number of particles that have become unbound is sufficiently large that it will be faster to simply recompute
-                ! potentials completely.          
-                compute       =isBoundNew
-                isBoundCompute=isBoundNew
-                addSubtract   =+1
+                ! potentials completely.
+                compute                     =compute .or. isBoundNew(:,iSample)
+                isBoundCompute(:,iSample)   =             isBoundNew(:,iSample)
                 ! Reset potentials.
-                energyPotential  =0.0d0
-                velocityPotential=0.0d0
+                energyPotential  (:,iSample)=0.0d0
+                velocityPotential(:,iSample)=0.0d0
              end if
              ! Update bound status.
-             isBound            =isBoundNew
-             countBoundPrevious =countBound
-             weightBoundPrevious=weightBound
+             isBound            (:,iSample)=isBoundNew (:,iSample)
+             countBoundPrevious (  iSample)=countBound (  iSample)
+             weightBoundPrevious(  iSample)=weightBound(  iSample)
           end if
           ! Check for excess iterations.
           if (countIteration > countIterationMaximum) call Galacticus_Error_Report('maximum iterations exceeded'//{introspection:location})
        end do
-       ! Write bound status to file.
-       boundStatusSingle => boundStatus(:,iSample)
-       where (isBound)
-          boundStatusSingle=nint(sampleWeight)
-       elsewhere
-          boundStatusSingle=0
-       end where
-       weight(:,iSample)=nint(sampleWeight)
+       if (count(isConverged)==self%bootstrapSampleCount) exit
     end do
+    ! Write bound status to file.
+    !$omp parallel workshare
+    where (isBound)
+       boundStatus=nint(sampleWeight)
+    elsewhere
+       boundStatus=0
+    end where
+    !$omp end parallel workshare
     ! Write indices of most bound particles to file.
     call simulation%analysis%writeDataset(indexMostBound        ,'indexMostBound'        )
     call simulation%analysis%writeDataset(indexVelocityMostBound,'indexVelocityMostBound')
     ! Write bound status to file.
     call simulation%analysis%writeDataset(boundStatus           ,'selfBoundStatus'       )
-    call simulation%analysis%writeDataset(weight                ,'weight'                )
+    call simulation%analysis%writeDataset(nint(sampleWeight)    ,'weight'                )
     ! Free workspaces.
     call deallocateArray(compute                )
     call deallocateArray(isBound                )
@@ -355,12 +415,17 @@ contains
     call deallocateArray(energyPotential        )
     call deallocateArray(velocityPotential      )
     call deallocateArray(boundStatus            )
-    call deallocateArray(weight                 )
     call deallocateArray(energyPotentialChange  )
     call deallocateArray(velocityPotentialChange)
+    call deallocateArray(sampleWeight           )
     call deallocateArray(indexMostBound         )
     call deallocateArray(indexVelocityMostBound )
     call deallocateArray(positionOffset         )
+    call deallocateArray(countBound             )
+    call deallocateArray(countBoundPrevious     )
+    call deallocateArray(weightBound            )
+    call deallocateArray(weightBoundPrevious    )
+    call deallocateArray(isConverged            )
     return
   end subroutine selfBoundOperate
 
