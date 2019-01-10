@@ -462,8 +462,8 @@ contains
        orbitalRadius            =virialOrbit%radius()
        orbitalVelocityRadial    =virialOrbit%velocityRadial()
        orbitalVelocityTangential=virialOrbit%velocityTangential()
-       orbitalPositionPhi       =self%hostNode%hostTree%randomNumberGenerator%uniformSample()*2.0d0*Pi
-       orbitalPositionTheta     =self%hostNode%hostTree%randomNumberGenerator%uniformSample()*      Pi
+       orbitalPositionPhi       =     2.0d0*Pi*self%hostNode%hostTree%randomNumberGenerator%uniformSample()
+       orbitalPositionTheta     =acos(2.0d0   *self%hostNode%hostTree%randomNumberGenerator%uniformSample()-1.0d0)
        radialVector             =[                                                   &
             &                     sin(orbitalPositionTheta)*cos(orbitalPositionPhi), &
             &                     sin(orbitalPositionTheta)*sin(orbitalPositionPhi), &
@@ -472,6 +472,8 @@ contains
        call self%positionSet(orbitalRadius*radialVector)
        velocityRadialVector     =orbitalVelocityRadial*radialVector
        velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
+       ! Normalization.
+       velocityTangentialVector1=velocityTangentialVector1/sqrt(sum(velocityTangentialVector1**2))
        velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
        velocityPhi              =self%hostNode%hostTree%randomNumberGenerator%uniformSample()*2.0d0*Pi
        velocityTangentialVector1=velocityTangentialVector1*orbitalVelocityTangential*cos(velocityPhi)
