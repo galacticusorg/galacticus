@@ -28,6 +28,7 @@
      private
      integer         (c_size_t) :: bootstrapSampleCount
      double precision           :: tolerance           , bootstrapSampleRate
+     logical                    :: analyzeAllParticles , useVelocityMostBound
    contains
      procedure :: operate => selfBoundOperate
   end type nbodyOperatorSelfBound
@@ -48,6 +49,7 @@ contains
     type            (inputParameters       ), intent(inout) :: parameters
     integer         (c_size_t              )                :: bootstrapSampleCount
     double precision                                        :: tolerance           , bootstrapSampleRate
+    logical                                                 :: analyzeAllParticles , useVelocityMostBound
     
     !# <inputParameter>
     !#   <name>bootstrapSampleCount</name>
@@ -73,18 +75,35 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate)
+    !# <inputParameter>
+    !#   <name>analyzeAllParticles</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the begnning of the anlysis.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>useVelocityMostBound</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, the velocity of the most bound particle in velocity space is used as the representative velocity of the satellite. If false, use the mass weighted mean velocity (center-of-mass velocity) of self-bounf particles instead.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound)
     return
   end function selfBoundConstructorParameters
 
-  function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate) result (self)
+  function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound) result (self)
     !% Internal constructor for the ``selfBound'' N-body operator class
     use Input_Parameters
     implicit none
     type            (nbodyOperatorSelfBound)                :: self
     double precision                        , intent(in   ) :: tolerance           , bootstrapSampleRate
     integer         (c_size_t              ), intent(in   ) :: bootstrapSampleCount
-    !# <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate"/>
+    logical                                 , intent(in   ) :: analyzeAllParticles , useVelocityMostBound
+    !# <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, analyzeAllParticles, useVelocityMostBound"/>
 
     return
   end function selfBoundConstructorInternal
@@ -112,12 +131,15 @@ contains
     double precision                        , allocatable  , dimension(:,:)          :: energyPotential         , velocityPotential      , &
          &                                                                              energyKinetic           , energyPotentialChange  , &
          &                                                                              velocityPotentialChange , sampleWeight
+    double precision                        , allocatable  , dimension(:,:)          :: velocityCenterOfMass
+    double precision                                       , dimension(3  )          :: velocityRepresentative
     integer         (c_size_t              ), allocatable  , dimension(:  )          :: indexMostBound          , indexVelocityMostBound
     integer         (c_size_t              )                                         :: particleCount           , i                      , &
          &                                                                              k                       , iSample
     integer         (c_size_t              ), allocatable  , dimension(:  )          :: countBound              , countBoundPrevious
     double precision                        , allocatable  , dimension(:  )          :: weightBound             , weightBoundPrevious
     logical                                 , allocatable  , dimension(:  )          :: isConverged
+    logical                                                                          :: isPreviousSnapshotAvail
     integer                                                                          :: addSubtract             , countIteration
     type            (pseudoRandom          )                                         :: randomSequence
     type            (varying_string        )                                         :: message
@@ -134,6 +156,7 @@ contains
     call allocateArray(energyPotentialChange  ,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(velocityPotentialChange,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(sampleWeight           ,[           particleCount,self%bootstrapSampleCount])
+    call allocateArray(velocityCenterOfMass   ,[3_c_size_t              ,self%bootstrapSampleCount])
     call allocateArray(positionOffset         ,[3_c_size_t,particleCount                          ])
     call allocateArray(boundStatus            ,[           particleCount,self%bootstrapSampleCount])
     call allocateArray(indexMostBound         ,[                         self%bootstrapSampleCount])
@@ -146,19 +169,53 @@ contains
     ! Iterate over bootstrap samplings.
     message='Performing self-bound analysis on bootstrap samples.'
     call Galacticus_Display_Message(message)
+    isPreviousSnapshotAvail=.false.
+    ! Check whether the self-bound status from the previous snapshot is available. If it is, read in the self-bound status
+    ! and sanpling weights. If not, generate new values.
+    if (allocated(simulation%boundStatusPrevious)) then
+       ! Read in the self-bound status from the previous snapshot.
+       isPreviousSnapshotAvail=.true.
+       if (self%bootstrapSampleCount /= size(simulation%boundStatusPrevious,dim=2)) then
+          call Galacticus_Error_Report('The number of bootstrap samples is not consistent with the previous snapshot.'//{introspection:location})
+       end if
+       !$omp parallel do private(i,k)
+       do i=1,particleCount
+          do k=1,particleCount
+             if (simulation%ParticleIDs(i)==simulation%ParticleIDsPrevious(k)) then
+                sampleWeight(i,:) = dble(simulation%sampleWeightPrevious(k,:))
+                isBound     (i,:) =      simulation% boundStatusPrevious(k,:) > 0
+             end if
+          end do
+       end do
+       !$omp end parallel do
+    else
+       ! Generate new sampling weights.
+       do iSample=1,self%bootstrapSampleCount
+          ! Determine weights for particles.
+          do i=1,particleCount
+             sampleWeight(i,iSample)=dble(randomSequence%poissonSample(self%bootstrapSampleRate))
+          end do
+          isBound(:,iSample)=sampleWeight(:,iSample) > 0.0d0
+       end do
+    end if
     compute=.false.
     do iSample=1,self%bootstrapSampleCount
-       ! Determine weights for particles.
-       do i=1,particleCount
-          sampleWeight(i,iSample)=dble(randomSequence%poissonSample(self%bootstrapSampleRate))
-       end do
        ! Initialize count of bound particles.
-       countBoundPrevious (iSample)=     particleCount
-       weightBoundPrevious(iSample)=dble(particleCount)*self%bootstrapSampleRate
+       countBoundPrevious (iSample)=count(                             isBound(:,iSample))
+       weightBoundPrevious(iSample)=sum  (sampleWeight(:,iSample),mask=isBound(:,iSample))
+       ! Compute the center-of-mass velocity.
+       forall(k=1:3)
+          velocityCenterOfMass(k,iSample)=sum(simulation%velocity(k,:)*sampleWeight(:,iSample),mask=isBound(:,iSample)) &
+               &                          /weightBoundPrevious(iSample)
+       end forall
+       ! If the self-bound status from the previous snapshot is used, reset the self-boud status. All particles in the
+       ! sample are assumed to be self-bound at the beginning of the first iteration.
+       if (isPreviousSnapshotAvail .and. self%analyzeAllParticles) then
+         isBound        (:,iSample)      =sampleWeight(:,iSample) > 0.0d0
+       end if
        ! Initialize potentials.
        energyPotential  (:,iSample)      =0.0d0
        velocityPotential(:,iSample)      =0.0d0
-       isBound          (:,iSample)      =        sampleWeight(:,iSample) > 0.0d0
        isBoundCompute   (:,iSample)      =             isBound(:,iSample)
        compute                           =compute .or. isBound(:,iSample)
     end do
@@ -170,7 +227,7 @@ contains
        countIteration         =countIteration+1
        velocityPotentialChange=0.0d0
        energyPotentialChange  =0.0d0
-       !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential,potentialActual,computeActual,isBoundComputeActual)
+       !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential,potentialActual,computeActual,isBoundComputeActual,velocityRepresentative)
        call allocateArray(positionRelative    ,[3_c_size_t,particleCount                          ])
        call allocateArray(separation          ,[           particleCount                          ])
        call allocateArray(separationSquared   ,[           particleCount                          ])
@@ -317,11 +374,19 @@ contains
           indexMostBound        (iSample) =minloc(energyPotential  (:,iSample),dim=1,mask=isBound(:,iSample))
           ! Find the index of the most bound particle in velocity space.
           indexVelocityMostBound(iSample) =minloc(velocityPotential(:,iSample),dim=1,mask=isBound(:,iSample))
+          !$omp end workshare
+          ! Check whether we should use the velocity of the most bound particle in velocity space as the
+          ! representative velocity of the satellite. If not, use the center-of-mass velocity instead.
+          if (self%useVelocityMostBound) then
+             velocityRepresentative=simulation%velocity (:,indexVelocityMostBound(iSample))
+          else
+             velocityRepresentative=velocityCenterOfMass(:,iSample)
+          end if
+          !$omp workshare
           ! Compute kinetic energies.
           forall(k=1:3)
              where(isBound(:,iSample))
-                positionOffset(k,:)=+simulation%velocity(k,                             : ) &
-                     &              -simulation%velocity(k,indexVelocityMostBound(iSample))
+                positionOffset(k,:)=+simulation%velocity(k,:)-velocityRepresentative(k)
              end where
           end forall
           where(isBound(:,iSample))
@@ -336,6 +401,11 @@ contains
           ! Count bound particles.
           countBound (iSample)=count(                             isBoundNew(:,iSample))
           weightBound(iSample)=sum  (sampleWeight(:,iSample),mask=isBoundNew(:,iSample))
+          ! Compute the center-of-mass velocity.
+          forall(k=1:3)
+             velocityCenterOfMass(k,iSample)=sum(simulation%velocity(k,:)*sampleWeight(:,iSample),mask=isBoundNew(:,iSample)) &
+                  &                          /weightBound(iSample)
+          end forall
           !$omp end workshare
        end do
        ! Free workspaces.
@@ -418,6 +488,7 @@ contains
     call deallocateArray(energyPotentialChange  )
     call deallocateArray(velocityPotentialChange)
     call deallocateArray(sampleWeight           )
+    call deallocateArray(velocityCenterOfMass   )
     call deallocateArray(indexMostBound         )
     call deallocateArray(indexVelocityMostBound )
     call deallocateArray(positionOffset         )
