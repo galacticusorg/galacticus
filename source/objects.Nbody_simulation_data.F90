@@ -21,6 +21,7 @@
 module NBody_Simulation_Data
   !% Provides a class to store N-body simulation data.
   use IO_HDF5
+  use Kind_Numbers
   implicit none
   private
   public :: nBodyData
@@ -28,9 +29,11 @@ module NBody_Simulation_Data
   type :: nBodyData
      !% A class to store N-body simulation data.
      type            (hdf5Object)                              :: analysis
-     double precision            , allocatable, dimension(:,:) :: position       , velocity
+     double precision            , allocatable, dimension(:,:) :: position           , velocity
      integer                     , allocatable, dimension(  :) :: identifier
-     double precision                                          :: lengthSoftening, massParticle
+     double precision                                          :: lengthSoftening    , massParticle
+     integer(kind=kind_int8)     , allocatable, dimension(  :) :: particleIDs        , particleIDsPrevious
+     integer                     , allocatable, dimension(:,:) :: boundStatusPrevious, sampleWeightPrevious
   end type nBodyData
 
   interface nBodyData

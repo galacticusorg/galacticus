@@ -32,7 +32,8 @@ module NBody_Importers
   !#   <description>Import position and velocity data from the named N-body data file.</description>
   !#   <type>type(nBodyData)</type>
   !#   <pass>yes</pass>
-  !#   <argument>character(len=*), intent(in   ) :: fileName</argument>
+  !#   <argument>character(len=*), intent(in   )           :: fileName</argument>
+  !#   <argument>character(len=*), intent(in   ), optional :: fileNamePrevious</argument>
   !#  </method>
   !# </functionClass>
   
