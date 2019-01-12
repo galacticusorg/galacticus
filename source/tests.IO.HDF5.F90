@@ -37,7 +37,7 @@ program Tests_IO_HDF5
   integer         (kind=kind_int8)                                         :: integer8Value                  , integer8ValueReread
   integer         (kind=kind_int8)             , dimension(10)             :: integer8ValueArray
   integer         (kind=kind_int8)             , dimension(10)             :: integer8ValueArrayRereadStatic
-  integer         (kind=kind_int8), allocatable, dimension( :)             :: integer8ValueArrayReread
+  integer         (kind=kind_int8), allocatable, dimension( :)             :: integer8ValueArrayReread       , integerRangeU32
   double precision                                                         :: doubleValue                    , doubleValueReread
   double precision                             , dimension(10)             :: doubleValueArray
   double precision                             , dimension(10)             :: doubleValueArrayRereadStatic
@@ -720,6 +720,22 @@ program Tests_IO_HDF5
 
      ! Close the file.
      call fileObject%close()
+
+     ! Read a 32-bit unsigned integer 1-D array into a 64-bit signed integer 1-D array.
+     if (iPass==2) then
+       ! Open the HDF5 file which stores the smallest and the largest 32-bit unsigned integers.
+       call fileObject%openFile ("testSuite/data/IntegerRangeU32.hdf5")
+       ! Open the root group.
+       groupObject=fileObject%openGroup("/",commentText="Root group.")
+       ! Read the dataset.
+       call groupObject%readDataset('IntegerRangeU32',integerRangeU32)
+       call Assert("read 32-bit unsigned integers into 64-bit signed integers",[0_kind_int8,4294967295_kind_int8],integerRangeU32)
+
+       ! Close the group.
+       call groupObject%close()
+       ! Close the file.
+       call fileObject%close()
+     end if
 
      ! End the pass and destroy objects.
      call Unit_Tests_End_Group()
