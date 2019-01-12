@@ -121,7 +121,7 @@ contains
     return
   end function gadgetBinaryConstructorInternal
 
-  function gadgetBinaryImport(self,fileName)
+  function gadgetBinaryImport(self,fileName,fileNamePrevious)
     !% Import data from a Gadget HDF5 file.
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
@@ -130,6 +130,7 @@ contains
     type            (nBodyData                )                                :: gadgetBinaryImport
     class           (nbodyImporterGadgetBinary), intent(inout)                 :: self
     character       (len=*                    ), intent(in   )                 :: fileName
+    character       (len=*                    ), intent(in   ), optional       :: fileNamePrevious
     integer                                                   , dimension(6  ) :: numberParticleType    , numberParticleTypeFile, &
          &                                                                        numberParticleTypeRead
     real                                       , allocatable  , dimension(:,:) :: position              , velocity

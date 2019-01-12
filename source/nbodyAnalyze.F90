@@ -34,12 +34,14 @@ program nbodyAnalyze
   class    (nBodyOperatorClass       ), pointer   :: nBodyOperator_
   type     (inputParameters          )            :: parameters
   type     (nBodyData                )            :: simulation
-  character(len=fileNameLengthMaximum)            :: parameterFileName         , nbodyFileName  
+  character(len=fileNameLengthMaximum)            :: parameterFileName, nbodyFileName, nbodyFileNamePrevious
 
   ! Read in basic code memory usage.
   call Code_Memory_Usage('nbodyAnalyze.size')
   ! Read arguments.
-  if (Command_Argument_Count() /= 2) call Galacticus_Error_Report(message="Usage: nbodyAnalyze.exe <parameterFile> <nbodyFile>")
+  if (Command_Argument_Count() /= 2 .and. Command_Argument_Count() /= 3) then
+     call Galacticus_Error_Report(message="Usage: nbodyAnalyze.exe <parameterFile> <nbodyFile> [nbodyFilePrevious]")
+  end if
   call Get_Command_Argument(1,parameterFileName)
   call Get_Command_Argument(2,    nbodyFileName)
   ! Open the parameter file.
@@ -48,7 +50,14 @@ program nbodyAnalyze
   call Galacticus_Verbosity_Set_From_Parameters()
   ! Load the N-body data.
   nBodyImporter_ => nBodyImporter        (             )
-  simulation     =  nBodyImporter_%import(nbodyFileName)
+  if (Command_Argument_Count()==2) then
+     simulation  =  nBodyImporter_%import(nbodyFileName)
+  else
+     ! If the data file of the previous snapshot is provided, read in the
+     ! self-bound status and sampling weights at that time.
+     call Get_Command_Argument(3,nbodyFileNamePrevious)
+     simulation  =  nBodyImporter_%import(nbodyFileName,nbodyFileNamePrevious)
+  end if
   ! Operate on the N-body data.
   nBodyOperator_ => nBodyOperator()
   call nBodyOperator_%operate(simulation)
