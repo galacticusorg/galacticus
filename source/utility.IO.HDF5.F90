@@ -66,6 +66,7 @@ module IO_HDF5
   ! Arrays of compatible datatypes.
   integer(kind=HID_T  ), dimension(5)           , public :: H5T_NATIVE_DOUBLES
   integer(kind=HID_T  ), dimension(5)           , public :: H5T_NATIVE_INTEGERS
+  integer(kind=HID_T  ), dimension(2)           , public :: H5T_NATIVE_UNSIGNED_INTEGERS
   integer(kind=HID_T  ), dimension(3)           , public :: H5T_NATIVE_INTEGER_8S
   integer(kind=HID_T  ), dimension(8)           , public :: H5T_NATIVE_INTEGER_8AS
 
@@ -521,11 +522,13 @@ contains
        if (errorCode < 0) call Galacticus_Error_Report('failed to initialize HDF5 subsystem'//{introspection:location})
 
        ! Ensure native datatype arrays are initialized.
-       H5T_NATIVE_DOUBLES         =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
-       H5T_NATIVE_INTEGERS        =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
-       H5T_NATIVE_INTEGER_8S      =[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
-       H5T_NATIVE_INTEGER_8AS(1:5)=H5T_NATIVE_INTEGERS
-       H5T_NATIVE_INTEGER_8AS(6:8)=H5T_NATIVE_INTEGER_8S
+       H5T_NATIVE_DOUBLES          =[H5T_NATIVE_DOUBLE   ,H5T_IEEE_F32BE,H5T_IEEE_F32LE,H5T_IEEE_F64BE,H5T_IEEE_F64LE]
+       H5T_NATIVE_INTEGERS         =[H5T_NATIVE_INTEGER  ,H5T_STD_I32BE ,H5T_STD_I32LE ,H5T_STD_I64BE ,H5T_STD_I64LE ]
+       H5T_NATIVE_UNSIGNED_INTEGERS=[H5T_STD_U32BE       ,H5T_STD_U32LE                                              ]
+       H5T_NATIVE_INTEGER_8S       =[H5T_NATIVE_INTEGER_8,H5T_STD_I64BE ,H5T_STD_I64LE                               ]
+       H5T_NATIVE_INTEGER_8AS(1:3) =H5T_NATIVE_INTEGERS(1:3)
+       H5T_NATIVE_INTEGER_8AS(4:5) =H5T_NATIVE_UNSIGNED_INTEGERS
+       H5T_NATIVE_INTEGER_8AS(6:8) =H5T_NATIVE_INTEGER_8S
 
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
