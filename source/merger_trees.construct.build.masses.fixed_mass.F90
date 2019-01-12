@@ -197,6 +197,7 @@ contains
        end if
     end do
     call node%destroy()
+    deallocate(node)
     call allocateArray(mass       ,[sum(self%treeCount)])
     call allocateArray(massMinimum,[sum(self%treeCount)])
     call allocateArray(massMaximum,[sum(self%treeCount)])

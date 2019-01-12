@@ -45,6 +45,7 @@
      !@     <description>Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::              sampledDistributionDestructor
      procedure :: construct => sampledDistributionConstruct
      procedure :: sampleCMF => sampledDistributionCMF
   end type mergerTreeBuildMassesSampledDistribution
@@ -109,6 +110,15 @@ contains
     return
   end function sampledDistributionConstructorParameters
 
+  subroutine sampledDistributionDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class.
+    implicit none
+    type(mergerTreeBuildMassesSampledDistribution), intent(inout) :: self
+
+    !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    return
+  end subroutine sampledDistributionDestructor
+  
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
     use, intrinsic :: ISO_C_Binding

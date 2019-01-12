@@ -31,6 +31,7 @@
           &                                                          c
      class           (outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_
    contains
+     final     ::                 randomErrorHIALFALFADestructor
      procedure :: rootVariance => randomErrorHIALFALFARootVariance
   end type outputAnalysisDistributionOperatorRandomErrorALFLF
 
@@ -94,10 +95,19 @@ contains
     double precision                                                    , intent(in   )         :: a                            , b, &
          &                                                                                         c
     class           (outputAnalysisMolecularRatioClass                 ), intent(in   ), target :: outputAnalysisMolecularRatio_
-   !# <constructorAssign variables="a, b, c, *outputAnalysisMolecularRatio_"/>
+    !# <constructorAssign variables="a, b, c, *outputAnalysisMolecularRatio_"/>
 
     return
   end function randomErrorHIALFALFAConstructorInternal
+
+  subroutine randomErrorHIALFALFADestructor(self)
+    !% Destructor for the ``randomErrorHIALFALFA'' output analysis distribution operator class.
+    implicit none
+    type(outputAnalysisDistributionOperatorRandomErrorALFLF), intent(inout) :: self
+
+    !# <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+    return
+  end subroutine randomErrorHIALFALFADestructor
 
   double precision function randomErrorHIALFALFARootVariance(self,propertyValue,node)
     !% Computes errors on $\log_{10}($HI masses$)$ for the ALFALFA survey analysis. Uses a simple fitting function. See

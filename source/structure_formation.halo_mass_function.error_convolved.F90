@@ -53,42 +53,43 @@
   
 contains
 
-  function errorConvolvedConstructorParameters(parameters)
+  function errorConvolvedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(haloMassFunctionErrorConvolved)                :: errorConvolvedConstructorParameters
-    type(inputParameters               ), intent(inout) :: parameters
-    
+    type            (haloMassFunctionErrorConvolved)                :: self
+    type            (inputParameters               ), intent(inout) :: parameters
+    class           (haloMassFunctionClass         ), pointer       :: massFunctionIntrinsic
+    class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
+    class           (nBodyHaloMassErrorClass       ), pointer       :: nBodyHaloMassError_
+    double precision                                                :: errorFractionalMaximum
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>errorFractionalMaximum</name>
     !#   <source>parameters</source>
-    !#   <variable>errorConvolvedConstructorParameters%errorFractionalMaximum</variable>
     !#   <description>Maximum allowed fractional error in halo mass.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="errorConvolvedConstructorParameters%cosmologyParameters_"  source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"  name="errorConvolvedConstructorParameters%nBodyHaloMassError_"   source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"    name="errorConvolvedConstructorParameters%massFunctionIntrinsic" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError"  name="nBodyHaloMassError_"   source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
+    self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nBodyHaloMassError_,errorFractionalMaximum)
     !# <inputParametersValidate source="parameters"/>
     return
   end function errorConvolvedConstructorParameters
 
-  function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nBodyHaloMassError_,errorFractionalMaximum)
+  function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nBodyHaloMassError_,errorFractionalMaximum) result(self)
     !% Internal constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
     implicit none
-    type            (haloMassFunctionErrorConvolved)                        :: errorConvolvedConstructorInternal
+    type            (haloMassFunctionErrorConvolved)                        :: self
     class           (haloMassFunctionClass         ), target, intent(in   ) :: massFunctionIntrinsic
     class           (cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
     class           (nBodyHaloMassErrorClass       ), target, intent(in   ) :: nBodyHaloMassError_
     double precision                                        , intent(in   ) :: errorFractionalMaximum
-    
-    errorConvolvedConstructorInternal%massFunctionIntrinsic  => massFunctionIntrinsic
-    errorConvolvedConstructorInternal%cosmologyParameters_   => cosmologyParameters_
-    errorConvolvedConstructorInternal%nBodyHaloMassError_    => nBodyHaloMassError_
-    errorConvolvedConstructorInternal%errorFractionalMaximum =  errorFractionalMaximum
+    !# <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nBodyHaloMassError_, errorFractionalMaximum"/>
+
     return
   end function errorConvolvedConstructorInternal
   

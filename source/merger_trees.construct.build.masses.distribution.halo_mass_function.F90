@@ -113,6 +113,7 @@ contains
     type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
 
     !# <objectDestructor name="self%haloMassFunction_"/>
+    !# <objectDestructor name="self%haloEnvironment_" />
     return
   end subroutine haloMassFunctionDestructor
 

@@ -940,6 +940,7 @@ contains
     !# <objectDestructor name="self%satelliteMergingTimescales_"    />
     !# <objectDestructor name="self%virialOrbit_"                   />
     !# <objectDestructor name="self%outputTimes_"                   />
+    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"  />
     return
   end subroutine readDestructor
 

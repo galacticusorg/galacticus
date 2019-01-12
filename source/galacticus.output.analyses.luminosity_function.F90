@@ -279,7 +279,9 @@ contains
     !% Destructor for  the ``luminosityFunction'' output analysis class.
     type(outputAnalysisLuminosityFunction), intent(inout) :: self
     
-    !# <objectDestructor name="self%surveyGeometry_"/>
+    !# <objectDestructor name="self%surveyGeometry_"       />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%cosmologyFunctionsData"/>
     return
   end subroutine luminosityFunctionDestructor
   

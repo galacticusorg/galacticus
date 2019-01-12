@@ -28,6 +28,7 @@
      private
      class(outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_
    contains
+     final     ::            hiMassDestructor
      procedure :: operate => hiMassOperate
   end type outputAnalysisPropertyOperatorHIMass
 
@@ -64,6 +65,16 @@ contains
 
     return
   end function hiMassConstructorInternal
+
+  subroutine hiMassDestructor(self)
+    !% Destructor for the ``hiMass'' output analysis distribution operator class.
+    use Input_Parameters
+    implicit none
+    type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self
+
+    !# <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+  return
+  end subroutine hiMassDestructor
 
   double precision function hiMassOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an hiMass output analysis property operator.

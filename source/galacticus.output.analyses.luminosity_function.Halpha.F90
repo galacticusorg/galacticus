@@ -324,6 +324,8 @@ contains
     
     !# <objectDestructor name="self%surveyGeometry_"               />
     !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"           />
+    !# <objectDestructor name="self%cosmologyFunctionsData"        />
     return
   end subroutine luminosityFunctionHalphaDestructor
   

@@ -43,30 +43,30 @@
 
 contains
 
-  function linearConstructorParameters(parameters)
+  function linearConstructorParameters(parameters) result(self)
     !% Constructor for the linear nonlinear power spectrum class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(powerSpectrumNonlinearLinear)                :: linearConstructorParameters
-    type(inputParameters             ), intent(inout) :: parameters
+    type (powerSpectrumNonlinearLinear)                :: self
+    type (inputParameters             ), intent(inout) :: parameters
+    class(linearGrowthClass           ), pointer       :: linearGrowth_
+    class(powerSpectrumClass          ), pointer       :: powerSpectrum_
 
-    ! Check and read parameters.
-
-    !# <objectBuilder class="powerSpectrum" name="linearConstructorParameters%powerSpectrum_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"  name="linearConstructorParameters%linearGrowth_"  source="parameters"/>
+    !# <objectBuilder class="powerSpectrum" name="powerSpectrum_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"  name="linearGrowth_"  source="parameters"/>
+    self=powerSpectrumNonlinearLinear(powerSpectrum_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function linearConstructorParameters
 
-  function linearConstructorInternal(powerSpectrum_,linearGrowth_)
+  function linearConstructorInternal(powerSpectrum_,linearGrowth_) result(self)
     !% Internal constructor for the linear nonlinear power spectrum class.
     implicit none
-    type (powerSpectrumNonlinearLinear)                        :: linearConstructorInternal
+    type (powerSpectrumNonlinearLinear)                        :: self
     class(powerSpectrumClass          ), intent(in   ), target :: powerSpectrum_
     class(linearGrowthClass           ), intent(in   ), target :: linearGrowth_
+    !# <constructorAssign variables="*powerSpectrum_, *linearGrowth_"/>
 
-    linearConstructorInternal%powerSpectrum_ => powerSpectrum_
-    linearConstructorInternal%linearGrowth_  => linearGrowth_
     return
   end function linearConstructorInternal
 

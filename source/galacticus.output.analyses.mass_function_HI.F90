@@ -303,6 +303,8 @@ contains
     !% Destructor for  the ``massFunctionHI'' output analysis class.
     type(outputAnalysisMassFunctionHI), intent(inout) :: self
     
-    !# <objectDestructor name="self%surveyGeometry_"/>
+    !# <objectDestructor name="self%surveyGeometry_"       />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%cosmologyFunctionsData"/>
     return
   end subroutine massFunctionHIDestructor

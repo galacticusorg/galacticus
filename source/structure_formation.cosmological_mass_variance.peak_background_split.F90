@@ -95,6 +95,7 @@ contains
     
     !# <objectDestructor name="self%haloEnvironment_"         />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"     />
     return
   end subroutine variancePeakBackgroundSplitDestructor
 

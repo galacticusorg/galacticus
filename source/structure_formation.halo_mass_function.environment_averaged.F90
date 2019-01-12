@@ -86,6 +86,7 @@ contains
     !# <objectDestructor name="self%haloMassFunctionConditioned_"  />
     !# <objectDestructor name="self%haloMassFunctionUnconditioned_"/>
     !# <objectDestructor name="self%haloEnvironment_"              />
+    !# <objectDestructor name="self%cosmologyParameters_"          />
     return
   end subroutine environmentAveragedDestructor
 

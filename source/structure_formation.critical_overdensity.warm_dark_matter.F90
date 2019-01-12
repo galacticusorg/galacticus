@@ -163,8 +163,11 @@ contains
     implicit none
     type(criticalOverdensityBarkana2001WDM), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"  />
-    !# <objectDestructor name="self%criticalOverdensityCDM"/>
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%criticalOverdensityCDM"   />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%darkMatterParticle_"      />
     return
   end subroutine barkana2001WDMDestructor
 

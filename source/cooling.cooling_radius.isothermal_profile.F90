@@ -154,6 +154,7 @@ contains
     !# <objectDestructor name="self%coolingTime_"              />
     !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%hotHaloMassDistribution_"  />
    return
   end subroutine isothermalDestructor
 

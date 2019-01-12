@@ -24,9 +24,19 @@
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksPowerLaw
      !% Implementation of a power-law outflow rate due to star formation feedback in galactic disks.
      private
-     double precision :: velocityCharacteristic, exponent
+     double precision :: velocityCharacteristic_, exponent
    contains
-     procedure :: outflowRate => powerLawOutflowRate
+     !@ <objectMethods>
+     !@   <object>starFormationFeedbackDisksPowerLaw</object>
+     !@   <objectMethod>
+     !@     <method>velocityCharacteristic</method>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
+     !@     <type>\doublezero</type>
+     !@     <description>Return the characteristic velocity for power law disk feedback models.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: outflowRate            => powerLawOutflowRate
+     procedure :: velocityCharacteristic => powerLawVelocityCharacteristic
   end type starFormationFeedbackDisksPowerLaw
 
   interface starFormationFeedbackDisksPowerLaw
@@ -39,11 +49,10 @@ contains
 
   function powerLawConstructorParameters(parameters) result(self)
     !% Constructor for the power-law star formation feedback in disks class which takes a parameter set as input.
-    use Galacticus_Error
     implicit none
     type            (starFormationFeedbackDisksPowerLaw)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
-    double precision                                                    :: velocityCharacteristic       , exponent
+    double precision                                                    :: velocityCharacteristic, exponent
 
     !# <inputParameter>
     !#   <name>velocityCharacteristic</name>
@@ -66,13 +75,13 @@ contains
     return
   end function powerLawConstructorParameters
 
-  function powerLawConstructorInternal(velocityCharacteristic,exponent) result(self)
+  function powerLawConstructorInternal(velocityCharacteristic_,exponent) result(self)
     !% Internal constructor for the power-law star formation feedback from disks class.
     implicit none
     type            (starFormationFeedbackDisksPowerLaw)                :: self
-    double precision                                    , intent(in   ) :: velocityCharacteristic     , exponent
+    double precision                                    , intent(in   ) :: velocityCharacteristic_, exponent
+    !# <constructorAssign variables="velocityCharacteristic_, exponent"/>    
 
-    !# <constructorAssign variables="velocityCharacteristic, exponent"/>    
     return
   end function powerLawConstructorInternal
 
@@ -103,7 +112,7 @@ contains
        powerLawOutflowRate=+0.0d0
     else
        powerLawOutflowRate=+(                                      &
-            &                +self%velocityCharacteristic          &
+            &                +self%velocityCharacteristic(node)    &
             &                /     velocityDisk                    &
             &               )**self%exponent                       &
             &              *rateEnergyInput                        &
@@ -111,3 +120,15 @@ contains
     end if
     return
   end function powerLawOutflowRate
+
+  double precision function powerLawVelocityCharacteristic(self,node)
+    !% Return the characteristic velocity for power-law feedback models in disks. In this case the characteristic velocity is a
+    !% constant.
+    implicit none
+    class(starFormationFeedbackDisksPowerLaw), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    !GCC$ attributes unused :: node
+    
+    powerLawVelocityCharacteristic=self%velocityCharacteristic_
+    return
+  end function powerLawVelocityCharacteristic

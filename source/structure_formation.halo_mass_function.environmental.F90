@@ -74,7 +74,7 @@ contains
     self%timeMatching=-1.0d0
     return
   end function environmentalConstructorInternal
-  
+ 
   double precision function environmentalDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     implicit none

@@ -272,6 +272,7 @@ contains
     !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
     !# <objectDestructor name="self%accretionDiskSpectra_"             />
     !# <objectDestructor name="self%stellarPopulationSelector_"        />
+    !# <objectDestructor name="self%outputTimes_"                      />
     return
   end subroutine intergalacticBackgroundInternalDestructor
 
