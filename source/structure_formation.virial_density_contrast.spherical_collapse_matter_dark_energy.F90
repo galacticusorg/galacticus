@@ -88,6 +88,7 @@ contains
     implicit none
     type (virialDensityContrastSphericalCollapseMatterDE), intent(inout) :: self
 
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     if (self%turnaroundInitialized) then
        call self%turnaround%destroy()
        deallocate(self%turnaround)

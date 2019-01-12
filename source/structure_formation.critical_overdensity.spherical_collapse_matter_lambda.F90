@@ -129,9 +129,10 @@ contains
     implicit none
     type(criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
 
-    !# <objectDestructor name="self%linearGrowth_"      />
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%darkMatterParticle_"/>
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%darkMatterParticle_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()
        deallocate(self%overdensityCritical)

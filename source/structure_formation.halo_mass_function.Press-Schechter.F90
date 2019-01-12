@@ -41,30 +41,33 @@
 
 contains
 
-  function pressSchechterConstructorParameters(parameters)
+  function pressSchechterConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(haloMassFunctionPressSchechter)                :: pressSchechterConstructorParameters
-    type(inputParameters               ), intent(inout) :: parameters
-    
-    ! Check and read parameters.
-    !# <objectBuilder class="cosmologyParameters"       name="pressSchechterConstructorParameters%cosmologyParameters_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"  name="pressSchechterConstructorParameters%cosmologicalMassVariance_"  source="parameters"/>
-    !# <objectBuilder class="excursionSetFirstCrossing" name="pressSchechterConstructorParameters%excursionSetFirstCrossing_" source="parameters"/>
+    type (haloMassFunctionPressSchechter)                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(cosmologicalMassVarianceClass ), pointer       :: cosmologicalMassVariance_
+    class(excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
+    class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
+
+    !# <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
+    !# <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
+    self=haloMassFunctionPressSchechter(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_)
     !# <inputParametersValidate source="parameters"/>
    return
   end function pressSchechterConstructorParameters
 
-  function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_)
+  function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
     implicit none
-    type (haloMassFunctionPressSchechter)                        :: pressSchechterConstructorInternal
+    type (haloMassFunctionPressSchechter)                        :: self
     class(cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_    
     class(cosmologicalMassVarianceClass ), target, intent(in   ) :: cosmologicalMassVariance_
+    class(excursionSetFirstCrossingClass), target, intent(in   ) :: excursionSetFirstCrossing_
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *excursionSetFirstCrossing_"/>
 
-    pressSchechterConstructorInternal%cosmologyParameters_      => cosmologyParameters_
-    pressSchechterConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
     return
   end function pressSchechterConstructorInternal
 

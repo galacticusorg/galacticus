@@ -93,7 +93,9 @@ contains
     !% Destructor for  the ``nbodyMass'' output analysis weight operator class.
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
     
-    !# <objectDestructor name="self%nbodyHaloMassError_" />
+    !# <objectDestructor name="self%nbodyHaloMassError_"             />
+    !# <objectDestructor name="self%outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="self%outputAnalysisPropertyOperator_" />
     return
   end subroutine nbodyMassDestructor
 

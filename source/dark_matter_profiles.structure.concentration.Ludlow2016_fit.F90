@@ -85,6 +85,7 @@ contains
     type(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%cosmologyParameters_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_" />
     return
   end subroutine ludlow2016FitDestructor

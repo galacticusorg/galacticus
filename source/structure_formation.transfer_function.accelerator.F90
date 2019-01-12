@@ -88,6 +88,7 @@ contains
     implicit none
     type(transferFunctionAccelerator), intent(inout) :: self
 
+    !# <objectDestructor name="self%transferFunction_"/>
     if (self%tableInitialized) call self%transferTable%destroy()
     return
   end subroutine acceleratorDestructor

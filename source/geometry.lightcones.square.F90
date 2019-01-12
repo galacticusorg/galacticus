@@ -250,6 +250,7 @@ contains
     ! Construct the object.
     squareConstructorParameters=geometryLightconeSquare(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function squareConstructorParameters
 
@@ -397,7 +398,7 @@ contains
     implicit none
     type(geometryLightconeSquare), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine squareDestructor
 

@@ -57,8 +57,8 @@ contains
   function standardConstructorInternal(cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree evolution timestep class.
     implicit none
-    type(mergerTreeEvolveTimestepStandard):: self
-    class           (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_    
+    type(mergerTreeEvolveTimestepStandard)                        :: self
+    class(cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_    
 
     self%simple   =mergerTreeEvolveTimestepSimple   (timeStepAbsolute         =1.0d+0,timeStepRelative         =1.0d-1,cosmologyFunctions_=cosmologyFunctions_)
     self%satellite=mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute=1.0d-2,timeOffsetMaximumRelative=1.0d-3                                        )

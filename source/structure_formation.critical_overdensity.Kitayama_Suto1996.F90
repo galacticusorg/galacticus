@@ -103,9 +103,10 @@ contains
     implicit none
     type(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%linearGrowth_"      />
-    !# <objectDestructor name="self%darkMatterParticle_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%darkMatterParticle_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine kitayamaSuto1996Destructor
 

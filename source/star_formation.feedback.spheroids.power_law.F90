@@ -24,9 +24,19 @@
   type, extends(starFormationFeedbackSpheroidsClass) :: starFormationFeedbackSpheroidsPowerLaw
      !% Implementation of a power-law outflow rate due to star formation feedback in galactic spheroids.
      private
-     double precision :: velocityCharacteristic, exponent
+     double precision :: velocityCharacteristic_, exponent
    contains
-     procedure :: outflowRate => powerLawOutflowRate
+     !@ <objectMethods>
+     !@   <object>starFormationFeedbackSpheroidsPowerLaw</object>
+     !@   <objectMethod>
+     !@     <method>velocityCharacteristic</method>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
+     !@     <type>\doublezero</type>
+     !@     <description>Return the characteristic velocity for power law spheroid feedback models.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: outflowRate            => powerLawOutflowRate
+     procedure :: velocityCharacteristic => powerLawVelocityCharacteristic
   end type starFormationFeedbackSpheroidsPowerLaw
 
   interface starFormationFeedbackSpheroidsPowerLaw
@@ -66,13 +76,13 @@ contains
     return
   end function powerLawConstructorParameters
 
-  function powerLawConstructorInternal(velocityCharacteristic,exponent) result(self)
+  function powerLawConstructorInternal(velocityCharacteristic_,exponent) result(self)
     !% Internal constructor for the power-law star formation feedback from spheroids class.
     implicit none
     type            (starFormationFeedbackSpheroidsPowerLaw)                :: self
-    double precision                                        , intent(in   ) :: velocityCharacteristic, exponent
+    double precision                                        , intent(in   ) :: velocityCharacteristic_, exponent
 
-    !# <constructorAssign variables="velocityCharacteristic, exponent"/>    
+    !# <constructorAssign variables="velocityCharacteristic_, exponent"/>    
     return
   end function powerLawConstructorInternal
 
@@ -103,7 +113,7 @@ contains
        powerLawOutflowRate=+0.0d0
     else
        powerLawOutflowRate=+(                                      &
-            &                +self%velocityCharacteristic          &
+            &                +self%velocityCharacteristic(node)    &
             &                /     velocitySpheroid                &
             &               )**self%exponent                       &
             &              *rateEnergyInput                        &
@@ -111,3 +121,15 @@ contains
     end if
     return
   end function powerLawOutflowRate
+
+  double precision function powerLawVelocityCharacteristic(self,node)
+    !% Return the characteristic velocity for power-law feedback models in spheroids. In this case the characteristic velocity is a
+    !% constant.
+    implicit none
+    class(starFormationFeedbackSpheroidsPowerLaw), intent(inout) :: self
+    type (treeNode                              ), intent(inout) :: node
+    !GCC$ attributes unused :: node
+
+    powerLawVelocityCharacteristic=self%velocityCharacteristic_
+    return
+  end function powerLawVelocityCharacteristic

@@ -26,7 +26,7 @@
   type, extends(darkMatterProfileClass) :: darkMatterProfileTruncated
      !% A dark matter halo profile class implementing truncated dark matter halos.
      private
-     class           (darkMatterProfileClass  ), pointer :: untruncatedProfile
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
      double precision                                    :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
      logical                                             :: unimplementedIsFatal
@@ -100,15 +100,15 @@ contains
     return
   end function truncatedConstructorParameters
 
-  function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedIsFatal,untruncatedProfile,darkMatterHaloScale_) result(self)
+  function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
     implicit none
     type            (darkMatterProfileTruncated)                        :: self
-    class           (darkMatterProfileClass    ), intent(in   ), target :: untruncatedProfile
+    class           (darkMatterProfileClass    ), intent(in   ), target :: darkMatterProfile_
     class           (darkMatterHaloScaleClass  ), intent(in   ), target :: darkMatterHaloScale_
     double precision                            , intent(in   )         :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
     logical                                     , intent(in   )         :: unimplementedIsFatal
-    !# <constructorAssign variables="radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedIsFatal,*untruncatedProfile,*darkMatterHaloScale_"/>
+    !# <constructorAssign variables="radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedIsFatal,*darkMatterProfile_,*darkMatterHaloScale_"/>
 
     return
   end function truncatedConstructorInternal
@@ -118,7 +118,7 @@ contains
     implicit none
     type(darkMatterProfileTruncated), intent(inout) :: self
 
-    !# <objectDestructor name="self%untruncatedProfile"   />
+    !# <objectDestructor name="self%darkMatterProfile_"   />
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine truncatedDestructor
@@ -134,13 +134,13 @@ contains
 
     radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
     if      (radius <= radiusVirial*self%radiusFractionalTruncateMinimum) then
-       truncatedDensity=+self%untruncatedProfile%density(node,radius)
+       truncatedDensity=+self%darkMatterProfile_%density(node,radius)
     else if (radius >= radiusVirial*self%radiusFractionalTruncateMaximum) then
        truncatedDensity=+0.0d0
     else
        x               =+(     radius                         /radiusVirial-self%radiusFractionalTruncateMinimum) &
             &           /(self%radiusFractionalTruncateMaximum             -self%radiusFractionalTruncateMinimum)
-       truncatedDensity=+self%untruncatedProfile%density(node,radius) &
+       truncatedDensity=+self%darkMatterProfile_%density(node,radius) &
             &           *(                                            &
             &             +1.0d0                                      &
             &             -3.0d0*x**2                                 &
@@ -163,7 +163,7 @@ contains
        truncatedDensityLogSlope=0.0d0
        call Galacticus_Error_Report('density logarithmic slope in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedDensityLogSlope=self%untruncatedProfile%densityLogSlope(node,radius)
+       truncatedDensityLogSlope=self%darkMatterProfile_%densityLogSlope(node,radius)
     end if
     return
   end function truncatedDensityLogSlope
@@ -181,7 +181,7 @@ contains
        truncatedRadiusEnclosingDensity=0.0d0
        call Galacticus_Error_Report('radius enclosing density in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedRadiusEnclosingDensity=self%untruncatedProfile%densityLogSlope(node,density)
+       truncatedRadiusEnclosingDensity=self%darkMatterProfile_%densityLogSlope(node,density)
     end if
     return
   end function truncatedRadiusEnclosingDensity
@@ -200,7 +200,7 @@ contains
        truncatedRadialMoment=0.0d0
        call Galacticus_Error_Report('radial moment in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedRadialMoment=self%untruncatedProfile%radialMoment(node,moment,radiusMinimum,radiusMaximum)
+       truncatedRadialMoment=self%darkMatterProfile_%radialMoment(node,moment,radiusMinimum,radiusMaximum)
     end if
     return 
   end function truncatedRadialMoment
@@ -221,7 +221,7 @@ contains
 
     radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
     if (radius <= radiusVirial*self%radiusFractionalTruncateMinimum) then
-       truncatedEnclosedMass=+self%untruncatedProfile%enclosedMass(node,radius)
+       truncatedEnclosedMass=+self%darkMatterProfile_%enclosedMass(node,radius)
     else
        radiusMinimum        =+           radiusVirial*self%radiusFractionalTruncateMinimum
        radiusMaximum        =+min(radius,radiusVirial*self%radiusFractionalTruncateMaximum)
@@ -234,7 +234,7 @@ contains
             &                           toleranceAbsolute=+0.0d0                 , &
             &                           toleranceRelative=+1.0d-9                  &
             &                          )                                           &
-            &                 +self%untruncatedProfile%enclosedMass(node,radiusMinimum)
+            &                 +self%darkMatterProfile_%enclosedMass(node,radiusMinimum)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     end if
     return
@@ -267,7 +267,7 @@ contains
        truncatedPotential=0.0d0
        call Galacticus_Error_Report('potential in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedPotential=self%untruncatedProfile%potential(node,radius,status)
+       truncatedPotential=self%darkMatterProfile_%potential(node,radius,status)
     end if
    return
   end function truncatedPotential
@@ -285,7 +285,7 @@ contains
        truncatedCircularVelocity=0.0d0
        call Galacticus_Error_Report('circular velocity in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedCircularVelocity=self%untruncatedProfile%circularVelocity(node,radius)
+       truncatedCircularVelocity=self%darkMatterProfile_%circularVelocity(node,radius)
     end if
     return
   end function truncatedCircularVelocity
@@ -301,7 +301,7 @@ contains
        truncatedCircularVelocityMaximum=0.0d0
        call Galacticus_Error_Report('circular velocity maximum in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedCircularVelocityMaximum=self%untruncatedProfile%circularVelocityMaximum(node)
+       truncatedCircularVelocityMaximum=self%darkMatterProfile_%circularVelocityMaximum(node)
     end if
     return
   end function truncatedCircularVelocityMaximum
@@ -319,7 +319,7 @@ contains
        truncatedRadiusFromSpecificAngularMomentum=0.0d0
        call Galacticus_Error_Report('radius from specific angular momentum in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedRadiusFromSpecificAngularMomentum=self%untruncatedProfile%radiusFromSpecificAngularMomentum(node,specificAngularMomentum)
+       truncatedRadiusFromSpecificAngularMomentum=self%darkMatterProfile_%radiusFromSpecificAngularMomentum(node,specificAngularMomentum)
     end if
     return
   end function truncatedRadiusFromSpecificAngularMomentum
@@ -335,7 +335,7 @@ contains
        truncatedRotationNormalization=0.0d0
        call Galacticus_Error_Report('rotation normalization in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedRotationNormalization=self%untruncatedProfile%rotationNormalization(node)
+       truncatedRotationNormalization=self%darkMatterProfile_%rotationNormalization(node)
     end if
     return
   end function truncatedRotationNormalization
@@ -351,7 +351,7 @@ contains
        truncatedEnergy=0.0d0
        call Galacticus_Error_Report('energy in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedEnergy=self%untruncatedProfile%energy(node)
+       truncatedEnergy=self%darkMatterProfile_%energy(node)
     end if
     return
   end function truncatedEnergy
@@ -367,7 +367,7 @@ contains
        truncatedEnergyGrowthRate=0.0d0
        call Galacticus_Error_Report('energy growth rate in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedEnergyGrowthRate=self%untruncatedProfile%energyGrowthRate(node)
+       truncatedEnergyGrowthRate=self%darkMatterProfile_%energyGrowthRate(node)
     end if
     return
   end function truncatedEnergyGrowthRate
@@ -385,7 +385,7 @@ contains
        truncatedKSpace=0.0d0
        call Galacticus_Error_Report('k-space in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedKSpace=self%untruncatedProfile%kSpace(node,waveNumber)
+       truncatedKSpace=self%darkMatterProfile_%kSpace(node,waveNumber)
     end if
     return
   end function truncatedKSpace
@@ -404,7 +404,7 @@ contains
        truncatedFreefallRadius=0.0d0
        call Galacticus_Error_Report('freefall radius in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedFreefallRadius=self%untruncatedProfile%freefallRadius(node,time)
+       truncatedFreefallRadius=self%darkMatterProfile_%freefallRadius(node,time)
     end if
     return
   end function truncatedFreefallRadius
@@ -423,7 +423,7 @@ contains
        truncatedFreefallRadiusIncreaseRate=0.0d0
        call Galacticus_Error_Report('freefall radius increase rate in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedFreefallRadiusIncreaseRate=self%untruncatedProfile%freefallRadiusIncreaseRate(node,time)
+       truncatedFreefallRadiusIncreaseRate=self%darkMatterProfile_%freefallRadiusIncreaseRate(node,time)
     end if
     return
   end function truncatedFreefallRadiusIncreaseRate

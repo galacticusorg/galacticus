@@ -267,10 +267,11 @@ contains
     implicit none
     type(stellarPopulationStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%initialMassFunction_"/>
-    !# <objectDestructor name="self%stellarAstrophysics_"/>
-    !# <objectDestructor name="self%stellarFeedback_"    />
-    !# <objectDestructor name="self%supernovaeTypeIa_"   />
+    !# <objectDestructor name="self%initialMassFunction_"     />
+    !# <objectDestructor name="self%stellarAstrophysics_"     />
+    !# <objectDestructor name="self%stellarFeedback_"         />
+    !# <objectDestructor name="self%supernovaeTypeIa_"        />
+    !# <objectDestructor name="self%stellarPopulationSpectra_"/>
     return
   end subroutine standardDestructor
 

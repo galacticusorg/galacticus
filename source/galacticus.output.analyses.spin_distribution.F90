@@ -278,7 +278,7 @@ contains
     !% Destructor for the ``spinDistribution'' output analysis class.
     implicit none
     type(outputAnalysisSpinDistribution), intent(inout) :: self
-    !# <objectDestructor name="self%cosmologyFunctions_" />
     
+    !# <objectDestructor name="self%cosmologyFunctions_" />    
     return
   end subroutine spinDistributionDestructor

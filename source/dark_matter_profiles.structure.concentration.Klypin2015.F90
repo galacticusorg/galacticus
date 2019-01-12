@@ -624,8 +624,9 @@ contains
     type(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self
 
     call self%fitParameters%destroy()
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine klypin2015Destructor
 

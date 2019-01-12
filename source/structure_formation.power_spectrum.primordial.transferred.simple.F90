@@ -43,29 +43,31 @@
 
 contains
 
-  function simpleConstructorParameters(parameters)
+  function simpleConstructorParameters(parameters) result(self)
     !% Constructor for the ``simple'' transferred primordial power spectrum class which takes a
     !% parameter set as input.
     use Input_Parameters
     implicit none
-    type(powerSpectrumPrimordialTransferredSimple)                :: simpleConstructorParameters
-    type(inputParameters                         ), intent(inout) :: parameters
+    type (powerSpectrumPrimordialTransferredSimple)                :: self
+    type (inputParameters                         ), intent(inout) :: parameters
+    class(transferFunctionClass                   ), pointer       :: transferFunction_
+    class(powerSpectrumPrimordialClass            ), pointer       :: powerSpectrumPrimordial_ 
 
-    !# <objectBuilder class="powerSpectrumPrimordial" name="simpleConstructorParameters%powerSpectrumPrimordial_" source="parameters"/>
-    !# <objectBuilder class="transferFunction"        name="simpleConstructorParameters%transferFunction_"        source="parameters"/>
+    !# <objectBuilder class="powerSpectrumPrimordial" name="powerSpectrumPrimordial_" source="parameters"/>
+    !# <objectBuilder class="transferFunction"        name="transferFunction_"        source="parameters"/>
+    self=powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial_,transferFunction_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(powerSpectrumPrimordial_,transferFunction_)
+  function simpleConstructorInternal(powerSpectrumPrimordial_,transferFunction_) result(self)
     !% Internal constructor for the ``simple'' transferred primordial power spectrum class.
     implicit none
-    type (powerSpectrumPrimordialTransferredSimple)                        :: simpleConstructorInternal
+    type (powerSpectrumPrimordialTransferredSimple)                        :: self
     class(powerSpectrumPrimordialClass            ), intent(in   ), target :: powerSpectrumPrimordial_
     class(transferFunctionClass                   ), intent(in   ), target :: transferFunction_
+    !# <constructorAssign variables="*powerSpectrumPrimordial_, *transferFunction_"/>
 
-    simpleConstructorInternal%powerSpectrumPrimordial_ => powerSpectrumPrimordial_
-    simpleConstructorInternal%transferFunction_        => transferFunction_
     return
   end function simpleConstructorInternal
 

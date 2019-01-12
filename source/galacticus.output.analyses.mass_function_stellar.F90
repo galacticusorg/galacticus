@@ -340,6 +340,8 @@ contains
     !% Destructor for  the ``massFunctionStellar'' output analysis class.
     type(outputAnalysisMassFunctionStellar), intent(inout) :: self
     
-    !# <objectDestructor name="self%surveyGeometry_"/>
+    !# <objectDestructor name="self%surveyGeometry_"       />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%cosmologyFunctionsData"/>
     return
   end subroutine massFunctionStellarDestructor

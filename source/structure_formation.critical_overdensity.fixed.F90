@@ -26,7 +26,7 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityFixed
      !% A fixed critical overdensity class.
      private
-     double precision                             :: criticalOverdensity
+     double precision                             :: criticalOverdensity_
      class           (linearGrowthClass), pointer :: linearGrowth_
     contains
      final     ::                    fixedDestructor
@@ -44,44 +44,46 @@
 
 contains
 
-  function fixedConstructorParameters(parameters)
+  function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the fixed critical overdensity class which takes a parameter set as input.
     use Input_Parameters
     use Numerical_Constants_Math
     implicit none
-    type(criticalOverdensityFixed)                :: fixedConstructorParameters
-    type(inputParameters         ), intent(inout) :: parameters
-    
+    type            (criticalOverdensityFixed     )                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    double precision                                               :: criticalOverdensity_
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_    
+    class           (linearGrowthClass            ), pointer       :: linearGrowth_    
+    class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>criticalOverdensity</name>
+    !#   <variable>criticalOverdensity_</variable>
     !#   <source>parameters</source>
-    !#   <variable>fixedConstructorParameters%criticalOverdensity</variable>
     !#   <defaultValue>(3.0d0/20.0d0)*(12.0d0*Pi)**(2.0d0/3.0d0)</defaultValue>
     !#   <description>The value to use for the critical overdensity for collapse of dark matter halos when using a fixed value.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="linearGrowth"             name="fixedConstructorParameters%linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="fixedConstructorParameters%cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="fixedConstructorParameters%cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=criticalOverdensityFixed(criticalOverdensity_,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
    return
   end function fixedConstructorParameters
 
-  function fixedConstructorInternal(criticalOverdensity,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
+  function fixedConstructorInternal(criticalOverdensity_,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the fixed critical overdensity class.
     implicit none
-    type            (criticalOverdensityFixed)                        :: fixedConstructorInternal
-    double precision                                  , intent(in   ) :: criticalOverdensity
-    class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_    
-    class           (linearGrowthClass       ), target, intent(in   ) :: linearGrowth_    
-    class(cosmologicalMassVarianceClass      ), target, intent(in   ) :: cosmologicalMassVariance_
+    type            (criticalOverdensityFixed     )                        :: self
+    double precision                                       , intent(in   ) :: criticalOverdensity_
+    class           (cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_    
+    class           (linearGrowthClass            ), target, intent(in   ) :: linearGrowth_    
+    class           (cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
+    !# <constructorAssign variables="criticalOverdensity_, *linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
 
-    fixedConstructorInternal%criticalOverdensity       =  criticalOverdensity
-    fixedConstructorInternal%cosmologyFunctions_       => cosmologyFunctions_
-    fixedConstructorInternal%linearGrowth_             => linearGrowth_
-    fixedConstructorInternal%cosmologicalMassVariance_ => cosmologicalMassVariance_
     return
   end function fixedConstructorInternal
 
@@ -90,8 +92,9 @@ contains
     implicit none
     type(criticalOverdensityFixed), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%linearGrowth_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%linearGrowth_"            />
     return
   end subroutine fixedDestructor
 
@@ -107,8 +110,8 @@ contains
     !GCC$ attributes unused :: mass, node
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
-    fixedValue=+self%criticalOverdensity              &
-         &     /self%linearGrowth_      %value(time_)
+    fixedValue=+self%criticalOverdensity_              &
+         &     /self%linearGrowth_       %value(time_)
     return
   end function fixedValue
 
@@ -124,10 +127,10 @@ contains
     !GCC$ attributes unused :: mass, node
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
-    fixedGradientTime=-self%criticalOverdensity                                                        &
-         &            *self%linearGrowth_      %logarithmicDerivativeExpansionFactor(time_           ) &
-         &            *self%cosmologyFunctions_%expansionRate                       (expansionFactor_) &
-         &            /self%linearGrowth_      %value                               (time_           )    
+    fixedGradientTime=-self%criticalOverdensity_                                                        &
+         &            *self%linearGrowth_       %logarithmicDerivativeExpansionFactor(time_           ) &
+         &            *self%cosmologyFunctions_ %expansionRate                       (expansionFactor_) &
+         &            /self%linearGrowth_       %value                               (time_           )    
     return
   end function fixedGradientTime
 

@@ -131,6 +131,8 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_" />
     !# <objectDestructor name="self%linearGrowth_"             />
+    !# <objectDestructor name="self%criticalOverdensity_"      />
+    !# <objectDestructor name="self%cosmologyFunctions_"       />
     return
   end subroutine logNormalDestructor
 

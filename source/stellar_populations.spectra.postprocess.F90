@@ -58,4 +58,15 @@ module Stellar_Population_Spectra_Postprocess
      final :: stellarPopulationSpectraPostprocessorListDestructor
   end type stellarPopulationSpectraPostprocessorList
 
+contains
+
+  subroutine stellarPopulationSpectraPostprocessorListDestructor(self)
+    !% Destructor for elements of stellar population spectra postprocessor lists.
+    implicit none
+    type(stellarPopulationSpectraPostprocessorList), intent(inout) :: self
+    
+    !# <objectDestructor name="self%stellarPopulationSpectraPostprocessor_"/>
+    return
+  end subroutine stellarPopulationSpectraPostprocessorListDestructor
+  
 end module Stellar_Population_Spectra_Postprocess
