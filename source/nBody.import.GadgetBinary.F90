@@ -126,6 +126,7 @@ contains
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     use Memory_Management
+    use Galacticus_Error
     implicit none
     type            (nBodyData                )                                :: gadgetBinaryImport
     class           (nbodyImporterGadgetBinary), intent(inout)                 :: self
@@ -141,6 +142,10 @@ contains
          &                                                                        numberFiles           , fileNumber
     character       (len=6                    )                                :: fileNumberText
 
+    ! Reading in self-bound status from the previous snapshot is not supported yet for binary Gadget outputs.
+    if (present(fileNamePrevious)) then
+       call Galacticus_Error_Report('reading in self-bound status from the previous snapshot is not supported'//{introspection:location})
+    end if
     ! Open the file.
     numberFiles           =huge(0)
     fileNumber            =     0
