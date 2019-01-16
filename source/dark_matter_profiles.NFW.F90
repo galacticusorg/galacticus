@@ -246,12 +246,12 @@ contains
     if (self%nfwFreefallTableInitialized) then
        call self%nfwFreeFall                      %destroy()
        call self%nfwFreeFallInverse               %destroy()
-       deallocate(self%nfwFreefallInverse)
+       deallocate(self%nfwFreefallInverse               )
     end if
     if (self%nfwEnclosedDensityTableInitialized) then
        call self%nfwEnclosedDensity               %destroy()
        call self%nfwEnclosedDensityInverse        %destroy()
-       deallocate(self%nfwFreefallInverse)
+       deallocate(self%nfwEnclosedDensityInverse        )
     end if
    if (self%nfwInverseTableInitialized ) then
        call self%nfwSpecificAngularMomentum       %destroy()
