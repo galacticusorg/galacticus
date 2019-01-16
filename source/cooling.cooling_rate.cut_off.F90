@@ -145,7 +145,8 @@ contains
     implicit none
     type(coolingRateCutOff), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingRate_"/>
+    !# <objectDestructor name="self%coolingRate_"        />
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
     return
   end subroutine cutOffDestructor
 

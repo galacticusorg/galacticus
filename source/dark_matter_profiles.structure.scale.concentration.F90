@@ -134,6 +134,8 @@ contains
     !# <objectDestructor name="self%darkMatterProfile_"             />
     !# <objectDestructor name="self%virialDensityContrast_"         />
     !# <objectDestructor name="self%darkMatterProfileConcentration_"/>
+    !# <objectDestructor name="self%darkMatterProfileDefinition"    />
+    !# <objectDestructor name="self%virialDensityContrastDefinition"/>
     return
   end subroutine concentrationDestructor
   
