@@ -605,7 +605,10 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('reversed table would not be monotonic'//{introspection:location})
-    if (allocated(reversedSelf)) deallocate(reversedSelf)
+    if (allocated(reversedSelf)) then
+       call reversedSelf%destroy()
+       deallocate(reversedSelf)
+    end if
     allocate(table1DGeneric :: reversedSelf)
     select type (reversedSelf)
     type is (table1DGeneric)
@@ -1146,7 +1149,10 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('reversed table would not be monotonic'//{introspection:location})
-    if (allocated(reversedSelf)) deallocate(reversedSelf)
+    if (allocated(reversedSelf)) then
+       call reversedSelf%destroy()
+       deallocate(reversedSelf)
+    end if
     allocate(table1DNonUniformLinearLogarithmic :: reversedSelf)
     select type (reversedSelf)
     type is (table1DNonUniformLinearLogarithmic)
