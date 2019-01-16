@@ -33,27 +33,27 @@
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal
      !% A radiation field class for intergalactic background light with properties computed internally
      private
-     class           (cosmologyParametersClass              ), pointer                     :: cosmologyParameters_
-     class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_
-     class           (intergalacticMediumStateClass         ), pointer                     :: intergalacticMediumState_
-     class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_
-     class           (accretionDiskSpectraClass             ), pointer                     :: accretionDiskSpectra_
-     class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_
-     class           (outputTimesClass                      ), pointer                     :: outputTimes_
-     integer                                                                               :: wavelengthCountPerDecade          , wavelengthCount
-     double precision                                                                      :: wavelengthMinimum                 , wavelengthMaximum
-     integer                                                                               :: timeCountPerDecade                , timeCount
-     double precision                                                                      :: redshiftMinimum                   , redshiftMaximum
-     double precision                                                                      :: timeMinimum                       , timeMaximum
-     double precision                                        , allocatable, dimension(:  ) :: wavelength                        , redshift                       , &
-          &                                                                                   time                              , crossSectionNeutralHydrogen    , &
-          &                                                                                   crossSectionNeutralHelium         , crossSectionSinglyIonizedHelium, &
+     class           (cosmologyParametersClass              ), pointer                     :: cosmologyParameters_               => null()
+     class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_                => null()
+     class           (intergalacticMediumStateClass         ), pointer                     :: intergalacticMediumState_          => null()
+     class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_ => null()
+     class           (accretionDiskSpectraClass             ), pointer                     :: accretionDiskSpectra_              => null()
+     class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_         => null()
+     class           (outputTimesClass                      ), pointer                     :: outputTimes_                       => null()
+     integer                                                                               :: wavelengthCountPerDecade                    , wavelengthCount
+     double precision                                                                      :: wavelengthMinimum                           , wavelengthMaximum
+     integer                                                                               :: timeCountPerDecade                          , timeCount
+     double precision                                                                      :: redshiftMinimum                             , redshiftMaximum
+     double precision                                                                      :: timeMinimum                                 , timeMaximum
+     double precision                                        , allocatable, dimension(:  ) :: wavelength                                  , redshift                       , &
+          &                                                                                   time                                        , crossSectionNeutralHydrogen    , &
+          &                                                                                   crossSectionNeutralHelium                   , crossSectionSinglyIonizedHelium, &
           &                                                                                   spectrum
-     double precision                                        , allocatable, dimension(:,:) :: emissivityODE                     , emissivity
+     double precision                                        , allocatable, dimension(:,:) :: emissivityODE                               , emissivity
      double precision                                                     , dimension(0:1) :: timeODE
      double precision                                                                      :: timeCurrent
-     logical                                                                               :: interpolationReset                , interpolationResetTime
-     type            (fgsl_interp_accel                     )                              :: interpolationAccelerator          , interpolationAcceleratorTime
+     logical                                                                               :: interpolationReset                          , interpolationResetTime
+     type            (fgsl_interp_accel                     )                              :: interpolationAccelerator                    , interpolationAcceleratorTime
    contains
      final     ::             intergalacticBackgroundInternalDestructor
      procedure :: flux     => intergalacticBackgroundInternalFlux
