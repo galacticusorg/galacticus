@@ -59,7 +59,7 @@ module Cosmological_Density_Field
   !#   <argument>type            (treeNode), intent(inout), optional, target :: node               </argument>
   !#   <modules>Root_Finder</modules>
   !#   <code>
-  !#    double precision            , parameter :: toleranceRelative    =1.0d-12, toleranceAbsolute=0.0d0
+  !#    double precision            , parameter :: toleranceRelative=1.0d-12, toleranceAbsolute=0.0d0
   !#    double precision                        :: timeBigCrunch
   !#    type            (rootFinder), save      :: finder
   !#    !$omp threadprivate(finder)
