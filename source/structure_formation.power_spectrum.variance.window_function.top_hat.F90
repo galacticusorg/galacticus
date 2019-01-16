@@ -46,7 +46,7 @@ contains
     implicit none
     type (powerSpectrumWindowFunctionTopHat)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
-    class(cosmologyParametersClass         )                :: cosmologyParameters_    
+    class(cosmologyParametersClass         ), pointer       :: cosmologyParameters_    
  
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=powerSpectrumWindowFunctionTopHat(cosmologyParameters_)
