@@ -171,7 +171,6 @@ contains
   subroutine Galacticus_Output_Close_File
     !% Close the \glc\ output file.
     use System_Command
-    use Input_Parameters
     use Events_Hooks
     !# <include directive="hdfPreCloseTask" type="moduleUse">
     include 'galacticus.output.HDF5.pre_close_tasks.moduleUse.inc'
@@ -186,17 +185,13 @@ contains
           include 'galacticus.output.HDF5.pre_close_tasks.inc'
           !# </include>
           !# <eventHook name="hdf5PreClose"/>
-          ! Close parameters.
-          call globalParameters%destroy()          
           ! Close the file.
           !$ call hdf5Access%set()
           call galacticusOutputFile%writeAttribute(1,"galacticusCompleted")
           call galacticusOutputFile%close()
           !$ call hdf5Access%unset()
-          
           ! Move the scratch file to the final file if necessary.
           if (galacticusOutputFileName /= galacticusOutputScratchFileName) call System_Command_Do("mv "//galacticusOutputScratchFileName//" "//galacticusOutputFileName)
-          
           ! Record that the file is now closed.
           galacticusOutputFileIsOpen=.false.
        end if

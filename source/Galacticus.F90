@@ -82,7 +82,8 @@ program Galacticus
   ! Perform task.
   task_ => task()
   if (task_%requiresOutputFile()) call Galacticus_Output_Open_File ()
-  call task_%perform()
+  call task_     %perform()
+  call parameters%destroy()
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
   ! Finalize MPI.
 #ifdef USEMPI
