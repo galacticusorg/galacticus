@@ -31,6 +31,7 @@
      type            (table1DLinearLinear)              :: cdf
      class           (table1D            ), allocatable :: cdfInverse   
    contains
+     final     ::               peakBackgroundDestructor
      procedure :: density    => peakBackgroundDensity
      procedure :: cumulative => peakBackgroundCumulative
      procedure :: inverse    => peakBackgroundInverse
@@ -117,6 +118,19 @@ contains
 
   end function peakBackgroundConstructorInternal
 
+  subroutine peakBackgroundDestructor(self)
+    !% Destructor for ``peakBackground'' 1D distribution function class.
+    implicit none
+    type(distributionFunction1DPeakBackground), intent(inout) :: self
+    
+    call    self%cdf       %destroy()
+    if (allocated(self%cdfInverse)) then
+       call self%cdfInverse%destroy()
+       deallocate(self%cdfInverse)
+    end if
+    return
+  end subroutine peakBackgroundDestructor
+  
   double precision function peakBackgroundMinimum(self)
     !% Return the minimum possible value of a peak-background split distribution.
     use Galacticus_Error
