@@ -55,6 +55,7 @@ contains
     class           (criticalOverdensityClass        ), pointer       :: criticalOverdensity_
     class           (haloEnvironmentClass            ), pointer       :: haloEnvironment_
     class           (cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass   ), pointer       :: cosmologicalMassVariance_
     class           (linearGrowthClass               ), pointer       :: linearGrowth_
     double precision                                                  :: a
 
@@ -67,25 +68,27 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
-    !# <objectBuilder class="haloEnvironment"     name="haloEnvironment_"     source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
-    self=criticalOverdensityEnvironmental(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_)
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=criticalOverdensityEnvironmental(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function environmentalConstructorParameters
 
-  function environmentalConstructorInternal(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_) result(self)
+  function environmentalConstructorInternal(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily environmental} critical overdensity class.
     implicit none
     type            (criticalOverdensityEnvironmental)                        :: self
     class           (criticalOverdensityClass        ), target, intent(in   ) :: criticalOverdensity_    
     class           (haloEnvironmentClass            ), target, intent(in   ) :: haloEnvironment_    
     class           (cosmologyFunctionsClass         ), target, intent(in   ) :: cosmologyFunctions_    
+    class           (cosmologicalMassVarianceClass   ), target, intent(in   ) :: cosmologicalMassVariance_
     class           (linearGrowthClass               ), target, intent(in   ) :: linearGrowth_
     double precision                                                          :: a
-    !# <constructorAssign variables="a, *criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *linearGrowth_"/>
+    !# <constructorAssign variables="a, *criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
 
     self%massEnvironment=self%haloEnvironment_%environmentMass()
     return
@@ -96,10 +99,11 @@ contains
     implicit none
     type(criticalOverdensityEnvironmental), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"/>
-    !# <objectDestructor name="self%haloEnvironment_"    />
-    !# <objectDestructor name="self%linearGrowth_"       />
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%haloEnvironment_"         />
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine environmentalDestructor
 
