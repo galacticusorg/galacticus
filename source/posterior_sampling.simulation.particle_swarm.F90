@@ -256,13 +256,20 @@ contains
   subroutine particleSwarmDestructor(self)
     !% Destroy a differential evolution simulation object.
     implicit none
-    type(posteriorSampleSimulationParticleSwarm), intent(inout) :: self
+    type   (posteriorSampleSimulationParticleSwarm), intent(inout) :: self
+    integer                                                        :: i
 
-    !# <objectDestructor name="self%posteriorSampleLikelihood_"              />
-    !# <objectDestructor name="self%posteriorSampleConvergence_"             />
-    !# <objectDestructor name="self%posteriorSampleStoppingCriterion_"       />
-    !# <objectDestructor name="self%posteriorSampleState_"                   />
-    !# <objectDestructor name="self%posteriorSampleStateInitialize_"         />
+    !# <objectDestructor name="self%posteriorSampleLikelihood_"       />
+    !# <objectDestructor name="self%posteriorSampleConvergence_"      />
+    !# <objectDestructor name="self%posteriorSampleStoppingCriterion_"/>
+    !# <objectDestructor name="self%posteriorSampleState_"            />
+    !# <objectDestructor name="self%posteriorSampleStateInitialize_"  />
+    do i=1,size(self%modelParametersActive_  )
+       !# <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+    end do
+    do i=1,size(self%modelParametersInactive_)
+       !# <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+    end do
     return
   end subroutine particleSwarmDestructor
 
