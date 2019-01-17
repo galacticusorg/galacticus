@@ -30,7 +30,7 @@ module Input_Parameters
   use IO_XML
   use IO_HDF5
   private
-  public :: inputParameters, inputParameter, inputParameterList, globalParameters  
+  public :: inputParameters, inputParameter, inputParameterList, globalParameters
 
   !# <generic identifier="Type">
   !#  <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -93,12 +93,36 @@ module Input_Parameters
      !@     <arguments>\textcolor{red}{\textless *class(*)\textgreater} object\argin, \logicalzero\ isShared\argin</arguments>
      !@     <description>Set a pointer to the object corresponding to this parameter.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset all objects in this parameter and any sub-parameters.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>set</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ value\argin</arguments>
+     !@     <description>Set the value of this parameter.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>get</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the value of this parameter in a simple textual context.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: isParameter   => inputParameterIsParameter
      procedure :: objectCreated => inputParameterObjectCreated
      procedure :: objectGet     => inputParameterObjectGet
      procedure :: objectSet     => inputParameterObjectSet
      procedure :: destroy       => inputParameterDestroy
+     procedure :: reset         => inputParameterReset
+     procedure ::                  inputParameterSetDouble
+     procedure ::                  inputParameterSetVarStr
+     generic   :: set           => inputParameterSetDouble
+     generic   :: set           => inputParameterSetVarStr
+     procedure :: get           => inputParameterGet
   end type inputParameter
 
   type :: inputParameters
@@ -216,6 +240,12 @@ module Input_Parameters
      !@     <description>Add a parameter.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset all objects in this parameter set.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>destroy</method>
      !@     <type>\void</type>
      !@     <arguments></arguments>
@@ -244,6 +274,7 @@ module Input_Parameters
      procedure :: serializeToString   => inputParametersSerializeToString
      procedure :: serializeToXML      => inputParametersSerializeToXML
      procedure :: addParameter        => inputParametersAddParameter
+     procedure :: reset               => inputParametersReset
   end type inputParameters
 
   interface inputParameters
@@ -299,7 +330,7 @@ module Input_Parameters
   ! Pointer to the global input parameters.
   type   (inputParameters), pointer   :: globalParameters               => null()
 
-  ! Thread-global state recording whether objects being built are threadprivate or public.
+  ! Thread-scope state recording whether objects being built are threadprivate or public.
   logical                 , public    :: parametersObjectBuildIsPrivate  
   !$omp threadprivate(parametersObjectBuildIsPrivate)
   
@@ -322,7 +353,7 @@ contains
     inputParametersConstructorNull%parameters => null()
     inputParametersConstructorNull%global     = .false.
     inputParametersConstructorNull%isNull     = .true.
-    call setLiveNodeLists(inputParametersConstructorNull%document,.true.)
+    call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
     return
   end function inputParametersConstructorNull
   
@@ -468,13 +499,14 @@ contains
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)    
     inputParametersConstructorNode%rootNode =>                  parametersNode
     inputParametersConstructorNode%parent   => null            (              )
+    call setLiveNodeLists(inputParametersConstructorNode%document,.false.)
     !$omp critical (FoX_DOM_Access)
     if (.not.noBuild_) then
-    allocate(inputParametersConstructorNode%parameters)
-    inputParametersConstructorNode%parameters%firstChild => null()
-    call inputParametersConstructorNode%buildTree        (inputParametersConstructorNode%parameters,parametersNode)    
-    call inputParametersConstructorNode%resolveReferences(                                                        )
- end if
+       allocate(inputParametersConstructorNode%parameters)
+       inputParametersConstructorNode%parameters%firstChild => null()
+       call inputParametersConstructorNode%buildTree        (inputParametersConstructorNode%parameters,parametersNode)    
+       call inputParametersConstructorNode%resolveReferences(                                                        )
+    end if
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
@@ -607,12 +639,12 @@ contains
           referencedParameter => inputParametersWalkTree(self%parameters)
           do while (associated(referencedParameter))
              ! If found, set a pointer to this other parameter which will be later dereferenced for parameter extraction.
-             if     (                                                                   &
-                  &   getNodeType (referencedParameter%content        ) == ELEMENT_NODE &
-                  &  .and.                                                              &
-                  &   hasAttribute(referencedParameter%content,'id')                 &
-                  &.and.&
-                  & getNodeName(referencedParameter%content) == getNodeName(currentParameter%content)&
+             if     (                                                                                 &
+                  &   getNodeType (referencedParameter%content        ) == ELEMENT_NODE               &
+                  &  .and.                                                                            &
+                  &   hasAttribute(referencedParameter%content,'id')                                  &
+                  &.and.                                                                              &
+                  & getNodeName(referencedParameter%content) == getNodeName(currentParameter%content) &
                   & ) currentParameter%referenced => referencedParameter
              ! Walk to next node.
              referencedParameter => inputParametersWalkTree(referencedParameter)
@@ -811,6 +843,83 @@ contains
     return
   end subroutine inputParameterObjectSet
   
+  recursive subroutine inputParameterReset(self)
+    !% Reset objects associated with this parameter and any sub-parameters.
+    !$ use OMP_Lib
+    implicit none
+    class  (inputParameter), intent(inout) :: self
+    type   (inputParameter), pointer       :: child
+    integer                                :: i
+    
+    if (allocated(self%objects)) then
+       do i=lbound(self%objects,dim=1),ubound(self%objects,dim=1)
+          ! If we are not in an OpenMP parallel region then we deallocate only element 0 of the object array (which corresponds to
+          ! objects allocated outside of the parallel region), as any objects built inside parallel regions will have been
+          ! deallocated when those regions are exited.          
+          !$ if (OMP_In_Parallel() .or. i == 0) then
+          if (associated(self%objects(i)%object)) deallocate(self%objects(i)%object)
+          !$ end if
+          nullify(self%objects(i)%object)
+       end do
+    end if
+    child => self%firstChild
+    do while (associated(child))
+       call child%reset()
+       child => child%sibling
+    end do
+    return
+  end subroutine inputParameterReset
+
+ subroutine inputParameterSetDouble(self,value)
+   !% Set the value of a parameter.   
+    implicit none
+    class           (inputParameter), intent(inout) :: self
+    double precision                , intent(in   ) :: value
+    character       (len=24        )                :: valueText
+
+    write (valueText,'(e24.16)') value
+    call setAttribute(self%content,"value",trim(valueText))
+    return
+  end subroutine inputParameterSetDouble
+
+ subroutine inputParameterSetVarStr(self,value)
+   !% Set the value of a parameter.   
+    implicit none
+    class    (inputParameter), intent(inout) :: self
+    type     (varying_string), intent(in   ) :: value
+
+    call setAttribute(self%content,"value",char(value))
+    return
+  end subroutine inputParameterSetVarStr
+
+  function inputParameterGet(self)
+    !% Get the value of a parameter.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    type   (varying_string)                :: inputParameterGet
+    class  (inputParameter), intent(inout) :: self
+    type   (node          ), pointer       :: valueElement
+    type   (DOMException  )                :: exception
+    logical                                :: hasValueAttribute
+
+    !$omp critical (FoX_DOM_Access)
+    hasValueAttribute=hasAttribute(self%content,'value')
+    if (hasValueAttribute) then
+       valueElement      => getAttributeNode(self%content,"value"     )
+       inputParameterGet =  getTextContent  (valueElement,ex=exception)
+       if (inException(exception)) call Galacticus_Error_Report(                                 &
+            &                                                   'unable to parse parameter [' // &
+            &                                                    getNodeName   (self%content) // &
+            &                                                   ']'                           // &
+            &                                                    {introspection:location}        &
+            &                                                  )            
+    else
+       call Galacticus_Error_Report('no parameter value present'//{introspection:location})
+    end if
+    !$omp end critical (FoX_DOM_Access)
+    return
+  end function inputParameterGet
+
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
     !$ use OMP_Lib
     use Regular_Expressions
@@ -1445,5 +1554,14 @@ contains
     currentParameter%sibling    => null()
     return
   end subroutine inputParametersAddParameter
+    
+  subroutine inputParametersReset(self)
+    !% Reset all objects in a parameter set.
+    implicit none
+    class(inputParameters), intent(inout) :: self
+
+    call self%parameters%reset()
+    return
+  end subroutine inputParametersReset
   
 end module Input_Parameters
