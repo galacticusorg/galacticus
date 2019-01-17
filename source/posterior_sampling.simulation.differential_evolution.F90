@@ -282,7 +282,8 @@ contains
   subroutine differentialEvolutionDestructor(self)
     !% Destroy a differential evolution simulation object.
     implicit none
-    type(posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+    type   (posteriorSampleSimulationDifferentialEvolution), intent(inout) :: self
+    integer                                                                :: i
 
     !# <objectDestructor name="self%posteriorSampleLikelihood_"              />
     !# <objectDestructor name="self%posteriorSampleConvergence_"             />
@@ -291,6 +292,12 @@ contains
     !# <objectDestructor name="self%posteriorSampleStateInitialize_"         />
     !# <objectDestructor name="self%posteriorSampleDffrntlEvltnProposalSize_"/>
     !# <objectDestructor name="self%posteriorSampleDffrntlEvltnRandomJump_"  />
+    do i=1,size(self%modelParametersActive_  )
+       !# <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+    end do
+    do i=1,size(self%modelParametersInactive_)
+       !# <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+    end do
    return
   end subroutine differentialEvolutionDestructor
 
