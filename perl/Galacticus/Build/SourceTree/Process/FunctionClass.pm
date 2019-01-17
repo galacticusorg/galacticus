@@ -528,8 +528,11 @@ sub Process_FunctionClass {
 type(inputParameters) :: descriptor
 type(varying_string ) :: descriptorString
 descriptor=inputParameters()
+! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
+call setLiveNodeLists(descriptor%document,.false.)
 call self%descriptor(descriptor)
 descriptorString=descriptor%serializeToString()
+call descriptor%destroy()
 if (present(includeSourceDigest).and.includeSourceDigest) then
 select type (self)
 CODE
@@ -559,7 +562,7 @@ CODE
 		description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
 		type        => "type(varying_string)",
 		pass        => "yes",
-		modules     => "ISO_Varying_String Input_Parameters Hashes_Cryptographic",
+		modules     => "ISO_Varying_String Input_Parameters Hashes_Cryptographic FoX_DOM",
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
 		code        => $hashedDescriptorCode
 	    };
@@ -703,7 +706,11 @@ CODE
 				$allowedParametersCode .= "    else\n";
 				$allowedParametersCode .= "      allocate(allowedParameters(".$parameterCount."))\n";
 				$allowedParametersCode .= "    end if\n";
-				$allowedParametersCode .= "    allowedParameters(size(allowedParameters)-".$parameterCount."+1:size(allowedParameters))=[".join(",",map {"var_str('".$_."')"} @{$allowedParameters->{$source}->{'all'}})."]\n";
+				# The following is done as a sequence of scalar assignments, instead of assigning a single array
+				# using an array constructor, as that approach lead to a memory leak.
+				for(my $i=0;$i<$parameterCount;++$i) {
+				    $allowedParametersCode .= "    allowedParameters(size(allowedParameters)-".($parameterCount-1-$i).")='".$allowedParameters->{$source}->{'all'}->[$i]."'\n";
+				}
 				$allowedParametersCode .= "  end if\n";
 			    }
 			    # Call the allowedParameters() method of any stored obejcts.
@@ -731,6 +738,7 @@ CODE
 	    {
 		description => "Return a list of parameter names allowed for this object.",
 		type        => "void",
+		recursive   => "yes",
 		pass        => "yes",
 		modules     => "ISO_Varying_String",
 		argument    => [ "type(varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters", "character(len=*), intent(in   ) :: sourceName" ],
@@ -756,7 +764,7 @@ CODE
 		    while ( $node ) {
 			if ( $node->{'type'} eq "declaration" ) {
 			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Deep copy of function objects.
+				# Deep copy of functionClass objects.
 				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
 				    if ( $declaration->{'intrinsic'} eq "class" );
 				if
@@ -765,14 +773,28 @@ CODE
 				     &&
 				     (grep {$_ eq $type    } (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}}))
 				     &&
-				      grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
-				    ) {
-					foreach my $object ( @{$declaration->{'variables'}} ) {
-					    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					    $assignments .= "nullify(destination%".$name.")\n";
-					    $assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
+				    ) 
+				{
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					$assignments .= "nullify(destination%".$name.")\n";
+					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+				    }
+				};
+				# Deep copy of non-(class,pointer) functionClass objects.
+				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+						$assignments .= "nullify(destination%".$name.")\n";
+						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+					    }
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 					}
+				    }
 				}
 				# Deallocate FGSL interpolators.
 				if
@@ -877,6 +899,12 @@ CODE
 				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 			    }
 		    }
+		    # Deep copy of non-(class,pointer) functionClass objects.
+		    if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+			foreach my $name ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+			    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+			}
+		    }
 		    # Deallocate FGSL interpolators.
 		    if
 			(
@@ -907,15 +935,15 @@ CODE
 		$deepCopyCode .= "class default\n";
 		$deepCopyCode .= "call Galacticus_Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 		$deepCopyCode .= "end select\n";
-		# Make the copied object destructible.
-		$deepCopyCode .= "destination%isIndestructible=.false.\n";
-		# Reset the state operation ID if necessary.
-		$deepCopyCode .= "destination%stateOperationID=0_c_size_t\n"
-		    if ( $directive->{'stateful'} eq "yes" );
 		# Specify required modules.
 		$deepCopyModules{'Galacticus_Error'} = 1;
 	    }
             $deepCopyCode .= "end select\n";
+	    # Make the copied object destructible.
+	    $deepCopyCode .= "destination%isIndestructible=.false.\n";
+            # Reset the state operation ID if necessary.
+	    $deepCopyCode .= "destination%stateOperationID=0_c_size_t\n"
+                if ( $directive->{'stateful'} eq "yes" );
             # Insert any iterator variables needed.
             $deepCopyCode = "!\$ integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
                 if ( $rankMaximum > 0 );
@@ -923,6 +951,7 @@ CODE
 	    {
 		description => "Perform a deep copy of the object.",
 		type        => "void",
+		recursive   => "yes",
 		pass        => "yes",
 		modules     => join(" ",keys(%deepCopyModules)),
 		argument    => [ "class(".$directive->{'name'}."Class), intent(  out) :: destination" ],
@@ -1761,12 +1790,28 @@ CODE
 	    $postContains->[0]->{'content'} .= "      integer                   , intent(in   ), optional :: copyInstance\n";
 	    $postContains->[0]->{'content'} .= "      character(len=*          ), intent(in   ), optional :: parameterName\n";
 	    $postContains->[0]->{'content'} .= "      type     (inputParameters)                          :: subParameters\n";
+	    $postContains->[0]->{'content'} .= "      type     (inputParameter ), pointer                 :: parameterNode\n"
+                if ( exists($directive->{'default'}) );
 	    $postContains->[0]->{'content'} .= "      type     (varying_string )                          :: message      , instanceName, parameterName_\n\n";
 	    $postContains->[0]->{'content'} .= "      if (present(parameterName)) then\n";
 	    $postContains->[0]->{'content'} .= "        parameterName_=parameterName\n";
 	    $postContains->[0]->{'content'} .= "      else\n";
 	    $postContains->[0]->{'content'} .= "        parameterName_='".$directive->{'name'}."Method'\n";
 	    $postContains->[0]->{'content'} .= "      end if\n";
+	    if ( exists($directive->{'default'}) ) {
+	        $postContains->[0]->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."Method' .and. (.not.present(copyInstance) .or. copyInstance == 1) .and. .not.parameters%isPresent(char(parameterName_))) then\n";
+	        $postContains->[0]->{'content'} .= "        call parameters%addParameter('".$directive->{'name'}."Method','".$directive->{'default'}."')\n";
+	        $postContains->[0]->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
+		$postContains->[0]->{'content'} .= "        subParameters=parameters%subParameters(char(parameterName_))\n";
+    		$postContains->[0]->{'content'} .= "        allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		$postContains->[0]->{'content'} .= "          type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
+		$postContains->[0]->{'content'} .= "            ".$directive->{'name'}."CnstrctrPrmtrs=".$directive->{'name'}.ucfirst($directive->{'default'})."(subParameters)\n";
+		$postContains->[0]->{'content'} .= "         end select\n";
+		$postContains->[0]->{'content'} .= "         ".$directive->{'name'}."CnstrctrPrmtrs%isIndestructible=.true.\n";
+                $postContains->[0]->{'content'} .= "         call parameterNode%objectSet(".$directive->{'name'}."CnstrctrPrmtrs)\n";
+                $postContains->[0]->{'content'} .= "      else\n";
+            }
 	    $postContains->[0]->{'content'} .= "      call parameters%value(char(parameterName_),instanceName,copyInstance=copyInstance)\n";
 	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters(char(parameterName_),copyInstance=copyInstance)\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(instanceName))\n";
@@ -1794,6 +1839,8 @@ CODE
 	    }
 	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
             $postContains->[0]->{'content'} .= "      end select\n";
+            $postContains->[0]->{'content'} .= "      end if\n"
+                if ( exists($directive->{'default'}) );
  	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrPrmtrs\n\n";
 	    
@@ -2025,9 +2072,10 @@ CODE
 		my $type;
 		my $category;
 		my $self;
-		my $extension = "Null";
+		my $extension = "Null";	       
 		$extension = ""
 		    if ( exists($method->{'code'}) );
+		my $recursive = exists($method->{'recursive'}) && $method->{'recursive'} eq "yes" ? "recursive " : "";
 		if ( $method->{'type'} eq "void" ) {
 		    $category = "subroutine";
 		    $type     = "";
@@ -2045,7 +2093,7 @@ CODE
 		    $type     = $method->{'type'}." ";
 		    $self     = "";
 		}
-		$postContains->[0]->{'content'} .= "   ".$type.$category." ".$directive->{'name'}.ucfirst($methodName).$extension."(self";
+		$postContains->[0]->{'content'} .= "   ".$recursive.$type.$category." ".$directive->{'name'}.ucfirst($methodName).$extension."(self";
 		$postContains->[0]->{'content'} .= ",".$argumentList
 		    unless ( $argumentList eq "" );
 		$postContains->[0]->{'content'} .= ")\n";
