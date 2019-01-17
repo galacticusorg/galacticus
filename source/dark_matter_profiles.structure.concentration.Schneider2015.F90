@@ -35,9 +35,11 @@
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
   contains
-    final     ::                  schneider2015Destructor
-    procedure :: concentration => schneider2015Concentration
-  end type darkMatterProfileConcentrationSchneider2015
+    final     ::                                schneider2015Destructor
+    procedure :: concentration               => schneider2015Concentration
+    procedure :: densityContrastDefinition   => schneider2015DensityContrastDefinition
+    procedure :: darkMatterProfileDefinition => schneider2015DarkMatterProfileDefinition
+ end type darkMatterProfileConcentrationSchneider2015
 
   interface darkMatterProfileConcentrationSchneider2015
      !% Constructors for the {\normalfont \ttfamily Schneider2015} dark matter halo profile concentration class.
@@ -209,3 +211,26 @@ contains
     schneider2015ReferenceCollapseMassRoot=schneider2015ReferenceCollapseMassRootPrevious
     return
   end function schneider2015ReferenceCollapseMassRoot
+
+  function schneider2015DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the
+    !% \cite{schneider_structure_2015} algorithm.
+    implicit none
+    class(virialDensityContrastClass                 ), pointer       :: schneider2015DensityContrastDefinition
+    class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
+
+    schneider2015DensityContrastDefinition => self%referenceConcentration%densityContrastDefinition()
+    return
+  end function schneider2015DensityContrastDefinition
+  
+  function schneider2015DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{schneider_structure_2015} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(darkMatterProfileClass                     ), pointer       :: schneider2015DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
+ 
+    schneider2015DarkMatterProfileDefinition => self%referenceConcentration%darkMatterProfileDefinition()
+    return
+  end function schneider2015DarkMatterProfileDefinition
