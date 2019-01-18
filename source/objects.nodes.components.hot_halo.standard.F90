@@ -33,6 +33,7 @@ module Node_Component_Hot_Halo_Standard
   use Cooling_Specific_Angular_Momenta
   use Cooling_Infall_Radii
   use Hot_Halo_Mass_Distributions
+  use Hot_Halo_Outflows_Reincorporations
   use Chemical_States
   use Cooling_Rates
   use Kind_Numbers
@@ -220,10 +221,11 @@ module Node_Component_Hot_Halo_Standard
   class(chemicalReactionRateClass          ), pointer :: chemicalReactionRate_
   class(hotHaloRamPressureStrippingClass   ), pointer :: hotHaloRamPressureStripping_
   class(hotHaloRamPressureTimescaleClass   ), pointer :: hotHaloRamPressureTimescale_
+  class(hotHaloOutflowReincorporationClass ), pointer :: hotHaloOutflowReincorporation_
   class(chemicalStateClass                 ), pointer :: chemicalState_
   class(coolingRateClass                   ), pointer :: coolingRate_
   class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
-  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_)
+  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_)
   
   ! Internal count of abundances and chemicals.
   integer                                                             :: abundancesCount                            , chemicalsCount
@@ -358,16 +360,6 @@ contains
        !#   <type>integer</type>
        !# </inputParameter>
 
-       ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
-       !# <inputParameter>
-       !#   <name>hotHaloOutflowReturnRate</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>5.0d0</defaultValue>
-       !#   <description>Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical time.</description>
-       !#   <source>parameters</source>
-       !#   <type>double</type>
-       !# </inputParameter>
-
        ! Get efficiency with which outflowing gas is stripped from the hot halo.
        !# <inputParameter>
        !#   <name>hotHaloOutflowStrippingEfficiency</name>
@@ -456,6 +448,7 @@ contains
        !# <objectBuilder class="chemicalState"                  name="chemicalState_"                  source="parameters"/>
        !# <objectBuilder class="hotHaloRamPressureStripping"    name="hotHaloRamPressureStripping_"    source="parameters"/>
        !# <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="parameters"/>
+       !# <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="parameters"/>
        !# <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters"/>
        allocate(radiationFieldList_)
        radiationCosmicMicrowaveBackground  =  radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
@@ -1143,16 +1136,18 @@ contains
     node => self%hostNode
     ! Next tasks occur only for systems in which outflowed gas is being recycled.
     if (.not.(starveSatellites.or.starveSatellitesOutflowed).or..not.node%isSatellite()) then
-       outflowedMass            =self%outflowedMass()
-       massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(node)
-       angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%dynamicalTimescale(node)
-       abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%dynamicalTimescale(node)
-       call self%           outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
-       call self%                    massRate(+           massReturnRate,interrupt,interruptProcedure)
-       call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
-       call self%         angularMomentumRate(+angularMomentumReturnRate,interrupt,interruptProcedure)
-       call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
-       call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
+       outflowedMass =self                          %outflowedMass(    )
+       massReturnRate=hotHaloOutflowReincorporation_%rate         (node)
+       call self%              outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
+       call self%                       massRate(+           massReturnRate,interrupt,interruptProcedure)
+       if (outflowedMass /= 0.0d0) then
+          angularMomentumReturnRate=self%outflowedAngularMomentum()*massReturnRate/outflowedMass
+          abundancesReturnRate     =self%outflowedAbundances     ()*massReturnRate/outflowedMass
+          call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
+          call self%         angularMomentumRate(+angularMomentumReturnRate,interrupt,interruptProcedure)
+          call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
+          call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
+       end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self                %outerRadius (    )
        radiusVirial=darkMatterHaloScale_%virialRadius(node)
