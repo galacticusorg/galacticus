@@ -29,7 +29,7 @@ my @tests =
      		  output            => 1                          ,
      		  property          => "hotHaloMass"              ,
      		  values            => pdl ( 7.97045921944598e10 ),
-     		  toleranceRelative => 1.0e-12
+     		  toleranceRelative => 4.0e-6
      	      }
      	     ]
      },
