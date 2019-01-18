@@ -607,7 +607,8 @@ my @translations =
 	     "mergerTreesDumpStructure"                                  => "mergerTreeEvolverMethod.standard.--dumpTreeStructure"                                  ,
 	     "timestepHostRelative"                                      => "mergerTreeEvolverMethod.standard.--timestepHostRelative"                               ,
 	     "timestepHostAbsolute"                                      => "mergerTreeEvolverMethod.standard.--timestepHostAbsolute"                               ,
-	     "mergerTreeOutput"                                          => "mergerTreeOutputterMethod"	 
+	     "mergerTreeOutput"                                          => "mergerTreeOutputterMethod"	                                                            ,
+	     "hotHaloOutflowReturnRate"                                  => "hotHaloOutflowReincorporationMethod.haloDynamicalTime.--multiplier"
 	 },
 	 values        =>
 	 {

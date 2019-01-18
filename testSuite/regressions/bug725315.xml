@@ -188,5 +188,8 @@
       <treeBeginAt value="1"/>
       <redshiftBase value="0"/>
   </mergerTreeConstructorMethod>
-  <hotHaloOutflowReturnRate value="1.26027"/>
-</parameters>
+  <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="1.26027"/>
+  </hotHaloOutflowReincorporationMethod>
+
+  </parameters>

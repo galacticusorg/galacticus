@@ -65,7 +65,10 @@
     <lambda0 value="0.04326"/>
   </haloSpinDistributionMethod>
   <hotHaloMassDistributionMethod value="cored isothermal"/>
-  <hotHaloOutflowReturnRate value="1.26027"/>
+  <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="1.26027"/>
+  </hotHaloOutflowReincorporationMethod>
+
   <hotHaloTemperatureProfileMethod value="virial"/>
   <stellarPopulationMethod value="standard">
     <recycledFraction value="0.39"/>
