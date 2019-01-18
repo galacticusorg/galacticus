@@ -17,6 +17,7 @@
     <sigma_8 value="0.9"/>
   </cosmologicalMassVarianceMethod>
   <darkMatterProfileMethod value="isothermal"/>
+  <darkMatterProfileScaleRadiusMethod value="zero"/>
   <cosmologyParametersMethod value="simple">
     <OmegaBaryon value="0.0455"/>
     <OmegaDarkEnergy value="0.75"/>

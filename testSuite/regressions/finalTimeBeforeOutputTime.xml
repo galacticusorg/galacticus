@@ -25,6 +25,7 @@
   </cosmologicalMassVarianceMethod>
   <mergerTreeBuildMassDistributionMethod value="uniform"/>
   <darkMatterProfileMethod value="isothermal"/>
+  <darkMatterProfileScaleRadiusMethod value="zero"/>
   <cosmologyParametersMethod value="simple">
     <OmegaBaryon value="0.0455"/>
     <OmegaDarkEnergy value="0.75"/>
