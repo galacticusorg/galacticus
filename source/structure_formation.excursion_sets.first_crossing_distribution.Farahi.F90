@@ -1002,7 +1002,7 @@ contains
     if (.not.(self%tableInitialized.or.self%tableInitializedRate)) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_size_t,compressionLevel=9)
+    call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     ! Check if the standard table is populated.
     if (self%tableInitialized) then
        dataGroup=dataFile%openGroup("probability")

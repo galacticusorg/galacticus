@@ -75,6 +75,7 @@ module IO_HDF5
      private
      logical                          :: isOpenValue   =.false.
      logical                          :: isOverwritable
+     logical                          :: readOnly
      integer(kind=HID_T    )          :: objectID
      type   (varying_string)          :: objectLocation
      type   (varying_string)          :: objectName
@@ -290,6 +291,12 @@ module IO_HDF5
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} objectName\argin, \textcolor{red}{\textless type(hdf5Object)} target\arginout</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>deepCopy</method>
+     !@     <description>Create a deep copy of the object with a new HDF5 object identifier.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(hdf5Object)} destination\argout</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: destroy                                 =>IO_HDF5_Destroy
      procedure :: name                                    =>IO_HDF5_Name
@@ -450,6 +457,7 @@ module IO_HDF5
      procedure :: createReference5D  =>IO_HDF5_Create_Reference_Scalar_To_5D
      procedure :: copy               =>IO_HDF5_Copy
      procedure :: parent             =>IO_HDF5_Parent
+     procedure :: deepCopy           =>IO_HDF5_Deep_Copy
   end type hdf5Object
 
   ! Interfaces to functions in the HDF5 C API that are required due to the limited datatypes supported by the Fortran API. For
@@ -607,8 +615,8 @@ contains
 
     !$ call hdf5Access%set()
     if (present(chunkSize)) then
-       if (chunkSize        ==  0) call Galacticus_Error_Report('zero chunksize is invalid'//{introspection:location})
-       if (chunkSize        <  -1) call Galacticus_Error_Report('chunksize less than -1 is invalid'//{introspection:location})
+       if (chunkSize        ==  0_hsize_t) call Galacticus_Error_Report('zero chunksize is invalid'        //{introspection:location})
+       if (chunkSize        <  -1_hsize_t) call Galacticus_Error_Report('chunksize less than -1 is invalid'//{introspection:location})
        hdf5ChunkSize=chunkSize
     end if
     if (present(compressionLevel)) then
@@ -723,8 +731,8 @@ contains
        if (nonRootOpenObjectCount > 0) then          
           message=""
           message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//thisObject%objectName//"'"
-          call Galacticus_Display_Indent('Problem closing HDF5 file')
-          call Galacticus_Display_Message(message)
+          call Galacticus_Display_Indent('Problem closing HDF5 file',verbosityWarn)
+          call Galacticus_Display_Message(message,verbosityWarn)
           do i=1,openObjectCount
              call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
              if (errorCode /= 0) then
@@ -733,9 +741,9 @@ contains
              end if
              message="Object: "//trim(objectName)//" ["
              message=message//openObjectIDs(i)//"]"
-             if (trim(objectName) /= "/") call Galacticus_Display_Message(message)
+             if (trim(objectName) /= "/") call Galacticus_Display_Message(message,verbosityWarn)
           end do
-          call Galacticus_Display_Unindent('done')
+          call Galacticus_Display_Unindent('done',verbosityWarn)
        end if
        call h5fclose_f(thisObject%objectID,errorCode)
        if (errorCode /= 0) then
@@ -842,9 +850,9 @@ contains
     implicit none
     class    (hdf5Object    ), intent(inout)           :: fileObject
     character(len=*         ), intent(in   ), optional :: fileName
-    logical                  , intent(in   ), optional :: objectsOverwritable, overWrite       , readOnly
-    integer  (kind=size_t   ), intent(in   ), optional :: chunkSize          , sieveBufferSize , cacheElementsCount, &
-         &                                                cacheSizeBytes
+    logical                  , intent(in   ), optional :: objectsOverwritable, overWrite         , readOnly
+    integer  (kind=hsize_t  ), intent(in   ), optional :: chunkSize
+    integer  (kind=size_t   ), intent(in   ), optional :: sieveBufferSize    , cacheElementsCount, cacheSizeBytes
     integer                  , intent(in   ), optional :: compressionLevel
     logical                  , intent(in   ), optional :: useLatestFormat
     integer                                            :: errorCode          , fileAccess
@@ -917,12 +925,14 @@ contains
     if (File_Exists(fileName).and..not.overWriteActual) then
        ! Determine access for file.
        if (present(readOnly)) then
+          fileObject%readOnly=readOnly
           if (readOnly) then
              fileAccess=H5F_ACC_RDONLY_F
           else
              fileAccess=H5F_ACC_RDWR_F
           end if
        else
+          fileObject%readOnly=.false.
           fileAccess=H5F_ACC_RDWR_F
        end if
        ! Attempt to open the file.
@@ -1000,7 +1010,8 @@ contains
     character(len=*         ), intent(in   )           :: groupName
     character(len=*         ), intent(in   ), optional :: commentText
     logical                  , intent(in   ), optional :: objectsOverwritable, overwriteOverride
-    integer                  , intent(in   ), optional :: chunkSize          , compressionLevel
+    integer  (hsize_t       ), intent(in   ), optional :: chunkSize
+    integer                  , intent(in   ), optional :: compressionLevel
     class    (hdf5Object    ), intent(in   ), target   :: inObject
     ! <HDF5> Why are "message" and "locationPath" saved? Because if they aren't then they get dynamically allocated on the stack, which results
     ! in an invalid pointer error. According to valgrind, this happens because the wrong deallocation function is used (delete
@@ -3860,8 +3871,8 @@ contains
     type     (hdf5Object    )                                        :: datasetObject
     character(len=*         )              , intent(in   )           :: datasetName
     character(len=*         )              , intent(in   ), optional :: commentText
-    integer                                , intent(in   ), optional :: chunkSize               , compressionLevel       , &
-         &                                                              datasetDataType
+    integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
+    integer                                , intent(in   ), optional :: compressionLevel        , datasetDataType
     integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: datasetDimensions
     logical                                , intent(in   ), optional :: appendTo                , isOverwritable
     integer  (kind=HID_T    )              , intent(in   ), optional :: useDataType
@@ -4291,7 +4302,8 @@ contains
     character(len=*         )              , intent(in   ), optional :: commentText                , datasetName
     integer                  , dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
-    integer                                , intent(in   ), optional :: chunkSize                  , compressionLevel
+    integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
+    integer                                , intent(in   ), optional :: compressionLevel
     type     (hdf5Object    )              , intent(  out), optional :: datasetReturned
     integer  (kind=HSIZE_T  ), dimension(1)                          :: datasetDimensions          , hyperslabCount      , &
          &                                                              hyperslabStart             , newDatasetDimensions, &
@@ -4452,10 +4464,11 @@ contains
     use Galacticus_Error
     implicit none
     class    (hdf5Object    )                , intent(inout)           :: thisObject
-    character(len=*         )               , intent(in   ), optional :: commentText                , datasetName
+    character(len=*         )                , intent(in   ), optional :: commentText                , datasetName
     integer                  , dimension(:,:), intent(in   )           :: datasetValue
     logical                                  , intent(in   ), optional :: appendTo
-    integer                                  , intent(in   ), optional :: chunkSize                  , compressionLevel
+    integer  (hsize_t       )                , intent(in   ), optional :: chunkSize
+    integer                                  , intent(in   ), optional :: compressionLevel
     type     (hdf5Object    )                , intent(  out), optional :: datasetReturned
     integer  (kind=HSIZE_T  ), dimension(2  )                          :: datasetDimensions          , hyperslabCount      , &
          &                                                                hyperslabStart             , newDatasetDimensions, &
@@ -5767,7 +5780,8 @@ contains
     character(len=*         )                           , intent(in   ), optional         :: commentText                , datasetName
     integer  (kind=kind_int8)             , dimension(:), intent(in   )                   :: datasetValue
     logical                                             , intent(in   ), optional         :: appendTo
-    integer                                             , intent(in   ), optional         :: chunkSize                  , compressionLevel
+    integer  (hsize_t       )                           , intent(in   ), optional         :: chunkSize
+    integer                                             , intent(in   ), optional         :: compressionLevel
     type     (hdf5Object    )                           , intent(  out), optional         :: datasetReturned
     integer  (kind=kind_int8), allocatable, dimension(:)                         , target :: datasetValueContiguous
     integer  (kind=HSIZE_T  )             , dimension(1)                                  :: datasetDimensions          , hyperslabCount      , &
@@ -5939,7 +5953,8 @@ contains
     character(len=*         )                             , intent(in   ), optional         :: commentText                , datasetName
     integer  (kind=kind_int8)             , dimension(:,:), intent(in   )                   :: datasetValue
     logical                                               , intent(in   ), optional         :: appendTo
-    integer                                               , intent(in   ), optional         :: chunkSize                  , compressionLevel
+    integer  (hsize_t       )                             , intent(in   ), optional         :: chunkSize
+    integer                                               , intent(in   ), optional         :: compressionLevel
     type     (hdf5Object    )                             , intent(  out), optional         :: datasetReturned
     integer  (kind=kind_int8), allocatable, dimension(:,:)                         , target :: datasetValueContiguous
     integer  (kind=HSIZE_T  )             , dimension(2  )                                  :: datasetDimensions          , hyperslabCount      , &
@@ -7579,7 +7594,8 @@ contains
     character       (len=*         )              , intent(in   ), optional :: commentText                , datasetName
     double precision                , dimension(:), intent(in   )           :: datasetValue
     logical                                       , intent(in   ), optional :: appendTo
-    integer                                       , intent(in   ), optional :: chunkSize                  , compressionLevel
+    integer  (hsize_t       )                     , intent(in   ), optional :: chunkSize
+    integer                                       , intent(in   ), optional :: compressionLevel
     type            (hdf5Object    )              , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(1)                          :: datasetDimensions          , hyperslabCount      , &
          &                                                                     hyperslabStart             , newDatasetDimensions, &
@@ -8471,8 +8487,8 @@ contains
     character       (len=*         )                , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:), intent(in   )           :: datasetValue
     logical                                         , intent(in   ), optional :: appendTo
-    integer                                         , intent(in   ), optional :: appendDimension             , chunkSize                  , &
-         &                                                                       compressionLevel
+    integer  (hsize_t       )                       , intent(in   ), optional :: chunkSize
+    integer                                         , intent(in   ), optional :: appendDimension             , compressionLevel
     type            (hdf5Object    )                , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(2)                            :: datasetDimensions           , hyperslabCount             , &
          &                                                                       hyperslabStart              , newDatasetDimensions       , &
@@ -9382,8 +9398,8 @@ contains
     character       (len=*         )                  , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:), intent(in   )           :: datasetValue
     logical                                           , intent(in   ), optional :: appendTo
-    integer                                           , intent(in   ), optional :: appendDimension             , chunkSize                  , &
-         &                                                                         compressionLevel
+    integer         (hsize_t       )                  , intent(in   ), optional :: chunkSize
+    integer                                           , intent(in   ), optional :: appendDimension             , compressionLevel
     type            (hdf5Object    )                  , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(3)                              :: datasetDimensions           , hyperslabCount             , &
          &                                                                         hyperslabStart              , newDatasetDimensions       , &
@@ -10133,8 +10149,8 @@ contains
     character       (len=*         )                    , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:), intent(in   )           :: datasetValue
     logical                                             , intent(in   ), optional :: appendTo
-    integer                                             , intent(in   ), optional :: appendDimension             , chunkSize                  , &
-         &                                                                           compressionLevel
+    integer         (hsize_t       )                    , intent(in   ), optional :: chunkSize
+    integer                                             , intent(in   ), optional :: appendDimension             , compressionLevel
     type            (hdf5Object    )                    , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(4)                                :: datasetDimensions           , hyperslabCount             , &
          &                                                                           hyperslabStart              , newDatasetDimensions       , &
@@ -10884,8 +10900,8 @@ contains
     character       (len=*         )                      , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:,:), intent(in   )           :: datasetValue
     logical                                               , intent(in   ), optional :: appendTo
-    integer                                               , intent(in   ), optional :: appendDimension             , chunkSize                  , &
-         &                                                                             compressionLevel
+    integer         (hsize_t       )                      , intent(in   ), optional :: chunkSize
+    integer                                               , intent(in   ), optional :: appendDimension             , compressionLevel
     type            (hdf5Object    )                      , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(5)                                  :: datasetDimensions           , hyperslabCount             , &
          &                                                                             hyperslabStart              , newDatasetDimensions       , &
@@ -11634,8 +11650,8 @@ contains
     character       (len=*         )                        , intent(in   ), optional :: commentText                 , datasetName
     double precision                , dimension(:,:,:,:,:,:), intent(in   )           :: datasetValue
     logical                                                 , intent(in   ), optional :: appendTo
-    integer                                                 , intent(in   ), optional :: appendDimension             , chunkSize                  , &
-         &                                                                               compressionLevel
+    integer         (hsize_t       )                        , intent(in   ), optional :: chunkSize
+    integer                                                 , intent(in   ), optional :: appendDimension             , compressionLevel
     type            (hdf5Object    )                        , intent(  out), optional :: datasetReturned
     integer         (kind=HSIZE_T  ), dimension(6)                                    :: datasetDimensions           , hyperslabCount             , &
          &                                                                               hyperslabStart              , newDatasetDimensions       , &
@@ -12384,7 +12400,8 @@ contains
     character(len=*         )              , intent(in   ), optional :: commentText                , datasetName
     character(len=*         ), dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
-    integer                                , intent(in   ), optional :: chunkSize                  , compressionLevel
+    integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
+    integer                                , intent(in   ), optional :: compressionLevel
     type     (hdf5Object    )              , intent(  out), optional :: datasetReturned
     integer  (kind=HSIZE_T  ), dimension(1)                          :: datasetDimensions          , hyperslabCount      , &
          &                                                              hyperslabStart             , newDatasetDimensions, &
@@ -12568,7 +12585,8 @@ contains
     character(len=*         )              , intent(in   ), optional :: commentText    , datasetName
     type     (varying_string), dimension(:), intent(in   )           :: datasetValue
     logical                                , intent(in   ), optional :: appendTo
-    integer                                , intent(in   ), optional :: chunkSize      , compressionLevel
+    integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
+    integer                                , intent(in   ), optional :: compressionLevel
     type     (hdf5Object    )              , intent(  out), optional :: datasetReturned
 
     ! Call the character version of this routine to perform the write.
@@ -14374,4 +14392,43 @@ contains
     return
   end function IO_HDF5_Is_HDF5
   
+  subroutine IO_HDF5_Deep_Copy(self,destination)
+    !% Make a deep copy of the object, with a new HDF5 object identifier.
+    use Galacticus_Error
+    implicit none
+    class(hdf5Object) , intent(in   ) :: self
+    type (hdf5Object) , intent(  out) :: destination
+
+    ! Get a new object ID.
+    if (self%isOpen()) then
+       select case (self%hdf5ObjectType)
+       case (hdf5ObjectTypeNull     )
+          ! Nothing to do in this case.
+       case (hdf5ObjectTypeFile     )
+          !# <conditionalCall>
+          !#  <call>call destination                  %openFile     (char(self%objectName),overWrite=.false.,readOnly=self%readOnly,objectsOverwritable=self%isOverwritable{conditions})</call>
+          !#  <argument name="compressionLevel" value="self%compressionLevel" condition="self%compressionLevelSet"/>
+          !#  <argument name="chunkSize"        value="self%chunkSize"        condition="self%chunkSizeSet"/>
+          !# </conditionalCall>
+       case (hdf5ObjectTypeGroup    )
+          !# <conditionalCall>
+          !#  <call>     destination=self%parentObject%openGroup    (char(self%objectName)                                         ,objectsOverwritable=self%isOverwritable{conditions})</call>
+          !#  <argument name="compressionLevel" value="self%compressionLevel" condition="self%compressionLevelSet"/>
+          !#  <argument name="chunkSize"        value="self%chunkSize"        condition="self%chunkSizeSet"/>
+          !# </conditionalCall>
+       case (hdf5ObjectTypeDataset  )
+          !# <conditionalCall>
+          !#  <call>     destination=self%parentObject%openDataset  (char(self%objectName)                                         ,     isOverwritable=self%isOverwritable{conditions})</call>
+          !#  <argument name="compressionLevel" value="self%compressionLevel" condition="self%compressionLevelSet"/>
+          !#  <argument name="chunkSize"        value="self%chunkSize"        condition="self%chunkSizeSet"/>
+          !# </conditionalCall>
+       case (hdf5ObjectTypeAttribute)
+          destination               =self%parentObject%openAttribute(char(self%objectName)                                         ,     isOverwritable=self%isOverwritable            )
+       case default
+          call Galacticus_Error_Report('unknown HDF5 object type'//{introspection:location})
+       end select
+    end if
+    return
+  end subroutine IO_HDF5_Deep_Copy
+
 end module IO_HDF5

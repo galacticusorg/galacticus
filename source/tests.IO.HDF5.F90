@@ -84,12 +84,12 @@ program Tests_IO_HDF5
      select case (iPass)
      case(1)
         call Unit_Tests_Begin_Group("Tests with chunking enabled")
-        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024&
+        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024_hsize_t&
              &,compressionLevel=9)
         appendableOK=.true.
      case (2)
         call Unit_Tests_Begin_Group("Tests with chunking disabled")
-        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=-1&
+        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=-1_hsize_t&
              &,compressionLevel=-1)
         appendableOK=.false.
      end select

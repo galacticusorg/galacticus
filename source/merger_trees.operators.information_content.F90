@@ -169,12 +169,13 @@ contains
 
   subroutine informationContentFinalize(self)
     !% Outputs tree information content function.
+    use HDF5           , only : hsize_t
     use IO_HDF5
     use Galacticus_HDF5
     implicit none
     class  (mergerTreeOperatorInformationContent), intent(inout) :: self
-    integer                                      , parameter     :: chunkSize              =1024
-    type   (hdf5Object                          )                :: informationContentGroup     , dataset
+    integer(hsize_t                             ), parameter     :: chunkSize              =1024_hsize_t
+    type   (hdf5Object                          )                :: informationContentGroup             , dataset
     logical                                                      :: preexisting
 
     ! Check if we have data to output.

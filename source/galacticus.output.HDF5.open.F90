@@ -37,12 +37,14 @@ contains
     use               Input_Parameters
     use               MPI_Utilities
     use               String_Handling
+    use               HDF5
     !# <include directive="outputFileOpenTask" type="moduleUse">
     include 'galacticus.output.open.modules.inc'
     !# </include>
     implicit none
-    integer         :: chunkSize         , sieveBufferSize
-    integer(size_t) :: cacheElementsCount, cacheSizeBytes
+    integer(hsize_t) :: chunkSize
+    integer          :: sieveBufferSize
+    integer(size_t ) :: cacheElementsCount, cacheSizeBytes
 
     if (.not.galacticusOutputFileIsOpen) then
        !# <inputParameter>
@@ -136,7 +138,7 @@ contains
        !# <inputParameter>
        !#   <name>hdf5ChunkSize</name>
        !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1024</defaultValue>
+       !#   <defaultValue>1024_hsize_t</defaultValue>
        !#   <description>The chunk size used for outputting HDF5 datasets.</description>
        !#   <group>output</group>
        !#   <source>globalParameters</source>
