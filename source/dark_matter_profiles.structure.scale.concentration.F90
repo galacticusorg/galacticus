@@ -38,7 +38,7 @@
      class           (darkMatterProfileClass                            ), pointer :: darkMatterProfile_                => null(), darkMatterProfileDefinition     => null()
      class           (virialDensityContrastClass                        ), pointer :: virialDensityContrast_            => null(), virialDensityContrastDefinition => null()
      class           (darkMatterProfileConcentrationClass               ), pointer :: darkMatterProfileConcentration_   => null()
-     type            (darkMatterHaloScaleVirialDensityContrastDefinition)          :: darkMatterHaloScaleDefinition
+     type            (darkMatterHaloScaleVirialDensityContrastDefinition), pointer :: darkMatterHaloScaleDefinition     => null()
      logical                                                                       :: correctForConcentrationDefinition          , useMeanConcentration
      double precision                                                              :: massRatioPrevious
    contains
@@ -111,7 +111,8 @@ contains
     logical                                           , intent(in   )         :: correctForConcentrationDefinition, useMeanConcentration
     !# <constructorAssign variables="correctForConcentrationDefinition, useMeanConcentration, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfile_, *virialDensityContrast_, *darkMatterProfileConcentration_"/>
 
-    ! Get definitions of virial density contrast and dark matter profile as used by the concentration definition,
+    ! Get definitions of virial density contrast and dark matter profile as used by the concentration definition.
+    allocate(self%darkMatterHaloScaleDefinition)
     self%virialDensityContrastDefinition => self%darkMatterProfileConcentration_%  densityContrastDefinition()
     self%darkMatterProfileDefinition     => self%darkMatterProfileConcentration_%darkMatterProfileDefinition()
     self%darkMatterHaloScaleDefinition   =  darkMatterHaloScaleVirialDensityContrastDefinition(                                      &
@@ -128,6 +129,7 @@ contains
     implicit none
     type(darkMatterProfileScaleRadiusConcentration), intent(inout) :: self
 
+    nullify(self%darkMatterHaloScaleDefinition)
     !# <objectDestructor name="self%cosmologyParameters_"           />
     !# <objectDestructor name="self%cosmologyFunctions_"            />
     !# <objectDestructor name="self%darkMatterHaloScale_"           />
