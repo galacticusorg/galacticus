@@ -20,7 +20,6 @@
 
   use Tables
   use Cosmology_Parameters
-  use Input_Parameters
   use File_Utilities
   use Dark_Matter_Particles
 
@@ -32,7 +31,6 @@
      private
      logical                                             :: initialized
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
-     type            (inputParameters         )          :: descriptor_
      double precision                                    :: wavenumberMaximum
      logical                                             :: wavenumberMaximumReached, lockFileGlobally
    contains
@@ -116,6 +114,7 @@ contains
     logical                            , intent(in   ), optional :: lockFileGlobally
     character(len=32                  )                          :: parameterLabel
     type     (varying_string          )                          :: uniqueLabel
+    type     (inputParameters         )                          :: descriptor
     !# <optionalArgument name="lockFileGlobally" defaultsTo=".true." />
     
     ! Require that the dark matter be cold dark matter.
@@ -131,16 +130,16 @@ contains
     ! Set cosmoogical parameters.
     self%cosmologyParameters_ => cosmologyParameters_
     ! Get a constructor descriptor for this object.
-    self%descriptor_=inputParameters()
-    call self%cosmologyParameters_%descriptor(self%descriptor_)
+    descriptor=inputParameters()
+    call self%cosmologyParameters_%descriptor(descriptor)
     ! Add primordial helium abundance to the descriptor.
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    call self%descriptor_%addParameter("Y_He",parameterLabel)
+    call descriptor%addParameter("Y_He",parameterLabel)
     ! Add the unique label string to the descriptor.
-    uniqueLabel=self%descriptor_%serializeToString()// &
+    uniqueLabel=descriptor%serializeToString()// &
          &      "_sourceDigest:"                    // &
          &      cambSourceDigest
-    call self%descriptor_%addParameter("uniqueLabel",char(uniqueLabel))
+    call descriptor%destroy()
     ! Generate the name of the data file.
     self%fileName=char(galacticusPath(pathTypeDataDynamic))                       // &
          &                           'largeScaleStructure/transfer_function_CAMB_'// &
