@@ -328,16 +328,6 @@ contains
        !#   <type>integer</type>
        !# </inputParameter>
 
-       ! Get rate (in units of halo inverse dynamical time) at which outflowed gas returns to the hot gas reservoir.
-       !# <inputParameter>
-       !#   <name>hotHaloOutflowReturnRate</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>5.0d0</defaultValue>
-       !#   <description>Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical time.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>double</type>
-       !# </inputParameter>
-
        ! Get efficiency with which outflowing gas is stripped from the hot halo.
        !# <inputParameter>
        !#   <name>hotHaloOutflowStrippingEfficiency</name>
@@ -1111,43 +1101,47 @@ contains
     use Node_Component_Hot_Halo_Standard_Data
     use Cosmology_Parameters
     use Hot_Halo_Mass_Distributions
+    use Hot_Halo_Outflows_Reincorporations
     implicit none
-    class           (nodeComponentHotHaloStandard), intent(inout)          :: self
-    logical                                       , intent(inout)          :: interrupt
-    procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
-    type            (treeNode                    )               , pointer :: node
-    class           (nodeComponentBasic          )               , pointer :: basic
-    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
-    class           (cosmologyParametersClass    )               , pointer :: cosmologyParameters_
-    class           (hotHaloMassDistributionClass)               , pointer :: hotHaloMassDistribution_
-    class           (chemicalStateClass          )               , pointer :: chemicalState_
-    double precision                                                       :: outflowedMass            , massReturnRate         , &
-         &                                                                    angularMomentumReturnRate, massToDensityConversion, &
-         &                                                                    hydrogenByMass           , temperature            , &
-         &                                                                    numberDensityHydrogen    , densityAtOuterRadius, radiusVirial, outerRadius, densityMinimum
-    type            (abundances                  ), save                   :: abundancesReturnRate     , outflowedAbundances
+    class           (nodeComponentHotHaloStandard      ), intent(inout)          :: self
+    logical                                             , intent(inout)          :: interrupt
+    procedure       (interruptTask                     ), intent(inout), pointer :: interruptProcedure
+    type            (treeNode                          )               , pointer :: node
+    class           (nodeComponentBasic                )               , pointer :: basic
+    class           (darkMatterHaloScaleClass          )               , pointer :: darkMatterHaloScale_
+    class           (cosmologyParametersClass          )               , pointer :: cosmologyParameters_
+    class           (hotHaloMassDistributionClass      )               , pointer :: hotHaloMassDistribution_
+    class           (hotHaloOutflowReincorporationClass)               , pointer :: hotHaloOutflowReincorporation_
+    class           (chemicalStateClass                )               , pointer :: chemicalState_
+    double precision                                                             :: outflowedMass                 , massReturnRate         , &
+         &                                                                          angularMomentumReturnRate     , massToDensityConversion, &
+         &                                                                          hydrogenByMass                , temperature            , &
+         &                                                                          numberDensityHydrogen         , densityAtOuterRadius, radiusVirial, outerRadius, densityMinimum
+    type            (abundances                        ), save                   :: abundancesReturnRate          , outflowedAbundances
     !$omp threadprivate(abundancesReturnRate,outflowedAbundances)
-    type            (chemicalAbundances          ), save                   :: chemicalDensities        , chemicalMasses           , &
-         &                                                                    chemicalMassesRates
+    type            (chemicalAbundances                ), save                   :: chemicalDensities             , chemicalMasses           , &
+         &                                                                          chemicalMassesRates
     !$omp threadprivate(chemicalDensities,chemicalMassesRates,chemicalMasses)
     
-    ! Get required objects.
-    darkMatterHaloScale_ => darkMatterHaloScale()
     ! Get the hosting node.
     node => self%hostNode
     ! Next tasks occur only for systems in which outflowed gas is being recycled.
     if (.not.(starveSatellites.or.starveSatellitesOutflowed).or..not.node%isSatellite()) then
-       darkMatterHaloScale_     => darkMatterHaloScale()
-       outflowedMass            =self%outflowedMass()
-       massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(node)
-       angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%dynamicalTimescale(node)
-       abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%dynamicalTimescale(node)
-       call self%           outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
-       call self%                    massRate(+           massReturnRate,interrupt,interruptProcedure)
-       call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
-       call self%         angularMomentumRate(+angularMomentumReturnRate,interrupt,interruptProcedure)
-       call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
-       call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
+       ! Get required objects.
+       darkMatterHaloScale_           => darkMatterHaloScale          ()
+       hotHaloOutflowReincorporation_ => hotHaloOutflowReincorporation()
+       outflowedMass =self                          %outflowedMass(    )
+       massReturnRate=hotHaloOutflowReincorporation_%rate         (node)
+       call self%              outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
+       call self%                       massRate(+           massReturnRate,interrupt,interruptProcedure)
+       if (outflowedMass /= 0.0d0) then
+          angularMomentumReturnRate=self%outflowedAngularMomentum()*massReturnRate/outflowedMass
+          abundancesReturnRate     =self%outflowedAbundances     ()*massReturnRate/outflowedMass
+          call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
+          call self%         angularMomentumRate(+angularMomentumReturnRate,interrupt,interruptProcedure)
+          call self%     outflowedAbundancesRate(-     abundancesReturnRate,interrupt,interruptProcedure)
+          call self%              abundancesRate(+     abundancesReturnRate,interrupt,interruptProcedure)
+       end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self                %outerRadius (    )
        radiusVirial=darkMatterHaloScale_%virialRadius(node)
