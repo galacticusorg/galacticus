@@ -360,14 +360,16 @@ contains
           ! Compute the start and length of regions to reference.
           !$ call hdf5Access%set()
           referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
-          if      (allocated(self%integerPropertyNames)) then
+          if      (allocated(self%integerPropertyNames).and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerPropertyNames(1))) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerPropertyNames(1))
-          else if (allocated(self% doublePropertyNames)) then
+             referenceStart(1)=toDataset%size(1)-referenceLength(1)
+          else if (allocated(self% doublePropertyNames).and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self% doublePropertyNames(1))) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doublePropertyNames(1))
+             referenceStart(1)=toDataset%size(1)-referenceLength(1)
           else
-             call Galacticus_Error_Report('unable to determine starting point for tree output'//{introspection:location})
+             ! Datasets do not yet exist therefore the start reference must be zero.
+             referenceStart(1)=0
           end if
-          referenceStart(1)=toDataset%size(1)-referenceLength(1)
           call toDataset%close()
           ! Create references to the datasets if requested.
           if (self%outputReferences) then
