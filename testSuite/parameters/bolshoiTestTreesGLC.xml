@@ -114,7 +114,10 @@
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
-  <hotHaloOutflowReturnRate value="1.26"/>
+  <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="1.26"/>
+  </hotHaloOutflowReincorporationMethod>
+
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingRadiusMethod value="simple"/>
   <coolingRateMethod value="whiteFrenk1991">

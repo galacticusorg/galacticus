@@ -522,6 +522,7 @@ my @translations =
 		 "Creasey2012"               => "creasey2012"
 	     }
 	 }
+	     "hotHaloOutflowReturnRate"                                  => "hotHaloOutflowReincorporationMethod.haloDynamicalTime.--multiplier"
     }
     );
 
