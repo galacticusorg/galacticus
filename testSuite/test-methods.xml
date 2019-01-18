@@ -155,7 +155,9 @@
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
-      <allTreesExistAtFinalTime value="false" parameterLevel="top"/>
+      <mergerTreeEvolverMethod value="standard" parameterLevel="top">
+	<allTreesExistAtFinalTime value="false"/>
+      </mergerTreeEvolverMethod>
       <treeNodeMethodPosition value="preset" parameterLevel="top"/>
       <presetMergerTimes value="true"/>
       <presetPositions value="true"/>
@@ -238,6 +240,7 @@
     </transferFunctionMethod>
     <transferFunctionMethod value="BBKS"/>
     <transferFunctionMethod value="CAMB">
+      <lockFileGlobally value="true"/>
       <cosmologicalMassVarianceMethod value="filteredPower" parameterLevel="top">
  	<tolerance value="3.0e-4"/>
  	<toleranceTopHat value="3.0e-4"/>
@@ -1331,6 +1334,7 @@
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeConstructorMethod value="read">
@@ -1377,23 +1381,24 @@
   
   <!-- Merger tree monotonize mass growth -->
   <parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeConstructorMethod value="read">
-  <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
-    <presetMergerTimes value="false"/>
-    <presetMergerNodes value="false"/>
-    <presetSubhaloMasses value="false"/>
-    <presetSubhaloIndices value="false"/>
-    <presetPositions value="false"/>
-    <presetScaleRadii value="false"/>
-    <presetSpins value="false"/>
-    <presetOrbits value="false"/>
-  </mergerTreeConstructorMethod>
+      <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
+      <presetMergerTimes value="false"/>
+      <presetMergerNodes value="false"/>
+      <presetSubhaloMasses value="false"/>
+      <presetSubhaloIndices value="false"/>
+      <presetPositions value="false"/>
+      <presetScaleRadii value="false"/>
+      <presetSpins value="false"/>
+      <presetOrbits value="false"/>
+    </mergerTreeConstructorMethod>
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
     </cosmologicalMassVarianceMethod>
@@ -1405,10 +1410,10 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
     <mergerTreeEvolverMethod value="standard">
-    <allTreesExistAtFinalTime value="false"/>
-  </mergerTreeEvolverMethod>
+      <allTreesExistAtFinalTime value="false"/>
+    </mergerTreeEvolverMethod>
 
-  <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
+    <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
     <treeNodeMethodDarkMatterProfile value="null"/>
@@ -1427,6 +1432,7 @@
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <cosmologicalMassVarianceMethod value="filteredPower">
