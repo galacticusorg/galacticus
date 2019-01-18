@@ -129,7 +129,7 @@ contains
     !GCC$ attributes unused :: odeConverged, propertyType
 
     ! Do not compute rates if this component is not active.
-    if (.not.defaultDynamicsStatisticsComponent%barsIsActive()) return
+    if (.not.defaultDynamicsStatisticsComponent%barsIsActive().or..not.node%isSatellite()) return
     ! Determine the allowed timestep.
     dynamicsStatistics => node%dynamicsStatistics()
     select type (dynamicsStatistics)
