@@ -783,6 +783,19 @@ CODE
 					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 				    }
 				};
+				# Deep copy of HDF5 objects.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
+				    ) {
+					$deepCopyModules{'IO_HDF5'} = 1;
+					$assignments .= "!\$ call hdf5Access%set  ()\n";
+					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
+					    foreach ( @{$declaration->{'variables'}} );
+					$assignments .= "!\$ call hdf5Access%unset()\n";
+				}
 				# Deep copy of non-(class,pointer) functionClass objects.
 				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
 				    foreach my $object ( @{$declaration->{'variables'}} ) {
@@ -898,6 +911,19 @@ CODE
 				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 			    }
+		    }
+		    # Deep copy of HDF5 objects.
+		    if
+			(
+			 $declaration->{'intrinsic'} eq "type"
+			 &&
+			 $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
+			) {
+			    $deepCopyModules{'IO_HDF5'} = 1;
+			    $assignments .= "!\$ call hdf5Access%set  ()\n";
+			    $assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
+				foreach ( @{$declaration->{'variables'}} );
+			    $assignments .= "!\$ call hdf5Access%unset()\n";
 		    }
 		    # Deep copy of non-(class,pointer) functionClass objects.
 		    if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {

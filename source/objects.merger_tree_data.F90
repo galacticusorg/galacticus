@@ -1539,7 +1539,7 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    integer  (kind=size_t   ), intent(in   )           :: hdfChunkSize
+    integer  (kind=hsize_t  ), intent(in   )           :: hdfChunkSize
     integer                  , intent(in   )           :: hdfCompressionLevel, outputFormat
     class    (mergerTreeData), intent(inout)           :: mergerTrees
     character(len=*         ), intent(in   )           :: outputFileName
@@ -1572,7 +1572,7 @@ contains
     use File_Utilities
     use Galacticus_Error
     implicit none
-    integer  (kind=size_t  )                            , intent(in   ) :: hdfChunkSize
+    integer  (kind=hsize_t )                            , intent(in   ) :: hdfChunkSize
     integer                                             , intent(in   ) :: hdfCompressionLevel
     class    (mergerTreeData)                           , intent(inout) :: mergerTrees
     character(len=*         )                           , intent(in   ) :: outputFileName
@@ -1849,7 +1849,7 @@ contains
     use Array_Utilities
     use File_Utilities
     implicit none
-    integer         (kind=size_t   )                           , intent(in   ) ::        hdfChunkSize
+    integer         (kind=hsize_t  )                           , intent(in   ) ::        hdfChunkSize
     integer                                                    , intent(in   ) ::        hdfCompressionLevel
     class           (mergerTreeData)                           , intent(inout) ::        mergerTrees
     character       (len=*         )                           , intent(in   ) ::        outputFileName

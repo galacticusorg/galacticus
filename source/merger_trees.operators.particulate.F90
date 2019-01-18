@@ -28,6 +28,7 @@
   use Kind_Numbers
   use Tables
   use Input_Parameters
+  use HDF5                   , only : hsize_t
   use Galacticus_Nodes       , only : treeNode
 
   !# <mergerTreeOperator name="mergerTreeOperatorParticulate" defaultThreadPrivate="yes">
@@ -48,8 +49,8 @@
           &                                                 positionOffset      , addHubbleFlow                    , &
           &                                                 haloIdToParticleType, sampleParticleNumber             , &
           &                                                 subtractRandomOffset
-     integer                                             :: selection           , kernelSoftening                  , &
-          &                                                 chunkSize
+     integer                                             :: selection           , kernelSoftening
+     integer         (hsize_t                 )          :: chunkSize
      integer         (kind_int8               )          :: idMultiplier
      ! Pointer to the parameters for this task.
      type            (inputParameters         )          :: parameters
