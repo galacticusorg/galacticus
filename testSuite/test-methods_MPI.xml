@@ -49,7 +49,9 @@
       <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
       <treeNodeMethodSatellite value="preset" parameterLevel="top"/>
       <treeNodeMethodPosition value="preset" parameterLevel="top"/>
-      <allTreesExistAtFinalTime value="false" parameterLevel="top"/>
+      <mergerTreeEvolverMethod value="standard" parameterLevel="top">
+	<allTreesExistAtFinalTime value="false"/>
+      </mergerTreeEvolverMethod>
     </mergerTreeConstructorMethod>    
     <cosmologyParametersMethod value="simple">
       <HubbleConstant value="73.0"/>
