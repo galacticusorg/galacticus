@@ -26,7 +26,7 @@ module Hot_Halo_Outflows_Reincorporations
   !#  <name>hotHaloOutflowReincorporation</name>
   !#  <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
   !#  <description>Class implementing reincorportation of outflowed mass into the hot halo.</description>
-  !#  <default>zero</default>
+  !#  <default>haloDynamicalTime</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="rate" >
