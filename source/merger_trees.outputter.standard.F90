@@ -364,14 +364,15 @@ contains
           if      (allocated(self%integerPropertyNames).and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerPropertyNames(1))) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerPropertyNames(1))
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
+             call toDataset%close()
           else if (allocated(self% doublePropertyNames).and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self% doublePropertyNames(1))) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doublePropertyNames(1))
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
+             call toDataset%close()
           else
              ! Datasets do not yet exist therefore the start reference must be zero.
              referenceStart(1)=0
           end if
-          call toDataset%close()
           ! Create references to the datasets if requested.
           if (self%outputReferences) then
              ! Ensure that a group has been made for this merger tree.
