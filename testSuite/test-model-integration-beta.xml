@@ -101,7 +101,7 @@
   </mergerTreeBuildMassDistributionMethod>
   
   <!-- Merger tree operators -->
-  <mergerTreePruneBaryons value="true"/>
+  <mergerTreeOperatorMethod value="pruneBaryons"/>
   
   <!-- Merger tree halo hierarchy -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
