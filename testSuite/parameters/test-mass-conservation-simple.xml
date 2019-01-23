@@ -122,7 +122,7 @@
     <mergerTreeOutputterMethod value="standard">
       <outputReferences value="false"/>
     </mergerTreeOutputterMethod>
-    <mergerTreePruneBaryons value="true"/>
+    <mergerTreeOperatorMethod value="pruneBaryons"/>
     <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
       <G0 value="+0.570"/>
       <gamma1 value="+0.380"/>
