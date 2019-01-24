@@ -1300,21 +1300,26 @@ contains
     class           (starFormationTimescaleDisksClass), pointer       :: starFormationTimescaleDisks_
     double precision                                                  :: gasMass                     , starFormationTimescale
 
-    ! Get the associated node.
-    node => self%host()
-
-    ! Get the star formation timescale.
-    starFormationTimescaleDisks_ => starFormationTimescaleDisks           (    )
-    starFormationTimescale       =  starFormationTimescaleDisks_%timescale(node)
-
-    ! Get the gas mass.
-    gasMass=self%massGas()
-
-    ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (diskStarFormationInSatellites .or. .not.node%isSatellite())) then
-       Node_Component_Disk_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
-    else
+    ! Check for a realistic disk, return zero star formation rate if disk is unphysical.
+    if     (     self%angularMomentum() < 0.0d0 &
+         &  .or. self%radius         () < 0.0d0 &
+         &  .or. self%massGas        () < 0.0d0 &
+         & ) then
        Node_Component_Disk_Standard_Star_Formation_Rate=0.0d0
+    else
+       ! Get the associated node.
+       node => self%host()
+       ! Get the star formation timescale.
+       starFormationTimescaleDisks_ => starFormationTimescaleDisks           (    )
+       starFormationTimescale       =  starFormationTimescaleDisks_%timescale(node)
+       ! Get the gas mass.
+       gasMass=self%massGas()
+       ! If timescale is finite and gas mass is positive, then compute star formation rate.
+       if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (diskStarFormationInSatellites .or. .not.node%isSatellite())) then
+          Node_Component_Disk_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
+       else
+          Node_Component_Disk_Standard_Star_Formation_Rate=0.0d0
+       end if
     end if
     return
   end function Node_Component_Disk_Standard_Star_Formation_Rate
