@@ -172,30 +172,6 @@ sub Process_FunctionClass {
 		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self','node') )
 		};
 	    }
-	    # Add "isDefault" method.
-	    $methods{'isDefault'} = 
-	    {
-		description => "Return true if this is the default object of this class.",
-		type        => "logical",
-		pass        => "yes",
-		code        => $directive->{'name'}."isDefault=self%isDefaultOfClass\n"
-	    };
-	    # Add "isFinalizable" method.
-	    $methods{'isFinalizable'} = 
-	    {
-		description => "Return true if this object can be finalized.",
-		type        => "logical",
-		pass        => "yes",
-		code        => $directive->{'name'}."isFinalizable=.not.self%isIndestructible\n"
-	    };
-	    # Add "makeIndestructible" method.
-	    $methods{'makeIndestructible'} = 
-	    {
-		description => "Make this object non-finalizable.",
-		type        => "void",
-		pass        => "yes",
-		code        => "self%isIndestructible=.true.\n"
-	    };
 	    # Add auto-hook function if required.
 	    $methods{'autoHook'} = 
 	    {
@@ -1564,25 +1540,29 @@ CODE
 	    # Generate the base class.
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."Class","public");
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}        ,"public");
-	    $preContains->[0]->{'content'} .= "   type :: ".$directive->{'name'}."Class\n";
+	    $preContains->[0]->{'content'} .= "   type, extends(functionClass) :: ".$directive->{'name'}."Class\n";
 	    $preContains->[0]->{'content'} .= "    private\n";
-	    $preContains->[0]->{'content'} .= "    logical :: isIndestructible=.false., isDefaultOfClass=.false.\n";
+	    my $usesNode =
+	    {
+		type      => "moduleUse",
+		moduleUse =>
+		{
+		    Function_Classes =>
+		    {
+			intrinsic => 0,
+			all       => 1
+		    }
+		}
+	    };
             if ( $directive->{'stateful'} eq "yes" ) {
 		$preContains->[0]->{'content'} .= "    integer(c_size_t) :: stateOperationID=0\n";
-		my $usesNode =
+		$usesNode->{'moduleUse'}->{'ISO_C_Binding'} =
 		{
-		    type      => "moduleUse",
-		    moduleUse =>
-		    {
-			ISO_C_Binding =>
-			{
-			    intrinsic => 1,
-			    all       => 1
-			}
-		    }
+		    intrinsic => 1,
+		    all       => 1
 		};
-		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
             }
+            &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    foreach ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
 		if ( reftype($_) ) {
 		    $_->{'scope'} = "self"
@@ -1738,7 +1718,7 @@ CODE
 	    # Add method name parameter.
 	    $preContains->[0]->{'content'} .= "   ! Method name parameter.\n";
 	    $preContains->[0]->{'content'} .= "   type(varying_string) :: ".$directive->{'name'}."Method\n\n";
-	    my $usesNode =
+	    my $nameUsesNode =
 	    {
 		type      => "moduleUse",
 		moduleUse =>
@@ -1750,7 +1730,7 @@ CODE
 		    }
 		}
 	    };
-	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$nameUsesNode);
 	    if ( $tree->{'type'} eq "file" ) {
 		(my $fileName = $tree->{'name'}) =~ s/\.F90$/.p/;
 		open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);

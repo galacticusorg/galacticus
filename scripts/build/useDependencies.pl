@@ -124,6 +124,9 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    &List::ExtraUtils::smart_push(\@fileNamesToProcess,$locations->{$functionClass->{'name'}}->{'file'});
 	}
     }
+    # Add dependence on functionClass module if necessary.
+    push(@modulesUsed,$workDirectoryName."function_classes.mod")
+	if ( scalar(@{$directives->{'functionClass'}}) > 0 );
     # Add dependence on input parameters module if necessary.
     push(@modulesUsed,$workDirectoryName."input_parameters.mod")
 	if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );
