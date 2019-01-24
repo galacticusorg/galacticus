@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,75 +17,84 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a very simple model of mass movements during satellite mergers.
+  !% Implements a merger mass movements class which uses a simple calculation.
+  
+  !# <mergerMassMovements name="mergerMassMovementsVerySimple">
+  !#  <description>A merger mass movements class which uses a simple calculation.</description>
+  !# </mergerMassMovements>
+  type, extends(mergerMassMovementsClass) :: mergerMassMovementsVerySimple
+     !% A merger mass movements class which uses a simple calculation.
+     private
+     double precision :: massRatioMajorMerger
+   contains
+     procedure :: get => verySimpleGet
+  end type mergerMassMovementsVerySimple
 
-module Satellite_Merging_Mass_Movements_Very_Simple
-  !% Implements a very simple model of mass movements during satellite mergers.
-  use Satellite_Merging_Mass_Movements_Descriptors
-  implicit none
-  private
-  public :: Satellite_Merging_Mass_Movements_Very_Simple_Initialize
-
-  ! Mass ratio above which a merger is considered to be "major".
-  double precision :: majorMergerMassRatio
+  interface mergerMassMovementsVerySimple
+     !% Constructors for the {\normalfont \ttfamily verySimple} merger mass movements class.
+     module procedure verySimpleConstructorParameters
+     module procedure verySimpleConstructorInternal
+  end interface mergerMassMovementsVerySimple
 
 contains
 
-  !# <satelliteMergingMassMovementsMethod>
-  !#  <unitName>Satellite_Merging_Mass_Movements_Very_Simple_Initialize</unitName>
-  !# </satelliteMergingMassMovementsMethod>
-  subroutine Satellite_Merging_Mass_Movements_Very_Simple_Initialize(satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function verySimpleConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily verySimple} merger mass movements class which takes a parameter list as input.
     use Input_Parameters
     implicit none
-    type     (varying_string                             ), intent(in   )          :: satelliteMergingMassMovementsMethod
-    procedure(Satellite_Merging_Mass_Movement_Very_Simple), intent(inout), pointer :: Satellite_Merging_Mass_Movement_Get
+    type            (mergerMassMovementsVerySimple)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    double precision                                               :: massRatioMajorMerger
 
-    if (satelliteMergingMassMovementsMethod == 'verySimple') then
-       Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Very_Simple
-       !# <inputParameter>
-       !#   <name>majorMergerMassRatio</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The mass ratio above which mergers are considered to be ``major'' in the very simple merger mass movements method.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    !# <inputParameter>
+    !#   <name>massRatioMajorMerger</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.25d0</defaultValue>
+    !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=mergerMassMovementsVerySimple(massRatioMajorMerger)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Satellite_Merging_Mass_Movements_Very_Simple_Initialize
+  end function verySimpleConstructorParameters
 
-  subroutine Satellite_Merging_Mass_Movement_Very_Simple(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
-    !% Determine where stars and gas move as the result of a merger event using a simple algorithm.
-    use Galacticus_Nodes
+  function verySimpleConstructorInternal(massRatioMajorMerger) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily verySimple} merger mass movements.
+    implicit none
+    type            (mergerMassMovementsVerySimple)                :: self
+    double precision                               , intent(in   ) :: massRatioMajorMerger
+    !# <constructorAssign variables="massRatioMajorMerger"/>
+    
+    return
+  end function verySimpleConstructorInternal
+
+  subroutine verySimpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+    !% Determine where stars and gas move as the result of a merger event using a very simple algorithm.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
-    integer                   , intent(  out) :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
-    logical                   , intent(  out) :: mergerIsMajor
-    type            (treeNode), pointer       :: hostNode
-    double precision                          :: hostMass     , satelliteMass
-    
-    ! Determine if this merger is considered major.
-    if      (majorMergerMassRatio <= 0.0d0) then
+    class           (mergerMassMovementsVerySimple), intent(inout) :: self
+    type            (treeNode                     ), intent(inout) :: node
+    integer                                        , intent(  out) :: destinationGasSatellite, destinationGasHost       , &
+         &                                                            destinationStarsHost   , destinationStarsSatellite
+    logical                                        , intent(  out) :: mergerIsMajor
+    type            (treeNode                     ), pointer       :: nodeHost
+    double precision                                               :: massHost               , massSatellite
+
+    if      (self%massRatioMajorMerger <= 0.0d0) then
        mergerIsMajor=.true.
-    else if (majorMergerMassRatio >  1.0d0) then
+    else if (self%massRatioMajorMerger >  1.0d0) then
        mergerIsMajor=.false.
     else
-       ! Find the node to merge with.
-       hostNode => thisNode%mergesWith()
-       ! Find the baryonic masses of the two galaxies.
-       satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)
-       hostMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic)    
-       mergerIsMajor=satelliteMass >= majorMergerMassRatio*hostMass
+       nodeHost      => node%mergesWith()
+       massSatellite =  Galactic_Structure_Enclosed_Mass(node    ,massType=massTypeGalactic)
+       massHost      =  Galactic_Structure_Enclosed_Mass(nodeHost,massType=massTypeGalactic)    
+       mergerIsMajor =  massSatellite >= self%massRatioMajorMerger*massHost
     end if
-    gasMovesTo     =movesToDisk
-    starsMoveTo    =movesToDisk
-    hostGasMovesTo =doesNotMove
-    hostStarsMoveTo=doesNotMove
+    destinationGasSatellite  =destinationMergerDisk
+    destinationStarsSatellite=destinationMergerDisk
+    destinationGasHost       =destinationMergerUnmoved
+    destinationStarsHost     =destinationMergerUnmoved
     return
-  end subroutine Satellite_Merging_Mass_Movement_Very_Simple
-
-end module Satellite_Merging_Mass_Movements_Very_Simple
+  end subroutine verySimpleGet

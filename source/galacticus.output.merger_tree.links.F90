@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,62 +48,22 @@ contains
     !GCC$ attributes unused :: thisNode, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time
     
     integerProperty=integerProperty+1
-    !@ <outputProperty>
-    !@   <name>nodeIndex</name>
-    !@   <datatype>integer</datatype>
-    !@   <cardinality>0..1</cardinality>
-    !@   <description>Tree-unique ID for this node.</description>
-    !@   <label>???</label>
-    !@   <outputType>nodeData</outputType>
-    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='nodeIndex'
     integerPropertyComments(integerProperty)='Tree-unique ID for this node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
-    !@ <outputProperty>
-    !@   <name>parentIndex</name>
-    !@   <datatype>integer</datatype>
-    !@   <cardinality>0..1</cardinality>
-    !@   <description>ID of parent node.</description>
-    !@   <label>???</label>
-    !@   <outputType>nodeData</outputType>
-    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='parentIndex'
     integerPropertyComments(integerProperty)='ID of parent node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
-    !@ <outputProperty>
-    !@   <name>siblingIndex</name>
-    !@   <datatype>integer</datatype>
-    !@   <cardinality>0..1</cardinality>
-    !@   <description>ID of sibling node.</description>
-    !@   <label>???</label>
-    !@   <outputType>nodeData</outputType>
-    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='siblingIndex'
     integerPropertyComments(integerProperty)='ID of sibling node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
-    !@ <outputProperty>
-    !@   <name>satelliteIndex</name>
-    !@   <datatype>integer</datatype>
-    !@   <cardinality>0..1</cardinality>
-    !@   <description>ID of first satellite node.</description>
-    !@   <label>???</label>
-    !@   <outputType>nodeData</outputType>
-    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='satelliteIndex'
     integerPropertyComments(integerProperty)='ID of first satellite node.'
     integerPropertyUnitsSI (integerProperty)=0.0d0
     integerProperty=integerProperty+1
-    !@ <outputProperty>
-    !@   <name>nodeIsIsolated</name>
-    !@   <datatype>integer</datatype>
-    !@   <cardinality>0..1</cardinality>
-    !@   <description>Is the node isolated (0|1)?</description>
-    !@   <label>???</label>
-    !@   <outputType>nodeData</outputType>
-    !@ </outputProperty>
     integerPropertyNames   (integerProperty)='nodeIsIsolated'
     integerPropertyComments(integerProperty)='Is the node isolated (0|1)?'
     integerPropertyUnitsSI (integerProperty)=0.0d0

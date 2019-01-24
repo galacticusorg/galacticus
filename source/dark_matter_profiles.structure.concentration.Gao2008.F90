@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,9 +86,10 @@ contains
   double precision function gao2008Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{gao_redshift_2008}
     !% algorithm.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationGao2008), intent(inout), target  :: self
-    type            (treeNode                             ), intent(inout), pointer :: node
+    type            (treeNode                             ), intent(inout), target  :: node
     class           (nodeComponentBasic                   )               , pointer :: basic
     double precision                                       , parameter              :: littleHubbleConstantGao2008=0.73d0
     double precision                                                                :: logarithmExpansionFactor          , logarithmHaloMass, &

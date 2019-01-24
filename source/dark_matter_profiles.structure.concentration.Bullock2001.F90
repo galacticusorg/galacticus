@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -121,9 +122,10 @@ contains
     !% using the \cite{bullock_profiles_2001} algorithm.
     use Virial_Density_Contrast
     use Dark_Matter_Profile_Mass_Definitions
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationBullock2001), intent(inout), target  :: self
-    type            (treeNode                                 ), intent(inout), pointer :: node
+    type            (treeNode                                 ), intent(inout), target  :: node
     class           (virialDensityContrastClass               ), pointer                :: virialDensityContrast_
     class           (nodeComponentBasic                       )               , pointer :: basic
     double precision                                                                    :: massHalo              , massHaloFormation       , &

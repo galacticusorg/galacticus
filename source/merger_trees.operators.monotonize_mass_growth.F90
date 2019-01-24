@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,6 +65,7 @@ contains
 
   subroutine monotonizeMassGrowthOperate(self,tree)
     !% Perform a mass growth monotonizing operation on a merger tree.
+    use Galacticus_Nodes   , only : treeNode, nodeComponentBasic
     use Merger_Tree_Walkers
     implicit none
     class           (mergerTreeOperatorMonotonizeMassGrowth), intent(inout), target :: self

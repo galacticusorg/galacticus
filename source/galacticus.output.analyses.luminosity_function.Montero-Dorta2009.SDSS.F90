@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,6 +45,7 @@ contains
     type            (outputAnalysisLuminosityFunctionMonteroDorta2009SDSS)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                           ), pointer                     :: gravitationalLensing_
     double precision                                                      , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                             :: covarianceBinomialBinsPerDecade
@@ -146,14 +148,15 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionMonteroDorta2009SDSS(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band)
+    self=outputAnalysisLuminosityFunctionMonteroDorta2009SDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band)
     !# <inputParametersValidate source="parameters"/>
     return
   end function luminosityFunctionMonteroDorta2009SDSSConstructorParameters
 
-  function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
+  function luminosityFunctionMonteroDorta2009SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band) result (self)
     !% Constructor for the ``luminosityFunctionMonteroDorta2009SDSS'' output analysis class for internal use.
     use Input_Parameters
     use Galacticus_Paths
@@ -163,6 +166,7 @@ contains
     implicit none
     type            (outputAnalysisLuminosityFunctionMonteroDorta2009SDSS)                              :: self
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), intent(in   ), target       :: outputTimes_
     class           (gravitationalLensingClass                           ), intent(in   ), target       :: gravitationalLensing_
     double precision                                                      , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
          &                                                                                                 sizeSourceLensing
@@ -231,6 +235,7 @@ contains
     allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
     outputAnalysisDistributionOperatorGrvtnlLnsng_       =  outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &
          &                                                                                                       gravitationalLensing_           , &
+         &                                                                                                       outputTimes_                    , &
          &                                                                                                       sizeSourceLensing                 &
          &                                                                                                      )
     ! Construct sequence distribution operator.
@@ -243,23 +248,24 @@ contains
          &                                                                                                       distributionOperatorSequence      &
          &                                                                                                      )
     ! Build the object.
-    self%outputAnalysisLuminosityFunction=                                                                                                                                              &
-         & outputAnalysisLuminosityFunction(                                                                                                                                            &
-         &                                               var_str('MonteroDorta2009SDSS'//band                                                        )                                , &
-         &                                               var_str(band//'-band luminosity function for the Montero-Dorta & Prada (2009) SDSS analysis')                                , &
+    self%outputAnalysisLuminosityFunction=                                                                                                                                                    &
+         & outputAnalysisLuminosityFunction(                                                                                                                                                  &
+         &                                               var_str('MonteroDorta2009SDSS'//band                                                        )                                      , &
+         &                                               var_str(band//'-band luminosity function for the Montero-Dorta & Prada (2009) SDSS analysis')                                      , &
          &                                               char(galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/'//band//'LuminosityFunctionMonteroDorta2009SDSS.hdf5'), &
-         &                                               galacticFilter_                                                                                                              , &
-         &                                               surveyGeometry_                                                                                                              , &
-         &                                               cosmologyFunctions_                                                                                                          , &
-         &                                               cosmologyFunctionsData                                                                                                       , &
-         &                                               outputAnalysisPropertyOperator_                                                                                              , &
-         &                                               outputAnalysisDistributionOperator_                                                                                          , &
-         &                                               covarianceBinomialBinsPerDecade                                                                                              , &
-         &                                               covarianceBinomialMassHaloMinimum                                                                                            , &
-         &                                               covarianceBinomialMassHaloMaximum                                                                                            , &
-         &                                  filterName  ='SDSS_'//band                                                                                                                , &
-         &                                  filterType  ='observed'                                                                                                                   , &
-         &                                  redshiftBand=0.1d0                                                                                                                          &
+         &                                               galacticFilter_                                                                                                                    , &
+         &                                               surveyGeometry_                                                                                                                    , &
+         &                                               cosmologyFunctions_                                                                                                                , &
+         &                                               cosmologyFunctionsData                                                                                                             , &
+         &                                               outputAnalysisPropertyOperator_                                                                                                    , &
+         &                                               outputAnalysisDistributionOperator_                                                                                                , &
+         &                                               outputTimes_                                                                                                                       , &
+         &                                               covarianceBinomialBinsPerDecade                                                                                                    , &
+         &                                               covarianceBinomialMassHaloMinimum                                                                                                  , &
+         &                                               covarianceBinomialMassHaloMaximum                                                                                                  , &
+         &                                  filterName  ='SDSS_'//band                                                                                                                      , &
+         &                                  filterType  ='observed'                                                                                                                         , &
+         &                                  redshiftBand=0.1d0                                                                                                                                &
          &                                 )
     ! Clean up.
     nullify(surveyGeometry_                                     )

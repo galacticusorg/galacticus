@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Contains a module which implements a depth-first merger tree walker over all all nodes.
-  
+  use Galacticus_Nodes, only : mergerTree, treeNode
+
   !# <mergerTreeWalker name="mergerTreeWalkerAllNodes">
   !#  <description>Provides a merger tree walker which iterates depth-first over all all nodes.</description>
   !# </mergerTreeWalker>

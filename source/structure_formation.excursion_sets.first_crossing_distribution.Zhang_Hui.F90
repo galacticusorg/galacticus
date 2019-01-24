@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +20,7 @@
   !% Contains a module which implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
   
   use Excursion_Sets_Barriers
-  use FGSL
+  use FGSL                   , only : fgsl_interp_accel
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui">
   !#  <description>An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.</description>
@@ -363,7 +364,7 @@ contains
 
   double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
     !% Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     use Numerical_Comparison
     use Numerical_Integration
     implicit none

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,14 +84,6 @@ contains
     ! Return property names if we are outputting velocityMaximum data.
     if (outputVelocityMaximumData) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>darkMatterProfileVelocityMaximum</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Maximum rotation velocity of the dark matter profile [km/s].</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='darkMatterProfileVelocityMaximum'
        doublePropertyComments(doubleProperty)='Maximum rotation velocity of the dark matter profile [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo

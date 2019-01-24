@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -250,6 +251,7 @@ contains
     ! Construct the object.
     squareConstructorParameters=geometryLightconeSquare(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function squareConstructorParameters
 
@@ -397,14 +399,14 @@ contains
     implicit none
     type(geometryLightconeSquare), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine squareDestructor
 
   function squareReplicationCount(self,node)
     !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition
     use               Arrays_Search
     implicit none
     integer(c_size_t               )                :: squareReplicationCount
@@ -431,6 +433,8 @@ contains
     use               Vectors
     use               Numerical_Comparison
     use               Memory_Management
+    use               Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition, nodeComponentSatellite, defaultSatelliteComponent, &
+         &                                         defaultPositionComponent
     implicit none
     class           (geometryLightconeSquare), intent(inout)               :: self
     type            (treeNode               ), intent(inout)               :: node
@@ -613,6 +617,7 @@ contains
     use               String_Handling
     use               Numerical_Comparison
     use               Galacticus_Error
+    use               Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentPosition
     implicit none
     double precision                         , dimension(3)  :: squarePosition
     class           (geometryLightconeSquare), intent(inout) :: self
@@ -644,6 +649,7 @@ contains
 
   function squareVelocity(self,node,instance)
     !% Return the velocity of the node in lightcone coordinates.
+    use Galacticus_Nodes, only : nodeComponentPosition
     implicit none
     double precision                         , dimension(3)  :: squarevelocity
     class           (geometryLightconeSquare), intent(inout) :: self
@@ -665,7 +671,6 @@ contains
   subroutine squareReplicants(self,output,nodePosition,action,count,isInLightcone,radiusBuffer,instance,position)
     !% Compute quantities related to the number of replicants in which a node appears.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
     use               Vectors
     use               Galacticus_Error
     implicit none

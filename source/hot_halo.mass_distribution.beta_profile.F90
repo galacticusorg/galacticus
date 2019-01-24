@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,6 +64,7 @@ contains
     use Galacticus_Error
     use Array_Utilities
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (hotHaloMassDistributionBetaProfile    )                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -132,6 +134,7 @@ contains
 
   subroutine betaProfileInitialize(self,node)
     !% Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class           (hotHaloMassDistributionBetaProfile    ), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -189,6 +192,7 @@ contains
   
   double precision function betaProfileEnclosedMass(self,node,radius)
     !% Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
     type            (treeNode                          ), intent(inout), target  :: node
@@ -207,6 +211,7 @@ contains
   
   double precision function betaProfileRadialMoment(self,node,moment,radius)
     !% Return the radial moment of the density profile of the hot halo to the given {\normalfont \ttfamily radius}.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
@@ -233,6 +238,7 @@ contains
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class(hotHaloMassDistributionBetaProfile), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node

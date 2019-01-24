@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,6 +45,7 @@ contains
     type            (outputAnalysisMassFunctionHIALFALFAMartin2010)                              :: self
     type            (inputParameters                              ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                      ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                             ), pointer                     :: outputTimes_
     class           (cosmologyParametersClass                     ), pointer                     :: cosmologyParameters_
     class           (gravitationalLensingClass                    ), pointer                     :: gravitationalLensing_
     class           (outputAnalysisMolecularRatioClass            ), pointer                     :: outputAnalysisMolecularRatio_
@@ -105,17 +107,18 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                            source="parameters"/>
+    !# <objectBuilder class="outputTimes"                        name="outputTimes_"                                   source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                           source="parameters"/>
     !# <objectBuilder class="gravitationalLensing"               name="gravitationalLensing_"                          source="parameters"/>
     !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperatorRandomError_" source="parameters"/>
     !# <objectBuilder class="outputAnalysisMolecularRatio"       name="outputAnalysisMolecularRatio_"                  source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMassFunctionHIALFALFAMartin2010(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
+    self=outputAnalysisMassFunctionHIALFALFAMartin2010(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !# <inputParametersValidate source="parameters"/>
     return
   end function massFunctionHIALFALFAMartin2010ConstructorParameters
 
-  function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
+  function massFunctionHIALFALFAMartin2010ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing) result (self)
     !% Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class for internal use.
     use Input_Parameters
     use Galacticus_Paths
@@ -125,6 +128,7 @@ contains
     implicit none
     type            (outputAnalysisMassFunctionHIALFALFAMartin2010  )                              :: self
     class           (cosmologyFunctionsClass                        ), intent(in   ), target       :: cosmologyFunctions_
+    class           (outputTimesClass                               ), intent(inout), target       :: outputTimes_
     class           (cosmologyParametersClass                       ), intent(in   ), target       :: cosmologyParameters_
     class           (gravitationalLensingClass                      ), intent(in   ), target       :: gravitationalLensing_
     class           (outputAnalysisMolecularRatioClass              ), intent(in   ), target       :: outputAnalysisMolecularRatio_
@@ -168,9 +172,10 @@ contains
     outputAnalysisPropertyOperator_    =outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)
     ! Build a gravitational lensing distribution operator.
     allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
-    outputAnalysisDistributionOperatorGrvtnlLnsng_        =  outputAnalysisDistributionOperatorGrvtnlLnsng       (                              &
-         &                                                                                                        gravitationalLensing_       , &
-         &                                                                                                        sizeSourceLensing             &
+    outputAnalysisDistributionOperatorGrvtnlLnsng_        =  outputAnalysisDistributionOperatorGrvtnlLnsng       (                                    &
+         &                                                                                                        gravitationalLensing_             , &
+         &                                                                                                        outputTimes_                      , &
+         &                                                                                                        sizeSourceLensing                   &
          &                                                                                                       )
     ! Construct sequence distribution operator.
     allocate(distributionOperatorSequence                )
@@ -178,25 +183,26 @@ contains
     allocate(outputAnalysisDistributionOperator_     )
     distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomError_
     distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGrvtnlLnsng_
-    outputAnalysisDistributionOperator_                  =  outputAnalysisDistributionOperatorSequence          (                               &
-         &                                                                                                       distributionOperatorSequence   &
+    outputAnalysisDistributionOperator_                  =  outputAnalysisDistributionOperatorSequence          (                                     &
+         &                                                                                                       distributionOperatorSequence         &
          &                                                                                                      )
     ! Build the object.
-    self%outputAnalysisMassFunctionHI=                                                                                                          &
-         & outputAnalysisMassFunctionHI(                                                                                                        &
-         &                              var_str('Martin2010ALFALFA'                                             )                             , &
-         &                              var_str('HI mass function for the Martin et al. (2010) ALFALFA analysis')                             , &
+    self%outputAnalysisMassFunctionHI=                                                                                                                &
+         & outputAnalysisMassFunctionHI(                                                                                                              &
+         &                              var_str('Martin2010ALFALFA'                                             )                                   , &
+         &                              var_str('HI mass function for the Martin et al. (2010) ALFALFA analysis')                                   , &
          &                              char(galacticusPath(pathTypeDataStatic)//'/observations/massFunctionsHI/HI_Mass_Function_ALFALFA_2010.hdf5'), &
-         &                              galacticFilter_                                                                                       , &
-         &                              surveyGeometry_                                                                                       , &
-         &                              cosmologyFunctions_                                                                                   , &
-         &                              cosmologyFunctionsData                                                                                , &
-         &                              outputAnalysisPropertyOperator_                                                                       , &
-         &                              outputAnalysisDistributionOperator_                                                                   , &
-         &                              outputAnalysisMolecularRatio_                                                                         , &
-         &                              covarianceBinomialBinsPerDecade                                                                       , &
-         &                              covarianceBinomialMassHaloMinimum                                                                     , &
-         &                              covarianceBinomialMassHaloMaximum                                                                       &
+         &                              galacticFilter_                                                                                             , &
+         &                              surveyGeometry_                                                                                             , &
+         &                              cosmologyFunctions_                                                                                         , &
+         &                              cosmologyFunctionsData                                                                                      , &
+         &                              outputAnalysisPropertyOperator_                                                                             , &
+         &                              outputAnalysisDistributionOperator_                                                                         , &
+         &                              outputAnalysisMolecularRatio_                                                                               , &
+         &                              outputTimes_                                                                                                , &
+         &                              covarianceBinomialBinsPerDecade                                                                             , &
+         &                              covarianceBinomialMassHaloMinimum                                                                           , &
+         &                              covarianceBinomialMassHaloMaximum                                                                             &
          &                             )
     ! Clean up.
     nullify(surveyGeometry_                               )

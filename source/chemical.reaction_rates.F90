@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,84 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of chemical reaction rates.
+!% Contains a module that implements a class providing calculations of chemical reaction rates.
 
 module Chemical_Reaction_Rates
-  !% Implements calculations of chemical reaction rates.
+  !% Provides a class implementing chemical reaction rates.
   use Chemical_Abundances_Structure
-  use ISO_Varying_String
-  implicit none
+  use Radiation_Fields
+  use Galacticus_Nodes             , only : treeNode
   private
-  public :: Chemical_Reaction_Rate
-
-  ! Flag to indicate if this module has been initialized.
-  logical                                            :: chemicalReactionRateInitialized=.false.
-
-  ! Name of chemical reaction rates methods used.
-  type   (varying_string), allocatable, dimension(:) :: chemicalReactionRateMethods
-
-contains
-
-  subroutine Chemical_Reaction_Rates_Initialize
-    !% Initialize the chemical reaction rates module.
-    use Input_Parameters
-    use Memory_Management
-    !# <include directive="chemicalReactionRates" type="moduleUse">
-    include 'chemical.reaction_rates.modules.inc'
-    !# </include>
-    implicit none
-    integer :: chemicalReactionRatesCount
-
-    ! Initialize if necessary.
-    if (.not.chemicalReactionRateInitialized) then
-       !$omp critical(Chemical_Reaction_Rates_Initialization)
-       if (.not.chemicalReactionRateInitialized) then
-          ! Get the chemical reaction rates method parameter.
-          chemicalReactionRatesCount=max(1,globalParameters%count('chemicalReactionRatesMethods',zeroIfNotPresent=.true.))
-          allocate(chemicalReactionRateMethods(chemicalReactionRatesCount))
-          call Memory_Usage_Record(sizeof(chemicalReactionRateMethods))
-          !# <inputParameter>
-          !#   <name>chemicalReactionRateMethods</name>
-          !#   <defaultValue>[var_str('null')]</defaultValue>
-          !#   <description>The names of the methods to be used for computing chemical reaction rates.</description>
-          !#   <type>string</type>
-          !#   <cardinality>1..*</cardinality>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="chemicalReactionRates" type="functionCall" functionType="void">
-          !#  <functionArgs>chemicalReactionRateMethods</functionArgs>
-          include 'chemical.reaction_rates.inc'
-          !# </include>
-          chemicalReactionRateInitialized=.true.
-       end if
-       !$omp end critical(Chemical_Reaction_Rates_Initialization)
-    end if
-    return
-  end subroutine Chemical_Reaction_Rates_Initialize
-
-  subroutine Chemical_Reaction_Rate(chemicalRates,temperature,chemicalDensity,radiation)
-    !% Return chemical reaction rates at the given temperature for the specified set of chemical densities (in cm$^{-3}$) and radiation
-    !% field. Units of the returned rates are cm$^-3$ s$^{-1}$.
-    use Radiation_Structure
-    !# <include directive="chemicalRatesCompute" type="moduleUse">
-    include 'chemical.reaction_rates.compute.modules.inc'
-    !# </include>
-    implicit none
-    type            (chemicalAbundances), intent(inout) :: chemicalRates
-    double precision                    , intent(in   ) :: temperature
-    type            (chemicalAbundances), intent(in   ) :: chemicalDensity
-    type            (radiationStructure), intent(in   ) :: radiation
-
-    ! Initialize the module.
-    call Chemical_Reaction_Rates_Initialize
-
-    call chemicalRates%reset()
-    !# <include directive="chemicalRatesCompute" type="functionCall" functionType="void">
-    !#  <functionArgs>temperature,chemicalDensity,radiation,chemicalRates</functionArgs>
-    include 'chemical.reaction_rates.compute.inc'
-    !# </include>
-
-    return
-  end subroutine Chemical_Reaction_Rate
-
+  
+  !# <functionClass>
+  !#  <name>chemicalReactionRate</name>
+  !#  <descriptiveName>Chemical Reaction Rates</descriptiveName>
+  !#  <description>Class providing chemical reaction rates.</description>
+  !#  <default>zero</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="rates" >
+  !#   <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision                     , intent(in   ) :: temperature</argument>
+  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensity</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>               
+  !#   <argument>type            (chemicalAbundances ), intent(inout) :: chemicalRates</argument>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Chemical_Reaction_Rates

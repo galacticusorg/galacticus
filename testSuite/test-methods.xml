@@ -53,9 +53,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <galacticStructureRadiusSolverInitialRadiusMethod value="static"/>
+    <galacticStructureRadiiInitialMethod value="static"/>
     <galacticStructureRadiusSolverMethod value="adiabatic">
-      <galacticStructureRadiusSolverInitialRadiusMethod value="adiabatic" parameterLevel="top"/>
+      <galacticStructureRadiiInitialMethod value="gnedin2004" parameterLevel="top"/>
     </galacticStructureRadiusSolverMethod>
     <galacticStructureRadiusSolverMethod value="simple"/>
     <galacticStructureRadiusSolverMethod value="linear"/>
@@ -155,7 +155,9 @@
       <presetSubhaloMasses value="false"/>
       <presetSubhaloIndices value="false"/>
       <treeIndexToRootNodeIndex value="true"/>
-      <allTreesExistAtFinalTime value="false" parameterLevel="top"/>
+      <mergerTreeEvolverMethod value="standard" parameterLevel="top">
+	<allTreesExistAtFinalTime value="false"/>
+      </mergerTreeEvolverMethod>
       <treeNodeMethodPosition value="preset" parameterLevel="top"/>
       <presetMergerTimes value="true"/>
       <presetPositions value="true"/>
@@ -205,10 +207,6 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <stellarPopulationSpectraMethod value="FSPS"/>
-    <stellarPopulationSpectraMethod value="file">
-      <imfSelectionFixed value="Salpeter" parameterLevel="top"/>
-      <fileNameForSalpeterIMF value="%DATADYNAMICPATH%/stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imfSalpeter.hdf5"/>
-    </stellarPopulationSpectraMethod>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -216,12 +214,13 @@
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
     <luminosityType value="rest observed observed observed"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="meiksin2006"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="madau1995"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="inoue2014"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="lycSuppress"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="recent"/>
-    <stellarPopulationSpectraPostprocessDefaultMethods value="identity"/>
+    <stellarPopulationSpectraPostprocessorBuilderMethod value="lookup"/>
+    <stellarPopulationSpectraPostprocessorMethod value="meiksin2006"/>
+    <stellarPopulationSpectraPostprocessorMethod value="madau1995"/>
+    <stellarPopulationSpectraPostprocessorMethod value="inoue2014"/>
+    <stellarPopulationSpectraPostprocessorMethod value="lycSuppress"/>
+    <stellarPopulationSpectraPostprocessorMethod value="recent"/>
+    <stellarPopulationSpectraPostprocessorMethod value="identity"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -241,6 +240,7 @@
     </transferFunctionMethod>
     <transferFunctionMethod value="BBKS"/>
     <transferFunctionMethod value="CAMB">
+      <lockFileGlobally value="true"/>
       <cosmologicalMassVarianceMethod value="filteredPower" parameterLevel="top">
  	<tolerance value="3.0e-4"/>
  	<toleranceTopHat value="3.0e-4"/>
@@ -285,8 +285,8 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <satelliteMergingRemnantSizeMethod value="Cole2000"/>
-    <satelliteMergingRemnantSizeMethod value="Covington2008"/>
+    <mergerRemnantSizeMethod value="cole2000"/>
+    <mergerRemnantSizeMethod value="covington2008"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -342,9 +342,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <chemicalReactionRateMethods value="hydrogenNetwork"/>
-    <hydrogenNetworkFast value="true"/>
-    <hydrogenNetworkCMBOnly value="true"/>
+    <chemicalReactionRateMethod value="hydrogenNetwork">
+      <fast value="true"/>
+    </chemicalReactionRateMethod>
     <chemicalsToTrack value="AtomicHydrogen AtomicHydrogenCation MolecularHydrogen Electron"/>
     <coolingFunctionMethod value="summation">
       <coolingFunctionMethod value="atomicCIECloudy" iterable="no"/>
@@ -360,11 +360,11 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <blackHoleBinaryInitialRadiiMethod value="spheroidRadiusFraction"/>
-    <blackHoleBinaryInitialRadiiMethod value="tidalRadius">
-      <blackHoleBinaryRecoilMethod value="null" parameterLevel="top"/>
-      <blackHoleBinaryRecoilMethod value="Campanelli2007" parameterLevel="top">
- 	<blackHoleBinarySeparationGrowthRateMethod value="null" parameterLevel="top"/>
+    <blackHoleBinaryInitialSeparationMethod value="spheroidRadiusFraction"/>
+    <blackHoleBinaryInitialSeparationMethod value="tidalRadius">
+      <blackHoleBinaryRecoilMethod value="zero" parameterLevel="top"/>
+      <blackHoleBinaryRecoilMethod value="campanelli2007" parameterLevel="top">
+ 	<blackHoleBinarySeparationGrowthRateMethod value="zero" parameterLevel="top"/>
  	<blackHoleBinarySeparationGrowthRateMethod value="standard" parameterLevel="top">
  	  <tripleBlackHoleInteraction value="false" parameterLevel="top"/>
  	  <tripleBlackHoleInteraction value="true" parameterLevel="top">
@@ -373,8 +373,8 @@
  	  </tripleBlackHoleInteraction>
  	</blackHoleBinarySeparationGrowthRateMethod>
       </blackHoleBinaryRecoilMethod>
-    </blackHoleBinaryInitialRadiiMethod>
-    <blackHoleBinaryInitialRadiiMethod value="Volonteri2003"/>
+    </blackHoleBinaryInitialSeparationMethod>
+    <blackHoleBinaryInitialSeparationMethod value="volonteri2003"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -465,8 +465,8 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <satelliteMergingMassMovementsMethod value="simple"/>
-    <satelliteMergingMassMovementsMethod value="Baugh2005"/>
+    <mergerMassMovementsMethod value="simple"/>
+    <mergerMassMovementsMethod value="baugh2005"/>
   </parameters>
   
   <!-- Star formation feedback. -->
@@ -492,7 +492,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <imfSelectionMethod value="fixed">
+    <stellarPopulationSelectorMethod value="fixed">
       <imfSelectionFixed value="Baugh2005TopHeavy" parameterLevel="top"/>
       <imfSelectionFixed value="Chabrier" parameterLevel="top"/>
       <imfSelectionFixed value="Kennicutt" parameterLevel="top"/>
@@ -504,11 +504,15 @@
  	<imfPiecewisePowerLawMassPoints value="0.1 1.0 125.0" parameterLevel="top"/>
  	<imfPiecewisePowerLawExponents value="-1.5 -2.3" parameterLevel="top"/>
       </imfSelectionFixed>
-    </imfSelectionMethod>
-    <imfSelectionMethod value="diskSpheroid">
-      <imfSelectionDisk value="Chabrier" parameterLevel="top"/>
-      <imfSelectionSpheroid value="Kennicutt" parameterLevel="top"/>
-    </imfSelectionMethod>
+    </stellarPopulationSelectorMethod>
+    <stellarPopulationSelectorMethod value="diskSpheroid">
+      <stellarPopulationDisk value="standard">
+	<initialMassFunctionMethod value="chabrier2001"/>
+      </stellarPopulationDisk>
+      <stellarPopulationSpheroid value="standard">
+	<initialMassFunctionMethod value="kennicutt1983"/>
+      </stellarPopulationSpheroid>
+    </stellarPopulationSelectorMethod>
   </parameters>
 
   <!-- Hot halo density profile -->
@@ -534,8 +538,11 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputRedshifts value="0.0 0.1"/>
-    <outputHalfLightData value="true"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0 0.1"/>
+  </outputTimesMethod>
+
+  <outputHalfLightData value="true"/>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
@@ -600,9 +607,12 @@
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
-    <imfSelectionFixed value="Chabrier"/>
-    <imfSelectionFixed value="Kroupa"/>
-    <imfSelectionFixed value="Salpeter"/>
+    
+  <initialMassFunctionMethod value="chabrier2001"/>
+    
+  <initialMassFunctionMethod value="kroupa2001"/>
+    
+  <initialMassFunctionMethod value="salpeter1955"/>
   </parameters>
 
   <!-- Calculation of luminosities at all output redshifts -->
@@ -612,7 +622,10 @@
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="all all all all"/>
-    <outputRedshifts value="0.064 0.041 0.020 0.000"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.064 0.041 0.020 0.000"/>
+  </outputTimesMethod>
+
   </parameters>
 
   <!-- Calculation of luminosities with top-hat filters -->
@@ -622,7 +635,10 @@
     <luminosityFilter value="fixedResolutionTopHat_2000_10 fixedResolutionTopHat_4000_5 fixedResolutionTopHat_6000_3 fixedResolutionTopHat_7000_2"/>
     <luminosityType value="rest rest rest rest"/>
     <luminosityRedshift value="0.0 0.0 0.0 0.0"/>
-    <outputRedshifts value="0.0"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
   </parameters>
 
   <!-- Calculation of luminosities with array of top-hat filters -->
@@ -632,7 +648,10 @@
     <luminosityFilter value="fixedResolutionTopHat_2000_7000_10"/>
     <luminosityType value="rest"/>
     <luminosityRedshift value="0.0"/>
-    <outputRedshifts value="0.0"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
   </parameters>
 
   <!-- Black hole wind efficiencies -->
@@ -688,6 +707,27 @@
     <tidalStrippingSpheroidsMethod value="null"/>
   </parameters>
   
+  <!-- Power spectrum window function methods -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <powerSpectrumWindowFunctionMethod value="topHat"/>
+    <powerSpectrumWindowFunctionMethod value="sharpKSpace">
+      <normalization value="2.5"/>
+    </powerSpectrumWindowFunctionMethod>
+    <powerSpectrumWindowFunctionMethod value="topHatSharpKHybrid">
+      <normalization value="2.5"/>
+      <radiiRatio value="1.0"/>
+    </powerSpectrumWindowFunctionMethod>
+    <powerSpectrumWindowFunctionMethod value="smoothKSpace">
+      <normalization value="3.5"/>
+      <beta value="3.7"/>
+    </powerSpectrumWindowFunctionMethod>
+    <powerSpectrumWindowFunctionMethod value="lagrangianChan2017">
+      <f value="1.0"/>
+    </powerSpectrumWindowFunctionMethod>
+  </parameters>
+
   <!-- Dark energy cosmology -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -697,9 +737,10 @@
       <darkEnergyEquationOfStateW1 value="0.0"/>
     </cosmologyFunctionsMethod>
     <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
-    <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
-    <virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt value="turnaround"/>
-  </parameters>
+    <virialDensityContrastMethod value="sphericalCollapseMatterDE">
+  <energyFixedAt value="turnaround"/>
+  </virialDensityContrastMethod>
+    </parameters>
 
   <!-- Intergalactic medium state and internal background calculation -->
   <parameters>
@@ -734,19 +775,20 @@
     <version>0.9.4</version>
     <!-- IGM evolver -->
     <intergalacticMediumStateMethod value="internal"/>
-    <igmPropertiesTimeCountPerDecade value="2"/>
-    <igmPropertiesCompute value="true"/>
-    <igmPropertiesRedshiftMaximum value="150"/>
+    <universeOperatorMethod value="intergalacticMediumStateEvolve">
+      <timeCountPerDecade value="2"/>
+      <redshiftMaximum value="150"/>
+    </universeOperatorMethod>    
     <!-- Background radiation -->
-    <backgroundRadiationCompute value="true"/>
-    <radiationIntergalacticBackgroundMethod value="internal"/>
-    <backgroundRadiationWavelengthCountPerDecade value="5"/>
-    <backgroundRadiationTimeCountPerDecade value="2"/>
+    <radiationFieldIntergalacticBackgroundMethod value="intergalacticBackgroundInternal">
+      <wavelengthCountPerDecade value="5"/>
+      <timeCountPerDecade value="2"/>
+    </radiationFieldIntergalacticBackgroundMethod>
     <!-- Halo mass ranges -->
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
-    <massTreeMaximum value="1.0e15"/>
-    <massTreeMinimum value="1.0e10"/>
-    <treesPerDecade value="5"/>
+      <massTreeMaximum value="1.0e15"/>
+      <massTreeMinimum value="1.0e10"/>
+      <treesPerDecade value="5"/>
     </mergerTreeBuildMassesMethod>
     <mergerTreeMassResolutionMethod value="fixed">
       <massResolution value="5.0e9"/>
@@ -826,7 +868,7 @@
     </accretionHaloMethod>
     <hotHaloMassDistributionMethod value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
   </parameters>
 
   <!-- Statistics and tracking components -->
@@ -862,7 +904,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
       <massTreeMaximum value="6.0e12"/>
       <massTreeMinimum value="2.0e12"/>
@@ -943,7 +985,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -984,7 +1026,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -1030,7 +1072,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -1065,7 +1107,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -1103,7 +1145,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -1140,7 +1182,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -1177,7 +1219,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -1214,7 +1256,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -1256,7 +1298,7 @@
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
     <massTreeMaximum value="6.0e12"/>
     <massTreeMinimum value="2.0e12"/>
@@ -1292,8 +1334,9 @@
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeConstructorMethod value="read">
       <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
       <presetMergerTimes value="false"/>
@@ -1315,8 +1358,11 @@
       <OmegaBaryon value="0.045"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
+    <mergerTreeEvolverMethod value="standard">
     <allTreesExistAtFinalTime value="false"/>
-    <mergerTreeOperatorMethod value="perturbMasses">
+  </mergerTreeEvolverMethod>
+
+  <mergerTreeOperatorMethod value="perturbMasses">
       <nbodyHaloMassErrorMethod value="friendsOfFriends">
  	<massParticle value="1.0e9"/>
       </nbodyHaloMassErrorMethod>
@@ -1335,23 +1381,24 @@
   
   <!-- Merger tree monotonize mass growth -->
   <parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <mergerTreeConstructorMethod value="read">
-  <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
-    <presetMergerTimes value="false"/>
-    <presetMergerNodes value="false"/>
-    <presetSubhaloMasses value="false"/>
-    <presetSubhaloIndices value="false"/>
-    <presetPositions value="false"/>
-    <presetScaleRadii value="false"/>
-    <presetSpins value="false"/>
-    <presetOrbits value="false"/>
-  </mergerTreeConstructorMethod>
+      <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
+      <presetMergerTimes value="false"/>
+      <presetMergerNodes value="false"/>
+      <presetSubhaloMasses value="false"/>
+      <presetSubhaloIndices value="false"/>
+      <presetPositions value="false"/>
+      <presetScaleRadii value="false"/>
+      <presetSpins value="false"/>
+      <presetOrbits value="false"/>
+    </mergerTreeConstructorMethod>
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
     </cosmologicalMassVarianceMethod>
@@ -1362,7 +1409,10 @@
       <OmegaBaryon value="0.045"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
-    <allTreesExistAtFinalTime value="false"/>
+    <mergerTreeEvolverMethod value="standard">
+      <allTreesExistAtFinalTime value="false"/>
+    </mergerTreeEvolverMethod>
+
     <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
@@ -1382,8 +1432,9 @@
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
     <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <cosmologicalMassVarianceMethod value="filteredPower">
       <sigma_8 value="0.9"/>
     </cosmologicalMassVarianceMethod>
@@ -1405,8 +1456,11 @@
     <presetSpins value="false"/>
     <presetOrbits value="false"/>
   </mergerTreeConstructorMethod>
+    <mergerTreeEvolverMethod value="standard">
     <allTreesExistAtFinalTime value="false"/>
-    <mergerTreeOperatorMethod value="outputRootMasses">
+  </mergerTreeEvolverMethod>
+
+  <mergerTreeOperatorMethod value="outputRootMasses">
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperatorMethod>
@@ -1549,16 +1603,27 @@
     <darkMatterProfileMethod value="NFW"/>
     <accretionHaloMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
-    <satelliteMergingRemnantSizeMethod value="null"/>
+    <mergerRemnantSizeMethod value="null"/>
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
+    <mergerTreeEvolverMethod value="standard">
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>
-    <timestepSimpleAbsolute value="10.00"/>
-    <timestepSimpleRelative value="10.00"/>
+  </mergerTreeEvolverMethod>
+
+  <mergerTreeEvolveTimestepMethod value="multi">
+      <mergerTreeEvolveTimestepMethod value="simple">
+	<timeStepAbsolute value="10.00"/>
+	<timeStepRelative value="10.00"/>
+      </mergerTreeEvolveTimestepMethod>
+      <mergerTreeEvolveTimestepMethod value="satellite"/>
+    </mergerTreeEvolveTimestepMethod>
     <outputTimestepHistory value="false"/>
-    <outputRedshifts value="0.0"/>
-    <verbosityLevel value="1"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
+  <verbosityLevel value="1"/>
   </parameters>
 
   <!-- Power spectrum calculation -->
@@ -1578,7 +1643,10 @@
       <OmegaBaryon value="0.04541"/>
       <temperatureCMB value="2.72548"/>
     </cosmologyParametersMethod>
-    <outputRedshifts value="0.0 1.0"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0 1.0"/>
+  </outputTimesMethod>
+
   </parameters>
 
 </parameterGrid>

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,6 +30,7 @@ program Posterior_Sampling_Simulate
   use Galacticus_Nodes
   use Node_Components
   use Posterior_Sampling_Simulation
+  use Functions_Global_Utilities
   implicit none
   integer                                  , parameter :: fileNameLengthMaximum     =1024
   character(len=fileNameLengthMaximum     )            :: parameterFileCharacter
@@ -50,19 +52,21 @@ program Posterior_Sampling_Simulate
   ! Open the parameter file.
   parameters=inputParameters(parameterFile,allowedParametersFile='posteriorSamplingSimulate.parameters.xml')
   call parameters%markGlobal()
+  ! Establish global functions.
+  call Functions_Global_Set()
   ! Set the verbosity level.
   !# <inputParameter>
   !#   <name>verbosityLevel</name>
   !#   <cardinality>1</cardinality>
   !#   <defaultValue>1</defaultValue>
   !#   <description>The level of verbosity for the {\normalfont \ttfamily Constrain\_Galacticus} code (higher values give more verbosity).</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>integer</type>
   !# </inputParameter>
   call Galacticus_Verbosity_Level_Set(verbosityLevel)
   ! Ensure the nodes objects are initialized.
-  call nodeClassHierarchyInitialize()
-  call Node_Components_Initialize  ()
+  call nodeClassHierarchyInitialize(parameters)
+  call Node_Components_Initialize  (parameters)
   ! Get the simulator.
   posteriorSampleSimulation_ => posteriorSampleSimulation()
   ! Perform the simulation.

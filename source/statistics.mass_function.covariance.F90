@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -69,7 +70,7 @@ contains
        &,mass,massFunction,covariance ,covariancePoisson,covarianceHalo,covarianceLSS,correlation)
     !% Compute the mass function covariance matrix.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace 
     use Memory_Management
     use Input_Parameters
     use Numerical_Ranges
@@ -434,8 +435,8 @@ contains
     !% Computes the quantity $\int_{t_\mathrm{min}}^{t_\mathrm{max}} \mathrm{d} t b(t) \sqrt{P(k,t)} \mathrm{d} V / \mathrm{d}t$, where $b(t)$ is
     !% galaxy bias, and $P(k,t)$ is the non-linear galaxy power spectrum.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
-    use Numerical_Integration
+    use            :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use            :: Numerical_Integration
     implicit none
     integer                                     , intent(in   ) :: iBin
     double precision                            , intent(in   ) :: timeMinimum         , timeMaximum
@@ -645,7 +646,7 @@ contains
   double precision function Mass_Function_Time_Integrand_I(timePrime)
     !% Integral for comoving volume.
     use Cosmology_Functions
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: timePrime
@@ -697,7 +698,7 @@ contains
   double precision function LSS_Integrand(timePrime)
     !% Integral for LSS contribution to the covariance matrix.
     use Cosmology_Functions
-    use FGSL
+    use FGSL                   , only : fgsl_interp, fgsl_interp_accel
     use Power_Spectra_Nonlinear
     use Numerical_Interpolation
     implicit none
@@ -740,7 +741,7 @@ contains
   double precision function Halo_Occupancy_Time_Integrand(timePrime)
     !% Integral for comoving volume.
     use Cosmology_Functions
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: timePrime
@@ -797,7 +798,7 @@ contains
   subroutine Compute_Volume_Normalizations(logMass,surveyGeometry_,redshiftMinimum,redshiftMaximum,timeMinimum,timeMaximum,volumeNormalization)
     !% Compute volume normalization factors for LSS covariance calculations.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Geometry_Surveys
     implicit none
@@ -842,7 +843,6 @@ contains
     !% Compute variance due to large scale structure by directly summing over the Fourier transform
     !% of the survey selection function.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
     use Memory_Management
     use FFTW3
     use Numerical_Constants_Math
@@ -1035,7 +1035,7 @@ contains
   subroutine Variance_LSS_Angular_Spectrum(massBinCount,redshiftMinimum,redshiftMaximum,varianceLSS)
     !% Compute variance due to large scale structure by integration over the angular power spectrum.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use Galacticus_Display
     use Numerical_Constants_Math
     use Numerical_Integration

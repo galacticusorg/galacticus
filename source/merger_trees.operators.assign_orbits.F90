@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,8 +19,8 @@
 
 !% Contains a module which implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
   
-  use Virial_Orbits
-  use Satellite_Merging_Timescales
+  use Virial_Orbits               , only : virialOrbitClass               , virialOrbit
+  use Satellite_Merging_Timescales, only : satelliteMergingTimescalesClass, satelliteMergingTimescales
   
   !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits" defaultThreadPrivate="yes">
   !#  <description>Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.</description>
@@ -82,6 +83,7 @@ contains
 
   subroutine assignOrbitsOperate(self,tree)
     !% Perform a orbit assigning operation on a merger tree.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentSatellite
     use Kepler_Orbits
     use Merger_Tree_Walkers
     implicit none

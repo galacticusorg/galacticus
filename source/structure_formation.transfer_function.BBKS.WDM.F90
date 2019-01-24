@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,50 +47,37 @@
 
 contains
 
-  function bbksWDMConstructorParameters(parameters)
+  function bbksWDMConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (transferFunctionBBKSWDM )                :: bbksWDMConstructorParameters
-    type            (inputParameters         ), intent(inout) :: parameters
-    class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
-    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
-    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_    
+    type (transferFunctionBBKSWDM )                :: self
+    type (inputParameters         ), intent(inout) :: parameters
+    class(transferFunctionClass   ), pointer       :: transferFunctionCDM
+    class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
+    class(darkMatterParticleClass ), pointer       :: darkMatterParticle_    
     
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    ! Call the internal constructor
-    bbksWDMConstructorParameters =bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
+    self=transferFunctionBBKSWDM(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function bbksWDMConstructorParameters
 
-  function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
+  function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class.
     use Galacticus_Error
     implicit none
-    type            (transferFunctionBBKSWDM )                                  :: bbksWDMConstructorInternal
-    class           (transferFunctionClass   ), target, intent(in   )           :: transferFunctionCDM
-    class           (cosmologyParametersClass), target, intent(in   ), optional :: cosmologyParameters_    
-    class           (darkMatterParticleClass ), target, intent(in   ), optional :: darkMatterParticle_    
-    double precision                                                            :: degreesOfFreedomEffectiveDecoupling
-
-    bbksWDMConstructorInternal%transferFunctionCDM => transferFunctionCDM
-    ! Determine the cosmological parameters to use.
-    if (present(cosmologyParameters_)) then
-       bbksWDMConstructorInternal%cosmologyParameters_ => cosmologyParameters_
-    else
-       bbksWDMConstructorInternal%cosmologyParameters_ => cosmologyParameters()
-    end if
-    ! Determine the dark matter particle to use.
-    if (present(darkMatterParticle_)) then
-       bbksWDMConstructorInternal%darkMatterParticle_ => darkMatterParticle_
-    else
-       bbksWDMConstructorInternal%darkMatterParticle_ => darkMatterParticle()
-    end if
+    type            (transferFunctionBBKSWDM )                        :: self
+    class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
+    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
+    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_    
+    double precision                                                  :: degreesOfFreedomEffectiveDecoupling
+    !# <constructorAssign variables="*transferFunctionCDM, *cosmologyParameters_, *darkMatterParticle_"/>
+    
     ! Get degrees of freedom at the time at which the dark matter particle decoupled.
-    select type (particle => bbksWDMConstructorInternal%darkMatterParticle_)
+    select type (particle => self%darkMatterParticle_)
     class is (darkMatterParticleWDMThermal)
        degreesOfFreedomEffectiveDecoupling=particle%degreesOfFreedomEffectiveDecoupling()
     class default
@@ -97,23 +85,23 @@ contains
        call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
     ! Compute the free-streaming length-like parameter (equation G6 of BBKS).
-    bbksWDMConstructorInternal%lengthFreeStreaming=+0.2d0                                                                                     &
-         &                                         /(                                                                                         &
-         &                                           +degreesOfFreedomEffectiveDecoupling                                                     &
-         &                                           /100.d0                                                                                  &
-         &                                          )**(4.0d0/3.0d0)                                                                          &
-         &                                         /(                                                                                         &
-         &                                           +(                                                                                       &
-         &                                             +bbksWDMConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                             -bbksWDMConstructorInternal%cosmologyParameters_%OmegaBaryon   (                  )    &
-         &                                            )                                                                                       &
-         &                                           /  bbksWDMConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+    self%lengthFreeStreaming=+0.2d0                                                                                     &
+         &                                         /(                                                                   &
+         &                                           +degreesOfFreedomEffectiveDecoupling                               &
+         &                                           /100.d0                                                            &
+         &                                          )**(4.0d0/3.0d0)                                                    &
+         &                                         /(                                                                   &
+         &                                           +(                                                                 &
+         &                                             +self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                                             -self%cosmologyParameters_%OmegaBaryon   (                  )    &
+         &                                            )                                                                 &
+         &                                           /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
          &                                          )
     return
   end function bbksWDMConstructorInternal
   
   subroutine bbksWDMDestructor(self)
-    !% Destructor for the bbksWDM transfer function class.
+    !% Destructor for the {\normalfont \ttfamily bbksWDM} transfer function class.
     implicit none
     type(transferFunctionBBKSWDM), intent(inout) :: self
 

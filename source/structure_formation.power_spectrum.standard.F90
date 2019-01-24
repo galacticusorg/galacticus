@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,30 +47,30 @@
 
 contains
 
-  function standardConstructorParameters(parameters)
+  function standardConstructorParameters(parameters) result(self)
     !% Constructor for the standard nonstandard power spectrum class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(powerSpectrumStandard)                :: standardConstructorParameters
-    type(inputParameters      ), intent(inout) :: parameters
+    type (powerSpectrumStandard                  )                :: self
+    type (inputParameters                        ), intent(inout) :: parameters
+    class(cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVariance_
+    class(powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
 
-    ! Check and read parameters.
-    ! Build objects.
-    !# <objectBuilder class="cosmologicalMassVariance"           name="standardConstructorParameters%cosmologicalMassVariance_"           source="parameters"/>
-    !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="standardConstructorParameters%powerSpectrumPrimordialTransferred_" source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVariance_"           source="parameters"/>
+    !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
+    self=powerSpectrumStandard(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_)
+  function standardConstructorInternal(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_) result(self)
     !% Internal constructor for the standard nonstandard power spectrum class.
     implicit none
-    type (powerSpectrumStandard)                                          :: standardConstructorInternal
+    type (powerSpectrumStandard)                                          :: self
     class(cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
     class(powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
-
-    standardConstructorInternal%cosmologicalMassVariance_           => cosmologicalMassVariance_
-    standardConstructorInternal%powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred_
+    !# <constructorAssign variables="*cosmologicalMassVariance_, *powerSpectrumPrimordialTransferred_"/>
+    
     return
   end function standardConstructorInternal
 

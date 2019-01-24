@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -116,6 +117,8 @@ contains
   subroutine simpleRetabulate(self,time)
     !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
     !% $D(1)=1$ for a simple matter plus cosmological constant cosmology.
+    use FGSL        , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
+         &                   FGSL_Success
     use Tables
     use Table_Labels
     use ODE_Solver

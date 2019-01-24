@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,6 @@
 module Merger_Tree_State_Store
   !% Provides state store/restore functionality for merger trees.
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes
   use               Pseudo_Random
   public
 
@@ -36,7 +36,7 @@ contains
   subroutine mergerTreeStateStore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
     use, intrinsic :: ISO_C_Binding
-    use            :: FGSL
+    use            :: FGSL         , only : fgsl_file
     implicit none
     integer            , intent(in   ) :: stateFile
     integer(c_size_t  ), intent(in   ) :: stateOperatorID
@@ -53,7 +53,7 @@ contains
   subroutine mergerTreeStateRestore(stateFile,fgslStateFile,stateOperatorID)
     !% Write the stored snapshot of the random number state to file.
     use, intrinsic :: ISO_C_Binding
-    use            :: FGSL
+    use            :: FGSL         , only : fgsl_file
     implicit none
     integer            , intent(in   ) :: stateFile
     integer(c_size_t  ), intent(in   ) :: stateOperatorID

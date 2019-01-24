@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,6 +48,7 @@ contains
     type            (outputAnalysisColorDistributionSDSS)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
+    class           (outputTimesClass                   ), pointer       :: outputTimes_
     integer                                                              :: distributionNumber
 
     !# <inputParameter>
@@ -57,15 +59,16 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=outputAnalysisColorDistributionSDSS(distributionNumber,cosmologyFunctions_)
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    self=outputAnalysisColorDistributionSDSS(distributionNumber,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function colorDistributionSDSSConstructorParameters
 
-  function colorDistributionSDSSConstructorInternal(distributionNumber,cosmologyFunctions_) result(self)
+  function colorDistributionSDSSConstructorInternal(distributionNumber,cosmologyFunctions_,outputTimes_) result(self)
     !% Internal constructor for the ``colorDistributionSDSS'' output analysis class.
     use ISO_Varying_String
-    use Galacticus_Output_Times
+    use Output_Times
     use Output_Analyses_Options
     use Output_Analysis_Utilities
     use Galacticus_Error
@@ -79,6 +82,7 @@ contains
     type            (outputAnalysisColorDistributionSDSS               )                              :: self
     integer                                                                          , intent(in   )  :: distributionNumber
     class           (cosmologyFunctionsClass                           ), target     , intent(in   )  :: cosmologyFunctions_
+    class           (outputTimesClass                                  ), target     , intent(inout)  :: outputTimes_
     type            (cosmologyParametersSimple                         ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                     :: cosmologyFunctionsData
     type            (outputAnalysisPropertyExtractorRatio              ), pointer                     :: outputAnalysisPropertyExtractorRatio_
@@ -115,11 +119,11 @@ contains
     !$ call hdf5Access%set()
     call dataFile    %openFile     (char(galacticusPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.          )
     distribution=dataFile%openGroup(distributionName)
-    call distribution%readDataset  (                              'color'                                                            ,         colors          )
-    call distribution%readAttribute(                              'magnitudeMinimum'                                                 ,         magnitudeMinimum)
-    call distribution%readAttribute(                              'magnitudeMaximum'                                                 ,         magnitudeMaximum)
-    call distribution%close        (                                                                                                                           )
-    call dataFile    %close        (                                                                                                                           )
+    call distribution%readDataset  (                                         'color'                                                       ,         colors          )
+    call distribution%readAttribute(                                         'magnitudeMinimum'                                            ,         magnitudeMinimum)
+    call distribution%readAttribute(                                         'magnitudeMaximum'                                            ,         magnitudeMaximum)
+    call distribution%close        (                                                                                                                                 )
+    call dataFile    %close        (                                                                                                                                 )
     !$ call hdf5Access%unset()
     self %binCount=size(colors)
     ! Create cosmological model in which data were analyzed.
@@ -139,22 +143,22 @@ contains
     allocate(surveyGeometry_)
     surveyGeometry_=surveyGeometryMonteroDorta2009SDSS(band='r',redshiftMinimum=4.0d-3,redshiftMaximum=8.0d-2,cosmologyFunctions_=cosmologyFunctions_)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,self%cosmologyFunctions_,magnitudeAbsoluteLimit=magnitudeMaximum)
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,self%cosmologyFunctions_,outputTimes_,magnitudeAbsoluteLimit=magnitudeMaximum)
     end do
     ! Create stellar luminosity property extractors.
     allocate(outputAnalysisPropertyExtractorBandR_           )
     allocate(outputAnalysisPropertyExtractorBandU_           )
-    outputAnalysisPropertyExtractorBandR_           =outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_r','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
-    outputAnalysisPropertyExtractorBandU_           =outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_u','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
+    outputAnalysisPropertyExtractorBandR_           =outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_r','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
+    outputAnalysisPropertyExtractorBandU_           =outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_u','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
     ! Create a ratio property extractor.
     allocate(outputAnalysisPropertyExtractorRatio_        )
     outputAnalysisPropertyExtractorRatio_           =outputAnalysisPropertyExtractorRatio              (outputAnalysisPropertyExtractorBandU_,outputAnalysisPropertyExtractorBandR_                                                          )
     ! Creat magnitude, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   (cosmologyFunctions_,cosmologyFunctionsData                                                                                           )
+    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                                                              )
     outputAnalysisPropertyOperatorMagnitude_        =outputAnalysisPropertyOperatorMagnitude()
     allocate(weightPropertyOperatorSequence                  )
     allocate(weightPropertyOperatorSequence%next             )
@@ -217,6 +221,7 @@ contains
          &                                outputAnalysisDistributionOperator_                     , &
          &                                outputAnalysisDistributionNormalizer_                   , &
          &                                galacticFilter_                                         , &
+         &                                outputTimes_                                            , &
          &                                outputAnalysisCovarianceModelPoisson                    , &
          &                                covarianceBinomialBinsPerDecade                         , &
          &                                covarianceBinomialMassHaloMinimum                       , &

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,34 +71,27 @@ module Node_Component_Age_Statistics_Standard
   ! Record of whether variables in this component are inactive.
   logical :: ageStatisticsStandardIsInactive
   
-  ! Initialization status.
-  logical :: moduleInitialized              =.false.
-
 contains
 
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Age_Statistics_Standard_Initialize()
+  subroutine Node_Component_Age_Statistics_Standard_Initialize(parameters)
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: parameters
 
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Age_Statistics_Standard_Initialize)
-    if (defaultAgeStatisticsComponent%standardIsActive().and..not.moduleInitialized) then
+    if (defaultAgeStatisticsComponent%standardIsActive()) then
        !# <inputParameter>
        !#   <name>ageStatisticsStandardIsInactive</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the variables of the standard age statistics component are inactive (i.e. do not appear in any ODE being solved).</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Age_Statistics_Standard_Initialize)
     return
   end subroutine Node_Component_Age_Statistics_Standard_Initialize
 
@@ -165,7 +159,7 @@ contains
   subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
     use Galacticus_Nodes
-    use Galacticus_Output_Times
+    use Output_Times
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -221,17 +215,18 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Age_Statistics_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
+  !#  <after>Satellite_Merging_Remnant_Compute</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Age_Statistics_Standard_Satellite_Merging(node)
     !% Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Remnant_Properties
+    use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     implicit none
-    type (treeNode                  ), intent(inout), pointer :: node
-    type (treeNode                  )               , pointer :: nodeHost
-    class(nodeComponentAgeStatistics)               , pointer :: ageStatistics, ageStatisticsHost
-
+    type   (treeNode                  ), intent(inout), pointer :: node
+    type   (treeNode                  )               , pointer :: nodeHost
+    class  (nodeComponentAgeStatistics)               , pointer :: ageStatistics          , ageStatisticsHost
+ 
     ! Get the inter-output component.
     ageStatistics => node%ageStatistics()
     ! Ensure that it is of the standard class.
@@ -241,8 +236,8 @@ contains
        nodeHost          => node    %mergesWith   (                 )
        ageStatisticsHost => nodeHost%ageStatistics(autoCreate=.true.)
        ! Move the star formation rates from secondary to primary.
-       select case (thisMergerStarsMoveTo)
-       case (movesToDisk    )
+       select case (destinationStarsSatellite)
+       case (destinationMergerDisk    )
           call ageStatisticsHost%    diskTimeWeightedIntegratedSFRSet(                                                       &
                &                                                       ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
                &                                                      +ageStatistics    %    diskTimeWeightedIntegratedSFR() &
@@ -259,7 +254,7 @@ contains
                &                                                       ageStatisticsHost%            spheroidIntegratedSFR() &
                &                                                      +ageStatistics    %            spheroidIntegratedSFR() &
                &                                                     )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
@@ -277,8 +272,8 @@ contains
             &                                                   0.0d0                                                    &
             &                                                 )
        ! Move star formation rates within the host if necessary.
-       select case (thisHostStarsMoveTo)
-       case (movesToDisk)
+       select case (destinationStarsHost)
+       case (destinationMergerDisk)
           call ageStatisticsHost%    diskTimeWeightedIntegratedSFRSet(                                                       &
                &                                                       ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
                &                                                      +ageStatisticsHost%spheroidTimeWeightedIntegratedSFR() &
@@ -293,7 +288,7 @@ contains
           call ageStatisticsHost%            spheroidIntegratedSFRSet(                                                       &
                &                                                       0.0d0                                                 &
                &                                                     )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
           call ageStatisticsHost%spheroidTimeWeightedIntegratedSFRSet(                                                       &
                &                                                       ageStatisticsHost%spheroidTimeWeightedIntegratedSFR() &
                &                                                      +ageStatisticsHost%    diskTimeWeightedIntegratedSFR() &
@@ -308,7 +303,7 @@ contains
           call ageStatisticsHost%                diskIntegratedSFRSet(                                                       &
                &                                                       0.0d0                                                 &
                &                                                     )
-       case (doesNotMove)
+       case (destinationMergerUnmoved)
           ! Do nothing.
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})

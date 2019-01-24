@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +22,12 @@
 module Galacticus_Error
   !% Implements error reporting for the {\normalfont \scshape Galacticus} package.
   use, intrinsic :: ISO_C_Binding
-  use HDF5
-  use Semaphores
-  use FGSL
-  use Semaphores
-  use ISO_Varying_String
+  use            :: HDF5
+  use            :: Semaphores
+  use            :: FGSL              , only : FGSL_Success           , FGSL_Failure, FGSL_eDom  , FGSL_eRange  , FGSL_eZeroDiv         , FGSL_eUndrFlw, &
+       &                                       fgsl_error_handler_t   , FGSL_Char   , FGSL_StrMax, FGSL_StrError, FGSL_Set_Error_Handler, FGSL_Name    , &
+       &                                       FGSL_Error_Handler_Init
+  use            :: ISO_Varying_String
   implicit none
   private
   public :: Galacticus_Error_Report               , Galacticus_Error_Handler_Register    , &
@@ -177,7 +179,6 @@ contains
   
   subroutine Galacticus_Error_Handler_Register()
     !% Register signal handlers.
-    use FGSL
     implicit none
     type(fgsl_error_handler_t) :: galacticusGslErrorHandler, standardGslErrorHandler
 
@@ -348,7 +349,6 @@ contains
 #ifdef USEMPI
     use MPI
 #endif
-    use FGSL
     type     (c_ptr                         ), value :: file       , reason
     integer  (kind=c_int                    ), value :: errorNumber, line
     character(kind=FGSL_Char,len=FGSL_StrMax)        :: message

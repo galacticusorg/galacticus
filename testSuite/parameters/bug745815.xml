@@ -22,13 +22,16 @@
   </accretionHaloMethod>
   <accretionRateThinDiskMaximum value="0.30d0"/>
   <accretionRateThinDiskMinimum value="0.01d0"/>
-  <adiabaticContractionGnedinA value="0.8"/>
-  <adiabaticContractionGnedinOmega value="0.77"/>
+  <galacticStructureRadiiInitialMethod value="gnedin2004">
+    <A value="0.8"/>
+    <omega value="0.77"/>
+  </galacticStructureRadiiInitialMethod>
+
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
   <stabilityThresholdGaseous value="0.9"/>
     <stabilityThresholdStellar value="1.1"/>
   </galacticDynamicsBarInstabilityMethod>
-  <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
+  <blackHoleBinaryMergersMethod value="rezzolla2008"/>
   <blackHoleSeedMass value="100"/>
   <blackHoleWindEfficiency value="0.001"/>
   <bondiHoyleAccretionEnhancementHotHalo value="1"/>
@@ -62,18 +65,21 @@
     <lambda0 value="0.04326"/>
   </haloSpinDistributionMethod>
   <hotHaloMassDistributionMethod value="cored isothermal"/>
-  <hotHaloOutflowReturnRate value="1.26027"/>
+  <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="1.26027"/>
+  </hotHaloOutflowReincorporationMethod>
+
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <imfSalpeterRecycledInstantaneous value="0.39"/>
-  <imfSalpeterYieldInstantaneous value="0.02"/>
-  <imfSelectionFixed value="Salpeter"/>
-  <imfSelectionMethod value="fixed"/>
+  <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.39"/>
+    <metalYield value="0.02"/>
+  </stellarPopulationMethod>
+  <initialMassFunctionMethod value="salpeter1955"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
   <linearGrowthMethod value="simple"/>
-  <majorMergerMassRatio value="0.1"/>
-  <mergerRemnantSizeOrbitalEnergy value="1"/>
   <mergerTreeBuilderMethod value="cole2000">
     <accretionLimit value="0.1"/>
     <mergeProbability value="0.1"/>
@@ -97,11 +103,13 @@
   <mergerTreeBuildTreesHaloMassExponent value="1"/>
   <mergerTreeConstructorMethod value="build"/>
   <mergerTreeStructureOutput value="false"/>
-  <minorMergerGasMovesTo value="spheroid"/>
   <nodeMergersMethod value="single level hierarchy"/>
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
-  <outputRedshifts value="0"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0"/>
+  </outputTimesMethod>
+
   <outputVirialData value="false"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="0.961"/>
@@ -110,9 +118,14 @@
   </powerSpectrumPrimordialMethod>
   <randomSeed value="228"/>
   <randomSpinResetMassFactor value="2"/>
-  <satelliteMergingMassMovementsMethod value="simple"/>
+  <mergerMassMovementsMethod value="simple">
+  <massRatioMajorMerger value="0.1"/>
+    <destinationGasMinorMerger value="spheroid"/>
+  </mergerMassMovementsMethod>
   <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <satelliteMergingRemnantSizeMethod value="Cole2000"/>
+  <mergerRemnantSizeMethod value="cole2000">
+  <energyOrbital value="1"/>
+  </mergerRemnantSizeMethod>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.807"/>
   </cosmologicalMassVarianceMethod>
@@ -135,10 +148,11 @@
   <starveSatellites value="true"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSpectraMethod value="FSPS"/>
-  <timestepHostAbsolute value="1"/>
-  <timestepHostRelative value="0.1"/>
-  <timestepSimpleAbsolute value="1"/>
-  <timestepSimpleRelative value="0.1"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
+
   <transferFunctionMethod value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>

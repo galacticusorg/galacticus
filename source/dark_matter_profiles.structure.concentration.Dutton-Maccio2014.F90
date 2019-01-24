@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -214,9 +215,10 @@ contains
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
     !% algorithm.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout), target  :: self
-    type            (treeNode                                      ), intent(inout), pointer :: node
+    type            (treeNode                                      ), intent(inout), target  :: node
     class           (nodeComponentBasic                            )               , pointer :: basic
     double precision                                                , parameter              :: littleHubbleConstantDuttonMaccio2014= 0.671d0
     double precision                                                , parameter              :: massNormalization                   =12.000d0

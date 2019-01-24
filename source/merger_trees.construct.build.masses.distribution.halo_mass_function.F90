@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -113,12 +114,13 @@ contains
     type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
 
     !# <objectDestructor name="self%haloMassFunction_"/>
+    !# <objectDestructor name="self%haloEnvironment_" />
     return
   end subroutine haloMassFunctionDestructor
 
   double precision function haloMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode
     implicit none
     class           (mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
     double precision                                                 , intent(in   ) :: mass                , massMaximum, &

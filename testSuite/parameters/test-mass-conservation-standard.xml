@@ -112,9 +112,11 @@
     <hotHaloAngularMomentumAlwaysGrows value="true"/>
     
     <!-- Outputs and analyses -->
-    <outputRedshifts value="0.0000"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0000"/>
+  </outputTimesMethod>
 
-    <!-- Dark matter halo structure options -->
+  <!-- Dark matter halo structure options -->
     <darkMatterProfileMethod value="NFW"/>
     <darkMatterProfileConcentrationMethod value="diemerKravtsov2014">
       <alpha value="1.12"/>
@@ -153,8 +155,11 @@
       <sourceAngularMomentumSpecificMean value="hotGas"/>
       <sourceNormalizationRotation value="hotGas"/>
     </coolingSpecificAngularMomentumMethod>
-    <hotHaloOutflowReturnRate value="5.0"/>
-    <coolingFunctionMethod value="atomicCIECloudy"/>
+    <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="5.0"/>
+  </hotHaloOutflowReincorporationMethod>
+
+  <coolingFunctionMethod value="atomicCIECloudy"/>
     <coolingRadiusMethod value="simple"/>
     <coolingRateMethod value="whiteFrenk1991">
       <velocityCutOff value="10000"/>
@@ -186,9 +191,12 @@
 
     <!-- Galactic structure solver options -->
     <galacticStructureRadiusSolverMethod value="adiabatic"/>
-    <adiabaticContractionGnedinA value="0.73"/>
-    <adiabaticContractionGnedinOmega value="0.7"/>
-    <spheroidAngularMomentumAtScaleRadius value="0.5"/>
+    <galacticStructureRadiiInitialMethod value="gnedin2004">
+    <A value="0.73"/>
+    <omega value="0.7"/>
+  </galacticStructureRadiiInitialMethod>
+
+  <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
     <!-- Galactic disk dynamics options -->
     <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
@@ -198,7 +206,6 @@
     <!-- Star formation rate options -->
     <starFormationTimescaleDisksMethod value="intgrtdSurfaceDensity">
       <tolerance value="1.0e-2"/>
-      <timescaleMinimum value="0.001"/>
     </starFormationTimescaleDisksMethod>
 
     <starFormationRateSurfaceDensityDisksMethod value="krumholz2009">
@@ -215,12 +222,15 @@
     <!-- Stellar populations options -->
     <stellarPopulationPropertiesMethod value="instantaneous"/>
     <stellarPopulationSpectraMethod value="FSPS"/>
-    <imfSelectionMethod value="fixed"/>
-    <imfSelectionFixed value="Chabrier"/>
-    <imfChabrierRecycledInstantaneous value="0.46"/>
-    <imfChabrierYieldInstantaneous value="0.035"/>
+    <stellarPopulationSelectorMethod value="fixed"/>
+    
+  <initialMassFunctionMethod value="chabrier2001"/>
+    <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.46"/>
+    <metalYield value="0.035"/>
+  </stellarPopulationMethod>
 
-    <!-- AGN feedback options -->
+  <!-- AGN feedback options -->
     <hotHaloExcessHeatDrivesOutflow value="true"/>
     <blackHoleHeatsHotHalo value="false"/>
 
@@ -251,7 +261,7 @@
     </accretionDisksMethod>
 
     <!-- Black hole options -->
-    <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
+    <blackHoleBinaryMergersMethod value="rezzolla2008"/>
     <blackHoleSeedMass value="0"/>
     <blackHoleWindEfficiency value="0.0024"/>
     <blackHoleWindEfficiencyScalesWithRadiativeEfficiency value="true"/>
@@ -265,14 +275,16 @@
 
     <!-- Galaxy merger options -->
     <virialOrbitMethod value="benson2005"/>
-    <satelliteMergingTimescalesMethod value="jiang2008"/>
-    <mergingTimescaleMultiplier value="0.75"/>
-    <satelliteMergingMassMovementsMethod value="simple"/>
-    <minorMergerGasMovesTo value="spheroid"/>
-    <satelliteMergingRemnantSizeMethod value="Cole2000"/>
-    <majorMergerMassRatio value="0.25"/>
-    <mergerRemnantSizeOrbitalEnergy value="1"/>
-
+    <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="0.75"/>
+  </satelliteMergingTimescalesMethod>
+    <mergerMassMovementsMethod value="simple">
+  <destinationGasMinorMerger value="spheroid"/>
+    <massRatioMajorMerger value="0.25"/>
+  </mergerMassMovementsMethod>
+    <mergerRemnantSizeMethod value="cole2000">
+  <energyOrbital value="1"/>
+  </mergerRemnantSizeMethod>
     <!-- Spheroid options -->
     <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
 
@@ -281,15 +293,15 @@
     <odeToleranceRelative value="1.0e-5"/>
     <diskMassToleranceAbsolute value="1.0e-6"/>
     <spheroidMassToleranceAbsolute value="1.0e-6"/>
-    <timestepHostAbsolute value="1.0"/>
-    <timestepHostRelative value="0.1"/>
-    <timestepSimpleAbsolute value="1.0"/>
-    <timestepSimpleRelative value="0.1"/>
-
+    <mergerTreeEvolverMethod value="standard">
+      <timeStepHostAbsolute value="1.0"/>
+      <timeStepHostRelative value="0.1"/>
+    </mergerTreeEvolverMethod>
+    
     <!-- Output options -->
-    <mergerTreeOutput>
+    <mergerTreeOutputterMethod value="standard">
       <outputReferences value="false"/>
-    </mergerTreeOutput>
+    </mergerTreeOutputterMethod>
 
   </parameters>
 

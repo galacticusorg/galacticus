@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Dark_Matter_Halo_Mass_Accretion_Histories
   !% Provides a class for calculations of dark matter halo mass accretion histories.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
 
   !# <functionClass>
   !#  <name>darkMatterHaloMassAccretionHistory</name>

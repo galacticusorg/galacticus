@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,10 +22,11 @@
 module Node_Component_Spin_Random
   !% Implement random spin tree node method.
   use Galacticus_Nodes
+  use Halo_Spin_Distributions
   implicit none
   private
-  public :: Node_Component_Spin_Random_Initialize  , Node_Component_Spin_Random_Initialize_Spins, &
-       &    Node_Component_Spin_Random_Promote
+  public :: Node_Component_Spin_Random_Initialize, Node_Component_Spin_Random_Initialize_Spins , &
+       &    Node_Component_Spin_Random_Promote   , Node_Component_Spin_Random_Thread_Initialize
 
   !# <component>
   !#  <class>spin</class>
@@ -48,9 +50,10 @@ module Node_Component_Spin_Random
   !#  </properties>
   !#  <functions>objects.nodes.components.spin.random.bound_functions.inc</functions>
   !# </component>
-
-  ! Record of whether the module has been initialized.
-  logical          :: moduleInitialized        =.false.
+  
+  ! Objects used by this component.
+  class(haloSpinDistributionClass), pointer:: haloSpinDistribution_
+  !$omp threadprivate(haloSpinDistribution_)
 
   ! The factor by which the mass of a node must increase before its spin parameter is re-chosen.
   double precision :: randomSpinResetMassFactor
@@ -62,25 +65,31 @@ contains
     use Input_Parameters
     implicit none
     
-    ! Test whether module is already initialize.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Spin_Random_Initialize)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>randomSpinResetMassFactor</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>2.0d0</defaultValue>
-          !#   <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Spin_Random_Initialize)
-    end if
+    !# <inputParameter>
+    !#   <name>randomSpinResetMassFactor</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>2.0d0</defaultValue>
+    !#   <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
     return
   end subroutine Node_Component_Spin_Random_Initialize
+  
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Spin_Random_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Spin_Random_Thread_Initialize(parameters)
+    !% Initializes the tree node random spin module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultSpinComponent%randomIsActive()) then
+       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Spin_Random_Thread_Initialize
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Spin_Random_Initialize_Spins</unitName>
@@ -88,14 +97,12 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Random_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
-    use Halo_Spin_Distributions
     implicit none
-    type            (treeNode                 ), intent(inout), pointer :: node
-    type            (treeNode                 )               , pointer :: nodeRelated
-    class           (nodeComponentSpin        )               , pointer :: spinRelated          , spin
-    class           (nodeComponentBasic       )               , pointer :: basicRelated
-    class           (haloSpinDistributionClass), pointer                :: haloSpinDistribution_
-    double precision                                                    :: previousSetMass      , previousSetSpin
+    type            (treeNode          ), intent(inout), pointer :: node
+    type            (treeNode          )               , pointer :: nodeRelated
+    class           (nodeComponentSpin )               , pointer :: spinRelated    , spin
+    class           (nodeComponentBasic)               , pointer :: basicRelated
+    double precision                                             :: previousSetMass, previousSetSpin
 
     ! Check if we are the default method.
     if (defaultSpinComponent%randomIsActive()) then
@@ -106,9 +113,7 @@ contains
        ! Ensure that the spin has not yet been assigned for this node.
        select type (spin)
        type is (nodeComponentSpin)
-          ! Get required objects.
-          haloSpinDistribution_ => haloSpinDistribution()
-          ! Walk the tree back along primary children to the earliest such progenitor.
+           ! Walk the tree back along primary children to the earliest such progenitor.
           nodeRelated => node
           do while (associated(nodeRelated%firstChild))
              nodeRelated => nodeRelated%firstChild

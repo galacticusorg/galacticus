@@ -3,7 +3,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-   <satelliteMergingRemnantSizeMethod value="Cole2000"/>
+   <mergerRemnantSizeMethod value="cole2000"/>
    <mergerTreeConstructorMethod value="read">
   <missingHostsAreFatal value="false"/>
     <treeIndexToRootNodeIndex value="true"/>
@@ -17,7 +17,10 @@
     <presetScaleRadii value="true"/>
   </mergerTreeConstructorMethod>
   <galacticusOutputFileName value="testSuite/outputs/bug1066052.hdf5"/>
-  <allTreesExistAtFinalTime value="false"/>
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+  </mergerTreeEvolverMethod>
+
   <treeNodeMethodPosition value="preset"/>
   <treeNodeMethodSatellite value="preset"/>
   <cosmologyParametersMethod value="simple">
@@ -40,11 +43,17 @@
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
   <verbosityLevel value="1"/>
   <nodePromotionIndexShift value="false"/>
-  <outputRedshifts value="0.000"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0.000"/>
+  </outputTimesMethod>
+
   <galacticDynamicsBarInstabilityMethod value="stable"/>
   <starFormationTimescaleSpheroidsMethod value="dynamicalTime">
     <efficiency value="0.0"/>
   </starFormationTimescaleSpheroidsMethod>
 
-  <mergingTimescaleMultiplier value="1.0e30"/>
-</parameters>
+  <satelliteMergingTimescalesMethod value="jiang2008">
+    <timescaleMultiplier value="1.0e30"/>
+  </satelliteMergingTimescalesMethod>
+
+  </parameters>

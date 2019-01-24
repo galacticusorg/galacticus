@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +26,7 @@
      double precision                                    :: volumeWeight                  , initializedUntil
      type            (treeNode        ), pointer         :: baseNode             => null()
      type            (mergerTree      ), pointer         :: nextTree             => null()
+     type            (universe        ), pointer         :: hostUniverse         => null()
      type            (treeEvent       ), pointer, public :: event
      type            (pseudoRandom    )                  :: randomNumberGenerator
      type            (doubleScalarHash)                  :: properties

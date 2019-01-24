@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -239,9 +240,10 @@ contains
   subroutine regridTimesOperate(self,tree)
     !% Perform a regrid times operation on a merger tree.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes       , only : treeNode              , treeNodeList, nodeComponentBasic, nodeEvent, &
+         &                                            nodeComponentSatellite
     use               Galacticus_Error
-    use               FGSL
+    use               FGSL                   , only : fgsl_interp_accel
     use               Numerical_Interpolation
     use               Numerical_Comparison
     use               Kind_Numbers

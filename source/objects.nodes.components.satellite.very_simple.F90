@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,10 +22,13 @@
 module Node_Component_Satellite_Very_Simple
   !% Implements a very simple satellite orbit component.
   use Galacticus_Nodes
-  implicit none
+     use Virial_Orbits
+    use Satellite_Merging_Timescales
+ implicit none
   private
   public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create      , &
-       &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute
+       &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute, &
+       &    Node_Component_Satellite_Very_Simple_Thread_Initialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -51,15 +55,17 @@ module Node_Component_Satellite_Very_Simple
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.very_simple.bound_functions.inc</functions>
   !# </component>
-
+  
+  ! Objects used by this component.
+  class(virialOrbitClass               ), pointer :: virialOrbit_
+  class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_
+  !$omp threadprivate(virialOrbit_,satelliteMergingTimescales_)
+  
   ! Flag indicating whether or not to reset satellite orbits on halo formation events.
   logical            :: satelliteOrbitResetOnHaloFormation
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical, parameter :: acceptUnboundOrbits               =.false.
-
-  ! Record of whether this module has been initialized.
-  logical            :: moduleInitialized                 =.false.
 
 contains
 
@@ -68,26 +74,33 @@ contains
     use Input_Parameters
     implicit none
 
-    ! Test whether module is already initialize.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Satellite_Very_Simple_Initialize)
-       if (.not.moduleInitialized) then
-          ! Determine if satellite orbits are to be reset on halo formation events.
-          !# <inputParameter>
-          !#   <name>satelliteOrbitResetOnHaloFormation</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Satellite_Very_Simple_Initialize)
-    end if
+    ! Determine if satellite orbits are to be reset on halo formation events.
+    !# <inputParameter>
+    !#   <name>satelliteOrbitResetOnHaloFormation</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     return
   end subroutine Node_Component_Satellite_Very_Simple_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Satellite_Very_Simple_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize(parameters)
+    !% Initializes the tree node very simple satellite module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultSatelliteComponent%verySimpleIsActive()) then
+       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
+       !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize
 
   !# <haloFormationTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Halo_Formation_Task</unitName>
@@ -162,18 +175,14 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Satellite_Very_Simple_Create(thisNode)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
-    use Virial_Orbits
-    use Satellite_Merging_Timescales
     use Kepler_Orbits
     implicit none
-    type            (treeNode                       ), intent(inout), pointer :: thisNode
-    type            (treeNode                       )               , pointer :: hostNode
-    class           (nodeComponentSatellite         )               , pointer :: satelliteComponent
-    class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescales_
-    class           (virialOrbitClass               )               , pointer :: virialOrbit_
-    logical                                                                   :: isNewSatellite
-    double precision                                                          :: mergeTime
-    type            (keplerOrbit           )                                  :: thisOrbit
+    type            (treeNode              ), intent(inout), pointer :: thisNode
+    type            (treeNode              )               , pointer :: hostNode
+    class           (nodeComponentSatellite)               , pointer :: satelliteComponent
+    logical                                                          :: isNewSatellite
+    double precision                                                 :: mergeTime
+    type            (keplerOrbit           )                         :: thisOrbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%verySimpleIsActive()) return
@@ -195,12 +204,10 @@ contains
        ! Ensure the module has been initialized.
        call Node_Component_Satellite_Very_Simple_Initialize()
        ! Get an orbit for this satellite.
-       hostNode     => thisNode%parent
-       virialOrbit_ => virialOrbit()
-       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
+       hostNode  => thisNode%parent
+       thisOrbit =  virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Compute and store a time until merging.
-       satelliteMergingTimescales_ => satelliteMergingTimescales                  (                  )
-       mergeTime                   =  satelliteMergingTimescales_%timeUntilMerging(thisNode,thisOrbit)
+       mergeTime=satelliteMergingTimescales_%timeUntilMerging(thisNode,thisOrbit)
        if (mergeTime >= 0.0d0) call satelliteComponent%mergeTimeSet(mergeTime)
     end select
     return

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +20,6 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
 !% algorithm of \cite{peacock_non-linear_1996}.
 
-  use FGSL
   use Cosmology_Functions
   use Linear_Growth
   use Power_Spectra

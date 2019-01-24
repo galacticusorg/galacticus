@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,81 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of atomic collisional ionization rates.
+!% Contains a module which provides a class implenting atomic collisional ionization rates.
 
 module Atomic_Rates_Ionization_Collisional
-  !% Implements calculations of atomic collisional ionization rates.
-  use ISO_Varying_String
-  implicit none
-  private
-  public :: Atomic_Rate_Ionization_Collisional
+  !% Provides a class implenting radiative recombiantion rates.
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                                         :: ionizationRateInitialized             =.false.
-
-  ! Name of ionization state method used.
-  type     (varying_string                             )          :: atomicCollisionalIonizationMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Atomic_Rate_Ionization_Collisional_Template), pointer :: Atomic_Rate_Ionization_Collisional_Get=>null()
-  abstract interface
-     double precision function Atomic_Rate_Ionization_Collisional_Template(atomicNumber,ionizationState,temperature)
-       integer         , intent(in   ) :: atomicNumber, ionizationState
-       double precision, intent(in   ) :: temperature
-     end function Atomic_Rate_Ionization_Collisional_Template
-  end interface
-
-contains
-
-  subroutine Atomic_Rate_Ionization_Collisional_Initialize
-    !% Initialize the atomic collisional ionization rate module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="atomicCollisionalIonizationMethod" type="moduleUse">
-    include 'atomic.rates.ionization.collisional.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.ionizationRateInitialized) then
-       !$omp critical(Atomic_Rate_Ionization_Collisional_Initialization)
-       if (.not.ionizationRateInitialized) then
-          ! Get the ionization state method parameter.
-          !# <inputParameter>
-          !#   <name>atomicCollisionalIonizationMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Verner')</defaultValue>
-          !#   <description>The name of the method to be used for computing atomic collisional ionization rates.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="atomicCollisionalIonizationMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>atomicCollisionalIonizationMethod,Atomic_Rate_Ionization_Collisional_Get</functionArgs>
-          include 'atomic.rates.ionization.collisional.inc'
-          !# </include>
-          if (.not.associated(Atomic_Rate_Ionization_Collisional_Get)) &
-               & call Galacticus_Error_Report('method '//char(atomicCollisionalIonizationMethod)//' is unrecognized'//{introspection:location})
-          ionizationRateInitialized=.true.
-       end if
-       !$omp end critical(Atomic_Rate_Ionization_Collisional_Initialization)
-    end if
-    return
-  end subroutine Atomic_Rate_Ionization_Collisional_Initialize
-
-  double precision function Atomic_Rate_Ionization_Collisional(atomicNumber,ionizationState,temperature)
-    implicit none
-    integer         , intent(in   ) :: atomicNumber, ionizationState
-    double precision, intent(in   ) :: temperature
-
-    ! Initialize the module.
-    call Atomic_Rate_Ionization_Collisional_Initialize
-
-    ! Call the routine to do the calculation.
-    Atomic_Rate_Ionization_Collisional=Atomic_Rate_Ionization_Collisional_Get(atomicNumber,ionizationState,temperature)
-
-    return
-  end function Atomic_Rate_Ionization_Collisional
+  !# <functionClass>
+  !#  <name>atomicIonizationRateCollisional</name>
+  !#  <descriptiveName>Atomic Collisional Ionization</descriptiveName>
+  !#  <description>Class providing atomic collisional ionization rates.</description>
+  !#  <default>verner1996</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="rate" >
+  !#   <description>Returns the radiative recombination rate.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer         , intent(in   ) :: atomicNumber, ionizationState</argument>
+  !#   <argument>double precision, intent(in   ) :: temperature</argument>                     
+  !#  </method>
+  !# </functionClass>
 
 end module Atomic_Rates_Ionization_Collisional

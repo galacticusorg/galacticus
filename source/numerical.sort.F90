@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,11 +21,18 @@
 
 module Sort
   !% Implements sorting.
-  use FGSL
   use, intrinsic :: ISO_C_Binding
+  use            :: ISO_Varying_String
+  use            :: FGSL              , only : FGSL_HeapSort, FGSL_HeapSort_Index, FGSL_SizeOf
   implicit none
   private
-  public :: Sort_Do, Sort_Index_Do, Sort_By_Index
+  public :: Sort_Do, Sort_Index_Do, sortByIndex
+
+  !# <generic identifier="Type">
+  !#  <instance label="integer" intrinsic="integer"             />
+  !#  <instance label="double"  intrinsic="double precision"    />
+  !#  <instance label="varstr"  intrinsic="type(varying_string)"/>
+  !# </generic>
 
   interface Sort_Index_Do
      !% Generic interface to index sort routines.
@@ -42,12 +50,10 @@ module Sort
      module procedure Sort_Do_Integer8_Both
   end interface Sort_Do
 
-  interface Sort_By_Index
+  interface sortByIndex
      !% Generic interface to in-place sort routines using a supplied index.
-     module procedure Sort_By_Index_Integer
-     module procedure Sort_By_Index_Double
-     module procedure Sort_By_Index_Varying_String
-  end interface Sort_By_Index
+     module procedure sortIndex{Type¦label}
+  end interface sortByIndex
 
 contains
 
@@ -305,13 +311,13 @@ contains
     return
   end function Compare_Integer8
 
-  subroutine Sort_By_Index_Double(array,index)
-    !% Given a double precision {\normalfont \ttfamily array}, sort it in place using the supplied index.
+  subroutine sortIndex{Type¦label}(array,index)
+    !% Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
     use Kind_Numbers
     implicit none
-    double precision                , dimension(:          ), intent(inout) :: array
+    {Type¦intrinsic}                , dimension(:          ), intent(inout) :: array
     integer         (kind=c_size_t ), dimension(:          ), intent(in   ) :: index
-    double precision                , dimension(size(array))                :: arrayTmp
+    {Type¦intrinsic}                , dimension(size(array))                :: arrayTmp
     integer         (kind=c_size_t )                                        :: i
 
     forall(i=1:size(array))
@@ -319,38 +325,6 @@ contains
     end forall
     array=arrayTmp
     return
-  end subroutine Sort_By_Index_Double
-
-  subroutine Sort_By_Index_Integer(array,index)
-    !% Given a integer {\normalfont \ttfamily array}, sort it in place using the supplied index.
-    use Kind_Numbers
-    implicit none
-    integer                , dimension(:          ), intent(inout) :: array
-    integer(kind=c_size_t ), dimension(:          ), intent(in   ) :: index
-    integer                , dimension(size(array))                :: arrayTmp
-    integer(kind=c_size_t )                                        :: i
-
-    forall(i=1:size(array))
-       arrayTmp(i)=array(index(i))
-    end forall
-    array=arrayTmp
-    return
-  end subroutine Sort_By_Index_Integer
-
-  subroutine Sort_By_Index_Varying_String(array,index)
-    !% Given a integer {\normalfont \ttfamily array}, sort it in place using the supplied index.
-    use ISO_Varying_String
-    implicit none
-    type   (varying_string), dimension(:          ), intent(inout) :: array
-    integer(kind=c_size_t ), dimension(:          ), intent(in   ) :: index
-    type   (varying_string), dimension(size(array))                :: arrayTmp
-    integer(kind=c_size_t )                                        :: i
-
-    forall(i=1:size(array))
-       arrayTmp(i)=array(index(i))
-    end forall
-    array=arrayTmp
-    return
-  end subroutine Sort_By_Index_Varying_String
+  end subroutine sortIndex{Type¦label}
 
 end module Sort

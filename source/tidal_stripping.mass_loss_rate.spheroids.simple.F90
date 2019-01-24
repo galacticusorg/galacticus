@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,12 +101,12 @@ contains
     !% F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
     !% \end{equation}
     !% is the gravitational restoring force in the spheroid at the half-mass radius, $r_\mathrm{1/2}$.
-    use Galacticus_Nodes
     use Galactic_Structure_Options
     use Galactic_Structure_Rotation_Curves
     use Numerical_Constants_Math
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                  , only : nodeComponentSpheroid
     implicit none
     class           (tidalStrippingSpheroidsSimple), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node

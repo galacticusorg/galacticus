@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,9 +36,11 @@
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
   contains
-    final     ::                  schneider2015Destructor
-    procedure :: concentration => schneider2015Concentration
-  end type darkMatterProfileConcentrationSchneider2015
+    final     ::                                schneider2015Destructor
+    procedure :: concentration               => schneider2015Concentration
+    procedure :: densityContrastDefinition   => schneider2015DensityContrastDefinition
+    procedure :: darkMatterProfileDefinition => schneider2015DarkMatterProfileDefinition
+ end type darkMatterProfileConcentrationSchneider2015
 
   interface darkMatterProfileConcentrationSchneider2015
      !% Constructors for the {\normalfont \ttfamily Schneider2015} dark matter halo profile concentration class.
@@ -53,12 +56,12 @@
   
 contains
 
-  function schneider2015ConstructorParameters(parameters)
+ function schneider2015ConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily schneider2015} dark matter halo profile concentration class.
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type (darkMatterProfileConcentrationSchneider2015)                :: schneider2015ConstructorParameters
+    type (darkMatterProfileConcentrationSchneider2015)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
     type(inputParameters                             )                :: referenceParameters
 
@@ -68,41 +71,41 @@ contains
     !# <inputParameter>
     !#   <name>massFractionFormation</name>
     !#   <source>parameters</source>
-    !#   <variable>schneider2015ConstructorParameters%massFractionFormation</variable>    
+    !#   <variable>self%massFractionFormation</variable>    
     !#   <defaultValue>0.05d0</defaultValue>
     !#   <description>The fraction of a halo's mass assembled at ``formation'' in the halo concentration algorithm of \cite{schneider_structure_2015}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>    
-    !# <objectBuilder class="darkMatterProfileConcentration" name="schneider2015ConstructorParameters%referenceConcentration"             source="referenceParameters"/>
-    !# <objectBuilder class="criticalOverdensity"            name="schneider2015ConstructorParameters%referenceCriticalOverdensity"       source="referenceParameters"/>
-    !# <objectBuilder class="criticalOverdensity"            name="schneider2015ConstructorParameters%         criticalOverdensity_"      source=         "parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="schneider2015ConstructorParameters%referenceCosmologicalMassVariance"  source="referenceParameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"       name="schneider2015ConstructorParameters%         cosmologicalMassVariance_" source=         "parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="schneider2015ConstructorParameters%referenceCosmologyFunctions"        source="referenceParameters"/>
-    !# <objectBuilder class="cosmologyFunctions"             name="schneider2015ConstructorParameters%         cosmologyFunctions_"       source=         "parameters"/>
+    !# <objectBuilder class="darkMatterProfileConcentration" name="self%referenceConcentration"             source="referenceParameters"/>
+    !# <objectBuilder class="criticalOverdensity"            name="self%referenceCriticalOverdensity"       source="referenceParameters"/>
+    !# <objectBuilder class="criticalOverdensity"            name="self%         criticalOverdensity_"      source=         "parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance"       name="self%referenceCosmologicalMassVariance"  source="referenceParameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance"       name="self%         cosmologicalMassVariance_" source=         "parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"             name="self%referenceCosmologyFunctions"        source="referenceParameters"/>
+    !# <objectBuilder class="cosmologyFunctions"             name="self%         cosmologyFunctions_"       source=         "parameters"/>
     !# <inputParametersValidate source="parameters"         />
     !# <inputParametersValidate source="referenceParameters"/>
     return
   end function schneider2015ConstructorParameters
 
-  function schneider2015ConstructorInternal(referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_)
+  function schneider2015ConstructorInternal(referenceConcentration,referenceCriticalOverdensity,referenceCosmologicalMassVariance,referenceCosmologyFunctions,criticalOverdensity_,cosmologicalMassvariance_,cosmologyFunctions_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily schneider2015} dark matter halo concentration class.
     implicit none
-    type (darkMatterProfileConcentrationSchneider2015)                        :: schneider2015ConstructorInternal
+    type (darkMatterProfileConcentrationSchneider2015)                        :: self
     class(darkMatterProfileConcentrationClass        ), intent(in   ), target :: referenceConcentration
     class(criticalOverdensityClass                   ), intent(in   ), target :: referenceCriticalOverdensity     , criticalOverdensity_
     class(cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance, cosmologicalMassvariance_
     class(cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions      , cosmologyFunctions_
 
     ! Construct the object.
-    schneider2015ConstructorInternal%referenceConcentration             => referenceConcentration
-    schneider2015ConstructorInternal%referenceCriticalOverdensity       => referenceCriticalOverdensity
-    schneider2015ConstructorInternal%         criticalOverdensity_      =>          criticalOverdensity_
-    schneider2015ConstructorInternal%referenceCosmologicalMassVariance  => referenceCosmologicalMassVariance
-    schneider2015ConstructorInternal%         cosmologicalMassVariance_ =>          cosmologicalMassVariance_
-    schneider2015ConstructorInternal%referenceCosmologyFunctions        => referenceCosmologyFunctions
-    schneider2015ConstructorInternal%         cosmologyFunctions_       =>          cosmologyFunctions_
+    self%referenceConcentration             => referenceConcentration
+    self%referenceCriticalOverdensity       => referenceCriticalOverdensity
+    self%         criticalOverdensity_      =>          criticalOverdensity_
+    self%referenceCosmologicalMassVariance  => referenceCosmologicalMassVariance
+    self%         cosmologicalMassVariance_ =>          cosmologicalMassVariance_
+    self%referenceCosmologyFunctions        => referenceCosmologyFunctions
+    self%         cosmologyFunctions_       =>          cosmologyFunctions_
     return
   end function schneider2015ConstructorInternal
 
@@ -124,10 +127,11 @@ contains
   double precision function schneider2015Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the algorithm of
     !% \cite{schneider_structure_2015}.
+    use Galacticus_Nodes        , only : nodeComponentBasic
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileConcentrationSchneider2015), intent(inout), target  :: self
-    type            (treeNode                                   ), intent(inout), pointer :: node
+    type            (treeNode                                   ), intent(inout), target  :: node
     class           (nodeComponentBasic                         )               , pointer :: basic
     double precision                                             , parameter              :: toleranceAbsolute          =0.0d00, toleranceRelative=1.0d-6, &
          &                                                                                   massReferenceMaximum       =1.0d20
@@ -208,3 +212,26 @@ contains
     schneider2015ReferenceCollapseMassRoot=schneider2015ReferenceCollapseMassRootPrevious
     return
   end function schneider2015ReferenceCollapseMassRoot
+
+  function schneider2015DensityContrastDefinition(self)
+    !% Return a virial density contrast object defining that used in the definition of concentration in the
+    !% \cite{schneider_structure_2015} algorithm.
+    implicit none
+    class(virialDensityContrastClass                 ), pointer       :: schneider2015DensityContrastDefinition
+    class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
+
+    schneider2015DensityContrastDefinition => self%referenceConcentration%densityContrastDefinition()
+    return
+  end function schneider2015DensityContrastDefinition
+  
+  function schneider2015DarkMatterProfileDefinition(self)
+    !% Return a dark matter density profile object defining that used in the definition of concentration in the
+    !% \cite{schneider_structure_2015} algorithm.
+    use Dark_Matter_Halo_Scales
+    implicit none
+    class(darkMatterProfileClass                     ), pointer       :: schneider2015DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationSchneider2015), intent(inout) :: self
+ 
+    schneider2015DarkMatterProfileDefinition => self%referenceConcentration%darkMatterProfileDefinition()
+    return
+  end function schneider2015DarkMatterProfileDefinition

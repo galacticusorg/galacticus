@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +26,7 @@ program Test_Integration
   use Test_Integration_Functions
   use Numerical_Constants_Math
   use Galacticus_Display
+  use FGSL                      , only : fgsl_function, fgsl_integration_workspace
   implicit none
   double precision                             :: integral
   type            (fgsl_function             ) :: integrandFunction

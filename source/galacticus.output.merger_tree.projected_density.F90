@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -264,14 +265,6 @@ contains
 
     ! Return property names if we are outputting projected density data.
     if (outputProjectedDensityData) then
-       !@ <outputProperty>
-       !@   <name>projectedDensity</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>projected density at a given radius.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        do i=1,radiiCount
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='projectedDensity:'//char(radii(i)%name)
@@ -320,7 +313,7 @@ contains
   subroutine Galacticus_Output_Tree_Projected_Density(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store projected density properties in the \glc\ output file buffers.
-    use FGSL
+    use FGSL                               , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Galacticus_Nodes
     use Kind_Numbers

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,12 +22,15 @@
 module Node_Component_Black_Hole_Simple
   !% Implements the simple black hole node component.
   use Galacticus_Nodes
+  use Dark_Matter_Halo_Scales
+  use Cooling_Radii
+  use Black_Hole_Binary_Mergers
   implicit none
   private
-  public :: Node_Component_Black_Hole_Simple_Initialize       , Node_Component_Black_Hole_Simple_Scale_Set              , &
-       &    Node_Component_Black_Hole_Simple_Satellite_Merging, Node_Component_Black_Hole_Simple_Output_Names           , &
-       &    Node_Component_Black_Hole_Simple_Output_Count     , Node_Component_Black_Hole_Simple_Output                 , &
-       &    Node_Component_Black_Hole_Simple_Rate_Compute
+  public :: Node_Component_Black_Hole_Simple_Initialize       , Node_Component_Black_Hole_Simple_Scale_Set        , &
+       &    Node_Component_Black_Hole_Simple_Satellite_Merging, Node_Component_Black_Hole_Simple_Output_Names     , &
+       &    Node_Component_Black_Hole_Simple_Output_Count     , Node_Component_Black_Hole_Simple_Output           , &
+       &    Node_Component_Black_Hole_Simple_Rate_Compute     , Node_Component_Black_Hole_Simple_Thread_Initialize
 
   !# <component>
   !#  <class>blackHole</class>
@@ -54,6 +58,12 @@ module Node_Component_Black_Hole_Simple
   !#  </bindings>
   !#  <functions>objects.nodes.components.black_hole.simple.bound_functions.inc</functions>
   !# </component>
+  
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_
+  class(coolingRadiusClass        ), pointer :: coolingRadius_
+  class(blackHoleBinaryMergerClass), pointer :: blackHoleBinaryMerger_
+  !$omp threadprivate(darkMatterHaloScale_,coolingRadius_,blackHoleBinaryMerger_)
 
   ! Seed mass for black holes.
   double precision :: blackHoleSeedMass
@@ -66,85 +76,91 @@ module Node_Component_Black_Hole_Simple
   ! Output options.
   logical          :: blackHoleOutputAccretion
 
-  ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized                    =.false.
-
 contains
 
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Black_Hole_Simple_Initialize()
+  subroutine Node_Component_Black_Hole_Simple_Initialize(parameters)
     !% Initializes the simple black hole node component module.
     use Input_Parameters
     implicit none
-    type(nodeComponentBlackHoleSimple) :: blackHoleSimple
+    type(inputParameters             ), intent(inout) :: parameters
+    type(nodeComponentBlackHoleSimple)                :: blackHoleSimple
 
-    ! Initialize the module if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Black_Hole_Simple_Initialize)
-       if (.not.moduleInitialized) then
-          ! Get the black hole seed mass.
-          blackHoleSeedMass=blackHoleSimple%massSeed()
-          ! Get accretion rate enhancement factors.
-          !# <inputParameter>
-          !#   <name>blackHoleToSpheroidStellarGrowthRatio</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1.0d-3</defaultValue>
-          !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
-          !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          ! Options controlling AGN feedback.
-          !# <inputParameter>
-          !#   <name>blackHoleHeatsHotHalo</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether or not the black hole should heat the hot halo.</description>
-          !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          if (blackHoleHeatsHotHalo) then
-             !# <inputParameter>
-             !#   <name>blackHoleHeatingEfficiency</name>
-             !#   <cardinality>1</cardinality>
-             !#   <defaultValue>1.0d-3</defaultValue>
-             !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
-             !#   <group>blackHoles</group>
-             !#   <source>globalParameters</source>
-             !#   <type>double</type>
-             !# </inputParameter>
-          else
-             blackHoleHeatingEfficiency=0.0d0
-          end if
-          ! Get options controlling winds.
-          !# <inputParameter>
-          !#   <name>blackHoleWindEfficiency</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>2.2157d-3</defaultValue>
-          !#   <description>The efficiency of the black hole accretion-driven wind.</description>
-          !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          ! Get options controlling output.
-          !# <inputParameter>
-          !#   <name>blackHoleOutputAccretion</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Black_Hole_Simple_Initialize)
+    ! Get the black hole seed mass.
+    blackHoleSeedMass=blackHoleSimple%massSeed()
+    ! Get accretion rate enhancement factors.
+    !# <inputParameter>
+    !#   <name>blackHoleToSpheroidStellarGrowthRatio</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d-3</defaultValue>
+    !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
+    !#   <group>blackHoles</group>
+    !#   <source>parameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    ! Options controlling AGN feedback.
+    !# <inputParameter>
+    !#   <name>blackHoleHeatsHotHalo</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether or not the black hole should heat the hot halo.</description>
+    !#   <group>blackHoles</group>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    if (blackHoleHeatsHotHalo) then
+       !# <inputParameter>
+       !#   <name>blackHoleHeatingEfficiency</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-3</defaultValue>
+       !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
+       !#   <group>blackHoles</group>
+       !#   <source>parameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+    else
+       blackHoleHeatingEfficiency=0.0d0
     end if
+    ! Get options controlling winds.
+    !# <inputParameter>
+    !#   <name>blackHoleWindEfficiency</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>2.2157d-3</defaultValue>
+    !#   <description>The efficiency of the black hole accretion-driven wind.</description>
+    !#   <group>blackHoles</group>
+    !#   <source>parameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
+    ! Get options controlling output.
+    !# <inputParameter>
+    !#   <name>blackHoleOutputAccretion</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     return
   end subroutine Node_Component_Black_Hole_Simple_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Black_Hole_Simple_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Black_Hole_Simple_Thread_Initialize(parameters)
+    !% Initializes the tree node random spin module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultBlackHoleComponent%simpleIsActive()) then
+       !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+       !# <objectBuilder class="coolingRadius"         name="coolingRadius_"         source="parameters"/>
+       !# <objectBuilder class="blackHoleBinaryMerger" name="blackHoleBinaryMerger_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Black_Hole_Simple_Thread_Initialize
 
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Scale_Set</unitName>
@@ -179,8 +195,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Black_Hole_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole mass rate of change.
-    use Cooling_Radii
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
     type            (treeNode                ), intent(inout), pointer :: thisNode
@@ -191,8 +205,6 @@ contains
     class           (nodeComponentBlackHole  )               , pointer :: thisBlackHoleComponent
     class           (nodeComponentSpheroid   )               , pointer :: thisSpheroidComponent
     class           (nodeComponentHotHalo    )               , pointer :: thisHotHaloComponent
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    class           (coolingRadiusClass      )               , pointer :: coolingRadius_
     double precision                          , parameter              :: coolingRadiusFractionalTransitionMinimum=0.9d0
     double precision                          , parameter              :: coolingRadiusFractionalTransitionMaximum=1.0d0
     double precision                                                   :: coolingRadiusFractional                       , couplingEfficiency   , &
@@ -237,8 +249,6 @@ contains
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
-             darkMatterHaloScale_ => darkMatterHaloScale()
-             coolingRadius_       => coolingRadius      ()
              coolingRadiusFractional=+coolingRadius_      %      radius(thisNode) &
                   &                  /darkMatterHaloScale_%virialRadius(thisNode)
              if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
@@ -272,7 +282,6 @@ contains
   !# </satelliteMergerTask>
   subroutine Node_Component_Black_Hole_Simple_Satellite_Merging(thisNode)
     !% Merge (instantaneously) any simple black hole associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
-    use Black_Hole_Binary_Mergers
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     type            (treeNode              )               , pointer :: hostNode
@@ -287,13 +296,13 @@ contains
        thisBlackHoleComponent => thisNode%blackHole (autoCreate=.true.)
        hostBlackHoleComponent => hostNode%blackHole (autoCreate=.true.)
        ! Compute the effects of the merger.
-       call Black_Hole_Binary_Merger(thisBlackHoleComponent%mass(), &
-            &                        hostBlackHoleComponent%mass(), &
-            &                        0.0d0                        , &
-            &                        0.0d0                        , &
-            &                        blackHoleMassNew             , &
-            &                        blackHoleSpinNew               &
-            &                       )
+       call blackHoleBinaryMerger_%merge(thisBlackHoleComponent%mass(), &
+            &                            hostBlackHoleComponent%mass(), &
+            &                            0.0d0                        , &
+            &                            0.0d0                        , &
+            &                            blackHoleMassNew             , &
+            &                            blackHoleSpinNew               &
+            &                           )
        ! Move the black hole to the host.
        call hostBlackHoleComponent%massSet(blackHoleMassNew)
        call thisBlackHoleComponent%massSet(           0.0d0)
@@ -333,21 +342,8 @@ contains
     
     ! Ensure that the black hole component is of the simple class.
     if (Node_Component_Black_Hole_Simple_Matches(thisNode)) then
-       !@ <outputPropertyGroup>
-       !@   <name>blackHole</name>
-       !@   <description>Black hole properities</description>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputPropertyGroup>
        if (blackHoleOutputAccretion) then
           doubleProperty=doubleProperty+1
-          !@ <outputProperty>
-          !@   <name>blackHoleAccretionRate</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..1</cardinality>
-          !@   <description>Rest-mass accretion rate onto the black hole.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
           doublePropertyNames   (doubleProperty)='blackHoleAccretionRate'
           doublePropertyComments(doubleProperty)='Rest-mass accretion rate onto the black hole.'
           doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear

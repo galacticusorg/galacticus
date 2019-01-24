@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -624,8 +625,9 @@ contains
     type(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self
 
     call self%fitParameters%destroy()
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine klypin2015Destructor
 
@@ -633,9 +635,10 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
     use Galacticus_Error
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationKlypin2015), intent(inout), target  :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
+    type            (treeNode                                ), intent(inout), target  :: node
     class           (nodeComponentBasic                      )               , pointer :: basic
     double precision                                          , parameter              :: massReference            =1.0d12
     double precision                                                                   :: massLittleH                     , concentration0, &

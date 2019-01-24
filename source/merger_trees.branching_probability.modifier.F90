@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Merger_Tree_Branching_Modifiers
   !% Provides a module which provides a class that implements core radii for cored cold mode hot halo mass distributions.
-  use Galacticus_Nodes
   private
 
   !# <functionClass>

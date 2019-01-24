@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,8 +21,7 @@
 
 module Dark_Matter_Profiles
   !% Provides an object that implements dark matter halo profiles.
-  use Galacticus_Nodes
-  use FGSL
+  use Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>
@@ -63,7 +63,7 @@ module Dark_Matter_Profiles
   !#   <description> Returns the rate of chance of the total energy of {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-1}$ Gyr$^{-1}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !#  <method name="rotationNormalization" >
   !#   <description> Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for the given {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$</description>
@@ -110,8 +110,9 @@ module Dark_Matter_Profiles
   !#   <description>Returns the radius (in Mpc) enclosing a given density threshold (in $M_\odot \hbox{Mpc}^{-3}$) in the dark matter profile of {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: density</argument>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision          , intent(in   )         :: density</argument>
   !#  </method>
   !#  <method name="kSpace" >
   !#   <description>Returns the normalized Fourier space density profile of the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily waveNumber} (given in units of Mpc$^{-1}$).</description>

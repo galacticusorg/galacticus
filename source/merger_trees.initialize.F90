@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,7 @@ contains
 
   subroutine Merger_Tree_Initialize(thisTree,endTime)
     !% Walk through all nodes of a tree and call any routines that requested to perform initialization tasks.
-    use Galacticus_Nodes
+    use Galacticus_Nodes   , only : mergerTree, treeNode, nodeComponentBasic
     use Merger_Tree_Walkers    
     !# <include directive="mergerTreeInitializeTask" type="moduleUse">
     include 'merger_trees.initialize.tasks.modules.inc'

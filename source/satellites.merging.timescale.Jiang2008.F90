@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,6 +30,7 @@
      private
      class          (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
      class          (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     double precision                                   :: timescaleMultiplier
      ! Scatter (in log(T_merge)) to add to the merger times.
      double precision                                   :: scatter
    contains
@@ -46,6 +48,7 @@ contains
 
   function jiang2008ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{jiang_fitting_2008} merging timescale class which builds the object from a parameter set.
+    use Galacticus_Nodes  , only : defaultBasicComponent
     use Galacticus_Display
     use Input_Parameters
     use Galacticus_Error
@@ -54,9 +57,17 @@ contains
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileClass             ), pointer       :: darkMatterProfile_
-    double precision                                                     :: scatter
+    double precision                                                     :: scatter             , timescaleMultiplier
 
     if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
+    !# <inputParameter>
+    !#   <name>timescaleMultiplier</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.75d0</defaultValue>
+    !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>scatter</name>
     !#   <cardinality>1</cardinality>
@@ -68,19 +79,19 @@ contains
     !# </inputParameter>       
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
-    self=satelliteMergingTimescalesJiang2008(scatter,darkMatterHaloScale_,darkMatterProfile_)
+    self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function jiang2008ConstructorParameters
 
-  function jiang2008ConstructorInternal(scatter,darkMatterHaloScale_,darkMatterProfile_) result(self)
+  function jiang2008ConstructorInternal(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfile_) result(self)
     !% Constructor for the \cite{jiang_fitting_2008} merging timescale class.
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                        :: self
-    double precision                                     , intent(in   )         :: scatter
+    double precision                                     , intent(in   )         :: timescaleMultiplier , scatter
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileClass             ), intent(in   ), target :: darkMatterProfile_
-    !# <constructorAssign variables="scatter, *darkMatterHaloScale_, *darkMatterProfile_"/>
+    !# <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfile_"/>
 
     return
   end function jiang2008ConstructorInternal
@@ -97,7 +108,7 @@ contains
 
   double precision function jiang2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
-    use Dynamical_Friction_Timescale_Utilities
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Satellite_Orbits
     use Galacticus_Error
     implicit none
@@ -118,7 +129,7 @@ contains
     ! Find the host node.
     nodeHost => node%parent
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfile_,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
@@ -149,13 +160,12 @@ contains
        jiang2008TimeUntilMerging=0.0d0
     else
        ! Compute dynamical friction timescale.
-       jiang2008TimeUntilMerging                                      &
-            & =Dynamical_Friction_Timescale_Multiplier     (        ) &
-            & *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
-            & *sqrt(equivalentCircularOrbitRadius/radialScale)        &
-            & *((a*(orbitalCircularity**b)+d)/2.0d0/C)                &
-            & *          massRatio                                   &
-            & /log(1.0d0+massRatio)
+       jiang2008TimeUntilMerging=+self%timescaleMultiplier                               &
+            &                    *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            &                    *sqrt(equivalentCircularOrbitRadius/radialScale)        &
+            &                    *((a*(orbitalCircularity**b)+d)/2.0d0/C)                &
+            &                    *          massRatio                                    &
+            &                    /log(1.0d0+massRatio)
        ! Add scatter if necessary.
        if (self%scatter > 0.0d0)                                                                 &
             & jiang2008TimeUntilMerging=+jiang2008TimeUntilMerging                               &

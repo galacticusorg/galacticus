@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -78,6 +79,7 @@ contains
     !% Return a ram pressure force due to the hot halo using the model of \cite{font_colours_2008}.
     use Kepler_Orbits
     use Satellite_Orbits
+    use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (hotHaloRamPressureForceFont2008), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,6 +93,7 @@ contains
 
   subroutine pruneByMassOperate(self,tree)
     !% Perform a prune-by-mass operation on a merger tree.
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Merger_Trees_Pruning_Utilities
     use Merger_Tree_Walkers
     implicit none

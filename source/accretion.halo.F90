@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module Accretion_Halos
   !% Implements a class implementing accretion of gas from the \gls{igm} onto halos.
   use ISO_Varying_String
-  use Galacticus_Nodes
+  use Galacticus_Nodes             , only : treeNode
   use Abundances_Structure
   use Chemical_Abundances_Structure
   use Kind_Numbers
@@ -161,15 +162,6 @@ contains
 
     if (outputHaloAccretionMode) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>haloAccretionHotModeFraction</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Fraction of halo accretion rate occuring via the hot mode.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@   <group>hotHalo</group>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='haloAccretionHotModeFraction'
        doublePropertyComments(doubleProperty)='Fraction of halo accretion rate occuring via the hot mode.'
        doublePropertyUnitsSI (doubleProperty)=1.0d0

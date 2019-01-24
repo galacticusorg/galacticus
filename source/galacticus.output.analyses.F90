@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,9 +22,8 @@
 module Output_Analyses
   !% Provides a class that implements on-the-fly analyses.
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes, only : treeNode
   private
-  public :: outputAnalyses
   
   !# <functionClass>
   !#  <name>outputAnalysis</name>
@@ -42,10 +42,20 @@ module Output_Analyses
   !#   <type>void</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="reduce" >
+  !#   <description>Reduce the object onto another object of the class.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>class(outputAnalysisClass), intent(inout) :: reduced</argument>
+  !#   <code>
+  !#    !GCC$ attributes unused :: self, reduced
+  !#   </code>
+  !#  </method>
+  !#  <method name="logLikelihood" >
+  !#   <description>Return the log-likelihood of the analysis.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !# </functionClass>
 
-  type :: outputAnalyses
-     class(outputAnalysisClass), pointer :: outputAnalysis
-  end type outputAnalyses
-  
 end module Output_Analyses

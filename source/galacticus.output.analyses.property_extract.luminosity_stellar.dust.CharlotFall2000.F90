@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,19 +20,22 @@
 !% Contains a module which implements a stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
 
   use ISO_Varying_String
+  use Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyStllrCF2000">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyStllrCF2000" defaultThreadPrivate="yes">
   !#  <description>A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyStllrCF2000
      !% A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
      private
-     type            (varying_string)                            :: filterName                , filterType
-     double precision                                            :: redshiftBand              , wavelengthFilterEffective    , &
-          &                                                         depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
-          &                                                         wavelengthExponent
-     integer                         , allocatable, dimension(:) :: luminosityIndex           , luminosityRecentIndex
+     type            (varying_string  )                            :: filterName                , filterType
+     double precision                                              :: redshiftBand              , wavelengthFilterEffective    , &
+          &                                                           depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
+          &                                                           wavelengthExponent
+     integer                           , allocatable, dimension(:) :: luminosityIndex           , luminosityRecentIndex
+     class           (outputTimesClass), pointer                   :: outputTimes_
    contains
+     final     ::             lmnstyStllrChrltFll2000Destructor
      procedure :: extract  => lmnstyStllrChrltFll2000Extract
      procedure :: type     => lmnstyStllrChrltFll2000Type
      procedure :: quantity => lmnstyStllrChrltFll2000Quantity
@@ -51,6 +55,7 @@ contains
     implicit none
     type            (outputAnalysisPropertyExtractorLmnstyStllrCF2000)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
+    class           (outputTimesClass                                ), pointer       :: outputTimes_
     type            (varying_string                                  )                :: filterName                   , filterType
     double precision                                                                  :: redshiftBand                 , depthOpticalISMCoefficient, &
          &                                                                               depthOpticalCloudsCoefficient, wavelengthExponent
@@ -104,19 +109,19 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     if (redshiftBandIsPresent) then
-       self=outputAnalysisPropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,redshiftBand=redshiftBand)
+       self=outputAnalysisPropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand=redshiftBand)
     else
-       self=outputAnalysisPropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent                          )
+       self=outputAnalysisPropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_                          )
     end if
     !# <inputParametersValidate source="parameters"/>
     return
   end function lmnstyStllrChrltFll2000ConstructorParameters
 
-  function lmnstyStllrChrltFll2000ConstructorInternal(filterName,filterType,depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,redshiftBand,outputMask) result(self)
+  function lmnstyStllrChrltFll2000ConstructorInternal(filterName,filterType,depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand,outputMask) result(self)
     !% Internal constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Output_Times
     use               Stellar_Luminosities_Structure
     use               Memory_Management
     use               Instruments_Filters
@@ -125,31 +130,40 @@ contains
     character       (len=*                                           ), intent(in   )                         :: filterName                , filterType
     double precision                                                  , intent(in   )                         :: depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
          &                                                                                                       wavelengthExponent
+    class           (outputTimesClass                                ), intent(in   ), target                 :: outputTimes_
     double precision                                                  , intent(in   ),               optional :: redshiftBand
     logical                                                           , intent(in   ), dimension(:), optional :: outputMask
     integer         (c_size_t                                        )                                        :: i
-    !# <constructorAssign variables="filterName, filterType, redshiftBand, depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, wavelengthExponent"/>
+    !# <constructorAssign variables="filterName, filterType, redshiftBand, depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, wavelengthExponent, *outputTimes_"/>
 
     self%wavelengthFilterEffective=Filter_Wavelength_Effective(Filter_Get_Index(var_str(filterName)))
-    call allocateArray(self%luminosityIndex,[Galacticus_Output_Time_Count()])
-    call allocateArray(self%luminosityRecentIndex,[Galacticus_Output_Time_Count()])
-    do i=1,Galacticus_Output_Time_Count()
+    call allocateArray(self%luminosityIndex      ,[self%outputTimes_%count()])
+    call allocateArray(self%luminosityRecentIndex,[self%outputTimes_%count()])
+    do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
           self%luminosityIndex      (i)=-1
           self%luminosityRecentIndex(i)=-1
        else
-          self%luminosityIndex      (i)=unitStellarLuminosities%index(filterName,filterType,Galacticus_Output_Redshift(i),redshiftBand,postprocessChain='default')
-          self%luminosityRecentIndex(i)=unitStellarLuminosities%index(filterName,filterType,Galacticus_Output_Redshift(i),redshiftBand,postprocessChain='recent' )
+          self%luminosityIndex      (i)=unitStellarLuminosities%index(filterName,filterType,self%outputTimes_%redshift(i),redshiftBand,postprocessChain='default')
+          self%luminosityRecentIndex(i)=unitStellarLuminosities%index(filterName,filterType,self%outputTimes_%redshift(i),redshiftBand,postprocessChain='recent' )
        end if
     end do
     return
   end function lmnstyStllrChrltFll2000ConstructorInternal
   
+  subroutine lmnstyStllrChrltFll2000Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily lmnstyStllrChrltFll2000} output analysis property extractor class.
+    implicit none
+    type(outputAnalysisPropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+
+    !# <objectDestructor name="self%outputTimes_"/>
+    return
+  end subroutine lmnstyStllrChrltFll2000Destructor
+ 
   double precision function lmnstyStllrChrltFll2000Extract(self,node)
     !% Implement a stellar luminosity output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Output_Times
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use               Abundances_Structure
     use               Stellar_Luminosities_Structure
     use               Numerical_Constants_Atomic
@@ -193,22 +207,22 @@ contains
          &                                                                               depthOpticalCloudsDisk                             , depthOpticalCloudsSpheroid
 
     ! Extract luminosities and metallicities of disk and spheroid.
-    basic                          =>                                  node               %basic              (                             )
-    disk                           =>                                  node               %disk               (                             )
-    spheroid                       =>                                  node               %spheroid           (                             )
-    i                              =  Galacticus_Output_Time_Index    (basic              %time               (                             ))
-    luminositiesStellar            =                                   disk               %luminositiesStellar(                             )
-    abundancesGas                  =                                   disk               %abundancesGas      (                             )
+    basic                          =>                         node               %basic              (                             )
+    disk                           =>                         node               %disk               (                             )
+    spheroid                       =>                         node               %spheroid           (                             )
+    i                              =  self%outputTimes_%index(basic              %time               (                             ))
+    luminositiesStellar            =                          disk               %luminositiesStellar(                             )
+    abundancesGas                  =                          disk               %abundancesGas      (                             )
     call abundancesGas%massToMassFraction(disk    %massGas())
-    metallicityDisk                =                                   abundancesGas      %metallicity        (metallicityTypeLinearByMass  )
-    abundancesGas                  =                                   spheroid           %abundancesGas      (                             )
+    metallicityDisk                =                          abundancesGas      %metallicity        (metallicityTypeLinearByMass  )
+    abundancesGas                  =                          spheroid           %abundancesGas      (                             )
     call abundancesGas%massToMassFraction(spheroid%massGas())
-    metallicitySpheroid            =                                   abundancesGas      %metallicity        (metallicityTypeLinearByMass  )
-    luminosityDisk                 =                                   luminositiesStellar%luminosity         (self%luminosityIndex      (i))
-    luminosityDiskRecent           =                                   luminositiesStellar%luminosity         (self%luminosityRecentIndex(i))
-    luminositiesStellar            =                                   spheroid           %luminositiesStellar(                             )
-    luminositySpheroid             =                                   luminositiesStellar%luminosity         (self%luminosityIndex      (i))
-    luminositySpheroidRecent       =                                   luminositiesStellar%luminosity         (self%luminosityRecentIndex(i))
+    metallicitySpheroid            =                          abundancesGas      %metallicity        (metallicityTypeLinearByMass  )
+    luminosityDisk                 =                          luminositiesStellar%luminosity         (self%luminosityIndex      (i))
+    luminosityDiskRecent           =                          luminositiesStellar%luminosity         (self%luminosityRecentIndex(i))
+    luminositiesStellar            =                          spheroid           %luminositiesStellar(                             )
+    luminositySpheroid             =                          luminositiesStellar%luminosity         (self%luminosityIndex      (i))
+    luminositySpheroidRecent       =                          luminositiesStellar%luminosity         (self%luminosityRecentIndex(i))
     ! Compute surface densities of metals in units of Msun/pc^2.
     if (disk%radius() > 0.0d0) then
        densitySurfaceMetalsDisk    =+metallicityDisk     &

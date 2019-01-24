@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,28 +19,48 @@
 
   !% An implementation of a spectrum postprocessor that suppresses the Lyman continuum.
 
-  !# <spectraPostprocessor name="spectraPostprocessorLycSuppress">
-  !#  <description>Suppress the Lyman continuum in stellar populations.</description>
-  !# </spectraPostprocessor>
-
-  type, extends(spectraPostprocessorClass) :: spectraPostprocessorLycSuppress
-     !% An lycSuppress spectrum postprocessor.
+  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorLycSuppress">
+  !#  <description>A stellar population spectrum postprocessor which completely supresses the Lyman continuum.</description>
+  !# </stellarPopulationSpectraPostprocessor>
+  type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorLycSuppress
+     !% A stellar population spectrum postprocessor which completely supresses the Lyman continuum.
      private
    contains
-     procedure :: apply => lycSuppressApply
-  end type spectraPostprocessorLycSuppress
+     procedure :: multiplier => lycSuppressMultiplier
+  end type stellarPopulationSpectraPostprocessorLycSuppress
 
+  interface stellarPopulationSpectraPostprocessorLycSuppress
+     !% Constructors for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class.
+     module procedure lycSuppressConstructorParameters
+  end interface stellarPopulationSpectraPostprocessorLycSuppress
+    
 contains
 
-  subroutine lycSuppressApply(self,wavelength,age,redshift,modifier)
+  function lycSuppressConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class which takes a
+    !% parameter list as input.
+    use Input_Parameters
+    implicit none
+    type(stellarPopulationSpectraPostprocessorLycSuppress)                :: self
+    type(inputParameters                                 ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=stellarPopulationSpectraPostprocessorLycSuppress()
+    return
+  end function lycSuppressConstructorParameters
+  
+  double precision function lycSuppressMultiplier(self,wavelength,age,redshift)
     !% Suppress the Lyman continuum in a spectrum.
     use Numerical_Constants_Atomic
     implicit none
-    class           (spectraPostprocessorLycSuppress), intent(inout) :: self
-    double precision                                 , intent(in   ) :: age     , redshift, wavelength
-    double precision                                 , intent(inout) :: modifier
+    class           (stellarPopulationSpectraPostprocessorLycSuppress), intent(inout) :: self
+    double precision                                                  , intent(in   ) :: age , redshift, wavelength
     !GCC$ attributes unused :: self, age, redshift
     
-    if (wavelength < lymanSeriesLimitWavelengthHydrogen) modifier=0.0d0
+    if (wavelength < lymanSeriesLimitWavelengthHydrogen) then
+       lycSuppressMultiplier=0.0d0
+    else
+       lycSuppressMultiplier=1.0d0
+    end if
     return
-  end subroutine lycSuppressApply
+  end function lycSuppressMultiplier

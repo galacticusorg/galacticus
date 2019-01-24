@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,16 @@
 
   use, intrinsic :: ISO_C_Binding
   use            :: Cosmology_Functions
-  
+  use            :: Output_Times
+
   !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc" defaultThreadPrivate="yes">
   !#  <description>A cosmological luminosity distance corrector analysis property operator class.</description>
   !# </outputAnalysisPropertyOperator>
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !% A cosmological luminosity distance corrector analysis property operator class.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel, cosmologyFunctionsData
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_            => null()
      double precision                         , allocatable, dimension(:) :: correctionFactor
    contains
      final     ::            csmlgyLuminosityDistanceDestructor
@@ -49,38 +52,40 @@ contains
     type (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                :: self
     type (inputParameters                                ), intent(inout) :: parameters
     class(cosmologyFunctionsClass                        ), pointer       :: cosmologyFunctionsModel, cosmologyFunctionsData
+    class(outputTimesClass                               ), pointer       :: outputTimes_
     type (inputParameters                                )                :: dataAnalysisParameters
     
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"            source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsModel" source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsData"  source="dataAnalysisParameters"/>
     ! Construct the object.
-    self=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctionsModel,cosmologyFunctionsData)
+    self=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function csmlgyLuminosityDistanceConstructorParameters
 
-  function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData) result(self)
+  function csmlgyLuminosityDistanceConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_) result(self)
     !% Internal constructor for the ``randomErrorPolynomial'' output analysis property operator class.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Output_Times
     use               Memory_Management
     use               Galacticus_Error
     implicit none
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)                        :: self
     class           (cosmologyFunctionsClass                        ), intent(in   ), target :: cosmologyFunctionsModel       , cosmologyFunctionsData
+    class           (outputTimesClass                               ), intent(in   ), target :: outputTimes_
     double precision                                                 , parameter             :: distanceSmall          =1.0d-6
     integer         (c_size_t                                       )                        :: outputIndex
     double precision                                                                         :: redshift                      , timeData              , &
          &                                                                                      timeModel                     , distanceData          , &
          &                                                                                      distanceModel
-    !# <constructorAssign variables="*cosmologyFunctionsModel, *cosmologyFunctionsData"/>
+    !# <constructorAssign variables="*cosmologyFunctionsModel, *cosmologyFunctionsData, *outputTimes_"/>
 
-    call allocateArray(self%correctionFactor,[Galacticus_Output_Time_Count()])
-    do outputIndex=1,Galacticus_Output_Time_Count()
+    call allocateArray(self%correctionFactor,[self%outputTimes_%count()])
+    do outputIndex=1,self%outputTimes_%count()
        ! Get current redshift.
-       redshift        =Galacticus_Output_Redshift(outputIndex)
+       redshift        =self%outputTimes_%redshift(outputIndex)
        ! Find corresponding cosmic times in both the data and model cosmological models.
        timeData        =self%cosmologyFunctionsData %cosmicTime                 (          &
             &           self%cosmologyFunctionsData %expansionFactorFromRedshift (         &
@@ -120,9 +125,10 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
 
-    call deallocateArray(self%correctionFactor)
+    if (allocated(self%correctionFactor)) call deallocateArray(self%correctionFactor)
     !# <objectDestructor name="self%cosmologyFunctionsModel"/>
     !# <objectDestructor name="self%cosmologyFunctionsData" />
+    !# <objectDestructor name="self%outputTimes_"           />
     return
   end subroutine csmlgyLuminosityDistanceDestructor
 

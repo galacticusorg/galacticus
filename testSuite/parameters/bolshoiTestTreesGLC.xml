@@ -75,8 +75,13 @@
     <allowSubhaloPromotions value="true"/>
     <presetNamedReals value="velocityMaximum velocityDispersion"/>
   </mergerTreeConstructorMethod>
-  <allTreesExistAtFinalTime value="false"/>
-   <!-- Use merger tree node positions -->
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
+
+  <!-- Use merger tree node positions -->
   <treeNodeMethodPosition value="preset"/>
   <!-- Use merger tree velocities to compute orbits at the virial radius -->
   <!-- Use merger tree spins -->
@@ -114,7 +119,10 @@
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
-  <hotHaloOutflowReturnRate value="1.26"/>
+  <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="1.26"/>
+  </hotHaloOutflowReincorporationMethod>
+
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingRadiusMethod value="simple"/>
   <coolingRateMethod value="whiteFrenk1991">
@@ -146,8 +154,11 @@
 
   <!-- Galactic structure solver options -->
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
-  <adiabaticContractionGnedinA value="0.8"/>
-  <adiabaticContractionGnedinOmega value="0.77"/>
+  <galacticStructureRadiiInitialMethod value="gnedin2004">
+    <A value="0.8"/>
+    <omega value="0.77"/>
+  </galacticStructureRadiiInitialMethod>
+
   <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
   <!-- Galactic disk dynamics options -->
@@ -171,10 +182,13 @@
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <stellarPopulationSpectraMethod value="FSPS"/>
-  <imfSelectionMethod value="fixed"/>
-  <imfSelectionFixed value="Salpeter"/>
-  <imfSalpeterRecycledInstantaneous value="0.39"/>
-  <imfSalpeterYieldInstantaneous value="0.02"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
+  
+  <initialMassFunctionMethod value="salpeter1955"/>
+  <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.39"/>
+    <metalYield value="0.02"/>
+  </stellarPopulationMethod>
 
   <!-- AGN feedback options -->
   <hotHaloExcessHeatDrivesOutflow value="true"/>
@@ -207,7 +221,7 @@
   </accretionDisksMethod>
 
   <!-- Black hole options -->
-  <blackHoleBinaryMergersMethod value="Rezzolla2008"/>
+  <blackHoleBinaryMergersMethod value="rezzolla2008"/>
   <blackHoleSeedMass value="100"/>
   <blackHoleToSpheroidStellarGrowthRatio value="1.0d-3"/>
   <blackHoleWindEfficiency value="0.001"/>
@@ -224,14 +238,16 @@
 
   <!-- Galaxy merger options -->
   <virialOrbitMethod value="benson2005"/>
-  <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <mergingTimescaleMultiplier value="0.75"/>
-  <satelliteMergingMassMovementsMethod value="simple"/>
-  <minorMergerGasMovesTo value="spheroid"/>
-  <satelliteMergingRemnantSizeMethod value="Cole2000"/>
-  <majorMergerMassRatio value="0.1"/>
-  <mergerRemnantSizeOrbitalEnergy value="1"/>
-
+  <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="0.75"/>
+  </satelliteMergingTimescalesMethod>
+  <mergerMassMovementsMethod value="simple">
+  <destinationGasMinorMerger value="spheroid"/>
+    <massRatioMajorMerger value="0.1"/>
+  </mergerMassMovementsMethod>
+  <mergerRemnantSizeMethod value="cole2000">
+  <energyOrbital value="1"/>
+  </mergerRemnantSizeMethod>
   <!-- Spheroid options -->
   <spheroidEnergeticOutflowMassRate value="1.0e0"/>
 
@@ -240,18 +256,15 @@
   <odeToleranceRelative value="0.01"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.1"/>
-  <timestepSimpleAbsolute value="1.0"/>
-  <timestepSimpleRelative value="0.1"/>
-
   <!-- Output options -->
-  <mergerTreeOutput value="">
-    <outputMergerTrees value="true"/>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <galacticusOutputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
-  <outputRedshifts value="0 0.1 2 4"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0 0.1 2 4"/>
+  </outputTimesMethod>
+
   <luminosityFilter value="SDSS_g SDSS_u SDSS_r bJ UKIRT_K RGO_I 2MASS_Ks SDSS_z SDSS_i"/>
   <luminosityRedshift value="0.1 0.1 0.1 0.0 0.0 0.0 0.0 0.1 0.1"/>
   <luminosityType value="observed observed observed observed rest observed observed observed observed"/>

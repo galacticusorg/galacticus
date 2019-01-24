@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,99 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides calculations of Type Ia supernovae.
+!% Contains a module which implements a class for calculations of Type Ia supernovae.
 
 module Supernovae_Type_Ia
-  !% Provides calculations of Type Ia supernovae.
-  use ISO_Varying_String
+  !% Implements a class for calculations of Type Ia supernovae.
   implicit none
   private
-  public :: SNeIa_Cumulative_Number, SNeIa_Cumulative_Yield
 
-  ! Flag indicating whether this module has been initialized.
-  logical                                              :: supernovaeIaInitialized    =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                  )          :: supernovaeIaMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(SNeIa_Cumulative_Number_Template), pointer :: SNeIa_Cumulative_Number_Get=>null()
-  procedure(SNeIa_Cumulative_Yield_Template ), pointer :: SNeIa_Cumulative_Yield_Get =>null()
-  abstract interface
-    double precision function SNeIa_Cumulative_Number_Template(initialMass,age,metallicity)
-      double precision, intent(in   ) :: age, initialMass, metallicity
-    end function SNeIa_Cumulative_Number_Template
-  end interface
-  abstract interface
-    double precision function SNeIa_Cumulative_Yield_Template(initialMass,age,metallicity,atomIndex)
-      double precision, intent(in   )           :: age      , initialMass, metallicity
-      integer         , intent(in   ), optional :: atomIndex
-    end function SNeIa_Cumulative_Yield_Template
-  end interface
-
-contains
-
-  subroutine Supernovae_Type_Ia_Initialize
-    !% Initialize the Type Ia supernovae module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="supernovaeIaMethod" type="moduleUse">
-    include 'stellar_astrophysics.supernovae_type_Ia.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.supernovaeIaInitialized) then
-       !$omp critical(Supernovae_Type_Ia_Initialization)
-       if (.not.supernovaeIaInitialized) then
-          ! Get the halo spin distribution method parameter.
-          !# <inputParameter>
-          !#   <name>supernovaeIaMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Nagashima')</defaultValue>
-          !#   <description>The method to use for computing properties of Type Ia supernovae.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="supernovaeIaMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>supernovaeIaMethod,SNeIa_Cumulative_Number_Get,SNeIa_Cumulative_Yield_Get</functionArgs>
-          include 'stellar_astrophysics.supernovae_type_Ia.inc'
-          !# </include>
-          if (.not.(associated(SNeIa_Cumulative_Number_Get).and.associated(SNeIa_Cumulative_Yield_Get))) &
-               & call Galacticus_Error_Report('method '//char(supernovaeIaMethod)//' is unrecognized'//{introspection:location})
-          supernovaeIaInitialized=.true.
-       end if
-       !$omp end critical(Supernovae_Type_Ia_Initialization)
-    end if
-    return
-  end subroutine Supernovae_Type_Ia_Initialize
-
-  double precision function SNeIa_Cumulative_Number(initialMass,age,metallicity)
-    !% Return the cumulative number of Type Ia supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
-
-    ! Ensure module is initialized.
-    call Supernovae_Type_Ia_Initialize
-
-    ! Simply call the function which does the actual work.
-    SNeIa_Cumulative_Number=SNeIa_Cumulative_Number_Get(initialMass,age,metallicity)
-    return
-  end function SNeIa_Cumulative_Number
-
-  double precision function SNeIa_Cumulative_Yield(initialMass,age,metallicity,atomIndex)
-    !% Return the cumulative yield of Type Ia supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    implicit none
-    double precision, intent(in   )           :: age      , initialMass, metallicity
-    integer         , intent(in   ), optional :: atomIndex
-
-    ! Ensure module is initialized.
-    call Supernovae_Type_Ia_Initialize
-
-    ! Simply call the function which does the actual work.
-    SNeIa_Cumulative_Yield=SNeIa_Cumulative_Yield_Get(initialMass,age,metallicity,atomIndex)
-    return
-  end function SNeIa_Cumulative_Yield
+  !# <functionClass>
+  !#  <name>supernovaeTypeIa</name>
+  !#  <descriptiveName>Supernovae Type Ia</descriptiveName>
+  !#  <description>Class providing models of supernovae type Ia.</description>
+  !#  <default>nagashima2005</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="number" >
+  !#   <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+  !#  </method>
+  !#  <method name="yield" >
+  !#   <description>Return the cumulative yield from Type Ia supernoave from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   )           :: initialMass, age, metallicity</argument>
+  !#   <argument>integer         , intent(in   ), optional :: atomIndex</argument>
+  !#  </method>
+  !# </functionClass>
 
 end module Supernovae_Type_Ia

@@ -112,10 +112,13 @@
 
   <!-- Stellar populations options -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
-  <imfSelectionMethod value="fixed"/>
-  <imfSelectionFixed value="Chabrier"/>
-  <imfChabrierRecycledInstantaneous value="0.0"/>
-  <imfChabrierYieldInstantaneous value="0.0"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
+  
+  <initialMassFunctionMethod value="chabrier2001"/>
+  <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.0"/>
+    <metalYield value="0.0"/>
+  </stellarPopulationMethod>
 
   <!-- Supernovae feedback options -->
   <starFormationFeedbackDisksMethod value="haloScaling">
@@ -130,24 +133,25 @@
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>
   </virialOrbitMethod>
-  <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <mergingTimescaleMultiplier value="0.114092219110171"/>
-  <satelliteMergingMassMovementsMethod value="verySimple"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="0.114092219110171"/>
+  </satelliteMergingTimescalesMethod>
+  <mergerMassMovementsMethod value="verySimple"/>
+  <mergerRemnantSizeMethod value="null"/>
 
   <!-- Numerical tolerances -->
   <odeAlgorithm value="Runge-Kutta-Second-Order"/>
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.1"/>
-  <timestepSimpleAbsolute value="1.0"/>
-  <timestepSimpleRelative value="0.1"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
 
   <!-- Output options -->
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   
 </parameters>

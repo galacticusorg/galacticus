@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,56 +17,59 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of initial radius in which the dark matter halo is assumed to be static.
+  !% Implements a galactic structure initial radius class in which the initial and final radii are equal.
+  
+  !# <galacticStructureRadiiInitial name="galacticStructureRadiiInitialStatic">
+  !#  <description>A galactic structure initial radius class in which the initial and final radii are equal.</description>
+  !# </galacticStructureRadiiInitial>
+  type, extends(galacticStructureRadiiInitialClass) :: galacticStructureRadiiInitialStatic
+     !% A galactic structure initial radius class in which the initial and final radii are equal.
+     private
+   contains
+     procedure :: radius           => staticRadius
+     procedure :: radiusDerivative => staticRadiusDerivative
+  end type galacticStructureRadiiInitialStatic
 
-module Galactic_Structure_Initial_Radii_Static
-  !% Implements calculations of initial radius in which the dark matter halois assumed to be static
-  use Galacticus_Nodes
-  implicit none
-  private
-  public :: Galactic_Structure_Initial_Radii_Static_Initialize
+  interface galacticStructureRadiiInitialStatic
+     !% Constructors for the {\normalfont \ttfamily static} galactic structure initial radius class.
+     module procedure staticConstructorParameters
+  end interface galacticStructureRadiiInitialStatic
 
 contains
 
-  !# <galacticStructureRadiusSolverInitialRadiusMethod>
-  !#  <unitName>Galactic_Structure_Initial_Radii_Static_Initialize</unitName>
-  !# </galacticStructureRadiusSolverInitialRadiusMethod>
-  subroutine Galactic_Structure_Initial_Radii_Static_Initialize(galacticStructureRadiusSolverInitialRadiusMethod&
-       &,Galactic_Structure_Radius_Initial_Get,Galactic_Structure_Radius_Initial_Derivative_Get)
-    !% Initializes the ``static'' initial radii module.
-    use ISO_Varying_String
+  function staticConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily static} galactic structure initial radius class which takes a parameter list as
+    !% input.
+    use Input_Parameters
     implicit none
-    type     (varying_string                                     ), intent(in   )          :: galacticStructureRadiusSolverInitialRadiusMethod
-    procedure(Galactic_Structure_Radius_Initial_Static           ), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Get
-    procedure(Galactic_Structure_Radius_Initial_Derivative_Static), intent(inout), pointer :: Galactic_Structure_Radius_Initial_Derivative_Get
-
-    if (galacticStructureRadiusSolverInitialRadiusMethod == 'static') then
-       Galactic_Structure_Radius_Initial_Get            => Galactic_Structure_Radius_Initial_Static
-       Galactic_Structure_Radius_Initial_Derivative_Get => Galactic_Structure_Radius_Initial_Derivative_Static
-    end if
+    type(galacticStructureRadiiInitialStatic)                :: self
+    type(inputParameters                    ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=galacticStructureRadiiInitialStatic()
     return
-  end subroutine Galactic_Structure_Initial_Radii_Static_Initialize
+  end function staticConstructorParameters
 
-  double precision function Galactic_Structure_Radius_Initial_Static(node,radius)
+  double precision function staticRadius(self,node,radius)
     !% Compute the initial radius in the dark matter halo assuming the halo is static.
     implicit none
-    type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: radius
-    !GCC$ attributes unused :: node, radius
+    class           (galacticStructureRadiiInitialStatic), intent(inout) :: self
+    type            (treeNode                           ), intent(inout) :: node
+    double precision                                     , intent(in   ) :: radius
+    !GCC$ attributes unused :: self, node, radius
 
-    Galactic_Structure_Radius_Initial_Static=radius
+    staticRadius=radius
     return
-  end function Galactic_Structure_Radius_Initial_Static
+  end function staticRadius
 
-  double precision function Galactic_Structure_Radius_Initial_Derivative_Static(node,radius)
+  double precision function staticRadiusDerivative(self,node,radius)
     !% Compute the derivative of the initial radius in the dark matter halo assuming the halo is static.
     implicit none
-    type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: radius
-    !GCC$ attributes unused :: node, radius
-    
-    Galactic_Structure_Radius_Initial_Derivative_Static=1.0d0
-    return
-  end function Galactic_Structure_Radius_Initial_Derivative_Static
+    class           (galacticStructureRadiiInitialStatic), intent(inout) :: self
+    type            (treeNode                           ), intent(inout) :: node
+    double precision                                     , intent(in   ) :: radius
+    !GCC$ attributes unused :: self, node, radius
 
-end module Galactic_Structure_Initial_Radii_Static
+    staticRadiusDerivative=1.0d0
+    return
+  end function staticRadiusDerivative

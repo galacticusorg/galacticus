@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -105,6 +106,7 @@ contains
 
   double precision function powerLawErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (nbodyHaloMassErrorPowerLaw), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -124,6 +126,7 @@ contains
   
   double precision function powerLawCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(nbodyHaloMassErrorPowerLaw), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node1 , node2

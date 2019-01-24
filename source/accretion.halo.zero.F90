@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,7 +58,6 @@ contains
        
   logical function zeroBranchHasBaryons(self,node)
     !% Returns true if this branch can accrete any baryons.
-    use Galacticus_Nodes
     implicit none
     class(accretionHaloZero), intent(inout)         :: self
     type (treeNode         ), intent(inout), target :: node
@@ -69,7 +69,6 @@ contains
 
   double precision function zeroAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
@@ -82,7 +81,6 @@ contains
 
   double precision function zeroAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
@@ -95,7 +93,6 @@ contains
 
   double precision function zeroFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
@@ -108,7 +105,6 @@ contains
 
   double precision function zeroFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloZero), intent(inout) :: self
     type   (treeNode         ), intent(inout) :: node
@@ -121,7 +117,6 @@ contains
 
   function zeroAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     implicit none
     type   (abundances       )                :: zeroAccretionRateMetals
     class  (accretionHaloZero), intent(inout) :: self
@@ -135,7 +130,6 @@ contains
 
   function zeroAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     implicit none
     type   (abundances       )                :: zeroAccretedMassMetals
     class  (accretionHaloZero), intent(inout) :: self
@@ -149,7 +143,6 @@ contains
 
   function zeroAccretionRateChemicals(self,node,accretionMode)
     !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
     type   (chemicalAbundances)                :: zeroAccretionRateChemicals
@@ -164,7 +157,6 @@ contains
 
   function zeroAccretedMassChemicals(self,node,accretionMode)
     !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     use Chemical_Abundances_Structure
     implicit none
     type   (chemicalAbundances)                :: zeroAccretedMassChemicals

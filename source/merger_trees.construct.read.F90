@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,9 +16,11 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implements a merger tree constructor class which constructs trees by reading their definitions from file.
   
+  use Galacticus_Nodes                  , only : treeNode                    , nodeComponentBasic               , nodeComponentDarkMatterProfile
+  use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use Cosmology_Functions
   use Merger_Tree_Read_Importers
   use Halo_Spin_Distributions
@@ -28,6 +31,7 @@
   use Virial_Orbits
   use Kind_Numbers
   use MPI_Utilities
+  use Output_Times
   
   !# <mergerTreeConstructor name="mergerTreeConstructorRead">
   !#  <description>Merger tree constructor class which builds merger trees assuming smooth accretion.</description>
@@ -43,6 +47,8 @@
      class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_
      class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_
      class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
+     class           (outputTimesClass                   ), pointer                   :: outputTimes_
+     class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_
      integer                                                                          :: fileCurrent
      type            (varying_string                     ), allocatable, dimension(:) :: fileNames                             , presetNamedReals                    , &
           &                                                                              presetNamedIntegers
@@ -396,6 +402,8 @@ contains
     class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_
     class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_
     class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
+    class           (outputTimesClass                   ), pointer                   :: outputTimes_
+    class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_
     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                              presetNamedIntegers
     integer                                                                          :: fileCount
@@ -651,6 +659,8 @@ contains
     !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                                                  />
     !# <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                                                  />
     !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                                                  />    
+    !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                                                  />
+    !# <objectBuilder class="darkMatterProfileScaleRadius"   name="darkMatterProfileScaleRadius_"   source="parameters"                                                                                  />
     !# <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolutionMethod" threadPrivate="yes" >
     !#  <default>
     !#   <satelliteMergingTimescalesSubresolutionMethod value="zero"/>
@@ -692,17 +702,19 @@ contains
          &                                                                               darkMatterProfileConcentration_                              , &
          &                                                                               haloSpinDistribution_                                        , &
          &                                                                               satelliteMergingTimescales_                                  , &
-         &                                                                               virialOrbit_                                                   &
+         &                                                                               virialOrbit_                                                 , &
+         &                                                                               outputTimes_                                                 , &
+         &                                                                               darkMatterProfileScaleRadius_                                  &
          &                        )
     !# <inputParametersValidate source="parameters"/>
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_) result(self)
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    use Galacticus_Nodes                , only : defaultNBodyComponent, nodeComponentNBodyGeneric
     use Galacticus_Error
     use Galacticus_Display
-    use Galacticus_Output_Times
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Boolean
     use Memory_Management
@@ -716,6 +728,8 @@ contains
     class           (haloSpinDistributionClass          ), intent(in   ), target       :: haloSpinDistribution_
     class           (satelliteMergingTimescalesClass    ), intent(in   ), target       :: satelliteMergingTimescales_
     class           (virialOrbitClass                   ), intent(in   ), target       :: virialOrbit_
+    class           (outputTimesClass                   ), intent(in   ), target       :: outputTimes_
+    class           (darkMatterProfileScaleRadiusClass  ), intent(in   ), target       :: darkMatterProfileScaleRadius_
     type            (varying_string                     ), intent(in   ), dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                                presetNamedIntegers
     integer         (c_size_t                           ), intent(in   )               :: forestSizeMaximum
@@ -734,7 +748,7 @@ contains
          &                                                                                presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     integer         (c_size_t                           )                              :: iOutput                             , i
     type            (varying_string                     )                              :: message
-    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_"/>
+    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_"/>
 
     ! Initialize statuses.
     self%warningNestedHierarchyIssued           =.false.                                            
@@ -742,10 +756,10 @@ contains
     ! Initialize split forests counter.
     readSplitForestUniqueID=mpiCounter()
     ! Get array of output times.
-    self%outputTimesCount=Galacticus_Output_Time_Count()
+    self%outputTimesCount=self%outputTimes_%count()
     call allocateArray(self%outputTimes,[self%outputTimesCount])
     do iOutput=1,self%outputTimesCount
-       self%outputTimes(iOutput)=Galacticus_Output_Time(iOutput)
+       self%outputTimes(iOutput)=self%outputTimes_%time(iOutput)
     end do
     ! Open the file.
     self%treeNumberOffset=0_c_size_t
@@ -926,11 +940,15 @@ contains
     !# <objectDestructor name="self%haloSpinDistribution_"          />
     !# <objectDestructor name="self%satelliteMergingTimescales_"    />
     !# <objectDestructor name="self%virialOrbit_"                   />
+    !# <objectDestructor name="self%outputTimes_"                   />
+    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"  />
     return
   end subroutine readDestructor
 
   function readConstruct(self,treeNumber) result(tree)
     !% Construct a merger tree by reading its definition from file.
+    use Galacticus_Nodes       , only : treeNodeList            , defaultDarkMatterProfileComponent, defaultSpinComponent, defaultSatelliteComponent, &
+         &                              defaultPositionComponent
     use Galacticus_State
     use Merger_Tree_State_Store
     use Galacticus_Error
@@ -1558,6 +1576,7 @@ contains
 
   subroutine readScanForSubhaloPromotions(self,nodes,nodeList)
     !% Scan for cases where a subhalo stops being a subhalo and so must be promoted.
+    use Galacticus_Nodes       , only : nodeEvent, treeNodeList, nodeEventSubhaloPromotion
     use Node_Subhalo_Promotions
     implicit none
     class  (mergerTreeConstructorRead), intent(inout)                              :: self
@@ -1671,6 +1690,7 @@ contains
   subroutine readCreateNodeArray(self,tree,nodes,nodeList,isolatedNodeCount,childIsSubhalo)
     !% Create an array of standard nodes and associated structures.
     use Memory_Management
+    use Galacticus_Nodes , only : treeNodeList
     implicit none
     class  (mergerTreeConstructorRead)                           , intent(inout) :: self
     type   (mergerTree               )                           , intent(inout) :: tree                                 
@@ -1729,6 +1749,7 @@ contains
     use String_Handling
     use Galacticus_Error
     use Pseudo_Random
+    use Galacticus_Nodes, only : treeNodeList
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout)          :: self
     type            (mergerTree               )                       , intent(inout) , target :: tree
@@ -1820,6 +1841,7 @@ contains
   subroutine readBuildChildAndSiblingLinks(nodes,nodeList,childIsSubhalo)
     !% Build child and sibling links between nodes.
     use Memory_Management
+    use Galacticus_Nodes , only : treeNodeList
     implicit none
     class  (nodeData          )             , dimension(:), intent(inout) :: nodes                                     
     type   (treeNodeList      )             , dimension(:), intent(inout) :: nodeList                                  
@@ -1910,29 +1932,29 @@ contains
   subroutine readAssignScaleRadii(self,nodes,nodeList)
     !% Assign scale radii to nodes.
     use Root_Finder
-    use Dark_Matter_Profile_Scales
+    use Galacticus_Nodes          , only : treeNodeList
     use Galacticus_Display
     use Galacticus_Error
     use Input_Parameters
     implicit none
-    class           (mergerTreeConstructorRead     ), target                       , intent(inout) :: self
-    class           (nodeData                      )                 , dimension(:), intent(inout) :: nodes                                                                 
-    type            (treeNodeList                  )                 , dimension(:), intent(inout) :: nodeList                                                              
-    double precision                                , parameter                                    :: scaleRadiusMaximumAllowed  =100.0d0, toleranceAbsolute  =1.0d-9, & 
-         &                                                                                            toleranceRelative          =1.0d-9                                 
-    logical                                                    , save                              :: excessiveScaleRadiiReported=.false.                                
-    class           (nodeComponentBasic            ), pointer                                      :: basic                                      
-    class           (nodeComponentDarkMatterProfile), pointer                                      :: darkMatterProfile                          
-    integer                                                                                        :: iNode                              , status                     , &
-         &                                                                                            messageVerbosity
-    integer         (c_size_t                      )                                               :: iIsolatedNode                                           
-    double precision                                                                               :: radiusScale                                             
-    logical                                                                                        :: excessiveHalfMassRadii             , excessiveScaleRadii        , &
-         &                                                                                            useFallbackScaleMethod
-    type            (rootFinder                    )           , save                              :: finder                                                     
+    class           (mergerTreeConstructorRead        ), target                       , intent(inout) :: self
+    class           (nodeData                         )                 , dimension(:), intent(inout) :: nodes                                                                 
+    type            (treeNodeList                     )                 , dimension(:), intent(inout) :: nodeList                                                              
+    double precision                                   , parameter                                    :: scaleRadiusMaximumAllowed    =100.0d0, toleranceAbsolute  =1.0d-9, & 
+         &                                                                                               toleranceRelative            =1.0d-9                                 
+    logical                                                       , save                              :: excessiveScaleRadiiReported  =.false.                                
+    class           (nodeComponentBasic               ), pointer                                      :: basic                                      
+    class           (nodeComponentDarkMatterProfile   ), pointer                                      :: darkMatterProfile
+    integer                                                                                           :: iNode                                , status                     , &
+         &                                                                                               messageVerbosity
+    integer         (c_size_t                         )                                               :: iIsolatedNode                                           
+    double precision                                                                                  :: radiusScale                                             
+    logical                                                                                           :: excessiveHalfMassRadii               , excessiveScaleRadii        , &
+         &                                                                                               useFallbackScaleMethod
+    type            (rootFinder                       )           , save                              :: finder                                                     
     !$omp threadprivate(finder)
-    type            (varying_string                )                                               :: message
-    character       (len=16                        )                                               :: label
+    type            (varying_string                   )                                               :: message
+    character       (len=16                           )                                               :: label
 
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
@@ -1954,20 +1976,20 @@ contains
           darkMatterProfile => nodeList(iIsolatedNode)%node%darkMatterProfile(autoCreate=.true.)          
           if (basic%mass() >= self%presetScaleRadiiMinimumMass) then
              ! Check if we have scale radii read directly from file.
-             if     (                                                                   &
-                  &     nodes(iNode)%scaleRadius                                        &
-                  &   >                                                                 &
-                  &     0.0d0                                                           &
-                  &  .and.                                                              &
-                  &     nodes(iNode)%scaleRadius                                        &
-                  &   <                                                                 &
+             if     (                                                                        &
+                  &     nodes(iNode)%scaleRadius                                             &
+                  &   >                                                                      &
+                  &     0.0d0                                                                &
+                  &  .and.                                                                   &
+                  &     nodes(iNode)%scaleRadius                                             &
+                  &   <                                                                      &
                   &     self%darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
-                  &    /self%presetScaleRadiiConcentrationMinimum              &
-                  &  .and.                                                              &
-                  &     nodes(iNode)%scaleRadius                                        &
-                  &   >                                                                 &
+                  &    /self%presetScaleRadiiConcentrationMinimum                            &
+                  &  .and.                                                                   &
+                  &     nodes(iNode)%scaleRadius                                             &
+                  &   >                                                                      &
                   &     self%darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
-                  &    /self%presetScaleRadiiConcentrationMaximum              &
+                  &    /self%presetScaleRadiiConcentrationMaximum                            &
                   & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
                 call darkMatterProfile%scaleSet(nodes(iNode)%scaleRadius)
@@ -1983,10 +2005,10 @@ contains
                 call finder%rangeExpand    (                                                                                   &
                      &                      rangeExpandDownward          =0.5d0                                              , &
                      &                      rangeExpandUpward            =2.0d0                                              , &
-                     &                      rangeDownwardLimit           = self%darkMatterHaloScale_%virialRadius(readNode)       &
-                     &                                                    /self%presetScaleRadiiConcentrationMaximum, &
-                     &                      rangeUpwardLimit             = self%darkMatterHaloScale_%virialRadius(readNode)       &
-                     &                                                    /self%presetScaleRadiiConcentrationMinimum, &
+                     &                      rangeDownwardLimit           = self%darkMatterHaloScale_%virialRadius(readNode)    &
+                     &                                                    /self%presetScaleRadiiConcentrationMaximum         , &
+                     &                      rangeUpwardLimit             = self%darkMatterHaloScale_%virialRadius(readNode)    &
+                     &                                                    /self%presetScaleRadiiConcentrationMinimum         , &
                      &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                      , &
                      &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                      , &
                      &                      rangeExpandType              =rangeExpandMultiplicative                            &
@@ -1995,7 +2017,7 @@ contains
                 if (status == errorStatusSuccess) then
                    call darkMatterProfile%scaleSet(radiusScale)
                    ! Check for scale radii exceeding the virial radius.
-                   if (radiusScale    > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveScaleRadii   =.true.
+                   if (radiusScale        > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveScaleRadii   =.true.
                    ! Check for half-mass radii exceeding the virial radius.
                    if (readRadiusHalfMass > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveHalfMassRadii=.true.
                    useFallbackScaleMethod=.false.
@@ -2031,12 +2053,12 @@ contains
              ! The node mass is below the reliability threshold, or no scale information is available. Set the scale radius using
              ! the fallback concentration method.
              readNode => nodeList(iIsolatedNode)%node
-             radiusScale=max(                                                                                                       &
-                  &          min(                                                                                                   &
-                  &              Dark_Matter_Profile_Scale(nodeList(iIsolatedNode)%node,concentrationMethod=self%darkMatterProfileConcentration_), &
-                  &              self%darkMatterHaloScale_%virialRadius(readNode)/self%presetScaleRadiiConcentrationMinimum   &
-                  &             )                                                                                                 , &
-                  &              self%darkMatterHaloScale_%virialRadius(readNode)/self%presetScaleRadiiConcentrationMaximum   &
+             radiusScale=max(                                                                                                         &
+                  &          min(                                                                                                     &
+                  &              self%darkMatterProfileScaleRadius_%radius(nodeList(iIsolatedNode)%node)                            , &
+                  &              self%darkMatterHaloScale_         %virialRadius(readNode)/self%presetScaleRadiiConcentrationMinimum  &
+                  &             )                                                                                                   , &
+                  &              self%darkMatterHaloScale_         %virialRadius(readNode)/self%presetScaleRadiiConcentrationMaximum  &
                   &         )
              call darkMatterProfile%scaleSet(radiusScale)
           end if
@@ -2059,6 +2081,7 @@ contains
     !% Assign spin parameters to nodes.
     use Numerical_Constants_Physical
     use Galacticus_Error
+    use Galacticus_Nodes            , only : treeNodeList, nodeComponentSpin
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout) :: self
     class           (nodeData                 )         , dimension(:), intent(inout) :: nodes              
@@ -2123,6 +2146,7 @@ contains
   subroutine readAssignNamedProperties(self,nodes,nodeList)
     !% Assign named properties to nodes.
     use Galacticus_Error
+    use Galacticus_Nodes , only : treeNodeList, nodeComponentNBody, nodeComponentNBodyGeneric
     implicit none
     class  (mergerTreeConstructorRead)                       , intent(inout) :: self
     class  (nodeData                 )         , dimension(:), intent(inout) :: nodes              
@@ -2218,6 +2242,7 @@ contains
     use Kepler_Orbits
     use String_Handling
     use Galacticus_Error
+    use Galacticus_Nodes , only : treeNodeList, nodeComponentSatellite, nodeComponentPosition
     implicit none
     class           (mergerTreeConstructorRead)                         , intent(inout) :: self
     class           (nodeData                 ), target   , dimension(:), intent(inout) :: nodes                                                                
@@ -2520,6 +2545,7 @@ contains
     !% Assign pointers to merge targets.
     use Galacticus_Error
     use String_Handling
+    use Galacticus_Nodes, only : treeNodeList
     implicit none
     class  (mergerTreeConstructorRead)              , intent(inout) :: self
     class  (nodeData                 ), dimension(:), intent(inout) :: nodes    
@@ -2565,6 +2591,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
+    use Galacticus_Nodes  , only : treeNodeList
     implicit none
     class           (mergerTreeConstructorRead)              , intent(inout)          :: self
     class           (nodeData                 ), dimension(:), intent(inout), target  :: nodes                                                        
@@ -2755,6 +2782,7 @@ contains
 
   subroutine readCreateBranchJumpEvent(node,jumpToHost,timeOfJump)
     !% Create a matched-pair of branch jump events in the given nodes.
+    use Galacticus_Nodes , only : nodeEvent, nodeEventBranchJump
     use Node_Branch_Jumps
     implicit none
     type            (treeNode ), intent(inout), pointer :: jumpToHost, node  
@@ -2780,6 +2808,7 @@ contains
     use Galacticus_Error
     use String_Handling
     use Histories
+    use Galacticus_Nodes, only : treeNodeList, nodeComponentSatellite, nodeComponentPosition, defaultSatelliteComponent
     implicit none
     class           (mergerTreeConstructorRead)                         , intent(inout) :: self
     class           (nodeData                 ), target , dimension(:  ), intent(inout) :: nodes                                    
@@ -2973,6 +3002,7 @@ contains
 
   subroutine readAssignUniqueIDsToClones(nodeList)
     !% Assign new uniqueID values to any cloned nodes inserted into the trees.
+    use Galacticus_Nodes, only : treeNodeList
     implicit none
     type   (treeNodeList), dimension(:), intent(inout) :: nodeList 
     integer                                            :: iNode    
@@ -3113,6 +3143,7 @@ contains
     use Galacticus_Error
     use String_Handling
     use Galacticus_Display
+    use Galacticus_Nodes , only : treeNodeList, nodeComponentPosition
     implicit none
     class           (mergerTreeConstructorRead)                       , intent(inout) :: self
     class           (nodeData                 )                       , intent(in   ) :: lastSeenNode                                                                      
@@ -3722,6 +3753,7 @@ contains
     use Galacticus_Error
     use String_Handling
     use Node_Events_Inter_Tree
+    use Galacticus_Nodes      , only : treeNodeList, nodeEvent, nodeEventSubhaloPromotionInterTree, nodeEventBranchJumpInterTree
     implicit none
     class           (mergerTreeConstructorRead)              , intent(inout), target :: self
     class           (nodeData                 ), dimension(:), intent(inout), target :: nodes
@@ -3924,6 +3956,7 @@ contains
     use Kepler_Orbits
     use Galacticus_Error
     use String_Handling
+    use Galacticus_Nodes , only : nodeComponentSatellite, nodeComponentPosition
     implicit none
     class           (*                       ), intent(inout)          :: self
     type            (treeNode                ), intent(inout), target  :: nodeSatellite               , nodeHost

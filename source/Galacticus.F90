@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,7 +46,7 @@ program Galacticus
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
 #ifdef USEMPI
-  integer                                         :: parentCommunicator         , status
+  integer                                         :: status
 #endif
   
   ! Initialize MPI.
@@ -55,13 +56,6 @@ program Galacticus
   !$ else
       call mpiInitialize(MPI_Thread_Single  )
   !$ end if
-  ! If we have been spawned by another MPI process, immediately disconnect.
-  call MPI_Comm_Get_Parent(parentCommunicator,status)
-  if (status /= 0) call Galacticus_Error_Report('failed to get MPI parent communicator'//{introspection:location})
-  if (parentCommunicator /= MPI_Comm_Null) then
-     call MPI_Comm_Disconnect(parentCommunicator,status)
-     if (status /= 0) call Galacticus_Error_Report('failed to disconnect from MPI parent process'//{introspection:location})
-  end if
 #endif
   ! Register error handlers.
   call Galacticus_Error_Handler_Register()
@@ -89,7 +83,8 @@ program Galacticus
   ! Perform task.
   task_ => task()
   if (task_%requiresOutputFile()) call Galacticus_Output_Open_File ()
-  call task_%perform()
+  call task_     %perform()
+  call parameters%destroy()
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
   ! Finalize MPI.
 #ifdef USEMPI

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a the Kennicutt-Schmidt star formation rate surface density for galactic disks.
 
   use Kind_Numbers
@@ -169,6 +170,7 @@ contains
     use Abundances_Structure
     use Galactic_Structure_Surface_Densities
     use Galactic_Structure_Options
+    use Galacticus_Nodes                    , only : nodeComponentDisk
     implicit none
     class           (starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
     type            (treeNode                                            ), intent(inout) :: node

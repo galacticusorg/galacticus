@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,17 @@
 
 module IO_IRATE
   !% Provides IO in \gls{irate} format.
-  use ISO_Varying_String
+  use ISO_Varying_String  , only : varying_string
+  use Cosmology_Functions , only : cosmologyFunctionsClass
+  use Cosmology_Parameters, only : cosmologyParametersClass
   private
   public :: irate
 
   type :: irate
      !% A class for interacting with \gls{irate} format files.
-     type(varying_string) :: fileName
+     type (varying_string          )          :: fileName
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_
    contains
      !@ <objectMethods>
      !@   <object>irate</object>
@@ -74,11 +79,15 @@ module IO_IRATE
   
 contains
 
-  function irateConstructor(fileName)
+  function irateConstructor(fileName,cosmologyParameters_,cosmologyFunctions_)
     !% Constructor for \gls{irate} file interface class.
+    use ISO_Varying_String, only : assignment(=)
     implicit none
-    type     (irate)                :: irateConstructor
-    character(len=*), intent(in   ) :: fileName
+    type     (irate                   )                        :: irateConstructor
+    character(len=*                   ), intent(in   )         :: fileName
+    class    (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
+    class    (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
     irateConstructor%fileName=trim(fileName)
     return
@@ -89,53 +98,48 @@ contains
     use IO_HDF5
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use Cosmology_Functions
-    use Cosmology_Parameters
+    use Cosmology_Functions             , only : hubbleUnitsLittleH
+    use ISO_Varying_String              , only : char              , trim
     implicit none
-    class           (irate                   ), intent(inout)                                        :: self
-    integer                                   , intent(in   )                                        :: snapshot
-    double precision                          , intent(  out)                             , optional :: redshift
-    double precision                          , intent(  out), allocatable, dimension(:,:), optional :: center          , velocity
-    double precision                          , intent(  out), allocatable, dimension(  :), optional :: mass
-    double precision                                         , allocatable, dimension(  :)           :: unitsInCGS
-    class           (cosmologyFunctionsClass ), pointer                                              :: cosmologyFunctions_
-    class           (cosmologyParametersClass), pointer                                              :: cosmologyParameters_
-    type            (hdf5Object              )                                                       :: irateFile       , snapshotGroup, &
-         &                                                                                              halosGroup      , thisDataset
-    character       (len=13                  )                                                       :: snapshotLabel
-    double precision                                                                                 :: redshiftInternal, expansionFactor
+    class           (irate     ), intent(inout)                                        :: self
+    integer                     , intent(in   )                                        :: snapshot
+    double precision            , intent(  out)                             , optional :: redshift
+    double precision            , intent(  out), allocatable, dimension(:,:), optional :: center          , velocity
+    double precision            , intent(  out), allocatable, dimension(  :), optional :: mass
+    double precision                           , allocatable, dimension(  :)           :: unitsInCGS
+    type            (hdf5Object)                                                       :: irateFile       , snapshotGroup, &
+         &                                                                                halosGroup      , thisDataset
+    character       (len=13    )                                                       :: snapshotLabel
+    double precision                                                                   :: redshiftInternal, expansionFactor
 
-    ! Get required objects.
-    cosmologyFunctions_  => cosmologyFunctions ()
-    cosmologyParameters_ => cosmologyParameters()
     ! Read data from file.
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot
     call irateFile%openFile(char(self%fileName),readOnly=.true.)
     snapshotGroup=irateFile    %openGroup(snapshotLabel)
     halosGroup   =snapshotGroup%openGroup('HaloCatalog')
     call snapshotGroup%readAttribute("Redshift",redshiftInternal,allowPseudoScalar=.true.)
-    expansionFactor=cosmologyFunctions_%expansionFactorFromRedshift(redshiftInternal)
+    expansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftInternal)
     if (present(redshift)) redshift=redshiftInternal
     if (present(mass    )) then
        thisDataset=halosGroup%openDataset("Mass"    )
        call thisDataset%readDataset(datasetValue=mass   )
        call thisDataset%readAttribute('unitscgs',unitsInCGS)
        call thisDataset%close()
-       mass    =mass    *(unitsInCGS(1)/kilo /massSolar )*cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
+       mass    =mass    *(unitsInCGS(1)/kilo /massSolar )*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     if (present(center )) then
        thisDataset=halosGroup%openDataset("Center"  )
        call thisDataset%readDataset(datasetValue=center  )
        call thisDataset%readAttribute('unitscgs',unitsInCGS)
        call thisDataset%close()
-       center  =center  *(unitsInCGS(1)/hecto/megaParsec)*cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
+       center  =center  *(unitsInCGS(1)/hecto/megaParsec)*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     if (present(velocity)) then
        thisDataset=halosGroup%openDataset("Velocity")
        call thisDataset%readDataset(datasetValue=velocity)
        call thisDataset%readAttribute('unitscgs',unitsInCGS)
        call thisDataset%close()
-       velocity=velocity*(unitsInCGS(1)/hecto/kilo      )*cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
+       velocity=velocity*(unitsInCGS(1)/hecto/kilo      )*self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**unitsInCGS(2)
     end if
     call halosGroup   %close()
     call snapshotGroup%close()
@@ -146,6 +150,7 @@ contains
   subroutine irateReadSimulation(self,boxSize)
     !% Read requested properties of the simulation from an \gls{irate} file.
     use IO_HDF5
+    use ISO_Varying_String, only : char
     implicit none
     class           (irate     ), intent(inout)           :: self
     double precision            , intent(  out), optional :: boxSize
@@ -162,6 +167,7 @@ contains
   subroutine irateCopySimulation(self,targetFile)
     !% Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.
     use IO_HDF5
+    use ISO_Varying_String, only : char
     implicit none
     class(irate     ), intent(inout) :: self
     type (irate     ), intent(inout) :: targetFile
@@ -178,6 +184,7 @@ contains
   subroutine irateCopyCosmology(self,targetFile)
     !% Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another.
     use IO_HDF5
+    use ISO_Varying_String, only : char
     implicit none
     class(irate     ), intent(inout) :: self
     type (irate     ), intent(inout) :: targetFile
@@ -196,8 +203,7 @@ contains
     use IO_HDF5
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use Cosmology_Functions
-    use Cosmology_Parameters
+    use ISO_Varying_String              , only : char
     implicit none
     class           (irate     ), intent(inout)                           :: self
     integer                     , intent(in   )                           :: snapshot

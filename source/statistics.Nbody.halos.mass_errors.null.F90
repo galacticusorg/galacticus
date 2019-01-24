@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,6 +64,7 @@ contains
   
   double precision function nullCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node1 , node2

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Output_Analysis_Distribution_Normalizers
   !% Provides a class that normalizors on distributions used in on-the-fly output analyses.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>

@@ -37,13 +37,15 @@ sub Process_ConditionalCall {
 		@argumentNames = sort(keys(%{$arguments}));
 	    }
 	    # Generate code to evaluate conditions.
+	    my @conditionalVariables = map {&Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},"condition".$_."__") ? () : "condition".$_."__"} 1..scalar(@argumentNames);
 	    push(
 		@variables,
 		{
 		    intrinsic => "logical",
-		    variables => [ map {"condition".$_."__"} 1..scalar(@argumentNames) ]
+		    variables => \@conditionalVariables
 		}
-		);
+		)
+		if ( scalar(@conditionalVariables) > 0 );
 	    my $i = 0;
 	    foreach my $argument ( &List::ExtraUtils::hashList($arguments,keyAs => "name") ) {
 		my $condition;

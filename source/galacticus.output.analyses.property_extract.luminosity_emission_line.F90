@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,25 +21,29 @@
 
   !$ use OMP_Lib
   use    ISO_Varying_String
-  use    FGSL
-  
+  use    FGSL                             , only : fgsl_interp_accel
+  use    Stellar_Spectra_Dust_Attenuations
+  use    Output_Times
+
   !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyEmssnLine" defaultThreadPrivate="yes">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyEmssnLine
      !% A stellar luminosity output analysis property extractor class.
      private
-     type            (varying_string  ), allocatable, dimension(:          ) :: lineNames
-     double precision                  , allocatable, dimension(:          ) :: metallicity                 , densityHydrogen             , &
-          &                                                                     ionizingFluxHydrogen        , ionizingFluxHeliumToHydrogen, &
-          &                                                                     ionizingFluxOxygenToHydrogen, wavelength
-     double precision                  , allocatable, dimension(:,:,:,:,:,:) :: luminosity
-     integer                           , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
-     double precision                               , dimension(2,3        ) :: filterExtent
-     type            (fgsl_interp_accel)            , dimension(5          ) :: accelerator
-     logical                                        , dimension(5          ) :: interpolateReset
-     double precision                                                        :: depthOpticalISMCoefficient
-     !$ integer      (omp_lock_kind    )                                     :: interpolateLock
+     class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_
+     class           (outputTimesClass                  ), pointer                             :: outputTimes_
+     type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
+     double precision                                    , allocatable, dimension(:          ) :: metallicity                   , densityHydrogen             , &
+          &                                                                                       ionizingFluxHydrogen          , ionizingFluxHeliumToHydrogen, &
+          &                                                                                       ionizingFluxOxygenToHydrogen  , wavelength
+     double precision                                    , allocatable, dimension(:,:,:,:,:,:) :: luminosity
+     integer                                             , allocatable, dimension(:,:        ) :: ionizingContinuumIndex
+     double precision                                                 , dimension(2,3        ) :: filterExtent
+     type            (fgsl_interp_accel                  )            , dimension(5          ) :: accelerator
+     logical                                                          , dimension(5          ) :: interpolateReset
+     double precision                                                                          :: depthOpticalISMCoefficient
+     !$ integer      (omp_lock_kind                      )                                     :: interpolateLock
    contains
      final     ::             lmnstyEmssnLineDestructor
      procedure :: extract  => lmnstyEmssnLineExtract
@@ -88,6 +93,8 @@ contains
     type            (outputAnalysisPropertyExtractorLmnstyEmssnLine)                              :: self
     type            (inputParameters                               ), intent(inout)               :: parameters
     type            (varying_string                                ), allocatable  , dimension(:) :: lineNames
+    class           (stellarSpectraDustAttenuationClass            ), pointer                     :: stellarSpectraDustAttenuation_
+    class           (outputTimesClass                              ), pointer                     :: outputTimes_
     double precision                                                                              :: depthOpticalISMCoefficient
     
     allocate(lineNames(parameters%count('lineNames')))
@@ -106,16 +113,18 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    self=outputAnalysisPropertyExtractorLmnstyEmssnLine(lineNames,depthOpticalISMCoefficient)
+    !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
+    self=outputAnalysisPropertyExtractorLmnstyEmssnLine(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
     return
   end function lmnstyEmssnLineConstructorParameters
 
-  function lmnstyEmssnLineConstructorInternal(lineNames,depthOpticalISMCoefficient,outputMask) result(self)
+  function lmnstyEmssnLineConstructorInternal(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
     !% Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
     use, intrinsic :: ISO_C_Binding
     use               Instruments_Filters
-    use               Galacticus_Output_Times
+    use               Output_Times
     use               Galacticus_Paths
     use               Memory_Management
     use               Stellar_Luminosities_Structure
@@ -126,10 +135,12 @@ contains
     double precision                                                , intent(in   )                         :: depthOpticalISMCoefficient
     type            (varying_string                                ), intent(in   ), dimension(:)           :: lineNames
     logical                                                         , intent(in   ), dimension(:), optional :: outputMask
+    class           (stellarSpectraDustAttenuationClass            ), intent(in   ), target                 :: stellarSpectraDustAttenuation_
+    class           (outputTimesClass                              ), intent(in   ), target                 :: outputTimes_
     type            (hdf5Object                                    )                                        :: emissionLinesFile             , lines, &
          &                                                                                                     lineDataset
     integer         (c_size_t                                      )                                        :: i
-    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient"/>
+    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *stellarSpectraDustAttenuation_, *outputTimes_"/>
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
@@ -177,14 +188,14 @@ contains
     self%ionizingFluxOxygenToHydrogen=log10(self%ionizingFluxOxygenToHydrogen)
     self%luminosity                  =log10(self%luminosity                  )
     ! Find indices of ionizing continuua filters.
-    call allocateArray(self%ionizingContinuumIndex,[Galacticus_Output_Time_Count(),3_c_size_t])
-    do i=1,Galacticus_Output_Time_Count()
+    call allocateArray(self%ionizingContinuumIndex,[self%outputTimes_%count(),3_c_size_t])
+    do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
           self%ionizingContinuumIndex(i,:                        )=-1
        else
-          self%ionizingContinuumIndex(i,ionizingContinuumHydrogen)=unitStellarLuminosities%index('Lyc'            ,'rest',Galacticus_Output_Redshift(i))
-          self%ionizingContinuumIndex(i,ionizingContinuumHelium  )=unitStellarLuminosities%index('HeliumContinuum','rest',Galacticus_Output_Redshift(i))
-          self%ionizingContinuumIndex(i,ionizingContinuumOxygen  )=unitStellarLuminosities%index('OxygenContinuum','rest',Galacticus_Output_Redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumHydrogen)=unitStellarLuminosities%index('Lyc'            ,'rest',self%outputTimes_%redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumHelium  )=unitStellarLuminosities%index('HeliumContinuum','rest',self%outputTimes_%redshift(i))
+          self%ionizingContinuumIndex(i,ionizingContinuumOxygen  )=unitStellarLuminosities%index('OxygenContinuum','rest',self%outputTimes_%redshift(i))
        end if
     end do
     ! Read wavelength intervals of ionizing continuum filters.
@@ -211,16 +222,16 @@ contains
             &               )
     end do
     !$ call OMP_Destroy_Lock(self%interpolateLock)
+    !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
+    !# <objectDestructor name="self%outputTimes_"                  />
     return
   end subroutine lmnstyEmssnLineDestructor
 
   double precision function lmnstyEmssnLineExtract(self,node)
     !% Implement an emission line output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Output_Times
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use               Stellar_Luminosities_Structure
-    use               Stellar_Spectra_Dust_Attenuations
     use               Numerical_Constants_Physical
     use               Numerical_Constants_Astronomical
     use               Numerical_Constants_Atomic
@@ -233,7 +244,6 @@ contains
     class           (nodeComponentBasic                            ), pointer          :: basic
     class           (nodeComponentDisk                             ), pointer          :: disk
     class           (nodeComponentSpheroid                         ), pointer          :: spheroid
-    class           (stellarSpectraDustAttenuationClass            ), pointer          :: stellarSpectraDustAttenuation_
     double precision                                                , parameter        :: massMinimum                   =1.0d-06
     double precision                                                , parameter        :: radiusMinimum                 =1.0d-06
     double precision                                                , parameter        :: rateStarFormationMinimum      =1.0d-06
@@ -282,14 +292,12 @@ contains
          &                                                                                k                                                       , l                              , &
          &                                                                                m                                                       , line
 
-    ! Get dust attenuation object.
-    stellarSpectraDustAttenuation_ => stellarSpectraDustAttenuation()
     ! Retrieve components.
     basic    => node%basic   ()
     disk     => node%disk    ()
     spheroid => node%spheroid()
     ! Determine output index.
-    output   =  Galacticus_Output_Time_Index(basic%time())
+    output   =  self%outputTimes_%index(basic%time())
     ! Extract all required properties.
     luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar()
     luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar()
@@ -440,15 +448,15 @@ contains
              end do
           end do
           ! Compute the final luminosity in ergs s⁻¹.
-          lmnstyEmssnLineExtract=+        lmnstyEmssnLineExtract                                                                              &
-               &                 +10.0d0**luminosityLinePerHIIRegion                                                                          &
-               &                 *        countHIIRegion                                                                         (component)  &
-               &                 *exp(                                                                                                        &
-               &                      -stellarSpectraDustAttenuation_%attenuation(                                                            &
-               &                                                                  wavelength      =self               %wavelength(     line), &
-               &                                                                  age             =0.0d0                                    , &
-               &                                                                  vBandAttenuation=depthOpticalDiffuse           (component)  &
-               &                                                                 )                                                            &
+          lmnstyEmssnLineExtract=+        lmnstyEmssnLineExtract                                                                                   &
+               &                 +10.0d0**luminosityLinePerHIIRegion                                                                               &
+               &                 *        countHIIRegion                                                                              (component)  &
+               &                 *exp(                                                                                                             &
+               &                      -self%stellarSpectraDustAttenuation_%attenuation(                                                            &
+               &                                                                       wavelength      =self               %wavelength(     line), &
+               &                                                                       age             =0.0d0                                    , &
+               &                                                                       vBandAttenuation=depthOpticalDiffuse           (component)  &
+               &                                                                      )                                                            &
                &                     )
        end do
     end do

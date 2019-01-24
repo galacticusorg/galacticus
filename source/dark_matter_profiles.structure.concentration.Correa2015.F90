@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -110,9 +111,10 @@ contains
     !% \cite{correa_accretion_2015} algorithm.
     use Dark_Matter_Halos_Correa2015
     use Root_Finder
+    use Galacticus_Nodes            , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationCorrea2015), intent(inout), target  :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
+    type            (treeNode                                ), intent(inout), target  :: node
     class           (nodeComponentBasic                      )               , pointer :: basic
     double precision                                          , parameter              :: toleranceRelative=1.0d-6
     double precision                                          , parameter              :: toleranceAbsolute=0.0d+0

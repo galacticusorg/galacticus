@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -88,7 +89,7 @@ contains
   double precision function csmlgyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
     !% Implement an csmlgyVolume output analysis weight operator.
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Output_Times
+    use            :: Output_Times
     use            :: Galacticus_Error
     use            :: Output_Analyses_Options
     implicit none

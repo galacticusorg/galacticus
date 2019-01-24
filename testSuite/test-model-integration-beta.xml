@@ -101,7 +101,7 @@
   </mergerTreeBuildMassDistributionMethod>
   
   <!-- Merger tree operators -->
-  <mergerTreePruneBaryons value="true"/>
+  <mergerTreeOperatorMethod value="pruneBaryons"/>
   
   <!-- Merger tree halo hierarchy -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -117,8 +117,10 @@
     <phi0 value="7.1395684741179295"/>
     <phi1 value="1.37"/>
   </darkMatterProfileConcentrationMethod>
-  <darkMatterProfileScaleCorrectForConcentrationDefinition value="true"/>
-  
+  <darkMatterProfileScaleRadiusMethod value="concentration">
+    <correctForConcentrationDefinition value="true"/>
+  </darkMatterProfileScaleRadiusMethod>
+
   <!-- Dark matter halo spin -->
   <haloSpinDistributionMethod value="bett2007">
     <alpha value="2.5051096022584427"/>
@@ -135,9 +137,9 @@
       <densityType value="critical"/>
     </virialDensityContrastMethod>
   </virialOrbitMethod>
-  <satelliteMergingTimescalesMethod value="jiang2008"/>
-  <mergingTimescaleMultiplier value="1.2044009774202384"/>
-  
+  <satelliteMergingTimescalesMethod value="jiang2008">
+  <timescaleMultiplier value="1.2044009774202384"/>
+  </satelliteMergingTimescalesMethod>
   <!-- Hot atmosphere -->
   <hotHaloOutflowReincorporationMethod value="velocityMaximumScaling">
     <redshiftExponent value="-0.35071002436845261e+0"/>
@@ -193,17 +195,20 @@
   <diskOutflowTimescaleMinimum value="2.8035155505694409E-002"/>
   
   <!-- Stellar initial mass function -->
-  <imfSelectionMethod value="fixed"/>
-  <imfSelectionFixed value="Chabrier"/>
-  <imfChabrierRecycledInstantaneous value="0.46"/>
-  <imfChabrierYieldInstantaneous value="0.0"/>
+  <stellarPopulationSelectorMethod value="fixed"/>
   
+  <initialMassFunctionMethod value="chabrier2001"/>
+  <stellarPopulationMethod value="standard">
+    <recycledFraction value="0.46"/>
+    <metalYield value="0.0"/>
+  </stellarPopulationMethod>
+
   <!-- Stellar evolution -->
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   
   <!-- Galaxy merging -->
-  <satelliteMergingMassMovementsMethod value="verySimple"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerMassMovementsMethod value="verySimple"/>
+  <mergerRemnantSizeMethod value="null"/>
   
   <!-- Solvers and time-stepping -->
   <odeAlgorithm value="Runge-Kutta-Second-Order"/>
@@ -212,10 +217,18 @@
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <diskVerySimpleMassScaleAbsolute value="1.0e6"/>
   <hotHaloVerySimpleDelayedMassScaleRelative value="1.0"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.01"/>
-  <timestepSimpleAbsolute value="1.0"/>
-  <timestepSimpleRelative value="0.01"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.01"/>
+  </mergerTreeEvolverMethod>
+
+  <mergerTreeEvolveTimestepMethod value="multi">
+    <mergerTreeEvolveTimestepMethod value="simple">
+      <timestepAbsolute value="1.00"/>
+      <timestepRelative value="0.01"/>
+    </mergerTreeEvolveTimestepMethod>
+    <mergerTreeEvolveTimestepMethod value="satellite"/>
+  </mergerTreeEvolveTimestepMethod>
   <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
   <diskVerySimpleAnalyticSolverPruneMassStars value="1.0e6"/>
   <diskVerySimpleUseAnalyticSolver value="true"/>
@@ -223,10 +236,11 @@
   <!-- Output -->
   <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
   <hdf5CompressionLevel value="-1"/>
-  <mergerTreeOutput value="">
-    <outputMergerTrees value="true"/>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
-  <outputRedshifts value="0.0"/>
-  
-</parameters>
+  </mergerTreeOutputterMethod>
+  <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
+  </parameters>

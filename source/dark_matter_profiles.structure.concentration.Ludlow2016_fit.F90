@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,6 +86,7 @@ contains
     type(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%cosmologyParameters_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_" />
     return
   end subroutine ludlow2016FitDestructor
@@ -93,9 +95,10 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{ludlow_mass-concentration-redshift_2016} fitting function.
     use Galacticus_Error
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationLudlow2016Fit), intent(inout), target  :: self
-    type            (treeNode                                   ), intent(inout), pointer :: node
+    type            (treeNode                                   ), intent(inout), target  :: node
     class           (nodeComponentBasic                         ), pointer                :: basic
     double precision                                             , parameter              :: criticalOverdensitySphericalCollapse=1.686d0
     double precision                                                                      :: peakHeight                                  , expansionFactor, &

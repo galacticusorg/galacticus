@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,138 +17,56 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides support for stellar population properties.
+!% Contains a module which implements a class for computing properties of stellar populations.
 
 module Stellar_Population_Properties
-  !% Provides support for stellar population properties.
-  use ISO_Varying_String
-  use Galacticus_Nodes
+  !% Implements a class for computing properties of stellar populations.
+  use Galacticus_Nodes    , only : treeNode, nodeComponent
   use Abundances_Structure
   use Histories
   implicit none
   private
-  public :: Stellar_Population_Properties_Rates, Stellar_Population_Properties_Scales,&
-       & Stellar_Population_Properties_History_Count, Stellar_Population_Properties_History_Create
-
-  ! Flag indicating whether this module has been initialized.
-  logical                                                          :: stellarPopulationPropertiesInitialized =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                              )          :: stellarPopulationPropertiesMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Stellar_Population_Properties_Rates         ), pointer :: Stellar_Population_Properties_Rates_Get         => null()
-  ! Pointer to the function that sets scale factors for error control of stellar population properties.
-  procedure(Stellar_Population_Properties_Scales        ), pointer :: Stellar_Population_Properties_Scales_Get        => null()
-  ! Pointer to the function that returns the size of any history required for stellar population properties.
-  procedure(Stellar_Population_Properties_History_Count ), pointer :: Stellar_Population_Properties_History_Count_Get => null()
-  ! Pointer to the subroutine that creates any history required for stellar population properties.
-  procedure(Stellar_Population_Properties_History_Create), pointer :: Stellar_Population_Properties_History_Create_Do => null()
-
-contains
-
-  subroutine Stellar_Population_Properties_Rates_Initialize
-    !% Initialize the disk star formation timecale module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="stellarPopulationPropertiesMethod" type="moduleUse">
-    include 'stellar_populations.properties.modules.inc'
-    !# </include>
-    implicit none
-    
-    ! Initialize if necessary.
-    if (.not.stellarPopulationPropertiesInitialized) then
-       !$omp critical(Stellar_Population_Properties_Rates_Initialization)
-       if (.not.stellarPopulationPropertiesInitialized) then
-          ! Get the halo spin distribution method parameter.
-          !# <inputParameter>
-          !#   <name>stellarPopulationPropertiesMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('instantaneous')</defaultValue>
-          !#   <description>The method to use for computing properties of stellar populations.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarPopulationPropertiesMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>stellarPopulationPropertiesMethod,Stellar_Population_Properties_Rates_Get,Stellar_Population_Properties_Scales_Get,Stellar_Population_Properties_History_Count_Get,Stellar_Population_Properties_History_Create_Do</functionArgs>
-          include 'stellar_populations.properties.inc'
-          !# </include>
-          if (.not.(associated(Stellar_Population_Properties_Rates_Get).and.associated(Stellar_Population_Properties_Scales_Get).and.associated(Stellar_Population_Properties_History_Count_Get).and.associated(Stellar_Population_Properties_History_Create_Do))) &
-	  &   call Galacticus_Error_Report('method '//char(stellarPopulationPropertiesMethod)//' is unrecognized'//{introspection:location})
-          stellarPopulationPropertiesInitialized=.true.
-       end if
-       !$omp end critical(Stellar_Population_Properties_Rates_Initialization)
-    end if
-    return
-  end subroutine Stellar_Population_Properties_Rates_Initialize
-
-  subroutine Stellar_Population_Properties_Rates(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate &
-       &,stellarAbundancesRates ,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate,stellarLuminositiesRatesCompute)
-    !% Return an array of stellar population property rates of change given a star formation rate and fuel abundances.
-    use Stellar_Luminosities_Structure
-    implicit none
-    double precision                     , intent(  out) :: energyInputRate         , fuelMassRate           , &
-         &                                                  stellarMassRate
-    type            (abundances         ), intent(inout) :: fuelAbundancesRates     , stellarAbundancesRates
-    type            (stellarLuminosities), intent(inout) :: stellarLuminositiesRates
-    double precision                     , intent(in   ) :: starFormationRate
-    type            (abundances         ), intent(in   ) :: fuelAbundances
-    integer                              , intent(in   ) :: component
-    type            (treeNode           ), intent(inout) :: thisNode
-    type            (history            ), intent(inout) :: thisHistory
-    logical                              , intent(in   ) :: stellarLuminositiesRatesCompute
-
-    ! Ensure module is initialized.
-    call Stellar_Population_Properties_Rates_Initialize
-
-    ! Simply call the subroutine which does the actual work.
-    call Stellar_Population_Properties_Rates_Get(starFormationRate,fuelAbundances,component,thisNode,thisHistory,stellarMassRate&
-         &,stellarAbundancesRates,stellarLuminositiesRates,fuelMassRate,fuelAbundancesRates,energyInputRate,stellarLuminositiesRatesCompute)
-    return
-  end subroutine Stellar_Population_Properties_Rates
-
-  subroutine Stellar_Population_Properties_Scales(thisHistory,stellarMass,stellarAbundances)
-    !% Set the scaling factors for error control on the absolute value of stellar population properties.
-    implicit none
-    double precision            , intent(in   ) :: stellarMass
-    type            (abundances), intent(in   ) :: stellarAbundances
-    type            (history   ), intent(inout) :: thisHistory
-
-    ! Ensure module is initialized.
-    call Stellar_Population_Properties_Rates_Initialize
-
-    ! Simply call the subroutine which does the actual work.
-    call Stellar_Population_Properties_Scales_Get(thisHistory,stellarMass,stellarAbundances)
-    return
-  end subroutine Stellar_Population_Properties_Scales
-
-  integer function Stellar_Population_Properties_History_Count()
-    !% Return a count of the number of histories which must be stored for the selected stellar populations method.
-    implicit none
-
-    ! Ensure module is initialized.
-    call Stellar_Population_Properties_Rates_Initialize
-
-    ! Simply call the function which does the actual work.
-    Stellar_Population_Properties_History_Count=Stellar_Population_Properties_History_Count_Get()
-
-    return
-  end function Stellar_Population_Properties_History_Count
-
-  subroutine Stellar_Population_Properties_History_Create(thisNode,thisHistory)
-    !% Create any history required for storing stellar population properties.
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-    type(history ), intent(inout) :: thisHistory
-
-    ! Ensure module is initialized.
-    call Stellar_Population_Properties_Rates_Initialize
-
-    ! Simply call the function which does the actual work.
-    call Stellar_Population_Properties_History_Create_Do(thisNode,thisHistory)
-
-    return
-  end subroutine Stellar_Population_Properties_History_Create
-
+ 
+  !# <functionClass>
+  !#  <name>stellarPopulationProperties</name>
+  !#  <descriptiveName>Stellar Population Properties</descriptiveName>
+  !#  <description>Class providing stellar population properties.</description>
+  !#  <default>instantaneous</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="rates" >
+  !#   <description>Returns rates of change of stellar population properties.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision                     , intent(in   ) :: rateStarFormation                                                   </argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: abundancesFuel                                                      </argument>
+  !#   <argument>class           (nodeComponent      ), intent(in   ) :: component                                                           </argument>
+  !#   <argument>type            (treeNode           ), intent(inout) :: node                                                                </argument>
+  !#   <argument>type            (history            ), intent(inout) :: history_                                                            </argument>
+  !#   <argument>double precision                     , intent(  out) :: rateMassStellar             , rateMassFuel         , rateEnergyInput</argument>
+  !#   <argument>type            (abundances         ), intent(inout) :: rateAbundancesFuel          , rateAbundancesStellar                 </argument>
+  !#   <argument>type            (stellarLuminosities), intent(inout) :: rateLuminosityStellar                                               </argument>
+  !#   <argument>logical                              , intent(in   ) :: computeRateLuminosityStellar                                        </argument>
+  !#  </method>
+  !#  <method name="scales">
+  !#   <description>Return scaling factors of stellar population properties for an \gls{ode} solver.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision            , intent(in   ) :: massStellar      </argument>
+  !#   <argument>type            (abundances), intent(in   ) :: abundancesStellar</argument>
+  !#   <argument>type            (history   ), intent(inout) :: history_         </argument>
+  !#  </method>
+  !#  <method name="historyCount">
+  !#   <description>Return the number of stellar population property histories which must be stored.</description>
+  !#   <type>integer</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <method name="historyCreate">
+  !#   <description>Create histories needed to store stellar population properties.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node    </argument>
+  !#   <argument>type(history ), intent(inout) :: history_</argument>
+  !#  </method>
+  !# </functionClass>
+  
 end module Stellar_Population_Properties

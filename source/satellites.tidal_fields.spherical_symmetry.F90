@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,6 +71,7 @@ contains
 
   double precision function sphericalSymmetryTidalTensorRadial(self,node)
     !% Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
+    use Galacticus_Nodes                  , only : nodeComponentSatellite
     use Kepler_Orbits
     use Satellite_Orbits
     use Galactic_Structure_Enclosed_Masses

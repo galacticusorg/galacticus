@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -87,7 +88,6 @@ contains
 
   double precision function bertschingerVelocityScale(self,node)
     !% Returns the velocity scale to use for {\normalfont \ttfamily node}. Use the maximum circular velocity.
-    use Galacticus_Nodes
     implicit none
     class(accretionHaloBertschinger), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node

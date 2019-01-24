@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -291,18 +292,18 @@ contains
     !$ if (omp_in_parallel()) threadNumber=omp_get_thread_num()+1
     select case (indentationLevel(threadNumber)*indentSpaces)
     case (0)
-       write (indentationFormat(threadNumber),'(a)') '(a)'
-       write (indentationFormatNoNewLine(threadNumber),'(a)') '(a,$)'
+       write (indentationFormat         (threadNumber),'(a)'     ) '(a)'
+       write (indentationFormatNoNewLine(threadNumber),'(a)'     ) '(a,$)'
     case (1:9)
-       write (indentationFormat(threadNumber),'(a,i1,a)') '(',indentationLevel(threadNumber)*indentSpaces,'x,a)'
+       write (indentationFormat         (threadNumber),'(a,i1,a)') '(',indentationLevel(threadNumber)*indentSpaces,'x,a)'
        write (indentationFormatNoNewLine(threadNumber),'(a,i1,a)') '(',indentationLevel(threadNumber)*indentSpaces,'x,a,$)'
     case (10:99)
-       write (indentationFormat(threadNumber),'(a,i2,a)') '(',indentationLevel(threadNumber)*indentSpaces,'x,a)'
+       write (indentationFormat         (threadNumber),'(a,i2,a)') '(',indentationLevel(threadNumber)*indentSpaces,'x,a)'
        write (indentationFormatNoNewLine(threadNumber),'(a,i2,a)') '(',indentationLevel(threadNumber)*indentSpaces,'x,a,$)'
     end select
     !$ if (.not.omp_in_parallel()) then
-    !$    indentationLevel          =indentationLevel(1)
-    !$    indentationFormat         =indentationFormat(1)
+    !$    indentationLevel          =indentationLevel          (1)
+    !$    indentationFormat         =indentationFormat         (1)
     !$    indentationFormatNoNewLine=indentationFormatNoNewLine(1)
     !$ end if
     return

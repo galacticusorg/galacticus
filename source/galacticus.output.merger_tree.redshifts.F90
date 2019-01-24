@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -91,14 +92,6 @@ contains
     call Galacticus_Output_Redshifts_Initalize()
     if (timeLastIsolatedIsAvailable) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>basicRedshiftLastIsolated</name>
-       !@   <datatype>double</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>The redshift of the epoch at which this node was last isolated.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='basicRedshiftLastIsolated'
        doublePropertyComments(doubleProperty)="The reshift of the epich at which the node was last isolated."
        doublePropertyUnitsSI (doubleProperty)=0.0d0

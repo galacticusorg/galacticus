@@ -78,7 +78,7 @@ sub Process_StateStorable {
 subroutine {$className}StateStore(self,stateFile,fgslStateFile,storeIdentifier)
  !% Store the state of this object to file.
  use, intrinsic :: ISO_C_Binding
- use            :: FGSL
+ use            :: FGSL              , only : fgsl_file
  use            :: Galacticus_Display
  implicit none
  class    ({$className}), intent(inout)              :: self
@@ -93,7 +93,7 @@ CODE
 subroutine {$className}StateRestore(self,stateFile,fgslStateFile)
  !% Store the state of this object to file.
  use, intrinsic :: ISO_C_Binding
- use            :: FGSL
+ use            :: FGSL              , only : fgsl_file
  use            :: Galacticus_Display
  implicit none
  class  ({$className}), intent(inout)               :: self

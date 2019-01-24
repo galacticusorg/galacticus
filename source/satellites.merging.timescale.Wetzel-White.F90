@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,8 @@
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesWetzelWhite2010
      !% A class implementing the \cite{wetzel_what_2010} method for satellite merging timescales.
      private
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: timescaleMultiplier
    contains
      final     ::                     wetzelWhite2010Destructor
      procedure :: timeUntilMerging => wetzelWhite2010TimeUntilMerging
@@ -46,22 +48,32 @@ contains
     !% Constructor for the \cite{wetzel_what_2010} merging timescale class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type (satelliteMergingTimescalesWetzelWhite2010)                :: self
-    type (inputParameters                          ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+    type            (satelliteMergingTimescalesWetzelWhite2010)                :: self
+    type            (inputParameters                          ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+    double precision                                                           :: timescaleMultiplier
 
+    !# <inputParameter>
+    !#   <name>timescaleMultiplier</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.75d0</defaultValue>
+    !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=satelliteMergingTimescalesWetzelWhite2010(cosmologyFunctions_)
+    self=satelliteMergingTimescalesWetzelWhite2010(timescaleMultiplier,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function wetzelWhite2010ConstructorParameters
 
-  function wetzelWhite2010ConstructorInternal(cosmologyFunctions_) result(self)
+  function wetzelWhite2010ConstructorInternal(timescaleMultiplier,cosmologyFunctions_) result(self)
     !% Constructor for the \cite{wetzel_what_2010} merging timescale class.
     implicit none
-    type (satelliteMergingTimescalesWetzelWhite2010)                        :: self
-    class(cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    type            (satelliteMergingTimescalesWetzelWhite2010)                        :: self
+    double precision                                           , intent(in   )         :: timescaleMultiplier
+    class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
+    !# <constructorAssign variables="timescaleMultiplier, *cosmologyFunctions_"/>
 
     return
   end function wetzelWhite2010ConstructorInternal
@@ -77,7 +89,7 @@ contains
 
   double precision function wetzelWhite2010TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{wetzel_what_2010} method.
-    use Dynamical_Friction_Timescale_Utilities
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Kepler_Orbits
     implicit none
     class           (satelliteMergingTimescalesWetzelWhite2010), intent(inout) :: self
@@ -97,7 +109,7 @@ contains
     massRatio =  +basicHost%mass  () &
          &       /basic    %mass  ()
     ! Compute dynamical friction timescale using eqn. (2) from Wetzel & White (2010).
-    wetzelWhite2010TimeUntilMerging= Dynamical_Friction_Timescale_Multiplier()              &
+    wetzelWhite2010TimeUntilMerging=+self%timescaleMultiplier                               &
          &                          *timeScaleNormalization                                 &
          &                          /self%cosmologyFunctions_%expansionRate  (              &
          &                           self%cosmologyFunctions_%expansionFactor (             &

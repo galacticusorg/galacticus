@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +28,9 @@
      private
      type(filterList), pointer :: filters
   contains
-     final     ::            allDestructor
-     procedure :: passes  => allPasses
+     final     ::             allDestructor
+     procedure :: passes   => allPasses
+     procedure :: deepCopy => allDeepCopy
   end type galacticFilterAll
 
   interface galacticFilterAll
@@ -95,7 +97,6 @@ contains
 
   logical function allPasses(self,node)
     !% Apply a set of filters to a {\normalfont \ttfamily node} combined with ``all'' operations.
-    use Galacticus_Nodes
     implicit none
     class(galacticFilterAll), intent(inout) :: self
     type (treeNode         ), intent(inout) :: node
@@ -115,3 +116,37 @@ contains
     end do
     return
   end function allPasses
+
+  subroutine allDeepCopy(self,destination)
+    !% Perform a deep copy for the {\normalfont \ttfamily all} galactic filter class.
+    use Galacticus_Error
+    implicit none
+    class(galacticFilterAll  ), intent(inout) :: self
+    class(galacticFilterClass), intent(  out) :: destination
+    type (filterList         ), pointer       :: filter_    , filterDestination_, &
+         &                                       filterNew_
+
+    call self%galacticFilterClass%deepCopy(destination)
+    select type (destination)
+    type is (galacticFilterAll)
+       destination%filters => null          ()
+       filterDestination_  => null          ()
+       filter_             => self%filters
+       do while (associated(filter_))
+          allocate(filterNew_)
+          if (associated(filterDestination_)) then
+             filterDestination_%next       => filterNew_
+             filterDestination_            => filterNew_             
+          else
+             destination          %filters => filterNew_
+             filterDestination_            => filterNew_
+          end if
+          allocate(filterNew_%filter_,mold=filter_%filter_)
+          call filter_%filter_%deepCopy(filterNew_%filter_)
+          filter_ => filter_%next
+       end do       
+    class default
+       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine allDeepCopy

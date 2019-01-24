@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,83 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides calculations of stellar feedback.
+!% Contains a module which implements a class that performs calculations of stellar feedback.
 
 module Stellar_Feedback
-  !% Provides calculations of stellar feedback.
-  use ISO_Varying_String
+  !% Implements a class that performs calculations of stellar feedback.
   implicit none
   private
-  public :: Stellar_Feedback_Cumulative_Energy_Input
 
-  ! Flag indicating whether this module has been initialized.
-  logical                                                                   :: stellarFeedbackInitialized                  =.false.
-
-  ! Name of cooling rate available method used.
-  type     (varying_string                                       )          :: stellarFeedbackMethod
-
-  ! Pointer to the function that actually does the calculation.
-  procedure(Stellar_Feedback_Cumulative_Energy_Input_Get_Template), pointer :: Stellar_Feedback_Cumulative_Energy_Input_Get=>null()
-  abstract interface
-    double precision function Stellar_Feedback_Cumulative_Energy_Input_Get_Template(initialMass,age,metallicity)
-      double precision, intent(in   ) :: age, initialMass, metallicity
-    end function Stellar_Feedback_Cumulative_Energy_Input_Get_Template
-  end interface
+  !# <functionClass>
+  !#  <name>stellarFeedback</name>
+  !#  <descriptiveName>Stellar Feedback</descriptiveName>
+  !#  <description>Class providing models of stellar feedback.</description>
+  !#  <default>standard</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="energyInputCumulative" >
+  !#   <description>Return the cumulative energy input from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+  !#  </method>
+  !# </functionClass>
 
   ! Canonical value of the total energy input from a single stellar population of $1 M_\odot$ after infinite time. All feedback
   ! calculations which don't specifically use the energy input should be scaled to this value if they want to have the correct
   ! time and IMF dependencies. Value was computed for a Salpeter IMF. Units are MSolar (km/s)^2.
   double precision, parameter, public :: feedbackEnergyInputAtInfinityCanonical=4.517d5
-
-contains
-
-  subroutine Stellar_Feedback_Initialize
-    !% Initialize the stellar feedback module.
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="stellarFeedbackMethod" type="moduleUse">
-    include 'stellar_astrophysics.feedback.modules.inc'
-    !# </include>
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.stellarFeedbackInitialized) then
-       !$omp critical(Stellar_Feedback_Initialization)
-       if (.not.stellarFeedbackInitialized) then
-          ! Get the halo spin distribution method parameter.
-          !# <inputParameter>
-          !#   <name>stellarFeedbackMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('standard')</defaultValue>
-          !#   <description>The method to use for computing aspects of stellar feedback.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="stellarFeedbackMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>stellarFeedbackMethod,Stellar_Feedback_Cumulative_Energy_Input_Get</functionArgs>
-          include 'stellar_astrophysics.feedback.inc'
-          !# </include>
-          if (.not.associated(Stellar_Feedback_Cumulative_Energy_Input_Get)) &
-               & call Galacticus_Error_Report('method '//char(stellarFeedbackMethod)//' is unrecognized'//{introspection:location})
-          stellarFeedbackInitialized=.true.
-       end if
-       !$omp end critical(Stellar_Feedback_Initialization)
-    end if
-    return
-  end subroutine Stellar_Feedback_Initialize
-
-  double precision function Stellar_Feedback_Cumulative_Energy_Input(initialMass,age,metallicity)
-    !% Return the cumulative energy input per from stellar feedback from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
-    implicit none
-    double precision, intent(in   ) :: age, initialMass, metallicity
-
-    ! Ensure module is initialized.
-    call Stellar_Feedback_Initialize
-
-    ! Simply call the function which does the actual work.
-    Stellar_Feedback_Cumulative_Energy_Input=Stellar_Feedback_Cumulative_Energy_Input_Get(initialMass,age,metallicity)
-    return
-  end function Stellar_Feedback_Cumulative_Energy_Input
 
 end module Stellar_Feedback

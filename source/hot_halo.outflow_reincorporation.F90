@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Hot_Halo_Outflows_Reincorporations
   !% Provides a class that implements reincorporation of outflowed mass into the hot halo.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
 
   !# <functionClass>
   !#  <name>hotHaloOutflowReincorporation</name>
   !#  <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
   !#  <description>Class implementing reincorportation of outflowed mass into the hot halo.</description>
-  !#  <default>zero</default>
+  !#  <default>haloDynamicalTime</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="rate" >

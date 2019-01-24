@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 program Test_ODE_Solver
   !% Tests that ODE solver routines work.
   use Unit_Tests
-  use FGSL
+  use FGSL                     , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system
   use ODE_Solver
   use Test_ODE_Solver_Functions
   use Galacticus_Display

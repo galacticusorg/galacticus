@@ -70,7 +70,7 @@ For numerical ease, the fraction, $f_\mathrm{wind}$, of the wind luminosity adde
 where $x=\rho_\mathrm{ISM}/\rho_\mathrm{wind,critical}-1/2$.
 \end{description}
 
-The radial position, $r_\bullet$, evolves according to the selected radial migration method (see \S\ref{sec:SMBHRadialMotion}).
+The radial position, $r_\bullet$, evolves according to the selected radial migration method (see \S\ref{sec:methodsBlackHoleBinarySeparationGrowthRate}).
 
 Interactions between black hole triplets are accounted for if {\normalfont \ttfamily [tripleBlackHoleInteraction]}$=${\normalfont \ttfamily true} (and if at least three black holes exist within the \gls{node} of course). In this case the triple is treated as consisting of an inner binary (assumed to be the central black hole and the black hole closest to it) and a third, singleton black hole. When the tertiary black hole reaches a separation of 
 \begin{equation}
@@ -150,7 +150,7 @@ for either velocity, then that system is ejected from the node. Ejected black ho
 
 \noindent\emph{Node mergers:} None.\\
 
-\noindent\emph{Satellite merging:} The black holes in the two merging galaxies can be instantaneously merged, or taken at an initial separation (see \S\ref{sec:blackHoleBinaryInitialRadii}), it is then evolved until reaching zero separation whereupon it is assumed to undergo merger. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:BlackHoleBinaryMergers}). In addition, the recoil velocity of the new black hole due to gravitational wave emission is computed using the selected method (see \S\ref{sec:binaryBlackHoleRecoil}), and if greater than the potential at the center of the galaxy, is assumed to have escaped the galaxy. Black holes which escape the galaxy are simply discarded and no longer tracked. For computational purposes, they are replaced with a ``null'', zero mass black hole at the center of the galaxy. If any other black hole comes within a distance 
+\noindent\emph{Satellite merging:} The black holes in the two merging galaxies can be instantaneously merged, or taken at an initial separation (see \S\ref{sec:blackHoleBinaryInitialRadii}), it is then evolved until reaching zero separation whereupon it is assumed to undergo merger. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:methodsBlackHoleBinaryMerger}). In addition, the recoil velocity of the new black hole due to gravitational wave emission is computed using the selected method (see \S\ref{sec:binaryBlackHoleRecoil}), and if greater than the potential at the center of the galaxy, is assumed to have escaped the galaxy. Black holes which escape the galaxy are simply discarded and no longer tracked. For computational purposes, they are replaced with a ``null'', zero mass black hole at the center of the galaxy. If any other black hole comes within a distance 
 \begin{equation}
 a_\mathrm{h} = {\mathrm{G} M_\bullet \over 4 \sigma^2},
 \end{equation}
@@ -200,7 +200,7 @@ where $\epsilon_{\bullet wind}=${\normalfont \ttfamily [blackHoleWindEfficiency]
 
 \noindent\emph{Node mergers:} None.\\
 
-\noindent\emph{Satellite merging:} The black holes in the two merging galaxies are instantaneously merged. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:BlackHoleBinaryMergers}).\\
+\noindent\emph{Satellite merging:} The black holes in the two merging galaxies are instantaneously merged. Properties are computed using the selected black hole binary merger method (see \S\ref{sec:methodsBlackHoleBinaryMerger}).\\
 
 \noindent\emph{Node promotion:} None.\\
 
@@ -709,7 +709,7 @@ where $\beta_\mathrm{spheroid, energy}=${\normalfont \ttfamily [spheroidEnergeti
 
 \noindent\emph{Node mergers:} None\\
 
-\noindent\emph{Satellite merging:} Spheroids may be created as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see \S\ref{sec:satelliteMergerMassMovementMethod}).\\
+\noindent\emph{Satellite merging:} Spheroids may be created as the result of a satellite merging event, as dictated by the selected merger remnant mass movement method (see \S\ref{sec:methodsMergerMassMovements}).\\
 
 \noindent\emph{Node promotion:} None.\\
 

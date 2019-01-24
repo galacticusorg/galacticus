@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of an Miyamoto-Nagai model \citep{miyamoto_three-dimensional_1975} mass distribution class.
   
   use Tables
@@ -257,7 +258,7 @@ contains
     !% Construct a tabulation of the mass enclosed by a sphere in a Miyamoto-Nagai mass distribution.
     use Numerical_Integration
     use Numerical_Constants_Math
-    use FGSL
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use Table_Labels
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self
@@ -363,8 +364,8 @@ contains
 
   subroutine miyamotoNagaiSurfaceDensityTabulate(self)
     !% Construct a tabulation of the surface density profile in a Miyamoto-Nagai mass distribution.
-    use Numerical_Integration
-    use FGSL
+    use Numerical_Integration    
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Table_Labels
     implicit none
     class           (massDistributionMiyamotoNagai), intent(inout) :: self

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,11 +46,12 @@ contains
   
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Merging_Statistics_Major_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
+  !#  <after>Satellite_Merging_Remnant_Compute</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Merging_Statistics_Major_Satellite_Merging(node)
     !% Record any major merger of {\normalfont \ttfamily node}.
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Remnant_Properties
+    use Satellite_Merging_Mass_Movements
     implicit none
     type            (treeNode                      ), intent(inout), pointer      :: node
     class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
@@ -60,7 +62,7 @@ contains
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%majorIsActive()) return
     ! Record the merger time if this is a major merger.
-    if (thisMergerIsMajor) then
+    if (mergerIsMajor) then
        ! Get required components    
        nodeHost          => node    %mergesWith       ()
        basic             => node    %basic            ()

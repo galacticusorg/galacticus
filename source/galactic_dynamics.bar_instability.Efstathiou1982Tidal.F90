@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,6 +101,7 @@ contains
   subroutine efstathiou1982TidalTimescale(self,node,timescale,externalDrivingSpecificTorque)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
+    use Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type            (treeNode                                         ), intent(inout) :: node
@@ -119,6 +121,7 @@ contains
   double precision function efstathiou1982TidalEstimator(self,node)
     !% Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDisk
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type            (treeNode                                         ), intent(inout) :: node
@@ -158,6 +161,7 @@ contains
 
   double precision function efstathiou1982TidalTidalTensorRadial(self,node)
     !% Compute the radial part of the tidal tensor.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type (treeNode                                         ), intent(inout) :: node

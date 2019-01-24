@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -115,7 +116,7 @@ contains
   
   subroutine outputRootMassesOperate(self,tree)
     !% Compute conditional mass function on {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentMergingStatistics
     use Numerical_Comparison
     use Galacticus_Error
     use Merger_Tree_Walkers

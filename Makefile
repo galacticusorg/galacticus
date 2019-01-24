@@ -16,6 +16,9 @@ export SUFFIX = _gprof
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
 export BUILDPATH = ./work/buildODEProf
 export SUFFIX = _odeProf
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
+export BUILDPATH = ./work/buildCompileProf
+export SUFFIX =
 endif
 
 # Preprocessor:
@@ -24,6 +27,8 @@ PREPROCESSOR ?= cpp
 # Fortran compiler:
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
 FCCOMPILER ?= mpif90
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
+FCCOMPILER ?= /usr/bin/time -f 'Compile statistics (file time memory): $* %e %M' gfortran
 else
 FCCOMPILER ?= gfortran
 endif
@@ -52,7 +57,7 @@ MODULETYPE ?= GCC-f95-on-LINUX
 # Fortran compiler flags:
 FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
 # Fortran77 compiler flags:
-F77FLAGS = -DBUILDPATH=\'$(BUILDPATH)\'
+F77FLAGS = ${GALACTICUS_F77FLAGS} -DBUILDPATH=\'$(BUILDPATH)\'
 # Error checking flags
 FCFLAGS += -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core
 # Add bounds checking.
@@ -72,27 +77,31 @@ CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${
 
 # Detect GProf compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
-FCFLAGS  += -pg
-CFLAGS   += -pg
-CPPFLAGS += -pg
+FCFLAGS       += -pg
+FCFLAGS_NOOPT += -pg
+CFLAGS        += -pg
+CPPFLAGS      += -pg
 else
-FCFLAGS  += -g
-CFLAGS   += -g
-CPPFLAGS += -g
+FCFLAGS       += -g
+FCFLAGS_NOOPT += -g
+CFLAGS        += -g
+CPPFLAGS      += -g
 endif
 
 # Detect ODE profiling compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
 FCFLAGS  += -DPROFILE
+FCFLAGS_NOOPT += -DPROFILE
 CFLAGS   += -DPROFILE
 CPPFLAGS += -DPROFILE
 endif
 
 # Detect MPI compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
-FCFLAGS  += -DUSEMPI
-CFLAGS   += -DUSEMPI
-CPPFLAGS += -DUSEMPI 
+FCFLAGS       += -DUSEMPI
+FCFLAGS_NOOPT += -DUSEMPI
+CFLAGS        += -DUSEMPI
+CPPFLAGS      += -DUSEMPI 
 endif
 
 # Detect YEPPP libraries.
@@ -193,13 +202,26 @@ $(BUILDPATH)/Makefile_Config_FFTW3: source/fftw3_config.F90
 -include $(BUILDPATH)/Makefile_Config_ANN
 $(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
 	@mkdir -p $(BUILDPATH)
-	$(CPPCOMPILER) -c source/ann_config.cpp -o $(BUILDPATH)/fftw3_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	$(CPPCOMPILER) -c source/ann_config.cpp -o $(BUILDPATH)/ann_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DANNAVAIL"   >  $(BUILDPATH)/Makefile_Config_ANN ; \
 	 echo "CPPFLAGS += -DANNAVAIL"   >> $(BUILDPATH)/Makefile_Config_ANN ; \
 	else \
 	 echo "FCFLAGS  += -DANNUNAVAIL" >  $(BUILDPATH)/Makefile_Config_ANN ; \
 	 echo "CPPFLAGS += -DANNUNAVAIL" >> $(BUILDPATH)/Makefile_Config_ANN ; \
+	fi
+
+# Configuration for availability of libmatheval.
+-include $(BUILDPATH)/Makefile_Config_MathEval
+$(BUILDPATH)/Makefile_Config_MathEval: source/libmatheval_config.cpp
+	@mkdir -p $(BUILDPATH)
+	$(CPPCOMPILER) -c source/libmatheval_config.cpp -o $(BUILDPATH)/libmatheval_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS  += -DMATHEVALAVAIL"   >  $(BUILDPATH)/Makefile_Config_MathEval ; \
+	 echo "CPPFLAGS += -DMATHEVALAVAIL"   >> $(BUILDPATH)/Makefile_Config_MathEval ; \
+	else \
+	 echo "FCFLAGS  += -DMATHEVALUNAVAIL" >  $(BUILDPATH)/Makefile_Config_MathEval ; \
+	 echo "CPPFLAGS += -DMATHEVALUNAVAIL" >> $(BUILDPATH)/Makefile_Config_MathEval ; \
 	fi
 
 # Object (*.o) files are built by compiling C (*.c) source files.
@@ -409,14 +431,6 @@ $(BUILDPATH)/galacticus.output.build.environment.inc:
 	@echo FCCOMPILER_VERSION=\"$(FCCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo CCOMPILER_VERSION=\"$(CCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo CPPCOMPILER_VERSION=\"$(CPPCOMPILER_VERSION)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-
-# Rules for unique label function creation.
-dfiles := $(patsubst source/%.F90,$(BUILDPATH)/%.d,$(wildcard source/*.F90))
-mfiles := $(patsubst source/%.F90,$(BUILDPATH)/%.m,$(wildcard source/*.F90))
-$(BUILDPATH)/utility.input_parameters.unique_labels.inc:
-	@touch $(BUILDPATH)/utility.input_parameters.unique_labels.inc
-$(BUILDPATH)/utility.input_parameters.unique_labels.visibilities.inc: $(dfiles) $(mfiles) $(BUILDPATH)/flock_config.h
-	./scripts/build/uniqueLabelFunctions.pl `pwd`
 
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.hg.patch $(BUILDPATH)/galacticus.hg.bundle

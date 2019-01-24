@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -8,14 +9,14 @@
 !!    the Free Software Foundation, either version 3 of the License, or
 !!    (at your option) any later version.
 !!
-  !!    Galacticus is distributed in the hope that it will be useful,
-  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  !!    GNU General Public License for more details.
-  !!
-  !!    You should have received a copy of the GNU General Public License
-  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
   !% Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive
   !% distribution which scales with the range spanned by the sample states.
   

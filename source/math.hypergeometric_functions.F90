@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,8 @@
 module Hypergeometric_Functions
   !% Implements hypergeometric functions.
   use, intrinsic :: ISO_C_Binding
-  use FGSL
+  use            :: FGSL         , only : fgsl_int      , FGSL_SF_Hyperg_1F1, FGSL_SF_Hyperg_2F1_E, &
+       &                                  fgsl_sf_result, gsl_sf_result     , FGSL_Success
   implicit none
   private
   public :: Hypergeometric_1F1, Hypergeometric_2F1, Hypergeometric_pFq

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements calculations of attenuation of stellar spectra using a tabulation.
-  
-  !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationTabulated">
-  !#  <description>Returns the dust attenuation of stellar spectra from a tabulated relation.</description>
-  !#  <abstract>yes</abstract>
-  !# </stellarSpectraDustAttenuation>
 
   use Tables
+
+  !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationTabulated" abstract="yes">
+  !#  <description>Returns the dust attenuation of stellar spectra from a tabulated relation.</description>
+  !# </stellarSpectraDustAttenuation>
 
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationTabulated
      !% A class implementing calculations of attenuation of stellar spectra using a tabulated relation.

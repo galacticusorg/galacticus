@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -80,24 +81,27 @@ contains
     !% Return the cooling function due to Compton scattering off of \gls{cmb} photons.
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     implicit none
     class           (coolingFunctionCMBCompton), intent(inout) :: self
-    double precision                           , intent(in   ) :: numberDensityHydrogen                        , temperature
+    double precision                           , intent(in   ) :: numberDensityHydrogen                                    , temperature
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure       ), intent(in   ) :: radiation
-    double precision                           , parameter     :: comptonRateNormalization=+4.0d0                             &
-         &                                                                                 *thomsonCrossSection               &
-         &                                                                                 *radiationConstant                 &
-         &                                                                                 *boltzmannsConstant                &
-         &                                                                                 /electronMass                      &
-         &                                                                                 /speedLight                        &
-         &                                                                                 /ergs
+    class           (radiationFieldClass      ), intent(inout) :: radiation
+    double precision                           , parameter     :: comptonRateNormalization            =+4.0d0                             &
+         &                                                                                             *thomsonCrossSection               &
+         &                                                                                             *radiationConstant                 &
+         &                                                                                             *boltzmannsConstant                &
+         &                                                                                             /electronMass                      &
+         &                                                                                             /speedLight                        &
+         &                                                                                             /ergs
+    double precision                                           :: temperatureCosmicMicrowaveBackground
     !GCC$ attributes unused :: self, chemicalDensities
-    
+
+    ! Find the cosmic microwave background radiation field.
+    temperatureCosmicMicrowaveBackground=cmbComptonTemperature(radiation)
     ! Compute the Compton cooling rate.
     cmbComptonCoolingFunction=+comptonRateNormalization                                     &
          &                    *  self%chemicalState_%electronDensity(                       &
@@ -106,14 +110,10 @@ contains
          &                                                           gasAbundances        , &
          &                                                           radiation              &
          &                                                          )                       &
-         &                    *  radiation          %temperature    (                       &
-         &                                                           [radiationTypeCMB]     &
-         &                                                          )**4                    &
+         &                    *  temperatureCosmicMicrowaveBackground**4                    &
          &                    *(                                                            &
-         &                      +                    temperature                            &
-         &                      -radiation          %temperature    (                       &
-         &                                                           [radiationTypeCMB]     &
-         &                                                          )                       &
+         &                      +temperature                                                &
+         &                      -temperatureCosmicMicrowaveBackground                       &
          &                     )
     return
   end function cmbComptonCoolingFunction
@@ -123,13 +123,13 @@ contains
     !% photons.
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     implicit none
     class           (coolingFunctionCMBCompton), intent(inout) :: self
     double precision                           , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure       ), intent(in   ) :: radiation
+    class           (radiationFieldClass      ), intent(inout) :: radiation
     !GCC$ attributes unused :: self, chemicalDensities
     
     ! Slope depends only on the behavior of electron density with density.
@@ -147,15 +147,18 @@ contains
     !% \gls{cmb} photons.
     use Abundances_Structure
     use Chemical_Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     implicit none
     class           (coolingFunctionCMBCompton), intent(inout) :: self
-    double precision                           , intent(in   ) :: numberDensityHydrogen                       , temperature
+    double precision                           , intent(in   ) :: numberDensityHydrogen               , temperature
     type            (abundances               ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances       ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure       ), intent(in   ) :: radiation
+    class           (radiationFieldClass      ), intent(inout) :: radiation
+    double precision                                           :: temperatureCosmicMicrowaveBackground
     !GCC$ attributes unused :: self, chemicalDensities
     
+    ! Find the cosmic microwave background radiation field.
+    temperatureCosmicMicrowaveBackground=cmbComptonTemperature(radiation)
     ! Compute the logarithmic slope.
     cmbComptonCoolingFunctionTemperatureLogSlope=                                                &
          & +  self     %chemicalState_%electronDensityTemperatureLogSlope(                       &
@@ -164,12 +167,38 @@ contains
          &                                                                gasAbundances        , &
          &                                                                radiation              &
          &                                                               )                       &
-         & +                           temperature                                               &
+         & +  temperature                                                                        &
          & /(                                                                                    &
-         &   +                         temperature                                               &
-         &   -radiation               %temperature                       (                       &
-         &                                                                [radiationTypeCMB]     &
-         &                                                               )                       &
+         &   +temperature                                                                        &
+         &   -temperatureCosmicMicrowaveBackground                                               &
          &  )
     return
   end function cmbComptonCoolingFunctionTemperatureLogSlope
+
+  double precision function cmbComptonTemperature(radiation)
+    !% Return the temperature of the cosmic microwave background.
+    use Radiation_Fields
+    use Galacticus_Error
+    implicit none
+    class(radiationFieldClass), intent(inout) :: radiation
+    type (radiationFieldList ), pointer       :: radiationField_
+    
+    select type (radiation)
+    class is (radiationFieldCosmicMicrowaveBackground)
+       cmbComptonTemperature=radiation%temperature()
+    class is (radiationFieldSummation                )
+       cmbComptonTemperature =  0.0d0
+       radiationField_       => radiation%list()
+       do while (associated(radiationField_))
+          select type (radiation_ => radiationField_%radiationField_)
+          class is (radiationFieldCosmicMicrowaveBackground)
+             cmbComptonTemperature=radiation_%temperature()
+          end select
+          radiationField_ => radiationField_%next
+       end do
+    class default
+       cmbComptonTemperature=0.0d0
+       call Galacticus_Error_Report('unable to find cosmic microwave background radiation field'//{introspection:location})
+    end select
+    return
+  end function cmbComptonTemperature

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,29 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of null dust attenuation of stellar spectra.
+  !% Implements calculations of zero dust attenuation of stellar spectra.
   
-  !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationNull">
-  !#  <description>Returns a null dust attenuation.</description>
+  !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationZero">
+  !#  <description>Returns a zero dust attenuation.</description>
   !# </stellarSpectraDustAttenuation>
-
-  type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationNull
-     !% A class implementing null dust attenuation of stellar spectra.
+  type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationZero
+     !% A class implementing zero dust attenuation of stellar spectra.
      private
    contains
-     procedure :: attenuation => nullAttenuation
-  end type stellarSpectraDustAttenuationNull
+     procedure :: attenuation => zeroAttenuation
+  end type stellarSpectraDustAttenuationZero
+
+  interface stellarSpectraDustAttenuationZero
+     !% Constructors for the ``zero'' stellar spectra dust attenuation class.
+     module procedure zeroConstructorParameters
+  end interface stellarSpectraDustAttenuationZero
 
 contains
 
-  double precision function nullAttenuation(self,wavelength,age,vBandAttenuation)
-    !% Return a null attenuation.
+  function zeroConstructorParameters(parameters) result(self)
+    !% Default constructor for the ``zero'' stellar spectra dust attenuation class.
+    use Input_Parameters
     implicit none
-    class           (stellarSpectraDustAttenuationNull), intent(inout) :: self
+    type(stellarSpectraDustAttenuationZero)                :: self
+    type(inputParameters                  ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=stellarSpectraDustAttenuationZero()
+   return
+  end function zeroConstructorParameters
+
+  double precision function zeroAttenuation(self,wavelength,age,vBandAttenuation)
+    !% Return a zero attenuation.
+    implicit none
+    class           (stellarSpectraDustAttenuationZero), intent(inout) :: self
     double precision                                   , intent(in   ) :: wavelength      , age, &
          &                                                                vBandAttenuation
     !GCC$ attributes unused :: self, wavelength, age, vBandAttenuation
     
-    nullAttenuation=0.0d0
+    zeroAttenuation=0.0d0
     return
-  end function nullAttenuation
+  end function zeroAttenuation

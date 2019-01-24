@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,6 +87,7 @@ contains
     !# <objectDestructor name="self%haloMassFunctionConditioned_"  />
     !# <objectDestructor name="self%haloMassFunctionUnconditioned_"/>
     !# <objectDestructor name="self%haloEnvironment_"              />
+    !# <objectDestructor name="self%cosmologyParameters_"          />
     return
   end subroutine environmentAveragedDestructor
 
@@ -93,7 +95,7 @@ contains
     !% Return the differential halo mass function at the given time and mass.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes     , only : treeNode, nodeComponentBasic, mergerTree
     use               Root_Finder
     implicit none
     class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self

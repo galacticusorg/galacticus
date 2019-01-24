@@ -53,6 +53,9 @@ my $isStatic = grep {$_ eq "-static"} @compilerOptions;
 # necessary as HDF5 relies on some functions in libdl, but it is not linked by default when static linking is used.
 push(@{$dependencies{'hdf5'}},"dl")
     if ( $isStatic );
+# Add explicit dependency on libfl (flex lexer). This appears to be necessary when static linking is used.
+push(@{$dependencies{'matheval'}},"fl")
+    if ( $isStatic );
 # Detect if libpthread is already included.
 my $pthreadIncluded = grep {$_ eq "-lpthread"} @compilerOptions;
 # Initialize a hash of required libraries.
@@ -89,6 +92,9 @@ delete($libraries{'yeppp'})
 # Remove ANN library if not used.
 delete($libraries{'ANN'})
     if ( exists($libraries{'ANN'}) && ! grep {$_ eq "-DANNAVAIL"} @compilerOptions );
+# Remove libmatheval if not used.
+delete($libraries{'matheval'})
+    if ( exists($libraries{'matheval'}) && ! grep {$_ eq "-DMATHEVALAVAIL"} @compilerOptions );
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
 my @sortedLibraries = toposort(sub { @{$staticLinkDependencies{$_[0]} || []}; }, [keys(%libraries)]);
 # Add static link options.

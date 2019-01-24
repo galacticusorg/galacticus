@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -256,14 +257,6 @@ contains
 
     ! Return property names if we are outputting rotation curve data.
     if (outputRotationCurveData) then
-       !@ <outputProperty>
-       !@   <name>rotationCurve</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Rotation curve at a given radius.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        do i=1,radiiCount
           doubleProperty=doubleProperty+1
           doublePropertyNames   (doubleProperty)='rotationCurve:'//char(radii(i)%name)

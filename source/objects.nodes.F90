@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,6 +37,7 @@ module Galacticus_Nodes
   use Pseudo_Random
   use Hashes
   use Kind_Numbers
+  use Hashes
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
 
@@ -111,9 +113,6 @@ module Galacticus_Nodes
     integer(kind=kind_int8), intent(in   ), optional         :: index
     type   (mergerTree    ), intent(in   ), optional, target :: hostTree
     integer                                                  :: allocErr
-
-    ! Initialize tree node methods if necessary.
-    call nodeClassHierarchyInitialize()
 
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
   !% An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
 
-  use Cosmology_Parameters
   use File_Utilities
 
   !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
@@ -29,10 +29,7 @@
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
      !% An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
      private
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_
-     type (lockDescriptor          )          :: fileLock
-   contains
-     final :: recFastDestructor
+     type (lockDescriptor) :: fileLock
   end type intergalacticMediumStateRecFast
   
   interface intergalacticMediumStateRecFast
@@ -49,17 +46,22 @@ contains
     implicit none
     type (intergalacticMediumStateRecFast)                :: self
     type (inputParameters                ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
+    class(linearGrowthClass              ), pointer       :: linearGrowth_
 
     ! Check and read parameters.
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    self=intergalacticMediumStateRecFast(cosmologyParameters_)
+    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
+    self=intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function recFastConstructorParameters
 
-  function recFastConstructorInternal(cosmologyParameters_) result(self)
+  function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
     !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
+    use Cosmology_Parameters            , only : hubbleUnitsStandard
     use System_Command
     use Numerical_Constants_Astronomical
     use Galacticus_Paths
@@ -70,7 +72,9 @@ contains
     use IO_HDF5
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
+    class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
     class           (cosmologyParametersClass       ), intent(in   ), target       :: cosmologyParameters_
+    class           (linearGrowthClass              ), intent(in   ), target       :: linearGrowth_
     double precision                                 , allocatable  , dimension(:) :: redshift            , electronFraction , &
          &                                                                            hIonizedFraction    , heIonizedFraction, &
          &                                                                            matterTemperature
@@ -85,7 +89,7 @@ contains
     type            (hdf5Object                     )                              :: outputFile          , dataset          , &
          &                                                                            provenance          , recFastProvenance
     logical                                                                        :: buildFile
-    !# <constructorAssign variables="*cosmologyParameters_"/>
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
 
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
@@ -127,24 +131,24 @@ contains
        call File_Unlock(                    self%fileLock                     )
        call File_Lock  (char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")) then
           call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
-          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeExec)//"aux/RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")
-          if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.for")) &
+          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")) &
                & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location}) 
        end if
        ! Patch the code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/patched")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/patched")) then
           call Galacticus_Display_Message("patching RecFast code....",verbosityWorking)
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//galacticusPath(pathTypeExec)//"aux/RecFast/; cd "//galacticusPath(pathTypeExec)//"aux/RecFast/; patch < recfast.for.patch",status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//galacticusPath(pathTypeDataDynamic)//"RecFast/; cd "//galacticusPath(pathTypeDataDynamic)//"RecFast/; patch < recfast.for.patch",status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
-          call System_Command_Do("touch "//galacticusPath(pathTypeExec)//"aux/RecFast/patched")
+          call System_Command_Do("touch "//galacticusPath(pathTypeDataDynamic)//"RecFast/patched")
        end if
        ! Build the code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe")) then
           call Galacticus_Display_Message("compiling RecFast code....",verbosityWorking)
-          call System_Command_Do("cd "//galacticusPath(pathTypeExec)//"aux/RecFast/; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none")
-          if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe")) &
+          call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"RecFast/; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none")
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe")) &
                & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location}) 
        end if
        ! Build RecFast parameter file.
@@ -158,7 +162,7 @@ contains
        write (parametersUnit,*    )  6
        close(parametersUnit)
        ! Run RecFast.
-       call System_Command_Do(galacticusPath(pathTypeExec)//"aux/RecFast/recfast.exe < "//parameterFile)
+       call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe < "//parameterFile)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1
        allocate(redshift         (countRedshift))
@@ -209,11 +213,3 @@ contains
     call File_Unlock(self%fileLock)
     return
   end function recFastConstructorInternal
-
-  subroutine recFastDestructor(self)
-    implicit none
-    type(intergalacticMediumStateRecFast), intent(inout) :: self
-
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    return
-  end subroutine recFastDestructor

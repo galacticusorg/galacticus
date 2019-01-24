@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,43 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of timesteps for merger tree evolution.
+!% Contains a module which implements a class for merger tree evolution timestepping.
 
 module Merger_Tree_Timesteps
-  !% Implements calculations of timesteps for merger tree evolution.
+  !% Implements a class for merger tree evolution timestepping.
+  use Galacticus_Nodes, only : treeNode, mergerTree
   implicit none
   private
-  public :: Time_Step_Get
+  public :: timestepTask
 
-contains
-
-  double precision function Time_Step_Get(node,evolveToTime,End_Of_Timestep_Task,report,lockNode,lockType)
-    !% Computes a suitable timestep over which to evolve a node in a tree.
-    use Merger_Trees_Evolve_Timesteps_Template
-    use ISO_Varying_String
-    !# <include directive="timeStepsTask" type="moduleUse">
-    include 'merger_trees.evolve.timesteps.moduleUse.inc'
-    !# </include>
-    implicit none
-    type            (treeNode                     ), intent(inout)          , pointer :: node
-    double precision                               , intent(in   )                    :: evolveToTime
-    procedure       (End_Of_Timestep_Task_Template), intent(  out)          , pointer :: End_Of_Timestep_Task
-    logical                                        , intent(in   )                    :: report
-    type            (treeNode                     ), intent(inout), optional, pointer :: lockNode
-    type            (varying_string               ), intent(inout), optional          :: lockType
-    procedure       (End_Of_Timestep_Task_Template)                         , pointer :: End_Of_Timestep_Task_Internal
-    class           (nodeComponentBasic           )                         , pointer :: basic
-
-    ! Call the function to get the timestep.
-    basic => node%basic()
-    Time_Step_Get=evolveToTime-basic%time()
-    End_Of_Timestep_Task_Internal => null()
-    !# <include directive="timeStepsTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node,Time_Step_Get,End_Of_Timestep_Task_Internal,report,lockNode,lockType</functionArgs>
-    include 'merger_trees.evolve.timesteps.inc'
-    !# </include>
-    End_Of_Timestep_Task => End_Of_Timestep_Task_Internal
-    return
-  end function Time_Step_Get
+  !# <functionClass>
+  !#  <name>mergerTreeEvolveTimestep</name>
+  !#  <descriptiveName>Merger Tree Evolution Timesteps</descriptiveName>
+  !#  <description>Class providing timestep control for merger tree evolution.</description>
+  !#  <default>standard</default>
+  !#  <method name="timeEvolveTo" >
+  !#   <description>Return the time to which the node can be evolved.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type     (treeNode      ), intent(inout), target  :: node    </argument>
+  !#   <argument>procedure(timestepTask  ), intent(  out), pointer :: task    </argument>
+  !#   <argument>class    (*             ), intent(  out), pointer :: taskSelf</argument>
+  !#   <argument>logical                  , intent(in   )          :: report  </argument>
+  !#   <argument>type     (treeNode      ), intent(  out), pointer :: lockNode</argument>
+  !#   <argument>type     (varying_string), intent(  out)          :: lockType</argument>
+  !#  </method>
+  !# </functionClass>
+  
+  abstract interface
+     subroutine timestepTask(self,tree,node,deadlockStatus)
+       import mergerTree, treeNode
+       class  (*         ), intent(inout)          :: self
+       type   (mergerTree), intent(in   )          :: tree
+       type   (treeNode  ), intent(inout), pointer :: node
+       integer            , intent(inout)          :: deadlockStatus
+     end subroutine timestepTask
+  end interface
 
 end module Merger_Tree_Timesteps

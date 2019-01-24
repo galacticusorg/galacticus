@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -73,7 +74,7 @@ contains
   function stateRestoreConstruct(self,treeNumber) result(tree)
     !% Restores the state of a merger tree from file.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes, only : mergerTree
     use               Galacticus_State
     implicit none
     type   (mergerTree                       ), pointer       :: tree
@@ -96,11 +97,11 @@ contains
   subroutine mergerTreeStateStore(tree,storeFile,snapshot,append)
     !% Store the complete internal state of a merger tree to file.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
     use               Galacticus_State
     use               Galacticus_Error
     use               Merger_Tree_Walkers
     use               Kind_Numbers
+    use               Galacticus_Nodes   , only : treeNode, nodeEvent, nodeEventBuildFromRaw
     implicit none
     type     (mergerTree                          ), intent(in   ), target       :: tree
     character(len=*                               ), intent(in   )               :: storeFile
@@ -243,7 +244,7 @@ contains
   
   subroutine mergerTreeStateFromFile(tree,fileName,deleteAfterRead)
     !% Read the state of a merger tree from file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : mergerTree, treeNodeList, nodeEvent, Galacticus_Nodes_Unique_ID_Set, nodeEventBuildFromRaw
     use Galacticus_Error
     use String_Handling
     use Kind_Numbers
@@ -374,7 +375,7 @@ contains
 
     function nodePointer(nodeArrayIndex,nodes)
       !% Return a pointer to a node, given its position in the array of nodes. Return a null pointer if the array index is $-1$.
-      use Galacticus_Nodes
+      use Galacticus_Nodes, only : treeNode, treeNodeList
       type   (treeNode    ), pointer                     :: nodePointer
       integer                            , intent(in   ) :: nodeArrayIndex
       type   (treeNodeList), dimension(:), intent(in   ) :: nodes

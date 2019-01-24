@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -103,6 +104,7 @@ contains
 
   double precision function vanDenBoschRate(self,node)
     !% Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     implicit none
     class           (darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node

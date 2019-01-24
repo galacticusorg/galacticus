@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,7 @@ contains
 
   logical function Node_Branch_Jump(thisEvent,thisNode,deadlockStatus)
     !% Moves a satellite node to a different branch of the merger tree.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                   , only : treeNode, nodeEvent
     use Galacticus_Display
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String

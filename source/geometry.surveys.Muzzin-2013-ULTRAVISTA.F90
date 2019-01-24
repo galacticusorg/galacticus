@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -160,15 +161,13 @@ contains
 
   double precision function muzzin2013ULTRAVISTADistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
     !% Compute the maximum distance at which a galaxy is visible.
-    use Cosmology_Functions
     use Cosmology_Functions_Options
     use Galacticus_Error
     implicit none
     class           (surveyGeometryMuzzin2013ULTRAVISTA), intent(inout)           :: self
-    double precision                                    , intent(in   ), optional :: mass               , magnitudeAbsolute, luminosity
+    double precision                                    , intent(in   ), optional :: mass    , magnitudeAbsolute, luminosity
     integer                                             , intent(in   ), optional :: field
-    class           (cosmologyFunctionsClass           ), pointer                 :: cosmologyFunctions_
-    double precision                                                              :: redshift           , logarithmicMass
+    double precision                                                              :: redshift, logarithmicMass
     !GCC$ attributes unused :: field, magnitudeAbsolute, luminosity
     
     ! Find the limiting redshift for this mass. (See
@@ -183,14 +182,12 @@ contains
     if (redshift < 0.0d0) then
        muzzin2013ULTRAVISTADistanceMaximum=0.0d0
     else
-       ! Get the default cosmology functions object.
-       cosmologyFunctions_ => cosmologyFunctions()    
        ! Convert from redshift to comoving distance.
-       muzzin2013ULTRAVISTADistanceMaximum                                               &
-            &=cosmologyFunctions_%distanceComovingConvert(                               &
-            &                                             output  =distanceTypeComoving, &
-            &                                             redshift=redshift              &
-            &                                            )
+       muzzin2013ULTRAVISTADistanceMaximum                                                    &
+            &=self%cosmologyFunctions_%distanceComovingConvert(                               &
+            &                                                  output  =distanceTypeComoving, &
+            &                                                  redshift=redshift              &
+            &                                                 )
        ! Limit the maximum distance.
        muzzin2013ULTRAVISTADistanceMaximum=min(muzzin2013ULTRAVISTADistanceMaximum,self%binDistanceMaximum)
     end if

@@ -21,7 +21,8 @@ use List::ExtraUtils;
      slurm => {
 	       validate       => \&Validate        ,
                outputFileName => \&Output_File_Name,
-	       launch         => \&Launch
+	       launch         => \&Launch          ,
+	       jobArrayLaunch => \&SubmitJobs
      }
     );
 
@@ -217,6 +218,140 @@ sub mpiDetect {
 	my $mpiVersion = `$haveMpiRun -V 2>&1`;
 	return "OpenMPI"
 	    if ( $mpiVersion =~ m/Open MPI/ );
+    }
+}
+
+sub SubmitJobs {
+    # Submit jobs to SLURM and wait for them to finish.
+    my %arguments = %{shift()};
+    my @jobStack  = @_;
+    my %slurmJobs;
+    # Find the appropriate PBS section.
+    my $slurmConfig = &Galacticus::Options::Config("slurm");
+    # Determine sleep times between jobs.
+    my $submitSleepDuration = exists($arguments{'submitSleepDuration'}) ? $arguments{'submitSleepDuration'} :  5;
+    my $waitSleepDuration   = exists($arguments{'waitSleepDuration'  }) ? $arguments{'waitSleepDuration'  } : 60;
+    # Determine maximum number allowed in queue at once.
+    my $jobMaximum = 10;
+    $jobMaximum = $slurmConfig->{'jobMaximum'}
+       if ( exists($slurmConfig->{'jobMaximum'}) );
+    $jobMaximum = $arguments{'slurmJobMaximum'}
+       if ( exists($arguments{'slurmJobMaximum'}) );
+    my $limitQueuedOnly = exists($arguments{'limitQueuedOnly'}) ? $arguments{'limitQueuedOnly'} : 0;
+    # Submit jobs and wait.
+    print "Waiting for SLURM jobs to finish...\n";
+    my @activeStates = ( "R", "PD" );
+    while ( scalar(keys %slurmJobs) > 0 || scalar(@jobStack) > 0 ) {
+	# Find all SLURM jobs that are running.
+	my %runningSLURMJobs;
+	undef(%runningSLURMJobs);
+	my $jobID;
+	open(pHndl,"squeue |");
+	my $line = <pHndl>;
+	while ( my $line = <pHndl> ) {
+	    my @columns = split(" ",$line);
+	    $runningSLURMJobs{$columns[0]} = $columns[4]
+		if ( grep {$_ eq $columns[4]} @activeStates );
+	}
+	close(pHndl);
+	foreach my $jobID ( keys(%slurmJobs) ) {
+	    unless ( exists($runningSLURMJobs{$jobID}) ) {
+		print "SLURM job ".$jobID." has finished.\n";
+		# Call any "on completion" function.
+		if ( exists($slurmJobs{$jobID}->{'onCompletion'}) ) {
+		    my $exitStatus = 0;
+		    if ( exists($slurmJobs{$jobID}->{'tracejob'}) && $slurmJobs{$jobID}->{'tracejob'} eq "yes" ) {
+			my $sacct = &File::Which::which("sacct");
+			if ( defined($sacct) ) {
+			    open(my $trace,$sacct." -b -j ".$jobID." |");
+			    while ( my $line = <$trace> ) {
+				my @columns = split(" ",$line);
+				if ( $columns[0] eq $jobID ) {
+				    if ( $columns[2] =~ m/(\d+):\d+/ ) {
+					$exitStatus = $1;
+				    }
+				}
+			    }
+			    close($trace);
+			}
+		    }
+		    &{$slurmJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$slurmJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus,\@jobStack,$slurmJobs{$jobID});
+		}
+		# Remove the job ID from the list of active SLURM jobs.
+		delete($slurmJobs{$jobID});		
+	    }
+	}
+	# If fewer than maximum number of jobs are in the queue, pop one off the stack.
+	my $limitingJobs = $limitQueuedOnly ? scalar(grep {($runningSLURMJobs{$_} eq "PD") && exists($slurmJobs{$_})} keys(%runningSLURMJobs)) : scalar(keys(%slurmJobs));
+	if ( scalar(@jobStack) > 0 && $limitingJobs < $jobMaximum ) {
+	    my $newJob = pop(@jobStack);
+	    my $batchScript;
+	    if ( ref($newJob) ) {
+		# Check for a dependency.
+		if ( exists($newJob->{'dependsOn'}) && ! -e $newJob->{'dependsOn'} ) {
+		    unshift(@jobStack,$newJob);
+		    sleep 5;
+		    last;
+		}
+		# Create the batch script.
+		my $resourceModel = exists($newJob->{'resourceModel'}) ? $newJob->{'resourceModel'} : "nodes";
+		my $ppn           = exists($newJob->{'ppn'          }) ? $newJob->{'ppn'          } : 1      ;
+		my $nodes         = exists($newJob->{'nodes'        }) ? $newJob->{'nodes'        } : 1      ;
+		open(my $scriptFile,">".$newJob->{'launchFile'});
+		print $scriptFile "#!/bin/bash\n";
+		print $scriptFile "#SBATCH --job-name=\"".$newJob->{'label'}."\"\n";
+		print $scriptFile "#SBATCH --time=".$newJob->{'walltime'}."\n"
+		    if ( exists($newJob->{'walltime'}) );
+		if ( exists($newJob->{'queue'}) ) {
+		    print $scriptFile "#SBATCH --partition=".$newJob->{'queue'}."\n";
+		} elsif ( exists($arguments{'queue'}) ) {
+		    print $scriptFile "#SBATCH --partition=".$arguments{'queue'}."\n";
+		} elsif ( exists($slurmConfig->{'queue'}) ) {
+		    print $scriptFile "#SBATCH --partition=".$slurmConfig->{'queue'}."\n";
+		}
+		if ( $resourceModel eq "nodes" ) {
+		    print $scriptFile "#SBATCH --nodes=".$nodes."\n";
+		    print $scriptFile "#SBATCH --ntasks-per-node=".$ppn."\n";		    
+		    print $scriptFile "#SBATCH --mem=".$newJob->{'mem'}."\n"
+			if ( exists($newJob->{'mem'}) );
+		} else {
+		    die("Galacticus::Launch::SLURM::SubmitJobs: unknown resource model");
+		}
+		print $scriptFile "#SBATCH --error=".$newJob->{'logFile'}."\n";
+		print $scriptFile "#SBATCH --output=".$newJob->{'logFile'}."\n";
+		# Find the working directory - we support either SLURM or SLURM environment variables here.
+		print $scriptFile "if [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
+		print $scriptFile " cd \$SLURM_SUBMIT_DIR\n";
+		print $scriptFile "fi\n";
+		print $scriptFile "export ".$_."\n"
+		    foreach ( &List::ExtraUtils::as_array($slurmConfig->{'environment'}) );
+		print $scriptFile "ulimit -t unlimited\n";
+		print $scriptFile "ulimit -c unlimited\n";
+		print $scriptFile "export OMP_NUM_THREADS=".$ppn."\n";
+		print $scriptFile $newJob->{'command'}."\n";
+		print $scriptFile "exit\n";
+		close($scriptFile);
+	    } else {
+		# Batch script is already created - we're given its name.
+		$batchScript = $newJob;
+		undef($newJob);
+		$newJob->{'launchFile'} = $batchScript;
+	    }
+	    # Submit the SLURM job.
+	    open(pHndl,"sbatch ".$newJob->{'launchFile'}."|");
+	    my $jobID = "";
+	    while ( my $line = <pHndl> ) {
+	    	if ( $line =~ m/^Submitted batch job (\d+)/ ) {$jobID = $1};
+	    }
+	    close(pHndl);	    
+	    # Add the job number to the active job hash.
+	    $slurmJobs{$jobID} = $newJob
+		unless ( $jobID eq "" );
+	    sleep $submitSleepDuration;
+	} else {
+	    # Wait.
+	    sleep $waitSleepDuration;
+	}
     }
 }
 

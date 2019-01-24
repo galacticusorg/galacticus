@@ -13,8 +13,6 @@ use List::ExtraUtils;
 use Galacticus::Build::Hooks;
 use Galacticus::Build::ModuleUse;
 use Galacticus::Build::MethodNames;
-use Galacticus::Build::Labels;
-use Galacticus::Build::Function;
 use Galacticus::Build::FunctionCall;
 use Galacticus::Build::FunctionGlobal;
 use Galacticus::Build::SourceTree;

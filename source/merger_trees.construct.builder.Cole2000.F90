@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -211,7 +212,7 @@ contains
 
   subroutine cole2000Build(self,tree)
     !% Build a merger tree.
-    use Galacticus_Nodes
+    use Galacticus_Nodes     , only : treeNode, nodeComponentBasic
     use Galacticus_Error
     use Merger_Tree_Walkers
     use Pseudo_Random
@@ -612,6 +613,7 @@ contains
   logical function cole2000ShouldFollowBranch(self,tree,node)
     !% Return {\normalfont \ttfamily true} if tree construction should continue to follow the current branch. In the {\normalfont
     !% \ttfamily cole2000} tree builder we always continue.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     class(mergerTreeBuilderCole2000), intent(inout)          :: self
     type (mergerTree               ), intent(in   )          :: tree
@@ -634,6 +636,7 @@ contains
 
   subroutine cole2000CriticalOverdensitySet(self,criticalOverdensity_)
     !% Set the critical overdensity object for this tree builder.
+    implicit none
     class(mergerTreeBuilderCole2000), intent(inout)         :: self
     class(criticalOverdensityClass ), intent(in   ), target :: criticalOverdensity_
 
@@ -645,6 +648,8 @@ contains
   
   double precision function cole2000CriticalOverdensityUpdate(self,deltaCritical,massCurrent,massNew,nodeNew)
     !% Update the critical overdensity for a new node, given that of the parent,
+    use Galacticus_Nodes, only : treeNode
+    implicit none
     class           (mergerTreeBuilderCole2000), intent(inout) :: self
     double precision                           , intent(in   ) :: massCurrent  , massNew, &
          &                                                        deltaCritical

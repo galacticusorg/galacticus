@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,8 +27,7 @@ module Galacticus_Output_Analyses_Mass_Dpndnt_BH_Dstrbtins
   !% \item The compilation from \cite{kormendy_coevolution_2013}.
   !% \end{itemize}
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
-  use FGSL
+  use            :: Galacticus_Nodes, only : treeNode
   use Tables
   use Galactic_Structure_Options
   use Geometry_Surveys
@@ -150,14 +150,15 @@ contains
   subroutine Galacticus_Output_Analysis_Mass_Dpndnt_BH_Dstrbtins(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct black hole mass distributions to compare to various observational determinations.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
+    use            :: Galacticus_Nodes, only : mergerTree               , nodeComponentBasic, nodeComponentBlackHole, defaultSpheroidComponent, &
+         &                                     defaultBlackHoleComponent
     use Galacticus_Paths
     use ISO_Varying_String
     use Memory_Management
     use Cosmology_Parameters
     use Galactic_Structure_Enclosed_Masses
     use Input_Parameters
-    use Galacticus_Output_Times
+    use Output_Times
     use Galacticus_Error
     use Cosmology_Functions
     use Pseudo_Random
@@ -179,6 +180,7 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: basic
     class           (nodeComponentBlackHole        )               , pointer        :: blackHole
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctionsModel
+    class           (outputTimesClass              )               , pointer        :: outputTimes_
     type            (cosmologyFunctionsMatterLambda)                                :: cosmologyFunctionsObserved
     type            (cosmologyParametersSimple     )               , pointer        :: cosmologyParametersObserved
     integer                                         , parameter                     :: massCountPerDecade             =10
@@ -270,6 +272,7 @@ contains
           else
              analysisActive=.true.
              cosmologyFunctionsModel => cosmologyFunctions()
+             outputTimes_            => outputTimes       ()
              ! Establish survey geometries.
              allocate(surveyGeometryFullSky :: blackHoleDistributionDescriptors(1)%geometry)
              select type (g => blackHoleDistributionDescriptors(1)%geometry)
@@ -533,14 +536,14 @@ contains
                          call Galacticus_Error_Report('unknown black hole mass function'//{introspection:location})
                       end select
                       ! Get cosmological conversion factors.
-                      call allocateArray(blackHoleDistributions(currentAnalysis)%cosmologyConversionMass         ,[Galacticus_Output_Time_Count()])
-                      call allocateArray(blackHoleDistributions(currentAnalysis)%cosmologyConversionBlackHoleMass,[Galacticus_Output_Time_Count()])
-                      do jOutput=1,Galacticus_Output_Time_Count()
-                         redshift=                                                                                      &
-                              &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                                 &
-                              &    cosmologyFunctionsModel%expansionFactor             (                                &
-                              &                                                         Galacticus_Output_Time(jOutput) &
-                              &                                                        )                                &
+                      call allocateArray(blackHoleDistributions(currentAnalysis)%cosmologyConversionMass         ,[outputTimes_%count()])
+                      call allocateArray(blackHoleDistributions(currentAnalysis)%cosmologyConversionBlackHoleMass,[outputTimes_%count()])
+                      do jOutput=1,outputTimes_%count()
+                         redshift=                                                                                 &
+                              &   cosmologyFunctionsModel %redshiftFromExpansionFactor(                            &
+                              &    cosmologyFunctionsModel%expansionFactor             (                           &
+                              &                                                         outputTimes_%time(jOutput) &
+                              &                                                        )                           &
                               &                                                       )
                          call Cosmology_Conversion_Factors(                                                                                                              &
                               &                            redshift                                                                                                    , &
@@ -559,20 +562,20 @@ contains
                       end do
                       nullify(cosmologyParametersObserved)
                       ! Compute output weights for black hole mass distribution.
-                      call allocateArray(blackHoleDistributions(currentAnalysis)%outputWeight,[int(blackHoleDistributions(currentAnalysis)%massesCount,kind=c_size_t),Galacticus_Output_Time_Count()])
+                      call allocateArray(blackHoleDistributions(currentAnalysis)%outputWeight,[int(blackHoleDistributions(currentAnalysis)%massesCount,kind=c_size_t),outputTimes_%count()])
                       blackHoleDistributions(currentAnalysis)%outputWeight=0.0d0
                       do k=1,blackHoleDistributions(currentAnalysis)%massesCount
-                         do jOutput=1,Galacticus_Output_Time_Count()
+                         do jOutput=1,outputTimes_%count()
                             do l=1,blackHoleDistributions(currentAnalysis)%descriptor%geometry%fieldCount()
-                               if (jOutput == Galacticus_Output_Time_Count()) then
-                                  timeMaximum=     Galacticus_Output_Time(jOutput)
+                               if (jOutput == outputTimes_%count()) then
+                                  timeMaximum=     outputTimes_%time(jOutput)
                                else
-                                  timeMaximum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput+1))
+                                  timeMaximum=sqrt(outputTimes_%time(jOutput)*outputTimes_%time(jOutput+1))
                                end if
                                if (jOutput ==                              1) then
-                                  timeMinimum=     Galacticus_Output_Time(jOutput)
+                                  timeMinimum=     outputTimes_%time(jOutput)
                                else
-                                  timeMinimum=sqrt(Galacticus_Output_Time(jOutput)*Galacticus_Output_Time(jOutput-1))
+                                  timeMinimum=sqrt(outputTimes_%time(jOutput)*outputTimes_%time(jOutput-1))
                                end if
                                distanceMinimum=max(                                                                                                                                        &
                                     &              cosmologyFunctionsModel%distanceComoving(timeMaximum)                                                                                 , &

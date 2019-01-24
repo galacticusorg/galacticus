@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,136 +17,135 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the \cite{baugh_can_2005} model of mass movements during satellite mergers.
+  !% Implements a merger mass movements class using the \cite{baugh_can_2005} model.
+  
+  !# <mergerMassMovements name="mergerMassMovementsBaugh2005">
+  !#  <description>A merger mass movements class which uses a simple calculation.</description>
+  !# </mergerMassMovements>
+  type, extends(mergerMassMovementsClass) :: mergerMassMovementsBaugh2005
+     !% A merger mass movements class which uses the \cite{baugh_can_2005} calculation.
+     private
+     double precision :: massRatioMajorMerger     , ratioMassBurst, &
+          &              fractionGasCriticalBurst
+     integer          :: destinationGasMinorMerger
+   contains
+     procedure :: get => baugh2005Get
+  end type mergerMassMovementsBaugh2005
 
-module Satellite_Merging_Mass_Movements_Baugh2005
-  !% Implements the \cite{baugh_can_2005} model of mass movements during satellite mergers.
-  use Satellite_Merging_Mass_Movements_Descriptors
-  implicit none
-  private
-  public :: Satellite_Merging_Mass_Movements_Baugh2005_Initialize
-
-  ! Mass ratio above which a merger is considered to be "major".
-  double precision :: burstCriticalGasFraction  , burstMassRatio, &
-       &              majorMergerMassRatio
-
-  ! Location to which gas from satellite galaxy in minor merger is moved.
-  integer          :: minorMergerGasMovesToValue
+  interface mergerMassMovementsBaugh2005
+     !% Constructors for the {\normalfont \ttfamily baugh2005} merger mass movements class.
+     module procedure baugh2005ConstructorParameters
+     module procedure baugh2005ConstructorInternal
+  end interface mergerMassMovementsBaugh2005
 
 contains
 
-  !# <satelliteMergingMassMovementsMethod>
-  !#  <unitName>Satellite_Merging_Mass_Movements_Baugh2005_Initialize</unitName>
-  !# </satelliteMergingMassMovementsMethod>
-  subroutine Satellite_Merging_Mass_Movements_Baugh2005_Initialize(satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get)
-    !% Test if this method is to be used and set procedure pointer appropriately.
-    use ISO_Varying_String
+  function baugh2005ConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily baugh2005} merger mass movements class which takes a parameter list as input.
     use Input_Parameters
-    use Galacticus_Error
     implicit none
-    type     (varying_string                           ), intent(in   )          :: satelliteMergingMassMovementsMethod
-    procedure(Satellite_Merging_Mass_Movement_Baugh2005), intent(inout), pointer :: Satellite_Merging_Mass_Movement_Get
-    type     (varying_string                           )                         :: minorMergerGasMovesTo
+    type            (mergerMassMovementsBaugh2005)                :: self
+    type            (inputParameters             ), intent(inout) :: parameters
+    double precision                                              :: massRatioMajorMerger     , ratioMassBurst, &
+         &                                                           fractionGasCriticalBurst
+    type            (varying_string              )                :: destinationGasMinorMerger
 
-    if (satelliteMergingMassMovementsMethod == 'Baugh2005') then
-       Satellite_Merging_Mass_Movement_Get => Satellite_Merging_Mass_Movement_Baugh2005
-       !# <inputParameter>
-       !#   <name>majorMergerMassRatio</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.25d0</defaultValue>
-       !#   <description>The mass ratio above which mergers are considered to be ``major'' in the \cite{baugh_can_2005} merger mass movements method.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>burstMassRatio</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.05d0</defaultValue>
-       !#   <description>The mass ratio above which mergers are considered to trigger a burst in the \cite{baugh_can_2005} merger mass movements method.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>burstCriticalGasFraction</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>0.75d0</defaultValue>
-       !#   <description>The host gas fraction above which mergers are considered to trigger a burst in the \cite{baugh_can_2005} merger mass movements method.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>minorMergerGasMovesTo</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>var_str('spheroid')</defaultValue>
-       !#   <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !# </inputParameter>
-       select case (char(minorMergerGasMovesTo))
-       case ("disk"    )
-          minorMergerGasMovesToValue=movesToDisk
-       case ("spheroid")
-          minorMergerGasMovesToValue=movesToSpheroid
-       case default
-          call Galacticus_Error_Report('unrecognized location for minor merger satellite gas'//{introspection:location})
-       end select
-    end if
+    !# <inputParameter>
+    !#   <name>massRatioMajorMerger</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.25d0</defaultValue>
+    !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>ratioMassBurst</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.05d0</defaultValue>
+    !#   <description>The mass ratio above which mergers are considered to trigger a burst.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>fractionGasCriticalBurst</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.75d0</defaultValue>
+    !#   <description>The host gas fraction above which mergers are considered to trigger a burst.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>destinationGasMinorMerger</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('spheroid')</defaultValue>
+    !#   <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    self=mergerMassMovementsBaugh2005(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),ratioMassBurst,fractionGasCriticalBurst)
+    !# <inputParametersValidate source="parameters"/>
     return
-  end subroutine Satellite_Merging_Mass_Movements_Baugh2005_Initialize
+  end function baugh2005ConstructorParameters
 
-  subroutine Satellite_Merging_Mass_Movement_Baugh2005(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
-    !% Determine how different mass components should be redistributed as the result of a merger according to the model of \cite{baugh_can_2005}.
-    use Galacticus_Nodes
+  function baugh2005ConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,ratioMassBurst,fractionGasCriticalBurst) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily baugh2005} merger mass movements.
+    implicit none
+    type            (mergerMassMovementsBaugh2005)                :: self
+    double precision                              , intent(in   ) :: massRatioMajorMerger     , ratioMassBurst, &
+         &                                                           fractionGasCriticalBurst
+    integer                                       , intent(in   ) :: destinationGasMinorMerger
+    !# <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst"/>
+    
+    return
+  end function baugh2005ConstructorInternal
+
+  subroutine baugh2005Get(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
+    !% Determine how different mass components should be redistributed as the result of a merger according to the model of
+    !% \cite{baugh_can_2005}.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    type            (treeNode), intent(inout) :: thisNode
-    integer                   , intent(  out) :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo , starsMoveTo
-    logical                   , intent(  out) :: mergerIsMajor
-    type            (treeNode), pointer       :: hostNode
-    logical                                   :: triggersBurst
-    double precision                          :: hostGasMass  , hostMass      , hostSpheroidMass, satelliteMass
+    class           (mergerMassMovementsBaugh2005), intent(inout) :: self
+    type            (treeNode                    ), intent(inout) :: node
+    integer                                       , intent(  out) :: destinationGasSatellite, destinationGasHost       , &
+         &                                                           destinationStarsHost   , destinationStarsSatellite
+    logical                                       , intent(  out) :: mergerIsMajor
+    type            (treeNode                    ), pointer       :: nodeHost
+    double precision                                              :: massHost               , massSatellite            , &
+         &                                                           massSpheroidHost       , massGasHost
+    logical                                                       :: triggersBurst
+    
+    nodeHost         => node%mergesWith()
+    massSatellite    =  Galactic_Structure_Enclosed_Mass(node                                        ,massType=massTypeGalactic)
+    massHost         =  Galactic_Structure_Enclosed_Mass(nodeHost                                    ,massType=massTypeGalactic)
+    massGasHost      =  Galactic_Structure_Enclosed_Mass(nodeHost                                    ,massType=massTypeGaseous )
+    massSpheroidHost =  Galactic_Structure_Enclosed_Mass(nodeHost,componentType=componentTypeSpheroid,massType=massTypeGalactic)
+    mergerIsMajor    =  massSatellite >= self%massRatioMajorMerger*massHost
 
-    ! Find the node to merge with.
-   hostNode => thisNode%mergesWith()
-
-    ! Find the baryonic masses of the two galaxies.
-    satelliteMass=Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic)
-    hostMass        =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic                                    )
-    hostGasMass     =Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGaseous                                     )
-    hostSpheroidMass=Galactic_Structure_Enclosed_Mass(hostNode,componentType=componentTypeSpheroid,massType=massTypeGalactic)
-    ! Decide if the mass ratio is large enough to trigger a major merger.
-    mergerIsMajor=satelliteMass >= majorMergerMassRatio*hostMass
-
-    ! Determine if the merger will trigger a burst, in which case gas will be moved to the spheroid.
-    triggersBurst=mergerIsMajor                                          &
-         &         .or.                                                  &
-         &        (                                                      &
-         &         hostSpheroidMass <  burstMassRatio          *hostMass &
-         &          .and.                                                &
-         &         hostGasMass      >= burstCriticalGasFraction*hostMass &
+    triggersBurst=mergerIsMajor                                               &
+         &         .or.                                                       &
+         &        (                                                           &
+         &         massSpheroidHost <  self%ratioMassBurst          *massHost &
+         &          .and.                                                     &
+         &         massGasHost      >= self%fractionGasCriticalBurst*massHost &
          &        )
-
     if (mergerIsMajor) then
-       gasMovesTo     =movesToSpheroid
-       starsMoveTo    =movesToSpheroid
-       hostGasMovesTo =movesToSpheroid
-       hostStarsMoveTo=movesToSpheroid
+       destinationGasSatellite     =    destinationMergerSpheroid
+       destinationStarsSatellite   =    destinationMergerSpheroid
+       destinationGasHost          =    destinationMergerSpheroid
+       destinationStarsHost        =    destinationMergerSpheroid
     else
        if (triggersBurst) then
-          gasMovesTo     =movesToSpheroid
-          starsMoveTo    =movesToSpheroid
-          hostGasMovesTo =movesToSpheroid
-          hostStarsMoveTo=doesNotMove
+          destinationGasSatellite  =    destinationMergerSpheroid
+          destinationStarsSatellite=    destinationMergerSpheroid
+          destinationGasHost       =    destinationMergerSpheroid
+          destinationStarsHost     =    destinationMergerUnmoved
        else
-          gasMovesTo     =minorMergerGasMovesToValue
-          starsMoveTo    =movesToSpheroid
-          hostGasMovesTo =doesNotMove
-          hostStarsMoveTo=doesNotMove
+          destinationGasSatellite  =self%destinationGasMinorMerger
+          destinationStarsSatellite=    destinationMergerSpheroid
+          destinationGasHost       =    destinationMergerUnmoved
+          destinationStarsHost     =    destinationMergerUnmoved
        end if
     end if
-
     return
-  end subroutine Satellite_Merging_Mass_Movement_Baugh2005
-
-end module Satellite_Merging_Mass_Movements_Baugh2005
+  end subroutine baugh2005Get

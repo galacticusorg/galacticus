@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,9 +19,10 @@
 
   !% An implementation of dark matter halo profile concentrations using the
   !% \cite{zhao_accurate_2009} algorithm.
-
+  
   use Cosmology_Functions
   use Cosmology_Parameters
+  use Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistory, darkMatterHaloMassAccretionHistoryClass
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{zhao_accurate_2009}.</description>
@@ -29,9 +31,10 @@
      !% A dark matter halo profile concentration class implementing the algorithm of
      !% \cite{zhao_accurate_2009}.
      private
-     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-   contains
+     class(cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_                 => null()
+     class(cosmologyParametersClass               ), pointer :: cosmologyParameters_                => null()
+     class(darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
+  contains
      final     ::                                zhao2009Destructor
      procedure :: concentration               => zhao2009Concentration
      procedure :: densityContrastDefinition   => zhao2009DensityContrastDefinition
@@ -52,26 +55,29 @@ contains
     !% concentration class which takes an input parameter list.
     use Input_Parameters
     implicit none
-    type (darkMatterProfileConcentrationZhao2009)                :: self
-    type (inputParameters                       ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
-    class(cosmologyParametersClass              ), pointer       :: cosmologyParameters_     
+    type (darkMatterProfileConcentrationZhao2009 )                :: self
+    type (inputParameters                        ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
+    class(cosmologyParametersClass               ), pointer       :: cosmologyParameters_     
+    class(darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
 
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    self=darkMatterProfileConcentrationZhao2009(cosmologyFunctions_,cosmologyParameters_)
+    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
+    self=darkMatterProfileConcentrationZhao2009(cosmologyFunctions_,cosmologyParameters_,darkMatterHaloMassAccretionHistory_)
     return
     !# <inputParametersValidate source="parameters"/>
   end function zhao2009ConstructorParameters
 
-  function zhao2009ConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
+  function zhao2009ConstructorInternal(cosmologyFunctions_,cosmologyParameters_,darkMatterHaloMassAccretionHistory_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily zhao2009} dark matter halo profile
     !% concentration class.
     implicit none
-    type (darkMatterProfileConcentrationZhao2009)                        :: self
-    class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
-    class(cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_     
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
+    type (darkMatterProfileConcentrationZhao2009 )                        :: self
+    class(cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
+    class(cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_     
+    class(darkMatterHaloMassAccretionHistoryClass), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *darkMatterHaloMassAccretionHistory_"/>
 
     return
   end function zhao2009ConstructorInternal
@@ -81,8 +87,9 @@ contains
     implicit none
     type(darkMatterProfileConcentrationZhao2009), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
-    !# <objectDestructor name="self%cosmologyParameters_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"                />
+    !# <objectDestructor name="self%cosmologyParameters_"               />
+    !# <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
     return
   end subroutine zhao2009Destructor
 
@@ -90,9 +97,10 @@ contains
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the \cite{zhao_accurate_2009} algorithm.
     use Dark_Matter_Halo_Formation_Times
+    use Galacticus_Nodes                , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationZhao2009), intent(inout), target  :: self
-    type            (treeNode                              ), intent(inout), pointer :: node
+    type            (treeNode                              ), intent(inout), target  :: node
     class           (nodeComponentBasic                    )               , pointer :: basic
     double precision                                        , parameter              :: concentrationMinimum =4.00d0
     double precision                                        , parameter              :: formationMassFraction=0.04d0
@@ -103,7 +111,7 @@ contains
     basic => node%basic()
     ! Compute the concentration.
     timeNode     =basic%time()
-    timeFormation=Dark_Matter_Halo_Formation_Time(node,formationMassFraction)
+    timeFormation=Dark_Matter_Halo_Formation_Time(node,formationMassFraction,self%darkMatterHaloMassAccretionHistory_)
     ! Compute the concentration from the formation time using the Zhao et al. (2009) fitting formula.
     zhao2009Concentration=concentrationMinimum*(1.0d0+(timeNode/3.75d0/timeFormation)**8.4d0)**0.125d0
    return

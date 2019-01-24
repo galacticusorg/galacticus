@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,7 +44,9 @@ contains
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     class           (gravitationalLensingClass                           ), pointer                     :: gravitationalLensing_
+    class           (stellarSpectraDustAttenuationClass                  ), pointer                     :: stellarSpectraDustAttenuation_
     double precision                                                      , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient , systematicErrorPolynomialCoefficient
     integer                                                                                             :: covarianceBinomialBinsPerDecade
     double precision                                                                                    :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum   , &
@@ -141,15 +144,17 @@ contains
     !#   <type>string</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
-    !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"            name="cosmologyFunctions_"            source="parameters"/>
+    !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
+    !# <objectBuilder class="gravitationalLensing"          name="gravitationalLensing_"          source="parameters"/>
+    !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisLuminosityFunctionGunawardhana2013SDSS(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
+    self=outputAnalysisLuminosityFunctionGunawardhana2013SDSS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
     return
   end function luminosityFunctionGunawardhana2013SDSSConstructorParameters
 
-  function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
+  function luminosityFunctionGunawardhana2013SDSSConstructorInternal(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient) result (self)
     !% Constructor for the ``luminosityFunctionGunawardhana2013SDSS'' output analysis class for internal use.
     use Input_Parameters
     use Galacticus_Paths
@@ -159,7 +164,9 @@ contains
     implicit none
     type            (outputAnalysisLuminosityFunctionGunawardhana2013SDSS)                              :: self
     class           (cosmologyFunctionsClass                             ), intent(in   ), target       :: cosmologyFunctions_
+    class           (outputTimesClass                                    ), intent(in   ), target       :: outputTimes_
     class           (gravitationalLensingClass                           ), intent(in   ), target       :: gravitationalLensing_
+    class           (stellarSpectraDustAttenuationClass                  ), intent(in   ), target       :: stellarSpectraDustAttenuation_
     double precision                                                      , intent(in   )               :: randomErrorMinimum                                  , randomErrorMaximum                  , &
          &                                                                                                 sizeSourceLensing                                   , depthOpticalISMCoefficient
     double precision                                                      , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                    , systematicErrorPolynomialCoefficient
@@ -211,6 +218,7 @@ contains
     allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
     outputAnalysisDistributionOperatorGrvtnlLnsng_       =  outputAnalysisDistributionOperatorGrvtnlLnsng       (                                  &
          &                                                                                                       gravitationalLensing_           , &
+         &                                                                                                       outputTimes_                    , &
          &                                                                                                       sizeSourceLensing                 &
          &                                                                                                      )
     ! Construct sequence distribution operator.
@@ -223,22 +231,24 @@ contains
          &                                                                                                       distributionOperatorSequence      &
          &                                                                                                      )
     ! Build the object.
-    self%outputAnalysisLuminosityFunctionHalpha=                                                                                                                     &
-         & outputAnalysisLuminosityFunctionHalpha(                                                                                                                   &
-         &                                  var_str('Gunawardhana2013SDSS'                                                   )                                     , &
-         &                                  var_str('Hα luminosity function for the Gunawardhana et al. (2013) SDSS analysis')                                     , &
+    self%outputAnalysisLuminosityFunctionHalpha=                                                                                                                           &
+         & outputAnalysisLuminosityFunctionHalpha(                                                                                                                         &
+         &                                  var_str('Gunawardhana2013SDSS'                                                   )                                           , &
+         &                                  var_str('Hα luminosity function for the Gunawardhana et al. (2013) SDSS analysis')                                           , &
          &                                  char(galacticusPath(pathTypeDataStatic)//'/observations/luminosityFunctions/hAlphaLuminosityFunctionGunawardhana13SDSS.hdf5'), &
-         &                                  .false.                                                                                                                , &
-         &                                  depthOpticalISMCoefficient                                                                                             , &
-         &                                  galacticFilter_                                                                                                        , &
-         &                                  surveyGeometry_                                                                                                        , &
-         &                                  cosmologyFunctions_                                                                                                    , &
-         &                                  cosmologyFunctionsData                                                                                                 , &
-         &                                  outputAnalysisPropertyOperator_                                                                                        , &
-         &                                  outputAnalysisDistributionOperator_                                                                                    , &
-         &                                  covarianceBinomialBinsPerDecade                                                                                        , &
-         &                                  covarianceBinomialMassHaloMinimum                                                                                      , &
-         &                                  covarianceBinomialMassHaloMaximum                                                                                        &
+         &                                  .false.                                                                                                                      , &
+         &                                  depthOpticalISMCoefficient                                                                                                   , &
+         &                                  galacticFilter_                                                                                                              , &
+         &                                  surveyGeometry_                                                                                                              , &
+         &                                  stellarSpectraDustAttenuation_                                                                                               , &
+         &                                  cosmologyFunctions_                                                                                                          , &
+         &                                  cosmologyFunctionsData                                                                                                       , &
+         &                                  outputAnalysisPropertyOperator_                                                                                              , &
+         &                                  outputAnalysisDistributionOperator_                                                                                          , &
+         &                                  outputTimes_                                                                                                                 , &
+         &                                  covarianceBinomialBinsPerDecade                                                                                              , &
+         &                                  covarianceBinomialMassHaloMinimum                                                                                            , &
+         &                                  covarianceBinomialMassHaloMaximum                                                                                              &
          &                                 )
     ! Clean up.
     nullify(surveyGeometry_                                     )

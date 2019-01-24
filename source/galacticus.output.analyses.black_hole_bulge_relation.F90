@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,6 +44,7 @@ contains
     type            (inputParameters                     ), intent(inout)               :: parameters
     double precision                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                    ), pointer                     :: outputTimes_
     double precision                                                                    :: randomErrorMinimum                  , randomErrorMaximum 
 
     
@@ -86,18 +88,19 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
     ! Build the object.
-    self=outputAnalysisBlackHoleBulgeRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_)
+    self=outputAnalysisBlackHoleBulgeRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function blackHoleBulgeRelationConstructorParameters
 
-  function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_) result (self)
+  function blackHoleBulgeRelationConstructorInternal(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``blackHoleBulgeRelation'' output analysis class for internal use.
     use Memory_Management
     use IO_HDF5
     use Galacticus_Paths  
-    use Galacticus_Output_Times
+    use Output_Times
     use Output_Analysis_Property_Operators
     use Output_Analysis_Property_Extractions
     use Output_Analysis_Distribution_Operators
@@ -114,6 +117,7 @@ contains
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
+    class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
     double precision                                                     , allocatable  , dimension(:  ) :: masses
@@ -142,10 +146,10 @@ contains
     allocate(masses(massStellarCount))
     masses=Make_Range(log10(massStellarMinimum),log10(massStellarMaximum),int(massStellarCount),rangeType=rangeTypeLinear)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[massStellarCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[massStellarCount,outputTimes_%count()])
     outputWeight=0.0d0
-    do iOutput=1,Galacticus_Output_Time_Count()
-       if (Values_Agree(Galacticus_Output_Redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
+    do iOutput=1,outputTimes_%count()
+       if (Values_Agree(outputTimes_%redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
     end do
     if (any(sum(outputWeight,dim=2) /= 1.0d0)) call Galacticus_Error_Report('zero redshift output is required'//{introspection:location})
     ! Create cosmological model in which data were analyzed.
@@ -163,17 +167,17 @@ contains
          &                                                )
     ! Build a filter which select galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilter_                                       )
-    galacticFilter_                                  =  galacticFilterSpheroidStellarMass                  (massThreshold=1.0d8                                          )
+    galacticFilter_                                  =  galacticFilterSpheroidStellarMass                  (massThreshold=1.0d8                                                       )
      ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    outputAnalysisWeightOperator_                    =  outputAnalysisWeightOperatorIdentity               (                                                             )
+    outputAnalysisWeightOperator_                    =  outputAnalysisWeightOperatorIdentity               (                                                                          )
     ! Build luminosity distance, systematic, and log10() property operators.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_      )
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    (cosmologyFunctions_     ,cosmologyFunctionsData              )
+    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_      )
-    outputAnalysisPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial    (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)
+    outputAnalysisPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial    (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )
     allocate(outputAnalysisPropertyOperatorLog10_                  )
-    outputAnalysisPropertyOperatorLog10_             =  outputAnalysisPropertyOperatorLog10                (                                                             )
+    outputAnalysisPropertyOperatorLog10_             =  outputAnalysisPropertyOperatorLog10                (                                                                          )
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
     allocate(propertyOperators_%next%next                          )
@@ -181,7 +185,7 @@ contains
     propertyOperators_%next          %operator_      => outputAnalysisPropertyOperatorLog10_
     propertyOperators_%next%next     %operator_      => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                       )
-    outputAnalysisPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence             (propertyOperators_                                           )
+    outputAnalysisPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence             (propertyOperators_                                                        )
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
     outputAnalysisDistributionOperator_              =  outputAnalysisDistributionOperatorRandomErrorPlynml(                                  &
@@ -192,24 +196,24 @@ contains
          &                                                                                                 )
     ! Build weight property operatosr.
     allocate(outputAnalysisWeightPropertyOperatorLog10_            )
-    outputAnalysisWeightPropertyOperatorLog10_       =  outputAnalysisPropertyOperatorLog10                (                                                             )
+    outputAnalysisWeightPropertyOperatorLog10_       =  outputAnalysisPropertyOperatorLog10                (                                                                          )
     allocate(outputAnalysisWeightPropertyOperatorMinMax_           )
-    outputAnalysisWeightPropertyOperatorMinMax_      =  outputAnalysisPropertyOperatorMinMax               (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)          )
+    outputAnalysisWeightPropertyOperatorMinMax_      =  outputAnalysisPropertyOperatorMinMax               (thresholdMinimum=1.0d1,thresholdMaximum=huge(0.0d0)                       )
     allocate(weightPropertyOperators_                              )
     allocate(weightPropertyOperators_%next                         )
     weightPropertyOperators_         %operator_      => outputAnalysisWeightPropertyOperatorMinMax_
     weightPropertyOperators_%next    %operator_      => outputAnalysisWeightPropertyOperatorLog10_
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    outputAnalysisWeightPropertyOperator_            =  outputAnalysisPropertyOperatorSequence             (weightPropertyOperators_                                     )
+    outputAnalysisWeightPropertyOperator_            =  outputAnalysisPropertyOperatorSequence             (weightPropertyOperators_                                                  )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    outputAnalysisPropertyUnoperator_                =  outputAnalysisPropertyOperatorAntiLog10            (                                                             )
+    outputAnalysisPropertyUnoperator_                =  outputAnalysisPropertyOperatorAntiLog10            (                                                                          )
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisPropertyExtractor_                      )
-    outputAnalysisPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellarSpheroid (                                                             )
+    outputAnalysisPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellarSpheroid (                                                                          )
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    outputAnalysisWeightPropertyExtractor_           =  outputAnalysisPropertyExtractorMassBlackHole       (                                                             )
+    outputAnalysisWeightPropertyExtractor_           =  outputAnalysisPropertyExtractorMassBlackHole       (                                                                          )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                &
          &                                                         var_str('blackHoleBulgeRelation'             ), &
@@ -233,6 +237,7 @@ contains
          &                                                         outputAnalysisWeightOperator_                 , &
          &                                                         outputAnalysisDistributionOperator_           , &
          &                                                         galacticFilter_                               , &
+         &                                                         outputTimes_                                  , &
          &                                                         outputAnalysisCovarianceModelBinomial         , &
          &                                                         covarianceBinomialBinsPerDecade               , &
          &                                                         covarianceBinomialMassHaloMinimum             , &

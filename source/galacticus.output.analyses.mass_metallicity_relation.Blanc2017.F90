@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,6 +45,7 @@ contains
     double precision                                        , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient           , randomErrorPolynomialCoefficient, &
          &                                                                                   metallicitySystematicErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                      ), pointer                     :: outputTimes_
     double precision                                                                      :: randomErrorMinimum                             , randomErrorMaximum 
 
     
@@ -97,18 +99,19 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMassMetallicityBlanc2017(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_)
+    self=outputAnalysisMassMetallicityBlanc2017(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function massMetallicityBlanc2017ConstructorParameters
 
-  function massMetallicityBlanc2017ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_) result (self)
+  function massMetallicityBlanc2017ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``massMetallicityBlanc2017'' output analysis class for internal use.
     use Memory_Management
     use IO_HDF5
     use Galacticus_Paths  
-    use Galacticus_Output_Times
+    use Output_Times
     use Output_Analysis_Property_Operators
     use Output_Analysis_Property_Extractions
     use Output_Analysis_Distribution_Operators
@@ -119,12 +122,14 @@ contains
     use Numerical_Constants_Astronomical
     use Abundances_Structure
     use Atomic_Data
+    use Galacticus_Error
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2017             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:  ) :: metallicitySystematicErrorPolynomialCoefficient         , systematicErrorPolynomialCoefficient                          , &
          &                                                                                                  randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                            ), intent(inout), target         :: cosmologyFunctions_
+    class           (outputTimesClass                                   ), intent(inout), target         :: outputTimes_
     integer                                                              , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                     , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum                      =1.0d16
     double precision                                                     , allocatable  , dimension(:  ) :: masses
@@ -153,7 +158,8 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (surveyGeometryLiWhite2009SDSS                      )                                :: surveyGeometry_
     type            (hdf5Object                                         )                                :: dataFile
-
+    integer                                                                                              :: indexOxygen
+    
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2017.hdf5",readOnly=.true.)
@@ -164,9 +170,9 @@ contains
     surveyGeometry_=surveyGeometryLiWhite2009SDSS(redshiftMinimum=0.02d0,redshiftMaximum=0.25d0,cosmologyFunctions_=cosmologyFunctions_)
     ! Compute weights that apply to each output redshift.
     binCount=size(masses,kind=c_size_t)
-    call allocateArray(outputWeight,[binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[binCount,outputTimes_%count()])
     do iBin=1,binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,masses(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,masses(iBin))
     end do
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
@@ -186,12 +192,12 @@ contains
     ! http://adsabs.harvard.edu/abs/2015ApJ...801L..29R with a downward shift of 0.6dex to allow for the width of the
     ! distribution).
     allocate(galacticFilterStellarMass_                            )
-    galacticFilterStellarMass_                       =  galacticFilterStellarMass                              (massThreshold=1.00d8                                         )
+    galacticFilterStellarMass_                       =  galacticFilterStellarMass                              (massThreshold=1.00d8                                                      )
     allocate(galacticFilterStarFormationRate_                                       )
-    galacticFilterStarFormationRate_                 =  galacticFilterStarFormationRate                        (                                                              &
-         &                                                                                                      logM0        =0.00d0,                                         &
-         &                                                                                                      logSFR0      =0.76d0,                                         &
-         &                                                                                                      logSFR1      =0.76d0                                          &
+    galacticFilterStarFormationRate_                 =  galacticFilterStarFormationRate                        (                                                                           &
+         &                                                                                                      logM0        =0.00d0,                                                      &
+         &                                                                                                      logSFR0      =0.76d0,                                                      &
+         &                                                                                                      logSFR1      =0.76d0                                                       &
          &                                                                                                     )
     allocate(filters_                                              )
     filter_ => filters_
@@ -200,17 +206,17 @@ contains
     filter_ => filter_%next
     filter_%filter_ => galacticFilterStarFormationRate_
     allocate(galacticFilter_                                       )
-    galacticFilter_                                  =  galacticFilterAll                                      (filters_                                                     )
+    galacticFilter_                                  =  galacticFilterAll                                      (filters_                                                                  )
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    outputAnalysisWeightOperator_                    =  outputAnalysisWeightOperatorIdentity                   (                                                             )
+    outputAnalysisWeightOperator_                    =  outputAnalysisWeightOperatorIdentity                   (                                                                          )
     ! Build luminosity distance, systematic, and log10() property operators.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_      )
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc        (cosmologyFunctions_     ,cosmologyFunctionsData              )
+    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc        (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_      )
-    outputAnalysisPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial        (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)
+    outputAnalysisPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial        (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )
     allocate(outputAnalysisPropertyOperatorLog10_                  )
-    outputAnalysisPropertyOperatorLog10_             =  outputAnalysisPropertyOperatorLog10                    (                                                             )
+    outputAnalysisPropertyOperatorLog10_             =  outputAnalysisPropertyOperatorLog10                    (                                                                          )
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
     allocate(propertyOperators_%next%next                          )
@@ -218,7 +224,7 @@ contains
     propertyOperators_%next     %operator_           => outputAnalysisPropertyOperatorLog10_
     propertyOperators_%next%next%operator_           => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                       )
-    outputAnalysisPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence                 (propertyOperators_                                           )
+    outputAnalysisPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence                 (propertyOperators_                                                        )
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
     outputAnalysisDistributionOperator_              =  outputAnalysisDistributionOperatorRandomErrorPlynml    (                                  &
@@ -250,8 +256,18 @@ contains
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisPropertyExtractor_                      )
     outputAnalysisPropertyExtractor_                      =  outputAnalysisPropertyExtractorMassStellar             (                                                             )
+    ! Find the index for the oxygen abundance.
+    indexOxygen=Abundances_Index_From_Name("O")
+    if (indexOxygen < 0)                                                                                           &
+         & call Galacticus_Error_Report(                                                                           &
+         &                              'oxygen abundance is required for this analysis'    //char(10)//           &
+         &                              'HELP: you can track oxygen abundance by including:'//char(10)//char(10)// &
+         &                              '         <elementsToTrack value="O"/>'             //char(10)//char(10)// &
+         &                              '      in your parameter file'                      //                     &
+         &                              {introspection:location}                                                   &
+         &                             )
     ! Create an ISM metallicity weight property extractor.
-    allocate(outputAnalysisWeightPropertyExtractor_                )
+    allocate(outputAnalysisWeightPropertyExtractor_                )    
     outputAnalysisWeightPropertyExtractor_                =  outputAnalysisPropertyExtractorMetallicityISM          (Abundances_Index_From_Name("O")                              )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                &
@@ -276,6 +292,7 @@ contains
          &                                                         outputAnalysisWeightOperator_                 , &
          &                                                         outputAnalysisDistributionOperator_           , &
          &                                                         galacticFilter_                               , &
+         &                                                         outputTimes_                                  , &
          &                                                         outputAnalysisCovarianceModelBinomial         , &
          &                                                         covarianceBinomialBinsPerDecade               , &
          &                                                         covarianceBinomialMassHaloMinimum             , &

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +22,13 @@
 module Node_Component_Inter_Output_Standard
   !% Implements the standard indices component.
   use Galacticus_Nodes
+  use Output_Times
   implicit none
   private
   public :: Node_Component_Inter_Output_Standard_Rate_Compute     , Node_Component_Inter_Output_Standard_Reset    , &
-       &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set
-
+       &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set, &
+       &    Node_Component_Interoutput_Standard_Thread_Initialize
+  
   !# <component>
   !#  <class>interOutput</class>
   !#  <name>standard</name>
@@ -50,7 +53,26 @@ module Node_Component_Inter_Output_Standard
   !#  </properties>
   !# </component>
 
+  ! Objects used by this component.
+  class(outputTimesClass), pointer :: outputTimes_
+  !$omp threadprivate(outputTimes_)
+
 contains
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Interoutput_Standard_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Interoutput_Standard_Thread_Initialize(parameters)
+    !% Initializes the tree node standard interoutput module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultInteroutputComponent%standardIsActive()) then
+       !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>     
+    end if
+    return
+  end subroutine Node_Component_Interoutput_Standard_Thread_Initialize
 
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Scale_Set</unitName>
@@ -88,7 +110,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
-    use Galacticus_Output_Times
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -118,8 +139,8 @@ contains
     ! Find the time interval between previous and next outputs.
     basic              => node %basic()
     timeCurrent        =  basic%time ()
-    timeOutputPrevious =  Galacticus_Previous_Output_Time(timeCurrent)
-    timeOutputNext     =  Galacticus_Next_Output_Time    (timeCurrent)
+    timeOutputPrevious =  outputTimes_%timePrevious(timeCurrent)
+    timeOutputNext     =  outputTimes_%timeNext    (timeCurrent)
     ! Return if there is no next output.
     if (timeOutputNext     < 0.0d0) return
     ! Set previous time to zero if there is no previous output.
@@ -157,16 +178,17 @@ contains
 
   !# <satelliteMergerTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Satellite_Merging</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
+  !#  <after>Satellite_Merging_Remnant_Compute</after>
   !# </satelliteMergerTask>
   subroutine Node_Component_Inter_Output_Standard_Satellite_Merging(node)
     !% Remove any inter-output quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
-    use Satellite_Merging_Mass_Movements_Descriptors
+    use Satellite_Merging_Remnant_Properties
+    use Satellite_Merging_Mass_Movements
     use Galacticus_Error
     implicit none
-    type (treeNode                ), intent(inout), pointer :: node
-    type (treeNode                )               , pointer :: nodeHost
-    class(nodeComponentInterOutput)               , pointer :: interOutputHost, interOutput
+    type   (treeNode                ), intent(inout), pointer :: node
+    type   (treeNode                )               , pointer :: nodeHost
+    class  (nodeComponentInterOutput)               , pointer :: interOutputHost, interOutput
 
     ! Get the inter-output component.
     interOutput => node%interOutput()
@@ -174,11 +196,11 @@ contains
     select type (interOutput)
     class is (nodeComponentInterOutputStandard)
        ! Find the node to merge with.
-       nodeHost        => node%mergesWith ()
+       nodeHost        => node    %mergesWith ()
        interOutputHost => nodeHost%interOutput()
        ! Move the star formation rates from secondary to primary.
-       select case (thisMergerStarsMoveTo)
-       case (movesToDisk    )
+       select case (destinationStarsSatellite)
+       case (destinationMergerDisk    )
           call interOutputHost%    diskStarFormationRateSet(                                             &
                &                                             interOutputHost%    diskStarFormationRate() &
                &                                            +interOutput    %    diskStarFormationRate() &
@@ -187,7 +209,7 @@ contains
                &                                             interOutputHost%spheroidStarFormationRate() &
                &                                            +interOutput    %spheroidStarFormationRate() &
                &                                           )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
        end select
@@ -199,8 +221,8 @@ contains
             &                                         0.0d0                                       &
             &                                       )
        ! Move star formation rates within the host if necessary.
-       select case (thisHostStarsMoveTo)
-       case (movesToDisk)
+       select case (destinationStarsHost)
+       case (destinationMergerDisk)
           call interOutputHost%    diskStarFormationRateSet(                                             &
                &                                             interOutputHost%    diskStarFormationRate() &
                &                                            +interOutputHost%spheroidStarFormationRate() &
@@ -208,7 +230,7 @@ contains
           call interOutputHost%spheroidStarFormationRateSet(                                             &
                &                                             0.0d0                                       &
                &                                           )
-       case (movesToSpheroid)
+       case (destinationMergerSpheroid)
           call interOutputHost%spheroidStarFormationRateSet(                                             &
                &                                             interOutputHost%spheroidStarFormationRate() &
                &                                            +interOutputHost%    diskStarFormationRate() &
@@ -216,7 +238,7 @@ contains
           call interOutputHost%    diskStarFormationRateSet(                                             &
                &                                             0.0d0                                       &
                &                                           )
-       case (doesNotMove)
+       case (destinationMergerUnmoved)
           ! Do nothing.
        case default
           call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})

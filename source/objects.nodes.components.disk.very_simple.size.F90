@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -64,9 +65,6 @@ module Node_Component_Disk_Very_Simple_Size
   ! Parameters controlling the physical implementation.
   double precision :: diskMassToleranceAbsolute
 
-  ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized        =.false.
-
 contains
 
   !# <mergerTreePreTreeConstructionTask>
@@ -77,9 +75,7 @@ contains
     use Input_Parameters
     implicit none
 
-    ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Disk_Very_Simple_Size_Initialize)
-    if (defaultDiskComponent%verySimpleSizeIsActive().and..not.moduleInitialized) then
+    if (defaultDiskComponent%verySimpleSizeIsActive()) then
        ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>diskMassToleranceAbsolute</name>
@@ -89,10 +85,7 @@ contains
        !#   <source>globalParameters</source>
        !#   <type>double</type>
        !# </inputParameter>
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Disk_Very_Simple_Size_Initialize)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Initialize
   
@@ -125,6 +118,7 @@ contains
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Dark_Matter_Halo_Spins
+    use Dark_Matter_Profiles
     implicit none
     type            (treeNode                                       ), intent(inout)          :: node
     logical                                                          , intent(  out)          :: componentActive
@@ -134,6 +128,7 @@ contains
     procedure       (Node_Component_Disk_Very_Simple_Size_Radius_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
     class           (nodeComponentDisk                              )               , pointer :: disk
     class           (nodeComponentBasic                             )               , pointer :: basic
+    class           (darkMatterProfileClass                         )               , pointer :: darkMatterProfile_
 
     ! Determine if node has an active disk component supported by this module.
     componentActive =  .false.
@@ -142,8 +137,9 @@ contains
     class is (nodeComponentDiskVerySimpleSize)
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
-          basic                  => node%basic()
-          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node)/basic%mass()
+          darkMatterProfile_     => darkMatterProfile      ()
+          basic                  => node             %basic()
+          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
        end if
        ! Associate the pointers with the appropriate property routines.
        Radius_Get   => Node_Component_Disk_Very_Simple_Size_Radius

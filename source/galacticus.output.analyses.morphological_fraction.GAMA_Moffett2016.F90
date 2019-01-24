@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,6 +44,7 @@ contains
     type            (inputParameters                                   ), intent(inout)               :: parameters
     double precision                                                    , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient, randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                           ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                                  ), pointer                     :: outputTimes_
     double precision                                                                                  :: ratioEarlyType                      , ratioEarlyTypeError             , &
          &                                                                                               randomErrorMinimum                  , randomErrorMaximum 
 
@@ -103,18 +105,19 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     ! Build the object.
-    self=outputAnalysisMorphologicalFractionGAMAMoffett2016(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_)
+    self=outputAnalysisMorphologicalFractionGAMAMoffett2016(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function morphologicalFractionGAMAMoffett2016ConstructorParameters
 
-  function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_) result (self)
+  function morphologicalFractionGAMAMoffett2016ConstructorInternal(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``morphologicalFractionGAMAMoffett2016'' output analysis class for internal use.
     use Memory_Management
     use IO_HDF5
     use Galacticus_Paths  
-    use Galacticus_Output_Times
+    use Output_Times
     use Output_Analysis_Property_Operators
     use Output_Analysis_Property_Extractions
     use Output_Analysis_Distribution_Operators
@@ -129,6 +132,7 @@ contains
          &                                                                                                    randomErrorMinimum                                      , randomErrorMaximum
     double precision                                                       , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                              ), intent(inout), target         :: cosmologyFunctions_
+    class           (outputTimesClass                                     ), intent(inout), target         :: outputTimes_
     integer                                                                , parameter                     :: covarianceBinomialBinsPerDecade                 =10
     double precision                                                       , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
     double precision                                                       , allocatable  , dimension(:  ) :: masses
@@ -163,9 +167,9 @@ contains
     surveyGeometry_=surveyGeometryBaldry2012GAMA(cosmologyFunctions_)
     ! Compute weights that apply to each output redshift.
     binCount=size(masses,kind=c_size_t)
-    call allocateArray(outputWeight,[binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[binCount,outputTimes_%count()])
     do iBin=1,binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,masses(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,masses(iBin))
     end do
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
@@ -182,17 +186,17 @@ contains
          &                                                )
     ! Build a filter which select galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilter_                                       )
-    galacticFilter_                                  =  galacticFilterStellarMass                           (massThreshold=1.0d8                                          )
+    galacticFilter_                                  =  galacticFilterStellarMass                           (massThreshold=1.0d8                                                       )
      ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    outputAnalysisWeightOperator_                    =  outputAnalysisWeightOperatorIdentity                (                                                             )
+    outputAnalysisWeightOperator_                    =  outputAnalysisWeightOperatorIdentity                (                                                                          )
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_      )
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     (cosmologyFunctions_     ,cosmologyFunctionsData              )
+    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_      )
-    outputAnalysisPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial     (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)
+    outputAnalysisPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial     (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )
     allocate(outputAnalysisPropertyOperatorLog10_                  )
-    outputAnalysisPropertyOperatorLog10_                        =  outputAnalysisPropertyOperatorLog10      (                                                             )
+    outputAnalysisPropertyOperatorLog10_                        =  outputAnalysisPropertyOperatorLog10      (                                                                          )
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
     allocate(propertyOperators_%next%next                          )
@@ -200,7 +204,7 @@ contains
     propertyOperators_%next     %operator_           => outputAnalysisPropertyOperatorLog10_
     propertyOperators_%next%next%operator_           => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                       )
-    outputAnalysisPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence              (propertyOperators_                                           )
+    outputAnalysisPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence              (propertyOperators_                                                        )
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
     outputAnalysisDistributionOperator_              =  outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &
@@ -220,13 +224,13 @@ contains
          &                                                                                                  )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    outputAnalysisPropertyUnoperator_                =  outputAnalysisPropertyOperatorAntiLog10             (                                                             )
+    outputAnalysisPropertyUnoperator_                =  outputAnalysisPropertyOperatorAntiLog10             (                                                                          )
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisPropertyExtractor_                      )
-    outputAnalysisPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellar          (                                                             )
+    outputAnalysisPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellar          (                                                                          )
     ! Create a morpology weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    outputAnalysisWeightPropertyExtractor_           =  outputAnalysisPropertyExtractorMassStellarMorphology(                                                             )
+    outputAnalysisWeightPropertyExtractor_           =  outputAnalysisPropertyExtractorMassStellarMorphology(                                                                          )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                 &
          &                                                         var_str('morphologicalFractionGAMAMoffett2016'), &
@@ -250,6 +254,7 @@ contains
          &                                                         outputAnalysisWeightOperator_                  , &
          &                                                         outputAnalysisDistributionOperator_            , &
          &                                                         galacticFilter_                                , &
+         &                                                         outputTimes_                                   , &
          &                                                         outputAnalysisCovarianceModelBinomial          , &
          &                                                         covarianceBinomialBinsPerDecade                , &
          &                                                         covarianceBinomialMassHaloMinimum              , &

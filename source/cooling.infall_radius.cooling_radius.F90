@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
 
-  use Cooling_Radii
+  use Cooling_Radii, only : coolingRadiusClass, coolingRadius
   
   !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius" defaultThreadPrivate="yes">
   !#  <description>A simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.</description>

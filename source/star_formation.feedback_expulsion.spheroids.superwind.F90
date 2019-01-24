@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -87,6 +88,7 @@ contains
     !% method. This scaling is functionally similar to that adopted by \cite{cole_hierarchical_2000} and \cite{baugh_can_2005},
     !% except that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
+    use Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
     class           (starFormationExpulsiveFeedbackSpheroidsSuperWind), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,8 +19,8 @@
 
   !% Implementation of a simple freefall radius class.
 
-  use Dark_Matter_Profiles
-  use Cooling_Freefall_Times_Available
+  use Dark_Matter_Profiles            , only : darkMatterProfileClass    , darkMatterProfile
+  use Cooling_Freefall_Times_Available, only : freefallTimeAvailableClass, freefallTimeAvailable
 
   !# <freefallRadius name="freefallRadiusDarkMatterHalo" defaultThreadPrivate="yes">
   !#  <description>

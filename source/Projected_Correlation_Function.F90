@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,14 +24,13 @@ program Projected_Correlation_Function
   !% Computes the projected correlation function for galaxies in a given mass range based on a
   !% halo occupation model.
   use, intrinsic :: ISO_C_Binding
-  use               FGSL
   use               Command_Arguments
   use               ISO_Varying_String
   use               Memory_Management
   use               Input_Parameters
   use               Galacticus_Error
   use               Geometry_Surveys
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes                        , only : nodeClassHierarchyInitialize
   use               Cosmology_Functions
   use               Conditional_Mass_Functions
   use               Numerical_Integration
@@ -70,28 +70,28 @@ program Projected_Correlation_Function
   !#   <name>projectedCorrelationFunctionSeparationMinimum</name>
   !#   <cardinality>1</cardinality>
   !#   <description>The minimum separation at which to compute the projected correlation function.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>string</type>
   !# </inputParameter>
   !# <inputParameter>
   !#   <name>projectedCorrelationFunctionSeparationMaximum</name>
   !#   <cardinality>1</cardinality>
   !#   <description>The maximum separation at which to compute the projected correlation function.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>string</type>
   !# </inputParameter>
   !# <inputParameter>
   !#   <name>projectedCorrelationFunctionSeparationCount</name>
   !#   <cardinality>1</cardinality>
   !#   <description>The number of separations at which to compute the projected correlation function.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>string</type>
   !# </inputParameter>
   !# <inputParameter>
   !#   <name>projectedCorrelationFunctionLineOfSightDepth</name>
   !#   <cardinality>1</cardinality>
   !#   <description>The maximum line of sight depth to which to integrate when computing the projected correlation function.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>string</type>
   !# </inputParameter>
   !# <inputParameter>
@@ -99,14 +99,14 @@ program Projected_Correlation_Function
   !#   <cardinality>1</cardinality>
   !#   <defaultValue>.false.</defaultValue>
   !#   <description>Set to {\normalfont \ttfamily true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>string</type>
   !# </inputParameter>
   !# <inputParameter>
   !#   <name>projectedCorrelationFunctionOutputFileName</name>
   !#   <cardinality>1</cardinality>
   !#   <description>The name of the file to which to output projected correlation function data.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>string</type>
   !# </inputParameter>
   !# <inputParameter>
@@ -114,7 +114,7 @@ program Projected_Correlation_Function
   !#   <cardinality>1</cardinality>
   !#   <defaultValue>1.0d8</defaultValue>
   !#   <description>The minimum mass of galaxies to include in the projected correlation function calculation.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>string</type>
   !# </inputParameter>
   !# <inputParameter>
@@ -122,7 +122,7 @@ program Projected_Correlation_Function
   !#   <cardinality>1</cardinality>
   !#   <defaultValue>1.0d12</defaultValue>
   !#   <description>The maximum mass of galaxies to include in the projected correlation function calculation.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>string</type>
   !# </inputParameter>
   !# <inputParameter>
@@ -130,7 +130,7 @@ program Projected_Correlation_Function
   !#   <cardinality>1</cardinality>
   !#   <defaultValue>1.0d6</defaultValue>
   !#   <description>The minimum halo mass to use when integrating over the halo mass function.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>real</type>
   !# </inputParameter>
   !# <inputParameter>
@@ -138,12 +138,12 @@ program Projected_Correlation_Function
   !#   <cardinality>1</cardinality>
   !#   <defaultValue>1.0d16</defaultValue>
   !#   <description>The maximum halo mass to use when integrating over the halo mass function.</description>
-  !#   <source>globalParameters</source>
+  !#   <source>parameters</source>
   !#   <type>real</type>
   !# </inputParameter>
   ! Ensure the nodes objects are initialized.
-  call nodeClassHierarchyInitialize                        ()
-  call Node_Component_Dark_Matter_Profile_Scale_Initialize()
+  call nodeClassHierarchyInitialize                       (parameters)
+  call Node_Component_Dark_Matter_Profile_Scale_Initialize(parameters)
   ! Get the default conditional mass function object.
   conditionalMassFunction_  => conditionalMassFunction()
   ! Generate binned separations.

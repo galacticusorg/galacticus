@@ -90,49 +90,6 @@ sub Process_InputParameters {
 		}
 		$nameForDocumentation = latex_encode($node->{'directive'}->{'regEx'})
 		    if ( exists($node->{'directive'}->{'regEx'}) );
-	    } elsif ( exists($node->{'directive'}->{'iterator'})) {
-		# A parameter whose name iterates over a set of possible names.
-		if ( $node->{'directive'}->{'iterator'} =~ m/(.*)\(\#([a-zA-Z0-9]+)\-\>([a-zA-Z0-9]+)\)(.*)/ ) {
-		    my $parameterPrefix = $1;
-		    my $directiveName   = $2;
-		    my $attributeName   = $3;
-		    my $parameterSuffix = $4;
-		    die('Process_InputParameter(): locations not found for directives')
-			unless ( exists($directiveLocations->{$directiveName}) );
-		    foreach my $fileName ( &List::ExtraUtils::as_array($directiveLocations->{$directiveName}->{'file'}) ) {
-			foreach ( &Galacticus::Build::Directives::Extract_Directives($fileName,$directiveName) ) {
-			    (my $parameterName = $node->{'directive'}->{'iterator'}) =~ s/\(\#$directiveName\-\>$attributeName\)/$_->{$attributeName}/;
-			    # Generate code.
-			    $inputParameterSource .= "  call ";
-			    if ( exists($node->{'directive'}->{'source'}) ) {
-				$inputParameterSource .= $node->{'directive'}->{'source'};
-			    } else {
-				$inputParameterSource .= "globalParameters";
-			    }
-			    $inputParameterSource .= "%value('".$parameterName."',";
-			    if ( exists($node->{'directive'}->{'variable'}) ) {
-				(my $variableName = $node->{'directive'}->{'variable'}) =~ s/\$1/$_->{$attributeName}/;
-				$inputParameterSource .= $variableName;
-			    } else {
-				$inputParameterSource .= $parameterName;
-			    }
-			    if ( exists($node->{'directive'}->{'defaultValue'}) ) {
-				(my $defaultValue = $node->{'directive'}->{'defaultValue'}) =~ s/\$1/$_->{$attributeName}/;
-				$inputParameterSource .= ",defaultValue=".$defaultValue;
-			    }
-			    $inputParameterSource .= ",writeOutput=".($node->{'directive'}->{'writeOutput'} eq "no" ? ".false." : ".true.")
-				if ( exists($node->{'directive'}->{'writeOutput'}) );
-			    $inputParameterSource .= ",copyInstance=".$node->{'directive'}->{'instance'}
-				if ( exists($node->{'directive'}->{'instance'}) );
-			    $inputParameterSource .= ")\n";
-			}
-		    }
-		    # Construct names for file and documentation.
-		    $nameForFile          = $parameterPrefix.$directiveName.$attributeName.$parameterSuffix;
-		    $nameForDocumentation = $node->{'directive'}->{'iterator'};
-		} else {
-		    die('Process_InputParameter(): nothing to iterate over');
-		}
 	    }	    
 	    $inputParameterSource .= "  ! End auto-generated input parameter\n\n";
 	    # Create a new node.

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,69 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of merger remnant sizes.
+!% Contains a module which implements a class for calculations of merger remnant sizes.
 
 module Satellite_Merging_Remnant_Sizes
-  !% Implements calculations of merger remnant sizes.
-  use ISO_Varying_String
+  !% Implements a class for calculations of merger remnant sizes.
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
-  public :: Satellite_Merging_Remnant_Size
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                            :: satelliteMergingRemnantSizeInitialized=.false.
-
-  ! Name of mass movement method used.
-  type     (varying_string                )          :: satelliteMergingRemnantSizeMethod
-
-  ! Pointer to the subroutine that returns descriptors for mass movement.
-  procedure(Satellite_Merging_Remnant_Size), pointer :: Satellite_Merging_Remnant_Size_Do     =>null()
-
-contains
-
-  !# <satelliteMergerTask>
-  !#  <unitName>Satellite_Merging_Remnant_Size</unitName>
-  !#  <after>Satellite_Merging_Mass_Movement_Store</after>
-  !# </satelliteMergerTask>
-  subroutine Satellite_Merging_Remnant_Size(thisNode)
-    !% Computes the size of a merger remnant.
-    use Galacticus_Nodes
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="satelliteMergingRemnantSizeMethod" type="moduleUse">
-    include 'satellites.merging.remnant_sizes.modules.inc'
-    !# </include>
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    if (.not.satelliteMergingRemnantSizeInitialized) then
-       !$omp critical(satelliteMergingRemnantSizeInitialize)
-       if (.not.satelliteMergingRemnantSizeInitialized) then
-          ! Do the satellite merging remnant sizes method parameter.
-          !# <inputParameter>
-          !#   <name>satelliteMergingRemnantSizeMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('Covington2008')</defaultValue>
-          !#   <description>The name of the method to be used for computing merger remnant sizes.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteMergingRemnantSizeMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>satelliteMergingRemnantSizeMethod,Satellite_Merging_Remnant_Size_Do</functionArgs>
-          include 'satellites.merging.remnant_sizes.inc'
-          !# </include>
-          if (.not.associated(Satellite_Merging_Remnant_Size_Do)) call Galacticus_Error_Report('method '//char(satelliteMergingRemnantSizeMethod)//' is unrecognized'//{introspection:location})
-          ! Flag that the module is now initialized.
-          satelliteMergingRemnantSizeInitialized=.true.
-       end if
-       !$omp end critical(satelliteMergingRemnantSizeInitialize)
-    end if
-
-    ! Call the routine to do the calculation.
-    call Satellite_Merging_Remnant_Size_Do(thisNode)
-
-    return
-  end subroutine Satellite_Merging_Remnant_Size
+  !# <functionClass>
+  !#  <name>mergerRemnantSize</name>
+  !#  <descriptiveName>Merger Remnant Sizes</descriptiveName>
+  !#  <description>Class providing models of merger remnant sizes.</description>
+  !#  <default>covington2008</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="get" >
+  !#   <description>Determine merger remnant size and related properties.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node                                             </argument>
+  !#   <argument>double precision          , intent(  out) :: radius, velocityCircular, angularMomentumSpecific</argument>
+  !#  </method>
+  !# </functionClass>
+  
+  ! Value indicating that there was no change in the remnant spheroid size.
+  double precision, parameter, public :: remnantNoChange=-1.0d0
 
 end module Satellite_Merging_Remnant_Sizes

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,6 +28,7 @@
      private
      double precision :: reionizationTime, reionizationTemperature, preReionizationTemperature
    contains
+     final     ::                                simpleDestructor
      procedure :: electronFraction            => simpleElectronFraction
      procedure :: temperature                 => simpleTemperature
      procedure :: neutralHydrogenFraction     => simpleNeutralHydrogenFraction
@@ -45,11 +47,12 @@ contains
   function simpleIGMConstructorParameters(parameters) result (self)
     !% Constructor for the simple \gls{igm} state class which takes a parameter set as input.
     use Input_Parameters
-    use Cosmology_Functions
     implicit none
     type            (intergalacticMediumStateSimple)                :: self
     type            (inputParameters               ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
+    class           (linearGrowthClass             ), pointer       :: linearGrowth_
     double precision                                                :: reionizationRedshift      , reionizationTemperature, &
          &                                                             preReionizationTemperature
     
@@ -82,33 +85,45 @@ contains
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
     ! Construct the object.
-    self=intergalacticMediumStateSimple(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_)
-    !# <objectDestrctor name="cosmologyFunctions_"/>
+    self=intergalacticMediumStateSimple(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function simpleIGMConstructorParameters
 
-  function simpleIGMConstructorInternal(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_) result(self)
+  function simpleIGMConstructorInternal(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
     !% Constructor for the simple \gls{igm} state class.
-    use Cosmology_Functions
     implicit none
-    type            (intergalacticMediumStateSimple)                :: self
-    double precision                                , intent(in   ) :: reionizationRedshift      , reionizationTemperature, &
-         &                                                             preReionizationTemperature
-    class           (cosmologyFunctionsClass       ), intent(inout) :: cosmologyFunctions_
-
-    self%   reionizationTime       =cosmologyFunctions_ %cosmicTime                 (                      &
-         &                           cosmologyFunctions_%expansionFactorFromRedshift (                     &
-         &                                                                            reionizationRedshift &
-         &                                                                           )                     &
-         &                                                                          )
-    self%   reionizationTemperature=   reionizationTemperature
-    self%preReionizationTemperature=preReionizationTemperature
+    type            (intergalacticMediumStateSimple)                        :: self
+    double precision                                , intent(in   )         :: reionizationRedshift      , reionizationTemperature, &
+         &                                                                     preReionizationTemperature
+    class           (cosmologyFunctionsClass       ), intent(inout), target :: cosmologyFunctions_
+    class           (cosmologyParametersClass      ), intent(inout), target :: cosmologyParameters_
+    class           (linearGrowthClass             ), intent(inout), target :: linearGrowth_
+    !# <constructorAssign variables="reionizationTemperature, preReionizationTemperature, *cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
+    
+    self%reionizationTime=cosmologyFunctions_%cosmicTime                 (                      &
+         &                cosmologyFunctions_%expansionFactorFromRedshift (                     &
+         &                                                                 reionizationRedshift &
+         &                                                                )                     &
+         &                                                               )
     return
   end function simpleIGMConstructorInternal
   
+  subroutine simpleDestructor(self)
+    !% Destructor for the simple \gls{igm} state class.
+    implicit none
+    type(intergalacticMediumStateSimple), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%linearGrowth_"       />
+    return
+  end subroutine simpleDestructor
+
   double precision function simpleElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the simple model.
     use Numerical_Constants_Astronomical

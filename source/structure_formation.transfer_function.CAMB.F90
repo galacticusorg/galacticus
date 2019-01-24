@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
   use Tables
   use Cosmology_Parameters
-  use Input_Parameters
   use File_Utilities
   use Dark_Matter_Particles
 
@@ -32,7 +32,6 @@
      private
      logical                                             :: initialized
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
-     type            (inputParameters         )          :: descriptor_
      double precision                                    :: wavenumberMaximum
      logical                                             :: wavenumberMaximumReached, lockFileGlobally
    contains
@@ -116,6 +115,7 @@ contains
     logical                            , intent(in   ), optional :: lockFileGlobally
     character(len=32                  )                          :: parameterLabel
     type     (varying_string          )                          :: uniqueLabel
+    type     (inputParameters         )                          :: descriptor
     !# <optionalArgument name="lockFileGlobally" defaultsTo=".true." />
     
     ! Require that the dark matter be cold dark matter.
@@ -131,16 +131,16 @@ contains
     ! Set cosmoogical parameters.
     self%cosmologyParameters_ => cosmologyParameters_
     ! Get a constructor descriptor for this object.
-    self%descriptor_=inputParameters()
-    call self%cosmologyParameters_%descriptor(self%descriptor_)
+    descriptor=inputParameters()
+    call self%cosmologyParameters_%descriptor(descriptor)
     ! Add primordial helium abundance to the descriptor.
     write (parameterLabel,'(f4.2)') heliumByMassPrimordial
-    call self%descriptor_%addParameter("Y_He",parameterLabel)
+    call descriptor%addParameter("Y_He",parameterLabel)
     ! Add the unique label string to the descriptor.
-    uniqueLabel=self%descriptor_%serializeToString()// &
+    uniqueLabel=descriptor%serializeToString()// &
          &      "_sourceDigest:"                    // &
          &      cambSourceDigest
-    call self%descriptor_%addParameter("uniqueLabel",char(uniqueLabel))
+    call descriptor%destroy()
     ! Generate the name of the data file.
     self%fileName=char(galacticusPath(pathTypeDataDynamic))                       // &
          &                           'largeScaleStructure/transfer_function_CAMB_'// &
@@ -245,22 +245,22 @@ contains
        command='rm -f '//self%fileName
        call System_Command_Do(command)
        ! Download CAMB if necessary.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
           call Galacticus_Display_Message("downloading CAMB code....",verbosityWorking)
-          call System_Command_Do("wget https://github.com/cmbant/CAMB/archive/0.1.7.tar.gz -O "//galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz",status)
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
+          call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
+          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
        end if
        ! Unpack the code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB")) then
           call Galacticus_Display_Message("unpacking CAMB code....",verbosityWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeExec)//"aux -f "//galacticusPath(pathTypeExec)//"aux/CAMB.tar.gz");
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB")) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
+          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
+          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB")) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
        end if
        ! Build the CAMB code.
-       if (.not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB/camb")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB/camb")) then
           call Galacticus_Display_Message("compiling CAMB code",verbosityWorking)
-          call System_Command_Do('cd '//galacticusPath(pathTypeExec)//'/aux/CAMB/; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp"/ Makefile; make -j1',status);
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeExec)//"aux/CAMB/camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
+          call System_Command_Do('cd '//galacticusPath(pathTypeDataDynamic)//'/CAMB/; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1',status);
+          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB/camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
        end if
        ! Determine maximum wavenumber.
        wavenumberCAMB=exp(max(log(wavenumber)+1.0d0,cambLogWavenumberMaximumDefault))
@@ -373,7 +373,7 @@ contains
        write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
        close(cambParameterFile)
        ! Run CAMB.
-       call System_Command_Do(galacticusPath(pathTypeExec)//"aux/CAMB/camb "//parameterFile)
+       call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"CAMB/camb "//parameterFile)
         ! Read the CAMB transfer function file.
        cambTransferCount=Count_Lines_In_File("camb_transfer_out.dat","#")
        allocate(cambTransferWavenumber(cambTransferCount))

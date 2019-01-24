@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -160,6 +161,8 @@ contains
 
     !# <objectDestructor name="self%cosmologyParameters_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%criticalOverdensity_"      />
     !# <objectDestructor name="self%linearGrowth_"             />
     return
   end subroutine normalDestructor
@@ -167,6 +170,7 @@ contains
   double precision function normalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
     use Kind_Numbers
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (haloEnvironmentNormal               ), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
@@ -217,6 +221,7 @@ contains
 
   double precision function normalOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node

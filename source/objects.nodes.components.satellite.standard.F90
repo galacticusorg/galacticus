@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,16 @@
 module Node_Component_Satellite_Standard
   !% Implements the standard satellite component.
   use Galacticus_Nodes
+  use Virial_Orbits
   use Kepler_Orbits
+  use Dark_Matter_Halos_Mass_Loss_Rates
+  use Satellite_Merging_Timescales
   implicit none
   private
-  public :: Node_Component_Satellite_Standard_Scale_Set          , Node_Component_Satellite_Standard_Create         , &
-       &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize     , &
-       &    Node_Component_Satellite_Standard_Halo_Formation_Task, Node_Component_Satellite_Standard_Tree_Initialize, &
-       &    Node_Component_Satellite_Standard_Inactive
+  public :: Node_Component_Satellite_Standard_Scale_Set          , Node_Component_Satellite_Standard_Create           , &
+       &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize       , &
+       &    Node_Component_Satellite_Standard_Halo_Formation_Task, Node_Component_Satellite_Standard_Tree_Initialize  , &
+       &    Node_Component_Satellite_Standard_Inactive           , Node_Component_Satellite_Standard_Thread_Initialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -69,10 +73,13 @@ module Node_Component_Satellite_Standard
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.standard.bound_functions.inc</functions>
   !# </component>
-
-  ! Record of whether the module has been initialized.
-  logical            :: moduleInitialized                   =.false.
-
+  
+  ! Objects used by this component.
+  class(darkMatterHaloMassLossRateClass), pointer :: darkMatterHaloMassLossRate_
+  class(virialOrbitClass               ), pointer :: virialOrbit_
+  class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_
+  !$omp threadprivate(darkMatterHaloMassLossRate_,virialOrbit_,satelliteMergingTimescales_)
+  
   ! Option indicating whether or not satellite virial orbital parameters will be stored.
   logical            :: satelliteOrbitStoreOrbitalParameters
 
@@ -90,15 +97,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-   subroutine Node_Component_Satellite_Standard_Initialize()
+   subroutine Node_Component_Satellite_Standard_Initialize(parameters)
      !% Initializes the standard satellite orbit component module.
      use Input_Parameters
      implicit none
-     type(nodeComponentSatelliteStandard) :: satellite
+     type(inputParameters               ), intent(inout) :: parameters
+     type(nodeComponentSatelliteStandard)                :: satellite
 
-     ! Test whether module is already initialize.
-     !$omp critical (Node_Component_Satellite_Standard_Initialize)
-     if (satellite%standardIsActive().and..not.moduleInitialized) then
+     if (satellite%standardIsActive()) then
         ! Determine if satellite orbits are to be stored.
         !# <inputParameter>
         !#   <name>satelliteOrbitStoreOrbitalParameters</name>
@@ -106,7 +112,7 @@ contains
         !#   <defaultValue>.true.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
         !#      again---possibly at random---each time they are requested).</description>
-        !#   <source>globalParameters</source>
+        !#   <source>parameters</source>
         !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if satellite orbits are to be reset on halo formation events.
@@ -115,7 +121,7 @@ contains
         !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
-        !#   <source>globalParameters</source>
+        !#   <source>parameters</source>
         !#   <type>boolean</type>
         !# </inputParameter>
         ! Determine if bound mass is an inactive variable.
@@ -124,19 +130,33 @@ contains
         !#   <cardinality>1</cardinality>
         !#   <defaultValue>.false.</defaultValue>
         !#   <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
-        !#   <source>globalParameters</source>
+        !#   <source>parameters</source>
         !#   <type>boolean</type>
         !# </inputParameter>
          ! Specify the function to use for setting virial orbits.
         call satellite%virialOrbitSetFunction(Node_Component_Satellite_Standard_Virial_Orbit_Set)
         call satellite%virialOrbitFunction   (Node_Component_Satellite_Standard_Virial_Orbit    )
-        ! Record that the module is now initialized.
-        moduleInitialized=.true.
      end if
-     !$omp end critical (Node_Component_Satellite_Standard_Initialize)
-
      return
    end subroutine Node_Component_Satellite_Standard_Initialize
+   
+   !# <nodeComponentThreadInitializationTask>
+   !#  <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
+   !# </nodeComponentThreadInitializationTask>
+   subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters)
+     !% Initializes the tree node standard satellite module.
+     use Input_Parameters
+     implicit none
+     type(inputParameters), intent(inout) :: parameters
+     
+     if (defaultSatelliteComponent%standardIsActive()) then
+        !# <objectBuilder class="darkMatterHaloMassLossRate" name="darkMatterHaloMassLossRate_" source="parameters"/>
+        !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
+        !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
+        !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
+     end if
+     return
+   end subroutine Node_Component_Satellite_Standard_Thread_Initialize
 
   !# <inactiveSetTask>
   !#  <unitName>Node_Component_Satellite_Standard_Inactive</unitName>
@@ -185,7 +205,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Satellite_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the time until satellite merging rate of change.
-    use Dark_Matter_Halos_Mass_Loss_Rates
     implicit none
     type            (treeNode                       ), intent(inout), pointer :: node
     logical                                          , intent(in   )          :: odeConverged
@@ -193,7 +212,6 @@ contains
     procedure       (                               ), intent(inout), pointer :: interruptProcedure
     integer                                          , intent(in   )          :: propertyType
     class           (nodeComponentSatellite         )               , pointer :: satellite
-    class           (darkMatterHaloMassLossRateClass)               , pointer :: darkMatterHaloMassLossRate_
     double precision                                                          :: massLossRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
@@ -214,8 +232,7 @@ contains
                &  .or.                                                                            &
                &    propertyType == propertyTypeAll)                                              &
                & ) then
-             darkMatterHaloMassLossRate_ => darkMatterHaloMassLossRate      (    )
-             massLossRate                =  darkMatterHaloMassLossRate_%rate(node)
+             massLossRate=darkMatterHaloMassLossRate_%rate(node)
              call satellite%boundMassRate(massLossRate)
           end if
        end if
@@ -225,12 +242,10 @@ contains
 
   function Node_Component_Satellite_Standard_Virial_Orbit(self) result(orbit)
     !% Return the orbit of the satellite at the virial radius.
-    use Virial_Orbits
     implicit none
     type (keplerOrbit                   )                :: orbit
     class(nodeComponentSatelliteStandard), intent(inout) :: self
     type (treeNode                      ), pointer       :: hostNode    , selfNode
-    class(virialOrbitClass              ), pointer       :: virialOrbit_
 
     selfNode => self%host()
     if (selfNode%isSatellite().or.(.not.selfNode%isPrimaryProgenitor().and.associated(selfNode%parent))) then
@@ -242,9 +257,8 @@ contains
              orbit=self%virialOrbitValue()
           end if
        else
-          hostNode     => selfNode    %parent
-          virialOrbit_ => virialOrbit        (                                     )
-          orbit        =  virialOrbit_%orbit (selfNode,hostNode,acceptUnboundOrbits)
+          hostNode => selfNode    %parent
+          orbit    =  virialOrbit_%orbit (selfNode,hostNode,acceptUnboundOrbits)
        end if
     else
        call orbit%reset()
@@ -254,12 +268,10 @@ contains
 
   subroutine Node_Component_Satellite_Standard_Virial_Orbit_Set(self,orbit)
     !% Set the orbit of the satellite at the virial radius.
-    use Satellite_Merging_Timescales
     implicit none
     class           (nodeComponentSatellite         ), intent(inout) :: self
     type            (keplerOrbit                    ), intent(in   ) :: orbit
     type            (treeNode                       ), pointer       :: selfNode
-    class           (satelliteMergingTimescalesClass), pointer       :: satelliteMergingTimescales_
     double precision                                                 :: mergeTime
     type            (keplerOrbit                    )                :: virialOrbit
 
@@ -271,8 +283,7 @@ contains
        selfNode => self%host()
        ! Update the stored time until merging to reflect the new orbit.
        virialOrbit=orbit
-       satelliteMergingTimescales_ => satelliteMergingTimescales                  (                    )
-       mergeTime                   =  satelliteMergingTimescales_%timeUntilMerging(selfNode,virialOrbit)
+       mergeTime  =satelliteMergingTimescales_%timeUntilMerging(selfNode,virialOrbit)
        if (mergeTime >= 0.0d0) call self%mergeTimeSet(mergeTime)
        ! Store the orbit.
        call self%virialOrbitSetValue(orbit)
@@ -340,18 +351,14 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Satellite_Standard_Create(node)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
-    use Virial_Orbits
-    use Satellite_Merging_Timescales
     implicit none
-    type            (treeNode                       ), intent(inout), pointer :: node
-    type            (treeNode                       )               , pointer :: hostNode
-    class           (nodeComponentSatellite         )               , pointer :: satellite
-    class           (nodeComponentBasic             )               , pointer :: basic
-    class           (satelliteMergingTimescalesClass)               , pointer :: satelliteMergingTimescales_
-    class           (virialOrbitClass               )               , pointer :: virialOrbit_
-    logical                                                                   :: isNewSatellite
-    double precision                                                          :: mergeTime
-    type            (keplerOrbit                    )                         :: orbit
+    type            (treeNode              ), intent(inout), pointer :: node
+    type            (treeNode              )               , pointer :: hostNode
+    class           (nodeComponentSatellite)               , pointer :: satellite
+    class           (nodeComponentBasic    )               , pointer :: basic
+    logical                                                          :: isNewSatellite
+    double precision                                                 :: mergeTime
+    type            (keplerOrbit           )                         :: orbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%standardIsActive()) return
@@ -378,17 +385,13 @@ contains
 
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
-       ! Ensure the module has been initialized.
-       call Node_Component_Satellite_Standard_Initialize()
        ! Get an orbit for this satellite.
-       hostNode     => node%parent
-       virialOrbit_ => virialOrbit()
-       orbit=virialOrbit_%orbit(node,hostNode,acceptUnboundOrbits)
+       hostNode => node        %parent
+       orbit    =  virialOrbit_%orbit (node,hostNode,acceptUnboundOrbits)
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
-       satelliteMergingTimescales_ => satelliteMergingTimescales                  (          )
-       mergeTime                   =  satelliteMergingTimescales_%timeUntilMerging(node,orbit)
+       mergeTime=satelliteMergingTimescales_%timeUntilMerging(node,orbit)
        if (mergeTime >= 0.0d0) call satellite%mergeTimeSet(mergeTime)
     end select
     return
