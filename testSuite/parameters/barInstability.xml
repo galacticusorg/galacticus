@@ -88,21 +88,23 @@
   </starFormationFeedbackSpheroidsMethod>
 
   <!-- Metal production -->
-  <imfChabrierYieldInstantaneous value="0.025"/>
-  <imfChabrierRecycledInstantaneous value="0.4"/>
+  <stellarPopulationMethod value="standard">
+    <metalYield value="0.025"/>
+    <recycledFraction value="0.4"/>
+  </stellarPopulationMethod>
 
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="1.0e-6"/>
   <odeToleranceRelative value="0.001"/>
-  <timestepHostAbsolute value="1.000"/>
-  <timestepHostRelative value="0.100"/>
-  <timestepSimpleAbsolute value="1.000"/>
-  <timestepSimpleRelative value="0.100"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.000"/>
+    <timestepHostRelative value="0.100"/>
+  </mergerTreeEvolverMethod>
 
   <!-- Output options -->
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/barInstability.hdf5"/>

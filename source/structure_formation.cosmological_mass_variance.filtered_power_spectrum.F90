@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -411,8 +412,9 @@ contains
     double precision function rootVariance(useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       use, intrinsic :: ISO_C_Binding
-      use               Numerical_Constants_Math
-      use               Numerical_Integration
+      use            :: Numerical_Constants_Math
+      use            :: Numerical_Integration
+      use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
       implicit none
       logical                                     , intent(in   ) :: useTopHat
       double precision                                            :: topHatRadius        , wavenumberMaximum, &

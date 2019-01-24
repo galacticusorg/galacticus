@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,6 +75,7 @@ contains
 
   logical function formationTimePasses(self,node)
     !% Implement a filter which rejects halos that formed too recently.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime
     implicit none
     class(galacticFilterFormationTime), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Cosmology_Parameters
   use Cosmology_Functions
   use Cosmological_Density_Field
-  use Virial_Density_Contrast
+  use Virial_Density_Contrast   , only : virialDensityContrastClass, virialDensityContrast
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{navarro_structure_1996}.</description>
@@ -133,9 +134,10 @@ contains
     !% using the \cite{navarro_structure_1996} algorithm.
     use Root_Finder
     use Virial_Density_Contrast
+    use Galacticus_Nodes       , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationNFW1996), intent(inout), target  :: self
-    type            (treeNode                             ), intent(inout), pointer :: node
+    type            (treeNode                             ), intent(inout), target  :: node
     double precision                                       , parameter              :: fitParameterNuHalf         =0.47693628d0
     double precision                                       , parameter              :: toleranceAbsolute          =0.0d0       , toleranceRelative      =1.0d-6
     class           (nodeComponentBasic                   )               , pointer :: basic
@@ -189,6 +191,7 @@ contains
   function nfw1996DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of
     !% concentration in the \cite{navarro_structure_1996} algorithm.
+    use Virial_Density_Contrast, only : virialDensityContrastFixed
     implicit none
     class(virialDensityContrastClass           ), pointer       :: nfw1996DensityContrastDefinition
     class(darkMatterProfileConcentrationNfw1996), intent(inout) :: self

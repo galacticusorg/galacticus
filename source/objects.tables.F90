@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,9 @@
 
 module Tables
   !% Defines a {\normalfont \ttfamily table} class with optimized interpolation operators.
-  use FGSL
+  use FGSL        , only : fgsl_interp               , fgsl_interp_accel , &
+       &                   fgsl_interp_type          , fgsl_function     , &
+       &                   fgsl_integration_workspace, FGSL_Interp_Linear
   use Table_Labels
   private
   public :: table                          , table1D                          , table1DGeneric                    , &
@@ -603,7 +606,10 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('reversed table would not be monotonic'//{introspection:location})
-    if (allocated(reversedSelf)) deallocate(reversedSelf)
+    if (allocated(reversedSelf)) then
+       call reversedSelf%destroy()
+       deallocate(reversedSelf)
+    end if
     allocate(table1DGeneric :: reversedSelf)
     select type (reversedSelf)
     type is (table1DGeneric)
@@ -1031,7 +1037,6 @@ contains
 
   function Table_Logarithmic_Integration_Weights(self,x0,x1,integrand)
     !% Returns a set of weights for trapezoidal integration on the table between limits {\normalfont \ttfamily x0} and {\normalfont \ttfamily x1}.
-    use FGSL
     use Numerical_Integration
     use Galacticus_Error
     implicit none
@@ -1145,7 +1150,10 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('reversed table would not be monotonic'//{introspection:location})
-    if (allocated(reversedSelf)) deallocate(reversedSelf)
+    if (allocated(reversedSelf)) then
+       call reversedSelf%destroy()
+       deallocate(reversedSelf)
+    end if
     allocate(table1DNonUniformLinearLogarithmic :: reversedSelf)
     select type (reversedSelf)
     type is (table1DNonUniformLinearLogarithmic)

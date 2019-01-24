@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -74,6 +75,7 @@ contains
 
   function randomIsotropicPosition(self,node)
     !% Return the position of an orphan satellite in a random isotropic distribution.
+    use Galacticus_Nodes        , only : nodeComponentPosition
     use Pseudo_Random
     use Numerical_Constants_Math
     use Coordinates
@@ -104,6 +106,7 @@ contains
 
   function randomIsotropicVelocity(self,node)
     !% Return the velocity of an orphan satellite in a random isotropic distribution.
+    use Galacticus_Nodes        , only : nodeComponentPosition
     use Pseudo_Random
     use Numerical_Constants_Math
     use Coordinates

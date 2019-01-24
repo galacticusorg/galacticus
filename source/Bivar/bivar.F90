@@ -245,6 +245,12 @@ subroutine idbvip ( md, ncp, ndp, xd, yd, zd, nip, xi, yi, zi, iwk, wk )
       return
     end if
 
+  else
+
+    ! Restore the values of nt and nl from the integer workspace for re-use.
+    nt = iwk(5)
+    nl = iwk(6)
+    
   end if
 !
 !  Determine NCP points closest to each data point, for MD = 1.

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@
   !#  <description>Accretion disk spectra are interpolated from tables read from file.</description>
   !# </accretionDiskSpectra>
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
 
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraFile
      !% An accretion disk spectra class which interpolates in spectra read from file.
@@ -81,6 +82,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
     use Galacticus_Error
     use Array_Utilities
+    use Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
     type     (accretionDiskSpectraFile), target        :: fileConstructorInternal
     character(len=*                   ), intent(in   ) :: fileName
@@ -119,11 +121,15 @@ contains
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
 
-    if (allocated(self%wavelength)) call deallocateArray(self%wavelength)
-    if (allocated(self%luminosity)) call deallocateArray(self%luminosity)
-    if (allocated(self%SED       )) call deallocateArray(self%SED       )
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorWavelength,reset=self%resetWavelength)
-    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorLuminosity,reset=self%resetLuminosity)
+    if (allocated(self%wavelength)) then
+       call deallocateArray(self%wavelength)
+       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorWavelength,reset=self%resetWavelength)
+    end if
+    if (allocated(self%luminosity)) then
+       call deallocateArray(self%luminosity)
+       call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorLuminosity,reset=self%resetLuminosity)
+    end if
+    if (allocated(self%SED       )) call deallocateArray(self%SED)
     return
   end subroutine fileDestructor
 
@@ -161,6 +167,7 @@ contains
     use Numerical_Interpolation
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
+    use Galacticus_Nodes                , only : nodeComponentBlackHole
     implicit none
     class           (accretionDiskSpectraFile), intent(inout)  :: self
     type            (treeNode                ), intent(inout)  :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +20,7 @@
 !% Contains a module which implements a sequence output analysis weight operator class.
 
   type, public :: weightOperatorList
-     class(outputAnalysisWeightOperatorClass), pointer :: operator_
+     class(outputAnalysisWeightOperatorClass), pointer :: operator_ => null()
      type (weightOperatorList               ), pointer :: next      => null()
   end type weightOperatorList
 

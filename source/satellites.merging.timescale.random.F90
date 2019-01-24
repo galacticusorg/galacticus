@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,11 +54,10 @@ contains
   
   double precision function randomTimeUntilMerging(self,node,orbit)
     !% Return a randomly chosen timescale for merging satellites.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Kepler_Orbits
     use Satellite_Orbits
     use Pseudo_Random
-    use FGSL
     implicit none
     class           (satelliteMergingTimescalesRandom), intent(inout) :: self
     type            (treeNode                        ), intent(inout) :: node

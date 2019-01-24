@@ -14,9 +14,9 @@
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.8228"/>
   </cosmologicalMassVarianceMethod><accretionHaloMethod value="zero"/>
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <mergerTreeConstructorMethod value="read">
   <presetMergerNodes value="true"/>
     <presetMergerTimes value="true"/>

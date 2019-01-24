@@ -25,7 +25,6 @@
     </mergerTreeConstructorMethod>
     <mergerTreeConstructorMethod value="read">
       <fileNames value="testSuite/data/mergerTrees/millenniumTestTreesGLC.hdf5"/>
-      <allTreesExistAtFinalTime value="false" parameterLevel="top"/>
       <cosmologyParametersMethod value="simple" parameterLevel="top">
 	<OmegaMatter value="0.25"/>
 	<OmegaDarkEnergy value="0.75"/>

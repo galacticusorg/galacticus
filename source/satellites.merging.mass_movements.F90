@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,81 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which determines how mass is moved around as a consequence of a satellite merging event.
+!% Contains a module which implements a class for determining how mass is moved around as a consequence of a satellite merging
+!% event.
 
 module Satellite_Merging_Mass_Movements
-  !% Determines how mass is moved around as a consequence of a satellite merging event.
-  use ISO_Varying_String
+  !% Implements a class for determining how mass is moved around as a consequence of a satellite merging event.
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
-  public :: Satellite_Merging_Mass_Movement_Store, Satellite_Merging_Mass_Movement
 
-  ! Flag to indicate if this module has been initialized.
-  logical                                             :: satelliteMergingMassMovementsInitialized=.false.
-
-  ! Name of mass movement method used.
-  type     (varying_string                 )          :: satelliteMergingMassMovementsMethod
-
-  ! Pointer to the subroutine that returns descriptors for mass movement.
-  procedure(Satellite_Merging_Mass_Movement), pointer :: Satellite_Merging_Mass_Movement_Get     =>null()
-
-contains
-
-  !# <satelliteMergerTask>
-  !#  <unitName>Satellite_Merging_Mass_Movement_Store</unitName>
-  !# </satelliteMergerTask>
-  subroutine Satellite_Merging_Mass_Movement_Store(thisNode)
-    !% Compute and store the mass movement descriptors for this satellite merger.
-    use Galacticus_Nodes
-    use Satellite_Merging_Mass_Movements_Descriptors
-    implicit none
-    type(treeNode), intent(inout) :: thisNode
-
-    call Satellite_Merging_Mass_Movement(thisNode,thisMergerGasMovesTo,thisMergerStarsMoveTo,thisHostGasMovesTo,thisHostStarsMoveTo,thisMergerIsMajor)
-    return
-  end subroutine Satellite_Merging_Mass_Movement_Store
-
-  subroutine Satellite_Merging_Mass_Movement(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
-    !% Returns descriptors of how gas and stars move as the result of a satellite merger.
-    use Galacticus_Nodes
-    use Galacticus_Error
-    use Input_Parameters
-    !# <include directive="satelliteMergingMassMovementsMethod" type="moduleUse">
-    include 'satellites.merging.mass_movements.modules.inc'
-    !# </include>
-    implicit none
-    type   (treeNode), intent(inout) :: thisNode
-    integer          , intent(  out) :: gasMovesTo   , hostGasMovesTo, hostStarsMoveTo, starsMoveTo
-    logical          , intent(  out) :: mergerIsMajor
-
-    if (.not.satelliteMergingMassMovementsInitialized) then
-       !$omp critical(satelliteMergingMassMovementsInitialize)
-       if (.not.satelliteMergingMassMovementsInitialized) then
-          ! Get the satellite merging mass movement method parameter.
-          !# <inputParameter>
-          !#   <name>satelliteMergingMassMovementsMethod</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('simple')</defaultValue>
-          !#   <description>Selects the method to be used for deciding mass movements during satellite mergers.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>string</type>
-          !# </inputParameter>
-          ! Include file that makes calls to all available method initialization routines.
-          !# <include directive="satelliteMergingMassMovementsMethod" type="functionCall" functionType="void">
-          !#  <functionArgs>satelliteMergingMassMovementsMethod,Satellite_Merging_Mass_Movement_Get</functionArgs>
-          include 'satellites.merging.mass_movements.inc'
-          !# </include>
-          if (.not.associated(Satellite_Merging_Mass_Movement_Get)) call Galacticus_Error_Report('method '//char(satelliteMergingMassMovementsMethod)//' is unrecognized'//{introspection:location})
-          ! Flag that the module is now initialized.
-          satelliteMergingMassMovementsInitialized=.true.
-       end if
-       !$omp end critical(satelliteMergingMassMovementsInitialize)
-    end if
-
-    ! Call the routine to get the descriptors.
-    call Satellite_Merging_Mass_Movement_Get(thisNode,gasMovesTo,starsMoveTo,hostGasMovesTo,hostStarsMoveTo,mergerIsMajor)
-
-    return
-  end subroutine Satellite_Merging_Mass_Movement
+  !# <functionClass>
+  !#  <name>mergerMassMovements</name>
+  !#  <descriptiveName>Merger Mass Movements</descriptiveName>
+  !#  <description>Class providing models of the movements of mass during mergers.</description>
+  !#  <default>simple</default>
+  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
+  !#  <method name="get" >
+  !#   <description>Determine movements of mass during mergers.</description>
+  !#   <type>void</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (treeNode), intent(inout) :: node                                                                                        </argument>
+  !#   <argument>integer          , intent(  out) :: destinationGasSatellite, destinationStarsSatellite, destinationGasHost, destinationStarsHost</argument>
+  !#   <argument>logical          , intent(  out) :: mergerIsMajor                                                                               </argument>
+  !#  </method>
+  !# </functionClass>
+  
+  !# <enumeration>
+  !#  <name>destinationMerger</name>
+  !#  <description>Enumeration of possible destinations for mass in mergers.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="unmoved" />
+  !#  <entry label="disk"    />
+  !#  <entry label="spheroid"/>
+  !# </enumeration>
 
 end module Satellite_Merging_Mass_Movements

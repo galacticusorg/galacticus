@@ -64,8 +64,12 @@
     <allowSubhaloPromotions value="true"/>
     <outputTimeSnapTolerance value="1.0e-3"/>
   </mergerTreeConstructorMethod>
-  <allTreesExistAtFinalTime value="false"/>
-  
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
+
   <!-- Substructure hierarchy options -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
 
@@ -77,20 +81,15 @@
 
   <!-- Switch off baryonic physics -->
   <hotHaloMassDistributionMethod value="null"/>
-  <satelliteMergingRemnantSizeMethod value="null"/>
+  <mergerRemnantSizeMethod value="null"/>
 
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.1"/>
-  <timestepSimpleAbsolute value="1.0"/>
-  <timestepSimpleRelative value="0.1"/>
-
   <!-- Output options -->
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   
   <mergerTreeOperatorMethod value="sequence">
 

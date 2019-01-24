@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -43,11 +44,11 @@ contains
        &                                      projectedCorrelationBinned                    &
        &                                     )
     !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
-    use FGSL
+    use FGSL                                     , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
     use Memory_Management
     use Galacticus_Error
     use Geometry_Surveys
-    use Galacticus_Nodes
+    use Galacticus_Nodes                        , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale
     use Cosmology_Functions
     use Conditional_Mass_Functions
     use Numerical_Integration
@@ -341,20 +342,22 @@ contains
 
     double precision function powerSpectrumOneHaloIntegrand(massHalo)
       !% Integrand for the one-halo term in the power spectrum.
+      use Dark_Matter_Profile_Scales     , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
       use Dark_Matter_Profiles
-      use Dark_Matter_Profile_Scales
       use Galacticus_Calculations_Resets
       implicit none
-      double precision                        , intent(in   ) :: massHalo
-      class           (darkMatterProfileClass), pointer       :: darkMatterProfile_
-      double precision                                        :: darkMatterProfileKSpace, numberCentrals   , &
-           &                                                     numberSatellites       , wavenumberMaximum
+      double precision                                   , intent(in   ) :: massHalo
+      class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+      class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
+      double precision                                                   :: darkMatterProfileKSpace      , numberCentrals   , &
+           &                                                                numberSatellites             , wavenumberMaximum
 
-      darkMatterProfile_  => darkMatterProfile ()
+      darkMatterProfile_            => darkMatterProfile           ()
+      darkMatterProfileScaleRadius_ => darkMatterProfileScaleRadius()
       call Galacticus_Calculations_Reset(node)
       call basic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(node)
-      call darkMatterProfileHalo%scaleSet(Dark_Matter_Profile_Scale(node))
+      call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(node))
       ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
       ! integrate rapidly oscillating Fourier profiles.
       wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(node)/expansionFactor)
@@ -428,22 +431,24 @@ contains
 
     double precision function powerSpectrumTwoHaloIntegrand(massHalo)
       !% Integrand for the two-halo term in the power spectrum.
+      use Dark_Matter_Profile_Scales    , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
       use Dark_Matter_Halo_Biases
       use Dark_Matter_Profiles
       use Galacticus_Calculations_Resets
-      use Dark_Matter_Profile_Scales
       implicit none
-      double precision                         , intent(in   ) :: massHalo
-      class           (darkMatterProfileClass ), pointer       :: darkMatterProfile_
-      class           (darkMatterHaloBiasClass), pointer       :: darkMatterHaloBias_
-      double precision                                         :: wavenumberMaximum
+      double precision                                   , intent(in   ) :: massHalo
+      class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+      class           (darkMatterHaloBiasClass          ), pointer       :: darkMatterHaloBias_
+      class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
+      double precision                                                   :: wavenumberMaximum
       
-      darkMatterProfile_  => darkMatterProfile ()
-      darkMatterHaloBias_ => darkMatterHaloBias()
+      darkMatterProfile_            => darkMatterProfile           ()
+      darkMatterHaloBias_           => darkMatterHaloBias          ()
+      darkMatterProfileScaleRadius_ => darkMatterProfileScaleRadius()
       call Galacticus_Calculations_Reset(node)
       call basic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(node)
-      call darkMatterProfileHalo%scaleSet(Dark_Matter_Profile_Scale(node))
+      call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(node))
       ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
       ! integrate rapidly oscillating Fourier profiles.
       wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(node)/expansionFactor)

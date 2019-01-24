@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -82,9 +83,6 @@ module Node_Component_NBody_Generic
   !#  </bindings>
   !# </component>
 
-  ! Record of whether this module has been initialized.
-  logical                                            :: moduleInitialized=.false.
-
   ! Property names.
   type   (varying_string), allocatable, dimension(:) :: propertyNamesReal        , propertyNamesInteger
   
@@ -93,21 +91,21 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_NBody_Generic_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_NBody_Generic_Initialize()
+  subroutine Node_Component_NBody_Generic_Initialize(parameters)
     !% Initializes the generic N-body component module.
+    use Input_Parameters
     implicit none
-    type(nodeComponentNBodyGeneric) :: nbodyComponent
+    type(inputParameters             ), intent(inout) :: parameters
+    type(nodeComponentNBodyGeneric   )                :: nbodyComponent
+    !GCC$ attributes unused :: parameters
 
     ! Initialize the module if necessary.
-    !$omp critical (Node_Component_NBody_Generic_Initialize)
-    if (defaultNBodyComponent%genericIsActive().and..not.moduleInitialized) then
+    if (defaultNBodyComponent%genericIsActive()) then
        call nbodyComponent%addRealPropertyFunction   (Node_Component_NBody_Generic_Add_Real_Property   )
        call nbodyComponent%addIntegerPropertyFunction(Node_Component_NBody_Generic_Add_Integer_Property)
        call nbodyComponent%setRealPropertyFunction   (Node_Component_NBody_Generic_Set_Real_Property   )
        call nbodyComponent%setIntegerPropertyFunction(Node_Component_NBody_Generic_Set_Integer_Property)
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_NBody_Generic_Initialize)
     return
   end subroutine Node_Component_NBody_Generic_Initialize
 

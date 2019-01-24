@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,97 +17,114 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a simple time-stepping criterion for merger tree evolution.
+  use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+  
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSimple" defaultThreadPrivate="yes">
+  !#  <description>A merger tree evolution timestepping class which limits the step to a fraction of the current time or an absolute step, whichever is smaller.</description>
+  !# </mergerTreeEvolveTimestep>
+  type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSimple
+     !% Implementation of an output times class which reads a simple of output times from a parameter.
+     private
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     double precision                                   :: timeStepAbsolute   , timeStepRelative
+   contains
+     final     ::                 simpleDestructor
+     procedure :: timeEvolveTo => simpleTimeEvolveTo
+  end type mergerTreeEvolveTimestepSimple
 
-module Merger_Tree_Timesteps_Simple
-  !% Implements a simple time-stepping criterion for merger tree evolution.
-  implicit none
-  private
-  public :: Merger_Tree_Timestep_Simple
-
-  ! Variable inidicating if module is initialized.
-  logical          :: timestepSimpleInitialized=.false.
-
-  ! Parameters controlling the size of timesteps.
-  double precision :: timestepSimpleAbsolute           , timestepSimpleRelative
+  interface mergerTreeEvolveTimestepSimple
+     !% Constructors for the {\normalfont \ttfamily simple} merger tree evolution timestep class.
+     module procedure simpleConstructorParameters
+     module procedure simpleConstructorInternal
+  end interface mergerTreeEvolveTimestepSimple
 
 contains
 
-  !# <timeStepsTask>
-  !#  <unitName>Merger_Tree_Timestep_Simple</unitName>
-  !# </timeStepsTask>
-  subroutine Merger_Tree_Timestep_Simple(node,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
-    !% Determine a suitable timestep for {\normalfont \ttfamily node} using the simple method. This simply selects the smaller of {\normalfont \ttfamily
-    !% timestepSimpleAbsolute} and {\normalfont \ttfamily timestepSimpleRelative}$H^{-1}(t)$.
-    use Galacticus_Nodes
+  function simpleConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily simple} merger tree evolution timestep class which takes a parameter set as input.
     use Input_Parameters
-    use Cosmology_Functions
+    implicit none
+    type            (mergerTreeEvolveTimestepSimple)                :: self
+    type            (inputParameters               ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    double precision                                                :: timeStepAbsolute   , timeStepRelative
+    
+    !# <inputParameter>
+    !#   <name>timeStepRelative</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.1d0</defaultValue>
+    !#   <description>The maximum allowed relative change in time for a single step in the evolution of a node.</description>
+    !#   <group>timeStepping</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>timeStepAbsolute</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.</description>
+    !#   <group>timeStepping</group>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    self=mergerTreeEvolveTimestepSimple(timeStepAbsolute,timeStepRelative,cosmologyFunctions_)
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function simpleConstructorParameters
+
+  function simpleConstructorInternal(timeStepAbsolute,timeStepRelative,cosmologyFunctions_) result(self)
+    !% Constructor for the {\normalfont \ttfamily simple} merger tree evolution timestep class which takes a parameter set as input.
+    implicit none
+    type            (mergerTreeEvolveTimestepSimple)                        :: self
+    double precision                                , intent(in   )         :: timeStepAbsolute   , timeStepRelative
+    class           (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_    
+    !# <constructorAssign variables="timeStepAbsolute, timeStepRelative, *cosmologyFunctions_"/>
+
+    return
+  end function simpleConstructorInternal
+
+  subroutine simpleDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily simple} merger tree evolution timestep class.
+    implicit none
+    type(mergerTreeEvolveTimestepSimple), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    return
+  end subroutine simpleDestructor
+
+  double precision function simpleTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
+    !% Determine a suitable timestep for {\normalfont \ttfamily node} using the simple method. This simply selects the smaller of {\normalfont \ttfamily
+    !% timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
+    use Galacticus_Nodes      , only : nodeComponentBasic
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none
-    type            (treeNode               ), intent(inout)          , pointer :: node
-    procedure       (                       ), intent(inout)          , pointer :: End_Of_Timestep_Task
-    double precision                         , intent(inout)                    :: timeStep
-    logical                                  , intent(in   )                    :: report
-    type            (treeNode               ), intent(inout), optional, pointer :: lockNode
-    type            (varying_string         ), intent(inout), optional          :: lockType
-    class           (nodeComponentBasic     )                         , pointer :: basic
-    class           (cosmologyFunctionsClass)                         , pointer :: cosmologyFunctions_
-    double precision                                                            :: expansionFactor      , expansionTimescale, &
-         &                                                                         ourTimeStep          , time
-    !GCC$ attributes unused :: End_Of_Timestep_Task
-    
-    if (.not.timestepSimpleInitialized) then
-       !$omp critical (timestepSimpleInitialize)
-       if (.not.timestepSimpleInitialized) then
-          !# <inputParameter>
-          !#   <name>timestepSimpleRelative</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.1d0</defaultValue>
-          !#   <description>The maximum allowed relative change in time for a single step in the evolution of a node.</description>
-          !#   <group>timeStepping</group>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>timestepSimpleAbsolute</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>1.0d0</defaultValue>
-          !#   <description>The maximum allowed absolute change in time (in Gyr) for a single step in the evolution of a node.</description>
-          !#   <group>timeStepping</group>
-          !#   <source>globalParameters</source>
-          !#   <type>real</type>
-          !# </inputParameter>
-          timestepSimpleInitialized=.true.
-       end if
-       !$omp end critical (timestepSimpleInitialize)
-    end if
-
-    ! Get the default cosmology functions object.
-    cosmologyFunctions_ => cosmologyFunctions()
-
-    ! Get current cosmic time.
-    basic => node%basic()
-    time=basic%time()
+    class           (mergerTreeEvolveTimestepSimple), intent(inout), target  :: self
+    type            (treeNode                      ), intent(inout), target  :: node
+    procedure       (timestepTask                  ), intent(  out), pointer :: task
+    class           (*                             ), intent(  out), pointer :: taskSelf
+    logical                                         , intent(in   )          :: report
+    type            (treeNode                      ), intent(  out), pointer :: lockNode
+    type            (varying_string                ), intent(  out)          :: lockType
+    class           (nodeComponentBasic            )               , pointer :: basic
+    double precision                                                         :: expansionFactor, timescaleExpansion, &
+         &                                                                      time
     
     ! Find current expansion timescale.
-    if (timestepSimpleRelative > 0.0d0) then
-       expansionFactor   =      cosmologyFunctions_%expansionFactor(           time)
-       expansionTimescale=1.0d0/cosmologyFunctions_%expansionRate  (expansionFactor)
-       ourTimeStep=min(timestepSimpleRelative*expansionTimescale,timestepSimpleAbsolute)
+    basic => node%basic()
+    if (self%timeStepRelative > 0.0d0) then
+       time               =        basic                    %time           (               )
+       expansionFactor    =        self %cosmologyFunctions_%expansionFactor(           time)
+       timescaleExpansion =  1.0d0/self %cosmologyFunctions_%expansionRate  (expansionFactor)
+       simpleTimeEvolveTo =  min(self%timestepRelative*timescaleExpansion,self%timeStepAbsolute)+basic%time()
     else
-       ourTimeStep=                                              timestepSimpleAbsolute
+       simpleTimeEvolveTo =                                               self%timeStepAbsolute +basic%time()
     end if
-       
-    ! Set return value if our timestep is smaller than current one.
-    if (ourTimeStep < timeStep) then
-       if (present(lockNode)) lockNode => node
-       if (present(lockType)) lockType =  "simple"
-       timeStep=ourTimeStep
-    end if
-
-    if (report) call Evolve_To_Time_Report("simple: ",timeStep)
+    task     => null()
+    taskSelf => null()
+    lockNode => node
+    lockType =  "simple"     
+    if (report) call Evolve_To_Time_Report("simple: ",simpleTimeEvolveTo)
     return
-  end subroutine Merger_Tree_Timestep_Simple
-
-end module Merger_Tree_Timesteps_Simple
+  end function simpleTimeEvolveTo

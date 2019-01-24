@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -102,7 +103,8 @@ contains
 
   double precision function enzoHydrostaticDensityNormalization(self,node)
     !% Return the density normalization in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use FGSL
+    use FGSL                 , only : fgsl_function       , fgsl_integration_workspace
+    use Galacticus_Nodes     , only : nodeComponentHotHalo
     use Numerical_Integration
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
@@ -204,7 +206,8 @@ contains
   
   double precision function enzoHydrostaticEnclosedMass(self,node,radius)
     !% Return the enclosed mass in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
-    use FGSL
+    use FGSL                 , only : fgsl_function       , fgsl_integration_workspace
+    use Galacticus_Nodes     , only : nodeComponentHotHalo
     use Numerical_Integration
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout)          :: self
@@ -246,7 +249,8 @@ contains
   double precision function enzoHydrostaticRadialMoment(self,node,moment,radius)
     !% Return a radial moment of an {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL                 , only : fgsl_function       , fgsl_integration_workspace
+    use               Galacticus_Nodes     , only : nodeComponentHotHalo
     use               Numerical_Integration
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
@@ -309,6 +313,7 @@ contains
     !% Return the relation between specific angular momentum and rotation velocity (assuming a
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
     type (treeNode                              ), intent(inout) :: node

@@ -29,7 +29,7 @@ my @tests =
      		  output            => 1                          ,
      		  property          => "hotHaloMass"              ,
      		  values            => pdl ( 7.97045921944598e10 ),
-     		  toleranceRelative => 1.0e-12
+     		  toleranceRelative => 4.0e-6
      	      }
      	     ]
      },
@@ -136,23 +136,23 @@ my @tests =
 	      },
 	      {
 		  # The adiabatic contraction calculation solves the following system:
-		  #  Mt(ri)*fi*ri - Mt(rf)*ff*rf - Mb*rf = 0
+		  #  Mₜ(r₀) f₀ r₀ - Mₜ(r₁) f₁ r₁ - Mᵦ r₁ = 0
 		  # where:
-		  #  * Mt(r) is the total mass of the node (assuming baryons trace dark matter) within radius r;
-		  #  * ri is the initial radius in the dark matter halo;
-		  #  * ri is the final radius in the dark matter halo;
-		  #  * fi is the initial mass fraction distributed as the dark matter;
-		  #  * ff is the final mass fraction distributed as the dark matter;
-		  #  * Mb is the mass of baryons within rf.
+		  #  * Mₜ(r) is the total mass of the node (assuming baryons trace dark matter) within radius r;
+		  #  * r₀ is the initial radius in the dark matter halo;
+		  #  * r₀ is the final radius in the dark matter halo;
+		  #  * f₀ is the initial mass fraction distributed as the dark matter;
+		  #  * f₁ is the final mass fraction distributed as the dark matter;
+		  #  * Mᵦ is the mass of baryons within r₁.
 		  #		  
-		  # The second two terms are equal to (Vf rf)^2/G where Vf is the final circular velocity at radius rf.  In an
-		  # isothermal halo Mt(r) = Mv*r/rv where Mv is the virial mass of the halo, and rv is the virial radius. Using
-		  # G*Mv/rv=Vv^2 with Vv being the virial velocity of the halo the system is reduced to:		  
-		  #  fi*(Vv*ri)^2 - (Vf*rf)^2 = 0,
+		  # The second two terms are equal to (V₁ r₁)²/G where V₁ is the final circular velocity at radius r₁.  In an
+		  # isothermal halo Mₜ(r) = Mᵥ r/rᵥ where Mᵥ is the virial mass of the halo, and rᵥ is the virial radius. Using
+		  # G Mᵥ/rᵥ=Vᵥ² with Vᵥ being the virial velocity of the halo the system is reduced to:		  
+		  #  f₀ (Vᵥ r₀)² - (V₁ r₁)² = 0,
 		  # or,
-		  #  sqrt(fi)*Vv*ri/Vf/rf = 1.		  
-		  # Finally, ri = rv Mt(rf)/Mv, and Mt(rf)*ff = VDMf^2*rf/G where VDMf^2 is the dark matter contrbution to the
-		  # final rotation curve.  In this calculation, ff=(0.3-0.05)/0.3=0.833333, and fi=ff+1.0e10/1.0e12=0.8433333, 
+		  #  √f₀ Vᵥ r₀/V₁/r₁ = 1.		  
+		  # Finally, r₀ = rᵥ Mₜ(r₁)/Mᵥ, and Mₜ(r₁) f₁ = Vᵪ₁² r₁/G where Vᵪ₁² is the dark matter contrbution to the
+		  # final rotation curve.  In this calculation, f₁=(0.3-0.05)/0.3=0.833333, and f₀=f₁+10¹⁰/10¹²=0.8433333, 
 		  name              => "initial specific angular momentum"              ,
 		  output            => 1                                                ,
 		  expression        =>

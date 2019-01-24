@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -99,14 +100,6 @@ contains
     ! Return property names if we are outputting virial data.
     if (outputDescendentIndices) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>descendentIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>ID of the node which this node will have descended into by the next timestep.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='descendentIndex'
        integerPropertyComments(integerProperty)='ID of the node which this node will have descended into by the next timestep.'
        integerPropertyUnitsSI (integerProperty)=0.0d0
@@ -142,7 +135,7 @@ contains
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store descendent properties in the \glc\ output file buffers.
     use Kind_Numbers
-    use Galacticus_Output_Times
+    use Output_Times
     use Multi_Counters
     implicit none
     double precision                        , intent(in   )         :: time
@@ -155,6 +148,7 @@ contains
     type            (treeNode              ), pointer               :: nodeDescendent
     class           (nodeComponentBasic    ), pointer               :: basic
     class           (nodeComponentSatellite), pointer               :: satellite
+    class           (outputTimesClass      ), pointer               :: outputTimes_
     double precision                                                :: outputTimeNext
     logical                                                         :: foundDescendent
     !GCC$ attributes unused :: doubleBuffer, doubleBufferCount, doubleProperty, instance
@@ -169,7 +163,8 @@ contains
        satellite => node%satellite()
 
        ! Get the time of the next output.
-       outputTimeNext=Galacticus_Next_Output_Time(time)
+       outputTimes_   => outputTimes          (    )
+       outputTimeNext =  outputTimes_%timeNext(time)
 
        foundDescendent=.false.
        integerProperty=integerProperty+1

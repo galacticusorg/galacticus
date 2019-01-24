@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,9 +60,6 @@ module Node_Component_Position_Preset
   !#  <functions>objects.nodes.components.position.preset.bound_functions.inc</functions>
   !# </component>
 
-  ! Record of whether this module has been initialized.
-  logical :: moduleInitialized             =.false.
-
   ! Options.
   logical :: positionsPresetSatelliteToHost
   
@@ -70,25 +68,23 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Position_Preset_Initialize()
+  subroutine Node_Component_Position_Preset_Initialize(parameters)
     use Input_Parameters
     implicit none
-    
+    type(inputParameters), intent(inout) :: parameters
+
     ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Position_Preset_Initialize)
-    if (defaultPositionComponent%presetIsActive().and..not.moduleInitialized) then
+    if (defaultPositionComponent%presetIsActive()) then
       ! Read parameters controlling the physical implementation.
        !# <inputParameter>
        !#   <name>positionsPresetSatelliteToHost</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>parameters</source>
        !#   <type>bool</type>
        !# </inputParameter>
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Position_Preset_Initialize)
     return
   end subroutine Node_Component_Position_Preset_Initialize
   

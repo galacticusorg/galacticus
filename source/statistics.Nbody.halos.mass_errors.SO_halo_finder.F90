@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,8 +20,8 @@
 !% Contains a module which implements an N-body dark matter halo mass error class which
 !% implements a model for errors in spherical overdensity halo finders.
 
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
+  use Dark_Matter_Profiles   , only : darkMatterProfileClass  , darkMatterProfile
   
   !# <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
   !#  <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
@@ -33,57 +34,70 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
      class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
    contains
+     final     ::                    soHaloFinderDestructor
      procedure :: errorFractional => soHaloFinderErrorFractional
      procedure :: correlation     => soHaloFinderCorrelation
   end type nbodyHaloMassErrorSOHaloFinder
 
   interface nbodyHaloMassErrorSOHaloFinder
      !% Constructors for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
-     module procedure nbodyHaloMassErrorSOHaloFinderParameters
-     module procedure nbodyHaloMassErrorSOHaloFinderInternal
+     module procedure soHaloFinderParameters
+     module procedure soHaloFinderInternal
   end interface nbodyHaloMassErrorSOHaloFinder
 
 contains
 
-  function nbodyHaloMassErrorSOHaloFinderParameters(parameters)
+  function soHaloFinderParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(nbodyHaloMassErrorSOHaloFinder)                :: nbodyHaloMassErrorSOHaloFinderParameters
-    type(inputParameters               ), intent(inout) :: parameters
-    
+    type (nbodyHaloMassErrorSOHaloFinder)                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
+    class(darkMatterProfileClass        ), pointer       :: darkMatterProfile_
+    double precision :: massParticle
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
-    !#   <variable>nbodyHaloMassErrorSOHaloFinderParameters%massParticle</variable>
     !#   <description>Mass of particle in the simulation to which the spherical overdensity algorithm was applied.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    nbodyHaloMassErrorSOHaloFinderParameters%darkMatterHaloScale_ => darkMatterHaloScale()
-    nbodyHaloMassErrorSOHaloFinderParameters%darkMatterProfile_   => darkMatterProfile  ()
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    self=nbodyHaloMassErrorSOHaloFinder(darkMatterHaloScale_,darkMatterProfile_,massParticle)
     !# <inputParametersValidate source="parameters"/>
     return
-  end function nbodyHaloMassErrorSOHaloFinderParameters
+  end function soHaloFinderParameters
 
-  function nbodyHaloMassErrorSOHaloFinderInternal(darkMatterHaloScale_,darkMatterProfile_,massParticle)
+  function soHaloFinderInternal(darkMatterHaloScale_,darkMatterProfile_,massParticle) result(self)
     !% Internal constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
     implicit none
-    type            (nbodyHaloMassErrorSOHaloFinder)                        :: nbodyHaloMassErrorSOHaloFinderInternal
+    type            (nbodyHaloMassErrorSOHaloFinder)                        :: self
     class           (darkMatterHaloScaleClass      ), target, intent(in   ) :: darkMatterHaloScale_
     class           (darkMatterProfileClass        ), target, intent(in   ) :: darkMatterProfile_
     double precision                                        , intent(in   ) :: massParticle
- 
-    nbodyHaloMassErrorSOHaloFinderInternal%darkMatterHaloScale_   => darkMatterHaloScale_
-    nbodyHaloMassErrorSOHaloFinderInternal%darkMatterProfile_     => darkMatterProfile_
-    nbodyHaloMassErrorSOHaloFinderInternal%massParticle           =  massParticle
+    !# <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfile_, massParticle"/>
+    
     return
-  end function nbodyHaloMassErrorSOHaloFinderInternal
+  end function soHaloFinderInternal
 
+  subroutine soHaloFinderDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+    implicit none
+    type(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !# <objectDestructor name="self%darkMatterProfile_"  />
+    return
+  end subroutine soHaloFinderDestructor
+  
   double precision function soHaloFinderErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
-    use Numerical_Constants_Math
+    use Numerical_Constants_Math, only : Pi
+    use Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
     class           (nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -131,6 +145,7 @@ contains
   
   double precision function soHaloFinderCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node1 , node2

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a peak-background split density 1D distibution function.
 
   use Tables
@@ -31,6 +32,7 @@
      type            (table1DLinearLinear)              :: cdf
      class           (table1D            ), allocatable :: cdfInverse   
    contains
+     final     ::               peakBackgroundDestructor
      procedure :: density    => peakBackgroundDensity
      procedure :: cumulative => peakBackgroundCumulative
      procedure :: inverse    => peakBackgroundInverse
@@ -117,6 +119,19 @@ contains
 
   end function peakBackgroundConstructorInternal
 
+  subroutine peakBackgroundDestructor(self)
+    !% Destructor for ``peakBackground'' 1D distribution function class.
+    implicit none
+    type(distributionFunction1DPeakBackground), intent(inout) :: self
+    
+    call    self%cdf       %destroy()
+    if (allocated(self%cdfInverse)) then
+       call self%cdfInverse%destroy()
+       deallocate(self%cdfInverse)
+    end if
+    return
+  end subroutine peakBackgroundDestructor
+  
   double precision function peakBackgroundMinimum(self)
     !% Return the minimum possible value of a peak-background split distribution.
     use Galacticus_Error

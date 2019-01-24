@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,10 +22,12 @@
 module Node_Component_Mass_Flow_Statistics_Standard
   !% Implements the standard mass flow statistics component.
   use Galacticus_Nodes
-  implicit none
+  use Cooling_Rates
+ implicit none
   private
-  public :: Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init, Node_Component_Mass_Flow_Statistics_Standard_Scale_Set   , &
-       &    Node_Component_Mass_Flow_Statistics_Standard_Extra_Output    , Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute
+  public :: Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init , Node_Component_Mass_Flow_Statistics_Standard_Scale_Set   , &
+       &    Node_Component_Mass_Flow_Statistics_Standard_Extra_Output     , Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute, &
+       &    Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize
 
   !# <component>
   !#  <class>massFlowStatistics</class>
@@ -41,11 +44,12 @@ module Node_Component_Mass_Flow_Statistics_Standard
   !#  </properties>
   !# </component>
 
+  ! Objects used by this component.
+  class(coolingRateClass), pointer :: coolingRate_
+  !$omp threadprivate(coolingRate_)
+
   ! Options controlling module behavior.
   logical :: massFlowStatisticsResetOnOutput
-
-  ! Record of whether this module has been initialized.
-  logical :: moduleInitialized=.false.
 
 contains
 
@@ -54,36 +58,42 @@ contains
     use Input_Parameters
     implicit none
 
-    ! Test whether module is already initialize.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Mass_Flow_Statistics_Standard_Initialize)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>massFlowStatisticsResetOnOutput</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.true.</defaultValue>
-          !#   <description>Specifies whether or not mass flow statistics should be reset to zero at each output.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.     
-       end if
-       !$omp end critical (Node_Component_Mass_Flow_Statistics_Standard_Initialize)
-    end if
+    !# <inputParameter>
+    !#   <name>massFlowStatisticsResetOnOutput</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether or not mass flow statistics should be reset to zero at each output.</description>
+    !#   <source>globalParameters</source>
+    !#   <type>double</type>
+    !# </inputParameter>
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize(parameters)
+    !% Initializes the tree node standard mass flow statistics module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultMassFlowStatisticsComponent%standardIsActive()) then
+       !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init</unitName>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init(node)
     !% Initialize the mass flow statistics component by creating components in nodes and computing formation times.
-    use Dark_Matter_Halo_Formation_Times
+    use Dark_Matter_Halo_Mass_Accretion_Histories
     implicit none
     type (treeNode                       ), pointer, intent(inout) :: node
     class(nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
-    
+
     ! Return immediately if this class is not active.
     if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return
     
@@ -104,7 +114,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
-    use Cooling_Rates
     implicit none
     type     (treeNode                       ), pointer, intent(inout) :: node
     logical                                            , intent(in   ) :: odeConverged
@@ -112,7 +121,6 @@ contains
     procedure(                               ), pointer, intent(inout) :: interruptProcedure
     integer                                   , intent(in   )          :: propertyType
     class    (nodeComponentMassFlowStatistics), pointer                :: massFlowStatistics
-    class    (coolingRateClass               ), pointer                :: coolingRate_
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
     
     ! Return immediately if inactive variables are requested.
@@ -125,7 +133,6 @@ contains
     select type (massFlowStatistics)
     class is (nodeComponentMassFlowStatisticsStandard)
        ! Cooled mass rate simply equals the cooling rate.
-       coolingRate_ => coolingRate()
        call massFlowStatistics%cooledMassRate(coolingRate_%rate(node))
     end select
     return

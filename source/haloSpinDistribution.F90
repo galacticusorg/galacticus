@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,8 @@
 program haloSpinDistributions
   !% Computes dark matter halo spin distributions.
   use Galacticus_Error
-  use Galacticus_Nodes
+  use Galacticus_Nodes          , only : treeNode                    , nodeComponentBasic, nodeComponentSpin, nodeComponentDarkMatterProfile, &
+       &                                 nodeClassHierarchyInitialize
   use Input_Parameters
   use Memory_Management
   use Functions_Global_Utilities
@@ -65,8 +67,8 @@ program haloSpinDistributions
   parameters=inputParameters(parameterFileName,outputParametersGroup=outputFile)
   call parameters%markGlobal()
   ! Initialize nodes and components.
-  call nodeClassHierarchyInitialize()
-  call Node_Components_Initialize  ()
+  call nodeClassHierarchyInitialize(parameters)
+  call Node_Components_Initialize  (parameters)
   ! Get required objects.
   cosmologyFunctions_   => cosmologyFunctions  ()
   haloSpinDistribution_ => haloSpinDistribution()
@@ -76,6 +78,7 @@ program haloSpinDistributions
   !#   <variable>spinMinimum</variable>
   !#   <defaultValue>3.0d-4</defaultValue>
   !#   <description>Minimum spin for which the distribution function should be calculated.</description>
+  !#   <source>parameters</source>
   !#   <type>real</type>
   !#   <cardinality>0..1</cardinality>
   !# </inputParameter>
@@ -84,6 +87,7 @@ program haloSpinDistributions
   !#   <variable>spinMaximum</variable>
   !#   <defaultValue>0.5d0</defaultValue>
   !#   <description>Maximum spin for which the distribution function should be calculated.</description>
+  !#   <source>parameters</source>
   !#   <type>real</type>
   !#   <cardinality>0..1</cardinality>
   !# </inputParameter>
@@ -92,6 +96,7 @@ program haloSpinDistributions
   !#   <variable>spinPointsPerDecade</variable>
   !#   <defaultValue>10.0d0</defaultValue>
   !#   <description>Number of points per decade of spin at which to calculate the distribution.</description>
+  !#   <source>parameters</source>
   !#   <type>real</type>
   !#   <cardinality>0..1</cardinality>
   !# </inputParameter>
@@ -100,6 +105,7 @@ program haloSpinDistributions
   !#   <variable>haloMassMinimum</variable>
   !#   <defaultValue>0.0d0</defaultValue>
   !#   <description>Minimum halo mass above which spin distribution should be averaged.</description>
+  !#   <source>parameters</source>
   !#   <type>real</type>
   !#   <cardinality>0..1</cardinality>
   !# </inputParameter>
@@ -109,6 +115,7 @@ program haloSpinDistributions
   !#   <variable>outputRedshifts</variable>
   !#   <defaultValue>[0.0d0]</defaultValue>
   !#   <description>Redshifts for which the spin distribution should be computed.</description>
+  !#   <source>parameters</source>
   !#   <type>real</type>
   !#   <cardinality>0..1</cardinality>
   !# </inputParameter>

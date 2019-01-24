@@ -384,6 +384,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.transfer_functions.exe",                                       # Transfer functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.black_hole_fundamentals.exe",                                  # Black hole fundamentals.
 	valgrind => 0,
 	mpi      => 0
@@ -420,12 +425,32 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.dark_matter_profiles.heated.exe",                              # Tests of heated dark matter profiles.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.MPI.exe",                                                      # Tests of MPI functionality.
 	valgrind => 0,
 	mpi      => 4
     },
     {
 	name     => "tests.locks.exe",                                                    # Tests of OpenMP locking functionality.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.initial_mass_functions.exe",                                   # Tests of initial mass functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.stellar_populations.exe",                                      # Tests of stellar populations.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.stellar_populations.luminosities.exe",                         # Tests of stellar population luminosities.
 	valgrind => 0,
 	mpi      => 0
     }

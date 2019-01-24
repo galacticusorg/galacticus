@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,26 +86,10 @@ contains
     ! Return property names if we are outputting virial data.
     if (outputVirialData) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>nodeVirialRadius</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Virial radius of the node [Mpc].</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeVirialRadius'
        doublePropertyComments(doubleProperty)='Virial radius of the node [Mpc].'
        doublePropertyUnitsSI (doubleProperty)=megaParsec
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>nodeVirialVelocity</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Virial velocity of the node [km/s].</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='nodeVirialVelocity'
        doublePropertyComments(doubleProperty)='Virial velocity of the node [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo

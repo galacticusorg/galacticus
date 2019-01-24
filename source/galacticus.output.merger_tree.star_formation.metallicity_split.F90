@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -164,18 +165,20 @@ contains
     !% Create the history required for storing star formation history.
     use Histories
     use Galacticus_Nodes
-    use Galacticus_Output_Times
+    use Output_Times
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (history           ), intent(inout)          :: historyStarFormation
     double precision                    , intent(in   )          :: timeBegin
     class           (nodeComponentBasic)               , pointer :: basic
+    class           (outputTimesClass  )               , pointer :: outputTimes_
     double precision                                             :: timeBeginActual   , timeEnd
 
     ! Find the start and end times for this history.
-    basic =>               node          %basic()
+    basic              => node%basic()
+    outputTimes_       => outputTimes()
     timeBeginActual    =  min(timeBegin,basic%time ())
-    timeEnd            =  Galacticus_Next_Output_Time(basic%time())
+    timeEnd            =  outputTimes_%timeNext(basic%time())
     call Star_Formation_History_Metallicity_Split_Make_History(historyStarFormation,timeBeginActual,timeEnd)
     return
   end subroutine Star_Formation_History_Create_Metallicity_Split
@@ -184,17 +187,18 @@ contains
     !% Create the history required for storing star formation history.
     use Histories
     use Numerical_Ranges
-    use Galacticus_Output_Times
+    use Output_Times
     use Galacticus_Error
     implicit none
-    type            (history      )              , intent(inout)           :: historyStarFormation
-    double precision                             , intent(in   )           :: timeBegin           , timeEnd
-    double precision               , dimension(:), intent(in   ), optional :: currentTimes
-    type            (timeStepRange), pointer                               :: firstTimeStep       , nextTimeStep , thisTimeStep
-    integer                                                                :: coarseTimeCount     , fineTimeCount, timeCount
-    logical                                                                :: gotFirstTimeStep
-    double precision                                                       :: timeCoarseBegin     , timeCoarseEnd, timeFineBegin, timeNext, &
-         &                                                                    timeNow
+    type            (history         )              , intent(inout)           :: historyStarFormation
+    double precision                                , intent(in   )           :: timeBegin           , timeEnd
+    double precision                  , dimension(:), intent(in   ), optional :: currentTimes
+    type            (timeStepRange   ), pointer                               :: firstTimeStep       , nextTimeStep , thisTimeStep
+    class           (outputTimesClass), pointer                               :: outputTimes_
+    integer                                                                   :: coarseTimeCount     , fineTimeCount, timeCount
+    logical                                                                   :: gotFirstTimeStep
+    double precision                                                          :: timeCoarseBegin     , timeCoarseEnd, timeFineBegin, timeNext, &
+         &                                                                       timeNow
 
     ! Exit with a null history if it would contain no time.
     if (timeEnd <= timeBegin) then
@@ -207,7 +211,7 @@ contains
        ! Complain if the beginning time is before the given list of times.
        if (timeBegin < currentTimes(1                 )) call Galacticus_Error_Report('requested begin time is before currently tabulated times'//{introspection:location})
        ! Complain if the end time is less than the maximum tabulated time.
-       if (timeEnd   < currentTimes(size(currentTimes))) call Galacticus_Error_Report('requested end time is within currently tabulated times'//{introspection:location})
+       if (timeEnd   < currentTimes(size(currentTimes))) call Galacticus_Error_Report('requested end time is within currently tabulated times'  //{introspection:location})
     end if
 
     ! Step through time, creating a set of timesteps as needed.
@@ -219,9 +223,10 @@ contains
     timeCount       =  0
     gotFirstTimeStep= .false.
     thisTimeStep    => null()
+    outputTimes_    => outputTimes()
     do while (timeNow < timeEnd)
        ! Get the time of the next output
-       timeNext=Galacticus_Next_Output_Time(timeNow)
+       timeNext=outputTimes_%timeNext(timeNow)
        ! Unphysical (negative) value indicates no next output.
        if (timeNext < 0.0d0 .or. timeNext > timeEnd) timeNext=timeEnd
        ! Construct coarse and fine timesteps for this output, recording the parameters of each range.
@@ -373,7 +378,7 @@ contains
     use Galacticus_Nodes
     use String_Handling
     use Kind_Numbers
-    use Galacticus_Output_Times
+    use Output_Times
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     logical                             , intent(in   )          :: nodePassesFilter
@@ -383,6 +388,7 @@ contains
     character       (len=*             ), intent(in   )          :: componentLabel
     class           (nodeComponentBasic)               , pointer :: basicParent
     type            (treeNode          )               , pointer :: nodeParent
+    class           (outputTimesClass  )               , pointer :: outputTimes_
     double precision                                             :: timeBegin           , timeEnd
     type            (varying_string    )                         :: groupName
     type            (hdf5Object        )                         :: historyGroup        , outputGroup, treeGroup
@@ -432,9 +438,10 @@ contains
        !$ call hdf5Access%unset()
     end if
 
+    outputTimes_ => outputTimes()
     timeBegin=historyStarFormation%time(1)
-    if (iOutput < Galacticus_Output_Time_Count()) then
-       timeEnd =Galacticus_Output_Time(iOutput+1)
+    if (iOutput < outputTimes_%count()) then
+       timeEnd =outputTimes_%time(iOutput+1)
     else
        nodeParent => node
        do while (associated(nodeParent%parent))

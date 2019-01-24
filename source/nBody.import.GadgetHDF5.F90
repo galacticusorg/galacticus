@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -114,20 +115,41 @@ contains
     return
   end subroutine gadgetHDF5Destructor
   
-  function gadgetHDF5Import(self,fileName)
+  function gadgetHDF5Import(self,fileName,fileNamePrevious)
     !% Import data from a Gadget HDF5 file.
     use Galacticus_Error
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     implicit none
-    type            (nBodyData              )                :: gadgetHDF5Import
-    class           (nbodyImporterGadgetHDF5), intent(inout) :: self
-    character       (len=*                  ), intent(in   ) :: fileName
-    double precision                         , dimension(6)  :: massParticleType
-    character       (len=9                  )                :: particleGroupName
-    type            (hdf5Object             )                :: header
+    type            (nBodyData              )                          :: gadgetHDF5Import
+    class           (nbodyImporterGadgetHDF5), intent(inout)           :: self
+    character       (len=*                  ), intent(in   )           :: fileName
+    character       (len=*                  ), intent(in   ), optional :: fileNamePrevious
+    double precision                         , dimension(6)            :: massParticleType
+    character       (len=9                  )                          :: particleGroupName
+    type            (hdf5Object             )                          :: header
 
-    ! Open the file.
+    ! Read in information from the previous snapshot if requested.
+    if (present(fileNamePrevious)) then
+       ! Open the data file of the previous snapshot.
+       call self%file%openFile(fileNamePrevious,objectsOverwritable=.false.)
+       ! Construct the particle type group to read and verify that it exists.
+       write (particleGroupName,'(a8,i1)') "PartType",self%particleType
+       if (.not.self%file%hasGroup(particleGroupName)) call Galacticus_Error_Report('particle group does not exist'//{introspection:location})
+       ! Check whether the self-bound status at the previous snapshot is available.
+       if (self%file%hasDataset(particleGroupName//'/selfBoundStatus')) then
+          ! Open the particle group.
+          gadgetHDF5Import%analysis=self%file%openGroup(particleGroupName)
+          ! Import the particle IDs, self-bound status amd sampling weights at the previous snapshot.
+          call gadgetHDF5Import%analysis%readDataset('ParticleIDs    ',gadgetHDF5Import%particleIDsPrevious )
+          call gadgetHDF5Import%analysis%readDataset('selfBoundStatus',gadgetHDF5Import%boundStatusPrevious )
+          call gadgetHDF5Import%analysis%readDataset('weight         ',gadgetHDF5Import%sampleWeightPrevious)
+          call gadgetHDF5Import%analysis%close()
+       end if
+       ! Close the data file.
+       call self%file%close()
+    end if
+    ! Open the data file of the current snapshot.
     call self%file%openFile(fileName,objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
     write (particleGroupName,'(a8,i1)') "PartType",self%particleType
@@ -145,9 +167,10 @@ contains
          &                           /massSolar
     ! Open the particle group - this group will be used for analysis output.
     gadgetHDF5Import%analysis=self%file%openGroup(particleGroupName)
-    ! Import the particle postions and velocities.
-    call gadgetHDF5Import%analysis%readDataset('Coordinates',gadgetHDF5Import%position)
-    call gadgetHDF5Import%analysis%readDataset('Velocities' ,gadgetHDF5Import%velocity)
+    ! Import the particle postions, velocities and IDs.
+    call gadgetHDF5Import%analysis%readDataset('Coordinates',gadgetHDF5Import%position   )
+    call gadgetHDF5Import%analysis%readDataset('Velocities' ,gadgetHDF5Import%velocity   )
+    call gadgetHDF5Import%analysis%readDataset('ParticleIDs',gadgetHDF5Import%particleIDs)
     ! Convert position and velocities to internal units.
     gadgetHDF5Import%position=+gadgetHDF5Import%position &
          &                    *self%unitLengthInSI       &

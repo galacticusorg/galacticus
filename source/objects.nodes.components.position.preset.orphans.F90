@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,9 +22,10 @@
 module Node_Component_Position_Preset_Orphans
   !% Implements a preset position component with placement of orphan galaxies.
   use Galacticus_Nodes
+  use Satellite_Oprhan_Distributions
   implicit none
   private
-  public :: Node_Component_Position_Preset_Orphans_Initialize
+  public :: Node_Component_Position_Preset_Orphans_Initialize, Node_Component_Position_Preset_Orphans_Thread_Initialize
 
   !# <component>
   !#  <class>position</class>
@@ -75,43 +77,56 @@ module Node_Component_Position_Preset_Orphans
   !#  <functions>objects.nodes.components.position.preset.orphans.bound_functions.inc</functions>
   !# </component>
 
-  ! Record of whether this module has been initialized.
-  logical :: moduleInitialized=.false.
+  ! Objects used by this component.
+  class(satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_
+  !$omp threadprivate(satelliteOrphanDistribution_)  
 
 contains
   
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Position_Preset_Orphans_Initialize()
+  subroutine Node_Component_Position_Preset_Orphans_Initialize(parameters)
+    use Input_Parameters
     implicit none
-    type(nodeComponentPositionPresetOrphans) :: position
-
+    type(inputParameters                   ), intent(inout) :: parameters
+    type(nodeComponentPositionPresetOrphans)                :: position
+    !GCC$ attributes unused :: parameters
+    
     ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Position_Preset_Orphans_Initialize)
-    if (defaultPositionComponent%presetIsActive().and..not.moduleInitialized) then
+    if (defaultPositionComponent%presetIsActive()) then
        ! Bind the position get function.
        call position%positionOrphanFunction(Node_Component_Position_Preset_Orphans_Position_Orphan)
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Position_Preset_Orphans_Initialize)
     return
   end subroutine Node_Component_Position_Preset_Orphans_Initialize
   
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(parameters)
+    !% Initializes the tree node preset orphans position module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultPositionComponent%presetOrphansIsActive()) then
+       !# <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize
+
   function Node_Component_Position_Preset_Orphans_Position_Orphan(self)
     !% Return the position of the orphan node.
-    use Satellite_Oprhan_Distributions
     implicit none
     double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Position_Orphan
     class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self
     type            (treeNode                          ), pointer                     :: node
     class           (nodeComponentBasic                ), pointer                     :: basic
-    class           (satelliteOrphanDistributionClass  ), pointer                     :: satelliteOrphanDistribution_
 
     node  => self%host ()
     basic => node%basic()
     if (basic%time() /= self%timeAssign()) then
-       satelliteOrphanDistribution_ => satelliteOrphanDistribution()
        call self%    timeAssignSet(basic                       %time    (    ))
        call self%positionOrphanSet(satelliteOrphanDistribution_%position(node))
     end if
@@ -121,18 +136,15 @@ contains
 
   function Node_Component_Position_Preset_Orphans_Velocity_Orphan(self)
     !% Return the velocity of the orphan node.
-    use Satellite_Oprhan_Distributions
     implicit none
     double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Velocity_Orphan
     class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self
     type            (treeNode                          ), pointer                     :: node
     class           (nodeComponentBasic                ), pointer                     :: basic
-    class           (satelliteOrphanDistributionClass  ), pointer                     :: satelliteOrphanDistribution_
 
     node  => self%host ()
     basic => node%basic()
     if (basic%time() /= self%timeAssign()) then
-       satelliteOrphanDistribution_ => satelliteOrphanDistribution()
        call self%    timeAssignSet(basic                       %time    (    ))
        call self%velocityOrphanSet(satelliteOrphanDistribution_%velocity(node))
     end if

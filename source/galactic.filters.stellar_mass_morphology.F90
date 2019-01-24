@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -72,6 +73,7 @@ contains
 
   logical function stellarMassMorphologyPasses(self,node)
     !% Implement a stellar mass-weighted morphology high-pass galactic filter.
+    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (galacticFilterStellarMassMorphology), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

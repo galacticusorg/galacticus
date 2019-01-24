@@ -18,10 +18,13 @@
     <presetScaleRadii value="true"/>
   </mergerTreeConstructorMethod>
   <galacticusOutputFileName value="testSuite/outputs/bug1053153.hdf5"/>
-  <allTreesExistAtFinalTime value="false"/>
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+  </mergerTreeEvolverMethod>
+
   <treeNodeMethodPosition value="preset"/>
   <treeNodeMethodSatellite value="preset"/>
-  <satelliteMergingRemnantSizeMethod value="Cole2000"/>
+  <mergerRemnantSizeMethod value="cole2000"/>
   <cosmologyParametersMethod value="simple">
     <HubbleConstant value="70.2"/>
     <OmegaMatter value="0.2748"/>
@@ -39,5 +42,8 @@
   <mergerTreeOperatorMethod value="massAccretionHistory"/>
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
   <nodePromotionIndexShift value="false"/>
-  <outputRedshifts value="0.000"/>
-</parameters>
+  <outputTimesMethod value="list">
+    <redshifts value="0.000"/>
+  </outputTimesMethod>
+
+  </parameters>

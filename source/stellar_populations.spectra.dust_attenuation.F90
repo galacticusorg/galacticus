@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,16 +21,13 @@
 
 module Stellar_Spectra_Dust_Attenuations
   !% Provides a class implementing dust attenuation of stellar spectra.
-  use ISO_Varying_String
-  !# <include directive="stellarSpectraDustAttenuation" type="functionModules" >
-  include 'stellarSpectraDustAttenuation.functionModules.inc'
-  !# </include>
   private
 
-  !# <include directive="stellarSpectraDustAttenuation" type="function" >
+  !# <functionClass>
+  !#  <name>stellarSpectraDustAttenuation</name>
   !#  <descriptiveName>Stellar Spectra Dust Attenuation</descriptiveName>
-  !#  <description>Class implementing dust attenuation of stellar spectra..</description>
-  !#  <default>null</default>
+  !#  <description>Class implementing dust attenuation of stellar spectra.</description>
+  !#  <default>zero</default>
   !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="attenuation" >
   !#   <description>Return the attenuation, in magnitudes, of stellar spectra due to dust at the given wavelength, age, and V-band extinction.</description>
@@ -55,7 +53,6 @@ module Stellar_Spectra_Dust_Attenuations
   !#    stellarSpectraDustAttenuationIsSeparable=.true.
   !#   </code>
   !#  </method>
-  include 'stellarSpectraDustAttenuation.type.inc'
-  !# </include>
+  !# </functionClass>
 
 end module Stellar_Spectra_Dust_Attenuations

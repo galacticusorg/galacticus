@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,10 +16,11 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a S\'ersic mass distribution class.
 
-  use FGSL
+  use FGSL      , only : fgsl_function, fgsl_integration_workspace, &
+       &                 fgsl_interp  , fgsl_interp_accel
   !$ use OMP_Lib
   
   !# <massDistribution name="massDistributionSersic">
@@ -373,7 +375,6 @@ contains
     use Numerical_Integration
     use Numerical_Interpolation
     use Numerical_Constants_Math
-    use FGSL
     use Root_Finder
     implicit none
     class           (massDistributionSersic    ), intent(inout), target   :: self

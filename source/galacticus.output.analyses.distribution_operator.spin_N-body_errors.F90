@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -87,7 +88,7 @@ contains
   function spinNBodyErrorsOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
     use Output_Analyses_Options
-    use FGSL
+    use FGSL                   , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Galacticus_Error
     implicit none

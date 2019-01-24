@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,10 +22,14 @@
 module Node_Component_Black_Hole_Noncentral
   !% Implement black hole tree node methods.
   use Galacticus_Nodes
+  use Dark_Matter_Halo_Scales
+  use Black_Hole_Binary_Recoil_Velocities
+  use Black_Hole_Binary_Mergers
+  use Black_Hole_Binary_Separations
   implicit none
   private
-  public :: Node_Component_Black_Hole_Noncentral_Rate_Compute, Node_Component_Black_Hole_Noncentral_Scale_Set, &
-       &    Node_Component_Black_Hole_Noncentral_Initialize
+  public :: Node_Component_Black_Hole_Noncentral_Rate_Compute, Node_Component_Black_Hole_Noncentral_Scale_Set        , &
+       &    Node_Component_Black_Hole_Noncentral_Initialize  , Node_Component_Black_Hole_Noncentral_Thread_Initialize
 
   !# <component>
   !#  <class>blackHole</class>
@@ -44,10 +49,14 @@ module Node_Component_Black_Hole_Noncentral
   !#   </property>
   !#  </properties>
   !# </component>
-
-  ! Record of whether this module has been initialized.
-  logical :: moduleInitialized         =.false.
-
+  
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
+  class(blackHoleBinaryRecoilClass              ), pointer :: blackHoleBinaryRecoil_
+  class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
+  class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
+  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_)
+  
   ! Option specifying whether the triple black hole interaction should be used.
   logical :: tripleBlackHoleInteraction
 
@@ -64,62 +73,66 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Black_Hole_Noncentral_Initialize()
+  subroutine Node_Component_Black_Hole_Noncentral_Initialize(parameters)
     !% Initializes the noncentral black hole component module.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: parameters
 
-    ! Initialize the module if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Black_Hole_Noncentral_Initialize)
-       if (.not.moduleInitialized) then
-          ! Get options controlling three body interactions.
-          !# <inputParameter>
-          !#   <name>tripleBlackHoleInteraction</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
-          !#   <group>blackHoles</group>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Black_Hole_Noncentral_Initialize)
-    end if
+    !# <inputParameter>
+    !#   <name>tripleBlackHoleInteraction</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
+    !#   <group>blackHoles</group>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Black_Hole_Noncentral_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(parameters)
+    !% Initializes the tree node random spin module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultBlackHoleComponent%noncentralIsActive()) then
+       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters"/>
+       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters"/>
+       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters"/>
+       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Rate_Compute</unitName>
   !# </rateComputeTask>
   subroutine Node_Component_Black_Hole_Noncentral_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
-    use Dark_Matter_Halo_Scales
-    use Black_Hole_Binary_Separations
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    logical                                   , intent(inout)          :: interrupt
-    logical                                   , intent(in   )          :: odeConverged
-    procedure       (interruptTask           ), intent(inout), pointer :: interruptProcedure
-    integer                                   , intent(in   )          :: propertyType
-    class           (nodeComponentBlackHole  )               , pointer :: blackHoleBinary     , blackHoleCentral   , &
-         &                                                                blackHole
-    class           (darkMatterHaloScaleClass)               , pointer :: darkMatterHaloScale_
-    integer                                                            :: iInstance           , instanceCount      , &
-         &                                                                mergingInstance
-    double precision                                                   :: binaryRadius        , radialMigrationRate, &
-         &                                                                radiusHardBinary
-    logical                                                            :: binaryRadiusFound
+    type            (treeNode              ), intent(inout), pointer :: node
+    logical                                 , intent(inout)          :: interrupt
+    logical                                 , intent(in   )          :: odeConverged
+    procedure       (interruptTask         ), intent(inout), pointer :: interruptProcedure
+    integer                                 , intent(in   )          :: propertyType
+    class           (nodeComponentBlackHole)               , pointer :: blackHoleBinary   , blackHoleCentral   , &
+         &                                                              blackHole
+    integer                                                          :: iInstance         , instanceCount      , &
+         &                                                              mergingInstance
+    double precision                                                 :: binaryRadius      , radialMigrationRate, &
+         &                                                              radiusHardBinary
+    logical                                                          :: binaryRadiusFound
     !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     if (defaultBlackHoleComponent%noncentralIsActive()) then
-       ! Get required objects.
-       darkMatterHaloScale_ => darkMatterHaloScale()
        ! Get a count of the number of black holes associated with this node.
        instanceCount=node%blackHoleCount()
        ! Get the central black hole.
@@ -158,7 +171,7 @@ contains
              return
           end if
           ! Set the rate of radial migration.
-          radialMigrationRate=Black_Hole_Binary_Separation_Growth_Rate(blackHole)
+          radialMigrationRate=blackHoleBinarySeparationGrowthRate_%growthRate(blackHole)
           call blackHole%radialPositionRate(radialMigrationRate)
        end do
        ! Loop over black holes, testing for triple black hole interactions. Find the three closest black holes then check if a
@@ -258,29 +271,26 @@ contains
 
   subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes(node)
     !% Merge two black holes.
-    use Black_Hole_Binary_Recoil_Velocities
-    use Black_Hole_Binary_Mergers
     implicit none
-    type            (treeNode                  ), intent(inout), pointer :: node
-    class           (nodeComponentBlackHole    )               , pointer :: blackHole1            , blackHole2        , &
-         &                                                                  blackHolePrimary      , blackHoleSecondary
-    class           (blackHoleBinaryRecoilClass)               , pointer :: blackHoleBinaryRecoil_
-    double precision                                                     :: blackHoleMassNew      , blackHoleSpinNew  , &
-         &                                                                  massBlackHole1        , massBlackHole2    , &
-         &                                                                  recoilVelocity        , spinBlackHole1    , &
-         &                                                                  spinBlackHole2
+    type            (treeNode              ), intent(inout), pointer :: node
+    class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
+         &                                                              blackHolePrimary, blackHoleSecondary
+    double precision                                                 :: blackHoleMassNew, blackHoleSpinNew  , &
+         &                                                              massBlackHole1  , massBlackHole2    , &
+         &                                                              recoilVelocity  , spinBlackHole1    , &
+         &                                                              spinBlackHole2
 
     ! Get the black holes.
     blackHole1 => node%blackHole(instance=              1)
     blackHole2 => node%blackHole(instance=mergingInstance)
     ! Process the merger to get the mass and spin of the merged black hole.
-    call Black_Hole_Binary_Merger(blackHole2%mass(), &
-         &                        blackHole1%mass(), &
-         &                        blackHole2%spin(), &
-         &                        blackHole1%spin(), &
-         &                        blackHoleMassNew , &
-         &                        blackHoleSpinNew   &
-         &                       )
+    call blackHoleBinaryMerger_%merge(blackHole2%mass(), &
+         &                            blackHole1%mass(), &
+         &                            blackHole2%spin(), &
+         &                            blackHole1%spin(), &
+         &                            blackHoleMassNew , &
+         &                            blackHoleSpinNew   &
+         &                           )
     ! Check which black hole is more massive in order to compute an appropriate recoil velocity.
     if (blackHole1%mass() >= blackHole2%mass()) then
        blackHolePrimary   => blackHole1
@@ -294,8 +304,7 @@ contains
     spinBlackHole1=blackHolePrimary  %spin()
     spinBlackHole2=blackHoleSecondary%spin()
     ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
-    blackHoleBinaryRecoil_ => blackHoleBinaryRecoil          (                                   )
-    recoilVelocity         =  blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
+    recoilVelocity=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
     ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
     if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
        blackHoleMassNew=blackHole1%massSeed()
@@ -415,19 +424,16 @@ contains
     !% Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     use Galactic_Structure_Potentials
     use Galactic_Structure_Options
-    use Dark_Matter_Halo_Scales
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
     double precision                          , intent(in   )          :: recoilVelocity        , radius
     logical                                   , intent(in   )          :: ignoreCentralBlackHole
-    class           (darkMatterHaloScaleClass), pointer                :: darkMatterHaloScale_
     double precision                                                   :: potentialCentral      , potentialCentralSelf, &
          &                                                                potentialHalo         , potentialHaloSelf
 
     ! Compute relevant potentials.
-    darkMatterHaloScale_   => darkMatterHaloScale()
-    potentialCentral       =Galactic_Structure_Potential(node,radius                                                                      )
-    potentialHalo          =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
+    potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )
+    potentialHalo   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
        potentialCentralSelf=Galactic_Structure_Potential(node,radius                                 ,componentType=componentTypeBlackHole)

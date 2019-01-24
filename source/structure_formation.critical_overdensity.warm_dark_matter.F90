@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -163,8 +164,11 @@ contains
     implicit none
     type(criticalOverdensityBarkana2001WDM), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"  />
-    !# <objectDestructor name="self%criticalOverdensityCDM"/>
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%criticalOverdensityCDM"   />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%darkMatterParticle_"      />
     return
   end subroutine barkana2001WDMDestructor
 
@@ -174,7 +178,7 @@ contains
     !% scale with the effective Jeans mass of the warm dark matter particle as computed using their eqn.~(10).
     use Numerical_Interpolation
     use Table_Labels
-    use FGSL
+    use FGSL                   , only : FGSL_Interp_CSpline
     use Galacticus_Error
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self
@@ -281,7 +285,7 @@ contains
     !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
     use Numerical_Interpolation
     use Table_Labels
-    use FGSL
+    use FGSL                   , only : FGSL_Interp_CSpline
     use Galacticus_Error
     implicit none
     class           (criticalOverdensityBarkana2001WDM), intent(inout)           :: self

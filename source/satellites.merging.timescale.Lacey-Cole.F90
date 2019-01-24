@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,8 @@
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesLaceyCole1993
      !% A class implementing the \cite{lacey_merger_1993} method for satellite merging timescales.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     double precision                                    :: timescaleMultiplier
    contains
      !@ <objectMethods>
      !@   <object>satelliteMergingTimescalesLaceyCole1993</object>
@@ -54,22 +56,32 @@ contains
     !% Constructor for the \cite{lacey_merger_1993} merging timescale class which builds the object from a parameter set.
     use Input_Parameters
     implicit none
-    type (satelliteMergingTimescalesLaceyCole1993)                :: self
-    type (inputParameters                        ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
+    type            (satelliteMergingTimescalesLaceyCole1993)                :: self
+    type            (inputParameters                        ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
+    double precision                                                         :: timescaleMultiplier
 
-   !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=satelliteMergingTimescalesLaceyCole1993(darkMatterHaloScale_)
+    !# <inputParameter>
+    !#   <name>timescaleMultiplier</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>0.75d0</defaultValue>
+    !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=satelliteMergingTimescalesLaceyCole1993(timescaleMultiplier,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function laceyCole1993ConstructorParameters
 
-  function laceyCole1993ConstructorInternal(darkMatterHaloScale_) result(self)
+  function laceyCole1993ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_) result(self)
     !% Constructor for the \cite{lacey_merger_1993} merging timescale class.
     implicit none
-    type (satelliteMergingTimescalesLaceyCole1993)                        :: self
-    class(darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+    type            (satelliteMergingTimescalesLaceyCole1993)                        :: self
+    double precision                                         , intent(in   )         :: timescaleMultiplier
+    class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_"/>
 
     return
   end function laceyCole1993ConstructorInternal
@@ -85,7 +97,6 @@ contains
 
   double precision function laceyCole1993TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{lacey_merger_1993} method.
-    use Galacticus_Nodes
     use Kepler_Orbits
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
@@ -114,9 +125,7 @@ contains
 
   double precision function laceyCole1993TimeUntilMergingMassDependence(self,node)
     !% Return the mass-dependent part of the timescale for merging satellites using the \cite{lacey_merger_1993} method.
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
-    use Dynamical_Friction_Timescale_Utilities
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
@@ -139,12 +148,11 @@ contains
        laceyCole1993TimeUntilMergingMassDependence=0.0d0
     else
        ! Compute dynamical friction timescale.
-       laceyCole1993TimeUntilMergingMassDependence                    &
-            & =Dynamical_Friction_Timescale_Multiplier()              &
-            & *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
-            & *inverseTwoB1                                           &
-            & *    massRatio                                          &
-            & /log(massRatio)
+       laceyCole1993TimeUntilMergingMassDependence=+self%timescaleMultiplier                               &
+            &                                      *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            &                                      *inverseTwoB1                                           &
+            &                                      *    massRatio                                          &
+            &                                      /log(massRatio)
     end if
     return
   end function laceyCole1993TimeUntilMergingMassDependence

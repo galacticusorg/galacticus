@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,18 +20,21 @@
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
   use ISO_Varying_String
+  use Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLuminosityStellar">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLuminosityStellar" defaultThreadPrivate="yes">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLuminosityStellar
      !% A stellar luminosity output analysis property extractor class.
      private
-     type            (varying_string)                            :: filterName      , filterType, &
-          &                                                         postprocessChain
-     double precision                                            :: redshiftBand
-     integer                         , allocatable, dimension(:) :: luminosityIndex
+     type            (varying_string  )                            :: filterName      , filterType, &
+          &                                                           postprocessChain
+     double precision                                              :: redshiftBand
+     integer                           , allocatable, dimension(:) :: luminosityIndex
+     class           (outputTimesClass), pointer                   :: outputTimes_
    contains
+     final     ::             luminosityStellarDestructor
      procedure :: extract  => luminosityStellarExtract
      procedure :: type     => luminosityStellarType
      procedure :: quantity => luminosityStellarQuantity
@@ -50,6 +54,7 @@ contains
     implicit none
     type            (outputAnalysisPropertyExtractorLuminosityStellar)                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
+    class           (outputTimesClass                                ), pointer       :: outputTimes_
     type            (varying_string                                  )                :: filterName           , filterType               , &
          &                                                                               postprocessChain
     double precision                                                                  :: redshiftBand
@@ -89,56 +94,66 @@ contains
        !#   <cardinality>0..1</cardinality>
        !# </inputParameter>
     end if
+    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     if (redshiftBandIsPresent) then
        if (postprocessChainIsPresent) then
-          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),redshiftBand=redshiftBand,postprocessChain=char(postprocessChain))
+          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand,postprocessChain=char(postprocessChain))
        else
-          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),redshiftBand=redshiftBand                                        )
+          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand                                        )
        end if
     else
        if (postprocessChainIsPresent) then
-          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),                          postprocessChain=char(postprocessChain))
+          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,                          postprocessChain=char(postprocessChain))
        else
-          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType)                                                                  )
+          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_                                                                  )
        end if
     end if
     !# <inputParametersValidate source="parameters"/>
     return
   end function luminosityStellarConstructorParameters
   
-  function luminosityStellarConstructorInternal(filterName,filterType,redshiftBand,postprocessChain,outputMask) result(self)
+  function luminosityStellarConstructorInternal(filterName,filterType,outputTimes_,redshiftBand,postprocessChain,outputMask) result(self)
     !% Internal constructor for the ``luminosityStellar'' output analysis property extractor class.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Output_Times
     use               Stellar_Luminosities_Structure
     use               Memory_Management
     implicit none
     type            (outputAnalysisPropertyExtractorLuminosityStellar)                                        :: self
     character       (len=*                                           ), intent(in   )                         :: filterName      , filterType
+    class           (outputTimesClass                                ), intent(in   ), target                 :: outputTimes_
     character       (len=*                                           ), intent(in   ), optional               :: postprocessChain
     double precision                                                  , intent(in   ), optional               :: redshiftBand
     logical                                                           , intent(in   ), dimension(:), optional :: outputMask
     integer         (c_size_t                                        )                                        :: i
-    !# <constructorAssign variables="filterName, filterType, redshiftBand, postprocessChain"/>
+    !# <constructorAssign variables="filterName, filterType, redshiftBand, postprocessChain, *outputTimes_"/>
 
-    call allocateArray(self%luminosityIndex,[Galacticus_Output_Time_Count()])
-    do i=1,Galacticus_Output_Time_Count()
+    call allocateArray(self%luminosityIndex,[self%outputTimes_%count()])
+    do i=1,self%outputTimes_%count()
        if (present(outputMask).and..not.outputMask(i)) then
           self%luminosityIndex(i)=-1
        else
-          self%luminosityIndex(i)=unitStellarLuminosities%index(filterName,filterType,Galacticus_Output_Redshift(i),redshiftBand,postprocessChain)
+          self%luminosityIndex(i)=unitStellarLuminosities%index(filterName,filterType,self%outputTimes_%redshift(i),redshiftBand,postprocessChain)
        end if
     end do
     return
   end function luminosityStellarConstructorInternal
   
+  subroutine luminosityStellarDestructor(self)
+    !% Destructor for the ``luminosityStellar'' output analysis property extractor class.
+    use               Memory_Management
+    implicit none
+    type(outputAnalysisPropertyExtractorLuminosityStellar), intent(inout) :: self
+
+    !# <objectDestructor name="self%outputTimes_"/>
+    return
+  end subroutine luminosityStellarDestructor
+
   double precision function luminosityStellarExtract(self,node)
     !% Implement a stellar luminosity output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
     use               Galactic_Structure_Enclosed_Masses
     use               Galactic_Structure_Options
-    use               Galacticus_Output_Times
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
     class  (outputAnalysisPropertyExtractorLuminosityStellar), intent(inout) :: self
     type   (treeNode                                        ), intent(inout) :: node
@@ -146,7 +161,7 @@ contains
     integer(c_size_t                                        )                :: i
     
     basic                    =>                                  node %basic()
-    i                        =  Galacticus_Output_Time_Index    (basic%time ()                                                                                                     )
+    i                        =  self%outputTimes_%index         (basic%time ()                                                                                                     )
     luminosityStellarExtract =  Galactic_Structure_Enclosed_Mass(node         ,radiusLarge,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
     return
   end function luminosityStellarExtract

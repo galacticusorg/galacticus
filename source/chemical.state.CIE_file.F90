@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implements a chemical state class which reads and interpolates a collisional ionization equilibrium chemical state from a file.
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
   
   !# <chemicalState name="chemicalStateCIEFile" defaultThreadPrivate="yes">
   !#  <description>
@@ -268,13 +269,13 @@ contains
     !% Return the electron density by interpolating in tabulated CIE data read from a file.
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
-    use               Radiation_Structure
+    use               Radiation_Fields
     use               Table_Labels
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
@@ -344,13 +345,13 @@ contains
     !% read from a file.
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
-    use               Radiation_Structure
+    use               Radiation_Fields
     use               Table_Labels
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
     integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
@@ -439,12 +440,12 @@ contains
   double precision function cieFileElectronDensityDensityLogSlope(self,numberDensityHydrogen,temperature,gasAbundances,radiation)
     !% Return the logarithmic slope of the electron density with respect to density assuming atomic CIE.
     use Abundances_Structure
-    use Radiation_Structure
+    use Radiation_Fields
     implicit none
     class           (chemicalStateCIEFile), intent(inout) :: self
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
     !GCC$ attributes unused :: self, numberDensityHydrogen, temperature, gasAbundances, radiation
 
     ! Electron density always scales as total density under CIE conditions.
@@ -457,7 +458,7 @@ contains
     !% and radiation field. Units of the returned electron density are cm$^-3$.
     use, intrinsic :: ISO_C_Binding
     use               Abundances_Structure
-    use               Radiation_Structure
+    use               Radiation_Fields
     use               Chemical_Abundances_Structure
     use               Table_Labels
     implicit none
@@ -465,8 +466,8 @@ contains
     type            (chemicalAbundances  ), intent(inout) :: chemicalDensities
     double precision                      , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
-    type            (radiationStructure  ), intent(in   ) :: radiation
-    integer         (c_size_t          )                  :: iMetallicity         , iTemperature
+    class           (radiationFieldClass ), intent(inout) :: radiation
+    integer         (c_size_t            )                :: iMetallicity         , iTemperature
     double precision                                      :: hMetallicity         , hTemperature  , &
          &                                                   metallicityUse       , temperatureUse
     !GCC$ attributes unused :: radiation

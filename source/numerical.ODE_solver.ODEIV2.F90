@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -75,6 +76,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Numerical_Integration2
+    use FGSL                  , only : FGSL_Success, FGSL_Failure
     implicit none
     double precision                              , intent(in   )                         :: toleranceAbsolute        , toleranceRelative        , x1
     integer                                       , intent(in   )                         :: yCount
@@ -100,6 +102,8 @@ contains
     double precision                              , intent(inout), optional, dimension(:) :: z
     class            (integratorMultiVectorized1D), intent(inout), optional               :: integrator_
     logical                                       , intent(in   ), optional               :: integratorErrorTolerate
+    double precision                              , dimension(:) , allocatable            :: z0
+    double precision                                                                      :: y0(yCount)
     double precision                              , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
     integer                                                                               :: status
     integer         (kind=c_size_t               )                                        :: previousODENumber               , previousIntegrandsNumber
@@ -128,6 +132,8 @@ contains
        previousIntegrandsNumber =  currentIntegrandsNumber
        currentIntegrands        => integrands
        currentIntegrandsNumber  =  zCount
+       allocate(z0(zCount))
+       z0=z
     end if
     ! Initialize integrator if required.
     if (present(zCount).and.zCount > 0) call integrator_%integrandSet (zCount,integrandsWrapper )
@@ -161,6 +167,8 @@ contains
           odeDriver=FODEIV2_Driver_Alloc_y_New     (odeSystem,algorithmActual,h,toleranceAbsolute,toleranceRelative)
        end if       
     end if
+    ! Keep a local copy of the initial y values so that we can repeat the step if necessary.
+    y0=y
     ! Keep a local copy of the end point as we may reset it.
     x1Internal=x1
     ! Set initial value of x variable.
@@ -210,6 +218,13 @@ contains
        case (odeSolverInterrupt)
           ! The evolution was interrupted. Reset the end time of the evolution and continue.
           x1Internal=interruptedAtX
+          if (x > x1Internal) then
+             ! The timestep exceeded the time at which an interrupt occured. To maintain accuracy we need to repeat the step.
+             y=y0
+             x=x0
+             if (present(z)) z=z0
+             status=FODEIV2_Driver_Reset(odeDriver)
+          end if
        case default
           ! Some other error condition.
           if (present(errorHandler)) call errorHandler(status,x,y)

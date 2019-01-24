@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -109,7 +110,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,self%deltaVirial)
+       call Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,self%deltaVirial,self%cosmologyFunctions_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%deltaVirial%x(+1)
        self%tableTimeMaximum=self%deltaVirial%x(-1)

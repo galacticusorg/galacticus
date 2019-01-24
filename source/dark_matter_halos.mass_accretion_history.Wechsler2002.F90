@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -14,8 +15,8 @@
 !!    GNU General Public License for more details.
 !!
 !!    You should have received a copy of the GNU General Public License
-  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
   !% An implementation of dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.
   
   use Cosmology_Functions
@@ -116,6 +117,7 @@ contains
   double precision function wechsler2002Time(self,node,mass)
     !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily thisNode} using the algorithm of
     !% \cite{wechsler_concentrations_2002}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node

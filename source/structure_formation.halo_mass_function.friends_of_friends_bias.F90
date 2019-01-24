@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,18 +56,24 @@
 
 contains
 
-  function fofBiasConstructorParameters(parameters)
+  function fofBiasConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fofBias} halo mass function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(haloMassFunctionFofBias)                :: fofBiasConstructorParameters
-    type(inputParameters        ), intent(inout) :: parameters
-    
-    ! Check and read parameters.
+    type            (haloMassFunctionFofBias )                :: self
+    type            (inputParameters         ), intent(inout) :: parameters
+    class           (haloMassFunctionClass   ), pointer       :: massFunctionIntrinsic
+    class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass  ), pointer       :: darkMatterProfile_
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    double precision                                          :: massParticle           , massInfiniteToMassSharpEdge, &
+         &                                                       linkingLength
+    logical                                                   :: linkingLengthIsComoving
+
     !# <inputParameter>
     !#   <name>massParticle</name>
     !#   <source>parameters</source>
-    !#   <variable>fofBiasConstructorParameters%massParticle</variable>
     !#   <description>Parameter $M_\mathrm{particle}$ appearing in model for friends-of-friends errors in the halo mass function.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -74,7 +81,6 @@ contains
     !# <inputParameter>
     !#   <name>massInfiniteToMassSharpEdge</name>
     !#   <source>parameters</source>
-    !#   <variable>fofBiasConstructorParameters%massInfiniteToMassSharpEdge</variable>
     !#   <defaultValue>0.98d0</defaultValue>
     !#   <defaultSource>\cite[estimate based on comments in text]{more_overdensity_2011}</defaultSource>
     !#   <description>The ratio of the friends-of-friends mass in the limit of infinite number of particles to the mass of the halo enclosed within a sharp-edged sphere bounding an isodensity surface equal to the critical density for percolation.</description>
@@ -84,7 +90,6 @@ contains
     !# <inputParameter>
     !#   <name>linkingLength</name>
     !#   <source>parameters</source>
-    !#   <variable>fofBiasConstructorParameters%linkingLength</variable>
     !#   <description>The linking length (in physical Mpc) used in the friends-of-friends algorithm.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
@@ -92,40 +97,34 @@ contains
     !# <inputParameter>
     !#   <name>linkingLengthIsComoving</name>
     !#   <source>parameters</source>
-    !#   <variable>fofBiasConstructorParameters%linkingLengthIsComoving</variable>
     !#   <description>Specifies whether or not the given linking length is in comoving units.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="fofBiasConstructorParameters%cosmologyParameters_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="fofBiasConstructorParameters%cosmologyFunctions_"   source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"    name="fofBiasConstructorParameters%massFunctionIntrinsic" source="parameters"/>
-    fofBiasConstructorParameters%darkMatterHaloScale_ => darkMatterHaloScale()
-    fofBiasConstructorParameters%darkMatterProfile_   => darkMatterProfile  ()
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"   source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"    source="parameters"/>
+    self=haloMassFunctionFofBias(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge)
     !# <inputParametersValidate source="parameters"/>
    return
   end function fofBiasConstructorParameters
 
-  function fofBiasConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,massParticle,linkingLength,massInfiniteToMassSharpEdge)
+  function fofBiasConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fofBias} halo mass function class.
     implicit none
-    type            (haloMassFunctionFofBias )                        :: fofBiasConstructorInternal
+    type            (haloMassFunctionFofBias )                        :: self
     class           (haloMassFunctionClass   ), target, intent(in   ) :: massFunctionIntrinsic
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass), target, intent(in   ) :: darkMatterHaloScale_
     class           (darkMatterProfileClass  ), target, intent(in   ) :: darkMatterProfile_
-    double precision                                  , intent(in   ) :: massParticle                , massInfiniteToMassSharpEdge   , &
+    double precision                                  , intent(in   ) :: massParticle           , massInfiniteToMassSharpEdge, &
          &                                                               linkingLength
-    
-    fofBiasConstructorInternal%massFunctionIntrinsic       => massFunctionIntrinsic
-    fofBiasConstructorInternal%cosmologyParameters_        => cosmologyParameters_
-    fofBiasConstructorInternal%cosmologyFunctions_         => cosmologyFunctions_
-    fofBiasConstructorInternal%darkMatterHaloScale_        => darkMatterHaloScale_
-    fofBiasConstructorInternal%darkMatterProfile_          => darkMatterProfile_
-    fofBiasConstructorInternal%massParticle                =  massParticle
-    fofBiasConstructorInternal%linkingLength               =  linkingLength
-    fofBiasConstructorInternal%massInfiniteToMassSharpEdge =  massInfiniteToMassSharpEdge
+    logical                                           , intent(in   ) :: linkingLengthIsComoving
+    !# <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfile_, massParticle, linkingLength, linkingLengthIsComoving, massInfiniteToMassSharpEdge"/>
+
     return
   end function fofBiasConstructorInternal
   
@@ -134,16 +133,18 @@ contains
     implicit none
     type(haloMassFunctionFofBias), intent(inout) :: self
 
-    !# <objectDestructor name="self%massFunctionIntrinsic" />
-    !# <objectDestructor name="self%cosmologyParameters_"  />
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%massFunctionIntrinsic"/>
+    !# <objectDestructor name="self%cosmologyParameters_" />
+    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !# <objectDestructor name="self%darkMatterProfile_"   />
     return
   end subroutine fofBiasDestructor
 
   double precision function fofBiasDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use Galacticus_Error
-    use Galacticus_Nodes
+    use Galacticus_Nodes        , only : treeNode, nodeComponentBasic
     use Numerical_Constants_Math
     implicit none
     class           (haloMassFunctionFofBias), intent(inout)           :: self

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -45,6 +46,7 @@
      !@     <description>Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::              sampledDistributionDestructor
      procedure :: construct => sampledDistributionConstruct
      procedure :: sampleCMF => sampledDistributionCMF
   end type mergerTreeBuildMassesSampledDistribution
@@ -109,11 +111,20 @@ contains
     return
   end function sampledDistributionConstructorParameters
 
+  subroutine sampledDistributionDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class.
+    implicit none
+    type(mergerTreeBuildMassesSampledDistribution), intent(inout) :: self
+
+    !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    return
+  end subroutine sampledDistributionDestructor
+  
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
     use, intrinsic :: ISO_C_Binding
     use            :: Memory_Management
-    use            :: FGSL
+    use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
     use            :: Numerical_Integration
     use            :: Numerical_Interpolation
     use            :: Numerical_Ranges
@@ -137,7 +148,7 @@ contains
     type            (fgsl_integration_workspace              )                                           :: integrationWorkspace
     type            (fgsl_interp                             )                                           :: interpolationObject
     type            (fgsl_interp_accel                       )                                           :: interpolationAccelerator
-    logical                                                                                              :: integrandReset               =.true. , interpolationReset                =.true.
+    logical                                                                                              :: integrandReset                       , interpolationReset
     !GCC$ attributes unused :: weight
     
     ! Generate a randomly sampled set of halo masses.
@@ -155,6 +166,7 @@ contains
     jSample=0
     do iSample=1,massFunctionSampleCount
        if (massFunctionSampleLogMass(iSample) > massFunctionSampleLogPrevious) then
+          integrandReset=.true.
           probability=Integrate(                                                          &
                &                                  massFunctionSampleLogPrevious         , &
                &                                  massFunctionSampleLogMass    (iSample), &
@@ -210,6 +222,7 @@ contains
        end if
     end do
     ! Compute the corresponding halo masses by interpolation in the cumulative probability distribution function.
+    interpolationReset=.true.
     do iTree=1,treeCount
        mass       (iTree)=Interpolate(                                                                                 &
             &                                           massFunctionSampleProbability     (1:massFunctionSampleCount), &

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -85,14 +86,6 @@ contains
     ! Return property names if we are outputting virial data.
     if (outputHostIndices) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>hostIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>ID of the node which hosts this node (or $-1$ if there is no host).</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='hostIndex'
        integerPropertyComments(integerProperty)='ID of the node which hosts this node (or -1 is there is no host).'
        integerPropertyUnitsSI (integerProperty)=0.0d0
@@ -127,7 +120,7 @@ contains
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store host properties in the \glc\ output file buffers.
     use Kind_Numbers
-    use Galacticus_Output_Times
+    use Output_Times
     use Multi_Counters
     implicit none
     double precision                , intent(in   )          :: time

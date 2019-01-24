@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,6 @@ module Galacticus_Output_Analyses_Halo_Mass_Function
   !% Performs analysis to compute halo mass functions.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Galacticus_Nodes
   implicit none
   private
   public :: Galacticus_Output_Analysis_Halo_Mass_Functions, Galacticus_Output_Analysis_Halo_Mass_Functions_Output
@@ -86,10 +86,11 @@ contains
   subroutine Galacticus_Output_Analysis_Halo_Mass_Functions(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct halo mass functions.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
+    use            :: Galacticus_Nodes, only : mergerTree                       , treeNode, nodeComponentBasic, nodeComponentMergingStatistics, &
+         &                                     defaultMergingStatisticsComponent
     use Memory_Management
     use Input_Parameters
-    use Galacticus_Output_Times
+    use Output_Times
     use Galacticus_Error
     use Cosmology_Functions
     use Numerical_Comparison
@@ -107,6 +108,7 @@ contains
     class           (nodeComponentBasic            )               , pointer        :: basic
     class           (nodeComponentMergingStatistics)               , pointer        :: mergingStatistics
     class           (cosmologyFunctionsClass       )               , pointer        :: cosmologyFunctions_
+    class           (outputTimesClass              )               , pointer        :: outputTimes_
     integer                                                                         :: currentAnalysis,activeAnalysisCount,haloMassBin,massBin,i,k
     double precision                                                                :: massLogarithmic,redshift,outputTime
     type            (varying_string                )                                :: analysisHaloMassFunctionCovarianceModelText
@@ -218,6 +220,7 @@ contains
           else
              analysisActive=.true.
              cosmologyFunctions_ => cosmologyFunctions()
+             outputTimes_        => outputTimes       ()
              ! Initialize analyses.
              currentAnalysis=0
              allocate(massFunctions(activeAnalysisCount))
@@ -284,8 +287,8 @@ contains
                    ! Find the index of the output corresponding to the requested redshift.
                    read (redshiftLabel,*) redshift
                    outputTime=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
-                   massFunctions(currentAnalysis)%outputIndex=Galacticus_Output_Time_Index(outputTime,findClosest=.true.)
-                   if (Values_Differ(Galacticus_Output_Time(massFunctions(currentAnalysis)%outputIndex),outputTime,relTol=1.0d-3)) &
+                   massFunctions(currentAnalysis)%outputIndex=outputTimes_%index(outputTime,findClosest=.true.)
+                   if (Values_Differ(outputTimes_%time(massFunctions(currentAnalysis)%outputIndex),outputTime,relTol=1.0d-3)) &
                         & call Galacticus_Error_Report('no output available for requested analysis'//{introspection:location})
                 end if
              end do

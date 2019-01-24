@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module MPI_Utilities
   !% Implements useful MPI utilities.
 #ifdef USEMPI
-  use               :: MPI
+  use               :: MPI_F08
 #endif
   !$ use            :: Locks
   use   , intrinsic :: ISO_C_Binding
@@ -174,10 +175,10 @@ module MPI_Utilities
      generic   :: median         => mpiMedianArray
      procedure ::                   mpiSumScalarInt     , mpiSumArrayInt
      procedure ::                   mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble
+          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
      generic   :: sum            => mpiSumScalarInt     , mpiSumArrayInt         , &
           &                         mpiSumScalarDouble  , mpiSumArrayDouble      , &
-          &                         mpiSumArrayTwoDouble
+          &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
      procedure ::                   mpiAnyLogicalScalar
      generic   :: any            => mpiAnyLogicalScalar
      procedure :: maxloc         => mpiMaxloc
@@ -202,9 +203,12 @@ module MPI_Utilities
   ! Define an MPI counter type.
   type :: mpiCounter
      !% An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
-     integer                                      :: window  , typeClass
-     integer(c_size_t), allocatable, dimension(:) :: counter
-     !$ type(ompLock )                            :: ompLock_
+#ifdef USEMPI
+     type   (MPI_Win     )                            :: window
+     type   (MPI_Datatype)                            :: typeClass
+#endif
+     integer(c_size_t    ), allocatable, dimension(:) :: counter
+     !$ type(ompLock )                                :: ompLock_
    contains
      !@ <objectMethods>
      !@   <object>mpiCounter</object>
@@ -468,11 +472,11 @@ contains
   logical function mpiMessageWaiting(self,from,tag)
     !% Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
     implicit none
-    class  (mpiObject), intent(in   )                        :: self
-    integer           , intent(in   )             , optional :: from         , tag
+    class  (mpiObject ), intent(in   )           :: self
+    integer            , intent(in   ), optional :: from         , tag
 #ifdef USEMPI
-    integer           , dimension(MPI_Status_Size)           :: messageStatus
-    integer                                                  :: fromActual   , tagActual, iError
+    type   (MPI_Status)                          :: messageStatus
+    integer                                      :: fromActual   , tagActual, iError
 #endif
 
 #ifdef USEMPI
@@ -500,9 +504,9 @@ contains
 #ifdef USEMPI
     double precision                          , dimension(size(array)                  ) :: receivedData
     integer                                   , dimension(                            1) :: requester       , requestedBy
-    integer                                   , dimension(         0: self%countValue-1) :: requestFromID
-    integer                    , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
-    integer                                   , dimension(              MPI_Status_Size) :: messageStatus
+    type            (MPI_Request)             , dimension(         0: self%countValue-1) :: requestFromID
+    type            (MPI_Request), allocatable, dimension(                            :) :: requestID       , requestIDtemp
+    type            (MPI_Status )                                                        :: messageStatus
     integer                                                                              :: i               , iError       , &
          &                                                                                  iRequest        , receivedFrom , &
          &                                                                                  j
@@ -550,7 +554,7 @@ contains
     do i=1,size(requestFrom)
        call MPI_Recv(receivedData,size(array),MPI_Double_Precision,MPI_Any_Source,tagState,MPI_Comm_World,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
-       receivedFrom=messageStatus(MPI_SOURCE)
+       receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
           if (requestFrom(j) == receivedFrom) mpiRequestData1D(:,j)=receivedData
        end do
@@ -573,19 +577,19 @@ contains
   function mpiRequestData2D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
     implicit none
-    class           (mpiObject), intent(in   )                                                                   :: self
-    integer                    , intent(in   ), dimension(                                                    :) :: requestFrom
-    double precision           , intent(in   ), dimension(                :,                :                  ) :: array
-    double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(requestFrom)) :: mpiRequestData2D
+    class           (mpiObject  ), intent(in   )                                                                   :: self
+    integer                      , intent(in   ), dimension(                                                    :) :: requestFrom
+    double precision             , intent(in   ), dimension(                :,                :                  ) :: array
+    double precision                            , dimension(size(array,dim=1),size(array,dim=2),size(requestFrom)) :: mpiRequestData2D
 #ifdef USEMPI
-    double precision                          , dimension(size(array,dim=1),size(array,dim=2)                  ) :: receivedData
-    integer                                   , dimension(                                                    1) :: requester       , requestedBy
-    integer                                   , dimension(                                 0: self%countValue-1) :: requestFromID
-    integer                    , allocatable  , dimension(                                                    :) :: requestID       , requestIDtemp
-    integer                                   , dimension(                                      MPI_Status_Size) :: messageStatus
-    integer                                                                                                      :: i               , iError       , &
-         &                                                                                                          iRequest        , j            , &
-         &                                                                                                          receivedFrom
+    double precision                            , dimension(size(array,dim=1),size(array,dim=2)                  ) :: receivedData
+    integer                                     , dimension(                                                    1) :: requester       , requestedBy
+    type            (MPI_Request)               , dimension(                                 0: self%countValue-1) :: requestFromID
+    type            (MPI_Request), allocatable  , dimension(                                                    :) :: requestID       , requestIDtemp
+    type            (MPI_Status )                                                                                  :: messageStatus 
+    integer                                                                                                        :: i               , iError       , &
+         &                                                                                                            iRequest        , j            , &
+         &                                                                                                            receivedFrom
 #endif
     
 #ifdef USEMPI
@@ -630,7 +634,7 @@ contains
     do i=1,size(requestFrom)
        call MPI_Recv(receivedData,product(shape(array)),MPI_Double_Precision,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
-       receivedFrom=messageStatus(MPI_SOURCE)
+       receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
           if (requestFrom(j) == receivedFrom) mpiRequestData2D(:,:,j)=receivedData
        end do
@@ -653,19 +657,19 @@ contains
   function mpiRequestDataInt1D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
     implicit none
-    class  (mpiObject), intent(in   )                                           :: self
-    integer           , intent(in   ), dimension(                            :) :: requestFrom
-    integer           , intent(in   ), dimension(          :                  ) :: array
-    integer                          , dimension(size(array),size(requestFrom)) :: mpiRequestDataInt1D
+    class  (mpiObject  ), intent(in   )                                           :: self
+    integer             , intent(in   ), dimension(                            :) :: requestFrom
+    integer             , intent(in   ), dimension(          :                  ) :: array
+    integer                            , dimension(size(array),size(requestFrom)) :: mpiRequestDataInt1D
 #ifdef USEMPI
-    integer                          , dimension(size(array)                  ) :: receivedData
-    integer                          , dimension(                            1) :: requester       , requestedBy
-    integer                          , dimension(         0: self%countValue-1) :: requestFromID
-    integer           , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
-    integer                          , dimension(              MPI_Status_Size) :: messageStatus
-    integer                                                                     :: i               , iError       , &
-         &                                                                         iRequest        , j            , &
-         &                                                                         receivedFrom
+    integer                            , dimension(size(array)                  ) :: receivedData
+    integer                            , dimension(                            1) :: requester       , requestedBy
+    type   (MPI_Request)               , dimension(         0: self%countValue-1) :: requestFromID
+    type   (MPI_Request), allocatable  , dimension(                            :) :: requestID       , requestIDtemp
+    type   (MPI_Status )                                                          :: messageStatus
+    integer                                                                       :: i               , iError       , &
+         &                                                                           iRequest        , j            , &
+         &                                                                           receivedFrom
 #endif
     
 #ifdef USEMPI
@@ -710,7 +714,7 @@ contains
     do i=1,size(requestFrom)
        call MPI_Recv(receivedData,size(array),MPI_Integer,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
-       receivedFrom=messageStatus(MPI_SOURCE)
+       receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
           if (requestFrom(j) == receivedFrom) mpiRequestDataInt1D(:,j)=receivedData
        end do
@@ -733,19 +737,19 @@ contains
   function mpiRequestDataLogical1D(self,requestFrom,array)
     !% Request and receive data from other MPI processes.
     implicit none
-    class  (mpiObject), intent(in   )                                           :: self
-    integer           , intent(in   ), dimension(                            :) :: requestFrom
-    logical           , intent(in   ), dimension(          :                  ) :: array
-    logical                          , dimension(size(array),size(requestFrom)) :: mpiRequestDataLogical1D
+    class  (mpiObject  ), intent(in   )                                           :: self
+    integer             , intent(in   ), dimension(                            :) :: requestFrom
+    logical             , intent(in   ), dimension(          :                  ) :: array
+    logical                            , dimension(size(array),size(requestFrom)) :: mpiRequestDataLogical1D
 #ifdef USEMPI
-    logical                          , dimension(size(array)                  ) :: receivedData
-    integer                          , dimension(                            1) :: requester       , requestedBy
-    integer                          , dimension(         0: self%countValue-1) :: requestFromID
-    integer           , allocatable  , dimension(                            :) :: requestID       , requestIDtemp
-    integer                          , dimension(              MPI_Status_Size) :: messageStatus
-    integer                                                                     :: i               , iError       , &
-         &                                                                         iRequest        , j            , &
-         &                                                                         receivedFrom
+    logical                            , dimension(size(array)                  ) :: receivedData
+    integer                            , dimension(                            1) :: requester       , requestedBy
+    type   (MPI_Request)               , dimension(         0: self%countValue-1) :: requestFromID
+    type   (MPI_Request), allocatable  , dimension(                            :) :: requestID       , requestIDtemp
+    type   (MPI_Status )                                                          :: messageStatus
+    integer                                                                       :: i               , iError       , &
+         &                                                                           iRequest        , j            , &
+         &                                                                           receivedFrom
 #endif
     
 #ifdef USEMPI
@@ -790,7 +794,7 @@ contains
     do i=1,size(requestFrom)
        call MPI_Recv(receivedData,size(array),MPI_Logical,requestFrom(i),tagState,MPI_Comm_World,messageStatus,iError)
        ! Find who sent this data and apply to the relevant part of the results array.
-       receivedFrom=messageStatus(MPI_SOURCE)
+       receivedFrom=messageStatus%MPI_Source
        do j=1,size(requestFrom)
           if (requestFrom(j) == receivedFrom) mpiRequestDataLogical1D(:,j)=receivedData
        end do
@@ -921,6 +925,36 @@ contains
 #endif
     return
   end function mpiSumArrayTwoDouble
+  
+  function mpiSumArrayThreeDouble(self,array,mask)
+    !% Sum an rank-3 double array over all processes, returning it to all processes.
+    implicit none
+    class           (mpiObject), intent(in   )                                                                             :: self
+    double precision           , intent(in   ), dimension( :               , :               , :               )           :: array
+    logical                    , intent(in   ), dimension(0:                                                   ), optional :: mask
+    double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: mpiSumArrayThreeDouble
+#ifdef USEMPI
+    double precision                          , dimension(size(array,dim=1),size(array,dim=2),size(array,dim=3))           :: maskedArray
+    integer                                                                                                                :: iError                , activeCount
+#endif
+    
+#ifdef USEMPI
+    ! Sum the array over all processes.
+    maskedArray=array
+    activeCount=self%count()
+    if (present(mask)) then
+       if (.not.mask(self%rank())) maskedArray=0.0d0
+       activeCount=count(mask)
+    end if
+    call MPI_AllReduce(maskedArray,mpiSumArrayThreeDouble,size(array),MPI_Double_Precision,MPI_Sum,MPI_Comm_World,iError)
+    if (iError /= 0) call Galacticus_Error_Report('MPI all reduce failed'//{introspection:location})
+#else
+    !GCC$ attributes unused :: self, array, mask
+    mpiSumArrayThreeDouble=0.0d0
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiSumArrayThreeDouble
   
   double precision function mpiSumScalarDouble(self,scalar,mask)
     !% Sum an integer scalar over all processes, returning it to all processes.

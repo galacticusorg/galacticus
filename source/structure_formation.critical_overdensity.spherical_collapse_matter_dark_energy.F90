@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -106,9 +107,10 @@ contains
     implicit none
     type (criticalOverdensitySphericalCollapseMatterDE), intent(inout) :: self
     
-    !# <objectDestructor name="self%linearGrowth_"      />
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%darkMatterParticle_"/>
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%darkMatterParticle_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()
        deallocate(self%overdensityCritical)
@@ -131,7 +133,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate(time,self%overdensityCritical,self%linearGrowth_,self%cosmologyFunctions_)
+       call Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate(time,self%overdensityCritical,self%cosmologyFunctions_,self%linearGrowth_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%overdensityCritical%x(+1)
        self%tableTimeMaximum=self%overdensityCritical%x(-1)

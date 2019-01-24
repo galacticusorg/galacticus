@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -93,7 +94,9 @@ contains
     !% Destructor for  the ``nbodyMass'' output analysis weight operator class.
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
     
-    !# <objectDestructor name="self%nbodyHaloMassError_" />
+    !# <objectDestructor name="self%nbodyHaloMassError_"             />
+    !# <objectDestructor name="self%outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="self%outputAnalysisPropertyOperator_" />
     return
   end subroutine nbodyMassDestructor
 

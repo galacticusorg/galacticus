@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,8 +19,8 @@
 
   !% Implementation of a simple cooling time class.
 
-  use Cooling_Functions
-  use Chemical_States
+  use Cooling_Functions, only : coolingFunctionClass, coolingFunction
+  use Chemical_States  , only : chemicalStateClass  , chemicalState
   
   !# <coolingTime name="coolingTimeSimple" defaultThreadPrivate="yes">
   !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
@@ -102,7 +103,7 @@ contains
     double precision                      , intent(in   ) :: density                       , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
     ! Effectively infinite time (for arbitrarily long cooling times).
     double precision                      , parameter     :: timeLarge              =1.0d10
     double precision                                      :: coolingFunctionValue          , energyDensityThermal , &
@@ -147,7 +148,7 @@ contains
     double precision                      , intent(in   ) :: density          , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
 
     simpleGradientDensityLogarithmic=+1.0d0                                                                                                               &
          &                           -self%coolingFunction_%coolingFunctionDensityLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
@@ -162,7 +163,7 @@ contains
     double precision                      , intent(in   ) :: density          , temperature
     type            (abundances          ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances  ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure  ), intent(in   ) :: radiation
+    class           (radiationFieldClass ), intent(inout) :: radiation
 
     simpleGradientTemperatureLogarithmic=-self%coolingFunction_%coolingFunctionTemperatureLogSlope(density,temperature,gasAbundances,chemicalDensities,radiation)
     return

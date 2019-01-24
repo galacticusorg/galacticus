@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
   
   use Tables
@@ -90,6 +91,7 @@ contains
   function growingConstructorInternal(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_) result(self)
     !% Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
     use Galacticus_Error
+    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type            (hotHaloMassDistributionCoreRadiusGrowing)                        :: self
     double precision                                          , intent(in   )         :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
@@ -124,6 +126,7 @@ contains
 
   double precision function growingRadius(self,node)
     !% Return the core radius of the hot halo mass distribution.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentDarkMatterProfile
     implicit none
     class           (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node

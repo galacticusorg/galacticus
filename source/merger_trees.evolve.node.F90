@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Merger_Trees_Evolve_Node
   !% Implements evolution of a single node in a merger tree.
-  use Galacticus_Nodes
+  use Galacticus_Nodes  , only : treeNode, interruptTask
   use Kind_Numbers
   use ISO_Varying_String
   use FODEIV2
@@ -167,7 +168,7 @@ contains
           case ('multistepAdams')
              Galacticus_ODE_Algorithm=Fodeiv2_Step_msAdams
           case ('Bulirsch-Stoer')
-             Galacticus_ODE_Algorithm=Fodeiv2_step_BSImp
+             Galacticus_ODE_Algorithm=Fodeiv2_step_BSimp
              useJacobian             =.true.
           case ('BDF')
              Galacticus_ODE_Algorithm=Fodeiv2_step_MSBDFActive
@@ -249,6 +250,8 @@ contains
 
   subroutine Tree_Node_Evolve(thisTree,node,timeEnd,interrupted,functionInterrupt)
     !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
+    use Galacticus_Nodes               , only : nodeComponentBasic  , mergerTree      , propertyTypeAll , propertyTypeActive, &
+         &                                      propertyTypeInactive, rateComputeState, propertyTypeNone
     use ODEIV2_Solver
     use Memory_Management
     use Galacticus_Calculations_Resets
@@ -604,6 +607,7 @@ contains
 
   subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,evaluate,integrands)
     !% A set of integrands for unit tests.
+    use Galacticus_Nodes, only : rateComputeState
     implicit none
     integer                        , intent(in   )                                              :: propertyCountActive       , propertyCountInactive
     double precision               , intent(in   ), dimension(                              : ) :: time
@@ -646,6 +650,8 @@ contains
   integer function Tree_Node_ODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
+    use Galacticus_Nodes      , only : nodeComponentBasic
+    use FGSL                  , only : FGSL_Success
     implicit none
     double precision                     , intent(in   )               :: time
     double precision                     , intent(in   ), dimension(:) :: y
@@ -721,6 +727,7 @@ contains
     use Galactic_Structure_Radii
     use Numerical_Comparison
     use Galacticus_Error
+    use FGSL                    , only : FGSL_Success
     implicit none
     double precision                                                                   , intent(in   ) :: time
     double precision               , dimension(:                                      ), intent(in   ) :: propertyValues0
@@ -906,7 +913,7 @@ contains
   subroutine Tree_Node_Post_Step(y,status) bind(c)
     !% Perform any post-step actions on the node.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL         , only : FGSL_Success
     !# <include directive="postStepTask" type="moduleUse">
     include 'objects.tree_node.post_step.modules.inc'
     !# </include>
@@ -926,7 +933,7 @@ contains
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL                            , only : FGSL_Success
     use               Galacticus_Meta_Evolver_Profiler
     implicit none
     real            (kind=c_double ), dimension(propertyCountActive), intent(in   )        :: currentPropertyValue

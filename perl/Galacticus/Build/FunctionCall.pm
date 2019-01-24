@@ -68,11 +68,10 @@ sub Function_Calls_Parse_Directive {
 		    $arguments = $buildData->{'functionArgs'};
 		}
 	    }
-	    # Replace any "#label" placeholder with the actual label.
+	    # Add arguments.
 	    unless ( $arguments eq "" ) {
 		$buildData->{'functionCall'}->{$unitName}->{'code'} .= ","
 		    unless ( $buildData->{'functionCall'}->{$unitName}->{'code'} =~ m/\($/ );
-		$arguments =~ s/\#label/$buildData->{'currentDocument'}->{'label'}/g;
 		$buildData->{'functionCall'}->{$unitName}->{'code'} .= $arguments;
 	    }
 	    $buildData->{'functionCall'}->{$unitName}->{'code'} .= ")\n";	       
@@ -102,11 +101,10 @@ sub Function_Calls_Parse_Directive {
 		    $arguments = $buildData->{'functionArgs'};
 		}
 	    }
-	    # Replace any "#label" placeholder with the actual label.
+	    # Add arguments.
 	    unless ( $arguments eq "" ) {
 		$buildData->{'functionCall'}->{$unitName}->{'code'} .= ","
 		    unless ( $buildData->{'functionCall'}->{$unitName}->{'code'} =~ m/\($/ );
-		$arguments =~ s/\#label/$buildData->{'currentDocument'}->{'label'}/g;
 		$buildData->{'functionCall'}->{$unitName}->{'code'} .= $arguments;
 	    }
 	    $buildData->{'functionCall'}->{$unitName}->{'code'} .= ")\n";	       

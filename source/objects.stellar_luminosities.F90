@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,6 +24,7 @@
 module Stellar_Luminosities_Structure
   !% Defines the stellar luminosities object.
   use ISO_Varying_String
+  use Stellar_Population_Spectra_Postprocess
   implicit none
   private
   public :: stellarLuminosities               , max                             , &
@@ -192,7 +194,7 @@ module Stellar_Luminosities_Structure
      !@   <objectMethod>
      !@     <method>setLuminosities</method>
      !@     <type>\void</type>
-     !@     <arguments>\doublezero\ mass\argin,\intzero\ imfSelected\argin,\doublezero currentTime\argin,\textcolor{red}{\textless type(abundances)\textgreater} fuelAbundances\argin</arguments>
+     !@     <arguments>\doublezero\ mass\argin,\textcolor{red}{\textless class(stellarPopulationClass)} stellarPopulation\_\arginout,\doublezero currentTime\argin,\textcolor{red}{\textless type(abundances)\textgreater} fuelAbundances\argin</arguments>
      !@     <description>Set the luminosities using a single stellar population.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -258,47 +260,48 @@ module Stellar_Luminosities_Structure
   end type stellarLuminosities
 
   ! Flag specifying if module has been initialized.
-  logical                                                          :: luminositiesInitialized           =.false.
+  logical                                                                                :: luminositiesInitialized           =.false.
 
   ! Arrays which hold the luminosity specifications.
-  integer                                                          :: luminosityCount                           , luminosityCountUnmapped
-  integer                              , allocatable, dimension(:) :: luminosityFilterIndex                     , luminosityIndex               , &
-       &                                                              luminosityPostprocessingChainIndex        , luminosityMap
-  double precision                     , allocatable, dimension(:) :: luminosityBandRedshift                    , luminosityCosmicTime          , &
-       &                                                              luminosityRedshift
-  type            (varying_string     ), allocatable, dimension(:) :: luminosityFilter                          , luminosityName                , &
-       &                                                              luminosityPostprocessSet                  , luminosityType                , &
-       &                                                              luminosityRedshiftText
+  integer                                                                                :: luminosityCount                           , luminosityCountUnmapped
+  integer                                                    , allocatable, dimension(:) :: luminosityFilterIndex                     , luminosityIndex               , &
+       &                                                                                    luminosityMap
+  double precision                                           , allocatable, dimension(:) :: luminosityBandRedshift                    , luminosityCosmicTime          , &
+       &                                                                                    luminosityRedshift
+  type            (stellarPopulationSpectraPostprocessorList), allocatable, dimension(:) :: luminosityPostprocessor
+  type            (varying_string                           ), allocatable, dimension(:) :: luminosityFilter                          , luminosityName                , &
+       &                                                                                    luminosityPostprocessSet                  , luminosityType                , &
+       &                                                                                    luminosityRedshiftText
 
   ! Luminosity output options.
-  integer                                                          :: luminosityOutputOption
-  integer                              , parameter                 :: luminosityOutputOptionAll         =0      , luminosityOutputOptionFuture=1, &
-       &                                                              luminosityOutputOptionPresent     =2
+  integer                                                                                :: luminosityOutputOption
+  integer                                                    , parameter                 :: luminosityOutputOptionAll         =0      , luminosityOutputOptionFuture=1, &
+       &                                                                                    luminosityOutputOptionPresent     =2
 
   ! Unit and zero stellarLuminosities objects.
-  type            (stellarLuminosities), public                    :: unitStellarLuminosities                   , zeroStellarLuminosities
+  type            (stellarLuminosities                      ), public                    :: unitStellarLuminosities                   , zeroStellarLuminosities
 
 contains
 
-  subroutine Stellar_Luminosities_Initialize
+  subroutine Stellar_Luminosities_Initialize()
     !% Initialize the {\normalfont \ttfamily stellarLuminositiesStructure} object module. Determines which stellar luminosities are to be tracked.
     use, intrinsic :: ISO_C_Binding
-    use Input_Parameters
-    use Galacticus_Error
-    use Memory_Management
-    use Instruments_Filters
-    use Cosmology_Functions
-    use Stellar_Population_Spectra_Postprocess
-    use Array_Utilities
-    use Sort
-    use HII_Region_Emission_Lines
+    use            :: Input_Parameters
+    use            :: Galacticus_Error
+    use            :: Memory_Management
+    use            :: Instruments_Filters
+    use            :: Cosmology_Functions
+    use            :: Array_Utilities
+    use            :: Sort
+    use            :: HII_Region_Emission_Lines
     implicit none
-    class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
-    integer                                                              :: iLuminosity               , jLuminosity
-    double precision                                                     :: expansionFactor
-    character       (len=10                 )                            :: redshiftLabel
-    type            (varying_string         )                            :: luminosityOutputOptionText
-    integer         (c_size_t               ), allocatable, dimension(:) :: luminosityTimeIndex
+    class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
+    class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_
+    integer                                                                                        :: iLuminosity                                  , jLuminosity
+    double precision                                                                               :: expansionFactor
+    character       (len=10                                           )                            :: redshiftLabel
+    type            (varying_string                                   )                            :: luminosityOutputOptionText
+    integer         (c_size_t                                         ), allocatable, dimension(:) :: luminosityTimeIndex
     
     ! Initialize the module if necessary.
     if (.not.luminositiesInitialized) then
@@ -424,14 +427,15 @@ contains
              call Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
              luminosityCount=size(luminosityRedshift)
              ! Allocate remaining required arrays.
-             allocate(luminosityName(luminosityCount))
-             call allocateArray(luminosityFilterIndex             ,[luminosityCount])
-             call allocateArray(luminosityIndex                   ,[luminosityCount])
-             call allocateArray(luminosityPostprocessingChainIndex,[luminosityCount])
-             call allocateArray(luminosityCosmicTime              ,[luminosityCount])
-             call allocateArray(luminosityTimeIndex               ,[luminosityCount])
-             ! Get the default cosmology functions object.
-             cosmologyFunctions_ => cosmologyFunctions()
+             allocate          (luminosityName          (luminosityCount))
+             allocate          (luminosityPostprocessor (luminosityCount))
+             call allocateArray(luminosityFilterIndex  ,[luminosityCount])
+             call allocateArray(luminosityIndex        ,[luminosityCount])
+             call allocateArray(luminosityCosmicTime   ,[luminosityCount])
+             call allocateArray(luminosityTimeIndex    ,[luminosityCount])
+             ! Get required objects.
+             cosmologyFunctions_                           => cosmologyFunctions                          ()
+             stellarPopulationSpectraPostprocessorBuilder_ => stellarPopulationSpectraPostprocessorBuilder()
              ! Process the list of luminosities.
              do iLuminosity=1,luminosityCount
                 ! Assign a name to this luminosity.
@@ -472,19 +476,19 @@ contains
                    call Galacticus_Error_Report('unrecognized filter type - must be "rest" or "observed"'//{introspection:location})
                 end select
                 ! Find the index for the postprocessing chain to be applied to this filter.
-                luminosityPostprocessingChainIndex(iLuminosity)=Stellar_Population_Spectrum_Postprocess_Index(luminosityPostprocessSet(iLuminosity))
+                luminosityPostprocessor(iLuminosity)%stellarPopulationSpectraPostprocessor_ => stellarPopulationSpectraPostprocessorBuilder_%build(luminosityPostprocessSet(iLuminosity))
              end do
              ! Sort the luminosities such that the latest luminosities are stored first.
              luminosityTimeIndex=Array_Reverse(Sort_Index_Do(luminosityCosmicTime))
-             call Sort_By_Index(luminosityFilterIndex             ,luminosityTimeIndex)
-             call Sort_By_Index(luminosityPostprocessingChainIndex,luminosityTimeIndex)
-             call Sort_By_Index(luminosityCosmicTime              ,luminosityTimeIndex)
-             call Sort_By_Index(luminosityName                    ,luminosityTimeIndex)
-             call Sort_By_Index(luminosityRedshift                ,luminosityTimeIndex)
-             call Sort_By_Index(luminosityBandRedshift            ,luminosityTimeIndex)             
-             call Sort_By_Index(luminosityFilter                  ,luminosityTimeIndex)             
-             call Sort_By_Index(luminosityType                    ,luminosityTimeIndex)             
-             call Sort_By_Index(luminosityPostprocessSet          ,luminosityTimeIndex)             
+             call sortByIndex             (luminosityFilterIndex   ,luminosityTimeIndex)
+             call sortByIndexPostprocessor(luminosityPostprocessor ,luminosityTimeIndex)
+             call sortByIndex             (luminosityCosmicTime    ,luminosityTimeIndex)
+             call sortByIndex             (luminosityName          ,luminosityTimeIndex)
+             call sortByIndex             (luminosityRedshift      ,luminosityTimeIndex)
+             call sortByIndex             (luminosityBandRedshift  ,luminosityTimeIndex)             
+             call sortByIndex             (luminosityFilter        ,luminosityTimeIndex)             
+             call sortByIndex             (luminosityType          ,luminosityTimeIndex)             
+             call sortByIndex             (luminosityPostprocessSet,luminosityTimeIndex)             
              ! Allocate unit and zero stellar abundance objects.
              call allocateArray(unitStellarLuminosities%luminosityValue,[luminosityCount])
              call allocateArray(zeroStellarLuminosities%luminosityValue,[luminosityCount])
@@ -1044,7 +1048,7 @@ contains
     integer         , intent(in   )           :: luminosityIndex
     double precision, intent(in   )           :: time
     integer         , intent(in   ), optional :: outputOption
-    double precision, parameter               :: timeTolerance  =1.0d-3
+    double precision, parameter               :: timeTolerance     =1.0d-3
     integer                                   :: outputOptionActual
 
     ! Ensure module is initialized.
@@ -1059,7 +1063,7 @@ contains
     case (luminosityOutputOptionAll)
        Stellar_Luminosities_Is_Output=.true.
     case (luminosityOutputOptionFuture)
-       Stellar_Luminosities_Is_Output=(     luminosityCosmicTime(luminosityIndex)       >= time*(1.0d0-timeTolerance))
+       Stellar_Luminosities_Is_Output=(    luminosityCosmicTime(luminosityIndex)       >= time*(1.0d0-timeTolerance))
     case (luminosityOutputOptionPresent)
        Stellar_Luminosities_Is_Output=(abs(luminosityCosmicTime(luminosityIndex)-time) <= time*       timeTolerance )
     case default
@@ -1069,17 +1073,19 @@ contains
     return
   end function Stellar_Luminosities_Is_Output
 
-  subroutine Stellar_Luminosities_Set(self,mass,imfSelected,time,abundancesStellar)
-    !% Set the luminosity in each band for a single stellar population of given {\normalfont \ttfamily mass} with the specified {\normalfont \ttfamily abundancesStellar} and
-    !% which formed at cosmological {\normalfont \ttfamily time} with IMF specified by {\normalfont \ttfamily imfSelected}.
+  subroutine Stellar_Luminosities_Set(self,mass,stellarPopulation_,time,abundancesStellar)
+    !% Set the luminosity in each band for a single {\normalfont \ttfamily stellarPopulation\_} of given {\normalfont \ttfamily
+    !% mass} with the specified {\normalfont \ttfamily abundancesStellar} and which formed at cosmological {\normalfont \ttfamily
+    !% time}.
     use Abundances_Structure
     use Stellar_Population_Luminosities
+    use Stellar_Populations
     implicit none
-    class           (stellarLuminosities)                             :: self
-    integer                              , intent(in   )              :: imfSelected
-    double precision                     , intent(in   )              :: mass             , time
-    type            (abundances         ), intent(in   )              :: abundancesStellar
-    double precision                     , dimension(:) , allocatable :: ages             , massToLightRatio
+    class           (stellarLuminosities   )                             :: self
+    class           (stellarPopulationClass), intent(inout)              :: stellarPopulation_
+    double precision                        , intent(in   )              :: mass              , time
+    type            (abundances            ), intent(in   )              :: abundancesStellar
+    double precision                        , dimension(:) , allocatable :: ages              , massToLightRatio
 
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
@@ -1095,14 +1101,14 @@ contains
     ages=luminosityCosmicTime-time
 
     ! Get the luminosities for each requested band.
-    massToLightRatio=Stellar_Population_Luminosity(                                    &
-         &                                         luminosityIndex                   , &
-         &                                         luminosityFilterIndex             , &
-         &                                         luminosityPostprocessingChainIndex, &
-         &                                         imfSelected                       , &
-         &                                         abundancesStellar                 , &
-         &                                         ages                              , &
-         &                                         luminosityBandRedshift              &
+    massToLightRatio=Stellar_Population_Luminosity(                         &
+         &                                         luminosityIndex        , &
+         &                                         luminosityFilterIndex  , &
+         &                                         luminosityPostprocessor, &
+         &                                         stellarPopulation_     , &
+         &                                         abundancesStellar      , &
+         &                                         ages                   , &
+         &                                         luminosityBandRedshift   &
          &                                        )
     call Stellar_Luminosities_Create(self)
     self%luminosityValue=mass*massToLightRatio(1:size(self%luminosityValue))
@@ -1195,94 +1201,94 @@ contains
   end function Stellar_Luminosities_Index_From_Properties
 
   
-  subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,SPS_,imfIndex)
+  subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,stellarPopulationSpectra_)
     !% Given a top hat filter central wavelength and filter width, determine the position and width of the next top hat filter in the array.
     use Stellar_Population_Spectra
     implicit none 
-    double precision,                        intent(inout)                              :: wavelengthCentral,filterWidth
-    double precision,                        intent(in)                                 :: wavelengthMinimum,wavelengthMaximum,observedWidth,     &
-         &                                                                                 redshift
-    class   (stellarPopulationSpectraClass), intent(in)  , pointer                      :: SPS_
-    double precision                                                                    :: restWavelengthMinimum,restWavelengthMaximum,restWidth, &
-         &                                                                                 wavelengthLowerEdge,tabulatedWidth 
-    integer                                , intent(in)                                 :: imfIndex           
-    ! Determine rest-frame wavelength extent
-    restWavelengthMinimum = wavelengthMinimum/(1.0d0+redshift)
-    restWavelengthMaximum = wavelengthMaximum/(1.0d0+redshift)
-    restWidth = observedWidth/(1.0d0+redshift)    
-    ! Move to lower edge of next filter
-    wavelengthLowerEdge = wavelengthCentral + filterWidth/2.0d0
-    ! Get wavelength interval in SPS models at lower edge wavelength
-    tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthLowerEdge)
+    double precision                               , intent(inout)          :: wavelengthCentral        , filterWidth
+    double precision                               , intent(in   )          :: wavelengthMinimum        , wavelengthMaximum    , &
+         &                                                                     observedWidth            , redshift
+    class           (stellarPopulationSpectraClass), intent(in   ), pointer :: stellarPopulationSpectra_
+    double precision                                                        :: restWavelengthMinimum    , restWavelengthMaximum, &
+         &                                                                     restWidth                , wavelengthLowerEdge  , &
+         &                                                                     tabulatedWidth 
+
+    ! Determine rest-frame wavelength extent.
+    restWavelengthMinimum=wavelengthMinimum/(1.0d0+redshift)
+    restWavelengthMaximum=wavelengthMaximum/(1.0d0+redshift)
+    restWidth            =observedWidth    /(1.0d0+redshift)
+    ! Move to lower edge of next filter.
+    wavelengthLowerEdge=wavelengthCentral+filterWidth/2.0d0
+    ! Get wavelength interval in stellar population spectra at lower edge wavelength
+    tabulatedWidth=stellarPopulationSpectra_%wavelengthInterval(wavelengthLowerEdge)
     ! Determine where the new filter is: (i) inside the observed wavelength range, (ii) inside the rest wavelength range, 
     ! or (iii) inbetween the observed and rest wavelength ranges.    
-    if(wavelengthLowerEdge.lt.restWavelengthMaximum)then
+    if      (wavelengthLowerEdge < restWavelengthMaximum) then
        ! Option (i): still inside rest-frame wavelength range.
-       if(tabulatedWidth.gt.restWidth) filterWidth = tabulatedWidth
-       wavelengthCentral = wavelengthLowerEdge + filterWidth/2.0d0
-    elseif(wavelengthLowerEdge.gt.wavelengthMinimum)then
+       if (tabulatedWidth > restWidth) filterWidth=tabulatedWidth
+       wavelengthCentral=wavelengthLowerEdge+filterWidth/2.0d0
+    else if (wavelengthLowerEdge > wavelengthMinimum    ) then
        ! Option (ii): inside observed-frame wavelength range.
-       filterWidth = observedWidth
-       if(tabulatedWidth.gt.observedWidth) filterWidth = tabulatedWidth
-       wavelengthCentral = wavelengthLowerEdge + filterWidth/2.0d0
+       filterWidth=observedWidth
+       if(tabulatedWidth > observedWidth) filterWidth=tabulatedWidth
+       wavelengthCentral=wavelengthLowerEdge+filterWidth/2.0d0
     else
        ! Option (iii): between rest-frame and observed-frame wavelength ranges.
-       wavelengthCentral = wavelengthMinimum
-       filterWidth = observedWidth
-       tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthCentral)
-       if(tabulatedWidth.gt.observedWidth) filterWidth = tabulatedWidth
+       wavelengthCentral=wavelengthMinimum
+       filterWidth      =observedWidth
+       tabulatedWidth   =stellarPopulationSpectra_%wavelengthInterval(wavelengthCentral)
+       if(tabulatedWidth > observedWidth) filterWidth=tabulatedWidth
        ! If the gap between the rest-frame and observed-frame ranges is small, check to avoid overlap of filters.
-       if(wavelengthCentral-filterWidth/2.0d0.lt.wavelengthLowerEdge)then
-          ! Overlap possible. Adjust filter position.                                                                                                                                                           
-          tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthLowerEdge)
-          filterWidth = observedWidth
-          if(tabulatedWidth.gt.observedWidth) filterWidth = tabulatedWidth
-          wavelengthCentral = wavelengthLowerEdge + filterWidth/2.0d0
+       if (wavelengthCentral-filterWidth/2.0d0 < wavelengthLowerEdge) then
+          ! Overlap possible. Adjust filter position.
+          tabulatedWidth=stellarPopulationSpectra_%wavelengthInterval(wavelengthLowerEdge)
+          filterWidth   =observedWidth
+          if(tabulatedWidth > observedWidth) filterWidth=tabulatedWidth
+          wavelengthCentral=wavelengthLowerEdge+filterWidth/2.0d0
        end if
     end if
   end subroutine Stellar_Luminosities_SED_Top_Hat_Step
   
-
   subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
     !% Modify the input list of luminosities for special cases.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Output_Times
+    use Output_Times
     use Cosmology_Functions
     use Memory_Management
     use String_Handling
     use HII_Region_Emission_Lines
-    use Star_Formation_IMF
     use Stellar_Population_Spectra
     implicit none
-    integer                                  , intent(inout), allocatable, dimension(:) :: luminosityMap
-    type            (varying_string         ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
-         &                                                                                 luminosityType           , luminosityPostprocessSet
-    double precision                         , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
-    integer         (c_size_t               )                                           :: j                        , outputCount                , &
-         &                                                                                 i                        , newFilterCount             , &
-                                                                                           k
-    integer                                                 , allocatable, dimension(:) :: luminosityMapTmp
-    type            (varying_string         )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
-         &                                                                                 luminosityTypeTmp        , luminosityPostprocessSetTmp
-    type            (varying_string         )                            , dimension(5) :: specialFilterWords
-    double precision                                        , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
-    class           (stellarPopulationSpectraClass)         , pointer                   :: stellarPopulationSpectra_
-    class           (cosmologyFunctionsClass), pointer                                  :: cosmologyFunctions_
-    character       (len=32                 )                                           :: redshiftLabel            , word                     , &
-         &                                                                                 wavelengthCentralLabel   , resolutionLabel          , &
-         &                                                                                 imfLabel
-    character       (len=256                )                                           :: newFilterName            , lineName
-    double precision                                                                    :: outputRedshift           , resolution               , &
-         &                                                                                 wavelengthMinimum        , wavelengthMaximum        , &
-         &                                                                                 restWavelengthMinimum    , restWavelengthMaximum    , &
-         &                                                                                 wavelengthRatio          , wavelengthCentral        , &
-         &                                                                                 observedWidth            , restWidth                , &
-         &                                                                                 tabulatedWidth           , filterWidth
-    integer                                                                             :: imfIndex
+    integer                                        , intent(inout), allocatable, dimension(:) :: luminosityMap
+    type            (varying_string               ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
+         &                                                                                       luminosityType           , luminosityPostprocessSet
+    double precision                               , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
+    integer         (c_size_t                     )                                           :: j                        , outputCount                , &
+         &                                                                                       i                        , newFilterCount             , &
+                                                                                                 k
+    integer                                                       , allocatable, dimension(:) :: luminosityMapTmp
+    type            (varying_string               )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
+         &                                                                                       luminosityTypeTmp        , luminosityPostprocessSetTmp
+    type            (varying_string               )                            , dimension(5) :: specialFilterWords
+    double precision                                              , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
+    class           (stellarPopulationSpectraClass), pointer                                  :: stellarPopulationSpectra_
+    class           (cosmologyFunctionsClass      ), pointer                                  :: cosmologyFunctions_
+    class           (outputTimesClass             ), pointer                                  :: outputTimes_
+    character       (len=32                       )                                           :: redshiftLabel            , word                     , &
+         &                                                                                       wavelengthCentralLabel   , resolutionLabel
+    character       (len=256                      )                                           :: newFilterName            , lineName
+    double precision                                                                          :: outputRedshift           , resolution               , &
+         &                                                                                       wavelengthMinimum        , wavelengthMaximum        , &
+         &                                                                                       restWavelengthMinimum    , restWavelengthMaximum    , &
+         &                                                                                       wavelengthRatio          , wavelengthCentral        , &
+         &                                                                                       observedWidth            , restWidth                , &
+         &                                                                                       tabulatedWidth           , filterWidth
+    
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Get number of output redshifts.
-    outputCount=Galacticus_Output_Time_Count()
+    outputTimes_        => outputTimes       ()
+    outputCount         =  outputTimes_%count()
     ! Iterate over all luminosities.
     i=1
     do while (i <= size(luminosityRedshiftText))
@@ -1309,7 +1315,7 @@ contains
                &                                     )
           ! Modify new filters.
           do j=1,outputCount
-             outputRedshift=Galacticus_Output_Redshift(j)
+             outputRedshift=outputTimes_%redshift(j)
              write (redshiftLabel,*) outputRedshift
              luminosityRedshiftText   (j+i-1)=redshiftLabel
              luminosityRedshift       (j+i-1)=outputRedshift
@@ -1395,7 +1401,6 @@ contains
        ! Arrays of top-hat filters for SEDs
        if (extract(luminosityFilter(i),1,30) == "adaptiveResolutionTopHatArray_") then
           call String_Split_Words(specialFilterWords,char(luminosityFilter(i)),separator="_")
-          imfLabel=char(specialFilterWords(2))
           word=char(specialFilterWords(3))
           read (word,*) wavelengthMinimum
           word=char(specialFilterWords(4))
@@ -1406,20 +1411,25 @@ contains
           restWavelengthMinimum = wavelengthMinimum/(1.0d0+luminosityRedshift(i))
           restWavelengthMaximum = wavelengthMaximum/(1.0d0+luminosityRedshift(i))
           restWidth = observedWidth/(1.0d0+luminosityRedshift(i))
-          ! Extract IMF and list of SPS wavelengths.
-          imfIndex = IMF_Index(imfLabel)
+          ! Extract list of stellar population spectra wavelengths.
           stellarPopulationSpectra_ => stellarPopulationSpectra()
           ! Count number of filters that need to be added.
-          newFilterCount = 0
-          wavelengthCentral = restWavelengthMinimum
-          tabulatedWidth = stellarPopulationSpectra_%wavelengthInterval(imfIndex,wavelengthCentral)
-          filterWidth = restWidth
-          if(tabulatedWidth.gt.restWidth) filterWidth = tabulatedWidth
+          newFilterCount   =0
+          wavelengthCentral=restWavelengthMinimum
+          tabulatedWidth   =stellarPopulationSpectra_%wavelengthInterval(wavelengthCentral)
+          filterWidth      =restWidth
+          if(tabulatedWidth > restWidth) filterWidth=tabulatedWidth
           do while (wavelengthCentral < wavelengthMaximum)
-             if(wavelengthCentral.lt.wavelengthMaximum) newFilterCount=newFilterCount+1             
-             call Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,&
-                  wavelengthMinimum,wavelengthMaximum,observedWidth,luminosityRedshift(i),&
-                  stellarPopulationSpectra_,imfIndex)
+             if(wavelengthCentral < wavelengthMaximum) newFilterCount=newFilterCount+1             
+             call Stellar_Luminosities_SED_Top_Hat_Step(                              &
+                  &                                     wavelengthCentral           , &
+                  &                                     filterWidth                 , &
+                  &                                     wavelengthMinimum           , &
+                  &                                     wavelengthMaximum           , &
+                  &                                     observedWidth               , &
+                  &                                     luminosityRedshift       (i), &
+                  &                                     stellarPopulationSpectra_     &
+                  &                                    )
           end do
           ! Resize the arrays.
           call Stellar_Luminosities_Expand_Filter_Set( &
@@ -1441,14 +1451,13 @@ contains
                & luminosityBandRedshiftTmp             &
                &                                     )
           ! Compute central wavelength of the initial filter.
-          j=0
-          wavelengthCentral = restWavelengthMinimum
-          filterWidth = restWidth
-          tabulatedWidth = stellarPopulationSpectra_%wavelengthInterval(imfIndex,wavelengthCentral)
-          filterWidth = restWidth
-          if(tabulatedWidth.gt.restWidth) filterWidth = tabulatedWidth   
+          j                =0
+          wavelengthCentral=restWavelengthMinimum
+          filterWidth      =restWidth
+          tabulatedWidth   =stellarPopulationSpectra_%wavelengthInterval(wavelengthCentral)
+          if(tabulatedWidth > restWidth) filterWidth = tabulatedWidth   
           do while (wavelengthCentral < wavelengthMaximum)        
-             if(wavelengthCentral.lt.wavelengthMaximum) then
+             if(wavelengthCentral < wavelengthMaximum) then
                 j=j+1
                 ! Compute the appropriate filter name.
                 write (wavelengthCentralLabel,'(f11.3)') wavelengthCentral
@@ -1463,14 +1472,20 @@ contains
                 luminosityPostprocessSet (j+i-1)=luminosityPostprocessSetTmp(i)
              end if
              ! Compute central wavelength and width of next top hat filter
-             call Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,&
-                  wavelengthMinimum,wavelengthMaximum,observedWidth,luminosityRedshift(i),&
-                  stellarPopulationSpectra_,imfIndex)
+             call Stellar_Luminosities_SED_Top_Hat_Step(                              &
+                  &                                     wavelengthCentral           , &
+                  &                                     filterWidth                 , &
+                  &                                     wavelengthMinimum           , &
+                  &                                     wavelengthMaximum           , &
+                  &                                     observedWidth               , &
+                  &                                     luminosityRedshift       (i), &
+                  &                                     stellarPopulationSpectra_     &
+                  &                                    )
           end do
-          deallocate        (luminosityRedshiftTextTmp  )
-          deallocate        (luminosityFilterTmp        )
-          deallocate        (luminosityTypeTmp          )
-          deallocate        (luminosityPostprocessSetTmp)     
+          deallocate          (luminosityRedshiftTextTmp  )
+          deallocate          (luminosityFilterTmp        )
+          deallocate          (luminosityTypeTmp          )
+          deallocate          (luminosityPostprocessSetTmp)     
           call deallocateArray(luminosityMapTmp           )
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
@@ -1485,9 +1500,8 @@ contains
           word=char(specialFilterWords(3))
           read (word,*) resolution
           ! Determine minimum and maximum wavelengths to draw filters between
-          wavelengthRatio=                                &
-               &  (sqrt(4.0d0*resolution**2+1.0d0)+1.0d0) &
-               & /(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)                  
+          wavelengthRatio=+(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0) &
+               &          /(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)                  
           wavelengthMinimum = wavelengthCentral*(sqrt(4.0d0*resolution**2+1.0d0)-1.0d0)/2.0d0/resolution
           wavelengthMinimum = wavelengthMinimum/wavelengthRatio
           wavelengthMaximum = wavelengthCentral*(sqrt(4.0d0*resolution**2+1.0d0)+1.0d0)/2.0d0/resolution
@@ -1696,7 +1710,7 @@ contains
     !% Write the luminosities state to file.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Display
-    use            :: FGSL
+    use            :: FGSL              , only : fgsl_file
     use            :: String_Handling
     use            :: ISO_Varying_String
     implicit none
@@ -1734,21 +1748,22 @@ contains
     use            :: Galacticus_Display
     use            :: Instruments_Filters
     use            :: Stellar_Population_Spectra_Postprocess
-    use            :: FGSL
+    use            :: FGSL                                  , only : fgsl_file
     use            :: String_Handling
     use            :: ISO_Varying_String
     implicit none
-    integer           , intent(in   ) :: stateFile
-    integer(c_size_t ), intent(in   ) :: stateOperationID
-    type   (fgsl_file), intent(in   ) :: fgslStateFile
-    integer                           :: i
+    integer                                                   , intent(in   ) :: stateFile
+    integer(c_size_t                                         ), intent(in   ) :: stateOperationID
+    type   (fgsl_file                                        ), intent(in   ) :: fgslStateFile
+    class  (stellarPopulationSpectraPostprocessorBuilderClass), pointer       :: stellarPopulationSpectraPostprocessorBuilder_
+    integer                                                                   :: i
     !GCC$ attributes unused :: fgslStateFile, stateOperationID
 
     call Galacticus_Display_Indent  (var_str('restoring state for "stellar luminosities" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
     read (stateFile) luminositiesInitialized
     if (allocated(luminosityFilterIndex                  )) deallocate(luminosityFilterIndex                  )
     if (allocated(luminosityIndex                        )) deallocate(luminosityIndex                        )
-    if (allocated(luminosityPostprocessingChainIndex     )) deallocate(luminosityPostprocessingChainIndex     )
+    if (allocated(luminosityPostprocessor                )) deallocate(luminosityPostprocessor                )
     if (allocated(luminosityCosmicTime                   )) deallocate(luminosityCosmicTime                   )
     if (allocated(luminosityRedshift                     )) deallocate(luminosityRedshift                     )
     if (allocated(luminosityBandRedshift                 )) deallocate(luminosityBandRedshift                 )
@@ -1760,10 +1775,11 @@ contains
     if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
     if (luminositiesInitialized) then
        call Galacticus_Display_Message(var_str('restoring "luminosityCount" [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
+       stellarPopulationSpectraPostprocessorBuilder_ => stellarPopulationSpectraPostprocessorBuilder()
        read (stateFile) luminosityCount
        allocate(luminosityFilterIndex                  (luminosityCount))
        allocate(luminosityIndex                        (luminosityCount))
-       allocate(luminosityPostprocessingChainIndex     (luminosityCount))
+       allocate(luminosityPostprocessor                (luminosityCount))
        allocate(luminosityCosmicTime                   (luminosityCount))
        allocate(luminosityRedshift                     (luminosityCount))
        allocate(luminosityBandRedshift                 (luminosityCount))
@@ -1783,12 +1799,28 @@ contains
           call luminosityType          (i)%stateRestore(stateFile)
           call luminosityFilter        (i)%stateRestore(stateFile)
           call luminosityPostprocessSet(i)%stateRestore(stateFile)
-          luminosityFilterIndex             (i)=Filter_Get_Index                             (luminosityFilter        (i))
-          luminosityPostprocessingChainIndex(i)=Stellar_Population_Spectrum_Postprocess_Index(luminosityPostprocessSet(i))
+          luminosityFilterIndex  (i)                                        =  Filter_Get_Index                                   (luminosityFilter        (i))
+          luminosityPostprocessor(i)%stellarPopulationSpectraPostprocessor_ => stellarPopulationSpectraPostprocessorBuilder_%build(luminosityPostprocessSet(i))
        end do
     end if
-    call Galacticus_Display_Unindent(var_str('done [position: ')//FTell(stateFile)//']'                                      ,verbosity=verbosityWorking)
+    call Galacticus_Display_Unindent(var_str('done [position: ')//FTell(stateFile)//']',verbosity=verbosityWorking)
     return
   end subroutine Stellar_Luminosities_State_Restore
+
+  subroutine sortByIndexPostprocessor(array,index)
+    !% Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    use, intrinsic :: ISO_C_Binding
+    implicit none
+    type   (stellarPopulationSpectraPostprocessorList), dimension(:          ), intent(inout) :: array
+    integer(kind=c_size_t                            ), dimension(:          ), intent(in   ) :: index
+    type   (stellarPopulationSpectraPostprocessorList), dimension(size(array))                :: arrayTmp
+    integer(kind=c_size_t                            )                                        :: i
+
+    forall(i=1:size(array))
+       arrayTmp(i)=array(index(i))
+    end forall
+    array=arrayTmp
+    return
+  end subroutine sortByIndexPostprocessor
 
 end module Stellar_Luminosities_Structure

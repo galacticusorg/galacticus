@@ -7,12 +7,13 @@ use File::Copy;
 use Text::Balanced qw (extract_bracketed);
 use Text::Table;
 use Data::Dumper;
+use List::Uniq qw(uniq);
 use Fcntl qw(SEEK_SET);
 
 # RegEx's useful for matching Fortran code.
 our $label = qr/[a-zA-Z0-9_\{\}¦]+/;
 our $classDeclarationRegEx = qr/^\s*type\s*(,\s*abstract\s*|,\s*public\s*|,\s*private\s*|,\s*extends\s*\((${label})\)\s*)*(::)??\s*([a-z0-9_]+)\s*$/i;
-our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class|complex)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
+our $variableDeclarationRegEx = qr/^\s*(?i)(integer|real|double precision|logical|character|type|class|complex|procedure)(?-i)\s*(\(\s*[a-zA-Z0-9_=\*]+\s*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/;
 
 # Specify unit opening regexs.
 our %unitOpeners = (
@@ -53,6 +54,12 @@ our %intrinsicDeclarations = (
     class         => { intrinsic => "class"           , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)class(?-i)\s*(\(\s*[a-zA-Z0-9_\*]+\s*\))?([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9\._,:=>\+\-\*\/\(\)\[\]]+)\s*$/ },
     procedure     => { intrinsic => "procedure"       , openmp => 0, type => 1, attributes => 2, variables => 3, regEx => qr/^\s*(!\$)??\s*(?i)procedure(?-i)\s*(\([a-zA-Z0-9_\s]*\))*([\sa-zA-Z0-9_,:\+\-\*\/\(\)]*)??::\s*([\sa-zA-Z0-9_,:=>\+\-\*\/\(\)]+)\s*$/ },
     );
+
+# Hash of files which have been read and processed.
+my %processedFiles;
+
+# Database of symbols exported by modules.
+my %symbolsExported;
 
 sub Truncate_Fortran_Lines {
     # Scans a Fortran file and truncates source lines to be less than 132 characters in length as (still) required by some compilers.
@@ -178,24 +185,32 @@ sub Truncate_Fortran_Lines {
 
 sub Get_Matching_Lines {
     # Return a list of all lines in a file matching a supplied regular expression.
-    my $fileName = shift;
-    my $regEx    = shift;
+    my $fileName = shift();
+    my $regEx    = shift();
+    # Determine if we need to read the file.
+    unless ( exists($processedFiles{$fileName}) ) {
+	open(my $fileHandle,$fileName);
+	until ( eof($fileHandle) ) {
+	    &Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
+	    push(@{$processedFiles{$fileName}},$processedLine);
+	}
+	close($fileName);
+    }
     # Open the file, and read each line.
     my @matches;
-    open(my $fileHandle,$fileName);
-    until ( eof($fileHandle) ) {
-	&Get_Fortran_Line($fileHandle,my $rawLine,my $processedLine,my $bufferedComments);
-	if ( my @submatches = $processedLine =~ $regEx ) {
-	    push(
-		@matches,
-		{
-		    line => $processedLine,
-		    submatches => \@submatches
-		}
-		);
+    if ( defined($processedFiles{$fileName}) ) {
+	foreach my $processedLine ( @{$processedFiles{$fileName}} ) {
+	    if ( my @submatches = $processedLine =~ $regEx ) {
+		push(
+		    @matches,
+		    {
+			line       => $processedLine,
+			submatches => \@submatches
+		    }
+		    );
+	    }
 	}
     }
-    close($fileName);
     return @matches;
 }
 
@@ -358,7 +373,7 @@ sub Get_Fortran_Line {
 	$firstLine = 0;
     }
 
-    # Return date.
+    # Return data.
     $_[1] = $rawLine;
     $_[2] = $processedLine;
     $_[3] = $bufferedComments;
@@ -750,6 +765,142 @@ sub Extract_Variables {
     }
     # Return the list.
     return @variables;
+}
+
+sub moduleSymbols {
+    # Return a list of symbols exported by a named module.
+    my $moduleName = shift();
+    # Build list of paths that we can search for modules.
+    my @moduleSearchPaths = ( $ENV{'BUILDPATH'} );
+    if ( exists($ENV{'GALACTICUS_FCFLAGS'}) ) {
+	my @options = split(" ",$ENV{'GALACTICUS_FCFLAGS'});
+	while ( scalar(@options) > 0 ) {
+	    my $option = shift(@options);
+	    push(@moduleSearchPaths,shift(@options))
+		if ( $option eq "-fintrinsic-modules-path" );
+	}
+    }
+    # Parse the file if we have not yet done so.
+    unless ( exists($symbolsExported{$moduleName}) ) {
+	if ( $moduleName eq "iso_c_binding" ) {
+	    @{$symbolsExported{$moduleName}} = map {lc($_)}
+		(
+		 "C_ASSOCIATED",
+		 "C_F_POINTER",
+		 "C_F_PROCPOINTER",
+		 "C_FUNLOC",
+		 "C_LOC",
+		 "C_INT",
+		 "C_SHORT",
+		 "C_LONG",
+		 "C_LONG_LONG",
+		 "C_SIGNED_CHAR",
+		 "C_SIZE_T",
+		 "C_INT8_T",
+		 "C_INT16_T",
+		 "C_INT32_T",
+		 "C_INT64_T",
+		 "C_INT128_T",
+		 "C_INT_LEAST8_T",
+		 "C_INT_LEAST16_T",
+		 "C_INT_LEAST32_T",
+		 "C_INT_LEAST64_T",
+		 "C_INT_LEAST128_T",
+		 "C_INT_FAST8_T",
+		 "C_INT_FAST16_T",
+		 "C_INT_FAST32_T",
+		 "C_INT_FAST64_T",
+		 "C_INT_FAST128_T",
+		 "C_INTMAX_T",
+		 "C_INTPTR_T",
+		 "C_FLOAT",
+		 "C_DOUBLE",
+		 "C_LONG_DOUBLE",
+		 "C_FLOAT_COMPLEX",
+		 "C_DOUBLE_COMPLEX",
+		 "C_LONG_DOUBLE_COMPLEX",
+		 "C_BOOL",
+		 "C_CHAR",
+		 "C_NULL_CHAR",
+		 "C_ALERT",
+		 "C_BACKSPACE",
+		 "C_FORM_FEED",
+		 "C_NEW_LINE",
+		 "C_CARRIAGE_RETURN",
+		 "C_HORIZONTAL_TAB",
+		 "C_VERTICAL_TAB"
+		);
+	} elsif ( $moduleName eq "omp_lib" ) {
+	    @{$symbolsExported{$moduleName}} = map {lc($_)}
+	    (
+	     "omp_get_active_level",
+	     "omp_get_ancestor_thread_num",
+	     "omp_get_dynamic",
+	     "omp_get_level",
+	     "omp_get_max_active_levels",
+	     "omp_get_max_threads",
+	     "omp_get_nested",
+	     "omp_get_num_procs",
+	     "omp_get_num_threads",
+	     "omp_get_schedule",
+	     "omp_get_team_size",
+	     "omp_get_thread_limit",
+	     "omp_get_thread_num",
+	     "omp_in_parallel",
+	     "omp_in_final",
+	     "omp_set_dynamic",
+	     "omp_set_max_active_levels",
+	     "omp_set_nested",
+	     "omp_set_num_threads",
+	     "omp_set_schedule",
+	     "omp_init_lock",
+	     "omp_set_lock",
+	     "omp_test_lock",
+	     "omp_unset_lock",
+	     "omp_destroy_lock",
+	     "omp_init_nest_lock",
+	     "omp_set_nest_lock",
+	     "omp_test_nest_lock",
+	     "omp_unset_nest_lock",
+	     "omp_destroy_nest_lock",
+	     "omp_get_wtick",
+	     "omp_get_wtime"
+	    );
+	} else {
+	    @{$symbolsExported{$moduleName}} = ();
+	}
+	# Locate the module.
+	my $modulePath;
+	foreach my $moduleSearchPath ( @moduleSearchPaths ) {
+	    if ( -e $moduleSearchPath."/".$moduleName.".mod" ) {
+		$modulePath = $moduleSearchPath."/".$moduleName.".mod";
+		last;
+	    }
+	}
+	if ( defined($modulePath) ) {
+	    my $symbolBuffer = "";
+	    open(my $module,"gunzip -c ".$modulePath."|");
+	    do {
+		my $char = getc($module);
+		if ( $char eq "(" || $char eq ")" ) {
+		    # Parentheses - and on buffer and clear.
+		    if ( $symbolBuffer =~ m/^\s*(\d*\s+)??'([a-z0-9_]+)'\s+'$moduleName'/ ) {
+			push(@{$symbolsExported{$moduleName}},$2);
+		    }
+		    $symbolBuffer = "";
+		} else {
+		    # Other - accumulate to buffer.
+		    $char = " "
+			if ( $char eq "\n" );
+		    $symbolBuffer .= $char;
+		}
+	    } until ( eof($module) );
+	    close($module);
+	    # Uniqueify symbols.
+	    @{$symbolsExported{$moduleName}} = uniq(sort(@{$symbolsExported{$moduleName}}));
+	}
+    }
+    return @{$symbolsExported{$moduleName}};
 }
 
 1;

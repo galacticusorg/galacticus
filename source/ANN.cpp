@@ -56,11 +56,13 @@ void nearestNeighborsDestructorC(ANNkd_tree * ANN) {
   //% Fortran-callable wrapper around the ANN destructor.
   ANNpointArray ANNpa;
 
-  // Get a pointer to the array of points, then deallocate it.
-  ANNpa = ANN->thePoints();
-  annDeallocPts(ANNpa);
-  // Explicitly destruct the ANN KD-tree object.
-  ANN->~ANNkd_tree();
+  if ( ANN != NULL ) {
+    // Get a pointer to the array of points, then deallocate it.
+    ANNpa = ANN->thePoints();
+    annDeallocPts(ANNpa);
+    // Explicitly destruct the ANN KD-tree object.
+    ANN->~ANNkd_tree();
+  }
   return;
 }
 

@@ -16,10 +16,13 @@ $Galacticus::Build::SourceTree::Hooks::processHooks{'objectBuilder'} = \&Process
 sub Process_ObjectBuilder {
     # Get the tree.
     my $tree = shift();
+    # Determine if debugging output is required.
+    my $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Walk the tree, looking for code blocks.
-    my $node  = $tree;
-    my $xml   = new XML::Simple();
-    my $depth = 0;
+    my $node               = $tree;
+    my $xml                = new XML::Simple();
+    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
+    my $depth              = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "objectBuilder" && ! $node->{'directive'}->{'processed'} ) {
 	    # Generate source code for the object builder. The logic here is that we search for
@@ -54,6 +57,9 @@ sub Process_ObjectBuilder {
 		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
 		    $builderCode               .=  "  end if\n";
 		} else {
+		    $builderCode               .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";
+		    $builderCode               .= "      parametersCurrent => parametersCurrent%parent\n";
+		    $builderCode               .= "   end do\n";
 		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		}
 	    } else {	    
@@ -63,29 +69,65 @@ sub Process_ObjectBuilder {
 	    }
 	    $builderCode .= "   if (parametersCurrent%isPresent('".$parameterName."').and.(.not.".$node->{'directive'}->{'source'}."%isGlobal().or.associated(parametersCurrent%parent))) then\n"
 		if ( $defaultName );
+	    # Handle multiple copies.
+	    my $copyInstance  = "";
+	    my $copyLoopOpen  = "";
+	    my $copyLoopClose = "";
+	    if ( exists($node->{'directive'}->{'copy'}) ) {
+		if ( $node->{'directive'}->{'copy'} =~ m/^([a-zA-Z0-9_]+)=/ ) {
+		    $copyInstance  = ",copyInstance=".$1;
+		    $copyLoopOpen  = "      do ".$node->{'directive'}->{'copy'}."\n";
+		    $copyLoopClose = "      end do\n";
+		} else {
+		    $copyInstance = ",copyInstance=".$node->{'directive'}->{'copy'};
+		}
+	    }
+	    $builderCode .= $copyLoopOpen;
 	    $builderCode .= "      ! Object should belong to the parameter node. Get the node and test whether the object has already been created in it.\n";
-	    $builderCode .= "      parameterNode => parametersCurrent%node('".$parameterName."'".(exists($node->{'directive'}->{'copy'}) ? ",copyInstance=".$node->{'directive'}->{'copy'} : "").")\n";
+	    $builderCode .= "      parameterNode => parametersCurrent%node('".$parameterName."'".$copyInstance.")\n";
 	    $builderCode .= "      if (parameterNode%objectCreated()) then\n";
 	    $builderCode .= "         ! Object already exists - simply get a pointer to it.\n";
 	    $builderCode .= "         genericObject => parameterNode%objectGet()\n";
 	    $builderCode .= "         select type (genericObject)\n";
 	    $builderCode .= "         class is (".$node->{'directive'}->{'class'}."Class)\n";
 	    $builderCode .= "            ".$node->{'directive'}->{'name'}." => genericObject\n";
+	    $builderCode .= "            call Galacticus_Display_Message(var_str('objectBuilder: re-use ".$node->{'directive'}->{'class'}." {loc: ')//loc(".$node->{'directive'}->{'name'}.")//'} at'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n"
+		if ( $debugging );
 	    $builderCode .= "         class default\n";
 	    $builderCode .= "            call Galacticus_Error_Report('parameter-stored object is not of [$node->{'directive'}->{'class'}] class'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $builderCode .= "         end select\n";
 	    $builderCode .= "      else\n";
 	    $builderCode .= "         ! Object does not yet exist - build it and store in the parameter node.\n";
-	    $builderCode .= "         ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent".(exists($node->{'directive'}->{'copy'}) ? ",copyInstance=".$node->{'directive'}->{'copy'} : "").(exists($node->{'directive'}->{'parameterName'}) ? ",parameterName='".$parameterName."'" : "").")\n";
+	    $builderCode .= "         ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent".$copyInstance.(exists($node->{'directive'}->{'parameterName'}) ? ",parameterName='".$parameterName."'" : "").")\n";
+	    $builderCode .= "            call Galacticus_Display_Message(var_str('objectBuilder: create ".$node->{'directive'}->{'class'}." {loc: ')//loc(".$node->{'directive'}->{'name'}.")//'} at'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n"
+		if ( $debugging );
 	    $builderCode .= "         call parameterNode%objectSet(".$node->{'directive'}->{'name'}.")\n";
+	    $builderCode .= "         call ".$node->{'directive'}->{'name'}."%makeIndestructible()\n";
+	    $builderCode .= "         call ".$node->{'directive'}->{'name'}."%autoHook()\n"
+		if ( 
+		    grep 
+		    {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} 
+		    map
+		    {&Galacticus::Build::Directives::Extract_Directives($_,$node->{'directive'}->{'class'})}
+		    &List::ExtraUtils::as_array($directiveLocations->{$node->{'directive'}->{'class'}}->{'file'})
+		);
 	    $builderCode .= "      end if\n";
+	    $builderCode .= $copyLoopClose;
 	    if ( $defaultName ) {
 		$builderCode .= "   else if (".$node->{'directive'}->{'source'}."%isGlobal()) then\n";
 		$builderCode .= "      ! This is the global parameter set - so we can use the default object of this class.\n";
+		$builderCode .= $copyLoopOpen;
 		$builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."()\n";
+		$builderCode .= "            call Galacticus_Display_Message(var_str('objectBuilder: use default ".$node->{'directive'}->{'class'}." {loc: ')//loc(".$node->{'directive'}->{'name'}.")//'} at'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n"
+		    if ( $debugging );
+		$builderCode .= $copyLoopClose;
 		$builderCode .= "   else\n";
-		$builderCode .= "      ! No means to define the object.\n";
-		$builderCode .= "      call Galacticus_Error_Report('[".$parameterName."] object is undefined'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		$builderCode .= "      ! Object is not explicitly defined, and this is not the global parameters object. Cause a default object of the class to be added to the parameters.\n";
+		$builderCode .= $copyLoopOpen;
+		$builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent)\n";
+		$builderCode .= "            call Galacticus_Display_Message(var_str('objectBuilder: create default ".$node->{'directive'}->{'class'}." {loc: ')//loc(".$node->{'directive'}->{'name'}.")//'} at'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n"
+		    if ( $debugging );
+		$builderCode .= $copyLoopClose;
 		$builderCode .= "   end if\n";
 	    }
 	    # Build a code node.
@@ -134,6 +176,23 @@ sub Process_ObjectBuilder {
 			}
 		    }
 		};
+		if ( $debugging ) {
+		    $usesNode->{'moduleUse'}->{'Galacticus_Display'} =
+		    {
+			intrinsic => 0,
+			all       => 1
+		    };
+		    $usesNode->{'moduleUse'}->{'String_Handling'   } =
+		    {
+			intrinsic => 0,
+			all       => 1
+		    };
+		    $usesNode->{'moduleUse'}->{'ISO_Varying_String'} =
+		    {
+			intrinsic => 0,
+			all       => 1
+		    };
+		}
 		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 		# Record that we have added the necessary declarations to the parent.
 		$node->{'parent'}->{'objectBuilderDeclarations'} = 1;
@@ -166,9 +225,13 @@ sub Process_ObjectBuilder {
 	    my $destructorCode;
 	    $destructorCode .= "if (associated(".$node->{'directive'}->{'name'}.").and.".$node->{'directive'}->{'name'}."%isFinalizable()) then\n";
 	    $destructorCode .= "   ! Deallocate the pointer.\n";
+	    $destructorCode .= "   call Galacticus_Display_Message(var_str('objectDestructor: deallocate ".$node->{'directive'}->{'name'}." {loc: ')//loc(".$node->{'directive'}->{'name'}.")//'} at'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n"
+		if ( $debugging );
 	    $destructorCode .= "   deallocate(".$node->{'directive'}->{'name'}.")\n";
 	    $destructorCode .= "else\n";
 	    $destructorCode .= "   ! Nullify the pointer.\n";
+	    $destructorCode .= "   call Galacticus_Display_Message(var_str('objectDestructor: nullify ".$node->{'directive'}->{'name'}." {loc: ')//loc(".$node->{'directive'}->{'name'}.")//'} at'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n"
+		if ( $debugging );
 	    $destructorCode .= "   nullify(".$node->{'directive'}->{'name'}.")\n";
 	    $destructorCode .= "end if\n";
 	    # Build a code node.
@@ -180,6 +243,27 @@ sub Process_ObjectBuilder {
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
+	    # Add required modules.
+	    my $usesNode =
+	    {
+		type      => "moduleUse",
+		moduleUse =>
+		{
+		    Input_Parameters =>
+		    {
+			intrinsic => 0,
+			all       => 1
+		    }
+		}
+	    };
+	    # Ensure error reporting module is used.
+	    if ( $debugging ) {
+		$usesNode->{'moduleUse'}->{'Galacticus_Display'} = {intrinsic => 0, all => 1};
+		$usesNode->{'moduleUse'}->{'String_Handling'   } = {intrinsic => 0, all => 1};
+		$usesNode->{'moduleUse'}->{'ISO_Varying_String'} = {intrinsic => 0, all => 1};
+	    }
+	    # Insert the modules node.
+	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    # Mark the directive as processed.
 	    $node->{'directive'}->{'processed'} =  1;
 	}

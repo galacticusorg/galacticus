@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,9 +22,12 @@
 module Node_Component_Dynamics_Statistics_Bars
   !% Implements tracking of dynamics statistics related to bars.
   use Galacticus_Nodes
+  use Dark_Matter_Halo_Scales
+  use Galactic_Dynamics_Bar_Instabilities
   implicit none
   private
-  public :: Node_Component_Dynamics_Statistics_Bars_Timestep, Node_Component_Dynamics_Statistics_Bars_Output
+  public :: Node_Component_Dynamics_Statistics_Bars_Rate_Compute     , Node_Component_Dynamics_Statistics_Bars_Output    , &
+       &    Node_Component_Dynamics_Statistics_Bars_Thread_Initialize, Node_Component_Dynamics_Statistics_Bars_Initialize
 
   !# <component>
   !#  <class>dynamicsStatistics</class>
@@ -55,6 +59,11 @@ module Node_Component_Dynamics_Statistics_Bars
   !#  <functions>objects.nodes.components.dynamics_statistics.bars.bound_functions.inc</functions>
   !# </component>
 
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
+  class(galacticDynamicsBarInstabilityClass), pointer :: galacticDynamicsBarInstability_
+  !$omp threadprivate(darkMatterHaloScale_,galacticDynamicsBarInstability_)
+
   ! Module initialization state.
   logical          :: dynamicsStatisticsBarsInitialized=.false.
   ! Frequency for recording state.
@@ -62,108 +71,110 @@ module Node_Component_Dynamics_Statistics_Bars
 
 contains
 
-  !# <timeStepsTask>
-  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Timestep</unitName>
-  !# </timeStepsTask>
-  subroutine Node_Component_Dynamics_Statistics_Bars_Timestep(node,timeStep,End_Of_Timestep_Task,report,lockNode,lockType)
-    !% Determines the timestep to go to the next tabulation point for galactic bar dynamics storage.
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Dynamics_Statistics_Bars_Initialize(parameters)
+    !% Initializes the tree node standard disk methods module.
     use Input_Parameters
-    use Evolve_To_Time_Reports
-    use ISO_Varying_String
-    use Dark_Matter_Halo_Scales
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+    
+    if (defaultDynamicsStatisticsComponent%barsIsActive()) then
+       !# <inputParameter>
+       !#   <name>dynamicsStatisticsBarsFrequency</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>0.1d0</defaultValue>
+       !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
+       !#   <group>timeStepping</group>
+       !#   <source>parameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+    end if
+    return
+  end subroutine Node_Component_Dynamics_Statistics_Bars_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(parameters)
+    !% Initializes the tree node very simple disk profile module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultDynamicsStatisticsComponent%barsIsActive()) then
+       !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
+       !# <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize
+
+  !# <rateComputeTask>
+  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Rate_Compute</unitName>
+  !# </rateComputeTask>
+  subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
+    !% Compute the standard disk node mass rate of change.
     use Galacticus_Error
     implicit none
-    type            (treeNode                                      ), intent(inout)             , pointer :: node
-    procedure       (Node_Component_Dynamics_Statistics_Bars_Record), intent(inout)             , pointer :: End_Of_Timestep_Task
-    double precision                                                , intent(inout)                       :: timeStep
-    logical                                                         , intent(in   )                       :: report
-    type            (treeNode                                      ), intent(inout), optional   , pointer :: lockNode
-    type            (varying_string                                ), intent(inout), optional             :: lockType
-    type            (treeNode                                      )                            , pointer :: hostNode
-    class           (nodeComponentBasic                            )                            , pointer :: basic
-    class           (nodeComponentDynamicsStatistics               )                            , pointer :: dynamicsStatistics
-    class           (darkMatterHaloScaleClass                      )                            , pointer :: darkMatterHaloScale_
-    double precision                                                , allocatable  , dimension(:)         :: timeRecord
-    double precision                                                                                      :: ourTimeStep
+    type            (treeNode                       ), intent(inout), pointer      :: node
+    logical                                          , intent(in   )               :: odeConverged
+    logical                                          , intent(inout)               :: interrupt
+    procedure       (interruptTask                  ), intent(inout), pointer      :: interruptProcedure
+    integer                                          , intent(in   )               :: propertyType
+    type            (treeNode                       )               , pointer      :: hostNode
+    class           (nodeComponentBasic             )               , pointer      :: basic
+    class           (nodeComponentDynamicsStatistics)               , pointer      :: dynamicsStatistics
+    double precision                                 , allocatable  , dimension(:) :: timeRecord
+    double precision                                                               :: time
+    !GCC$ attributes unused :: odeConverged, propertyType
 
-    ! Return immediately if this class is not active or if this galaxy is not a satellite.
-    if (.not.(defaultDynamicsStatisticsComponent%barsIsActive().and.node%isSatellite())) return
-    ! Initialize if necessary
-    if (.not.dynamicsStatisticsBarsInitialized) then
-       !$omp critical (dynamicsStatisticsBarsInitialize)
-       if (.not.dynamicsStatisticsBarsInitialized) then
-          ! Get module parameters.
-          !# <inputParameter>
-          !#   <name>dynamicsStatisticsBarsFrequency</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>0.1d0</defaultValue>
-          !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
-          !#   <group>timeStepping</group>
-          !#   <source>globalParameters</source>
-          !#   <type>double</type>
-          !# </inputParameter>
-          ! Record that initialization is now complete.
-          dynamicsStatisticsBarsInitialized=.true.
-       end if
-       !$omp end critical (dynamicsStatisticsBarsInitialize)
-    end if
+    ! Do not compute rates if this component is not active.
+    if (.not.defaultDynamicsStatisticsComponent%barsIsActive().or..not.node%isSatellite()) return
     ! Determine the allowed timestep.
     dynamicsStatistics => node%dynamicsStatistics()
     select type (dynamicsStatistics)
     type is (nodeComponentDynamicsStatistics)
        ! Create the component now, and record state immediately.
-       ourTimeStep=0.0d0
+       interrupt          =  .true.
+       interruptProcedure => Node_Component_Dynamics_Statistics_Bars_Record
+       return
     class is (nodeComponentDynamicsStatisticsBars)
        ! Set return value if our timestep is smaller than current one.
-       timeRecord           =  dynamicsStatistics%time  ()
-       hostNode             => node              %parent
-       basic            => node              %basic ()
-       darkMatterHaloScale_ => darkMatterHaloScale          ()
-       ourTimestep=                                                   &
-            & max(                                                    &
-            &      timeRecord(size(timeRecord))                       &
-            &     +dynamicsStatisticsBarsFrequency                    &
-            &     *darkMatterHaloScale_%dynamicalTimescale(hostNode)  &
-            &     -basic%time()                                 , &
-            &     0.0d0                                               &
-            &    )
+       timeRecord =  dynamicsStatistics%time  ()
+       hostNode   =>  node%parent
+       basic      =>  node%basic ()
+       time       =  +timeRecord(size(timeRecord))                      &
+            &        +dynamicsStatisticsBarsFrequency                   &
+            &        *darkMatterHaloScale_%dynamicalTimescale(hostNode)
+       ! Check if our timestep is the limiting factor.
+       if (basic%time() >= time) then
+          interrupt          =  .true.
+          interruptProcedure => Node_Component_Dynamics_Statistics_Bars_Record
+       end if
     class default
-       ourTimestep=0.0d0
        call Galacticus_Error_Report('unknown class'//{introspection:location})
     end select
-    ! Check if our timestep is the limiting factor.
-    if (ourTimeStep <= timeStep) then
-       if (present(lockNode)) lockNode => node
-       if (present(lockType)) lockType =  "galactic dynamics statistics (bars)"
-       timeStep=ourTimeStep
-       End_Of_Timestep_Task => Node_Component_Dynamics_Statistics_Bars_Record
-    end if
-    if (report) call Evolve_To_Time_Report("galactic dynamics statistics (bars): ",timeStep)
     return
-  end subroutine Node_Component_Dynamics_Statistics_Bars_Timestep
+  end subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute
 
-  subroutine Node_Component_Dynamics_Statistics_Bars_Record(tree,node,deadlockStatus)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Record(node)
     !% Record the bar dynamical state of a satellite galaxy.
     use Numerical_Interpolation
     use Numerical_Constants_Math
-    use Galactic_Dynamics_Bar_Instabilities
     use Satellite_Orbits
     use Kepler_Orbits
     implicit none
-    type            (mergerTree                         ), intent(in   )          :: tree
-    type            (treeNode                           ), intent(inout), pointer :: node
-    integer                                              , intent(inout)          :: deadlockStatus
-    class           (nodeComponentBasic                 )               , pointer :: basic
-    class           (nodeComponentDisk                  )               , pointer :: disk
-    class           (nodeComponentSatellite             )               , pointer :: satellite
-    class           (nodeComponentDynamicsStatistics    )               , pointer :: dynamicsStatistics
-    class           (galacticDynamicsBarInstabilityClass)               , pointer :: galacticDynamicsBarInstability_
-    type            (treeNode                           )               , pointer :: hostNode
-    type            (keplerOrbit                        )                         :: orbit
-    double precision                                                              :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
-         &                                                                           adiabaticRatio         , velocityPericenter                         , &
-         &                                                                           radiusPericenter
-    !GCC$ attributes unused :: tree, deadlockStatus
+    type            (treeNode                       ), intent(inout), pointer :: node
+    class           (nodeComponentBasic             )               , pointer :: basic
+    class           (nodeComponentDisk              )               , pointer :: disk
+    class           (nodeComponentSatellite         )               , pointer :: satellite
+    class           (nodeComponentDynamicsStatistics)               , pointer :: dynamicsStatistics
+    type            (treeNode                       )               , pointer :: hostNode
+    type            (keplerOrbit                    )                         :: orbit
+    double precision                                                          :: barInstabilityTimescale, barInstabilityExternalDrivingSpecificTorque, &
+         &                                                                       adiabaticRatio         , velocityPericenter                         , &
+         &                                                                       radiusPericenter
     
     ! Get components.
     basic              => node%basic             (                 )
@@ -171,11 +182,10 @@ contains
     ! Record the state.
     select type (dynamicsStatistics)
     class is (nodeComponentDynamicsStatisticsBars)
-       galacticDynamicsBarInstability_ => galacticDynamicsBarInstability            ()
-       disk                            => node                          %disk       ()
-       satellite                       => node                          %satellite  ()
-       hostNode                        => node                          %parent
-       orbit                           =  satellite                     %virialOrbit()
+       disk      => node     %disk       ()
+       satellite => node     %satellite  ()
+       hostNode  => node     %parent
+       orbit     =  satellite%virialOrbit()
        call Satellite_Orbit_Extremum_Phase_Space_Coordinates(hostNode,orbit,extremumPericenter,radiusPericenter,velocityPericenter)
        call galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilityExternalDrivingSpecificTorque)
        if (disk%radius() > 0.0d0) then
@@ -230,30 +240,6 @@ contains
           output  =outputs             %openGroup(char(outputGroupName)                                                                      )
           dynamics=output              %openGroup("dynamicsStatistics" ,"Group containing statistics of satellite galaxy bar dynamical state")
           tree    =dynamics            %openGroup(char(treeGroupName)  ,"Group containing statistics of satellite galaxy bar dynamical state")
-          !@ <outputProperty>
-          !@   <name>time</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..</cardinality>
-          !@   <description>The times at which bar dynamical state data are stored.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
-          !@ <outputProperty>
-          !@   <name>timeScale</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..</cardinality>
-          !@   <description>The bar instability timescale.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
-          !@ <outputProperty>
-          !@   <name>adiabaticRatio</name>
-          !@   <datatype>double</datatype>
-          !@   <cardinality>0..</cardinality>
-          !@   <description>The adiabatic ratio.</description>
-          !@   <label>???</label>
-          !@   <outputType>nodeData</outputType>
-          !@ </outputProperty>
           timeDatasetName          ="time"
           timescaleDatasetName     ="timeScale"
           adiabaticRatioDatasetName="adiabaticRatio"

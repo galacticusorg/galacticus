@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -101,6 +102,7 @@ contains
     !# <objectBuilder class="coolingFunction" name="self%coolingFunction_" source="parameters"/>
     !# <inputParametersValidate source="parameters"/>
     self%coldFractionComputed=.false.
+    self%lastUniqueID        =-1_kind_int8
     return
   end function coldModeConstructorParameters
 
@@ -124,6 +126,7 @@ contains
 
     self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     self%coldFractionComputed=.false.
+    self%lastUniqueID        =-1_kind_int8
     return
   end function coldModeConstructorInternal
 
@@ -149,7 +152,6 @@ contains
 
   double precision function coldModeAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -162,7 +164,6 @@ contains
   
   double precision function coldModeAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -175,7 +176,6 @@ contains
 
   double precision function coldModeFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -188,7 +188,6 @@ contains
 
   double precision function coldModeFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
-    use Galacticus_Nodes
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -201,7 +200,6 @@ contains
 
   function coldModeAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     implicit none
     type  (abundances           )                :: coldModeAccretionRateMetals
     class (accretionHaloColdMode), intent(inout) :: self
@@ -215,7 +213,6 @@ contains
 
   function coldModeAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes
     implicit none
     type   (abundances           )                :: coldModeAccretedMassMetals
     class  (accretionHaloColdMode), intent(inout) :: self
@@ -273,6 +270,7 @@ contains
 
   function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    use Galacticus_Nodes                 , only : nodeComponentBasic
     use Numerical_Constants_Astronomical
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
@@ -302,7 +300,7 @@ contains
     numberDensityHydrogen     =  hydrogenByMassPrimordial*(self%cosmologyParameters_%omegaBaryon()/self%cosmologyParameters_%omegaMatter())*basic%mass()*massToDensityConversion&
          &/atomicMassHydrogen
     ! Set the radiation field.
-    call self%radiation%set(node)
+    call self%radiation%timeSet(basic%time())
     ! Get hot and cold mode fractions.
     fractionHot =self%coldModeFraction(node,accretionModeHot )
     fractionCold=self%coldModeFraction(node,accretionModeCold)
@@ -325,6 +323,7 @@ contains
 
   double precision function coldModeColdModeFraction(self,node,accretionMode)
     !% Computes the fraction of accretion occuring in the specified mode.
+    use Galacticus_Nodes                  , only : nodeComponentBasic
     use Galacticus_Error
     use Shocks_1D
     use Numerical_Constants_Atomic
@@ -358,10 +357,10 @@ contains
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
        ! Compute cold fraction if not already computed.
        if (.not.self%coldFractionComputed) then
-          ! Set the radiation field.
-          call self%radiation%set(node)
           ! Get the basic component.
           basic => node%basic()
+          ! Set the radiation field.
+          call self%radiation%timeSet(basic%time())
           ! Compute factors required for stability analysis.
           radiusShock          =self%darkMatterHaloScale_%virialRadius  (node)
           velocityPreShock     =self%darkMatterHaloScale_%virialVelocity(node)

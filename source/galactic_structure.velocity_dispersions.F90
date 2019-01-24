@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,7 +38,7 @@ contains
 
   double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType,haloLoaded)
     !% Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
-    use FGSL
+    use FGSL                              , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Densities

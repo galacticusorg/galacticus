@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -121,15 +122,17 @@ contains
     return
   end function gadgetBinaryConstructorInternal
 
-  function gadgetBinaryImport(self,fileName)
+  function gadgetBinaryImport(self,fileName,fileNamePrevious)
     !% Import data from a Gadget HDF5 file.
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
     use Memory_Management
+    use Galacticus_Error
     implicit none
     type            (nBodyData                )                                :: gadgetBinaryImport
     class           (nbodyImporterGadgetBinary), intent(inout)                 :: self
     character       (len=*                    ), intent(in   )                 :: fileName
+    character       (len=*                    ), intent(in   ), optional       :: fileNamePrevious
     integer                                                   , dimension(6  ) :: numberParticleType    , numberParticleTypeFile, &
          &                                                                        numberParticleTypeRead
     real                                       , allocatable  , dimension(:,:) :: position              , velocity
@@ -140,6 +143,10 @@ contains
          &                                                                        numberFiles           , fileNumber
     character       (len=6                    )                                :: fileNumberText
 
+    ! Reading in self-bound status from the previous snapshot is not supported yet for binary Gadget outputs.
+    if (present(fileNamePrevious)) then
+       call Galacticus_Error_Report('reading in self-bound status from the previous snapshot is not supported'//{introspection:location})
+    end if
     ! Open the file.
     numberFiles           =huge(0)
     fileNumber            =     0

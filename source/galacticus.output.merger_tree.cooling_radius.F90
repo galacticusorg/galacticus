@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -80,15 +81,6 @@ contains
     call Cooling_Radius_Output_Initialize()
     if (outputHotHaloCoolingRadii) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>hotHaloCoolingRadius</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Cooling radius in the hot halo.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@   <group>hotHalo</group>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='hotHaloCoolingRadius'
        doublePropertyComments(doubleProperty)='Cooling radius in the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=megaParsec

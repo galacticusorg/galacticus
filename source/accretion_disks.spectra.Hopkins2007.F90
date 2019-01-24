@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -134,14 +135,14 @@ contains
        call Galacticus_Display_Indent('Building file of tabulated AGN spectra for Hopkins2007 class',verbosity=verbosityWorking)
        call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the AGN SED code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.c")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then
           call System_Command_Do("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c");
-          if (.not.File_Exists(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.c")) call Galacticus_Error_Report('failed to download agn_spectrum.c'//{introspection:location})
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Galacticus_Error_Report('failed to download agn_spectrum.c'//{introspection:location})
        end if
        ! Compile the AGN SED code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.x")) then
+       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) then
           call System_Command_Do("cd "//char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum; gcc agn_spectrum.c -o agn_spectrum.x -lm");
-          if (.not.File_Exists(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.x")) call Galacticus_Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Galacticus_Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
        call System_Command_Do("mkdir -p "//char(galacticusPath(pathTypeDataStatic))//"blackHoles")
@@ -150,8 +151,8 @@ contains
        do i=1,luminosityBolometricCount
           call Galacticus_Display_Counter(int(100.0*dble(i-1)/dble(luminosityBolometricCount)),isNew=i==1,verbosity=verbosityWorking)
           write (label,'(e12.6)') log10(luminosityBolometric(i))
-          call System_Command_Do(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/agn_spectrum.x "//label//" > "//galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/SED.txt")
-          wavelengthCount=Count_Lines_in_File(galacticusPath(pathTypeDataStatic)//"aux/AGN_Spectrum/SED.txt",";")-4
+          call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x "//label//" > "//galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt")
+          wavelengthCount=Count_Lines_in_File(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/SED.txt",";")-4
           if (allocated(wavelength)) then
              if (wavelengthCount /= size(wavelength)) call Galacticus_Error_Report('inconsistent number of wavelengths'//{introspection:location})
           else

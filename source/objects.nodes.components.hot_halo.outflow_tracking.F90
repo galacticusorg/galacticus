@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,9 +24,11 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   !% Implements an extension of the standard hot halo node component which tracks the metals arriving from               
   !% outflows.
   use Galacticus_Nodes
+  use Dark_Matter_Halo_Scales
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute, Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set
+  public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute     , Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set, &
+       &    Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -56,8 +59,27 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   !#  </bindings>
   !#  <functions>objects.nodes.components.hot_halo.outflow_tracking.bound_functions.inc</functions>
   !# </component>
+  
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterHaloScale_)
 
 contains
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(parameters)
+    !% Initializes the tree node very simple disk profile module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultHotHaloComponent%outflowTrackingIsActive()) then
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute</unitName>
@@ -65,7 +87,6 @@ contains
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
-    use Dark_Matter_Halo_Scales
     use Node_Component_Hot_Halo_Standard_Data
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
@@ -74,7 +95,6 @@ contains
     procedure       (interruptTask               ), intent(inout), pointer :: interruptProcedure
     integer                                       , intent(in   )          :: propertyType
     class           (nodeComponentHotHalo        )               , pointer :: hotHalo
-    class           (darkMatterHaloScaleClass    )               , pointer :: darkMatterHaloScale_
     double precision                                                       :: massReturnRate
     type            (abundances                  )                         :: abundancesReturnRate
     !GCC$ attributes unused :: interrupt, interruptProcedure, odeConverged
@@ -82,14 +102,13 @@ contains
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Return immediately if this class is not in use.
+
     if (.not.defaultHotHaloComponent%outflowTrackingIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Act only if this hot halo is of our class.
     select type (hotHalo)
     class is (nodeComponentHotHaloOutflowTracking)
-       ! Get required objects.
-       darkMatterHaloScale_ => darkMatterHaloScale()
        ! Add the rate of abundances return from the outflowed component.
        massReturnRate      =hotHaloOutflowReturnRate*hotHalo%outflowedMass      ()/darkMatterHaloScale_%dynamicalTimescale(node)
        abundancesReturnRate=hotHaloOutflowReturnRate*hotHalo%outflowedAbundances()/darkMatterHaloScale_%dynamicalTimescale(node)

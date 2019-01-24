@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,8 @@
   use Halo_Mass_Functions
   use Dark_Matter_Profiles
   use Dark_Matter_Halo_Scales
-  
+  use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+
   !# <haloSpinDistribution name="haloSpinDistributionNbodyErrors">
   !#  <description>
   !#   A halo spin distribution which modifies another spin distribution to account for the effects of particle noise errors
@@ -35,21 +37,22 @@
      !% A dark matter halo spin distribution class which modifies another spin distribution to account for the effects of particle
      !% noise errors in spins measured in N-body simulations.
      private
-     class           (haloSpinDistributionClass), pointer                     :: distributionIntrinsic => null()
-     class           (nbodyHaloMassErrorClass  ), pointer                     :: nbodyHaloMassError_   => null()
-     class           (haloMassFunctionClass    ), pointer                     :: haloMassFunction_     => null()
-     class           (darkMatterHaloScaleClass ), pointer                     :: darkMatterHaloScale_  => null()
-     class           (darkMatterProfileClass   ), pointer                     :: darkMatterProfile_    => null()
-     double precision                                                         :: massParticle                      , time
-     logical                                                                  :: fixedPoint
-     integer                                                                  :: particleCountMinimum
-     integer                                                                  :: spinCount                         , massCount
-     double precision                                                         :: spinMinimum                       , spinMaximum, &
-          &                                                                      massMinimum                       , massMaximum, &
-          &                                                                      massDelta                         , spinDelta  , &
-          &                                                                      energyEstimateParticleCountMaximum, spinFixed
-     double precision                           , allocatable, dimension(:  ) :: massWeight
-     double precision                           , allocatable, dimension(:,:) :: distributionTable
+     class           (haloSpinDistributionClass        ), pointer                     :: distributionIntrinsic         => null()
+     class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_           => null()
+     class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_             => null()
+     class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_          => null()
+     class           (darkMatterProfileClass           ), pointer                     :: darkMatterProfile_            => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
+     double precision                                                                 :: massParticle                           , time
+     logical                                                                          :: fixedPoint
+     integer                                                                          :: particleCountMinimum
+     integer                                                                          :: spinCount                              , massCount
+     double precision                                                                 :: spinMinimum                            , spinMaximum, &
+          &                                                                              massMinimum                            , massMaximum, &
+          &                                                                              massDelta                              , spinDelta  , &
+          &                                                                              energyEstimateParticleCountMaximum     , spinFixed
+     double precision                                   , allocatable, dimension(:  ) :: massWeight
+     double precision                                   , allocatable, dimension(:,:) :: distributionTable
    contains
      !@ <objectMethods>
      !@   <object>haloSpinDistributionNbodyErrors</object>
@@ -103,17 +106,18 @@ contains
     !% distribution class which takes a parameter list as input.
     use Input_Parameters
     implicit none
-    type            (haloSpinDistributionNbodyErrors)                :: self
-    type            (inputParameters                ), intent(inout) :: parameters
-    class           (haloSpinDistributionClass      ), pointer       :: distributionIntrinsic
-    class           (nbodyHaloMassErrorClass        ), pointer       :: nbodyHaloMassError_
-    class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
-    class           (haloMassFunctionClass          ), pointer       :: haloMassFunction_
-    class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass         ), pointer       :: darkMatterProfile_
-    double precision                                                 :: massParticle                    , redshift                          , &
-         &                                                              time                            , energyEstimateParticleCountMaximum
-    integer                                                          :: particleCountMinimum
+    type            (haloSpinDistributionNbodyErrors  )                :: self
+    type            (inputParameters                  ), intent(inout) :: parameters
+    class           (haloSpinDistributionClass        ), pointer       :: distributionIntrinsic
+    class           (nbodyHaloMassErrorClass          ), pointer       :: nbodyHaloMassError_
+    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    class           (haloMassFunctionClass            ), pointer       :: haloMassFunction_
+    class           (darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
+    double precision                                                   :: massParticle                 , redshift                          , &
+         &                                                                time                         , energyEstimateParticleCountMaximum
+    integer                                                            :: particleCountMinimum
 
     ! Check and read parameters.
     !# <inputParameter>
@@ -148,12 +152,13 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="haloSpinDistribution" name="distributionIntrinsic" source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"   name="nbodyHaloMassError_"   source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"     name="haloMassFunction_"     source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
+    !# <objectBuilder class="haloSpinDistribution"         name="distributionIntrinsic"         source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     ! Find the time corresponding to the given redshift.
     time=  cosmologyFunctions_ %cosmicTime                 (          &
          &  cosmologyFunctions_%expansionFactorFromRedshift (         &
@@ -171,25 +176,27 @@ contains
          &                              nbodyHaloMassError_               , &
          &                              haloMassFunction_                 , &
          &                              darkMatterHaloScale_              , &
-         &                              darkMatterProfile_                  &
+         &                              darkMatterProfile_                , &
+         &                              darkMatterProfileScaleRadius_       &
          &                             )
     !# <inputParametersValidate source="parameters"/>
     return
   end function nbodyErrorsConstructorParameters
 
-  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_) result(self)
+  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileScaleRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
     implicit none
-    type            (haloSpinDistributionNbodyErrors)                        :: self
-    class           (haloSpinDistributionClass      ), intent(in   ), target :: distributionIntrinsic
-    class           (nbodyHaloMassErrorClass        ), intent(in   ), target :: nbodyHaloMassError_
-    class           (haloMassFunctionClass          ), intent(in   ), target :: haloMassFunction_
-    class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileClass         ), intent(in   ), target :: darkMatterProfile_
-    double precision                                 , intent(in   )         :: massParticle                      , time, &
-         &                                                                      energyEstimateParticleCountMaximum
-    integer                                          , intent(in   )         :: particleCountMinimum
-    !# <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfile_"/>
+    type            (haloSpinDistributionNbodyErrors  )                        :: self
+    class           (haloSpinDistributionClass        ), intent(in   ), target :: distributionIntrinsic
+    class           (nbodyHaloMassErrorClass          ), intent(in   ), target :: nbodyHaloMassError_
+    class           (haloMassFunctionClass            ), intent(in   ), target :: haloMassFunction_
+    class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileClass           ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
+    double precision                                   , intent(in   )         :: massParticle                      , time, &
+         &                                                                        energyEstimateParticleCountMaximum
+    integer                                            , intent(in   )         :: particleCountMinimum
+    !# <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileScaleRadius_"/>
 
     ! Set default ranges of spin and mass for tabulation.
     self%fixedPoint =.false.
@@ -205,11 +212,10 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
     use               Memory_Management
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes              , only : treeNode, nodeComponentBasic, nodeComponentSpin, nodeComponentDarkMatterProfile
     use               Galacticus_Error
     use               Numerical_Constants_Math
     use               Galacticus_Calculations_Resets
-    use               Dark_Matter_Profile_Scales
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired               , &
@@ -322,7 +328,7 @@ contains
        massMeasured=10.0d0**(dble(iMass-1)*self%massDelta+log10(self%massMinimum))
        ! Estimate the mass error.
        call nodeBasic%massSet (massMeasured)
-       call nodeDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(node))
+       call nodeDarkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
        call Galacticus_Calculations_Reset(node)
        massError=  +self%nbodyHaloMassError_%errorFractional(node) &
             &      *massMeasured
@@ -334,7 +340,7 @@ contains
        else
           ! Reduced sample of halo particles used in estimating potential energy - compute correction factor.
           call nodeBasic%massSet(massEnergyEstimateMaximum)
-          call nodeDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(node))
+          call nodeDarkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
           call Galacticus_Calculations_Reset(node)
           energyEstimateErrorCorrection=+self%nbodyHaloMassError_%errorFractional(node) &
                &                        /(                                              &
@@ -342,7 +348,7 @@ contains
                &                          /massMeasured                                 &
                &                         )
           call nodeBasic%massSet(massMeasured             )
-          call nodeDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(node))
+          call nodeDarkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
           call Galacticus_Calculations_Reset(node)
        end if
        ! Integrate over a range of masses corresponding to a fixed number of mass errors around the measured mass.
@@ -409,7 +415,7 @@ contains
 
       ! Set the mass and compute the mass error.
       call nodeBasic%massSet(massIntrinsic)
-      call nodeDarkMatterProfile%scaleSet(Dark_Matter_Profile_Scale(node))
+      call nodeDarkMatterProfile%scaleSet(self%darkMatterProfileScaleRadius_%radius(node))
       call Galacticus_Calculations_Reset(node)
       massError   =+self%nbodyHaloMassError_%errorFractional(node) &
            &       *massIntrinsic
@@ -750,11 +756,12 @@ contains
     implicit none
     type(haloSpinDistributionNbodyErrors), intent(inout) :: self
 
-    !# <objectDestructor name="self%distributionIntrinsic"/>
-    !# <objectDestructor name="self%nbodyHaloMassError_"  />
-    !# <objectDestructor name="self%haloMassFunction_"    />
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%darkMatterProfile_"   />
+    !# <objectDestructor name="self%distributionIntrinsic"        />
+    !# <objectDestructor name="self%nbodyHaloMassError_"          />
+    !# <objectDestructor name="self%haloMassFunction_"            />
+    !# <objectDestructor name="self%darkMatterHaloScale_"         />
+    !# <objectDestructor name="self%darkMatterProfile_"           />
+    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     return
   end subroutine nbodyErrorsDestructor
 
@@ -773,7 +780,7 @@ contains
 
   double precision function nbodyErrorsDistribution(self,node)
     !% Compute the spin distribution.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -810,7 +817,7 @@ contains
 
   double precision function nbodyErrorsDistributionFixedPoint(self,node,spinMeasured)
     !% Compute the spin distribution for a fixed point in intrinsic mass and spin.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -841,7 +848,7 @@ contains
 
   double precision function nbodyErrorsDistributionAveraged(self,node,massLimit)
     !% Compute the spin distribution averaged over all halos more massive than the given {\normalfont \ttfamily massLimit}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Galacticus_Calculations_Resets
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,9 +21,8 @@
 
 module Cosmological_Density_Field
   !% Provides an object that implements critical overdensities and halo environments.
-  use FGSL
   use Cosmology_Functions
-  use Galacticus_Nodes
+  use Galacticus_Nodes   , only : treeNode
   private
   
   !# <functionClass>
@@ -60,7 +60,7 @@ module Cosmological_Density_Field
   !#   <argument>type            (treeNode), intent(inout), optional, target :: node               </argument>
   !#   <modules>Root_Finder</modules>
   !#   <code>
-  !#    double precision            , parameter :: toleranceRelative    =1.0d-12, toleranceAbsolute=0.0d0
+  !#    double precision            , parameter :: toleranceRelative=1.0d-12, toleranceAbsolute=0.0d0
   !#    double precision                        :: timeBigCrunch
   !#    type            (rootFinder), save      :: finder
   !#    !$omp threadprivate(finder)

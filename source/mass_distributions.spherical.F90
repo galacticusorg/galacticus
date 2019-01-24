@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,6 +62,7 @@ contains
     !% distributions using numerical integration.
     use Numerical_Integration
     use Numerical_Constants_Math
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
     implicit none
     class           (massDistributionSpherical ), intent(inout), target :: self
     double precision                            , intent(in   )         :: radius
@@ -102,7 +104,7 @@ contains
   double precision function sphericalRadiusHalfMass(self)
     !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
     use Root_Finder
-    use FGSL
+    use FGSL       , only : FGSL_Root_fSolver_Brent
     implicit none
     class           (massDistributionSpherical), intent(inout) :: self
     type            (rootFinder               ), save          :: finder

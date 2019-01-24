@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Bessel_Functions
   !% Implements calculations of Bessel functions.
-  use FGSL
+  use FGSL, only : FGSL_SF_Bessel_Kc0, FGSL_SF_Bessel_Kc1, FGSL_SF_Bessel_Ic0, FGSL_SF_Bessel_Ic1
   implicit none
   private
   public :: Bessel_Function_K0, Bessel_Function_K1, Bessel_Function_I0, Bessel_Function_I1

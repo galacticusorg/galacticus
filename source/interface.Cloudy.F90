@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,7 +41,7 @@ contains
     ! Specify Cloudy version.
     cloudyVersion="c17.01"
     ! Specify Cloudy path.
-    cloudyPath   =galacticusPath(pathTypeExec)//"aux/"//cloudyVersion
+    cloudyPath   =galacticusPath(pathTypeDataDynamic)//cloudyVersion
     ! Download the Cloudy code.
     if (.not.File_Exists(cloudyPath//".tar.gz")) then
        call Galacticus_Display_Message("downloading Cloudy code....",verbosityWorking)

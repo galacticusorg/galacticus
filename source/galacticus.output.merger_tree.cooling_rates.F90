@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -81,15 +82,6 @@ contains
 
     if (outputHotHaloCoolingRates) then
        doubleProperty=doubleProperty+1
-       !@ <outputProperty>
-       !@   <name>hotHaloCoolingRate</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Rate of mass cooling in the hot halo.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@   <group>hotHalo</group>
-       !@ </outputProperty>
        doublePropertyNames   (doubleProperty)='hotHaloCoolingRate'
        doublePropertyComments(doubleProperty)='Rate of mass cooling in the hot halo.'
        doublePropertyUnitsSI (doubleProperty)=massSolar/gigaYear

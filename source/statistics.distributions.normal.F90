@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a normal 1D distibution function.
 
   !# <distributionFunction1D name="distributionFunction1DNormal">
@@ -231,6 +232,7 @@ contains
     !% Evaluates the inverse of the standard normal cumulative distribution function. Based on the Fortran90 version by John
     !% Burkardt (itself based on the original Fortran 77 version by Michael Wichura), using the alogorithm of
     !% \cite{wichura_percentage_1988}.
+    use Galacticus_Error
     implicit none
     double precision, intent(in   )                :: p
     double precision, parameter    , dimension (8) :: a=[                            &
@@ -320,7 +322,7 @@ contains
        end if
        if (r <= 0.0d0) then
           normalStandardInverse=-1.0d0
-          stop
+          call Galacticus_Error_Report('out of range - this should not happen'//{introspection:location})
        end if
        r=sqrt(-log(r))
        if (r <= split2) then

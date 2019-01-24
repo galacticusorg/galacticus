@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -100,14 +101,6 @@ contains
     ! Return property names if we are outputting final descendant data.
     if (outputFinalDescendentIndices) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>finalDescendentIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>ID of the node which this node will have descended into at the base of the tree.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='finalFescendentIndex'
        integerPropertyComments(integerProperty)='ID of the node which this node will have descended into at the base of the tree.'
        integerPropertyUnitsSI (integerProperty)=0.0d0
@@ -145,7 +138,7 @@ contains
     !% Store descendent properties in the \glc\ output file buffers.
     use Galacticus_Nodes
     use Kind_Numbers
-    use Galacticus_Output_Times
+    use Output_Times
     use Multi_Counters
     implicit none
     double precision                        , intent(in   )         :: time

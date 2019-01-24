@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -47,12 +48,12 @@
 
 contains
 
-  function bode2001ConstructorParameters(parameters)
+  function bode2001ConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily bode2001}'' transfer function class which takes a parameter set as input.
     use Input_Parameters
     use Galacticus_Error
     implicit none
-    type            (transferFunctionBode2001)                :: bode2001ConstructorParameters
+    type            (transferFunctionBode2001)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
@@ -93,57 +94,41 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    ! Call the internal constructor
-    bode2001ConstructorParameters=bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,cosmologyParameters_,darkMatterParticle_)
+    self=transferFunctionBode2001(transferFunctionCDM,epsilon,eta,nu,cosmologyParameters_,darkMatterParticle_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function bode2001ConstructorParameters
 
-  function bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,cosmologyParameters_,darkMatterParticle_)
+  function bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,cosmologyParameters_,darkMatterParticle_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily bode2001}'' transfer function class.
     use Galacticus_Error
     implicit none
-    type            (transferFunctionBode2001)                                  :: bode2001ConstructorInternal
-    class           (transferFunctionClass   ), target, intent(in   )           :: transferFunctionCDM
-    double precision                                  , intent(in   )           :: epsilon                          , eta                            , &
-         &                                                                         nu
-    class           (cosmologyParametersClass), target, intent(in   ), optional :: cosmologyParameters_    
-    class           (darkMatterParticleClass ), target, intent(in   ), optional :: darkMatterParticle_    
-    double precision                          , parameter                       :: massReference              =1.0d0, degreesOfFreedomReference=1.5d0
+    type            (transferFunctionBode2001)                        :: self
+    class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
+    double precision                                  , intent(in   ) :: epsilon                   , eta                            , &
+         &                                                               nu
+    class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
+    class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_    
+    double precision                          , parameter             :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
+    !# <constructorAssign variables="*transferFunctionCDM, epsilon, eta, nu, *cosmologyParameters_, *darkMatterParticle_"/>
     
-    bode2001ConstructorInternal%transferFunctionCDM => transferFunctionCDM
-    bode2001ConstructorInternal%epsilon             =  epsilon
-    bode2001ConstructorInternal%eta                 =  eta
-    bode2001ConstructorInternal%nu                  =  nu
-    ! Determine the cosmological parameters to use.
-    if (present(cosmologyParameters_)) then
-       bode2001ConstructorInternal%cosmologyParameters_ => cosmologyParameters_
-    else
-       bode2001ConstructorInternal%cosmologyParameters_ => cosmologyParameters()
-    end if
-    ! Determine the dark matter particle to use.
-    if (present(darkMatterParticle_)) then
-       bode2001ConstructorInternal%darkMatterParticle_ => darkMatterParticle_
-    else
-       bode2001ConstructorInternal%darkMatterParticle_ => darkMatterParticle()
-    end if
     ! Compute the comoving cut-off scale. This uses equation (4) from Barkana et al. (2001;
     ! http://adsabs.harvard.edu/abs/2001ApJ...558..482B), with the prefactor of 0.932 to give the cut-off scale at the epoch of
     ! matter-radiation equality as discussed in the paragraph following their equation (4).
-    select type (particle => bode2001ConstructorInternal%darkMatterParticle_)
+    select type (particle => self%darkMatterParticle_)
     class is (darkMatterParticleWDMThermal)
-       bode2001ConstructorInternal%scaleCutOff=+0.932d0                                                                                    &
-            &                                  *0.201d0                                                                                    &
-            &                                  *(                                                                                          &
-            &                                    +(                                                                                        &
-            &                                      +bode2001ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-            &                                      -bode2001ConstructorInternal%cosmologyParameters_%OmegaBaryon   (                  )    &
-            &                                     )                                                                                        &
-            &                                    *  bode2001ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-            &                                    /0.15d0                                                                                   &
-            &                                   )                                                               **0.15d0                   &
-            &                                  /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0                   &
-            &                                  /(particle%mass                     ()/            massReference)**1.15d0
+       self%scaleCutOff=+0.932d0                                                                  &
+            &           *0.201d0                                                                  &
+            &           *(                                                                        &
+            &             +(                                                                      &
+            &               +self%cosmologyParameters_%OmegaMatter   (                  )         &
+            &               -self%cosmologyParameters_%OmegaBaryon   (                  )         &
+            &              )                                                                      &
+            &             *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2      &
+            &             /0.15d0                                                                 &
+            &            )                                                               **0.15d0 &
+            &           /(particle%degreesOfFreedomEffective()/degreesOfFreedomReference)**0.29d0 &
+            &           /(particle%mass                     ()/            massReference)**1.15d0
     class default
        call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select

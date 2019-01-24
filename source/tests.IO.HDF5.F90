@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,7 +38,7 @@ program Tests_IO_HDF5
   integer         (kind=kind_int8)                                         :: integer8Value                  , integer8ValueReread
   integer         (kind=kind_int8)             , dimension(10)             :: integer8ValueArray
   integer         (kind=kind_int8)             , dimension(10)             :: integer8ValueArrayRereadStatic
-  integer         (kind=kind_int8), allocatable, dimension( :)             :: integer8ValueArrayReread
+  integer         (kind=kind_int8), allocatable, dimension( :)             :: integer8ValueArrayReread       , integerRangeU32
   double precision                                                         :: doubleValue                    , doubleValueReread
   double precision                             , dimension(10)             :: doubleValueArray
   double precision                             , dimension(10)             :: doubleValueArrayRereadStatic
@@ -84,12 +85,12 @@ program Tests_IO_HDF5
      select case (iPass)
      case(1)
         call Unit_Tests_Begin_Group("Tests with chunking enabled")
-        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024&
+        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024_hsize_t&
              &,compressionLevel=9)
         appendableOK=.true.
      case (2)
         call Unit_Tests_Begin_Group("Tests with chunking disabled")
-        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=-1&
+        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=-1_hsize_t&
              &,compressionLevel=-1)
         appendableOK=.false.
      end select
@@ -720,6 +721,22 @@ program Tests_IO_HDF5
 
      ! Close the file.
      call fileObject%close()
+
+     ! Read a 32-bit unsigned integer 1-D array into a 64-bit signed integer 1-D array.
+     if (iPass==2) then
+       ! Open the HDF5 file which stores the smallest and the largest 32-bit unsigned integers.
+       call fileObject%openFile ("testSuite/data/IntegerRangeU32.hdf5")
+       ! Open the root group.
+       groupObject=fileObject%openGroup("/",commentText="Root group.")
+       ! Read the dataset.
+       call groupObject%readDataset('IntegerRangeU32',integerRangeU32)
+       call Assert("read 32-bit unsigned integers into 64-bit signed integers",[0_kind_int8,4294967295_kind_int8],integerRangeU32)
+
+       ! Close the group.
+       call groupObject%close()
+       ! Close the file.
+       call fileObject%close()
+     end if
 
      ! End the pass and destroy objects.
      call Unit_Tests_End_Group()

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -142,6 +143,7 @@ contains
 
   double precision function haloScalingTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationTimescaleDisksHaloScaling), intent(inout), target :: self
     type            (treeNode                              ), intent(inout), target :: node

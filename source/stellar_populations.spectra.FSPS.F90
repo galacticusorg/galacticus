@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,16 +19,18 @@
 
 !% Implements a stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
 
+  use Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass, initialMassFunction
+  
   !# <stellarPopulationSpectra name="stellarPopulationSpectraFSPS">
   !#  <description>Provides stellar population spectra utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the {\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run to generate spectra. These tabulations are then stored to file for later re-use.</description>
   !# </stellarPopulationSpectra>
   type, extends(stellarPopulationSpectraFile) :: stellarPopulationSpectraFSPS
      !% A stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
      private
+     class(initialMassFunctionClass), pointer :: initialMassFunction_
    contains
-     final     ::                  fspsDestructor
-     procedure :: imfInitialize => fspsIMFInitialize
-     procedure :: descriptor    => fspsDescriptor
+     final     ::             fspsDestructor
+     procedure :: readFile => fspsReadFile
   end type stellarPopulationSpectraFSPS
 
   interface stellarPopulationSpectraFSPS
@@ -38,12 +41,12 @@
 
 contains
   
-  function fspsConstructorParameters(parameters)
+  function fspsConstructorParameters(parameters) result(self)
     !% Constructor for the FSPS stellar spectra class which takes a parameter set as input.
-    use Star_Formation_IMF
     implicit none
-    type   (stellarPopulationSpectraFSPS)                :: fspsConstructorParameters
+    type   (stellarPopulationSpectraFSPS)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
+    class  (initialMassFunctionClass    ), pointer       :: initialMassFunction_
     logical                                              :: forceZeroMetallicity
 
     !# <inputParameter>
@@ -54,74 +57,55 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    ! Simply use the internal constructor.
-    fspsConstructorParameters=fspsConstructorInternal(forceZeroMetallicity)
+    !# <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
+    self=stellarPopulationSpectraFSPS(forceZeroMetallicity,initialMassFunction_)
     !# <inputParametersValidate source="parameters"/>
     return
   end function fspsConstructorParameters
   
-  function fspsConstructorInternal(forceZeroMetallicity)
+  function fspsConstructorInternal(forceZeroMetallicity,initialMassFunction_) result(self)
     !% Internal constructor for the FSPS stellar spectra class.
-    use Star_Formation_IMF
     use Galacticus_Paths
     implicit none
-    type   (stellarPopulationSpectraFSPS)                :: fspsConstructorInternal
-    logical                              , intent(in   ) :: forceZeroMetallicity
-    integer                                              :: imfCount               , i
-
-    ! Store options.
-    fspsConstructorInternal%forceZeroMetallicity=forceZeroMetallicity
-    ! Set file names for all possible IMFs.
-    imfCount=IMF_Available_Count()
-    allocate(fspsConstructorInternal%fileName(imfCount))
-    do i=1,imfCount
-       fspsConstructorInternal%fileName(i)=galacticusPath(pathTypeDataDynamic)//'stellarPopulations/SSP_Spectra_Conroy-et-al_v2.5_imf'//IMF_Descriptor(i)//'.hdf5'
-    end do
+    type   (stellarPopulationSpectraFSPS)                        :: self
+    logical                              , intent(in   )         :: forceZeroMetallicity
+    class  (initialMassFunctionClass    ), intent(in   ), target :: initialMassFunction_
+    !# <constructorAssign variables="forceZeroMetallicity, *initialMassFunction_"/>
+    
+    self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(galacticusPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v2.5_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
     return
   end function fspsConstructorInternal
   
   subroutine fspsDestructor(self)
-    !% Destructor for the file stellar spectra class.
+    !% Destructor for the {\normalfont \ttfamily FSPS} stellar population class.
     implicit none
     type(stellarPopulationSpectraFSPS), intent(inout) :: self
-    !GCC$ attributes unused :: self
 
-    ! Nothing to do.
+    !# <objectDestructor name="self%initialMassFunction_"/>
     return
   end subroutine fspsDestructor
 
-  subroutine fspsIMFInitialize(self,imfIndex)
-    !% Ensure that the requested IMF has been generated.
+  subroutine fspsReadFile(self)
+    !% Ensure that the requested stellar population has been generated.
     use IO_HDF5
-    use Star_Formation_IMF
     use File_Utilities
     use Tables
     use Interfaces_FSPS
     implicit none
     class  (stellarPopulationSpectraFSPS), intent(inout) :: self
-    integer                              , intent(in   ) :: imfIndex
     class  (table1D                     ), allocatable   :: imf
-    logical                                              :: readFile         , remakeFile
+    logical                                              :: remakeFile
     integer                                              :: fileFormatVersion
     type   (hdf5Object                  )                :: spectraFile
 
     ! Decide if we need to read the file.
-    readFile=.not.allocated(self%imfLookup)
-    if (.not.readFile) then
-       if (size(self%imfLookup) < imfIndex) then
-          readFile=.true.
-       else
-          readFile=(self%imfLookup(imfIndex)==0)
-       end if
-    end if
-    ! If the file must be read, check if it needs to be generated.
-    if (readFile) then
+    if (.not.self%fileRead) then
        ! Check if the file exists and has the correct version.
        remakeFile=.false.
-       if (File_Exists(char(self%fileName(imfIndex)))) then
+       if (File_Exists(char(self%fileName))) then
           !$ call hdf5Access%set()
-          call spectraFile%openFile     (char(self%fileName(imfIndex)),readOnly         =.true.)
-          call spectraFile%readAttribute('fileFormat'                 ,fileFormatVersion       )
+          call spectraFile%openFile     (char(self%fileName),readOnly         =.true.)
+          call spectraFile%readAttribute('fileFormat'       ,fileFormatVersion       )
           if (fileFormatVersion /= fileFormatVersionCurrent) remakeFile=.true.
           !$ call hdf5Access%unset()
        else
@@ -130,35 +114,14 @@ contains
        ! Generate the file if necessary.
        if (remakeFile) then
           ! Generate the IMF tabulation.
-          call IMF_Tabulate(imfIndex,imf)
+          call self%initialMassFunction_%tabulate(imf)
           ! Build the SSPs.
           !$omp critical (stellarPopulationsFSPS)
-          call Interface_FSPS_SSPs_Tabulate(imf,IMF_Descriptor(imfIndex),fileFormatVersionCurrent,self%fileName(imfIndex))
+          call Interface_FSPS_SSPs_Tabulate(imf,self%initialMassFunction_%label(),fileFormatVersionCurrent,self%fileName)
           !$omp end critical (stellarPopulationsFSPS)
-      end if
-       ! Call the parent IMF initializor to complete initialization.
-       call self%stellarPopulationSpectraFile%imfInitialize(imfIndex)
+       end if
+       ! Call the parent file reader to complete reading.
+       call self%stellarPopulationSpectraFile%readFile()
     end if
     return
-  end subroutine fspsIMFInitialize
-
-  subroutine fspsDescriptor(self,descriptor,includeMethod)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters
-    implicit none
-    class    (stellarPopulationSpectraFSPS), intent(inout)           :: self
-    type     (inputParameters             ), intent(inout)           :: descriptor
-    logical                                , intent(in   ), optional :: includeMethod
-    type     (inputParameters             )                          :: subParameters
-    character(len=10                      )                          :: parameterLabel
-
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter("stellarPopulationSpectraMethod","fsps")
-    subParameters=descriptor%subparameters("stellarPopulationSpectraMethod")
-    if (self%forceZeroMetallicity) then
-       parameterLabel="true"
-    else
-       parameterLabel="false"
-    end if
-    call subParameters%addParameter("forceZeroMetallicity",trim(adjustl(parameterLabel)))
-    return
-  end subroutine fspsDescriptor
+  end subroutine fspsReadFile

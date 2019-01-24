@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,14 +84,6 @@ contains
 
     if (outputTreeIndices) then
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>mergerTreeIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Tree index for this node.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='mergerTreeIndex'
        integerPropertyComments(integerProperty)='Tree index for this node.'
        integerPropertyUnitsSI (integerProperty)=0.0d0

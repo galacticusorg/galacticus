@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,6 +54,7 @@ contains
     !% Implement a massBlackHole output analysis.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
+    use Galacticus_Nodes                  , only : nodeComponentBlackHole
     implicit none
     class(outputAnalysisPropertyExtractorMassBlackHole), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node

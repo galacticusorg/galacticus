@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -185,7 +186,7 @@ contains
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure            ), intent(in   ) :: radiation
+    class           (radiationFieldClass           ), intent(inout) :: radiation
 
     call                           self%tabulate                              (                                  gasAbundances                            )
     atomicCIECloudyCoolingFunction=self%coolingFunctionCIEFile%coolingFunction(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
@@ -201,7 +202,7 @@ contains
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure            ), intent(in   ) :: radiation
+    class           (radiationFieldClass           ), intent(inout) :: radiation
 
     call                                              self%tabulate                                                 (                                  gasAbundances                            )
     atomicCIECloudyCoolingFunctionTemperatureLogSlope=self%coolingFunctionCIEFile%coolingFunctionTemperatureLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
@@ -216,7 +217,7 @@ contains
     double precision                                , intent(in   ) :: numberDensityHydrogen, temperature
     type            (abundances                    ), intent(in   ) :: gasAbundances
     type            (chemicalAbundances            ), intent(in   ) :: chemicalDensities
-    type            (radiationStructure            ), intent(in   ) :: radiation
+    class           (radiationFieldClass           ), intent(inout) :: radiation
 
     call                                          self%tabulate                                             (                                  gasAbundances                            )
     atomicCIECloudyCoolingFunctionDensityLogSlope=self%coolingFunctionCIEFile%coolingFunctionDensityLogSlope(numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)

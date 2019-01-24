@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 
 program Conditional_Mass_Function
   !% Computes the conditional mass function in bins of mass for a fixed halo mass for use in calculation of constraints.
-  use FGSL
+  use FGSL                           , only : fgsl_function, fgsl_integration_workspace
   use IO_HDF5
   use Memory_Management
   use Numerical_Ranges

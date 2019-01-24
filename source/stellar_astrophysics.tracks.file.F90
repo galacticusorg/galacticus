@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,357 +17,411 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculation of stellar tracks.
+  !% Implements a stellar tracks class in which the tracks are read from file and interpolated.
 
-module Stellar_Astrophysics_Tracks_File
-  !% Implements stellar tracks.
-  use FGSL
-  implicit none
-  private
-  public :: Stellar_Tracks_Initialize_File
-
-  ! Variables to hold stellar track data.
-  double precision                   , allocatable, dimension(:    ) :: stellarTrackLogMetallicities
-  double precision                   , allocatable, dimension(:,:  ) :: stellarTrackInitialMasses 
-  double precision                   , allocatable, dimension(:,:,:) :: stellarTrackAges                          , stellarTrackLuminosities, &
-       &                                                                stellarTrackTemperatures    
-  integer                            , allocatable, dimension(:    ) :: stellarTrackInitialMassCount
-  integer                            , allocatable, dimension(:,:  ) :: stellarTrackAgesCount       
-  integer                                                            :: stellarTrackMetallicityCount
-
-  ! Interpolation objects.
-  type            (fgsl_interp_accel)                                :: interpolationAcceleratorMetallicity
-  logical                                                            :: interpolationResetMetallicity      =.true.
+  use FGSL, only : fgsl_interp_accel
+  
+  !# <stellarTracks name="stellarTracksFile">
+  !#  <description>A stellar tracks class in which the tracks are read from file and interpolated.</description>
+  !# </stellarTracks>
+  type, extends(stellarTracksClass) :: stellarTracksFile
+     !% A stellar tracks class in which the tracks are read from file and interpolated.
+     private
+     type            (varying_string   )                                :: fileName
+     double precision                   , allocatable, dimension(:    ) :: metallicityLogarithmic
+     double precision                   , allocatable, dimension(:,:  ) :: massInitial 
+     double precision                   , allocatable, dimension(:,:,:) :: age                                       , luminosityTrack            , &
+          &                                                                temperatureTrack    
+     integer                            , allocatable, dimension(:    ) :: countMassInitial
+     integer                            , allocatable, dimension(:,:  ) :: countAge       
+     integer                                                            :: countMetallicity
+     type            (fgsl_interp_accel)                                :: interpolationAcceleratorMetallicity       , interpolationAcceleratorAge, &
+          &                                                                interpolationAcceleratorMass
+     logical                                                            :: interpolationResetMetallicity             , interpolationResetAge      , &
+          &                                                                interpolationResetMass
+   contains
+     !@ <objectMethods>
+     !@   <object>stellarTracksFile</object>
+     !@   <objectMethod>
+     !@     <method>interpolationCompute</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argout, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argout, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argout, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argout, {\textless double(2,2)\textgreater} interpolationFactorsMass\argout, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argout, \logicalzero\ metallicityOutOfRange\argout, \logicalzero\ massOutOfRange\argout, \logicalzero\ ageOutOfRange\argout</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>interpolate</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@     <description>\textcolor{red}{\textless integer(c\_size\_t)(2)\textgreater} interpolationIndicesMetallicity\argin, {\textless integer(c\_size\_t)(2,2)\textgreater} interpolationIndicesMass\argin, {\textless integer(c\_size\_t)(2,2,2)\textgreater} interpolationIndicesAge\argin, {\textless double(2)\textgreater} interpolationFactorsMetallicity\argin, {\textless double(2,2)\textgreater} interpolationFactorsMass\argin, {\textless double(2,2,2)\textgreater} interpolationFactorsAge\argin, {\textless double(:,:,:)\textgreater} stellarTracks\argin</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: luminosity           => fileLuminosity
+     procedure :: temperatureEffective => fileTemperatureEffective
+     procedure :: interpolationCompute => fileInterpolationCompute
+     procedure :: interpolate          => fileInterpolate
+  end type stellarTracksFile
+  
+  interface stellarTracksFile
+     !% Constructors for the {\normalfont \ttfamily file} stellar tracks class.
+     module procedure fileConstructorParameters
+     module procedure fileConstructorInternal
+  end interface stellarTracksFile
 
   ! The current file format version.
-  integer                            , parameter                     :: fileFormatVersionCurrent           =1
+  integer, parameter:: fileFormatVersionCurrent=1
 
 contains
 
-  !# <stellarTracksMethod>
-  !#  <unitName>Stellar_Tracks_Initialize_File</unitName>
-  !# </stellarTracksMethod>
-  subroutine Stellar_Tracks_Initialize_File(stellarTracksMethod,Stellar_Luminosity_Get,Stellar_Effective_Temperature_Get)
-    !% Initialize the stellar tracks module.
+  function fileConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily file} stellar tracks class which takes a parameter list as input.
+    use Galacticus_Paths
+    use Input_Parameters
+    implicit none
+    type(stellarTracksFile)                :: self
+    type(inputParameters  ), intent(inout) :: parameters
+    type(varying_string   )                :: fileName
+    
+    !# <inputParameter>
+    !#   <name>fileName</name>
+    !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
+    !#   <description>The name of the HDF5 file from which to read stellar tracks.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !#   <source>parameters</source>
+    !# </inputParameter>
+    self=stellarTracksFile(char(fileName))
+    !# <inputParametersValidate source="parameters"/>
+    return
+  end function fileConstructorParameters
+
+  function fileConstructorInternal(fileName) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily file} stellar tracks class.
     use Galacticus_Error
     use Memory_Management
     use IO_HDF5
     use ISO_Varying_String
-    use Galacticus_Paths
     use String_Handling
     implicit none
-    type     (varying_string  ), intent(in   )          :: stellarTracksMethod
-    procedure(Stellar_Luminosity_File), intent(inout), pointer :: Stellar_Effective_Temperature_Get
-    procedure(Stellar_Effective_Temperature_File), intent(inout), pointer :: Stellar_Luminosity_Get
-    type     (varying_string  )                         :: groupName                        , stellarTracksFile
-    integer                                             :: ageCountMaximum                  , fileFormatVersion      , &
-         &                                                 initialMassCount                 , initialMassCountMaximum, &
-         &                                                 metallicityCountMaximum
-    type     (hdf5Object      )                         :: ageDataset                       , massGroup              , &
-         &                                                 metallicityGroup                 , stellarTracks
-    logical                                             :: foundMassGroup                   , foundMetallicityGroup
-
-    ! Check if our method is selected.
-    if (stellarTracksMethod == 'file') then
-       ! Set up procedure pointers.
-       Stellar_Luminosity_Get            => Stellar_Luminosity_File
-       Stellar_Effective_Temperature_Get => Stellar_Effective_Temperature_File
-
-       ! Get the name of the file from which to read stellar tracks.
-       !# <inputParameter>
-       !#   <name>stellarTracksFile</name>
-       !#   <defaultValue>galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/Stellar_Tracks_Padova.hdf5'</defaultValue>
-       !#   <description>The name of the HDF5 file from which to read stellar tracks.</description>
-       !#   <type>string</type>
-       !#   <cardinality>1</cardinality>
-       !# </inputParameter>
-
-       ! Open the HDF5 file.
-       !$ call hdf5Access%set()
-       call stellarTracks%openFile(char(stellarTracksFile),readOnly=.true.)
-
-       ! Check that this file has the correct format.
-       call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
-       if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('format of stellar tracks file is out of date'//{introspection:location})
-
-       ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
-       metallicityCountMaximum=0
-       initialMassCountMaximum=0
-       ageCountMaximum        =0
-       ! Count metallicity groups.
-       foundMetallicityGroup=.true.
-       do while (foundMetallicityGroup)
-          groupName="metallicity"
-          groupName=groupName//(metallicityCountMaximum+1)
-          foundMetallicityGroup=stellarTracks%hasGroup(char(groupName))
-          if (foundMetallicityGroup) then
-             metallicityCountMaximum=metallicityCountMaximum+1
-             metallicityGroup=stellarTracks%openGroup(char(groupName))
-             ! Find mass groups.
-             foundMassGroup=.true.
-             do while (foundMassGroup)
-                groupName="mass"
-                groupName=groupName//(initialMassCountMaximum+1)
-                foundMassGroup=metallicityGroup%hasGroup(char(groupName))
-                if (foundMassGroup) then
-                   initialMassCountMaximum=initialMassCountMaximum+1
-                   massGroup=metallicityGroup%openGroup(char(groupName))
-                   ageDataset=massGroup%openDataset('age')
-                   ageCountMaximum=max(ageCountMaximum,int(ageDataset%size(1)))
-                   call ageDataset%close()
-                   call massGroup%close()
-                end if
-             end do
-             call metallicityGroup%close()
-          end if
-       end do
-
-       ! Allocate storage space for data.
-       call allocateArray(stellarTrackLogMetallicities,[                                        metallicityCountMaximum])
-       call allocateArray(stellarTrackInitialMassCount,[                                        metallicityCountMaximum])
-       call allocateArray(stellarTrackInitialMasses   ,[                initialMassCountMaximum,metallicityCountMaximum])
-       call allocateArray(stellarTrackAgesCount       ,[                initialMassCountMaximum,metallicityCountMaximum])
-       call allocateArray(stellarTrackAges            ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
-       call allocateArray(stellarTrackLuminosities    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
-       call allocateArray(stellarTrackTemperatures    ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
-
-       ! Read in all data.
-       do stellarTrackMetallicityCount=1,metallicityCountMaximum
-          ! Open the metallicity group.
-          groupName="metallicity"
-          groupName=groupName//stellarTrackMetallicityCount
+    type     (stellarTracksFile)                :: self
+    character(len=*            ), intent(in   ) :: fileName
+    type     (varying_string   )                :: groupName
+    integer                                     :: ageCountMaximum        , fileFormatVersion      , &
+         &                                         initialMassCount       , initialMassCountMaximum, &
+         &                                         metallicityCountMaximum, metallicityCount
+    type     (hdf5Object       )                :: ageDataset             , massGroup              , &
+         &                                         metallicityGroup       , stellarTracks
+    logical                                     :: foundMassGroup         , foundMetallicityGroup
+    !# <constructorAssign variables="fileName"/>
+    
+    ! Open the HDF5 file.
+    !$ call hdf5Access%set()
+    call stellarTracks%openFile(fileName,readOnly=.true.)
+    ! Check that this file has the correct format.
+    call stellarTracks%readAttribute('fileFormat',fileFormatVersion,allowPseudoScalar=.true.)
+    if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('format of stellar tracks file is out of date'//{introspection:location})
+    ! Count up number of metallicities present, the number of stellar masses tabulated and the number of ages tabulated.
+    metallicityCountMaximum=0
+    initialMassCountMaximum=0
+    ageCountMaximum        =0
+    ! Count metallicity groups.
+    foundMetallicityGroup=.true.
+    do while (foundMetallicityGroup)
+       groupName="metallicity"
+       groupName=groupName//(metallicityCountMaximum+1)
+       foundMetallicityGroup=stellarTracks%hasGroup(char(groupName))
+       if (foundMetallicityGroup) then
+          metallicityCountMaximum=metallicityCountMaximum+1
           metallicityGroup=stellarTracks%openGroup(char(groupName))
-          ! Get the metallicity.
-          call metallicityGroup%readDatasetStatic('metallicity', stellarTrackLogMetallicities(stellarTrackMetallicityCount:stellarTrackMetallicityCount))
-          ! Count how many masses are tabulated at this metallicity.
-          initialMassCount=0
+          ! Find mass groups.
           foundMassGroup=.true.
           do while (foundMassGroup)
              groupName="mass"
-             groupName=groupName//(initialMassCount+1)
+             groupName=groupName//(initialMassCountMaximum+1)
              foundMassGroup=metallicityGroup%hasGroup(char(groupName))
-             if (foundMassGroup) initialMassCount=initialMassCount+1
-          end do
-          stellarTrackInitialMassCount(stellarTrackMetallicityCount)=initialMassCount
-          ! Loop through all tabulated masses.
-          do initialMassCount=1,stellarTrackInitialMassCount(stellarTrackMetallicityCount)
-             ! Open the mass group.
-             groupName="mass"
-             groupName=groupName//initialMassCount
-             massGroup=metallicityGroup%openGroup(char(groupName))
-             ! Get initial mass.
-             call massGroup%readDatasetStatic('mass',stellarTrackInitialMasses(initialMassCount:initialMassCount,stellarTrackMetallicityCount))
-             ! Read tracks.
-             ageDataset=massGroup%openDataset('age')
-             stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount)=int(ageDataset%size(1))
-             call ageDataset%close()
-             call massGroup%readDatasetStatic('age'                 ,stellarTrackAges        (1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
-             call massGroup%readDatasetStatic('luminosity'          ,stellarTrackLuminosities(1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
-             call massGroup%readDatasetStatic('effectiveTemperature',stellarTrackTemperatures(1:stellarTrackAgesCount(initialMassCount,stellarTrackMetallicityCount),initialMassCount,stellarTrackMetallicityCount))
-             call massGroup%close()
+             if (foundMassGroup) then
+                initialMassCountMaximum=initialMassCountMaximum+1
+                massGroup=metallicityGroup%openGroup(char(groupName))
+                ageDataset=massGroup%openDataset('age')
+                ageCountMaximum=max(ageCountMaximum,int(ageDataset%size(1)))
+                call ageDataset%close()
+                call massGroup%close()
+             end if
           end do
           call metallicityGroup%close()
+       end if
+    end do
+    ! Allocate storage space for data.
+    call allocateArray(self%metallicityLogarithmic,[                                        metallicityCountMaximum])
+    call allocateArray(self%countMassInitial      ,[                                        metallicityCountMaximum])
+    call allocateArray(self%massInitial           ,[                initialMassCountMaximum,metallicityCountMaximum])
+    call allocateArray(self%countAge              ,[                initialMassCountMaximum,metallicityCountMaximum])
+    call allocateArray(self%age                   ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+    call allocateArray(self%luminosityTrack       ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+    call allocateArray(self%temperatureTrack      ,[ageCountMaximum,initialMassCountMaximum,metallicityCountMaximum])
+    ! Read in all data.
+    do metallicityCount=1,metallicityCountMaximum
+       ! Open the metallicity group.
+       groupName="metallicity"
+       groupName=groupName//metallicityCount
+       metallicityGroup=stellarTracks%openGroup(char(groupName))
+       ! Get the metallicity.
+       call metallicityGroup%readDatasetStatic('metallicity', self%metallicityLogarithmic(metallicityCount:metallicityCount))
+       ! Count how many masses are tabulated at this metallicity.
+       initialMassCount=0
+       foundMassGroup=.true.
+       do while (foundMassGroup)
+          groupName="mass"
+          groupName=groupName//(initialMassCount+1)
+          foundMassGroup=metallicityGroup%hasGroup(char(groupName))
+          if (foundMassGroup) initialMassCount=initialMassCount+1
        end do
-       ! Convert metallicities to logarithmic scale.
-       stellarTrackLogMetallicities=log(stellarTrackLogMetallicities)
-       stellarTrackMetallicityCount=metallicityCountMaximum
-
-       ! Close the file.
-       call stellarTracks%close()
-       !$ call hdf5Access%unset()
-
-    end if
+       self%countMassInitial(metallicityCount)=initialMassCount
+       ! Loop through all tabulated masses.
+       do initialMassCount=1,self%countMassInitial(metallicityCount)
+          ! Open the mass group.
+          groupName="mass"
+          groupName=groupName//initialMassCount
+          massGroup=metallicityGroup%openGroup(char(groupName))
+          ! Get initial mass.
+          call massGroup%readDatasetStatic('mass',self%massInitial(initialMassCount:initialMassCount,metallicityCount))
+          ! Read tracks.
+          ageDataset=massGroup%openDataset('age')
+          self%countAge(initialMassCount,metallicityCount)=int(ageDataset%size(1))
+          call ageDataset%close()
+          call massGroup%readDatasetStatic('age'                 ,self%age             (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
+          call massGroup%readDatasetStatic('luminosity'          ,self%luminosityTrack (1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
+          call massGroup%readDatasetStatic('effectiveTemperature',self%temperatureTrack(1:self%countAge(initialMassCount,metallicityCount),initialMassCount,metallicityCount))
+          call massGroup%close()
+       end do
+       call metallicityGroup%close()
+    end do
+    ! Convert metallicities to logarithmic scale.
+    self%metallicityLogarithmic=log(self%metallicityLogarithmic)
+    self%countMetallicity=metallicityCountMaximum
+    ! Close the file.
+    call stellarTracks%close()
+    !$ call hdf5Access%unset()
+    ! Initialize interpolators.
+    self%interpolationResetMetallicity=.true.
+    self%interpolationResetAge        =.true.
+    self%interpolationResetMass       =.true.
     return
-  end subroutine Stellar_Tracks_Initialize_File
+  end function fileConstructorInternal
 
-  double precision function Stellar_Luminosity_File(initialMass,metallicity,age)
+  double precision function fileLuminosity(self,initialMass,metallicity,age)
     !% Return the bolometric luminosity (in $L_\odot$) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision          , intent(in   ) :: age                                   , initialMass                  , &
-         &                                       metallicity
-    integer         (c_size_t)                :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
-         &                                       interpolationIndicesMetallicity(2    )
-    double precision                          :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
-         &                                       interpolationFactorsMetallicity(2    )
-    logical                                   :: ageOutOfRange                         , massOutOfRange               , &
-         &                                       metallicityOutOfRange
+    class           (stellarTracksFile), intent(inout)    :: self
+    double precision                   , intent(in   )    :: age                            , initialMass   , &
+         &                                                   metallicity
+    integer         (c_size_t         ), dimension(2,2,2) :: interpolationIndicesAge
+    integer         (c_size_t         ), dimension(2,2  ) :: interpolationIndicesMass
+    integer         (c_size_t         ), dimension(2    ) :: interpolationIndicesMetallicity
+    double precision                   , dimension(2,2,2) :: interpolationFactorsAge
+    double precision                   , dimension(2,2  ) :: interpolationFactorsMass
+    double precision                    ,dimension(2    ) :: interpolationFactorsMetallicity
+    logical                                               :: ageOutOfRange                  , massOutOfRange, &
+         &                                                   metallicityOutOfRange
 
     ! Get the interpolating factors.
-    call Stellar_Tracks_Interpolation_Get(initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass &
-         &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
-         &,metallicityOutOfRange ,massOutOfRange,ageOutOfRange)
-
+    call self%interpolationCompute(                                 &
+         &                         initialMass                    , &
+         &                         metallicity                    , &
+         &                         age                            , &
+         &                         interpolationIndicesMetallicity, &
+         &                         interpolationIndicesMass       , &
+         &                         interpolationIndicesAge        , &
+         &                         interpolationFactorsMetallicity, &
+         &                         interpolationFactorsMass       , &
+         &                         interpolationFactorsAge        , & 
+         &                         metallicityOutOfRange          , &
+         &                         massOutOfRange                 , &
+         &                         ageOutOfRange                    &
+         &                        )
     ! Do the interpolation.
-    if (massOutOfRange.or.ageOutOfRange) then
-       Stellar_Luminosity_File=0.0d0
+    if (massOutOfRange .or. ageOutOfRange) then
+       fileLuminosity=0.0d0
     else
-       Stellar_Luminosity_File=Stellar_Tracks_Interpolation_Do(interpolationIndicesMetallicity,interpolationIndicesMass &
-            &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
-            &,stellarTrackLuminosities)
+       fileLuminosity=self%interpolate(                                 &
+            &                          interpolationIndicesMetallicity, &
+            &                          interpolationIndicesMass       , &
+            &                          interpolationIndicesAge        , &
+            &                          interpolationFactorsMetallicity, &
+            &                          interpolationFactorsMass       , &
+            &                          interpolationFactorsAge        , &
+            &                          self%luminosityTrack             &
+            &                         )
     end if
-
     return
-  end function Stellar_Luminosity_File
+  end function fileLuminosity
 
-  double precision function Stellar_Effective_Temperature_File(initialMass,metallicity,age)
+  double precision function fileTemperatureEffective(self,initialMass,metallicity,age)
     !% Return the effective temperature (in Kelvin) for a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    double precision          , intent(in   ) :: age                                   , initialMass                  , &
-         &                                       metallicity
-    integer         (c_size_t)                :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
-         &                                       interpolationIndicesMetallicity(2    )
-    double precision                          :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
-         &                                       interpolationFactorsMetallicity(2    )
-    logical                                   :: ageOutOfRange                         , massOutOfRange               , &
-         &                                       metallicityOutOfRange
+     class           (stellarTracksFile), intent(inout)    :: self
+    double precision                   , intent(in   )    :: age                            , initialMass   , &
+         &                                                   metallicity
+    integer         (c_size_t         ), dimension(2,2,2) :: interpolationIndicesAge
+    integer         (c_size_t         ), dimension(2,2  ) :: interpolationIndicesMass
+    integer         (c_size_t         ), dimension(2    ) :: interpolationIndicesMetallicity
+    double precision                   , dimension(2,2,2) :: interpolationFactorsAge
+    double precision                   , dimension(2,2  ) :: interpolationFactorsMass
+    double precision                    ,dimension(2    ) :: interpolationFactorsMetallicity
+    logical                                               :: ageOutOfRange                  , massOutOfRange, &
+         &                                                   metallicityOutOfRange
 
     ! Get the interpolating factors.
-    call Stellar_Tracks_Interpolation_Get(initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass &
-         &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
-         &,metallicityOutOfRange ,massOutOfRange,ageOutOfRange)
-
+    call self%interpolationCompute(                                 &
+         &                         initialMass                    , &
+         &                         metallicity                    , &
+         &                         age                            , &
+         &                         interpolationIndicesMetallicity, &
+         &                         interpolationIndicesMass       , &
+         &                         interpolationIndicesAge        , &
+         &                         interpolationFactorsMetallicity, &
+         &                         interpolationFactorsMass       , &
+         &                         interpolationFactorsAge        , & 
+         &                         metallicityOutOfRange          , &
+         &                         massOutOfRange                 , &
+         &                         ageOutOfRange                    &
+         &                        )
     ! Do the interpolation.
     if (massOutOfRange.or.ageOutOfRange) then
-       Stellar_Effective_Temperature_File=0.0d0
+       fileTemperatureEffective=0.0d0
     else
-       Stellar_Effective_Temperature_File=Stellar_Tracks_Interpolation_Do(interpolationIndicesMetallicity,interpolationIndicesMass &
-            &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
-            &,stellarTrackTemperatures)
+       fileTemperatureEffective=self%interpolate(                                 &
+            &                                    interpolationIndicesMetallicity, &
+            &                                    interpolationIndicesMass       , &
+            &                                    interpolationIndicesAge        , &
+            &                                    interpolationFactorsMetallicity, &
+            &                                    interpolationFactorsMass       , &
+            &                                    interpolationFactorsAge        , &
+            &                                    self%temperatureTrack            &
+            &                                   )
     end if
-
     return
-  end function Stellar_Effective_Temperature_File
+  end function fileTemperatureEffective
 
-  double precision function Stellar_Tracks_Interpolation_Do(interpolationIndicesMetallicity,interpolationIndicesMass &
-       &,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
-       &,stellarTracks)
+  double precision function fileInterpolate(self,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,stellarTracks)
     !% Using precomputed factors, interpolate in metallicity, mass and age in the given {\normalfont \ttfamily stellarTracks}.
     use, intrinsic :: ISO_C_Binding
     implicit none
-    integer         (c_size_t), intent(in   ) :: interpolationIndicesAge        (2,2,2), interpolationIndicesMass(2,2), &
-         &                                       interpolationIndicesMetallicity(2    )
-    double precision          , intent(in   ) :: interpolationFactorsAge        (2,2,2), interpolationFactorsMass(2,2), &
-         &                                       interpolationFactorsMetallicity(2    )
-    double precision          , intent(in   ) :: stellarTracks                  (:,:,:)
-    integer                                   :: iAge                                  , iMass                        , &
-         &                                       iMetallicity
-    integer         (c_size_t)                :: jAge                                  , jMetallicity                 , &
-         &                                       jMass
-
-    Stellar_Tracks_Interpolation_Do=0.0d0
+    class           (stellarTracksFile), intent(inout)                   :: self
+    integer         (c_size_t         ), intent(in   ), dimension(2,2,2) :: interpolationIndicesAge
+    integer         (c_size_t         ), intent(in   ), dimension(2,2  ) :: interpolationIndicesMass
+    integer         (c_size_t         ), intent(in   ), dimension(2    ) :: interpolationIndicesMetallicity
+    double precision                   , intent(in   ), dimension(2,2,2) :: interpolationFactorsAge
+    double precision                   , intent(in   ), dimension(2,2  ) :: interpolationFactorsMass
+    double precision                   , intent(in   ), dimension(2    ) :: interpolationFactorsMetallicity
+    double precision                   , intent(in   ), dimension(:,:,:) :: stellarTracks
+    integer                                                              :: iAge                           , iMass       , &
+         &                                                                  iMetallicity
+    integer         (c_size_t         )                                  :: jAge                           , jMetallicity, &
+         &                                                                  jMass
+    !GCC$ attributes unused :: self
+    
+    fileInterpolate=0.0d0
     do iMetallicity=1,2
        jMetallicity=interpolationIndicesMetallicity(iMetallicity)
        do iMass=1,2
           jMass=interpolationIndicesMass(iMetallicity,iMass)
           do iAge=1,2
              jAge=interpolationIndicesAge(iMetallicity,iMass,iAge)
-             Stellar_Tracks_Interpolation_Do=Stellar_Tracks_Interpolation_Do+stellarTracks(jAge,jMass,jMetallicity)&
-                  &*interpolationFactorsMetallicity(iMetallicity)*interpolationFactorsMass(iMetallicity,iMass)&
-                  &*interpolationFactorsAge(iMetallicity,iMass,iAge)
+             fileInterpolate=+fileInterpolate                                          &
+                  &          +stellarTracks                  (jAge,jMass,jMetallicity) &
+                  &          *interpolationFactorsMetallicity(iMetallicity           ) &
+                  &          *interpolationFactorsMass       (iMetallicity,iMass     ) &
+                  &          *interpolationFactorsAge        (iMetallicity,iMass,iAge)
           end do
        end do
     end do
     return
-  end function Stellar_Tracks_Interpolation_Do
+  end function fileInterpolate
 
-  subroutine Stellar_Tracks_Interpolation_Get(initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass&
-       &,interpolationIndicesAge ,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge&
-       &,metallicityOutOfRange,massOutOfRange,ageOutOfRange)
+  subroutine fileInterpolationCompute(self,initialMass,metallicity,age,interpolationIndicesMetallicity,interpolationIndicesMass,interpolationIndicesAge,interpolationFactorsMetallicity,interpolationFactorsMass,interpolationFactorsAge,metallicityOutOfRange,massOutOfRange,ageOutOfRange)
     !% Get interpolating factors for stellar tracks.
-    use Numerical_Interpolation
     use, intrinsic :: ISO_C_Binding
+    use               Numerical_Interpolation
     implicit none
-    double precision                         , intent(in   ) :: age                                          , initialMass                             , &
-         &                                                      metallicity
-    integer         (c_size_t        )       , intent(  out) :: interpolationIndicesAge        (2,2,2)       , interpolationIndicesMass    (2,2)       , &
-         &                                                      interpolationIndicesMetallicity(2    )
-    double precision                         , intent(  out) :: interpolationFactorsAge        (2,2,2)       , interpolationFactorsMass    (2,2)       , &
-         &                                                      interpolationFactorsMetallicity(2    )
-    logical                                  , intent(  out) :: ageOutOfRange                                , massOutOfRange                          , &
-         &                                                      metallicityOutOfRange
-    integer                                                  :: iMass                                        , iMetallicity
-    integer         (c_size_t         )                      :: jMass                                        , jMetallicity
-    double precision                                         :: logMetallicity
-    type            (fgsl_interp_accel), save                :: interpolationAcceleratorAge                  , interpolationAcceleratorMass
-    logical                            , save                :: interpolationResetAge                 =.true., interpolationResetMass           =.true.
-    !$omp threadprivate(interpolationAcceleratorMass,interpolationAcceleratorAge,interpolationResetMass,interpolationResetAge)
-    !$omp critical (Stellar_Tracks_Interpolate)
+    class           (stellarTracksFile), intent(inout)                   :: self
+    double precision                   , intent(in   )                   :: age                            , initialMass   , &
+         &                                                                  metallicity
+    integer         (c_size_t         ), intent(  out), dimension(2,2,2) :: interpolationIndicesAge
+    integer         (c_size_t         ), intent(  out), dimension(2,2  ) :: interpolationIndicesMass
+    integer         (c_size_t         ), intent(  out), dimension(2    ) :: interpolationIndicesMetallicity
+    double precision                   , intent(  out), dimension(2,2,2) :: interpolationFactorsAge
+    double precision                   , intent(  out), dimension(2,2  ) :: interpolationFactorsMass
+    double precision                   , intent(  out), dimension(2    ) :: interpolationFactorsMetallicity
+    logical                            , intent(  out)                   :: ageOutOfRange                  , massOutOfRange, &
+         &                                                                  metallicityOutOfRange
+    integer                                                              :: iMass                          , iMetallicity
+    integer         (c_size_t         )                                  :: jMass                          , jMetallicity
+    double precision                                                     :: logMetallicity
 
     ! Assume everything is in range initially.
     metallicityOutOfRange=.false.
     massOutOfRange       =.false.
     ageOutOfRange        =.false.
-
     ! Interpolate in metallicity.
     if (metallicity <= 0.0d0) then
-       logMetallicity=stellarTrackLogMetallicities(1)
+       logMetallicity=self%metallicityLogarithmic(1)
     else
        logMetallicity=log(metallicity)
     end if
-    if (logMetallicity < stellarTrackLogMetallicities(1)) then
+    if (logMetallicity < self%metallicityLogarithmic(1)) then
        interpolationIndicesMetallicity=[    1,    2]
        interpolationFactorsMetallicity=[1.0d0,0.0d0]
        metallicityOutOfRange=.true.
-    else if (logMetallicity > stellarTrackLogMetallicities(stellarTrackMetallicityCount)) then
-       interpolationIndicesMetallicity=[stellarTrackMetallicityCount-1,stellarTrackMetallicityCount]
+    else if (logMetallicity > self%metallicityLogarithmic(self%countMetallicity)) then
+       interpolationIndicesMetallicity=[self%countMetallicity-1,self%countMetallicity]
        interpolationFactorsMetallicity=[0.0d0,1.0d0]
        metallicityOutOfRange=.true.
     else
-       interpolationIndicesMetallicity(1)=Interpolate_Locate(stellarTrackLogMetallicities&
-            &,interpolationAcceleratorMetallicity,logMetallicity,reset=interpolationResetMetallicity)
+       interpolationIndicesMetallicity(1)=Interpolate_Locate(self%metallicityLogarithmic,self%interpolationAcceleratorMetallicity,logMetallicity,reset=self%interpolationResetMetallicity)
        interpolationIndicesMetallicity(2)=interpolationIndicesMetallicity(1)+1
-       interpolationFactorsMetallicity=Interpolate_Linear_Generate_Factors(stellarTrackLogMetallicities,interpolationIndicesMetallicity(1),logMetallicity)
+       interpolationFactorsMetallicity=Interpolate_Linear_Generate_Factors(self%metallicityLogarithmic,interpolationIndicesMetallicity(1),logMetallicity)
     end if
-
     ! Loop over metallicities.
     do iMetallicity=1,2
        jMetallicity=interpolationIndicesMetallicity(iMetallicity)
-
        ! Interpolate in mass at each metallicity.
-       if (initialMass < stellarTrackInitialMasses(1,jMetallicity)) then
+       if (initialMass < self%massInitial(1,jMetallicity)) then
           interpolationIndicesMass(iMetallicity,:)=[    1,    2]
           interpolationFactorsMass(iMetallicity,:)=[1.0d0,0.0d0]
           massOutOfRange=.true.
-       else if (initialMass > stellarTrackInitialMasses(stellarTrackInitialMassCount(jMetallicity),jMetallicity)) then
-          interpolationIndicesMass(iMetallicity,:)=[stellarTrackInitialMassCount(jMetallicity)-1,stellarTrackInitialMassCount(jMetallicity)]
+       else if (initialMass > self%massInitial(self%countMassInitial(jMetallicity),jMetallicity)) then
+          interpolationIndicesMass(iMetallicity,:)=[self%countMassInitial(jMetallicity)-1,self%countMassInitial(jMetallicity)]
           interpolationFactorsMass(iMetallicity,:)=[0.0d0,1.0d0]
           massOutOfRange=.true.
        else
-          interpolationResetMass=.true.
-          interpolationIndicesMass(iMetallicity,1)=Interpolate_Locate(stellarTrackInitialMasses(1:stellarTrackInitialMassCount(jMetallicity),jMetallicity),interpolationAcceleratorMass,initialMass,reset=interpolationResetMass)
-          call Interpolate_Done(interpolationAccelerator=interpolationAcceleratorMass,reset=interpolationResetMass)
+          self%interpolationResetMass=.true.
+          interpolationIndicesMass(iMetallicity,1)=Interpolate_Locate(self%massInitial(1:self%countMassInitial(jMetallicity),jMetallicity),self%interpolationAcceleratorMass,initialMass,reset=self%interpolationResetMass)
+          call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorMass,reset=self%interpolationResetMass)
           interpolationIndicesMass(iMetallicity,2)=interpolationIndicesMass(iMetallicity,1)+1
-          interpolationFactorsMass(iMetallicity,:)=Interpolate_Linear_Generate_Factors(stellarTrackInitialMasses(1:stellarTrackInitialMassCount(jMetallicity),jMetallicity),interpolationIndicesMass(iMetallicity,1),initialMass)
+          interpolationFactorsMass(iMetallicity,:)=Interpolate_Linear_Generate_Factors(self%massInitial(1:self%countMassInitial(jMetallicity),jMetallicity),interpolationIndicesMass(iMetallicity,1),initialMass)
        end if
-
        ! Loop over masses.
        do iMass=1,2
           jMass=interpolationIndicesMass(iMetallicity,iMass)
-
           ! Interpolate in age at each mass.
-          if (age < stellarTrackAges(1,jMass,jMetallicity)) then
+          if (age < self%age(1,jMass,jMetallicity)) then
              interpolationIndicesAge(iMetallicity,iMass,:)=[    1,    2]
              interpolationFactorsAge(iMetallicity,iMass,:)=[1.0d0,0.0d0]
              ageOutOfRange=.true.
-          else if (age > stellarTrackAges(stellarTrackAgesCount(jMass,jMetallicity),jMass,jMetallicity)) then
-             interpolationIndicesAge(iMetallicity,iMass,:)=[stellarTrackAgesCount(jMass,jMetallicity)-1,stellarTrackAgesCount(jMass,jMetallicity)]
+          else if (age > self%age(self%countAge(jMass,jMetallicity),jMass,jMetallicity)) then
+             interpolationIndicesAge(iMetallicity,iMass,:)=[self%countAge(jMass,jMetallicity)-1,self%countAge(jMass,jMetallicity)]
              interpolationFactorsAge(iMetallicity,iMass,:)=[0.0d0,1.0d0]
              ageOutOfRange=.true.
           else
-             interpolationResetAge=.true.
-             interpolationIndicesAge(iMetallicity,iMass,1)=Interpolate_Locate(stellarTrackAges(1:stellarTrackAgesCount(jMass,jMetallicity),jMass,jMetallicity) ,interpolationAcceleratorAge,age,reset=interpolationResetAge)
-             call Interpolate_Done(interpolationAccelerator=interpolationAcceleratorAge,reset=interpolationResetAge)
+             self%interpolationResetAge=.true.
+             interpolationIndicesAge(iMetallicity,iMass,1)=Interpolate_Locate(self%age(1:self%countAge(jMass,jMetallicity),jMass,jMetallicity),self%interpolationAcceleratorAge,age,reset=self%interpolationResetAge)
+             call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorAge,reset=self%interpolationResetAge)
              interpolationIndicesAge(iMetallicity,iMass,2)=interpolationIndicesAge(iMetallicity,iMass,1)+1
-             interpolationFactorsAge(iMetallicity,iMass,:)=Interpolate_Linear_Generate_Factors(stellarTrackAges(1:stellarTrackAgesCount(jMass,jMetallicity),jMass,jMetallicity),interpolationIndicesAge(iMetallicity,iMass,1),age)
+             interpolationFactorsAge(iMetallicity,iMass,:)=Interpolate_Linear_Generate_Factors(self%age(1:self%countAge(jMass,jMetallicity),jMass,jMetallicity),interpolationIndicesAge(iMetallicity,iMass,1),age)
           end if
        end do
-
     end do
-    !$omp end critical (Stellar_Tracks_Interpolate)
-
     return
-  end subroutine Stellar_Tracks_Interpolation_Get
-
-end module Stellar_Astrophysics_Tracks_File
+  end subroutine fileInterpolationCompute

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,27 +19,43 @@
 
   !% An implementation of a spectrum postprocessor that does nothing.
 
-  !# <spectraPostprocessor name="spectraPostprocessorIdentity">
+  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorIdentity">
   !#  <description>Performs an indentity postprocessing of spectra.</description>
-  !# </spectraPostprocessor>
-
-  type, extends(spectraPostprocessorClass) :: spectraPostprocessorIdentity
+  !# </stellarPopulationSpectraPostprocessor>
+  type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorIdentity
      !% An identity spectrum postprocessor.
      private
    contains
-     procedure :: apply => identityApply
-  end type spectraPostprocessorIdentity
+     procedure :: multiplier => identityMultiplier
+  end type stellarPopulationSpectraPostprocessorIdentity
 
+  interface stellarPopulationSpectraPostprocessorIdentity
+     !% Constructors for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class.
+     module procedure identityConstructorParameters
+  end interface stellarPopulationSpectraPostprocessorIdentity
+    
 contains
 
-  subroutine identityApply(self,wavelength,age,redshift,modifier)
+  function identityConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class which takes a
+    !% parameter list as input.
+    use Input_Parameters
+    implicit none
+    type(stellarPopulationSpectraPostprocessorIdentity)                :: self
+    type(inputParameters                              ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=stellarPopulationSpectraPostprocessorIdentity()
+    return
+  end function identityConstructorParameters
+  
+  double precision function identityMultiplier(self,wavelength,age,redshift)
     !% Perform an identity postprocessing on a spectrum.
     implicit none
-    class           (spectraPostprocessorIdentity), intent(inout) :: self
-    double precision                              , intent(in   ) :: age     , redshift, wavelength
-    double precision                              , intent(inout) :: modifier
+    class           (stellarPopulationSpectraPostprocessorIdentity), intent(inout) :: self
+    double precision                                               , intent(in   ) :: age , redshift, wavelength
     !GCC$ attributes unused :: self, age, redshift, wavelength
     
-    modifier=modifier
+    identityMultiplier=1.0d0
     return
-  end subroutine identityApply
+  end function identityMultiplier

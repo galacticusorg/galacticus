@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -62,6 +63,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
     use Galacticus_Error
     use Array_Utilities
+    use Galacticus_Nodes, only : defaultHotHaloComponent, defaultDarkMatterProfileComponent
     implicit none
     type   (hotHaloMassDistributionRicotti2000)                        :: self
     class  (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
@@ -127,6 +129,7 @@ contains
   subroutine ricotti2000Initialize(self,node)
     !% Initialize the {\normalfont \ttfamily ricotti2000} hot halo density profile for the given {\normalfont \ttfamily
     !% node}. Parameterizations of $\beta$ and core radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
+    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
     implicit none
     class           (hotHaloMassDistributionRicotti2000    ), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node

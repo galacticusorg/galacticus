@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,8 @@
   use Dark_Matter_Profiles
   use Halo_Mass_Functions
   use Statistics_NBody_Halo_Mass_Errors
-  
+  use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
+
   !# <outputAnalysis name="outputAnalysisSpinDistribution" defaultThreadPrivate="yes">
   !#  <description>A stellar mass function output analysis class.</description>
   !# </outputAnalysis>
@@ -47,14 +49,16 @@ contains
     !% Constructor for the ``spinDistribution'' output analysis class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (outputAnalysisSpinDistribution)                :: self
-    type            (inputParameters               ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
-    class           (nbodyHaloMassErrorClass       ), pointer       :: nbodyHaloMassError_ 
-    class           (haloMassFunctionClass         ), pointer       :: haloMassFunction_            
-    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_         
-    class           (darkMatterProfileClass        ), pointer       :: darkMatterProfile_
-    double precision                                                :: timeRecent
+    type            (outputAnalysisSpinDistribution   )                :: self
+    type            (inputParameters                  ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
+    class           (outputTimesClass                 ), pointer       :: outputTimes_
+    class           (nbodyHaloMassErrorClass          ), pointer       :: nbodyHaloMassError_ 
+    class           (haloMassFunctionClass            ), pointer       :: haloMassFunction_            
+    class           (darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_         
+    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
+    double precision                                                   :: timeRecent
     
     !# <inputParameter>
     !#   <name>timeRecent</name>
@@ -63,24 +67,27 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"    name="haloMassFunction_"    source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
-    self=outputAnalysisSpinDistribution(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_)
+    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    !# <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+    !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    self=outputAnalysisSpinDistribution(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileScaleRadius_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
-    nullify(nbodyHaloMassError_ )
-    nullify(haloMassFunction_   )
-    nullify(darkMatterHaloScale_)
-    nullify(darkMatterProfile_  )
+    nullify(nbodyHaloMassError_          )
+    nullify(haloMassFunction_            )
+    nullify(darkMatterHaloScale_         )
+    nullify(darkMatterProfile_           )
+    nullify(darkMatterProfileScaleRadius_)
     return
   end function spinDistributionConstructorParameters
 
-  function spinDistributionConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_) result(self)
+  function spinDistributionConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileScaleRadius_,outputTimes_) result(self)
     !% Internal constructor for the ``spinDistribution'' output analysis class.
     use ISO_Varying_String
-    use Galacticus_Output_Times
+    use Output_Times
     use Output_Analyses_Options
     use Galacticus_Error
     use Galacticus_Paths
@@ -92,10 +99,12 @@ contains
     type            (outputAnalysisSpinDistribution                   )                              :: self
     double precision                                                                , intent(in   )  :: timeRecent
     class           (cosmologyFunctionsClass                          ), target     , intent(in   )  :: cosmologyFunctions_
+    class           (outputTimesClass                                 ), target     , intent(inout)  :: outputTimes_
     class           (nbodyHaloMassErrorClass                          ), target     , intent(in   )  :: nbodyHaloMassError_ 
     class           (haloMassFunctionClass                            ), target     , intent(in   )  :: haloMassFunction_            
     class           (darkMatterHaloScaleClass                         ), target     , intent(in   )  :: darkMatterHaloScale_         
     class           (darkMatterProfileClass                           ), target     , intent(in   )  :: darkMatterProfile_           
+    class           (darkMatterProfileScaleRadiusClass                ), target     , intent(in   )  :: darkMatterProfileScaleRadius_           
     type            (outputAnalysisPropertyExtractorSpin              ), pointer                     :: outputAnalysisPropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10              ), pointer                     :: outputAnalysisPropertyOperator_
     type            (outputAnalysisWeightOperatorIdentity             ), pointer                     :: outputAnalysisWeightOperator_
@@ -132,10 +141,10 @@ contains
     !$ call hdf5Access%unset()
     self%binCount=size(spins)
     ! Compute weights that apply to each output redshift.
-    call allocateArray(outputWeight,[self%binCount,Galacticus_Output_Time_Count()])
+    call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     outputWeight=0.0d0
-    do iOutput=1,Galacticus_Output_Time_Count()
-       if (Values_Agree(Galacticus_Output_Redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
+    do iOutput=1,outputTimes_%count()
+       if (Values_Agree(outputTimes_%redshift(iOutput),0.0d0,absTol=1.0d-10)) outputWeight(:,iOutput)=1.0d0
     end do
     if (any(sum(outputWeight,dim=2) /= 1.0d0)) call Galacticus_Error_Report('zero redshift output is required'//{introspection:location})
     ! Build an N-body halo spin distribution class.
@@ -153,7 +162,8 @@ contains
          &                                                                 nbodyHaloMassError_               =nbodyHaloMassError_                            , &
          &                                                                 haloMassFunction_                 =haloMassFunction_                              , &
          &                                                                 darkMatterHaloScale_              =darkMatterHaloScale_                           , &
-         &                                                                 darkMatterProfile_                =darkMatterProfile_                               &
+         &                                                                 darkMatterProfile_                =darkMatterProfile_                             , &
+         &                                                                 darkMatterProfileScaleRadius_     =darkMatterProfileScaleRadius_                    &
          &                                                                )
     ! Create a spin parameter property extractor.
     allocate(outputAnalysisPropertyExtractor_        )
@@ -240,6 +250,7 @@ contains
          &                                outputAnalysisDistributionOperator_                , &
          &                                outputAnalysisDistributionNormalizer_              , &
          &                                galacticFilterAll_                                 , &
+         &                                outputTimes_                                       , &
          &                                outputAnalysisCovarianceModelPoisson               , &
          &                                covarianceBinomialBinsPerDecade                    , &
          &                                covarianceBinomialMassHaloMinimum                  , &
@@ -268,7 +279,7 @@ contains
     !% Destructor for the ``spinDistribution'' output analysis class.
     implicit none
     type(outputAnalysisSpinDistribution), intent(inout) :: self
-    !# <objectDestructor name="self%cosmologyFunctions_" />
     
+    !# <objectDestructor name="self%cosmologyFunctions_" />    
     return
   end subroutine spinDistributionDestructor

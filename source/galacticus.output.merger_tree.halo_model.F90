@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -122,26 +123,10 @@ contains
     ! Return property names if we are outputting halo model data.
     if (outputHaloModelData) then
        doubleProperty =doubleProperty +1
-       !@ <outputProperty>
-       !@   <name>nodeBias</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>The linear bias for this node.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        doublePropertyNames    (doubleProperty)='nodeBias'
        doublePropertyComments (doubleProperty)='The linear bias for this node.'
        doublePropertyUnitsSI  (doubleProperty)=0.0d0
        integerProperty=integerProperty+1
-       !@ <outputProperty>
-       !@   <name>isolatedHostIndex</name>
-       !@   <datatype>integer</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>The index of the isolated node which hosts this node.</description>
-       !@   <label>???</label>
-       !@   <outputType>nodeData</outputType>
-       !@ </outputProperty>
        integerPropertyNames   (integerProperty)='isolatedHostIndex'
        integerPropertyComments(integerProperty)='The index of the isolated node which hosts this node.'
        integerPropertyUnitsSI (integerProperty)=0.0d0
@@ -235,10 +220,6 @@ contains
 
     ! Store power specturm if we are outputting halo model data.
     if (outputHaloModelData) then
-       !@ <outputType>
-       !@   <name>haloModel</name>
-       !@   <description>A collection of data (including biases and halo profiles) that can be used in halo model calculations of galaxy clustering.</description>
-       !@ </outputType>
 
        ! Create a group for halo model data..
        call hdf5Access%set()
@@ -263,25 +244,9 @@ contains
 
        ! Store the power spectrum
        call hdf5Access%set()
-       !@ <outputProperty>
-       !@   <name>wavenumber</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Wavenumbers at which dark matter halo Fourier profiles are stored.</description>
-       !@   <label>???</label>
-       !@   <outputType>haloModel</outputType>
-       !@ </outputProperty>
        call haloModelGroup%writeDataset(wavenumber   ,'wavenumber','Wavenumber at which power spectrum is tabulated [Mpc⁻¹].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(1.0d0/megaParsec,'unitsInSI')
        call haloModelDataset%close()
-       !@ <outputProperty>
-       !@   <name>powerSpectrum</name>
-       !@   <datatype>real</datatype>
-       !@   <cardinality>0..1</cardinality>
-       !@   <description>Linear theory power spectrum.</description>
-       !@   <label>???</label>
-       !@   <outputType>haloModel</outputType>
-       !@ </outputProperty>
        call haloModelGroup%writeDataset(powerSpectrumValue,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
        call haloModelDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
        call haloModelDataset%close()

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,70 +19,67 @@
 
   !% An implementation of a spectrum postprocessor that keeps only recent populations.
 
-  !# <spectraPostprocessor name="spectraPostprocessorRecent">
+  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorRecent">
   !#  <description>Retains only recent stellar populations.</description>
-  !# </spectraPostprocessor>
-
-  type, extends(spectraPostprocessorClass) :: spectraPostprocessorRecent
+  !# </stellarPopulationSpectraPostprocessor>
+  type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorRecent
      !% An recent spectrum postprocessor.
      private
      double precision :: timeLimit
    contains
-     procedure :: apply => recentApply
-  end type spectraPostprocessorRecent
+     procedure :: multiplier => recentMultiplier
+  end type stellarPopulationSpectraPostprocessorRecent
 
-  interface spectraPostprocessorRecent
+  interface stellarPopulationSpectraPostprocessorRecent
      !% Constructors for the recent spectrum postprocessor class.
-     module procedure recentDefaultConstructor
-     module procedure recentGenericConstructor
-  end interface spectraPostprocessorRecent
-
-  logical          :: recentInitialized=.false.
-  double precision :: recentTimeLimit
+     module procedure recentConstructorParameters
+     module procedure recentConstructorInternal
+  end interface stellarPopulationSpectraPostprocessorRecent
 
 contains
 
-  function recentDefaultConstructor()
+  function recentConstructorParameters(parameters) result(self)
     !% Default constructor for the recent spectrum postprocessor class.
     use Input_Parameters
     implicit none
-    type(spectraPostprocessorRecent), target :: recentDefaultConstructor
-    
-    if (.not.recentInitialized) then
-       ! Get parameters of the model.
-       !# <inputParameter>
-       !#   <name>stellarPopulationSpectraRecentTimeLimit</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d-2</defaultValue>
-       !#   <description>The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !#   <variable>recentTimeLimit</variable>
-       !# </inputParameter>
-       recentInitialized=.true.
-    end if
-    recentDefaultConstructor=recentGenericConstructor(recentTimeLimit)
-    return
-  end function recentDefaultConstructor
+    type            (stellarPopulationSpectraPostprocessorRecent)                :: self
+    type            (inputParameters                            ), intent(inout) :: parameters
+    double precision                                                             :: timeLimit
 
-  function recentGenericConstructor(timeLimit)
+    !# <inputParameter>
+    !#   <name>timeLimit</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d-2</defaultValue>
+    !#   <description>The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    self=stellarPopulationSpectraPostprocessorRecent(timeLimit)
+    return
+  end function recentConstructorParameters
+
+  function recentConstructorInternal(timeLimit) result(self)
     !% Generic constructor for the recent spectrum postprocessor class.
     implicit none
-    type            (spectraPostprocessorRecent)                :: recentGenericConstructor
-    double precision                            , intent(in   ) :: timeLimit
+    type            (stellarPopulationSpectraPostprocessorRecent)                :: self
+    double precision                                             , intent(in   ) :: timeLimit
+    !# <constructorAssign variables="timeLimit"/>
 
-    recentGenericConstructor%timeLimit=timeLimit
     return
-  end function recentGenericConstructor
+  end function recentConstructorInternal
 
-  subroutine recentApply(self,wavelength,age,redshift,modifier)
-    !% Perform an recent postprocessing on a spectrum.
+  double precision function recentMultiplier(self,wavelength,age,redshift)
+    !% Perform a recent postprocessing on a spectrum.
     implicit none
-    class           (spectraPostprocessorRecent), intent(inout) :: self
-    double precision                            , intent(in   ) :: age     , redshift, wavelength
-    double precision                            , intent(inout) :: modifier
+    class           (stellarPopulationSpectraPostprocessorRecent), intent(inout) :: self
+    double precision                                             , intent(in   ) :: age       , redshift, &
+         &                                                                          wavelength
     !GCC$ attributes unused :: redshift, wavelength
     
-    if (age > self%timeLimit) modifier=0.0d0
+    if (age > self%timeLimit) then
+       recentMultiplier=0.0d0
+    else
+       recentMultiplier=1.0d0
+    end if
     return
-  end subroutine recentApply
+  end function recentMultiplier

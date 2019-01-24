@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -230,9 +231,10 @@ contains
 
   double precision function prada2011Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{prada_halo_2011} algorithm.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationPrada2011), intent(inout), target  :: self
-    type            (treeNode                               ), intent(inout), pointer :: node
+    type            (treeNode                               ), intent(inout), target  :: node
     class           (nodeComponentBasic                     )               , pointer :: basic
     double precision                                                                  :: massNode, sigmaPrime, &
          &                                                                               timeNode, x

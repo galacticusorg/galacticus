@@ -7,4 +7,7 @@
     <massTreeMaximum value="1e+12"/>
     <massTreeMinimum value="10000000000"/>
   </mergerTreeBuildMassesMethod>
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+  </mergerTreeEvolverMethod>			   
 </parameters>

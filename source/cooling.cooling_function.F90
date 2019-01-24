@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module Cooling_Functions
   !% Provides a class implementing cooling functions.
   use Abundances_Structure
-  use Radiation_Structure
+  use Radiation_Fields
   use Chemical_Abundances_Structure
 
   !# <functionClass>
@@ -33,28 +34,28 @@ module Cooling_Functions
   !#   <description>Return the cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field. Units of the returned cooling function are the traditional ergs cm$^-3$ s$^{-1}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision                    , intent(in   ) :: numberDensityHydrogen, temperature</argument>
-  !#   <argument>type            (abundances        ), intent(in   ) :: gasAbundances</argument>
-  !#   <argument>type            (chemicalAbundances), intent(in   ) :: chemicalDensities</argument>
-  !#   <argument>type            (radiationStructure), intent(in   ) :: radiation</argument>
+  !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
+  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
   !#  </method>
   !#  <method name="coolingFunctionDensityLogSlope" >
   !#   <description>Return $\d\ln\Lambda/\d\ln\rho$ for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision                    , intent(in   ) :: numberDensityHydrogen, temperature</argument>
-  !#   <argument>type            (abundances        ), intent(in   ) :: gasAbundances</argument>
-  !#   <argument>type            (chemicalAbundances), intent(in   ) :: chemicalDensities</argument>
-  !#   <argument>type            (radiationStructure), intent(in   ) :: radiation</argument>
+  !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
+  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
   !#  </method>
   !#  <method name="coolingFunctionTemperatureLogSlope" >
   !#   <description>Return $\d\ln\Lambda/\d\ln T$ for a cooling function at the given temperature and hydrogen density for the specified set of abundances and radiation field.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision                    , intent(in   ) :: numberDensityHydrogen, temperature</argument>
-  !#   <argument>type            (abundances        ), intent(in   ) :: gasAbundances</argument>
-  !#   <argument>type            (chemicalAbundances), intent(in   ) :: chemicalDensities</argument>
-  !#   <argument>type            (radiationStructure), intent(in   ) :: radiation</argument>
+  !#   <argument>double precision                     , intent(in   ) :: numberDensityHydrogen, temperature</argument>
+  !#   <argument>type            (abundances         ), intent(in   ) :: gasAbundances</argument>
+  !#   <argument>type            (chemicalAbundances ), intent(in   ) :: chemicalDensities</argument>
+  !#   <argument>class           (radiationFieldClass), intent(inout) :: radiation</argument>
   !#  </method>
   !# </functionClass>
 

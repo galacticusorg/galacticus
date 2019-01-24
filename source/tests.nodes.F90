@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -56,7 +57,7 @@ program Test_Nodes
   call Unit_Tests_Begin_Group("Nodes")
 
   ! Initialize the Galacticus nodes objects module.
-  call nodeClassHierarchyInitialize()
+  call nodeClassHierarchyInitialize(parameters)
 
   ! Ensure tree node has the correct type.
   call Assert('Node has type "treeNode"',char(thisNode%type()),'treeNode')
@@ -127,16 +128,16 @@ program Test_Nodes
   !
 
   ! Check that total count of properties is correct.
-  call Assert('Total count of properties in tree node',thisNode%serializeCount(propertyTypeActive),2)
+  call Assert('Total count of properties in tree node',thisNode%serializeCount(propertyTypeAll),2)
 
   ! Serialize values to and from an array - assert consistency between serialized and deserialized values.
   select type  (thisComponent)
   class is (nodeComponentBasic)
      call thisComponent%massSet(1.0d0)
      call thisComponent%timeSet(2.0d0)
-     call thisNode%serializeValues  (serializedArray,propertyTypeActive)
-     serializedArray=Array_Reverse  (serializedArray                   )
-     call thisNode%deserializeValues(serializedArray,propertyTypeActive)
+     call thisNode%serializeValues  (serializedArray,propertyTypeAll)
+     serializedArray=Array_Reverse  (serializedArray                )
+     call thisNode%deserializeValues(serializedArray,propertyTypeAll)
      call Assert('Serialize/deserialize values consistency',[thisComponent%mass(),thisComponent%time()],[2.0d0,1.0d0])
   class default
      call Galacticus_Error_Report('component is of incorrect class'//{introspection:location})

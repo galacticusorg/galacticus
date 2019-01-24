@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -76,6 +77,17 @@ contains
   !# <preDerivativeTask>
   !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
   !# </preDerivativeTask>
+  !# <postEvolveTask>
+  !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
+  !# </postEvolveTask>
+  !# <satelliteMergerTask>
+  !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
+  !#  <after>re:Node_Component_.*</after>
+  !# </satelliteMergerTask>
+  !# <nodePromotionTask>
+  !#  <unitName>Galactic_Structure_Radii_Solve</unitName>
+  !#  <after>re:Node_Component_.*</after>
+  !# </nodePromotionTask>
   subroutine Galactic_Structure_Radii_Solve(node)
     !% Solve for the radii of galactic components in {\normalfont \ttfamily node}.
     implicit none

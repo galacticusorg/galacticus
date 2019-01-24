@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,21 +22,45 @@
 module Node_Components
   !% Implements top-level functions for node components.
   private
-  public :: Node_Components_Initialize
+  public :: Node_Components_Initialize, Node_Components_Thread_Initialize
+
+  logical :: initialized=.false.
 
 contains
 
-  subroutine Node_Components_Initialize()
+  subroutine Node_Components_Initialize(parameters)
     !% Perform initialization tasks for node components.
+    use Input_Parameters
     !# <include directive="nodeComponentInitializationTask" type="moduleUse">
     include 'node_components.initialize.moduleUse.inc'
     !# </include>
     implicit none
+    type(inputParameters), intent(inout) :: parameters
 
-    !# <include directive="nodeComponentInitializationTask" type="functionCall" functionType="void">
-    include 'node_components.initialize.inc'
-    !# </include>
+    if (.not.initialized) then
+       !# <include directive="nodeComponentInitializationTask" type="functionCall" functionType="void">
+       !#  <functionArgs>parameters</functionArgs>
+       include 'node_components.initialize.inc'
+       !# </include>
+       initialized=.true.
+    end if
     return
   end subroutine Node_Components_Initialize
+  
+  subroutine Node_Components_Thread_Initialize(parameters)
+    !% Perform initialization tasks for node components.
+    use Input_Parameters
+    !# <include directive="nodeComponentThreadInitializationTask" type="moduleUse">
+    include 'node_components.threadInitialize.moduleUse.inc'
+    !# </include>
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    !# <include directive="nodeComponentThreadInitializationTask" type="functionCall" functionType="void">
+    !#  <functionArgs>parameters</functionArgs>
+    include 'node_components.threadInitialize.inc'
+    !# </include>
+    return
+  end subroutine Node_Components_Thread_Initialize
   
 end module Node_Components

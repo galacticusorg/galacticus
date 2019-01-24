@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -140,6 +141,7 @@ contains
     !# <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast, assumeMonotonicSurfaceDensity"/>
 
     self%lastUniqueID   =-1_kind_int8
+    self%massGasPrevious=-1.0d0
     self%factorsComputed=.false.
     ! Set a pointer to the molecular hydrogen fraction fitting function to be used.
     select case (molecularFractionFast)
@@ -167,6 +169,7 @@ contains
   subroutine krumholz2009ComputeFactors(self,node)
     !% Compute constant factors needed in the \cite{krumholz_star_2009} star formation rule.
     use Numerical_Constants_Prefixes
+    use Galacticus_Nodes            , only : nodeComponentDisk
     implicit none
     class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type (treeNode                                        ), intent(inout) :: node
@@ -384,6 +387,7 @@ contains
   
   logical function krumholz2009Unchanged(self,node)
     !% Determine if the surface rate density of star formation is unchanged.
+    use Galacticus_Nodes, only : nodeComponentDisk
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node

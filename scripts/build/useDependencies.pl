@@ -25,23 +25,24 @@ my $xml                     = new XML::Simple();
 my $locations               = -e $workDirectoryName."directiveLocations.xml" ? $xml->XMLin($workDirectoryName."directiveLocations.xml") : undef();
 # List of external modules (which will be ignored for dependency analysis of the source code).
 my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortran_types", "fox_common", "fox_dom", "fox_wxml", "fox_utils",
-			"fgsl", "mpi", "yeplibrary", "yepcore", "yepmath");
+			"fgsl", "mpi", "mpi_f08", "yeplibrary", "yepcore", "yepmath");
 # Modules that require a library to be linked. These are key-value pairs with the key being the module name, and the value the
 # name of the required library.
 my %moduleLibararies = (
-    nearest_neighbors => "ANN",
-    fftw3             => "fftw3",
-    fgsl              => "fgsl_gfortran",
-    fox_common        => "FoX_common",
-    fox_dom           => "FoX_dom",
-    fox_wxml          => "FoX_wxml",
-    fox_utils         => "FoX_utils",
-    hdf5              => "hdf5_fortran",
-    h5tb              => "hdf5hl_fortran",
-    vectors           => "blas",
-    yeplibrary        => "yeppp",
-    yepcore           => "yeppp",
-    yepmath           => "yeppp"
+    nearest_neighbors   => "ANN"           ,
+    fftw3               => "fftw3"         ,
+    fgsl                => "fgsl_gfortran" ,
+    fox_common          => "FoX_common"    ,
+    fox_dom             => "FoX_dom"       ,
+    fox_wxml            => "FoX_wxml"      ,
+    fox_utils           => "FoX_utils"     ,
+    hdf5                => "hdf5_fortran"  ,
+    h5tb                => "hdf5hl_fortran",
+    vectors             => "blas"          ,
+    yeplibrary          => "yeppp"         ,
+    yepcore             => "yeppp"         ,
+    yepmath             => "yeppp"         ,
+    models_likelihoods  => "matheval"
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the
 # name of the required library.
@@ -123,6 +124,9 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    &List::ExtraUtils::smart_push(\@fileNamesToProcess,$locations->{$functionClass->{'name'}}->{'file'});
 	}
     }
+    # Add dependence on functionClass module if necessary.
+    push(@modulesUsed,$workDirectoryName."function_classes.mod")
+	if ( scalar(@{$directives->{'functionClass'}}) > 0 );
     # Add dependence on input parameters module if necessary.
     push(@modulesUsed,$workDirectoryName."input_parameters.mod")
 	if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );

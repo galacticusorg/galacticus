@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,11 +25,17 @@ module Node_Component_Satellite_Orbiting
   use Galacticus_Nodes
   use Kepler_Orbits
   use Tensors
+  use Satellite_Dynamical_Friction
+  use Satellite_Tidal_Stripping
+  use Satellite_Tidal_Heating
+  use Dark_Matter_Halo_Scales
+  use Virial_Orbits
   implicit none
   private
-  public :: Node_Component_Satellite_Orbiting_Scale_Set     , Node_Component_Satellite_Orbiting_Create         , &
-       &    Node_Component_Satellite_Orbiting_Rate_Compute  , Node_Component_Satellite_Orbiting_Tree_Initialize, &
-       &    Node_Component_Satellite_Orbiting_Trigger_Merger, Node_Component_Satellite_Orbiting_Initialize
+  public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create         , &
+       &    Node_Component_Satellite_Orbiting_Rate_Compute     , Node_Component_Satellite_Orbiting_Tree_Initialize, &
+       &    Node_Component_Satellite_Orbiting_Trigger_Merger   , Node_Component_Satellite_Orbiting_Initialize     , &
+       &    Node_Component_Satellite_Orbiting_Thread_Initialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -96,9 +103,14 @@ module Node_Component_Satellite_Orbiting
   !#  </properties>
   !#  <functions>objects.nodes.components.satellite.orbiting.bound_functions.inc</functions>
   !# </component>
-
-  ! Record of whether the module has been initialized.
-  logical                     :: moduleInitialized=.false.
+  
+  ! Objects used by this module.
+  class(darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_
+  class(satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_
+  class(satelliteTidalHeatingRateClass ), pointer :: satelliteTidalHeatingRate_
+  class(satelliteTidalStrippingClass   ), pointer :: satelliteTidalStripping_
+  class(virialOrbitClass               ), pointer :: virialOrbit_
+  !$omp threadprivate(darkMatterHaloScale_,satelliteDynamicalFriction_,satelliteTidalHeatingRate_,satelliteTidalStripping_,virialOrbit_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
@@ -119,8 +131,7 @@ contains
      type(nodeComponentSatelliteOrbiting) :: satelliteComponent
 
     ! Initialize the module if necessary.
-    !$omp critical (Node_Component_Satellite_Orbiting_Initialize)
-    if (defaultSatelliteComponent%orbitingIsActive().and..not.moduleInitialized) then
+    if (defaultSatelliteComponent%orbitingIsActive()) then
        ! Create the spheroid mass distribution.
        !# <inputParameter>
        !#   <name>satelliteOrbitingDestructionMassIsFractional</name>
@@ -139,12 +150,28 @@ contains
        !# </inputParameter>
        ! Specify the function to use for setting virial orbits.
        call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
-       ! Record that the module is now initialized.
-       moduleInitialized=.true.
     end if
-    !$omp end critical (Node_Component_Satellite_Orbiting_Initialize)
     return
   end subroutine Node_Component_Satellite_Orbiting_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters)
+    !% Initializes the tree node orbiting satellite module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultSatelliteComponent%orbitingIsActive()) then
+       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters"/>
+       !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
+       !# <objectBuilder class="satelliteTidalHeatingRate"  name="satelliteTidalHeatingRate_"  source="parameters"/>
+       !# <objectBuilder class="satelliteTidalStripping"    name="satelliteTidalStripping_"    source="parameters"/>
+       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Tree_Initialize</unitName>
@@ -163,7 +190,6 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Satellite_Orbiting_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rate of change for satellite properties.
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical
@@ -172,9 +198,6 @@ contains
     use Vectors
     use Galactic_Structure_Densities
     use Galactic_Structure_Options
-    use Satellite_Dynamical_Friction
-    use Satellite_Tidal_Stripping
-    use Satellite_Tidal_Heating
     implicit none
     type            (treeNode                       ), pointer     , intent(inout) :: thisNode
     logical                                                        , intent(in   ) :: odeConverged
@@ -184,10 +207,6 @@ contains
     class           (nodeComponentSatellite         ), pointer                     :: satelliteComponent
     class           (nodeComponentBasic             ), pointer                     :: basicComponent
     type            (treeNode                       ), pointer                     :: hostNode
-    class           (darkMatterHaloScaleClass       ), pointer                     :: darkMatterHaloScale_
-    class           (satelliteDynamicalFrictionClass), pointer                     :: satelliteDynamicalFriction_
-    class           (satelliteTidalHeatingRateClass ), pointer                     :: satelliteTidalHeatingRate_
-    class           (satelliteTidalStrippingClass   ), pointer                     :: satelliteTidalStripping_
     double precision                                 , dimension(3)                :: position,velocity
     double precision                                 , parameter                   :: radiusVirialFraction = 1.0d-2
     double precision                                                               :: radius,halfMassRadiusSatellite
@@ -249,9 +268,6 @@ contains
              ! friction) acceleration we include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert
              ! from the two-body problem of satellite and host orbitting their common center of mass to the equivalent one-body
              ! problem (since we're solving for the motion of the satellite relative to the center of the host which is held fixed).
-             satelliteDynamicalFriction_ => satelliteDynamicalFriction()
-             satelliteTidalHeatingRate_  => satelliteTidalHeatingRate ()
-             satelliteTidalStripping_    => satelliteTidalStripping   ()
              call satelliteComponent%velocityRate                 (                                                     &
                   &                                                -(kilo*gigaYear/megaParsec)                          &
                   &                                                *gravitationalConstantGalacticus                     &
@@ -288,12 +304,11 @@ contains
           else
              halfMassRadiusSatellite=0.0d0
           end if
-          darkMatterHaloScale_ => darkMatterHaloScale         ()
-          satelliteMass        =  satelliteComponent%boundMass()
-          basicComponent       => thisNode          %basic    ()
-          basicMass            =  basicComponent    %mass     ()
-          radiusVirial         =  darkMatterHaloScale_%virialRadius(hostNode)
-          orbitalRadiusTest    =  max(halfMassRadiusSatellite+halfMassRadiusCentral,radiusVirialFraction*radiusVirial)
+          satelliteMass     =  satelliteComponent%boundMass()
+          basicComponent    => thisNode          %basic    ()
+          basicMass         =  basicComponent    %mass     ()
+          radiusVirial      =  darkMatterHaloScale_%virialRadius(hostNode)
+          orbitalRadiusTest =  max(halfMassRadiusSatellite+halfMassRadiusCentral,radiusVirialFraction*radiusVirial)
           ! Test merging criterion.
           if (satelliteOrbitingDestructionMassIsFractional) then
              massDestruction=satelliteOrbitingDestructionMass*basicMass
@@ -328,22 +343,20 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Satellite_Orbiting_Scale_Set(thisNode)
     !% Set scales for properties of {\normalfont \ttfamily thisNode}.
-    use Dark_Matter_Halo_Scales
     use Galactic_Structure_Enclosed_Masses
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     implicit none
-    type            (treeNode                      ), pointer  , intent(inout) :: thisNode
-    class           (nodeComponentSatellite        ), pointer                  :: satelliteComponent
-    class           (darkMatterHaloScaleClass      ), pointer                  :: darkMatterHaloScale_
-    double precision                                , parameter                :: positionScaleFractional                 =1.0d-2                              , &
-         &                                                                        velocityScaleFractional                 =1.0d-2                              , &
-         &                                                                        boundMassScaleFractional                =1.0d-2                              , &
-         &                                                                        tidalTensorPathIntegratedScaleFractional=1.0d-2                              , &
-         &                                                                        tidalHeatingNormalizedScaleFractional   =1.0d-2
-    double precision                                                           :: virialRadius                                   , virialVelocity              , &
-         &                                                                        virialIntegratedTidalTensor                    , virialTidalHeatingNormalized, &
-         &                                                                        satelliteMass
+    type            (treeNode              ), pointer  , intent(inout) :: thisNode
+    class           (nodeComponentSatellite), pointer                  :: satelliteComponent
+    double precision                        , parameter                :: positionScaleFractional                 =1.0d-2                              , &
+         &                                                                velocityScaleFractional                 =1.0d-2                              , &
+         &                                                                boundMassScaleFractional                =1.0d-2                              , &
+         &                                                                tidalTensorPathIntegratedScaleFractional=1.0d-2                              , &
+         &                                                                tidalHeatingNormalizedScaleFractional   =1.0d-2
+    double precision                                                   :: virialRadius                                   , virialVelocity              , &
+         &                                                                virialIntegratedTidalTensor                    , virialTidalHeatingNormalized, &
+         &                                                                satelliteMass
 
     ! Get the satellite component.
     satelliteComponent => thisNode%satellite()
@@ -351,12 +364,11 @@ contains
     select type (satelliteComponent)
     class is (nodeComponentSatelliteOrbiting)
        ! Get characteristic scales.
-       darkMatterHaloScale_        => darkMatterHaloScale                (        )
-       satelliteMass               =  Galactic_Structure_Enclosed_Mass   (thisNode)
-       virialRadius                =  darkMatterHaloScale_%virialRadius  (thisNode)
-       virialVelocity              =  darkMatterHaloScale_%virialVelocity(thisNode)
-       virialIntegratedTidalTensor =   virialVelocity/virialRadius*megaParsec/kilo/gigaYear
-       virialTidalHeatingNormalized=  (virialVelocity/virialRadius)**2
+       satelliteMass               =Galactic_Structure_Enclosed_Mass   (thisNode)
+       virialRadius                =darkMatterHaloScale_%virialRadius  (thisNode)
+       virialVelocity              =darkMatterHaloScale_%virialVelocity(thisNode)
+       virialIntegratedTidalTensor = virialVelocity/virialRadius*megaParsec/kilo/gigaYear
+       virialTidalHeatingNormalized=(virialVelocity/virialRadius)**2
        call satelliteComponent%positionScale                 (                                          &
             &                                                  [1.0d0,1.0d0,1.0d0]                      &
             &                                                 *virialRadius                             &
@@ -390,13 +402,11 @@ contains
   subroutine Node_Component_Satellite_Orbiting_Create(thisNode)
     !% Create a satellite orbit component and assign initial position, velocity, orbit, and tidal heating quantities. (The initial
     !% bound mass is automatically set to the original halo mass by virtue of that being the class default).
-    use Virial_Orbits
     use Satellite_Merging_Timescales
     implicit none
     type            (treeNode              ), pointer     , intent(inout) :: thisNode
     type            (treeNode              ), pointer                     :: hostNode
     class           (nodeComponentSatellite), pointer                     :: satelliteComponent
-    class           (virialOrbitClass      ), pointer                     :: virialOrbit_
     logical                                                               :: isNewSatellite
     type            (keplerOrbit           )                              :: thisOrbit
 
@@ -417,9 +427,8 @@ contains
     select type (satelliteComponent)
     class is (nodeComponentSatelliteOrbiting)
        ! Get an orbit for this satellite.
-       hostNode => thisNode%parent
-       virialOrbit_ => virialOrbit()
-       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
+       hostNode  => thisNode%parent
+       thisOrbit =  virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Store the orbit.
        call satelliteComponent%virialOrbitSet(thisOrbit)
     end select
