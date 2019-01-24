@@ -169,7 +169,12 @@ module Node_Component_Spheroid_Standard
   
   ! Record of whether this module has been initialized.
   logical                                     :: moduleInitialized                   =.false., angularMomentumInitialized          =.false.
-  
+
+  ! Minimum absolute scales for physically plausible spheroids.
+  double precision, parameter                 :: radiusMinimum                       =1.0d-12
+  double precision, parameter                 :: massMinimum                         =1.0d-06
+  double precision, parameter                 :: angularMomentumMinimum              =1.0d-20
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -600,9 +605,6 @@ contains
     class           (tidalStrippingSpheroidsClass                )               , pointer :: tidalStrippingSpheroids_
     class           (ramPressureStrippingSpheroidsClass          )               , pointer :: ramPressureStrippingSpheroids_
     class           (satelliteTidalFieldClass                    )               , pointer :: satelliteTidalField_
-    double precision                                              , parameter              :: radiusMinimum                           =1.0d-12
-    double precision                                              , parameter              :: massMinimum                             =1.0d-06
-    double precision                                              , parameter              :: angularMomentumMinimum                  =1.0d-20
     type            (abundances                                  ), save                   :: fuelAbundances                                  , fuelAbundancesRates     , &
          &                                                                                    stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
@@ -1503,21 +1505,26 @@ contains
     class           (starFormationTimescaleSpheroidsClass), pointer       :: starFormationTimescaleSpheroids_
     double precision                                                      :: gasMass                         , starFormationTimescale
 
-    ! Get the associated node.
-    node => self%host()
-
-    ! Get the star formation timescale.
-    starFormationTimescaleSpheroids_ => starFormationTimescaleSpheroids           (    )
-    starFormationTimescale           =  starFormationTimescaleSpheroids_%timescale(node)
-
-    ! Get the gas mass.
-    gasMass=self%massGas()
-
-    ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.node%isSatellite())) then
-       Node_Component_Spheroid_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
-    else
+    ! Check for a realistic spheroid, return zero if spheroid is unphysical.
+    if     (    self%angularMomentum() < angularMomentumMinimum &
+         & .or. self%radius         () <          radiusMinimum &
+         & .or. self%massGas        () <            massMinimum &
+         & ) then
        Node_Component_Spheroid_Standard_Star_Formation_Rate=0.0d0
+    else
+       ! Get the associated node.
+       node => self%host()
+       ! Get the star formation timescale.
+       starFormationTimescaleSpheroids_ => starFormationTimescaleSpheroids           (    )
+       starFormationTimescale           =  starFormationTimescaleSpheroids_%timescale(node)
+       ! Get the gas mass.
+       gasMass=self%massGas()
+       ! If timescale is finite and gas mass is positive, then compute star formation rate.
+       if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.node%isSatellite())) then
+          Node_Component_Spheroid_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
+       else
+          Node_Component_Spheroid_Standard_Star_Formation_Rate=0.0d0
+       end if
     end if
     return
   end function Node_Component_Spheroid_Standard_Star_Formation_Rate
