@@ -61,7 +61,7 @@
      class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_     => null()
    contains
      !@ <objectMethods>
-     !@  <object>mergerTreeEvolverStandard</object>
+     !@  <object>mergerTreeOutputterStandard</object>
      !@  <objectMethod>
      !@   <method>makeGroup</method>
      !@   <type>void</type>
