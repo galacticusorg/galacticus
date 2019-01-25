@@ -43,6 +43,12 @@ module Function_Classes
      !@     <arguments></arguments>
      !@     <description>Make this object non-finalizable.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>isDefault</method>
+     !@     <type>logical</type>
+     !@     <arguments></arguments>
+     !@     <description>Return true if this is the default object of this class.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: isFinalizable      => functionClassIsFinalizable
      procedure :: makeIndestructible => functionClassMakeIndestructible
