@@ -112,6 +112,12 @@ module Input_Parameters
      !@     <arguments></arguments>
      !@     <description>Return the value of this parameter in a simple textual context.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Destroy this parameter and all subparameters.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: isParameter   => inputParameterIsParameter
      procedure :: objectCreated => inputParameterObjectCreated
