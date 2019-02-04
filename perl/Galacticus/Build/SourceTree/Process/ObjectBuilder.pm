@@ -1,4 +1,27 @@
-# Contains a Perl module which implements processing of object builder directives.
+# Contains a Perl module which implements processing of directives related to construction/destruction/referencing of
+# functionClass objects. Specifically five separate directives are supported:
+#
+#    objectBuilder: This directive will get a functionClass object from the given parameter set. The object will be constructed if
+#    necessary (and stored in the inputParameter node for re-use), or will be retrieved from the inputParameter node and
+#    re-used. In either case the reference count of the object is incremented.
+#
+#    objectDestructor: This directive will remove the reference to the given object. The reference count is decremented. If the
+#    reference count reaches zero as a result then the object is deallocated, otherwise the pointer to the object is simply
+#    nullified.
+#
+#    referenceCountIncrement: This directive will simply increment the reference count to an object. It is intended for use where
+#    an object is passed to a functionClass which wants to retain a reference to that object. The reference count of the object
+#    will be incremented.
+#
+#    referenceAcquire: This directive will acquire a pointer to an object (typically as a result of a function). It is intended
+#    for use where some other functionClass object provides a method that returns a pointer to a functionClass object. The
+#    reference count to the object will be incremented.
+#
+#    referenceConstruct: This directive is intended for use when a functionClass object is being constructed directly. The
+#    reference count to the object is incremented.
+#
+# All of these directives supported output of debugging information (detailing the location of the object in question along with
+# that of its "owner") which can be analyzed by ./scripts/aux/functionClassReferencesDebug.pl.
 
 package Galacticus::Build::SourceTree::Process::ObjectBuilder;
 use strict;
@@ -443,14 +466,17 @@ sub Process_ObjectBuilder {
 	    my $acquireCode = (exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}." => ".$node->{'directive'}->{'source'}."\n";
 	    # If including debugging information push the target location to the debug stack.
 	    if ( $debugging ) {
+		my $ownerName;
 		my $ownerLoc;
 		if ( exists($node->{'directive'}->{'owner'}) ) {
+		    $ownerName = $node->{'directive'}->{'owner'};
 		    if ( exists($node->{'directive'}->{'isResult'}) && $node->{'directive'}->{'isResult'} eq "yes" ) {
 			$ownerLoc = "debugStackGet()";
 		    } else {
 			$ownerLoc = "loc(".$node->{'directive'}->{'owner'}.")";
 		    }
 		} else {
+		    $ownerName = $node->{'parent'}->{'name'};
 		    $ownerLoc = "'code:unknown'";
 		    my $nodeParent = $node->{'parent'};
 		    while ( $nodeParent ) {
@@ -470,7 +496,9 @@ sub Process_ObjectBuilder {
 		}		
 		$acquireCode = "call debugStackPush(".$ownerLoc.")\n".$acquireCode."call debugStackPop()\n"
 		    unless ( $ownerLoc eq "debugStackGet()" );
+		$acquireCode .= "call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".($node->{'directive'}->{'target'} =~ m/([a-zA-Z0-9_]+)$/ ? $1 : "unknown")."] : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).")\n";
 	    }
+	    $acquireCode .= "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'target'}."%referenceCountIncrement()\n";
 	    # Build a code node.
 	    my $newNode =
 	    {

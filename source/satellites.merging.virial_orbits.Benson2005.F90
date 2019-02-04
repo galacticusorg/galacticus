@@ -171,7 +171,6 @@ contains
     class(virialDensityContrastClass), pointer       :: benson2005DensityContrastDefinition
     class(virialOrbitBenson2005     ), intent(inout) :: self
     
-    !# <referenceCountIncrement owner="self" object="virialDensityContrast_"/>
     benson2005DensityContrastDefinition => self%virialDensityContrast_
     return
   end function benson2005DensityContrastDefinition
