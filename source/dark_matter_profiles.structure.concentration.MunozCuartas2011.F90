@@ -28,8 +28,10 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationMunozCuartas2011
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{munoz-cuartas_redshift_2011}.
      private
-     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_
+     class(cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_              => null()
+     class(cosmologyParametersClass            ), pointer :: cosmologyParameters_             => null()
+     type (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrastDefinition_ => null()
+     type (darkMatterProfileNFW                ), pointer :: darkMatterProfileDefinition_     => null()
    contains
      final     ::                                munozCuartas2011Destructor
      procedure :: concentration               => munozCuartas2011Concentration
@@ -81,8 +83,10 @@ contains
     implicit none
     type(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%cosmologyParameters_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"             />
+    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
     return
   end subroutine munozCuartas2011Destructor
 
@@ -120,13 +124,12 @@ contains
     implicit none
     class(virialDensityContrastClass                    ), pointer       :: munozCuartas2011DensityContrastDefinition
     class(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
-    !GCC$ attributes unused :: self
 
-    allocate(virialDensityContrastBryanNorman1998 :: munozCuartas2011DensityContrastDefinition)
-    select type (munozCuartas2011DensityContrastDefinition)
-    type is (virialDensityContrastBryanNorman1998)
-      munozCuartas2011DensityContrastDefinition=virialDensityContrastBryanNorman1998(self%cosmologyParameters_,self%cosmologyFunctions_)
-    end select
+    if (.not.associated(self%virialDensityContrastDefinition_)) then
+       allocate(self%virialDensityContrastDefinition_)
+       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastBryanNorman1998(self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    end if
+    munozCuartas2011DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function munozCuartas2011DensityContrastDefinition
   
@@ -137,17 +140,18 @@ contains
     implicit none
     class(darkMatterProfileClass                            ), pointer       :: munozCuartas2011DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationMunozCuartas2011    ), intent(inout) :: self
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
+    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    allocate(darkMatterProfileNFW                               :: munozCuartas2011DarkMatterProfileDefinition)
-    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition              )
-    select type (munozCuartas2011DarkMatterProfileDefinition)
-    type is (darkMatterProfileNFW)
-       select type (darkMatterHaloScaleDefinition)
-       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          darkMatterHaloScaleDefinition              =darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
-          munozCuartas2011DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
-       end select
-    end select
+    if (.not.associated(self%darkMatterProfileDefinition_)) then
+       allocate(self%darkMatterProfileDefinition_  )
+       allocate(     darkMatterHaloScaleDefinition_)
+       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
+       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
+       !# <objectDestructor name="virialDensityContrastDefinition_"/>
+    end if
+    munozCuartas2011DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
     return
   end function munozCuartas2011DarkMatterProfileDefinition

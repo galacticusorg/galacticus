@@ -30,10 +30,12 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.
      private
-     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     integer                                         :: virialDensityContrast    , fittingFunction
+     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
+     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
+     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
+     class  (virialDensityContrastClass   ), pointer :: virialDensityContrastDefinition_ => null()
+     type   (darkMatterProfileNFW         ), pointer :: darkMatterProfileDefinition_     => null()
+     integer                                         :: virialDensityContrast                     , fittingFunction
      type   (table1DGeneric               )          :: fitParameters
    contains
      final     ::                                klypin2015Destructor
@@ -628,9 +630,11 @@ contains
     type(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self
 
     call self%fitParameters%destroy()
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"             />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"       />
+    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
     return
   end subroutine klypin2015Destructor
 
@@ -710,21 +714,24 @@ contains
     implicit none
     class(virialDensityContrastClass              ), pointer       :: klypin2015DensityContrastDefinition
     class(darkMatterProfileConcentrationKlypin2015), intent(inout) :: self
-
-    select case (self%virialDensityContrast)
-    case (klypin2015DensityContrastFixed)
-       allocate(virialDensityContrastFixed :: klypin2015DensityContrastDefinition)
-       select type (klypin2015DensityContrastDefinition)
-       type is (virialDensityContrastFixed)
-          klypin2015DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
+    
+    if (.not.associated(self%virialDensityContrastDefinition_)) then
+       select case (self%virialDensityContrast)
+       case (klypin2015DensityContrastFixed)
+          allocate(virialDensityContrastFixed                         :: self%virialDensityContrastDefinition_)
+          select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
+          type is (virialDensityContrastFixed)
+             !# <referenceConstruct isResult="yes" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)"/>
+          end select
+       case (klypin2015DensityContrastVirial)
+          allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%virialDensityContrastDefinition_)
+          select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
+          type is (virialDensityContrastSphericalCollapseMatterLambda)
+             !# <referenceConstruct isResult="yes" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(self%cosmologyFunctions_)"/>
+          end select
        end select
-    case (klypin2015DensityContrastVirial)
-       allocate(virialDensityContrastSphericalCollapseMatterLambda :: klypin2015DensityContrastDefinition)
-       select type (klypin2015DensityContrastDefinition)
-       type is (virialDensityContrastSphericalCollapseMatterLambda)
-          klypin2015DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(self%cosmologyFunctions_)
-       end select
-    end select
+    end if
+     klypin2015DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function klypin2015DensityContrastDefinition
 
@@ -735,17 +742,18 @@ contains
     implicit none
     class(darkMatterProfileClass                            ), pointer       :: klypin2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationKlypin2015          ), intent(inout) :: self
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
+    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    allocate(darkMatterProfileNFW                               :: klypin2015DarkMatterProfileDefinition)
-    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition       )
-    select type (klypin2015DarkMatterProfileDefinition)
-    type is (darkMatterProfileNFW)
-       select type (darkMatterHaloScaleDefinition)
-       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          darkMatterHaloScaleDefinition        =darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
-          klypin2015DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
-       end select
-    end select
+    if (.not.associated(self%darkMatterProfileDefinition_)) then
+       allocate(self%darkMatterProfileDefinition_  )
+       allocate(     darkMatterHaloScaleDefinition_)
+       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
+       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
+       !# <objectDestructor name="virialDensityContrastDefinition_"/>
+    end if
+    klypin2015DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
     return
   end function klypin2015DarkMatterProfileDefinition

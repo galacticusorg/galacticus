@@ -522,14 +522,21 @@ sub Process_ObjectBuilder {
 		my $ownerName;
 		my $ownerLoc;
 		my $isResult = 0;
-		if ( exists($node->{'directive'}->{'owner'}) ) {
-		    $ownerName = $node->{'directive'}->{'owner'};
-		    if ( exists($node->{'directive'}->{'isResult'}) && $node->{'directive'}->{'isResult'} eq "yes" ) {
-			$ownerLoc = "debugStackGet()";
-			$isResult = 1;
+		if ( exists($node->{'directive'}->{'isResult'}) ) {
+		    if ( exists($node->{'directive'}->{'owner'}) ) {
+			$ownerName = $node->{'directive'}->{'owner'};
 		    } else {
-			$ownerLoc = "loc(".$ownerName.")";
+			if ( $node->{'parent'}->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/ ) {
+			    $ownerName = $1;
+			} else {
+			    $ownerName = $node->{'parent'}->{'name'}; 
+			}
 		    }
+		    $ownerLoc = "debugStackGet()";
+		    $isResult = 1;
+		} elsif ( exists($node->{'directive'}->{'owner'}) ) {
+		    $ownerName = $node->{'directive'}->{'owner'};
+		    $ownerLoc = "loc(".$ownerName.")";
 		} else {
 		    $ownerName = $node->{'parent'}->{'name'};
 		    if ( exists($node->{'directive'}->{'ownerLoc'}) ) {
