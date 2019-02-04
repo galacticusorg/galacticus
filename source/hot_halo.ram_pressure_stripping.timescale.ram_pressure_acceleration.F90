@@ -24,7 +24,7 @@
   use Hot_Halo_Mass_Distributions
   use Hot_Halo_Ram_Pressure_Forces
 
-  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration">
   !#  <description>A hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure acceleration.</description>
   !# </hotHaloRamPressureTimescale>
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleRamPressureAcceleration
@@ -62,6 +62,9 @@ contains
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     self=hotHaloRamPressureTimescaleRamPressureAcceleration(darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloRamPressureForce_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"    />
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
+    !# <objectDestructor name="hotHaloRamPressureForce_"/>
     return
   end function ramPressureAccelerationConstructorParameters
   

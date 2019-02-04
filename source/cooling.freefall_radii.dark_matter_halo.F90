@@ -22,7 +22,7 @@
   use Dark_Matter_Profiles            , only : darkMatterProfileClass    , darkMatterProfile
   use Cooling_Freefall_Times_Available, only : freefallTimeAvailableClass, freefallTimeAvailable
 
-  !# <freefallRadius name="freefallRadiusDarkMatterHalo" defaultThreadPrivate="yes">
+  !# <freefallRadius name="freefallRadiusDarkMatterHalo">
   !#  <description>
   !#   A freefall radius class which computes the freefall radius based on the freefall time in the dark matter halo.
   !#  </description>
@@ -59,6 +59,8 @@ contains
     !# <objectBuilder class="freefallTimeAvailable" name="freefallTimeAvailable_" source="parameters"/>
     self=freefallRadiusDarkMatterHalo(darkMatterProfile_,freefallTimeAvailable_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"    />
+    !# <objectDestructor name="freefallTimeAvailable_"/>
     return
   end function darkMatterHaloConstructorParameters
 

@@ -21,7 +21,7 @@
 
   use Dark_Matter_Halo_Scales
   
-  !# <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991" defaultThreadPrivate="yes">
+  !# <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991">
   !#  <description>A time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}. The time available is set to a value between the age of the Universe and the dynamical time of the halo, depending on the interpolating parameter {\normalfont \ttfamily [ageFactor]}.</description>
   !# </coolingTimeAvailable>
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableWhiteFrenk1991
@@ -63,6 +63,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=coolingTimeAvailableWhiteFrenk1991(ageFactor,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function whiteFrenk1991ConstructorParameters
 

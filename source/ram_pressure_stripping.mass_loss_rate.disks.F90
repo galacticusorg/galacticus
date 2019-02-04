@@ -22,6 +22,7 @@
 module Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
   !% Provides a class that implements calculations of ram pressure stripping in disks.
   use Galacticus_Nodes, only : treeNode
+  private
   
   !# <functionClass>
   !#  <name>ramPressureStrippingDisks</name>

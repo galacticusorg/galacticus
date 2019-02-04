@@ -141,6 +141,12 @@ contains
          &                          outputTimes_                                                                                            &
          &                         )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"  />
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="mergerTreeBuilder_"    />
+    !# <objectDestructor name="haloMassFunction_"     />
+    !# <objectDestructor name="mergerTreeBuildMasses_"/>
+    !# <objectDestructor name="outputTimes_"          />
     return
   end function buildConstructorParameters
 

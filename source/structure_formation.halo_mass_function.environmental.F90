@@ -60,6 +60,10 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"           source="parameters"                                              />
     self=haloMassFunctionEnvironmental(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloMassFunctionConditioned_"  />
+    !# <objectDestructor name="haloMassFunctionUnconditioned_"/>
+    !# <objectDestructor name="haloEnvironment_"              />
+    !# <objectDestructor name="cosmologyParameters_"          />
     return
   end function environmentalConstructorParameters
 

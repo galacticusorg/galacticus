@@ -99,6 +99,7 @@ contains
     end if
     self=powerSpectrumWindowFunctionTopHatSharpKHybrid(cosmologyParameters_,normalizationValue,radiiRatio)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function topHatSharpKHybridConstructorParameters
 

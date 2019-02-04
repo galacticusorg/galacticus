@@ -26,7 +26,7 @@
   use Linear_Growth
   use Output_Times
 
-  !# <task name="taskPowerSpectra" defaultThreadPrivate="yes">
+  !# <task name="taskPowerSpectra">
   !#  <description>A task which computes and outputs the power spectrum and related quantities.</description>
   !# </task>
   type, extends(taskClass) :: taskPowerSpectra
@@ -140,6 +140,14 @@ contains
          &                 outputTimes_                  &
          &                )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"        />
+    !# <objectDestructor name="cosmologyFunctions_"         />
+    !# <objectDestructor name="linearGrowth_"               />
+    !# <objectDestructor name="powerSpectrum_"              />
+    !# <objectDestructor name="powerSpectrumNonlinear_"     />
+    !# <objectDestructor name="powerSpectrumWindowFunction_"/>
+    !# <objectDestructor name="cosmologicalMassVariance_"   />
+    !# <objectDestructor name="outputTimes_"                />
     return
   end function powerSpectraConstructorParameters
 

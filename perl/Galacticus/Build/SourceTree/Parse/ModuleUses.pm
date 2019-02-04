@@ -39,14 +39,14 @@ sub Parse_ModuleUses {
 		# Determine if line is a module use line.
 		my $isModuleUse = 0;
 		$isModuleUse    = 1
-		    if ( $processedLine =~ m/^\s*(!\$)?\s*use\s*(,\s*intrinsic)?\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_,\s]+)?\s*$/ );
+		    if ( $processedLine =~ m/^\s*(!\$)?\s*use\s*(\s+|,\s*(intrinsic))\s*(::)?\s*([a-zA-Z0-9_]+)\s*(,\s*only\s*:)?\s*([a-zA-Z0-9_\(\)=,\s]+)?\s*$/ );
 		# Accumulate raw text.
 		if ( $isModuleUse == 1 ) {
 		    $rawModuleUse .= $rawLine;
 		    my $isOpenMP    = $1;
-		    my $isIntrinsic = $2;
-		    my $moduleName  = $4;
-		    my $only        = $6;
+		    my $isIntrinsic = $3;
+		    my $moduleName  = $5;
+		    my $only        = $7;
 		    $moduleUses->{$moduleName}->{'openMP'} = $isOpenMP ? 1 : 0;
 		    if ( $isIntrinsic ) {
 			$moduleUses->{$moduleName}->{'intrinsic'} = 1;

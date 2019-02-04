@@ -22,6 +22,7 @@
 module Star_Formation_Feedback_Expulsion_Spheroids
   !% Provides a class that implements calculations of expulsive feedback from star formation in spheroids.
   use Galacticus_Nodes, only : treeNode
+  private
 
   !# <functionClass>
   !#  <name>starFormationExpulsiveFeedbackSpheroids</name>

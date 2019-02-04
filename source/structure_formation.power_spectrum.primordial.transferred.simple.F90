@@ -22,7 +22,7 @@
   use Power_Spectra_Primordial
   use Transfer_Functions, only : transferFunction, transferFunctionClass
   
-  !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple" defaultThreadPrivate="yes">
+  !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
   !#  <description>Implements a simple transferred primordial power spectrum.</description>
   !# </powerSpectrumPrimordialTransferred>
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredSimple
@@ -58,6 +58,8 @@ contains
     !# <objectBuilder class="transferFunction"        name="transferFunction_"        source="parameters"/>
     self=powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial_,transferFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="powerSpectrumPrimordial_"/>
+    !# <objectDestructor name="transferFunction_"       />
     return
   end function simpleConstructorParameters
 

@@ -22,7 +22,7 @@
 
   use Dark_Matter_Halo_Scales
 
-  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime">
   !#  <description>A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.</description>
   !# </hotHaloRamPressureTimescale>
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleHaloDynamicalTime
@@ -54,6 +54,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloRamPressureTimescaleHaloDynamicalTime(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function haloDynamicalTimeConstructorParameters
 

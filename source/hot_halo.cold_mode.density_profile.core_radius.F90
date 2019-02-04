@@ -29,7 +29,6 @@ module Hot_Halo_Cold_Mode_Density_Core_Radii
   !#  <descriptiveName>Cold Mode Hot Halo Mass Distributions Core Radii</descriptiveName>
   !#  <description>Class implementing core radii for cold mode hot halo mass distributions.</description>
   !#  <default>virialFraction</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="radius" >
   !#   <description>Return the core radius of the hot halo mass distribution.</description>
   !#   <type>double precision</type>

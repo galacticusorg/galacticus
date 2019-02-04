@@ -19,7 +19,7 @@
 
   !% Implementation of a null ram pressure stripping of disks class.
 
-  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksNull" defaultThreadPrivate="yes">
+  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksNull">
   !#  <description>A null model of ram pressure stripping in galactic disks.</description>
   !# </ramPressureStrippingDisks>
   type, extends(ramPressureStrippingDisksClass) :: ramPressureStrippingDisksNull

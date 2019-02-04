@@ -21,7 +21,7 @@
   use Cosmology_Parameters
   use Dark_Matter_Halo_Scales
   
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
   !#  <description>A merger tree masses class which uses a fixed mass for trees.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesFixedMass
@@ -137,6 +137,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_)
     !# <inputParametersValidate target="self" source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function fixedMassConstructorParameters
 

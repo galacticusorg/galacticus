@@ -57,6 +57,7 @@ contains
     !# <objectBuilder class="stellarTracks" name="stellarTracks_" source="parameters"/>
     self=stellarWindsLeitherer1992(stellarTracks_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarTracks_"/>
     return
   end function leitherer1992ConstructorParameters
 

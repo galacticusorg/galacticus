@@ -19,7 +19,7 @@
 
   !% Contains a module which implements an HI vs halo mass relation analysis class.
   
-  !# <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisHIVsHaloMassRelationPadmanabhan2017">
   !#  <description>An HI vs halo mass relation output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisHIVsHaloMassRelationPadmanabhan2017
@@ -72,6 +72,10 @@ contains
     ! Build the object.
     self=outputAnalysisHIVsHaloMassRelationPadmanabhan2017(systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"         />
+    !# <objectDestructor name="cosmologyFunctions_"          />
+    !# <objectDestructor name="outputTimes_"                 />
+    !# <objectDestructor name="outputAnalysisMolecularRatio_"/>
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 

@@ -57,6 +57,8 @@ contains
     !# <objectBuilder class="linearGrowth"  name="linearGrowth_"  source="parameters"/>
     self=powerSpectrumNonlinearLinear(powerSpectrum_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="powerSpectrum_"/>
+    !# <objectDestructor name="linearGrowth_" />
     return
   end function linearConstructorParameters
 

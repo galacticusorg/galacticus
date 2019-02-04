@@ -25,7 +25,7 @@
   use    Stellar_Spectra_Dust_Attenuations
   use    Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyEmssnLine" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyEmssnLine">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyEmssnLine
@@ -117,6 +117,8 @@ contains
     !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
     self=outputAnalysisPropertyExtractorLmnstyEmssnLine(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
+    !# <objectDestructor name="outputTimes_"                  />
     return
   end function lmnstyEmssnLineConstructorParameters
 

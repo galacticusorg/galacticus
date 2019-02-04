@@ -24,7 +24,7 @@
      type (mergerTreeBuildMassesList ), pointer :: next                   => null()
   end type mergerTreeBuildMassesList
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesUnion" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesUnion">
   !#  <description>A merger tree masses class which constructs the union of other classes.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesUnion

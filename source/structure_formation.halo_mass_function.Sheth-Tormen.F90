@@ -109,6 +109,9 @@ contains
     !# </inputParameter>
     self=haloMassFunctionShethTormen(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,normalization)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyParameters_"     />
+   !# <objectDestructor name="cosmologicalMassVariance_"/>
+   !# <objectDestructor name="criticalOverdensity_"     />
    return
   end function shethTormenConstructorParameters
 

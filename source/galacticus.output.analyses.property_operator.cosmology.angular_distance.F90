@@ -23,7 +23,7 @@
   use            :: Cosmology_Functions
   use            :: Output_Times
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc">
   !#  <description>A cosmological angular distance corrector analysis property operator class.</description>
   !# </outputAnalysisPropertyOperator>
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
@@ -63,6 +63,9 @@ contains
     ! Construct the object.
     self=outputAnalysisPropertyOperatorCsmlgyAnglrDstnc(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputTimes_"           />
+    !# <objectDestructor name="cosmologyFunctionsModel"/>
+    !# <objectDestructor name="cosmologyFunctionsData" />
     return
   end function csmlgyAngularDistanceConstructorParameters
 

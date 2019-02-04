@@ -22,7 +22,7 @@
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
   
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksHaloScaling" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksHaloScaling">
   !#  <description>An outflow rate due to star formation feedback in galactic disks which scales with halo velocity.</description>
   !# </starFormationFeedbackDisks>
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksHaloScaling
@@ -86,6 +86,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=starFormationFeedbackDisksHaloScaling(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function haloScalingConstructorParameters
 

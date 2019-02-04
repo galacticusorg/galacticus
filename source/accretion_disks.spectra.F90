@@ -22,13 +22,13 @@
 module Accretion_Disk_Spectra
   !% Implements calculations of accretion disk spectra.
   use Galacticus_Nodes, only : treeNode
+  private
 
   !# <functionClass>
   !#  <name>accretionDiskSpectra</name>
   !#  <descriptiveName>Accretion Disk Spectra</descriptiveName>
   !#  <description>Class providing spectra of accretion disks.</description>
   !#  <default>hopkins2007</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="spectrum" >
   !#   <description>Returns the spectrum (in units of $L_\odot$~Hz$^{-1}$) of the accretion disk at the given wavelength (in units of \AA) for {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

@@ -58,6 +58,7 @@ contains
     !# <objectBuilder class="stellarAstrophysics" name="stellarAstrophysics_" source="parameters"/>
     self=supernovaePopulationIIIHegerWoosley2002(stellarAstrophysics_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarAstrophysics_"/>
     return
   end function hegerWoosley2002ConstructorParameters
   

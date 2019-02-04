@@ -22,7 +22,7 @@
   use Halo_Mass_Functions
   use Cosmological_Density_Field
 
-  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction">
   !#  <description>A merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.</description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionHaloMassFunction
@@ -92,6 +92,8 @@ contains
     !# <objectBuilder class="haloEnvironment" name="haloEnvironment_"   source="parameters"/>
     self=mergerTreeBuildMassDistributionHaloMassFunction(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloMassFunction_"/>
+    !# <objectDestructor name="haloEnvironment_" />
     return
   end function haloMassFunctionConstructorParameters
 

@@ -29,7 +29,6 @@ module Merger_Trees_Builders
   !#  <descriptiveName>Merger Tree Builders</descriptiveName>
   !#  <description>Class providing merger tree builders.</description>
   !#  <default>cole2000</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="build" >
   !#   <description>Builds and returns a merger tree given the root {\normalfont \ttfamily node}.</description>
   !#   <type>void</type>

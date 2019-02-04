@@ -155,6 +155,13 @@ contains
     !# <objectBuilder class="outputTimes"                       name="outputTimes_"                       source="parameters"/>
     self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"              />
+    !# <objectDestructor name="cosmologyFunctions_"               />
+    !# <objectDestructor name="intergalacticMediumState_"         />
+    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
+    !# <objectDestructor name="accretionDiskSpectra_"             />
+    !# <objectDestructor name="stellarPopulationSelector_"        />
+    !# <objectDestructor name="outputTimes_"                      />
     return
   end function intergalacticBackgroundInternalConstructorParameters
 
@@ -397,6 +404,7 @@ contains
     use            :: FGSL                       , only : fgsl_function    , fgsl_integration_workspace, FGSL_Success
     use            :: Galacticus_Nodes           , only : universeEvent    , universe                  , mergerTreeList, nodeComponentBasic, &
          &                                                nodeComponentDisk, nodeComponentSpheroid
+    use            :: Abundances_Structure       , only : abundances
     implicit none
     class           (universeEvent                       ), intent(in   ) :: event
     type            (universe                            ), intent(inout) :: universe_
@@ -657,6 +665,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Numerical_Constants_Atomic
+    use FGSL                            , only : FGSL_Success
     implicit none
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: spectrum            

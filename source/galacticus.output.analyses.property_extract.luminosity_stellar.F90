@@ -22,7 +22,7 @@
   use ISO_Varying_String
   use Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLuminosityStellar" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLuminosityStellar">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLuminosityStellar
@@ -109,6 +109,7 @@ contains
        end if
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputTimes_"/>
     return
   end function luminosityStellarConstructorParameters
   

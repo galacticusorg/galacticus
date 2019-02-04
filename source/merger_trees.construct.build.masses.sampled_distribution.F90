@@ -21,7 +21,7 @@
 
   use Merger_Trees_Build_Masses_Distributions
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" defaultThreadPrivate="yes" abstract="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" abstract="yes">
   !#  <description>A merger tree masses class which samples masses from a distribution.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSampledDistribution
@@ -177,6 +177,7 @@ contains
                &                toleranceRelative=toleranceRelative                     , &
                &                reset            =integrandReset                          &
                &               )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
        else
           probability=0.0d0
        end if
@@ -200,7 +201,6 @@ contains
        end if
        massFunctionSampleLogPrevious=massFunctionSampleLogMass(iSample)
     end do
-    call Integrate_Done(integrandFunction,integrationWorkspace)
     massFunctionSampleCount=jSample
     if (massFunctionSampleCount < 2) call Galacticus_Error_Report('tabulated mass function sampling density has fewer than 2 non-zero points'//{introspection:location})
     ! Normalize the cumulative probability distribution.

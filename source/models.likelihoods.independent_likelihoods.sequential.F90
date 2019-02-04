@@ -19,7 +19,7 @@
 
   !% Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
   
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl">
   !#  <description>
   !#   A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class
   !#   begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without

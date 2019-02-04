@@ -26,10 +26,11 @@ module Node_Component_Dark_Matter_Profile_Scale
   use Dark_Matter_Profile_Scales
   implicit none
   private
-  public :: Node_Component_Dark_Matter_Profile_Scale_Rate_Compute, Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize  , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Promote     , Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Tree_Output , Node_Component_Dark_Matter_Profile_Scale_Plausibility     , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Initialize  , Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
+  public :: Node_Component_Dark_Matter_Profile_Scale_Rate_Compute       , Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize  , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Promote            , Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Tree_Output        , Node_Component_Dark_Matter_Profile_Scale_Plausibility     , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Initialize         , Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize, &
+       &    Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
   !# <component>
   !#  <class>darkMatterProfile</class>
@@ -132,6 +133,21 @@ contains
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize()
+    !% Uninitializes the tree node scale dark matter profile module.
+    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
+    implicit none
+
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"         />
+       !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    end if
+    return
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
   double precision function Node_Component_Dark_Matter_Profile_Scale_Scale(self)
     !% Return the scale radius in the dark matter halo profile.

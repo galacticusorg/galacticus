@@ -21,13 +21,13 @@
 
 module Power_Spectra_Nonlinear
   !% Implements the nonlinear power spectrum.
+  private
 
   !# <functionClass>
   !#  <name>powerSpectrumNonlinear</name>
   !#  <descriptiveName>Nonlinear Power Spectrum</descriptiveName>
   !#  <description>Class providing non-linear power spectra.</description>
   !#  <default>cosmicEmu</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="value" >
   !#   <description>Return the nonlinear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$] at cosmic time $t=${\normalfont \ttfamily time} [Gyr].</description>
   !#   <type>double precision</type>

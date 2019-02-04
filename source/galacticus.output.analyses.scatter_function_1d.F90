@@ -31,7 +31,7 @@
   use               Output_Times
   use               Galactic_Filters
 
-  !# <outputAnalysis name="outputAnalysisScatterFunction1D" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisScatterFunction1D">
   !#  <description>A generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.</description>
   !#  <deepCopy>
   !#   <functionClass variables="meanFunction, meanSquaredFunction"/>
@@ -322,6 +322,15 @@ contains
     !#  <argument name="scatterCovarianceTarget" value="scatterCovarianceTarget" parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"      />
+    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"       />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
+    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"         />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"   />
+    !# <objectDestructor name="galacticFilter_"                       />
+    !# <objectDestructor name="outputTimes_"                          />
     return
   end function scatterFunction1DConstructorParameters
 

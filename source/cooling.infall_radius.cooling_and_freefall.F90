@@ -22,7 +22,7 @@
   use Cooling_Radii , only : coolingRadiusClass , coolingRadius
   use Freefall_Radii, only : freefallRadiusClass, freefallRadius
 
-  !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall" defaultThreadPrivate="yes">
+  !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall">
   !#  <description>An infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.</description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall
@@ -57,6 +57,8 @@ contains
     !# <objectBuilder class="freefallRadius" name="freefallRadius_" source="parameters"/>
     self=coolingInfallRadiusCoolingFreefall(coolingRadius_,freefallRadius_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingRadius_" />
+    !# <objectDestructor name="freefallRadius_"/>
     return
   end function coolingFreefallConstructorParameters
 

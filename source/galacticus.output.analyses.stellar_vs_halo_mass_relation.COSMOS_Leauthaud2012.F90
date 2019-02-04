@@ -21,7 +21,7 @@
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   
-  !# <outputAnalysis name="outputAnalysisStellarVsHaloMassRelationLeauthaud2012" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisStellarVsHaloMassRelationLeauthaud2012">
   !#  <description>A stellar vs halo mass relation output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisStellarVsHaloMassRelationLeauthaud2012
@@ -104,6 +104,8 @@ contains
     ! Build the object.
     self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 

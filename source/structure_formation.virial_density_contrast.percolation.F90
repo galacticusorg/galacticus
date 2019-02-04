@@ -19,8 +19,9 @@
 
   !% An implementation of dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.
   
-  use Tables
-  use Cosmology_Functions
+  use    Tables
+  use    Cosmology_Functions
+  !$ use OMP_Lib            , only : omp_lock_kind, OMP_Init_Lock, OMP_Destroy_Lock, OMP_Set_Lock, OMP_Unset_Lock
 
   !# <virialDensityContrast name="virialDensityContrastPercolation">
   !#  <description>Dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.</description>
@@ -97,6 +98,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastPercolation(linkingLength,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function percolationConstructorParameters
 

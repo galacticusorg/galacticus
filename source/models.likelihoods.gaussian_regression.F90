@@ -25,7 +25,7 @@
        &           FGSL_Permutation_Alloc, FGSL_Matrix_Align, FGSL_LinAlg_LU_Decomp, FGSL_Linalg_LU_SgnDet, &
        &           FGSL_Double
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression">
   !#  <description>A posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate another likelihood.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGaussianRegression
@@ -223,6 +223,7 @@ contains
      !# <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
     self=posteriorSampleLikelihoodGaussianRegression(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,char(dumpEmulatorFileRoot),dummyEmulator,posteriorSampleLikelihood_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="posteriorSampleLikelihood_"/>
     return
   end function gaussianRegressionConstructorParameters
   

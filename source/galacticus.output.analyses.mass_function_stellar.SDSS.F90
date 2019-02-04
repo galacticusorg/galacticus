@@ -21,7 +21,7 @@
 
   use Gravitational_Lensing
   
-  !# <outputAnalysis name="outputAnalysisMassFunctionStellarSDSS" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMassFunctionStellarSDSS">
   !#  <description>An SDSS stellar mass function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarSDSS
@@ -141,6 +141,9 @@ contains
     ! Build the object.
     self=outputAnalysisMassFunctionStellarSDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"  />
+    !# <objectDestructor name="outputTimes_"         />
+    !# <objectDestructor name="gravitationalLensing_"/>
     return
   end function massFunctionStellarSDSSConstructorParameters
 

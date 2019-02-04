@@ -25,9 +25,9 @@ module Node_Component_Inter_Output_Standard
   use Output_Times
   implicit none
   private
-  public :: Node_Component_Inter_Output_Standard_Rate_Compute     , Node_Component_Inter_Output_Standard_Reset    , &
-       &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set, &
-       &    Node_Component_Interoutput_Standard_Thread_Initialize
+  public :: Node_Component_Inter_Output_Standard_Rate_Compute     , Node_Component_Inter_Output_Standard_Reset             , &
+       &    Node_Component_Inter_Output_Standard_Satellite_Merging, Node_Component_Inter_Output_Standard_Scale_Set         , &
+       &    Node_Component_Interoutput_Standard_Thread_Initialize , Node_Component_Interoutput_Standard_Thread_Uninitialize
   
   !# <component>
   !#  <class>interOutput</class>
@@ -73,6 +73,19 @@ contains
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Interoutput_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize()
+    !% Uninitializes the tree node standard interoutput module.
+    implicit none
+
+    if (defaultInteroutputComponent%standardIsActive()) then
+       !# <objectDestructor name="outputTimes_"/>     
+    end if
+    return
+  end subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize
 
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Inter_Output_Standard_Scale_Set</unitName>

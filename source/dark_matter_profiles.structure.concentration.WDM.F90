@@ -62,6 +62,8 @@ contains
     !# <objectBuilder class="transferFunction"               name="transferFunction_" source="parameters"/>
     self=darkMatterProfileConcentrationWDM(cdmConcentration,transferFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cdmConcentration" />
+    !# <objectDestructor name="transferFunction_"/>
     return
   end function wdmConstructorParameters
 

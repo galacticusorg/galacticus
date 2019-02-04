@@ -69,6 +69,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
     self=nbodyHaloMassErrorSOHaloFinder(darkMatterHaloScale_,darkMatterProfile_,massParticle)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
     return
   end function soHaloFinderParameters
 

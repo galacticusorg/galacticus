@@ -23,7 +23,7 @@
   use Halo_Mass_Functions
   use Geometry_Surveys
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMassFunction" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMassFunction">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for mass functions.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMassFunction
@@ -135,6 +135,9 @@ contains
     !# <objectBuilder class="surveyGeometry"     name="surveyGeometry_"     source="parameters"/>
     self=posteriorSampleLikelihoodMassFunction(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,char(massFunctionFileName),modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="haloMassFunction_"  />
+    !# <objectDestructor name="surveyGeometry_"    />
     return
   end function massFunctionConstructorParameters
 
@@ -247,6 +250,7 @@ contains
     use Numerical_Integration
     use Galacticus_Error
     use Mass_Function_Incompletenesses
+    use FGSL                          , only : fgsl_function, fgsl_integration_workspace
     implicit none
     class           (posteriorSampleLikelihoodMassFunction      ), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState

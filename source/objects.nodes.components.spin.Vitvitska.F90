@@ -34,9 +34,10 @@ module Node_Component_Spin_Vitvitska
   use Halo_Spin_Distributions
   implicit none
   private
-  public :: Node_Component_Spin_Vitvitska_Promote     , Node_Component_Spin_Vitvitska_Initialize_Spins , &
-       &    Node_Component_Spin_Vitvitska_Bindings    , Node_Component_Spin_Vitvitska_Scale_Set        , &
-       &    Node_Component_Spin_Vitvitska_Rate_Compute, Node_Component_Spin_Vitvitska_Thread_Initialize
+  public :: Node_Component_Spin_Vitvitska_Promote            , Node_Component_Spin_Vitvitska_Initialize_Spins , &
+       &    Node_Component_Spin_Vitvitska_Bindings           , Node_Component_Spin_Vitvitska_Scale_Set        , &
+       &    Node_Component_Spin_Vitvitska_Rate_Compute       , Node_Component_Spin_Vitvitska_Thread_Initialize, &
+       &    Node_Component_Spin_Vitvitska_Thread_Uninitialize
 
   !# <component>
   !#  <class>spin</class>
@@ -112,12 +113,26 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
-    if (defaultSpheroidComponent%verySimpleIsActive()) then
+    if (defaultSpinComponent%vitvitskaIsActive()) then
        !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
        !# <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Spin_Vitvitska_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize()
+    !% Uninitializes the tree node Vitvitsake spin module.
+    implicit none
+
+    if (defaultSpinComponent%vitvitskaIsActive()) then
+       !# <objectDestructor name="haloSpinDistribution_"/>
+       !# <objectDestructor name="darkMatterProfile_"   />
+    end if
+    return
+  end subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Initialize_Spins</unitName>

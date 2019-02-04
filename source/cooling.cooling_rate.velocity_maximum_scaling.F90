@@ -23,7 +23,7 @@
   use Cosmology_Functions , only : cosmologyFunctionsClass, cosmologyFunctions
   use Dark_Matter_Profiles
 
-  !# <coolingRate name="coolingRateVelocityMaximumScaling" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateVelocityMaximumScaling">
   !#  <description>A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateVelocityMaximumScaling
@@ -137,6 +137,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=coolingRateVelocityMaximumScaling(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function velocityMaximumScalingConstructorParameters
 

@@ -34,7 +34,7 @@ module Node_Component_Spheroid_Very_Simple
        &    Node_Component_Spheroid_Very_Simple_Initialize                , Node_Component_Spheroid_Very_Simple_Pre_Evolve           , &
        &    Node_Component_Spheroid_Very_Simple_Rates                     , Node_Component_Spheroid_Very_Simple_Radius_Solver        , &
        &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Post_Step            , &
-       &    Node_Component_Spheroid_Very_Simple_Thread_Initialize
+       &    Node_Component_Spheroid_Very_Simple_Thread_Initialize         , Node_Component_Spheroid_Very_Simple_Thread_Uninitialize
   
   !# <component>
   !#  <class>spheroid</class>
@@ -222,6 +222,22 @@ contains
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Spheroid_Very_Simple_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple satellite module.
+    implicit none
+
+    if (defaultSpheroidComponent%verySimpleIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"            />
+       !# <objectDestructor name="stellarPopulationProperties_"    />
+       !# <objectDestructor name="starFormationFeedbackSpheroids_" />
+       !# <objectDestructor name="starFormationTimescaleSpheroids_"/>
+    end if
+    return
+  end subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize
 
   !# <preEvolveTask>
   !# <unitName>Node_Component_Spheroid_Very_Simple_Pre_Evolve</unitName>

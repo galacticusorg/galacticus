@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <universeOperator name="universeOperatorIdentity" defaultThreadPrivate="yes">
+  !# <universeOperator name="universeOperatorIdentity">
   !#  <description>An identity operator on universes.</description>
   !# </universeOperator>
   type, extends(universeOperatorClass) :: universeOperatorIdentity

@@ -65,12 +65,12 @@
 
 contains
 
-  function eisensteinHu1999ConstructorParameters(parameters)
+  function eisensteinHu1999ConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
     !% which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (transferFunctionEisensteinHu1999)                :: eisensteinHu1999ConstructorParameters
+    type            (transferFunctionEisensteinHu1999)                :: self
     type            (inputParameters                 ), intent(inout) :: parameters
     class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
     class           (darkMatterParticleClass         ), pointer       :: darkMatterParticle_
@@ -97,188 +97,188 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     ! Call the internal constructor.
-    eisensteinHu1999ConstructorParameters=eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_)
+    self=transferFunctionEisensteinHu1999(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterParticle_" />
     return
   end function eisensteinHu1999ConstructorParameters
 
-  function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_)
+  function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
     use Galacticus_Error
     use Dark_Matter_Particles
     implicit none
-    type            (transferFunctionEisensteinHu1999)                        :: eisensteinHu1999ConstructorInternal
-    double precision                                  , intent(in   )         :: neutrinoNumberEffective           , neutrinoMassSummed
+    type            (transferFunctionEisensteinHu1999)                        :: self
+    double precision                                  , intent(in   )         :: neutrinoNumberEffective     , neutrinoMassSummed
     class           (darkMatterParticleClass         ), intent(in   ), target :: darkMatterParticle_
     class           (cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
-    double precision                                                          :: redshiftEquality                   , redshiftComptonDrag   , &
-         &                                                                       b1                                 , b2                    , &
-         &                                                                       massFractionBaryonic               , massFractionDarkMatter, &
-         &                                                                       expansionFactorRatio               , massFractionMatter    , &
-         &                                                                       massFractionBaryonsNeutrinos       , suppressionDarkMatter , &
+    double precision                                                          :: redshiftEquality            , redshiftComptonDrag   , &
+         &                                                                       b1                          , b2                    , &
+         &                                                                       massFractionBaryonic        , massFractionDarkMatter, &
+         &                                                                       expansionFactorRatio        , massFractionMatter    , &
+         &                                                                       massFractionBaryonsNeutrinos, suppressionDarkMatter , &
          &                                                                       suppressionMatter
-
+    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_"/>
+    
     ! Require that the dark matter be cold dark matter.
-    eisensteinHu1999ConstructorInternal%darkMatterParticle_   => darkMatterParticle_
     select type (darkMatterParticle_)
        class is (darkMatterParticleCDM)
           ! Cold dark matter particle - this is as expected.
        class default
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
-    ! Set cosmological parameters.
-    eisensteinHu1999ConstructorInternal%cosmologyParameters_   => cosmologyParameters_
     ! Present day CMB temperature [in units of 2.7K].
-    eisensteinHu1999ConstructorInternal%temperatureCMB27       =+eisensteinHu1999ConstructorInternal%cosmologyParameters_%temperatureCMB(                  )    &
+    self%temperatureCMB27       =+self%cosmologyParameters_%temperatureCMB(                  )    &
          &                                                       /2.7d0
     ! Redshift of matter-radiation equality.
-    redshiftEquality                                           =+2.50d4                                                                                         &
-         &                                                      *eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                                      *eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                      /eisensteinHu1999ConstructorInternal%temperatureCMB27                                       **4
+    redshiftEquality            =+2.50d4                                                          &
+         &                       *self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                       *self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                       /self%temperatureCMB27                                       **4
     ! Compute redshift at which baryons are released from Compton drag of photons (eqn. 2)
-    b1                                                         =+0.313d0                                                                                            &
-         &                                                      /(                                                                                                  &
-         &                                                        +  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                                        *  eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                       )**0.419d0                                                                                         &
-         &                                                      *(                                                                                                  &
-         &                                                        +1.000d0                                                                                          &
-         &                                                        +0.607d0                                                                                          &
-         &                                                        *(                                                                                                &
-         &                                                          +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                                          *eisensteinHu1999ConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                         )**0.674d0                                                                                       &
-         &                                                       )
-    b2                                                         =+0.238d0                                                                                            &
-         &                                                      *(                                                                                                  &
-         &                                                        +  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                                        *  eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                       )**0.223d0
-    redshiftComptonDrag                                        =+1291.0d0                                                                                           &
-         &                                                      *(                                                                                                  &
-         &                                                        +  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                                        *  eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                       )**0.251d0                                                                                         &
-         &                                                      *(                                                                                                  &
-         &                                                        +1.0d0                                                                                            &
-         &                                                        +b1                                                                                               &
-         &                                                        *(                                                                                                &
-         &                                                          +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaBaryon   (                  )    &
-         &                                                          *eisensteinHu1999ConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                         )**b2                                                                                            &
-         &                                                       )                                                                                                  &
-         &                                                      /(                                                                                                  &
-         &                                                        +1.000d0                                                                                          &
-         &                                                        +0.659d0                                                                                          &
-         &                                                        *(                                                                                                &
-         &                                                          +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                                          *eisensteinHu1999ConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                         )**0.828d0                                                                                       &
-         &                                                       )
+    b1                          =+0.313d0                                                             &
+         &                       /(                                                                   &
+         &                         +  self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                         *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                        )**0.419d0                                                          &
+         &                       *(                                                                   &
+         &                         +1.000d0                                                           &
+         &                         +0.607d0                                                           &
+         &                         *(                                                                 &
+         &                           +self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                           *self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
+         &                          )**0.674d0                                                        &
+         &                        )
+    b2                          =+0.238d0                                                             &
+         &                       *(                                                                   &
+         &                         +  self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                         *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                        )**0.223d0
+    redshiftComptonDrag         =+1291.0d0                                                            &
+         &                       *(                                                                   &
+         &                         +  self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                         *  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                        )**0.251d0                                                          &
+         &                       *(                                                                   &
+         &                         +1.0d0                                                             &
+         &                         +b1                                                                &
+         &                         *(                                                                 &
+         &                           +self%cosmologyParameters_%OmegaBaryon   (                  )    &
+         &                           *self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
+         &                          )**b2                                                             &
+         &                        )                                                                   &
+         &                       /(                                                                   &
+         &                         +1.000d0                                                           &
+         &                         +0.659d0                                                           &
+         &                         *(                                                                 &
+         &                           +self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                           *self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
+         &                          )**0.828d0                                                        &
+         &                        )
     ! Relative expansion factor between previous two computed redshifts.
-    expansionFactorRatio                                       =+(1.0d0+redshiftEquality   ) &
-         &                                                      /(1.0d0+redshiftComptonDrag)
+    expansionFactorRatio        =+(1.0d0+redshiftEquality   ) &
+         &                       /(1.0d0+redshiftComptonDrag)
     ! Compute the comoving distance that a sound wave can propagate prior to redshiftComptonDrag (i.e. sound horizon; eq. 4)
-    eisensteinHu1999ConstructorInternal%distanceSoundWave      =+44.5d0                                                                                                 &
-         &                                                      *log (                                                                                                  &
-         &                                                            +9.83d0                                                                                           &
-         &                                                            /  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )    &
-         &                                                            /  eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                           )                                                                                                  &
-         &                                                      /sqrt(                                                                                                  &
-         &                                                            + 1.0d0                                                                                           &
-         &                                                            +10.0d0                                                                                           &
-         &                                                            *(                                                                                                &
-         &                                                              +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaBaryon   (                  )    &
-         &                                                              *eisensteinHu1999ConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                             )**0.75d0                                                                                        &
-         &                                                           )
+    self%distanceSoundWave      =+44.5d0                                                                  &
+         &                       *log (                                                                   &
+         &                             +9.83d0                                                            &
+         &                             /  self%cosmologyParameters_%OmegaMatter   (                  )    &
+         &                             /  self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                            )                                                                   &
+         &                       /sqrt(                                                                   &
+         &                             + 1.0d0                                                            &
+         &                             +10.0d0                                                            &
+         &                             *(                                                                 &
+         &                               +self%cosmologyParameters_%OmegaBaryon   (                  )    &
+         &                               *self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)**2 &
+         &                              )**0.75d0                                                         &
+         &                            )
     ! Specify properties of neutrinos. Mass fraction formula is from Komatsu et al. (2007; http://adsabs.harvard.edu/abs/2010arXiv1001.4538K).
-    eisensteinHu1999ConstructorInternal%neutrinoMassSummed     =+neutrinoMassSummed
-    eisensteinHu1999ConstructorInternal%neutrinoMassFraction   =+neutrinoMassSummed                                                                             &
-         &                                                      /94.0d0                                                                                         &
-         &                                                      /eisensteinHu1999ConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
-         &                                                      /eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter   (                  )
-    eisensteinHu1999ConstructorInternal%neutrinoNumberEffective=+neutrinoNumberEffective
+    self%neutrinoMassSummed     =+neutrinoMassSummed
+    self%neutrinoMassFraction   =+neutrinoMassSummed                                              &
+         &                       /94.0d0                                                          &
+         &                       /self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2 &
+         &                       /self%cosmologyParameters_%OmegaMatter   (                  )
+    self%neutrinoNumberEffective=+neutrinoNumberEffective
     ! Compute baryonic and cold dark matter fractions.
-    massFractionBaryonic                                       =+  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaBaryon() &
-         &                                                      /  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter()
-    massFractionDarkMatter                                     =+(                                                                        &
-         &                                                        +eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter() &
-         &                                                        -eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaBaryon() &
-         &                                                       )                                                                        &
-         &                                                      /  eisensteinHu1999ConstructorInternal%cosmologyParameters_%OmegaMatter()
+    massFractionBaryonic        =+  self%cosmologyParameters_%OmegaBaryon() &
+         &                       /  self%cosmologyParameters_%OmegaMatter()
+    massFractionDarkMatter      =+(                                         &
+         &                         +self%cosmologyParameters_%OmegaMatter() &
+         &                         -self%cosmologyParameters_%OmegaBaryon() &
+         &                        )                                         &
+         &                       /  self%cosmologyParameters_%OmegaMatter()
     ! Total matter fraction.
-    massFractionMatter                                         =+massFractionBaryonic   &
-         &                                                      +massFractionDarkMatter
+    massFractionMatter          =+massFractionBaryonic   &
+         &                       +massFractionDarkMatter
     ! Baryonic + neutrino fraction.
-    massFractionBaryonsNeutrinos                               =+eisensteinHu1999ConstructorInternal%neutrinoMassFraction &
-         &                                                      +massFractionBaryonic
+    massFractionBaryonsNeutrinos=+self%neutrinoMassFraction &
+         &                       +massFractionBaryonic
     ! Compute small scale suppression factor (eqn. 15).
-    suppressionDarkMatter                                      =+0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*massFractionDarkMatter))
-    suppressionMatter                                          =+0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*massFractionMatter    ))
-    eisensteinHu1999ConstructorInternal%neutrinoFactor         =+(                                                                      &
-         &                                                        +massFractionDarkMatter                                               &
-         &                                                        /massFractionMatter                                                   &
-         &                                                       )                                                                      &
-         &                                                      *(                                                                      &
-         &                                                        +(5.0d0-2.0d0*(suppressionDarkMatter+suppressionMatter))              &
-         &                                                        /(5.0d0-4.0d0*                       suppressionMatter )              &
-         &                                                       )                                                                      &
-         &                                                      *(                                                                      &
-         &                                                        +(                                                                    &
-         &                                                          +1.000d0                                                            &
-         &                                                          -0.533d0                                                            &
-         &                                                          *massFractionBaryonsNeutrinos                                       &
-         &                                                          +0.126d0                                                            &
-         &                                                          *massFractionBaryonsNeutrinos**3                                    &
-         &                                                         )                                                                    &
-         &                                                        *(                                                                    &
-         &                                                          +1.0d0                                                              &
-         &                                                          +expansionFactorRatio                                               &
-         &                                                         )**(                                                                 &
-         &                                                             +suppressionMatter                                               &
-         &                                                             -suppressionDarkMatter                                           &
-         &                                                            )                                                                 &
-         &                                                        /(                                                                    &
-         &                                                          +1.000d0                                                            &
-         &                                                          -0.193d0                                                            &
-         &                                                          *sqrt(                                                              &
-         &                                                                +eisensteinHu1999ConstructorInternal%neutrinoMassFraction     &
-         &                                                                *eisensteinHu1999ConstructorInternal%neutrinoNumberEffective  &
-         &                                                               )                                                              &
-         &                                                          +0.169d0                                                            &
-         &                                                          *eisensteinHu1999ConstructorInternal%neutrinoMassFraction           &
-         &                                                          *eisensteinHu1999ConstructorInternal%neutrinoNumberEffective**0.2d0 &
-         &                                                         )                                                                    &
-         &                                                       )                                                                      &
-         &                                                      *(                                                                      &
-         &                                                        +1.0d0                                                                &
-         &                                                        +0.5d0                                                                &
-         &                                                        *(                                                                    &
-         &                                                          +suppressionDarkMatter                                              &
-         &                                                          -suppressionMatter                                                  &
-         &                                                         )                                                                    &
-         &                                                        *(                                                                    &
-         &                                                          +1.0d0                                                              &
-         &                                                          +1.0d0                                                              &
-         &                                                          /(3.0d0-4.0d0*suppressionDarkMatter)                                &
-         &                                                          /(7.0d0-4.0d0*suppressionMatter    )                                &
-         &                                                         )                                                                    &
-         &                                                        /(                                                                    &
-         &                                                          +1.0d0                                                              &
-         &                                                          +expansionFactorRatio                                               &
-         &                                                         )                                                                    &
-         &                                                       )
-    eisensteinHu1999ConstructorInternal%betaDarkMatter      =+1.0d0                                                                     & ! Eqn. 21.
-         &                                                   /(                                                                         &
-         &                                                     +1.0d0                                                                   &
-         &                                                     -0.949d0                                                                 &
-         &                                                     *massFractionBaryonsNeutrinos                                            &
-         &                                                    )
+    suppressionDarkMatter  =+0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*massFractionDarkMatter))
+    suppressionMatter      =+0.25d0*(5.0d0-sqrt(1.0d0+24.0d0*massFractionMatter    ))
+    self%neutrinoFactor    =+(                                                         &
+         &                    +massFractionDarkMatter                                  &
+         &                    /massFractionMatter                                      &
+         &                   )                                                         &
+         &                  *(                                                         &
+         &                    +(5.0d0-2.0d0*(suppressionDarkMatter+suppressionMatter)) &
+         &                    /(5.0d0-4.0d0*                       suppressionMatter ) &
+         &                   )                                                         &
+         &                  *(                                                         &
+         &                    +(                                                       &
+         &                      +1.000d0                                               &
+         &                      -0.533d0                                               &
+         &                      *massFractionBaryonsNeutrinos                          &
+         &                      +0.126d0                                               &
+         &                      *massFractionBaryonsNeutrinos**3                       &
+         &                     )                                                       &
+         &                    *(                                                       &
+         &                      +1.0d0                                                 &
+         &                      +expansionFactorRatio                                  &
+         &                     )**(                                                    &
+         &                         +suppressionMatter                                  &
+         &                         -suppressionDarkMatter                              &
+         &                        )                                                    &
+         &                    /(                                                       &
+         &                      +1.000d0                                               &
+         &                      -0.193d0                                               &
+         &                      *sqrt(                                                 &
+         &                            +self%neutrinoMassFraction                       &
+         &                            *self%neutrinoNumberEffective                    &
+         &                           )                                                 &
+         &                      +0.169d0                                               &
+         &                      *self%neutrinoMassFraction                             &
+         &                      *self%neutrinoNumberEffective**0.2d0                   &
+         &                     )                                                       &
+         &                   )                                                         &
+         &                  *(                                                         &
+         &                    +1.0d0                                                   &
+         &                    +0.5d0                                                   &
+         &                    *(                                                       &
+         &                      +suppressionDarkMatter                                 &
+         &                      -suppressionMatter                                     &
+         &                     )                                                       &
+         &                    *(                                                       &
+         &                      +1.0d0                                                 &
+         &                      +1.0d0                                                 &
+         &                      /(3.0d0-4.0d0*suppressionDarkMatter)                   &
+         &                      /(7.0d0-4.0d0*suppressionMatter    )                   &
+         &                     )                                                       &
+         &                    /(                                                       &
+         &                      +1.0d0                                                 &
+         &                      +expansionFactorRatio                                  &
+         &                     )                                                       &
+         &                   )
+    self%betaDarkMatter    =+1.0d0                                                     & ! Eqn. 21.
+         &                  /(                                                         &
+         &                    +1.0d0                                                   &
+         &                    -0.949d0                                                 &
+         &                    *massFractionBaryonsNeutrinos                            &
+         &                   )
     ! Initialize wavenumber for which results were computed to a non-physical value.
-    eisensteinHu1999ConstructorInternal%wavenumberPrevious=-1.0d0
+    self%wavenumberPrevious=-1.0d0
     return
   end function eisensteinHu1999ConstructorInternal
 

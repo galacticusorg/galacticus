@@ -21,13 +21,13 @@
 
 module Dark_Matter_Particles
   !% Provides a class that implements dark matter parrticle physics.
-  
+  private
+
   !# <functionClass>
   !#  <name>darkMatterParticle</name>
   !#  <descriptiveName>Dark Matter Particle</descriptiveName>
   !#  <description>Class providing dark matter particle physics.</description>
   !#  <default>CDM</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !# </functionClass>
 
 end module Dark_Matter_Particles

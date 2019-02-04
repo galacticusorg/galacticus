@@ -21,7 +21,7 @@
 
   use Tables
  
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn" defaultThreadPrivate="yes">
+  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn">
   !#  <description>An output analysis distribution operator class which implements the effects of inclination on disk size.</description>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorDiskSizeInclntn

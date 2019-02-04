@@ -129,6 +129,9 @@ contains
     !# </inputParameter>
     self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,q,normalization)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyParameters_"     />
+   !# <objectDestructor name="cosmologicalMassVariance_"/>
+   !# <objectDestructor name="criticalOverdensity_"     />
    return
   end function bhattacharya2011ConstructorParameters
 

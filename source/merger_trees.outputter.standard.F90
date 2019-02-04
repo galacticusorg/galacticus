@@ -36,7 +36,7 @@
   integer, parameter :: standardOutputGroupsIncrement=  10, standardNameLengthMax   =256, &
        &                standardBufferSizeIncrement  =1024, standardCommentLengthMax=256
 
-  !# <mergerTreeOutputter name="mergerTreeOutputterStandard" defaultThreadPrivate="yes">
+  !# <mergerTreeOutputter name="mergerTreeOutputterStandard">
   !#  <description>The standard merger tree outputter.</description>
   !# </mergerTreeOutputter>
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterStandard
@@ -172,6 +172,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>          
     self=mergerTreeOutputterStandard(outputReferences,analyses,galacticFilter_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"    />
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function standardConstructorParameters
 

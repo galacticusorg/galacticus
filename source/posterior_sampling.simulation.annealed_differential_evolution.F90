@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling simulation class which implements an annealed differential evolution algorithm.
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn" defaultThreadPrivate="yes">
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationAnnealedDffrntlEvltn">
   !#  <description>A posterior sampling simulation class which implements an annealed differential evolution algorithm.</description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationAnnealedDffrntlEvltn

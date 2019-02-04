@@ -28,7 +28,7 @@
      double precision, allocatable, dimension(:,:) :: matrix
   end type grvtnlLnsngTransferMatrix
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng" defaultThreadPrivate="yes">
+  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng">
   !#  <description>A gravitational lensing output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorGrvtnlLnsng
@@ -82,6 +82,8 @@ contains
     ! Construct the object.
     self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,outputTimes_,sizeSource)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="gravitationalLensing_"/>
+    !# <objectDestructor name="outputTimes_"         />
     return
   end function grvtnlLnsngConstructorParameters
 

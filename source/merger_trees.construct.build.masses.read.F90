@@ -19,7 +19,7 @@
 
   !% Implementation of a merger tree masses class which reads masses from a file.
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesRead" defaultThreadPrivate="yes" abstract="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesRead" abstract="yes">
   !#  <description>A merger tree masses class which samples masses from a distribution.</description>
   !# </mergerTreeBuildMasses>
   type, abstract, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesRead

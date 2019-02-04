@@ -21,13 +21,13 @@
 
 module Atomic_Rates_Recombination_Radiative
   !% Provides a class implenting radiative recombiantion rates.
+  private
 
   !# <functionClass>
   !#  <name>atomicRecombinationRateRadiative</name>
   !#  <descriptiveName>Atomic Radiative Recombination</descriptiveName>
   !#  <description>Class providing atomic radiative recombination rates.</description>
   !#  <default>verner1996</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="rate" >
   !#   <description>Returns the radiative recombination rate.</description>
   !#   <type>double precision</type>

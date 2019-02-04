@@ -22,7 +22,7 @@
   use Cooling_Functions, only : coolingFunctionClass, coolingFunction
   use Chemical_States  , only : chemicalStateClass  , chemicalState
   
-  !# <coolingTime name="coolingTimeSimple" defaultThreadPrivate="yes">
+  !# <coolingTime name="coolingTimeSimple">
   !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
   !# </coolingTime>
   type, extends(coolingTimeClass) :: coolingTimeSimple
@@ -68,6 +68,8 @@ contains
     !# <objectBuilder class="chemicalState"   name="chemicalState_"   source="parameters"/>
     self=coolingTimeSimple(degreesOfFreedom,coolingFunction_,chemicalState_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingFunction_"/>
+    !# <objectDestructor name="chemicalState_"  />
     return
   end function simpleConstructorParameters
 

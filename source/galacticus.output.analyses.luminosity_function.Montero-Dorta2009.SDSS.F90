@@ -21,7 +21,7 @@
 
   use Gravitational_Lensing
   
-  !# <outputAnalysis name="outputAnalysisLuminosityFunctionMonteroDorta2009SDSS" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisLuminosityFunctionMonteroDorta2009SDSS">
   !#  <description>An SDSS luminosity function output analysis class for the \cite{montero-dorta_sdss_2009} analysis.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisLuminosityFunction) :: outputAnalysisLuminosityFunctionMonteroDorta2009SDSS
@@ -153,6 +153,9 @@ contains
     ! Build the object.
     self=outputAnalysisLuminosityFunctionMonteroDorta2009SDSS(cosmologyFunctions_,gravitationalLensing_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,band)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"  />
+    !# <objectDestructor name="outputTimes_"         />
+    !# <objectDestructor name="gravitationalLensing_"/>
     return
   end function luminosityFunctionMonteroDorta2009SDSSConstructorParameters
 

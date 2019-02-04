@@ -21,7 +21,7 @@
 
   use Satellites_Tidal_Fields, only : satelliteTidalFieldClass, satelliteTidalField
   
-  !# <tidalStrippingSpheroids name="tidalStrippingSpheroidsSimple" defaultThreadPrivate="yes">
+  !# <tidalStrippingSpheroids name="tidalStrippingSpheroidsSimple">
   !#  <description>A simple model of tidal stripping in galactic spheroids.</description>
   !# </tidalStrippingSpheroids>
   type, extends(tidalStrippingSpheroidsClass) :: tidalStrippingSpheroidsSimple
@@ -63,6 +63,7 @@ contains
     !# <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
     self=tidalStrippingSpheroidsSimple(rateFractionalMaximum,satelliteTidalField_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="satelliteTidalField_"/>
     return
   end function simpleConstructorParameters
 

@@ -65,6 +65,9 @@ contains
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
     !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     self=darkMatterProfileConcentrationZhao2009(cosmologyFunctions_,cosmologyParameters_,darkMatterHaloMassAccretionHistory_)
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="cosmologyParameters_"               />
+    !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
     return
     !# <inputParametersValidate source="parameters"/>
   end function zhao2009ConstructorParameters

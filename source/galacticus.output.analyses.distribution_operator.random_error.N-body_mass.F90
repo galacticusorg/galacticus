@@ -53,6 +53,7 @@ contains
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     self=outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="nbodyHaloMassError_"/>
     return
   end function randomErrorNbodyMassConstructorParameters
 

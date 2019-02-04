@@ -120,6 +120,7 @@ contains
          &                                  darkEnergyEquationOfStateW1  &
          &                                 )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function matterDarkEnergyConstructorParameters
 
@@ -130,12 +131,8 @@ contains
     type            (cosmologyFunctionsMatterDarkEnergy)                        :: self
     class           (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
     double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0        , darkEnergyEquationOfStateW1
+    !# <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
 
-    ! Store a pointer to the cosmological parameters object.
-    self%cosmologyParameters_ => cosmologyParameters_
-    ! Store equation of state.
-    self%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
-    self%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
     ! Initialize locks.
     !$ call OMP_Init_Lock(self%expansionFactorTableLock)
     !$ call OMP_Init_Lock(self%distanceTableLock       )

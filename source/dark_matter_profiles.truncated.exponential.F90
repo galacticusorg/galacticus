@@ -92,6 +92,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=darkMatterProfileTruncatedExponential(radiusFractionalDecay,unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function truncatedExponentialConstructorParameters
 

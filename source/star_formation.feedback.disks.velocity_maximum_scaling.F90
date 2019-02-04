@@ -23,7 +23,7 @@
   use Cosmology_Functions
   use Dark_Matter_Profiles
 
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksVlctyMxSclng" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksVlctyMxSclng">
   !#  <description>An outflow rate due to star formation feedback in galactic disks which scales with peak halo velocity.</description>
   !# </starFormationFeedbackDisks>
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksVlctyMxSclng
@@ -89,6 +89,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=starFormationFeedbackDisksVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function vlctyMxSclngConstructorParameters
 

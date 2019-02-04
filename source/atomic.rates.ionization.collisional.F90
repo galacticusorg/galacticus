@@ -21,13 +21,13 @@
 
 module Atomic_Rates_Ionization_Collisional
   !% Provides a class implenting radiative recombiantion rates.
+  private
 
   !# <functionClass>
   !#  <name>atomicIonizationRateCollisional</name>
   !#  <descriptiveName>Atomic Collisional Ionization</descriptiveName>
   !#  <description>Class providing atomic collisional ionization rates.</description>
   !#  <default>verner1996</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="rate" >
   !#   <description>Returns the radiative recombination rate.</description>
   !#   <type>double precision</type>

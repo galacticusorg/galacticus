@@ -32,7 +32,6 @@ module Intergalactic_Medium_State
   !#  <descriptiveName>Intergalactic Medium State</descriptiveName>
   !#  <description>Class providing intergalactic medium state.</description>
   !#  <default>recFast</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="electronFraction" >
   !#   <description>Return the electron fraction (relative to hydrogen) in the \gls{igm} at the given time.</description>
   !#   <type>double precision</type>

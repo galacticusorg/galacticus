@@ -22,7 +22,7 @@
   use               Merger_Trees_Builders
   use               Cosmology_Functions
 
-  !# <mergerTreeOperator name="mergerTreeOperatorAugment" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorAugment">
   !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
@@ -243,6 +243,8 @@ contains
     !#  <argument name="timeSnapshots" value="timeSnapshots" condition="parameters%isPresent('snapshotRedshifts')"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerTreeBuilder_" />
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function augmentConstructorParameters
   

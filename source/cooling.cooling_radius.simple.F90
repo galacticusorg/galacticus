@@ -29,7 +29,7 @@
   use Abundances_Structure
   use Chemical_Abundances_Structure
 
-  !# <coolingRadius name="coolingRadiusSimple" defaultThreadPrivate="yes">
+  !# <coolingRadius name="coolingRadiusSimple">
   !#  <description>
   !#   A cooling radius class computes the cooling radius by seeking the radius at which the time available for cooling equals the
   !#   cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence
@@ -46,7 +46,7 @@
      class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_
      class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_
      class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_
-     type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation
      integer         (kind=kind_int8                         )          :: lastUniqueID              =-1
      integer                                                            :: abundancesCount              , chemicalsCount
      ! Stored values of cooling radius.
@@ -94,6 +94,11 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
     self=coolingRadiusSimple(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"       />
+    !# <objectDestructor name="coolingTimeAvailable_"     />
+    !# <objectDestructor name="coolingTime_"              />
+    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
+    !# <objectDestructor name="hotHaloMassDistribution_"  />
     return
   end function simpleConstructorParameters
 
@@ -122,7 +127,8 @@ contains
     self%abundancesCount=Abundances_Property_Count()
     self%chemicalsCount =Chemicals_Property_Count ()
     ! Initialize radiation field.
-    self%radiation=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+    allocate(self%radiation)
+    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     ! Check that required components are gettable.
     if     (                                                                                                                        &
          &  .not.(                                                                                                                  &
@@ -160,6 +166,7 @@ contains
     !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
     !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%radiation"                 />
     return
   end subroutine simpleDestructor
 

@@ -33,11 +33,12 @@ module Node_Component_Black_Hole_Standard
   use Dark_Matter_Halo_Scales
   implicit none
   private
-  public :: Node_Component_Black_Hole_Standard_Rate_Compute     , Node_Component_Black_Hole_Standard_Scale_Set        , &
-       &    Node_Component_Black_Hole_Standard_Satellite_Merging, Node_Component_Black_Hole_Standard_Output_Properties, &
-       &    Node_Component_Black_Hole_Standard_Output_Names     , Node_Component_Black_Hole_Standard_Output_Count     , &
-       &    Node_Component_Black_Hole_Standard_Output           , Node_Component_Black_Hole_Standard_Initialize       , &
-       &    Node_Component_Black_Hole_Standard_Post_Evolve      , Node_Component_Black_Hole_Standard_Thread_Initialize
+  public :: Node_Component_Black_Hole_Standard_Rate_Compute       , Node_Component_Black_Hole_Standard_Scale_Set        , &
+       &    Node_Component_Black_Hole_Standard_Satellite_Merging  , Node_Component_Black_Hole_Standard_Output_Properties, &
+       &    Node_Component_Black_Hole_Standard_Output_Names       , Node_Component_Black_Hole_Standard_Output_Count     , &
+       &    Node_Component_Black_Hole_Standard_Output             , Node_Component_Black_Hole_Standard_Initialize       , &
+       &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize, &
+       &    Node_Component_Black_Hole_Standard_Thread_Uninitialize
   
   !# <component>
   !#  <class>blackHole</class>
@@ -293,6 +294,27 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Black_Hole_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize()
+    !% Uninitializes the tree node standard black hole module.
+    implicit none
+
+    if (defaultBlackHoleComponent%standardIsActive()) then
+       !# <objectDestructor name="cosmologyParameters_"                />
+       !# <objectDestructor name="accretionDisks_"                     />
+       !# <objectDestructor name="blackHoleBinaryRecoil_"              />
+       !# <objectDestructor name="blackHoleBinaryInitialSeparation_"   />
+       !# <objectDestructor name="blackHoleBinaryMerger_"              />
+       !# <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
+       !# <objectDestructor name="coolingRadius_"                      />
+       !# <objectDestructor name="hotHaloTemperatureProfile_"          />
+       !# <objectDestructor name="darkMatterHaloScale_"                />
+    end if
+    return
+  end subroutine Node_Component_Black_Hole_Standard_Thread_Uninitialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Rate_Compute</unitName>

@@ -246,6 +246,8 @@ contains
          &                         cosmologyFunctions_                                                                  &
          &                        )
     !# <inputParametersValidate source="parameters"/>    
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function sussingConstructorParameters
 

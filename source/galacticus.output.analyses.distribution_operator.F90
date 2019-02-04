@@ -30,7 +30,6 @@ module Output_Analysis_Distribution_Operators
   !#  <descriptiveName>Output Analysis Distribution Operator</descriptiveName>
   !#  <description>Class providing operators on distributions for on-the-fly analysis of outputs.</description>
   !#  <default>identity</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="operateScalar" >
   !#   <description>Operate on a scalar to produce a distribution.</description>
   !#   <type>double precision, dimension(size(propertyValueMinimum))</type>

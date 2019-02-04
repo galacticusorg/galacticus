@@ -19,7 +19,7 @@
 
   !% Implements a cooling function class which sums over other cooling functions.
 
-  !# <coolingFunction name="coolingFunctionSummation" defaultThreadPrivate="yes">
+  !# <coolingFunction name="coolingFunctionSummation">
   !#  <description>Class providing a cooling function which sums over other cooling functions.</description>
   !# </coolingFunction>
 

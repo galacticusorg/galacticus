@@ -23,6 +23,7 @@
 
 module Atomic_Rates_Recombination_Dielectronic
   !% Implements a dielectronic recombination rates class.
+  private
 
   !# <functionClass>
   !#  <name>atomicRecombinationRateDielectronic</name>

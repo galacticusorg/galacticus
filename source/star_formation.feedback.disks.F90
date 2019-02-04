@@ -22,6 +22,7 @@
 module Star_Formation_Feedback_Disks
   !% Provides an object that implements calculations of feedback from star formation in disks.
   use Galacticus_Nodes, only : treeNode
+  private
   
   !# <functionClass>
   !#  <name>starFormationFeedbackDisks</name>

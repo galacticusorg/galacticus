@@ -120,6 +120,7 @@ contains
     !# <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
     self=gauntFactorSutherland1998(atomicIonizationPotential_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="atomicIonizationPotential_"/>
     return
   end function sutherland1998ConstructorParameters
 

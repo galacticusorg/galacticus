@@ -22,7 +22,7 @@
   use Virial_Orbits               , only : virialOrbitClass               , virialOrbit
   use Satellite_Merging_Timescales, only : satelliteMergingTimescalesClass, satelliteMergingTimescales
   
-  !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits">
   !#  <description>Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAssignOrbits
@@ -56,6 +56,8 @@ contains
     !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
     self=mergerTreeOperatorAssignOrbits(satelliteMergingTimescales_,virialOrbit_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="satelliteMergingTimescales_"/>
+    !# <objectDestructor name="virialOrbit_"               />
     return
   end function assignOrbitsConstructorParameters
 

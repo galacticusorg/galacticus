@@ -31,7 +31,7 @@
   use               Output_Times
   use               Galactic_Filters
 
-  !# <outputAnalysis name="outputAnalysisMeanFunction1D" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMeanFunction1D">
   !#  <description>A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisMeanFunction1D
@@ -330,6 +330,15 @@ contains
     !#  <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"      />
+    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"       />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
+    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"         />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"   />
+    !# <objectDestructor name="galacticFilter_"                       />
+    !# <objectDestructor name="outputTimes_"                          />
     return
   end function meanFunction1DConstructorParameters
 

@@ -59,6 +59,7 @@ contains
     ! Build the object. 
     self=surveyGeometryHearin2014SDSS(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function hearin2014SDSSConstructorParameters
   

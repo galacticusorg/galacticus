@@ -24,7 +24,7 @@
      type (propertyOperatorList               ), pointer :: next      => null()
   end type propertyOperatorList
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence">
   !#  <description>A sequence output analysis property operator class.</description>
   !# </outputAnalysisPropertyOperator>
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence

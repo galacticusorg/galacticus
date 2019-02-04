@@ -23,7 +23,7 @@
   use Stellar_Population_Selectors
   use Stellar_Population_Spectra_Postprocess
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
@@ -161,6 +161,9 @@ contains
          &                                                                     stellarPopulationSpectraPostprocessorBuilder_                           &
          &                              )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"                          />
+    !# <objectDestructor name="stellarPopulationSelector_"                   />
+    !# <objectDestructor name="stellarPopulationSpectraPostprocessorBuilder_"/>
     return
   end function sedFitConstructorParameters
 

@@ -29,7 +29,6 @@ module Stellar_Astrophysics_Tracks
   !#  <descriptiveName>Stellar Tracks</descriptiveName>
   !#  <description>Class providing models of stellar tracks.</description>
   !#  <default>file</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="luminosity" >
   !#   <description>Returns the bolometric luminosity of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.</description>
   !#   <type>double precision</type>

@@ -23,7 +23,7 @@
   use Cosmology_Functions
   use Dark_Matter_Profiles
 
-  !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsVlctyMxSclng" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsVlctyMxSclng">
   !#  <description>An outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.</description>
   !# </starFormationFeedbackSpheroids>
   type, extends(starFormationFeedbackSpheroidsClass) :: starFormationFeedbackSpheroidsVlctyMxSclng
@@ -89,6 +89,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=starFormationFeedbackSpheroidsVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function vlctyMxSclngConstructorParameters
 

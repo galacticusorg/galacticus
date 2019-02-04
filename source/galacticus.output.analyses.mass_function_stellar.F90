@@ -22,7 +22,7 @@
   use Geometry_Surveys
   use Cosmology_Functions
 
-  !# <outputAnalysis name="outputAnalysisMassFunctionStellar" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMassFunctionStellar">
   !#  <description>A stellar mass function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisMassFunctionStellar
@@ -157,6 +157,13 @@ contains
     !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"                    />
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="cosmologyFunctionsData"             />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"    />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"/>
+    !# <objectDestructor name="surveyGeometry_"                    />
+    !# <objectDestructor name="outputTimes_"                       />
     return
   end function massFunctionStellarConstructorParameters
 

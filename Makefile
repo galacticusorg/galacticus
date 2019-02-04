@@ -90,10 +90,10 @@ endif
 
 # Detect ODE profiling compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
-FCFLAGS  += -DPROFILE
+FCFLAGS       += -DPROFILE
 FCFLAGS_NOOPT += -DPROFILE
-CFLAGS   += -DPROFILE
-CPPFLAGS += -DPROFILE
+CFLAGS        += -DPROFILE
+CPPFLAGS      += -DPROFILE
 endif
 
 # Detect MPI compile.
@@ -117,6 +117,12 @@ CPPFLAGS += -DOFDLOCKS
 else
 CFLAGS   += -DNOOFDLOCKS
 CPPFLAGS += -DNOOFDLOCKS 
+endif
+
+# Object debugging.
+GALACTICUS_OBJECTS_DEBUG ?= no
+ifeq '$(GALACTICUS_OBJECTS_DEBUG)' 'yes'
+FCFLAGS += -DOBJECTDEBUG
 endif
 
 # List of additional Makefiles which contain dependency information

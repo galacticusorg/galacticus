@@ -29,7 +29,6 @@ module Stellar_Feedback
   !#  <descriptiveName>Stellar Feedback</descriptiveName>
   !#  <description>Class providing models of stellar feedback.</description>
   !#  <default>standard</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="energyInputCumulative" >
   !#   <description>Return the cumulative energy input from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
   !#   <type>double precision</type>

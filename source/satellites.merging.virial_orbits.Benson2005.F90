@@ -30,7 +30,7 @@
      private
      class(darkMatterHaloScaleClass                          ), pointer :: darkMatterHaloScale_   => null()
      class(cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_    => null()
-     class(virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrast_
+     type (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrast_
    contains
      final     ::                              benson2005Destructor
      procedure :: orbit                     => benson2005Orbit
@@ -58,6 +58,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"  source="parameters"/>
     self=virialOrbitBenson2005(darkMatterHaloScale_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function benson2005ConstructorParameters
 
@@ -70,10 +72,7 @@ contains
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     allocate(self%virialDensityContrast_)
-    select type (virialDensityContrast_ => self%virialDensityContrast_)
-    type is (virialDensityContrastSphericalCollapseMatterLambda)
-       virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)
-    end select
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)"/>
     return
   end function benson2005ConstructorInternal
 
@@ -82,10 +81,9 @@ contains
     implicit none
     type(virialOrbitBenson2005), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
-    if     (associated(self%virialDensityContrast_)) &
-         &  deallocate(self%virialDensityContrast_)
+    !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine benson2005Destructor
 
@@ -173,6 +171,7 @@ contains
     class(virialDensityContrastClass), pointer       :: benson2005DensityContrastDefinition
     class(virialOrbitBenson2005     ), intent(inout) :: self
     
+    !# <referenceCountIncrement owner="self" object="virialDensityContrast_"/>
     benson2005DensityContrastDefinition => self%virialDensityContrast_
     return
   end function benson2005DensityContrastDefinition

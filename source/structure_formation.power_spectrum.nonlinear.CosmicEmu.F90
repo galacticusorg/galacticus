@@ -80,6 +80,10 @@ contains
     ! Call the internal constructor.
     self=powerSpectrumNonlinearCosmicEmu(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="powerSpectrumPrimordial_" />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function cosmicEmuConstructorParameters
 
@@ -93,16 +97,12 @@ contains
     class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class(powerSpectrumPrimordialClass   ), intent(in   ), target :: powerSpectrumPrimordial_
     class(cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *powerSpectrumPrimordial_, *cosmologicalMassVariance_"/>
 
     ! Initialize state.
     self%timePrevious      =-1.0d0
     self%resetInterpolation=.true.
     call File_Lock_Initialize(self%fileLock)
-    ! Store objects.
-    self%cosmologyFunctions_       => cosmologyFunctions_
-    self%cosmologyParameters_      => cosmologyParameters_
-    self%powerSpectrumPrimordial_  => powerSpectrumPrimordial_
-    self%cosmologicalMassVariance_ => cosmologicalMassVariance_
     ! Check that this is a flat cosmology.
     if     (                                                                                                 &
          &  Values_Differ(                                                                                   &

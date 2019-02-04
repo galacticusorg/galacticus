@@ -62,6 +62,9 @@ contains
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     self=transferFunctionBBKSWDM(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterParticle_" />
+    !# <objectDestructor name="transferFunctionCDM" />
     return
   end function bbksWDMConstructorParameters
 

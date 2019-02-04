@@ -24,7 +24,7 @@
      type (multiMergerTreeEvolveTimestepList), pointer :: next                      => null()
   end type multiMergerTreeEvolveTimestepList
   
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti" defaultThreadPrivate="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
   !#  <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepMulti
@@ -66,6 +66,7 @@ contains
        end if
        !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" source="parameters" copy="i"/>
     end do
+    !# <objectDestructor name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_"/>
     return
   end function multiConstructorParameters
   

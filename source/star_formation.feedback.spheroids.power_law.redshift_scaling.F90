@@ -21,7 +21,7 @@
 
   use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
   
-  !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsPowerLawRedshiftScaling" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsPowerLawRedshiftScaling">
   !#  <description>A power-law outflow rate due to star formation feedback in galactic spheroids in which the characteristic velocity scales as a power of $(1+z)$.</description>
   !# </starFormationFeedbackSpheroids>
   type, extends(starFormationFeedbackSpheroidsPowerLaw) :: starFormationFeedbackSpheroidsPowerLawRedshiftScaling
@@ -60,6 +60,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="self%cosmologyFunctions_" source="parameters"/>
     self%starFormationFeedbackSpheroidsPowerLaw=starFormationFeedbackSpheroidsPowerLaw(parameters)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end function powerLawRedshiftScalingConstructorParameters
 

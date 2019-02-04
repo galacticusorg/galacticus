@@ -219,6 +219,11 @@ contains
     !#  <argument name="metalYield"       value="metalYield"       parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="initialMassFunction_"     />
+    !# <objectDestructor name="stellarAstrophysics_"     />
+    !# <objectDestructor name="stellarFeedback_"         />
+    !# <objectDestructor name="supernovaeTypeIa_"        />
+    !# <objectDestructor name="stellarPopulationSpectra_"/>
     return
   end function standardConstructorParameters
 

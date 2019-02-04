@@ -74,6 +74,7 @@ contains
     !# </inputParameter>
     self=surveyGeometryMuzzin2013ULTRAVISTA(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function muzzin2013ULTRAVISTAConstructorParameters
 

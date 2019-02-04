@@ -31,7 +31,7 @@ module Node_Component_Basic_Standard_Extended
   public :: Node_Component_Basic_Standard_Extended_Initialize, Node_Component_Basic_Standard_Extended_Node_Merger , &
        &    Node_Component_Basic_Standard_Extended_Promote   , Node_Component_Basic_Standard_Extended_Rate_Compute, &
        &    Node_Component_Basic_Standard_Extended_Scale_Set , Node_Component_Basic_Extended_Bindings             , &
-       &    Node_Component_Basic_Extended_Thread_Initialize
+       &    Node_Component_Basic_Extended_Thread_Initialize  , Node_Component_Basic_Extended_Thread_Uninitialize
 
   !# <component>
   !#  <class>basic</class>
@@ -157,6 +157,20 @@ contains
     end if
     return
   end subroutine Node_Component_Basic_Extended_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Basic_Extended_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Basic_Extended_Thread_Uninitialize()
+    !% Uninitializes the tree node random spin module.
+    implicit none
+    
+    if (defaultBasicComponent%standardExtendedIsActive()) then
+       !# <objectDestructor name="cosmologyParameters_"/>
+       !# <objectDestructor name="cosmologyFunctions_" />
+    end if
+    return
+  end subroutine Node_Component_Basic_Extended_Thread_Uninitialize
 
   subroutine Node_Component_Basic_Extended_Bertschinger_Solver(self)
     !% Compute the Bertschinger mass and turnaround radii

@@ -34,7 +34,6 @@ module Accretion_Halos
   !#  <descriptiveName>Accretion Onto Halos</descriptiveName>
   !#  <description>Class providing rates of accretion of gas from the \gls{igm} onto halos.</description>
   !#  <default>simple</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="branchHasBaryons" >
   !#   <description>Returns {\normalfont \ttfamily true} if this tree branch may accrete baryons, and {\normalfont \ttfamily false} otherwise.</description>

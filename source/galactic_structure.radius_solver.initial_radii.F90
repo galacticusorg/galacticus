@@ -32,7 +32,6 @@ module Galactic_Structure_Initial_Radii
   !#  <descriptiveName>Initial Mass Functions</descriptiveName>
   !#  <description>Class providing stellar initial mass functions.</description>
   !#  <default>gnedin2004</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="radius" >
   !#   <description>Find the initial radius in the dark matter halo of {\normalfont \ttfamily node} corresponding to the given final {\normalfont \ttfamily radius}.</description>

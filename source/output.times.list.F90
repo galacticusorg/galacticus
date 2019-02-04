@@ -19,7 +19,7 @@
 
   use Cosmology_Functions
   
-  !# <outputTimes name="outputTimesList" defaultThreadPrivate="yes">
+  !# <outputTimes name="outputTimesList">
   !#  <description>An output times class which simply reads a list of output times from a parameter.</description>
   !# </outputTimes>
   type, extends(outputTimesClass) :: outputTimesList
@@ -96,6 +96,7 @@ contains
     end if
     self=outputTimesList(times,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function listConstructorParameters
 

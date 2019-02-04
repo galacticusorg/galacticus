@@ -92,6 +92,8 @@ contains
     !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     self=mergerTreeConstructorSmoothAccretion(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
     return
   end function smoothAccretionConstructorParameters
 

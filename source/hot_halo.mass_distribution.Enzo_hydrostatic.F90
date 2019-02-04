@@ -75,6 +75,8 @@ contains
     !# <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
     self=hotHaloMassDistributionEnzoHydrostatic(hotHaloTemperatureProfile_,hotHaloMassDistributionCoreRadius_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="hotHaloTemperatureProfile_"        />
+    !# <objectDestructor name="hotHaloMassDistributionCoreRadius_"/>
     return
   end function enzoHydrostaticConstructorParameters
 

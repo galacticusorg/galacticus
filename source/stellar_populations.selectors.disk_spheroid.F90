@@ -53,6 +53,8 @@ contains
     !# <objectBuilder class="stellarPopulation" parameterName="stellarPopulationSpheroid" name="stellarPopulationSpheroid_" source="parameters"/>
     self=stellarPopulationSelectorDiskSpheroid(stellarPopulationDisk_,stellarPopulationSpheroid_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarPopulationDisk_"    />
+    !# <objectDestructor name="stellarPopulationSpheroid_"/>
     return
   end function diskSpheroidConstructorParameters
   

@@ -62,6 +62,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function cosmicMicrowaveBackgroundConstructorParameters
 

@@ -57,6 +57,8 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=excursionSetBarrierCriticalOverdensity(criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="criticalOverdensity_"     />
+   !# <objectDestructor name="cosmologicalMassVariance_"/>
    return
   end function criticalOverdensityConstructorParameters
 

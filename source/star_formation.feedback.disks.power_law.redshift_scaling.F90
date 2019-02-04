@@ -21,7 +21,7 @@
 
   use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
   
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksPowerLawRedshiftScaling" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksPowerLawRedshiftScaling">
   !#  <description>A power-law outflow rate due to star formation feedback in galactic disks in which the characteristic velocity scales as a power of $(1+z)$.</description>
   !# </starFormationFeedbackDisks>
   type, extends(starFormationFeedbackDisksPowerLaw) :: starFormationFeedbackDisksPowerLawRedshiftScaling
@@ -60,6 +60,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="self%cosmologyFunctions_" source="parameters"/>
     self%starFormationFeedbackDisksPowerLaw=starFormationFeedbackDisksPowerLaw(parameters)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     return
   end function powerLawRedshiftScalingConstructorParameters
 

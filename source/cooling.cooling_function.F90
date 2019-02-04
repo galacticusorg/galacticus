@@ -24,6 +24,7 @@ module Cooling_Functions
   use Abundances_Structure
   use Radiation_Fields
   use Chemical_Abundances_Structure
+  private
 
   !# <functionClass>
   !#  <name>coolingFunction</name>

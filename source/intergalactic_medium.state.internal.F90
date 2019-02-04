@@ -21,7 +21,7 @@
 
   !% An implementation of the intergalactic medium state class for an internal model of instantaneous and full reionization.
 
-  !# <intergalacticMediumState name="intergalacticMediumStateInternal" defaultThreadPrivate="no">
+  !# <intergalacticMediumState name="intergalacticMediumStateInternal">
   !#  <description>The state of the intergalactic medium is solved for internally.</description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInternal
@@ -128,6 +128,9 @@ contains
     !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
     self=intergalacticMediumStateInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="linearGrowth_"       />
     return
   end function internalConstructorParameters
 

@@ -32,7 +32,6 @@ module Stellar_Population_Properties
   !#  <descriptiveName>Stellar Population Properties</descriptiveName>
   !#  <description>Class providing stellar population properties.</description>
   !#  <default>instantaneous</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="rates" >
   !#   <description>Returns rates of change of stellar population properties.</description>
   !#   <type>void</type>

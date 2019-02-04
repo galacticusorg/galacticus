@@ -52,6 +52,7 @@ contains
     !# <objectBuilder class="stellarPopulation" name="stellarPopulation_" source="parameters"/>
     self=stellarPopulationSelectorFixed(stellarPopulation_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarPopulation_"/>
     return
   end function fixedConstructorParameters
   

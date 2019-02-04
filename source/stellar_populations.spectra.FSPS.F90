@@ -60,6 +60,7 @@ contains
     !# <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
     self=stellarPopulationSpectraFSPS(forceZeroMetallicity,initialMassFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="initialMassFunction_"/>
     return
   end function fspsConstructorParameters
   

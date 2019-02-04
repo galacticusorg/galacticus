@@ -22,7 +22,7 @@
   use Geometry_Lightcones
   use Satellite_Oprhan_Distributions
   
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneLightcone" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorPruneLightcone">
   !#  <description>Provides a pruning-by-lightcone operator on merger trees. Trees which have no nodes which lie within the lightcone are completely pruned away.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneLightcone
@@ -48,23 +48,27 @@ contains
     !% Constructor for the prune-by-lightcone merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(mergerTreeOperatorPruneLightcone)                :: self
-    type(inputParameters                 ), intent(inout) :: parameters
-    
+    type   (mergerTreeOperatorPruneLightcone)                :: self
+    type   (inputParameters                 ), intent(inout) :: parameters
+    class  (geometryLightconeClass          ), pointer       :: geometryLightcone_
+    class  (satelliteOrphanDistributionClass), pointer       :: satelliteOrphanDistribution_
+    logical                                                  :: bufferIsolatedHalos
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>bufferIsolatedHalos</name>
     !#   <source>parameters</source>
     !#   <defaultValue>.false.</defaultValue>
-    !#   <variable>self%bufferIsolatedHalos</variable>
     !#   <description>If true, intersection of a tree with the lightcone will be determined using the positions non-isolated (a.k.a. ``satellite'') halos, and of isolated halos (a.k.a ``centrals'') with a buffer region (with radius equal to the extent of the orphan satellite distribution---see \S\ref{sec:methodsSatelliteOrphanDistribution}) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is {\normalfont \ttfamily false} then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existance) knowledge of non-isolated halos prior to application of this operator.</description>
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="geometryLightcone"           name="self%geometryLightcone_"           source="parameters"/>
-    !# <objectBuilder class="satelliteOrphanDistribution" name="self%satelliteOrphanDistribution_" source="parameters"/>
-    call pruneLightconeValidate(self)
+    !# <objectBuilder class="geometryLightcone"           name="geometryLightcone_"           source="parameters"/>
+    !# <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters"/>
+    self=mergerTreeOperatorPruneLightcone(geometryLightcone_,satelliteOrphanDistribution_,bufferIsolatedHalos)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="geometryLightcone_"          />
+    !# <objectDestructor name="satelliteOrphanDistribution_"/>
     return
   end function pruneLightconeConstructorParameters
 

@@ -22,6 +22,7 @@
 module Hot_Halo_Ram_Pressure_Stripping
   !% Implements a class for calculations of ram pressure stripping of hot halos.
   use Galacticus_Nodes, only : treeNode
+  private
 
   !# <functionClass>
   !#  <name>hotHaloRamPressureStripping</name>

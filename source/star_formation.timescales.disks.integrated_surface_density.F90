@@ -22,7 +22,7 @@
 
   use Star_Formation_Rate_Surface_Density_Disks
 
-  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksIntgrtdSurfaceDensity" defaultThreadPrivate="yes">
+  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksIntgrtdSurfaceDensity">
   !#  <description>A timescale for star formation in galactic disks which computes the timescale by integrating a star formation rate over the disk.</description>
   !# </starFormationTimescaleDisks>
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksIntgrtdSurfaceDensity
@@ -70,6 +70,7 @@ contains
     !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     self=starFormationTimescaleDisksIntgrtdSurfaceDensity(tolerance,starFormationRateSurfaceDensityDisks_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
     return
   end function intgrtdSurfaceDensityConstructorParameters
 
@@ -96,7 +97,7 @@ contains
   double precision function intgrtdSurfaceDensityTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node}, by integrating
     !% over the surface density of star formation rate.
-    use FGSL                    , only : FGSL_Integ_Gauss15
+    use FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function, fgsl_integration_workspace
     use Galacticus_Nodes        , only : nodeComponentDisk
     use Numerical_Constants_Math
     use Numerical_Integration

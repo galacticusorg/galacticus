@@ -95,6 +95,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=darkMatterParticleWDMThermal(massValue,degreesOfFreedomEffectiveValue,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function wdmThermalConstructorParameters
 
@@ -120,25 +121,6 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"/>
     return
   end subroutine wdmThermalDestructor
-
-  subroutine wdmThermalDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters
-    use FoX_DOM
-    implicit none
-    class    (darkMatterParticleWDMThermal), intent(inout) :: self
-    type     (inputParameters             ), intent(inout) :: descriptor
-    type     (inputParameters             )                :: subParameters
-    character(len=10                      )                :: parameterLabel
-
-    call descriptor%addParameter("darkMatterParticleMethod","WDMThermal")
-    subParameters=descriptor%subparameters("criticalOverdensityMethod")
-    write (parameterLabel,'(f10.6)') self%massValue
-    call subParameters%addParameter("mass"                     ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%degreesOfFreedomEffectiveValue
-    call subParameters%addParameter("degreesOfFreedomEffective",trim(adjustl(parameterLabel)))
-    return
-  end subroutine wdmThermalDescriptor
 
   double precision function wdmThermalMass(self)
     !% Return the mass, in units of keV, of a thermal warm dark matter particle.

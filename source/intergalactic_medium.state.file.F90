@@ -89,6 +89,9 @@ contains
     !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
     self=intergalacticMediumStateFile(fileName,cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="linearGrowth_"       />
     return
   end function fileConstructorParameters
 

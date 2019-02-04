@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a galactic filter class which is the ``all'' combination of a set of other filters.
 
-  !# <galacticFilter name="galacticFilterAll" defaultThreadPrivate="yes">
+  !# <galacticFilter name="galacticFilterAll">
   !#  <description>A galactic filter class which is the ``all'' combination of a set of other filters.</description>
   !# </galacticFilter>
 

@@ -140,6 +140,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=cosmologyFunctionsMatterLambda(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function matterLambdaConstructorParameters
 
@@ -166,9 +167,8 @@ contains
     integer                                                                 :: i
     double complex                                                          :: omegaMatter                            , omegaDarkEnergy                , &
          &                                                                     omegaCurvature                         , rootTerm
-    
-    ! Store a pointer to the cosmological parameters object.
-    self%cosmologyParameters_ => cosmologyParameters_
+    !# <constructorAssign variables="*cosmologyParameters_"/>
+
     ! Determine if this universe will collapse. We take the Friedmann equation, which gives H²(a) as a function of expansion
     ! factor, a, and solve for where H²(a)=0. If this has a real solution, then we have a collapsing universe.
     self%collapsingUniverse    =.false.

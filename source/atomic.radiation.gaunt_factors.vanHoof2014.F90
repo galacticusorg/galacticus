@@ -84,6 +84,7 @@ contains
     !# <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
     self=gauntFactorVanHoof2014(atomicIonizationPotential_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="atomicIonizationPotential_"/>
     return
   end function vanHoof2014ConstructorParameters
 

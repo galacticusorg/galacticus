@@ -32,10 +32,10 @@ module Node_Component_Satellite_Orbiting
   use Virial_Orbits
   implicit none
   private
-  public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create         , &
-       &    Node_Component_Satellite_Orbiting_Rate_Compute     , Node_Component_Satellite_Orbiting_Tree_Initialize, &
-       &    Node_Component_Satellite_Orbiting_Trigger_Merger   , Node_Component_Satellite_Orbiting_Initialize     , &
-       &    Node_Component_Satellite_Orbiting_Thread_Initialize
+  public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
+       &    Node_Component_Satellite_Orbiting_Rate_Compute     , Node_Component_Satellite_Orbiting_Tree_Initialize    , &
+       &    Node_Component_Satellite_Orbiting_Trigger_Merger   , Node_Component_Satellite_Orbiting_Initialize         , &
+       &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -172,6 +172,23 @@ contains
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Satellite_Orbiting_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize()
+    !% Uninitializes the tree node orbiting satellite module.
+    implicit none
+
+    if (defaultSatelliteComponent%orbitingIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"       />
+       !# <objectDestructor name="satelliteDynamicalFriction_"/>
+       !# <objectDestructor name="satelliteTidalHeatingRate_" />
+       !# <objectDestructor name="satelliteTidalStripping_"   />
+       !# <objectDestructor name="virialOrbit_"               />
+    end if
+    return
+  end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Tree_Initialize</unitName>

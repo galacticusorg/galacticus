@@ -21,7 +21,7 @@
 
   use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
 
-  !# <coolingRate name="coolingRateSimpleScaling" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateSimpleScaling">
   !#  <description>A cooling rate class in which the cooling rate scales with the mass of the halo.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateSimpleScaling
@@ -102,6 +102,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=coolingRateSimpleScaling(timeScale,exponentRedshift,massCutOff,widthCutOff,exponentCutOff,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function simpleScalingConstructorParameters
 

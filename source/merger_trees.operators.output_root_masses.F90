@@ -22,7 +22,7 @@
   ! Buffer size for tree data.
   integer, parameter :: outputRootMassesBufferSize=1000
   
-  !# <mergerTreeOperator name="mergerTreeOperatorOutputRootMasses" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorOutputRootMasses">
   !#  <description>Output a file of tree root masses (and weights).</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorOutputRootMasses

@@ -22,7 +22,7 @@
   use Cosmology_Functions    , only : cosmologyFunctionsClass , cosmologyFunctions
   use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
   
-  !# <coolingRate name="coolingRateCutOff" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateCutOff">
   !#  <description>A cooling rate class which modifies another cooling rate by cutting off cooling above some virial velocity.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateCutOff
@@ -121,6 +121,8 @@ contains
          &                )
     !# <objectDestructor name="cosmologyFunctions_"/>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingRate_"        />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function cutOffConstructorParameters
 

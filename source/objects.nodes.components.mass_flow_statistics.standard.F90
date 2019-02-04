@@ -25,9 +25,9 @@ module Node_Component_Mass_Flow_Statistics_Standard
   use Cooling_Rates
  implicit none
   private
-  public :: Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init , Node_Component_Mass_Flow_Statistics_Standard_Scale_Set   , &
-       &    Node_Component_Mass_Flow_Statistics_Standard_Extra_Output     , Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute, &
-       &    Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize
+  public :: Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init , Node_Component_Mass_Flow_Statistics_Standard_Scale_Set    , &
+       &    Node_Component_Mass_Flow_Statistics_Standard_Extra_Output     , Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute , &
+       &    Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize, Node_Component_Mass_Flow_Statistics_Standard_Thread_Uninit
 
   !# <component>
   !#  <class>massFlowStatistics</class>
@@ -83,6 +83,19 @@ contains
     end if
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Thread_Uninit</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Uninit()
+    !% Uninitializes the tree node standard mass flow statistics module.
+    implicit none
+
+    if (defaultMassFlowStatisticsComponent%standardIsActive()) then
+       !# <objectDestructor name="coolingRate_"/>
+    end if
+    return
+  end subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Uninit
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init</unitName>

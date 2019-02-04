@@ -44,11 +44,11 @@
 
 contains
 
-  function sharpKSpaceConstructorParameters(parameters)
+  function sharpKSpaceConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (powerSpectrumWindowFunctionSharpKSpace)                :: sharpKSpaceConstructorParameters
+    type            (powerSpectrumWindowFunctionSharpKSpace)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
     class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_
     type            (varying_string                        )                :: normalization
@@ -77,45 +77,46 @@ contains
        normalizationChar=char(normalization)
        read (normalizationChar,*) normalizationValue
     end if
-    sharpKSpaceConstructorParameters=sharpKSpaceConstructorInternal(cosmologyParameters_,normalizationValue)
+    self=sharpKSpaceConstructorInternal(cosmologyParameters_,normalizationValue)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function sharpKSpaceConstructorParameters
 
-  function sharpKSpaceConstructorInternal(cosmologyParameters_,normalization)
+  function sharpKSpaceConstructorInternal(cosmologyParameters_,normalization) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sharpKSpace} power spectrum window function class.
     use Numerical_Constants_Math
     implicit none
-    type            (powerSpectrumWindowFunctionSharpKSpace)                        :: sharpKSpaceConstructorInternal
+    type            (powerSpectrumWindowFunctionSharpKSpace)                        :: self
     class           (cosmologyParametersClass              ), target, intent(in   ) :: cosmologyParameters_    
     double precision                                                                :: normalization
     character       (len=18                                )                        :: normalizationText
-    
-    sharpKSpaceConstructorInternal%cosmologyParameters_ => cosmologyParameters_
+    !# <constructorAssign variables="*cosmologyParameters_"/>
+
     ! Compute normalization.
     if (normalization <= 0.0d0) then
        ! Compute the "natural" normalization.
-       sharpKSpaceConstructorInternal%cutOffNormalization=                                &
-            & +(                                                                          &
-            &   +6.0d0                                                                    &
-            &   *Pi                                                                   **2 &
-            &   *sharpKSpaceConstructorInternal%cosmologyParameters_%OmegaMatter    ()    &
-            &   *sharpKSpaceConstructorInternal%cosmologyParameters_%densityCritical()    &
+       self%cutOffNormalization=                                &
+            & +(                                                &
+            &   +6.0d0                                          &
+            &   *Pi                                         **2 &
+            &   *self%cosmologyParameters_%OmegaMatter    ()    &
+            &   *self%cosmologyParameters_%densityCritical()    &
             &  )**(1.0d0/3.0d0)
-       sharpKSpaceConstructorInternal%normalization='natural'
+       self%normalization='natural'
     else
        ! Use provided normalization.
-       sharpKSpaceConstructorInternal%cutOffNormalization=                                &
-            & +normalization                                                              &
-            & *(                                                                          &
-            &   +4.0d0                                                                    &
-            &   *Pi                                                                       &
-            &   *sharpKSpaceConstructorInternal%cosmologyParameters_%OmegaMatter    ()    &
-            &   *sharpKSpaceConstructorInternal%cosmologyParameters_%densityCritical()    &
-            &   /3.0d0                                                                    &
+       self%cutOffNormalization=                                &
+            & +normalization                                    &
+            & *(                                                &
+            &   +4.0d0                                          &
+            &   *Pi                                             &
+            &   *self%cosmologyParameters_%OmegaMatter    ()    &
+            &   *self%cosmologyParameters_%densityCritical()    &
+            &   /3.0d0                                          &
             &  )**(1.0d0/3.0d0)
        write (normalizationText,'(e17.10)') normalization
-       sharpKSpaceConstructorInternal%normalization=trim(normalizationText)
+       self%normalization=trim(normalizationText)
     end if
     return
   end function sharpKSpaceConstructorInternal

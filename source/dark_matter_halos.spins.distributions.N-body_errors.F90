@@ -180,6 +180,12 @@ contains
          &                              darkMatterProfileScaleRadius_       &
          &                             )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="distributionIntrinsic"        />
+    !# <objectDestructor name="nbodyHaloMassError_"          />
+    !# <objectDestructor name="haloMassFunction_"            />
+    !# <objectDestructor name="darkMatterHaloScale_"         />
+    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function nbodyErrorsConstructorParameters
 
@@ -212,7 +218,8 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
     use               Memory_Management
-    use               Galacticus_Nodes              , only : treeNode, nodeComponentBasic, nodeComponentSpin, nodeComponentDarkMatterProfile
+    use               Galacticus_Nodes              , only : treeNode     , nodeComponentBasic        , nodeComponentSpin, nodeComponentDarkMatterProfile
+    use               FGSL                          , only : fgsl_function, fgsl_integration_workspace
     use               Galacticus_Error
     use               Numerical_Constants_Math
     use               Galacticus_Calculations_Resets

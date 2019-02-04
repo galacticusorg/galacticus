@@ -132,6 +132,10 @@ contains
     !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
     self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"          />
+    !# <objectDestructor name="cosmologyParameters_"         />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !# <objectDestructor name="darkMatterProfile_"           />
     return
   end function ludlow2016ConstructorParameters
   

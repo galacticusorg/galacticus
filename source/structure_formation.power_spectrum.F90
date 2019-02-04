@@ -21,13 +21,13 @@
 
 module Power_Spectra
   !% Implements linear-theory power spectra.
- 
+  private
+
   !# <functionClass>
   !#  <name>powerSpectrum</name>
   !#  <descriptiveName>Linear Theory Power Spectrum</descriptiveName>
   !#  <description>Class providing linear theory power spectra.</description>
   !#  <default>standard</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="power" >
   !#   <description>Return the linear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
   !#   <type>double precision</type>

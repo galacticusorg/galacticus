@@ -19,7 +19,7 @@
 
   !% Implementation of a merger tree masses class which reads masses from an HDF5 file.
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReadHDF5" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReadHDF5">
   !#  <description>A merger tree masses class which reads masses from an HDF5 file.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesRead) :: mergerTreeBuildMassesReadHDF5

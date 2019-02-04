@@ -19,7 +19,7 @@
 
   !% Implementation of a null tidal stripping of spheroids class.
 
-  !# <tidalStrippingSpheroids name="tidalStrippingSpheroidsNull" defaultThreadPrivate="yes">
+  !# <tidalStrippingSpheroids name="tidalStrippingSpheroidsNull">
   !#  <description>A null model of tidal stripping in galactic spheroids.</description>
   !# </tidalStrippingSpheroids>
   type, extends(tidalStrippingSpheroidsClass) :: tidalStrippingSpheroidsNull

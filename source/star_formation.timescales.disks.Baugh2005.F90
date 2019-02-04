@@ -21,7 +21,7 @@
 
   use Cosmology_Functions
 
-  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksBaugh2005" defaultThreadPrivate="yes">
+  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksBaugh2005">
   !#  <description>The \cite{baugh_can_2005} timescale for star formation in galactic disks.</description>
   !# </starFormationTimescaleDisks>
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksBaugh2005
@@ -86,6 +86,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=starFormationTimescaleDisksBaugh2005(timescale,exponentVelocity,exponentExpansionFactor,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function baugh2005ConstructorParameters
 

@@ -252,6 +252,7 @@ contains
     squareConstructorParameters=geometryLightconeSquare(origin,unitVector,angularSize,outputTimes,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function squareConstructorParameters
 

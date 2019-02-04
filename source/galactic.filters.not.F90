@@ -19,7 +19,7 @@
 
 !% Contains a module which implements an inverting filter.
 
-  !# <galacticFilter name="galacticFilterNot" defaultThreadPrivate="yes">
+  !# <galacticFilter name="galacticFilterNot">
   !#  <description>A filter which simply inverts the result of another filter.</description>
   !# </galacticFilter>
   type, extends(galacticFilterClass) :: galacticFilterNot
@@ -50,6 +50,7 @@ contains
     !# <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
     self=galacticFilterNot(galacticFilter_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"/>
     return
   end function notConstructorParameters
 

@@ -88,6 +88,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=haloModelPowerSpectrumModifierTriaxiality(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>  
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function triaxialityConstructorParameters
 

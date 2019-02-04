@@ -19,7 +19,7 @@
 
   use MPI_Utilities
   
-  !# <evolveForestsWorkShare name="evolveForestsWorkShareFCFS" defaultThreadPrivate="yes">
+  !# <evolveForestsWorkShare name="evolveForestsWorkShareFCFS">
   !#  <description>A forest evolution work sharing class in which forests are assigned on a first-come-first-served basis.</description>
   !# </evolveForestsWorkShare>
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareFCFS

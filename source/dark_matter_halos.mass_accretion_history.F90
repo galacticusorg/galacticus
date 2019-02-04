@@ -22,13 +22,13 @@
 module Dark_Matter_Halo_Mass_Accretion_Histories
   !% Provides a class for calculations of dark matter halo mass accretion histories.
   use Galacticus_Nodes, only : treeNode
+  private
 
   !# <functionClass>
   !#  <name>darkMatterHaloMassAccretionHistory</name>
   !#  <descriptiveName>Dark Matter Halo Mass Accretion Histories</descriptiveName>
   !#  <description>Object providing dark matter halo mass accretion histories.</description>
   !#  <default>wechsler2002</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="time" >
   !#   <description>Returns the time at which the given halo mass was reached.</description>
   !#   <type>double precision</type>

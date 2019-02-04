@@ -31,7 +31,6 @@ module Satellite_Merging_Mass_Movements
   !#  <descriptiveName>Merger Mass Movements</descriptiveName>
   !#  <description>Class providing models of the movements of mass during mergers.</description>
   !#  <default>simple</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="get" >
   !#   <description>Determine movements of mass during mergers.</description>
   !#   <type>void</type>

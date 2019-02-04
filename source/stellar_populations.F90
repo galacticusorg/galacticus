@@ -32,7 +32,6 @@ module Stellar_Populations
   !#  <descriptiveName>Stellar Populations</descriptiveName>
   !#  <description>Class providing stellar populations.</description>
   !#  <default>standard</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <data>integer(c_size_t) :: uniqueID_=-1_c_size_t</data>
   !#  <method name="rateRecycling" >
   !#   <description>Return the rate of recycling from this population.</description>

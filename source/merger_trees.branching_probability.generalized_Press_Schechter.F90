@@ -144,6 +144,11 @@ contains
     !# <objectBuilder class="mergerTreeBranchingProbabilityModifier" name="mergerTreeBranchingProbabilityModifier_" source="parameters"/>
     self=mergerTreeBranchingProbabilityGnrlzdPrssSchchtr(deltaStepMaximum,massMinimum,smoothAccretion,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,excursionSetFirstCrossing_,mergerTreeBranchingProbabilityModifier_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"                   />
+    !# <objectDestructor name="cosmologicalMassVariance_"              />
+    !# <objectDestructor name="cosmologyFunctions_"                    />
+    !# <objectDestructor name="excursionSetFirstCrossing_"             />
+    !# <objectDestructor name="mergerTreeBranchingProbabilityModifier_"/>
     return
   end function generalizedPressSchechterConstructorParameters
 

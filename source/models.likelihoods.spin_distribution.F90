@@ -26,7 +26,7 @@
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for halo spin distributions.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSpinDistribution
@@ -143,6 +143,12 @@ contains
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     self=posteriorSampleLikelihoodSpinDistribution(char(fileName),enumerationSpinDistributionTypeEncode(char(distributionType),includesPrefix=.false.),redshift,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterProfile_,darkMatterHaloScale_,darkMatterProfileScaleRadius_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"          />
+    !# <objectDestructor name="haloMassFunction_"            />
+    !# <objectDestructor name="nbodyHaloMassError_"          />
+    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="darkMatterHaloScale_"         />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function spinDistributionConstructorParameters
 
@@ -225,7 +231,8 @@ contains
     use               Posterior_Sampling_Convergence
     use               Galacticus_Error
     use               Halo_Spin_Distributions
-    use               Galacticus_Nodes              , only : treeNode, nodeComponentBasic, nodeComponentSpin
+    use               Galacticus_Nodes              , only : treeNode     , nodeComponentBasic        , nodeComponentSpin
+    use               FGSL                          , only : fgsl_function, fgsl_integration_workspace
     implicit none
     class           (posteriorSampleLikelihoodSpinDistribution), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState

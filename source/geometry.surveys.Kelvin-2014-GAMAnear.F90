@@ -52,6 +52,7 @@ contains
     ! Build the object.
     self=surveyGeometryKelvin2014GAMAnear(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function kelvin2014GAMAnearConstructorParameters
 

@@ -69,6 +69,7 @@ contains
     !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
     self=stellarPopulationSpectraPostprocessorBuilderLookup(names,postprocessors)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="postprocessors(i)%stellarPopulationSpectraPostprocessor_"/>
     return
   end function lookupConstructorParameters
   

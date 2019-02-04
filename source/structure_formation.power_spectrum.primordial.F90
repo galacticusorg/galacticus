@@ -21,13 +21,13 @@
 
 module Power_Spectra_Primordial
   !% Provides a class that implements the primordial power spectrum.
+  private
 
   !# <functionClass>
   !#  <name>powerSpectrumPrimordial</name>
   !#  <descriptiveName>Primordial Power Spectrum</descriptiveName>
   !#  <description>Class providing the primordial power spectrum.</description>
   !#  <default>powerLaw</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="power" >
   !#   <description>Return the (unnormalized) power in the primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
   !#   <type>double precision</type>

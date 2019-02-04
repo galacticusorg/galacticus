@@ -20,7 +20,7 @@
   !% Implementation of the \cite{cole_hierarchical_2000} method for computing the time available for freefall in cooling
   !% calculations in hot halos.
 
-  !# <freefallTimeAvailable name="freefallTimeAvailableHaloFormation" defaultThreadPrivate="yes">
+  !# <freefallTimeAvailable name="freefallTimeAvailableHaloFormation">
   !#  <description>
   !#   A freefall time available class which computes the freefall time available based on the freefall time in the dark matter halo.
   !#  </description>

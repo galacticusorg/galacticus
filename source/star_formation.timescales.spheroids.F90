@@ -22,6 +22,7 @@
 module Star_Formation_Timescales_Spheroids
   !% Provides a class that implements calculations of timescales for star formation in spheroids.
   use Galacticus_Nodes, only : treeNode
+  private
   
   !# <functionClass>
   !#  <name>starFormationTimescaleSpheroids</name>

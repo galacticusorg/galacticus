@@ -21,7 +21,7 @@
 
   use FGSL, only : fgsl_interp_accel
   
-  !# <chemicalState name="chemicalStateCIEFile" defaultThreadPrivate="yes">
+  !# <chemicalState name="chemicalStateCIEFile">
   !#  <description>
   !#   Class providing chemical state via interpolation of tabulated values read from file. The HDF5 file containing the table
   !#   should have the following form:

@@ -102,6 +102,7 @@ contains
     !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
     self=mergerProgenitorPropertiesCole2000(mergerMassMovements_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerMassMovements_"/>
     return
   end function cole2000ConstructorParameters
   

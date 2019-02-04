@@ -21,13 +21,13 @@
 
 module Cosmology_Functions
   !% Provides an object that implements cosmological functions.
+  private
  
   !# <functionClass>
   !#  <name>cosmologyFunctions</name>
   !#  <descriptiveName>Cosmology Functions</descriptiveName>
   !#  <description>Object providing various cosmological functions.</description>
   !#  <default>matterLambda</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="epochValidate" >
   !#   <description>Check the given cosmic epoch is valid (aborting otherwise) and, optionally, return time or expansion factor associated with the epoch.</description>
   !#   <type>void</type>

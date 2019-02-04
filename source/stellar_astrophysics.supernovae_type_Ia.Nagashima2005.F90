@@ -55,6 +55,7 @@ contains
     !# <objectBuilder class="stellarAstrophysics" name="stellarAstrophysics_" source="parameters"/>
     self=supernovaeTypeIaNagashima2005(stellarAstrophysics_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarAstrophysics_"/>
     return
   end function nagashima2005ConstructorParameters
   

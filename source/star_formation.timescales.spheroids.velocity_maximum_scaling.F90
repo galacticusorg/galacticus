@@ -24,7 +24,7 @@
   use Cosmology_Functions
   use Dark_Matter_Profiles
 
-  !# <starFormationTimescaleSpheroids name="starFormationTimescaleSpheroidsVelocityMaxScaling" defaultThreadPrivate="yes">
+  !# <starFormationTimescaleSpheroids name="starFormationTimescaleSpheroidsVelocityMaxScaling">
   !#  <description>A velocityMaxScaling timescale for star formation in galactic spheroids.</description>
   !# </starFormationTimescaleSpheroids>
   type, extends(starFormationTimescaleSpheroidsClass) :: starFormationTimescaleSpheroidsVelocityMaxScaling
@@ -99,6 +99,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=starFormationTimescaleSpheroidsVelocityMaxScaling(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function velocityMaxScalingConstructorParameters
 

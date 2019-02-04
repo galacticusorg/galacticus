@@ -21,7 +21,7 @@
 
   use Geometry_Lightcones
   
-  !# <galacticFilter name="galacticFilterLightcone" defaultThreadPrivate="yes">
+  !# <galacticFilter name="galacticFilterLightcone">
   !#  <description>
   !#  A galactic filter on lightcone geometry.
   !#  </description>
@@ -54,6 +54,7 @@ contains
     !# <objectBuilder class="geometryLightcone" name="geometryLightcone_" source="parameters"/>
     self=galacticFilterLightcone(geometryLightcone_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="geometryLightcone_"/>
     return
   end function lightconeConstructorParameters
 

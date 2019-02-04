@@ -19,7 +19,7 @@
 
   !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
 
-  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982" defaultThreadPrivate="yes">
+  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982">
   !#  <description>The \cite{efstathiou_stability_1982} model for galactic disk bar instability.</description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityEfstathiou1982

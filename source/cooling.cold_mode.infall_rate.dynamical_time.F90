@@ -21,7 +21,7 @@
 
   use Dark_Matter_Halo_Scales
   
-  !# <coldModeInfallRate name="coldModeInfallRateDynamicalTime" defaultThreadPrivate="yes">
+  !# <coldModeInfallRate name="coldModeInfallRateDynamicalTime">
   !#  <description>A dynamicalTime cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
   !# </coldModeInfallRate>
   type, extends(coldModeInfallRateClass) :: coldModeInfallRateDynamicalTime
@@ -62,6 +62,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=coldModeInfallRateDynamicalTime(dynamicalRateFraction,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function dynamicalTimeConstructorParameters
 

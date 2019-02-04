@@ -19,7 +19,7 @@
 
   !% Implementation of a null ram pressure stripping of spheroids class.
 
-  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsNull" defaultThreadPrivate="yes">
+  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsNull">
   !#  <description>A null model of ram pressure stripping in galactic spheroids.</description>
   !# </ramPressureStrippingSpheroids>
   type, extends(ramPressureStrippingSpheroidsClass) :: ramPressureStrippingSpheroidsNull

@@ -57,6 +57,9 @@ contains
     !# <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
     self=haloMassFunctionPressSchechter(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyParameters_"      />
+   !# <objectDestructor name="cosmologicalMassVariance_" />
+   !# <objectDestructor name="excursionSetFirstCrossing_"/>
    return
   end function pressSchechterConstructorParameters
 

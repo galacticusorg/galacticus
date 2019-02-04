@@ -19,7 +19,7 @@
 
   !% Implementation of a merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.
 
-  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionPowerLaw" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionPowerLaw">
   !#  <description>A merger tree halo mass function sampling class in which the sampling rate is given by a power-law in halo mass.</description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionPowerLaw

@@ -19,7 +19,7 @@
 
   !% Implementation of a null tidal stripping of disks class.
 
-  !# <tidalStrippingDisks name="tidalStrippingDisksNull" defaultThreadPrivate="yes">
+  !# <tidalStrippingDisks name="tidalStrippingDisksNull">
   !#  <description>A null model of tidal stripping in galactic disks.</description>
   !# </tidalStrippingDisks>
   type, extends(tidalStrippingDisksClass) :: tidalStrippingDisksNull

@@ -87,9 +87,10 @@ contains
     character(len=*                   ), intent(in   )         :: fileName
     class    (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
     class    (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
-    irateConstructor%fileName=trim(fileName)
+    irateConstructor%cosmologyParameters_ => cosmologyParameters_
+    irateConstructor%cosmologyFunctions_  => cosmologyFunctions_
+    irateConstructor%fileName             =  trim(fileName)
     return
   end function irateConstructor
   
@@ -98,7 +99,7 @@ contains
     use IO_HDF5
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
-    use Cosmology_Functions             , only : hubbleUnitsLittleH
+    use Cosmology_Parameters            , only : hubbleUnitsLittleH
     use ISO_Varying_String              , only : char              , trim
     implicit none
     class           (irate     ), intent(inout)                                        :: self

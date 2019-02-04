@@ -24,7 +24,7 @@
   use Dark_Matter_Halo_Scales
   use Kind_Numbers  
   
-  !# <satelliteTidalStripping name="satelliteTidalStrippingZentner2005" defaultThreadPrivate="yes">
+  !# <satelliteTidalStripping name="satelliteTidalStrippingZentner2005">
   !#  <description>A satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.</description>
   !# </satelliteTidalStripping>
   type, extends(satelliteTidalStrippingClass) :: satelliteTidalStrippingZentner2005
@@ -74,6 +74,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteTidalStrippingZentner2005(efficiency,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function zentner2005ConstructorParameters
 

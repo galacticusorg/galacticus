@@ -32,7 +32,7 @@
      type   (varying_string)          :: lockType
   end type deadlockList
   
-  !# <mergerTreeEvolver name="mergerTreeEvolverStandard" defaultThreadPrivate="yes">
+  !# <mergerTreeEvolver name="mergerTreeEvolverStandard">
   !#  <description>The standard merger tree evolver.</description>
   !# </mergerTreeEvolver>
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverStandard
@@ -128,6 +128,8 @@ contains
     !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_" source="parameters"/>
     self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeEvolveTimestep_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="mergerTreeEvolveTimestep_"/>
     return
   end function standardConstructorParameters
 

@@ -29,7 +29,6 @@ module Supernovae_Population_III
   !#  <descriptiveName>Supernovae Type Ia</descriptiveName>
   !#  <description>Class providing models of supernovae from Population III stars.</description>
   !#  <default>hegerWoosley2002</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="energyCumulative" >
   !#   <description> Return the cumulative energy input from Population III supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
   !#   <type>double precision</type>

@@ -20,6 +20,7 @@
 module Merger_Tree_Walkers
   !% Provides a class of walker objects for merger trees.
   use Galacticus_Nodes, only : treeNode
+  private
   
   !# <functionClass>
   !#  <name>mergerTreeWalker</name>

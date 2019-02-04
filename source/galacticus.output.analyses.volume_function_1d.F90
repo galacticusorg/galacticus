@@ -32,7 +32,7 @@
   use               Galactic_Filters
   use               Output_Times
 
-  !# <outputAnalysis name="outputAnalysisVolumeFunction1D" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisVolumeFunction1D">
   !#  <description>A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisVolumeFunction1D
@@ -335,6 +335,14 @@ contains
     !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"     />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"      />
+    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"        />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"  />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"/>
+    !# <objectDestructor name="galacticFilter_"                      />
+    !# <objectDestructor name="outputTimes_"                         />
     return
   end function volumeFunction1DConstructorParameters
 

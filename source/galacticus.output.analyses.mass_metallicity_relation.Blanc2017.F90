@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a mass-metallicity relation analysis class.
   
-  !# <outputAnalysis name="outputAnalysisMassMetallicityBlanc2017" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMassMetallicityBlanc2017">
   !#  <description>A mass-metallicity relation output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMassMetallicityBlanc2017
@@ -103,6 +103,8 @@ contains
     ! Build the object.
     self=outputAnalysisMassMetallicityBlanc2017(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
     return
   end function massMetallicityBlanc2017ConstructorParameters
 

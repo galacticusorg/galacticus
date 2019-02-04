@@ -40,13 +40,13 @@ module Node_Component_Hot_Halo_Standard
   use Kind_Numbers
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize, &
-       &    Node_Component_Hot_Halo_Standard_Post_Evolve , Node_Component_Hot_Halo_Standard_Reset            , &
-       &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merging, &
-       &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation        , &
-       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve       , &
-       &    Node_Component_Hot_Halo_Standard_Post_Step
+  public :: Node_Component_Hot_Halo_Standard_Initialize  , Node_Component_Hot_Halo_Standard_Thread_Initialize  , &
+       &    Node_Component_Hot_Halo_Standard_Post_Evolve , Node_Component_Hot_Halo_Standard_Reset              , &
+       &    Node_Component_Hot_Halo_Standard_Scale_Set   , Node_Component_Hot_Halo_Standard_Tree_Initialize    , &
+       &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Satellite_Merging  , &
+       &    Node_Component_Hot_Halo_Standard_Promote     , Node_Component_Hot_Halo_Standard_Formation          , &
+       &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve         , &
+       &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -244,9 +244,10 @@ module Node_Component_Hot_Halo_Standard
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,rateCooling,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
   type           (radiationFieldSummation                )            :: radiation
-  type           (radiationFieldCosmicMicrowaveBackground), target    :: radiationCosmicMicrowaveBackground
+  type           (radiationFieldCosmicMicrowaveBackground), pointer   :: radiationCosmicMicrowaveBackground
   class          (radiationFieldClass                    ), pointer   :: radiationIntergalacticBackground
-  !$omp threadprivate(radiation,radiationCosmicMicrowaveBackground,radiationIntergalacticBackground)
+  type           (radiationFieldList                     ), pointer   :: radiationFieldList_
+  !$omp threadprivate(radiation,radiationCosmicMicrowaveBackground,radiationIntergalacticBackground,radiationFieldList_)
 
   ! Tracked properties control.
   logical                                                             :: hotHaloTrackStrippedGas
@@ -433,7 +434,6 @@ contains
     use Galacticus_Error
     implicit none
     type(inputParameters   ), intent(inout) :: parameters
-    type(radiationFieldList), pointer       :: radiationFieldList_
 
     ! Check if this implementation is selected. Define the radiation component to include both the CMB and the intergalactic background if it is.
     if (defaultHotHaloComponent%standardIsActive()) then
@@ -451,8 +451,9 @@ contains
        !# <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="parameters"/>
        !# <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="parameters"/>
        !# <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters"/>
-       allocate(radiationFieldList_)
-       radiationCosmicMicrowaveBackground  =  radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+       allocate(radiationFieldList_               )
+       allocate(radiationCosmicMicrowaveBackground)
+       !# <referenceConstruct object="radiationCosmicMicrowaveBackground" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
        radiationFieldList_%radiationField_ => radiationCosmicMicrowaveBackground
        if (parameters%isPresent('radiationFieldIntergalacticBackgroundMethod')) then
           !# <objectBuilder class="radiationField" name="radiationIntergalacticBackground" parameterName="radiationFieldIntergalacticBackgroundMethod" source="parameters"/>
@@ -468,10 +469,38 @@ contains
           radiationIntergalacticBackground => null()
        end if
        radiation=radiationFieldSummation(radiationFieldList_)
-       nullify(radiationFieldList_)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize()
+    !% Uninitializes the tree node hot halo methods module.
+    implicit none
+
+    if (defaultHotHaloComponent%standardIsActive()) then
+       !# <objectDestructor name="cosmologyParameters_"              />
+       !# <objectDestructor name="cosmologyFunctions_"               />
+       !# <objectDestructor name="darkMatterHaloScale_"              />
+       !# <objectDestructor name="darkMatterProfile_"                />
+       !# <objectDestructor name="coolingSpecificAngularMomentum_"   />
+       !# <objectDestructor name="coolingInfallRadius_"              />
+       !# <objectDestructor name="hotHaloMassDistribution_"          />
+       !# <objectDestructor name="accretionHalo_"                    />
+       !# <objectDestructor name="chemicalReactionRate_"             />
+       !# <objectDestructor name="chemicalState_"                    />
+       !# <objectDestructor name="hotHaloRamPressureStripping_"      />
+       !# <objectDestructor name="hotHaloRamPressureTimescale_"      />
+       !# <objectDestructor name="hotHaloOutflowReincorporation_"    />
+       !# <objectDestructor name="coolingRate_"                      />
+       !# <objectDestructor name="radiationIntergalacticBackground"  />
+       !# <objectDestructor name="radiationCosmicMicrowaveBackground"/>
+       deallocate(radiationFieldList_)
+    end if
+    return
+  end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize
 
   !# <calculationResetTask>
   !# <unitName>Node_Component_Hot_Halo_Standard_Reset</unitName>

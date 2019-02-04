@@ -26,8 +26,9 @@ module Node_Component_Dynamics_Statistics_Bars
   use Galactic_Dynamics_Bar_Instabilities
   implicit none
   private
-  public :: Node_Component_Dynamics_Statistics_Bars_Rate_Compute     , Node_Component_Dynamics_Statistics_Bars_Output    , &
-       &    Node_Component_Dynamics_Statistics_Bars_Thread_Initialize, Node_Component_Dynamics_Statistics_Bars_Initialize
+  public :: Node_Component_Dynamics_Statistics_Bars_Rate_Compute       , Node_Component_Dynamics_Statistics_Bars_Output    , &
+       &    Node_Component_Dynamics_Statistics_Bars_Thread_Initialize  , Node_Component_Dynamics_Statistics_Bars_Initialize, &
+       &    Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize
 
   !# <component>
   !#  <class>dynamicsStatistics</class>
@@ -109,6 +110,20 @@ contains
     end if
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    implicit none
+
+    if (defaultDynamicsStatisticsComponent%barsIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"           />
+       !# <objectDestructor name="galacticDynamicsBarInstability_"/>
+    end if
+    return
+  end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Rate_Compute</unitName>

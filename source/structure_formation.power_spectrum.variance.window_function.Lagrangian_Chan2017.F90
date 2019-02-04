@@ -64,6 +64,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self = powerSpectrumWindowFunctionLagrangianChan2017(cosmologyParameters_,f)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function lagrangianChan2017ConstructorParameters
 

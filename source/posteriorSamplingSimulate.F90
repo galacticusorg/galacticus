@@ -73,6 +73,7 @@ program Posterior_Sampling_Simulate
   if (mpiSelf%isMaster()) call Galacticus_Display_Indent  ('Begin simulation')
   call posteriorSampleSimulation_%simulate()
   if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('Simulation done' )
+  call Node_Components_Uninitialize()
   ! Finalize MPI.
   call mpiFinalize()
 end program Posterior_Sampling_Simulate

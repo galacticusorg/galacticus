@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a sequence of normalizers on on-the-fly outputs.
 
-  !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence" defaultThreadPrivate="yes">
+  !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence">
   !#  <description>Provides a sequence of normalizers on on-the-fly outputs.</description>
   !# </outputAnalysisDistributionNormalizer>
 

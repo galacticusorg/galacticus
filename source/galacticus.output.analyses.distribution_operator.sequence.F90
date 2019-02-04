@@ -24,7 +24,7 @@
      type (distributionOperatorList               ), pointer :: next     => null()
   end type distributionOperatorList
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence" defaultThreadPrivate="yes">
+  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence">
   !#  <description>A sequence output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSequence

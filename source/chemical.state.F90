@@ -24,6 +24,7 @@ module Chemical_States
   use Abundances_Structure
   use Radiation_Fields
   use Chemical_Abundances_Structure
+  private
 
   !# <functionClass>
   !#  <name>chemicalState</name>

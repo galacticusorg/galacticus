@@ -57,6 +57,7 @@ contains
     ! Build the object.
     self=surveyGeometryMartin2010ALFALFA(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function martin2010ALFALFAConstructorParameters
     

@@ -78,6 +78,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self = powerSpectrumWindowFunctionSmoothKSpace(cosmologyParameters_,beta,normalization)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function smoothKSpaceConstructorParameters
 

@@ -23,7 +23,7 @@
   use IO_HDF5
   use Cosmology_Functions
   
-  !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
   !#  <description>  
   !#   A merger tree operator which outputs mass accretion histories. Histories are written into the \glc\ output file in a group
   !#   with name given by {\normalfont \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named
@@ -96,6 +96,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeOperatorMassAccretionHistory(char(outputGroupName),includeSpin,includeSpinVector,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function massAccretionHistoryConstructorParameters
 

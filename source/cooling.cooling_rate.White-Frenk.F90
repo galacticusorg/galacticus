@@ -23,7 +23,7 @@
   use Cooling_Infall_Radii
   use Hot_Halo_Mass_Distributions
 
-  !# <coolingRate name="coolingRateWhiteFrenk1991" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateWhiteFrenk1991">
   !#  <description>A cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateWhiteFrenk1991
@@ -70,6 +70,9 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=coolingRateWhiteFrenk1991(velocityCutOff,darkMatterHaloScale_,coolingInfallRadius_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"    />
+    !# <objectDestructor name="coolingInfallRadius_"    />
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function whiteFrenk1991ConstructorParameters
 

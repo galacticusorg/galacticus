@@ -98,6 +98,11 @@ contains
          &                          virialDensityContrast_     &
          &                         )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="virialDensityContrast_"   />
     return
   end function tinker2008ConstructorParameters
 
@@ -155,6 +160,7 @@ contains
     implicit none
     type(haloMassFunctionTinker2008), intent(inout) :: self
 
+    call self%densityContrast%destroy()
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     !# <objectDestructor name="self%linearGrowth_"            />

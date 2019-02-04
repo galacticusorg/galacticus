@@ -86,6 +86,7 @@ contains
     ! Construct the object.
     self=outputAnalysisDistributionOperatorRandomErrorALFLF(a,b,c,outputAnalysisMolecularRatio_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisMolecularRatio_"/>
     return
   end function randomErrorHIALFALFAConstructorParameters
 
