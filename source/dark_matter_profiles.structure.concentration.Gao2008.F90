@@ -123,7 +123,6 @@ contains
        allocate(self%virialDensityContrastDefinition_)
        !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)"/>
     end if
-    !# <referenceCountIncrement isResult="yes" owner="self" object="virialDensityContrastDefinition_"/>
     gao2008DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function gao2008DensityContrastDefinition
@@ -147,7 +146,6 @@ contains
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    !# <referenceCountIncrement isResult="yes" owner="self" object="darkMatterProfileDefinition_"/>
     gao2008DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
     return
   end function gao2008DarkMatterProfileDefinition
