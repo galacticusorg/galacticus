@@ -1789,7 +1789,11 @@ CODE
 		$postContains->[0]->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
 		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
 		$postContains->[0]->{'content'} .= "          type is (".$class->{'name'}.")\n";
+		$postContains->[0]->{'content'} .= "            call debugStackPush(loc(".$directive->{'name'}."CnstrctrPrmtrs))\n"
+		    if ( $debugging );
 		$postContains->[0]->{'content'} .= "            ".$directive->{'name'}."CnstrctrPrmtrs=".$class->{'name'}."(subParameters)\n";
+		$postContains->[0]->{'content'} .= "            call debugStackPop()\n"
+		    if ( $debugging );
 		$postContains->[0]->{'content'} .= "         end select\n";
 	    }
 	    $postContains->[0]->{'content'} .= "      case default\n";
