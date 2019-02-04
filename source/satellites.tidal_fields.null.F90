@@ -19,7 +19,7 @@
 
   !% Implements a satellite tidal field class which assumes zero tidal field.
 
-  !# <satelliteTidalField name="satelliteTidalFieldNull" defaultThreadPrivate="yes">
+  !# <satelliteTidalField name="satelliteTidalFieldNull">
   !#  <description>A satellite tidal field class which computes the tidal field assuming no tidal field.</description>
   !# </satelliteTidalField>
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldNull

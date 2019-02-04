@@ -28,7 +28,6 @@ module Mass_Distributions
   !#  <name>massDistribution</name>
   !#  <descriptiveName>Mass Distributions</descriptiveName>
   !#  <description>Class providing mass distributions.</description>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="symmetry" >
   !#   <description>Return the symmetry of the distribution.</description>
   !#   <type>integer</type>

@@ -71,6 +71,8 @@ contains
     !# <objectBuilder class="haloMassFunction"    name="referenceMassFunction" source="parameters"/>
     self=haloMassFunctionSimpleSystematic(alpha,beta,cosmologyParameters_,referenceMassFunction)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyParameters_" />
+   !# <objectDestructor name="referenceMassFunction"/>
    return
   end function simpleSystematicConstructorParameters
 

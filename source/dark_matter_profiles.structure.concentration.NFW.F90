@@ -97,6 +97,11 @@ contains
     !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
     self=darkMatterProfileConcentrationNFW1996(f,C,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="virialDensityContrast_"   />
     return
   end function nfw1996ConstructorParameters
 

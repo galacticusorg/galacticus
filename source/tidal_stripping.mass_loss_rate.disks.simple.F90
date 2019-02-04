@@ -21,7 +21,7 @@
 
   use Satellites_Tidal_Fields, only : satelliteTidalFieldClass, satelliteTidalField
   
-  !# <tidalStrippingDisks name="tidalStrippingDisksSimple" defaultThreadPrivate="yes">
+  !# <tidalStrippingDisks name="tidalStrippingDisksSimple">
   !#  <description>A simple model of tidal stripping in galactic disks.</description>
   !# </tidalStrippingDisks>
   type, extends(tidalStrippingDisksClass) :: tidalStrippingDisksSimple
@@ -63,6 +63,7 @@ contains
     !# <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
     self=tidalStrippingDisksSimple(rateFractionalMaximum,satelliteTidalField_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="satelliteTidalField_"/>
     return
   end function simpleConstructorParameters
 

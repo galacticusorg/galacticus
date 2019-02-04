@@ -20,7 +20,7 @@
   !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
 
   
-  !# <coolingRate name="coolingRateMultiplier" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateMultiplier">
   !#  <description>A cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateMultiplier
@@ -61,6 +61,7 @@ contains
     !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
     self=coolingRateMultiplier(multiplier,coolingRate_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingRate_"/>
     return
   end function multiplierConstructorParameters
 

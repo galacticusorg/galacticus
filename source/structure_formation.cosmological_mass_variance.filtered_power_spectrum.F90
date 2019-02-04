@@ -21,7 +21,7 @@
   
   !% An implementation of cosmological density field mass variance computed using a filtered power spectrum.
 
-  !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower" defaultThreadPrivate="yes">
+  !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower">
   !#  <description>
   !#   Mass variance of cosmological density fields computed from a filtered power spectrum. The
   !#   normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma\_8]}
@@ -44,6 +44,9 @@
   !#   [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline
   !#   interpolator to be used instead which gaurantees monotonicity.
   !#  </description>
+  !#  <deepCopy>
+  !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
+  !#  </deepCopy>
   !# </cosmologicalMassVariance>
   use Tables
   use Cosmology_Parameters
@@ -56,7 +59,7 @@
      class           (cosmologyParametersClass               ), pointer     :: cosmologyParameters_
      class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_
      class           (powerSpectrumWindowFunctionClass       ), pointer     :: powerSpectrumWindowFunction_
-     type            (powerSpectrumWindowFunctionTopHat      )              :: powerSpectrumWindowFunctionTopHat_
+     type            (powerSpectrumWindowFunctionTopHat      ), pointer     :: powerSpectrumWindowFunctionTopHat_
      logical                                                                :: initialized
      double precision                                                       :: tolerance                          , toleranceTopHat   , &
           &                                                                    sigma8Value                        , sigmaNormalization, &
@@ -148,6 +151,9 @@ contains
     ! Construct the instance.
     self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"               />
+    !# <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
+    !# <objectDestructor name="powerSpectrumWindowFunction_"       />
     return
   end function filteredPowerConstructorParameters
 
@@ -161,18 +167,14 @@ contains
     class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
+    !# <constructorAssign variables="tolerance, toleranceTopHat, monotonicInterpolation, *cosmologyParameters_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_"/>
 
-    self%sigma8Value                         =  sigma8
-    self%tolerance                           =  tolerance
-    self%toleranceTopHat                     =  toleranceTopHat
-    self%monotonicInterpolation              =  monotonicInterpolation
-    self%cosmologyParameters_                => cosmologyParameters_
-    self%powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred_
-    self%powerSpectrumWindowFunction_        => powerSpectrumWindowFunction_
-    self%powerSpectrumWindowFunctionTopHat_  =  powerSpectrumWindowFunctionTopHat  (cosmologyParameters_)
-    self%initialized                         =  .false.
-    self%massMinimum                         =  1.0d06
-    self%massMaximum                         =  1.0d15
+    allocate(self%powerSpectrumWindowFunctionTopHat_)
+    !# <referenceConstruct isResult="yes" owner="self" object="powerSpectrumWindowFunctionTopHat_" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>
+    self%sigma8Value=sigma8
+    self%initialized=.false.
+    self%massMinimum=1.0d06
+    self%massMaximum=1.0d15
     return
   end function filteredPowerConstructorInternal
 
@@ -184,6 +186,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"               />
     !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
     !# <objectDestructor name="self%powerSpectrumWindowFunction_"       />
+    !# <objectDestructor name="self%powerSpectrumWindowFunctionTopHat_" />
     if (self%initialized) call self%rootVarianceTable%destroy()
     return
   end subroutine filteredPowerDestructor

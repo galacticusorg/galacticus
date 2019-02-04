@@ -21,7 +21,7 @@
   
   use Cosmology_Functions
 
-  !# <outputAnalysis name="outputAnalysisColorDistributionSDSS" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisColorDistributionSDSS">
   !#  <description>An SDSS color distribution function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisColorDistributionSDSS
@@ -62,6 +62,8 @@ contains
     !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
     self=outputAnalysisColorDistributionSDSS(distributionNumber,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
     return
   end function colorDistributionSDSSConstructorParameters
 
@@ -78,6 +80,7 @@ contains
     use Numerical_Comparison
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
+    use Cosmology_Parameters            , only : cosmologyParametersSimple
     implicit none
     type            (outputAnalysisColorDistributionSDSS               )                              :: self
     integer                                                                          , intent(in   )  :: distributionNumber

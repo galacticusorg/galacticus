@@ -19,7 +19,7 @@
 
   !% Implementation of a merger tree masses class which samples masses from a distribution uniformly.
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionUniform" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionUniform">
   !#  <description>A merger tree masses class which samples masses from a distribution uniformly.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionUniform

@@ -53,6 +53,7 @@ contains
     !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters" />
     self=outputAnalysisPropertyOperatorHIMass(outputAnalysisMolecularRatio_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisMolecularRatio_"/>
     return
   end function hiMassConstructorParameters
 

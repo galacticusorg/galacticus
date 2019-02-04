@@ -67,6 +67,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
     self=satelliteMergingTimescalesBoylanKolchin2008(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
     return
   end function boylanKolchin2008ConstructorParameters
 

@@ -19,7 +19,7 @@
 
   !$ use OMP_Lib
 
-  !# <evolveForestsWorkShare name="evolveForestsWorkShareCyclic" defaultThreadPrivate="yes">
+  !# <evolveForestsWorkShare name="evolveForestsWorkShareCyclic">
   !#  <description>A forest evolution work sharing class in which forests are assigned by cycling through processes.</description>
   !# </evolveForestsWorkShare>
   type, extends(evolveForestsWorkShareClass) :: evolveForestsWorkShareCyclic

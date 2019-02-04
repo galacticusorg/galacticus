@@ -20,7 +20,7 @@
   !% Implements a chemical state class which utilizes the {\normalfont \scshape Cloudy} code to
   !% compute state in collisional ionization equilibrium.
   
-  !# <chemicalState name="chemicalStateAtomicCIECloudy" defaultThreadPrivate="yes">
+  !# <chemicalState name="chemicalStateAtomicCIECloudy">
   !#  <description>
   !#   Class providing chemical state by utilizing the {\normalfont \scshape Cloudy} code to compute state in collisional
   !#   ionization equilibrium. {\normalfont \scshape Cloudy} will be downloaded, compiled and run automatically if

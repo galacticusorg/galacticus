@@ -21,7 +21,7 @@
 
   use Cooling_Radii, only : coolingRadiusClass, coolingRadius
   
-  !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius" defaultThreadPrivate="yes">
+  !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius">
   !#  <description>A simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.</description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingRadius
@@ -53,6 +53,7 @@ contains
     !# <objectBuilder class="coolingRadius" name="coolingRadius_" source="parameters"/>
     self=coolingInfallRadiusCoolingRadius(coolingRadius_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingRadius_"/>
     return
   end function coolingRadiusConstructorParameters
 

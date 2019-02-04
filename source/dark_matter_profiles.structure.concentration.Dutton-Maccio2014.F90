@@ -139,6 +139,8 @@ contains
        self=darkMatterProfileConcentrationDuttonMaccio2014(char(fitType),cosmologyParameters_,cosmologyFunctions_)
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function duttonMaccio2014ConstructorParameters
 
@@ -302,7 +304,6 @@ contains
                 densityProfileDefinition     =darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition                                                      )
              end select
           end select
-          call densityProfileDefinition%makeIndestructible()
        end select
        densityProfileDefinitionInitialized=.true.       
     end if

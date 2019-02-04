@@ -78,6 +78,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloMassDistributionPatejLoeb2015(gamma,radiusShock,darkMatterProfile_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function patejLoeb2015ConstructorParameters
 

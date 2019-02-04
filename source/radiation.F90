@@ -30,7 +30,6 @@ module Radiation_Fields
   !#  <descriptiveName>Radiation Fields</descriptiveName>
   !#  <description>Class providing radiation fields.</description>
   !#  <default>null</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="flux">
   !#   <description>Return the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation field.</description>
   !#   <type>double precision</type>

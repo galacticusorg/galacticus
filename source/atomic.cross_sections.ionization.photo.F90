@@ -21,6 +21,7 @@
 
 module Atomic_Cross_Sections_Ionization_Photo
   !% Implements the atomic photo-ionization cross-section class.
+  private
 
   !# <functionClass>
   !#  <name>atomicCrossSectionIonizationPhoto</name>

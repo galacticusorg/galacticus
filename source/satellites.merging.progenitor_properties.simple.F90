@@ -92,6 +92,7 @@ contains
     !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
     self=mergerProgenitorPropertiesSimple(mergerMassMovements_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerMassMovements_"/>
     return
   end function simpleConstructorParameters
 

@@ -24,7 +24,7 @@
   use Cosmology_Parameters
   use Dark_Matter_Halo_Scales
 
-  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999" defaultThreadPrivate="yes">
+  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999">
   !#  <description>A satellite tidal heating rate class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.</description>
   !# </satelliteTidalHeatingRate>
   type, extends(satelliteTidalHeatingRateClass) :: satelliteTidalHeatingRateGnedin1999
@@ -34,6 +34,7 @@
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
      double precision                                    :: epsilon             , gamma
    contains
+     final     ::                gnedin1999Destructor
      procedure :: heatingRate => gnedin1999HeatingRate
   end type satelliteTidalHeatingRateGnedin1999
 
@@ -77,6 +78,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteTidalHeatingRateGnedin1999(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function gnedin1999ConstructorParameters
 

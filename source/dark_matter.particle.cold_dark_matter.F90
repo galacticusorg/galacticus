@@ -48,16 +48,3 @@ contains
     CDMConstructorParameters=darkMatterParticleCDM()
     return
   end function CDMConstructorParameters
-
-  subroutine CDMDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters
-    use FoX_DOM
-    implicit none
-    class(darkMatterParticleCDM), intent(inout) :: self
-    type (inputParameters      ), intent(inout) :: descriptor
-    !GCC$ attributes unused :: self
-    
-    call descriptor%addParameter("darkMatterParticleMethod","CDM")
-    return
-  end subroutine CDMDescriptor

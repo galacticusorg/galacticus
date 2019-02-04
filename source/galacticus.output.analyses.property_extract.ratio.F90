@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a ratio output analysis property extractor class.
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorRatio" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorRatio">
   !#  <description>A ratio output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorRatio
@@ -53,6 +53,8 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyExtractor" name="propertyDenominator_" parameterName="outputAnalysisPropertyExtractorDenominator" source="parameters"/>
     self=outputAnalysisPropertyExtractorRatio(propertyNumerator_,propertyDenominator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="propertyNumerator_"  />
+    !# <objectDestructor name="propertyDenominator_"/>
     return
   end function ratioConstructorParameters
 

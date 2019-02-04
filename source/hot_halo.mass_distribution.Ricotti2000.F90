@@ -56,6 +56,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloMassDistributionRicotti2000(darkMatterProfile_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function ricotti2000ConstructorParameters
 

@@ -77,6 +77,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=cosmologyFunctionsStaticUniverse(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function staticUniverseConstructorParameters
 
@@ -85,9 +86,8 @@ contains
     implicit none
     type (cosmologyFunctionsStaticUniverse)               , target :: self
     class(cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
-   
-    ! Store a pointer to the cosmological parameters object.
-    self%cosmologyParameters_ => cosmologyParameters_  
+    !# <constructorAssign variables="*cosmologyParameters_"/>
+
     return
   end function staticUniverseConstructorInternal
 

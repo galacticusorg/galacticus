@@ -213,8 +213,6 @@ sub AddAttributes {
     my $declarationFound;
     while ( $childNode ) {
 	if ( $childNode->{'type'} eq "declaration" ) {
-	    die('Galacticus::Build::SourceTree::Parse::Declarations::AddAttributes: multiple declaration blocks found in '.$node->{'type'}.' "'.$node->{'name'}.'"')
-		if ( $declarationsFound );
 	    $declarationsFound = $childNode;
 	    # Locate the variable in the list of declarations.
 	    foreach my $declaration ( @{$childNode->{'declarations'}} ) {

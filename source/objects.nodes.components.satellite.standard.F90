@@ -30,7 +30,8 @@ module Node_Component_Satellite_Standard
   public :: Node_Component_Satellite_Standard_Scale_Set          , Node_Component_Satellite_Standard_Create           , &
        &    Node_Component_Satellite_Standard_Rate_Compute       , Node_Component_Satellite_Standard_Initialize       , &
        &    Node_Component_Satellite_Standard_Halo_Formation_Task, Node_Component_Satellite_Standard_Tree_Initialize  , &
-       &    Node_Component_Satellite_Standard_Inactive           , Node_Component_Satellite_Standard_Thread_Initialize
+       &    Node_Component_Satellite_Standard_Inactive           , Node_Component_Satellite_Standard_Thread_Initialize, &
+       &    Node_Component_Satellite_Standard_Thread_Uninitialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -153,10 +154,24 @@ contains
         !# <objectBuilder class="darkMatterHaloMassLossRate" name="darkMatterHaloMassLossRate_" source="parameters"/>
         !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
         !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
-        !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
      end if
      return
    end subroutine Node_Component_Satellite_Standard_Thread_Initialize
+
+   !# <nodeComponentThreadUninitializationTask>
+   !#  <unitName>Node_Component_Satellite_Standard_Thread_Uninitialize</unitName>
+   !# </nodeComponentThreadUninitializationTask>
+   subroutine Node_Component_Satellite_Standard_Thread_Uninitialize()
+     !% Uninitializes the tree node standard satellite module.
+     implicit none
+     
+     if (defaultSatelliteComponent%standardIsActive()) then
+        !# <objectDestructor name="darkMatterHaloMassLossRate_"/>
+        !# <objectDestructor name="virialOrbit_"               />
+        !# <objectDestructor name="satelliteMergingTimescales_"/>
+     end if
+     return
+   end subroutine Node_Component_Satellite_Standard_Thread_Uninitialize
 
   !# <inactiveSetTask>
   !#  <unitName>Node_Component_Satellite_Standard_Inactive</unitName>

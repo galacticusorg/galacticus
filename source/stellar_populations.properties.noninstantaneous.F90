@@ -79,6 +79,8 @@ contains
     !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
     self=stellarPopulationPropertiesNoninstantaneous(countHistoryTimes,stellarPopulationSelector_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputTimes_"              />
+    !# <objectDestructor name="stellarPopulationSelector_"/>
     return
   end function noninstantaneousConstructorParameters
 

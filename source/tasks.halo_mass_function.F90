@@ -31,7 +31,7 @@
   use Cosmological_Density_Field
   use Output_Times
 
-  !# <task name="taskHaloMassFunction" defaultThreadPrivate="yes">
+  !# <task name="taskHaloMassFunction">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
   !# </task>
   type, extends(taskClass) :: taskHaloMassFunction
@@ -167,6 +167,21 @@ contains
          &                    outputTimes_                   &
          &                   )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"         />
+    !# <objectDestructor name="cosmologyFunctions_"          />
+    !# <objectDestructor name="virialDensityContrast_"       />
+    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="criticalOverdensity_"         />
+    !# <objectDestructor name="linearGrowth_"                />
+    !# <objectDestructor name="haloMassFunction_"            />
+    !# <objectDestructor name="haloEnvironment_"             />
+    !# <objectDestructor name="unevolvedSubhaloMassFunction_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"         />
+    !# <objectDestructor name="cosmologicalMassVariance_"    />
+    !# <objectDestructor name="darkMatterHaloBias_"          />
+    !# <objectDestructor name="transferFunction_"            />
+    !# <objectDestructor name="outputTimes_"                 />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function haloMassFunctionConstructorParameters
 
@@ -219,6 +234,7 @@ contains
   
   subroutine haloMassFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloMassFunction} task class.
+    use Node_Components, only : Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
     implicit none
     type(taskHaloMassFunction), intent(inout) :: self
 
@@ -237,6 +253,8 @@ contains
     !# <objectDestructor name="self%darkMatterHaloBias_"          />
     !# <objectDestructor name="self%transferFunction_"            />
     !# <objectDestructor name="self%outputTimes_"                 />
+    call Node_Components_Uninitialize       ()
+    call Node_Components_Thread_Uninitialize()
     return
   end subroutine haloMassFunctionDestructor
 

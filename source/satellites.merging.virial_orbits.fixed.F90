@@ -74,6 +74,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale"    name="darkMatterHaloScale_"    source="parameters"/>
     self=virialOrbitFixed(velocityRadial,velocityTangential,virialDensityContrast_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="virialDensityContrast_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"  />
     return
   end function fixedConstructorParameters
 

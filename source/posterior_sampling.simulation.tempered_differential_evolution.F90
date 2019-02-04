@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn" defaultThreadPrivate="yes">
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn">
   !#  <description>A posterior sampling simulation class which implements a tempered differential evolution algorithm.</description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationTemperedDffrntlEvltn
@@ -113,6 +113,7 @@ contains
     !# <objectBuilder class="posteriorSampleDffrntlEvltnPrpslSzTmpExp" name="posteriorSampleDffrntlEvltnPrpslSzTmpExp_" source="parameters"/>
     call self%initialize(posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="posteriorSampleDffrntlEvltnPrpslSzTmpExp_"/>
     return
   end function temperedDifferentialEvolutionConstructorParameters
 

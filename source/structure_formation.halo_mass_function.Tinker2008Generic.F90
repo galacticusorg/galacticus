@@ -107,6 +107,10 @@ contains
          &                                 cosmologyFunctions_        &
          &                                )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologyFunctions_"      />
     return
   end function tinker2008GenericConstructorParameters
 

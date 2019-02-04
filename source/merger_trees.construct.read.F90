@@ -18,7 +18,8 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !% Implements a merger tree constructor class which constructs trees by reading their definitions from file.
-  
+
+  !$ use OMP_Lib                        , only : omp_lock_kind
   use Galacticus_Nodes                  , only : treeNode                    , nodeComponentBasic               , nodeComponentDarkMatterProfile
   use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use Cosmology_Functions
@@ -707,11 +708,22 @@ contains
          &                                                                               darkMatterProfileScaleRadius_                                  &
          &                        )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"            />
+    !# <objectDestructor name="mergerTreeImporter_"            />
+    !# <objectDestructor name="darkMatterHaloScale_"           />
+    !# <objectDestructor name="darkMatterProfile_"             />
+    !# <objectDestructor name="darkMatterProfileConcentration_"/>
+    !# <objectDestructor name="haloSpinDistribution_"          />
+    !# <objectDestructor name="virialOrbit_"                   />
+    !# <objectDestructor name="outputTimes_"                   />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"  />
+    !# <objectDestructor name="satelliteMergingTimescales_"    />
     return
   end function readConstructorParameters
 
   function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    !$ use OMP_Lib                      , only : OMP_Init_Lock
     use Galacticus_Nodes                , only : defaultNBodyComponent, nodeComponentNBodyGeneric
     use Galacticus_Error
     use Galacticus_Display

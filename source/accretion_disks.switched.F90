@@ -19,7 +19,7 @@
 
   !% Implementation of a switched (ADAF/thin) accretion disk.
   
-  !# <accretionDisks name="accretionDisksSwitched" defaultThreadPrivate="yes">
+  !# <accretionDisks name="accretionDisksSwitched">
   !#  <description>An accretion disk class in which accretion switches between thin-disk and ADAF modes.</description>
   !# </accretionDisks>
   type, extends(accretionDisksClass) :: accretionDisksSwitched
@@ -130,6 +130,8 @@ contains
     ! Build the object.
     self=accretionDisksSwitched(accretionDisksADAF_,accretionDisksShakuraSunyaev_,accretionRateThinDiskMinimum,accretionRateThinDiskMaximum,accretionRateTransitionWidth,scaleADAFRadiativeEfficiency)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="accretionDisksADAF_"          />
+    !# <objectDestructor name="accretionDisksShakuraSunyaev_"/>
     return
   end function switchedConstructorParameters
 
@@ -137,12 +139,12 @@ contains
     !% Internal constructor for the switched accretion disk class.
     implicit none
     type            (accretionDisksSwitched)                        :: self
-    class           (accretionDisksClass   ), intent(in   ), target :: accretionDisksADAF_                              , accretionDisksShakuraSunyaev_
-    double precision                        , intent(in   )         :: accretionRateThinDiskMinimum                     , accretionRateThinDiskMaximum , &
+    class           (accretionDisksClass   ), intent(in   ), target :: accretionDisksADAF_         , accretionDisksShakuraSunyaev_
+    double precision                        , intent(in   )         :: accretionRateThinDiskMinimum, accretionRateThinDiskMaximum , &
          &                                                             accretionRateTransitionWidth
     logical                                 , intent(in   )         :: scaleADAFRadiativeEfficiency
-
     !# <constructorAssign variables="*accretionDisksADAF_, *accretionDisksShakuraSunyaev_, accretionRateThinDiskMinimum, accretionRateThinDiskMaximum, accretionRateTransitionWidth, scaleADAFRadiativeEfficiency"/>
+    
     self%accretionRateThinDiskMinimumExists=accretionRateThinDiskMinimum >      0.0d0
     self%accretionRateThinDiskMaximumExists=accretionRateThinDiskMaximum < huge(0.0d0)
     if (self%accretionRateThinDiskMinimumExists) self%accretionRateThinDiskMinimumLogarithmic=log(self%accretionRateThinDiskMinimum)

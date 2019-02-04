@@ -25,8 +25,9 @@ module Node_Component_Spin_Random
   use Halo_Spin_Distributions
   implicit none
   private
-  public :: Node_Component_Spin_Random_Initialize, Node_Component_Spin_Random_Initialize_Spins , &
-       &    Node_Component_Spin_Random_Promote   , Node_Component_Spin_Random_Thread_Initialize
+  public :: Node_Component_Spin_Random_Initialize         , Node_Component_Spin_Random_Initialize_Spins , &
+       &    Node_Component_Spin_Random_Promote            , Node_Component_Spin_Random_Thread_Initialize, &
+       &    Node_Component_Spin_Random_Thread_Uninitialize
 
   !# <component>
   !#  <class>spin</class>
@@ -90,6 +91,19 @@ contains
     end if
     return
   end subroutine Node_Component_Spin_Random_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Spin_Random_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Spin_Random_Thread_Uninitialize()
+    !% Uninitializes the tree node random spin module.
+    implicit none
+
+    if (defaultSpinComponent%randomIsActive()) then
+       !# <objectDestructor name="haloSpinDistribution_"/>
+    end if
+    return
+  end subroutine Node_Component_Spin_Random_Thread_Uninitialize
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Spin_Random_Initialize_Spins</unitName>

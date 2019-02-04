@@ -21,7 +21,7 @@
 
   use Cosmological_Density_Field
   
-  !# <darkMatterHaloBias name="darkMatterHaloBiasSheth2001" defaultThreadPrivate="yes">
+  !# <darkMatterHaloBias name="darkMatterHaloBiasSheth2001">
   !#  <description>
   !#   A dark matter halo mass bias class utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
   !#  </description>
@@ -57,6 +57,8 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterHaloBiasSheth2001(criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function sheth2001ConstructorParameters
 

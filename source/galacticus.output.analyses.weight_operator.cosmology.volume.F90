@@ -22,7 +22,7 @@
   use Cosmology_Functions
   use Geometry_Surveys
   
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume">
   !#  <description>A cosmological volume corrector analysis weight operator class.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCsmlgyVolume
@@ -61,6 +61,9 @@ contains
     ! Construct the object.
     self=outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctionsModel"/>
+    !# <objectDestructor name="cosmologyFunctionsData" />
+    !# <objectDestructor name="surveyGeometry_"        />
     return
   end function csmlgyVolumeConstructorParameters
 

@@ -22,7 +22,7 @@
   use Halo_Mass_Functions
   use Conditional_Mass_Functions
 
-  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn">
   !#  <description>A merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.</description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionStllrMssFnctn
@@ -120,6 +120,8 @@ contains
     !# <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
     self=mergerTreeBuildMassDistributionStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloMassFunction_"       />
+    !# <objectDestructor name="conditionalMassFunction_"/>
     return
   end function stellarMassFunctionConstructorParameters
 

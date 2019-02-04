@@ -22,7 +22,7 @@
 
   use Statistics_NBody_Halo_Mass_Errors
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNbodyMass" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNbodyMass">
   !#  <description>A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorNormal) :: outputAnalysisWeightOperatorNbodyMass
@@ -73,6 +73,9 @@ contains
     !# <objectBuilder class="nbodyHaloMassError"              name="nbodyHaloMassError_"              source="parameters"/>
     self=outputAnalysisWeightOperatorNbodyMass(rangeLower,rangeUpper,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperator_" />
+    !# <objectDestructor name="nbodyHaloMassError_"             />
     return
   end function nbodyMassConstructorParameters
 

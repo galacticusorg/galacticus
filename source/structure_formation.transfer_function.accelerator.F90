@@ -21,7 +21,7 @@
   
   use Tables
   
-  !# <transferFunction name="transferFunctionAccelerator" defaultThreadPrivate="yes">
+  !# <transferFunction name="transferFunctionAccelerator">
   !#  <description>A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.</description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionAccelerator
@@ -67,6 +67,7 @@ contains
     !# <objectBuilder class="transferFunction" name="transferFunction_" source="parameters"/>
     self=transferFunctionAccelerator(transferFunction_,tablePointsPerDecade)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="transferFunction_"/>
     return
   end function acceleratorConstructorParameters
   

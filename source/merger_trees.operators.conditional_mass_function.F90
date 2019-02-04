@@ -23,7 +23,7 @@
   use Statistics_NBody_Halo_Mass_Errors
   !$ use OMP_Lib
 
-  !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF">
   !#  <description>
   !#   Provides a merger tree operator which accumulates conditional mass functions for trees. In
   !#   addition to the cumulative mass function, 1$^\mathrm{st}$ through $n^\mathrm{th}$ most-massive
@@ -365,6 +365,8 @@ contains
          &                               haloMassError_             &
          &                              )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="haloMassError_"     />
     return
   end function conditionalMFConstructorParameters
 

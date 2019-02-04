@@ -39,7 +39,7 @@
   use Atomic_Cross_Sections_Ionization_Photo  , only : atomicCrossSectionIonizationPhoto    , atomicCrossSectionIonizationPhotoClass
   use Galacticus_Nodes                        , only : treeNode
 
-  !# <universeOperator name="universeOperatorIntergalacticMediumStateEvolve" defaultThreadPrivate="yes">
+  !# <universeOperator name="universeOperatorIntergalacticMediumStateEvolve">
   !#  <description>An operator on universes which attaches hooks to compute evolution of the intergalactic medium.</description>
   !# </universeOperator>
   type, extends(universeOperatorClass) :: universeOperatorIntergalacticMediumStateEvolve
@@ -157,6 +157,20 @@ contains
     timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
     self=universeOperatorIntergalacticMediumStateEvolve(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"                />
+    !# <objectDestructor name="cosmologyFunctions_"                 />
+    !# <objectDestructor name="linearGrowth_"                       />
+    !# <objectDestructor name="cosmologicalMassVariance_"           />
+    !# <objectDestructor name="outputTimes_"                        />
+    !# <objectDestructor name="gauntFactor_"                        />
+    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"  />
+    !# <objectDestructor name="atomicIonizationPotential_"          />
+    !# <objectDestructor name="atomicRecombinationRateDielectronic_"/>
+    !# <objectDestructor name="atomicRecombinationRateRadiative_"   />
+    !# <objectDestructor name="atomicIonizationRateCollisional_"    />
+    !# <objectDestructor name="atomicExcitationRateCollisional_"    />
+    !# <objectDestructor name="intergalacticMediumState_"           />
+    !# <objectDestructor name="radiationField_"                     />
     return
   end function intergalacticMediumStateEvolveConstructorParameters
 

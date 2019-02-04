@@ -24,6 +24,7 @@
 module Satellite_Tidal_Heating
   !% Implements a class for calculations of tidal heating for satellites.
   use Galacticus_Nodes, only : treeNode
+  private
   
   !# <functionClass>
   !#  <name>satelliteTidalHeatingRate</name>

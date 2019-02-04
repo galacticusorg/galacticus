@@ -21,14 +21,14 @@
 
 module Node_Component_Dark_Matter_Profile_Scale_Shape
   !% Implements a dark matter profile method that provides a scale radius and a shape parameter.
-  use Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScaleShape
+  use Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScaleShape, treeNode
   use Dark_Matter_Profiles_Shape
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute, Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Initialize, &
        &    Node_Component_Dark_Matter_Profile_Scale_Shape_Promote     , Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set      , &
        &    Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Output , Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize     , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init
+       &    Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init , Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Uninit
 
   !# <component>
   !#  <class>darkMatterProfile</class>
@@ -106,6 +106,20 @@ contains
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Uninit</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Uninit()
+    !% Uninitializes the tree node random spin module.
+    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
+    implicit none
+
+    if (defaultDarkMatterProfileComponent%scaleShapeIsActive()) then
+       !# <objectDestructor name="darkMatterProfileShape_"/>
+    end if
+    return
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Uninit
 
   double precision function Node_Component_Dark_Matter_Profile_Scale_Shape_Shape(self)
     !% Return the shape parameter in the dark matter halo profile.

@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes.
 
-  !# <galacticFilter name="galacticFilterStellarAbsoluteMagnitudes" defaultThreadPrivate="yes">
+  !# <galacticFilter name="galacticFilterStellarAbsoluteMagnitudes">
   !#  <description>
   !#  A galactic low-pass (i.e. bright-pass) filter for stellar absolute magnitudes. Galaxies with absolute magnitude in each
   !#  band, $i$, less than or equal to a fixed threshold, $M_{0,i}=${\normalfont \ttfamily [absoluteMagnitudeThreshold]}.

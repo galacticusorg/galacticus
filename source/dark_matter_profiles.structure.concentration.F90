@@ -32,7 +32,6 @@ module Dark_Matter_Profiles_Concentration
   !#  <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
   !#  <description>Object providing dark matter profile concentrations.</description>
   !#  <default>gao2008</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="concentration" >
   !#   <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

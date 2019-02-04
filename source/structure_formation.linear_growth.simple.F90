@@ -20,7 +20,7 @@
   !% An implementation of linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of
   !% baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
 
-  !# <linearGrowth name="linearGrowthSimple" defaultThreadPrivate="yes">
+  !# <linearGrowth name="linearGrowthSimple">
   !#  <description>Linear growth of cosmological structure in simple cosomologies. Ignores pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.</description>
   !# </linearGrowth>
   use Tables
@@ -76,6 +76,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     self=simpleConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function simpleConstructorParameters
 

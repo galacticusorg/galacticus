@@ -30,7 +30,6 @@ module Accretion_Halo_Totals
   !#  <descriptiveName>Halo Total Accretion Rates</descriptiveName>
   !#  <description>Class providing total accretion rates onto halos.</description>
   !#  <default>simple</default>
-  !#  <defaultThreadPrivate>no</defaultThreadPrivate>
   !#  <method name="accretionRate" >
   !#   <description>Return the total accretion rate onto the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

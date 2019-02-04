@@ -27,7 +27,7 @@
   use Merger_Trees_Evolve            , only : mergerTreeEvolver  , mergerTreeEvolverClass
   use Merger_Tree_Outputters         , only : mergerTreeOutputter, mergerTreeOutputterClass
 
-  !# <task name="taskEvolveForests" defaultThreadPrivate="yes">
+  !# <task name="taskEvolveForests">
   !#  <description>A task which evolves galaxies within a set of merger tree forests.</description>
   !# </task>
   type, extends(taskClass) :: taskEvolveForests
@@ -55,8 +55,6 @@
      class           (universeOperatorClass      ), pointer :: universeOperator_
      class           (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_
      class           (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_
-     ! State of node component thread initialization.
-     logical                                                :: threadsInitialized
      ! Pointer to the parameters for this task.
      type            (inputParameters            )          :: parameters
    contains
@@ -241,6 +239,13 @@ contains
        self=taskEvolveForests(evolveSingleForest,evolveSingleForestSections,evolveSingleForestMassMinimum,limitLoadAverage,loadAverageMaximum,threadLock,threadsMaximum,threadLockName,suspendToRAM,suspendPath,mergerTreeConstructor_,mergerTreeOperator_,evolveForestsWorkShare_,outputTimes_,universeOperator_,mergerTreeEvolver_,mergerTreeOutputter_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerTreeConstructor_" />
+    !# <objectDestructor name="mergerTreeOperator_"    />
+    !# <objectDestructor name="evolveForestsWorkShare_"/>
+    !# <objectDestructor name="outputTimes_"           />
+    !# <objectDestructor name="universeOperator_"      />
+    !# <objectDestructor name="mergerTreeEvolver_"     />
+    !# <objectDestructor name="mergerTreeOutputter_"   />
     return
   end function evolveForestsConstructorParameters
 
@@ -263,13 +268,13 @@ contains
     type            (inputParameters            ), intent(in   ), target :: parameters
     !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_"/>
 
-    self%parameters        =inputParameters(parameters)
-    self%threadsInitialized=.false.
+    self%parameters=inputParameters(parameters)
     return
   end function evolveForestsConstructorInternal
 
   subroutine evolveForestsDestructor(self)
     !% Destructor for the {\normalfont \ttfamily evolveForests} task class.
+    use Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskEvolveForests), intent(inout) :: self
     
@@ -282,6 +287,7 @@ contains
     !# <objectDestructor name="self%mergerTreeOutputter_"   />
     if (associated(self%universeWaiting  )) deallocate(self%universeWaiting  )
     if (associated(self%universeProcessed)) deallocate(self%universeProcessed)
+    call Node_Components_Uninitialize()
     return
   end subroutine evolveForestsDestructor
   
@@ -300,6 +306,7 @@ contains
     use               Merger_Trees_Initialize
     use               Events_Hooks
     use               Node_Components
+    use               Galacticus_Function_Classes_Destroys
     !$ use            OMP_Lib
     ! Include modules needed for pre- and post-evolution and pre-construction tasks.
     !# <include directive="mergerTreePreEvolveTask" type="moduleUse">
@@ -365,7 +372,7 @@ contains
     double precision                                                          , save :: timeSectionForestBegin
     logical                                                                          :: triggerExit                               , triggerFinishUniverse       , &
          &                                                                              disableSingleForestEvolution              , triggerFinishFinal          , &
-         &                                                                              triggerFinish                             , initializeThreads
+         &                                                                              triggerFinish
     integer         (c_size_t                     )                                  :: iBranchAcceptedLast                       , treeCount
     integer         (omp_lock_kind                )                                  :: initializationLock
     double precision                                                                 :: evolveToTimeForest
@@ -416,12 +423,7 @@ contains
     call self%mergerTreeConstructor_%deepCopy(mergerTreeConstructor_)
     call self%mergerTreeOperator_   %deepCopy(mergerTreeOperator_   )
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
-    !$omp master
-    initializeThreads                   =.not.self%threadsInitialized
-    self             %threadsInitialized=.true.
-    !$omp end master
-    !$omp barrier
-    if (initializeThreads) call Node_Components_Thread_Initialize(self%parameters)
+    call Node_Components_Thread_Initialize(self%parameters)
     ! Allow events to be attached to the universe.
     !$omp master
     self%universeWaiting%event => null()
@@ -929,6 +931,8 @@ contains
     ! Reduce outputs back into the original outputter object.
     call mergerTreeOutputter_%reduce  (self%mergerTreeOutputter_)
     ! Explicitly deallocate objects.
+    call Node_Components_Thread_Uninitialize()
+    call Galacticus_Function_Classes_Destroy()
     deallocate(mergerTreeOutputter_  )
     deallocate(mergerTreeEvolver_    )
     deallocate(mergerTreeConstructor_)

@@ -30,7 +30,6 @@ module Satellite_Merging_Remnant_Sizes
   !#  <descriptiveName>Merger Remnant Sizes</descriptiveName>
   !#  <description>Class providing models of merger remnant sizes.</description>
   !#  <default>covington2008</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="get" >
   !#   <description>Determine merger remnant size and related properties.</description>
   !#   <type>void</type>

@@ -21,13 +21,13 @@
 
 module Power_Spectra_Primordial_Transferred
   !% Provides a class that implements the transferred primordial power spectrum.
+  private
 
   !# <functionClass>
   !#  <name>powerSpectrumPrimordialTransferred</name>
   !#  <descriptiveName>Transferred Primordial Power Spectrum</descriptiveName>
   !#  <description>Class providing the transferred primordial power spectrum.</description>
   !#  <default>simple</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="power" >
   !#   <description>Return the (unnormalized) power in the transferred primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
   !#   <type>double precision</type>

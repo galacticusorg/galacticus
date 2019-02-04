@@ -54,6 +54,7 @@ contains
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetFirstCrossingLinearBarrier(excursionSetBarrier_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="excursionSetBarrier_"/>
     return
   end function linearBarrierConstructorParameters
 

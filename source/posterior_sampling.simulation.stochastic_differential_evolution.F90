@@ -19,7 +19,7 @@
 
   !% Implementation of a posterior sampling simulation class which implements a stochastic differential evolution algorithm.
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationStochasticDffrntlEvltn" defaultThreadPrivate="yes">
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationStochasticDffrntlEvltn">
   !#  <description>A posterior sampling simulation class which implements a stochastic differential evolution algorithm.</description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationStochasticDffrntlEvltn

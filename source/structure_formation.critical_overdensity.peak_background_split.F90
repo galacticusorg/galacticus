@@ -61,6 +61,10 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=criticalOverdensityPeakBackgroundSplit(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="haloEnvironment_"         />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function peakBackgroundSplitConstructorParameters
 

@@ -22,7 +22,7 @@
   use Statistics_NBody_Halo_Mass_Errors
   use Statistics_Distributions
   
-  !# <mergerTreeOperator name="mergerTreeOperatorPerturbMasses" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorPerturbMasses">
   !#  <description>
   !#   A merger tree operator which perturbs halo masses by some error model.
   !# </description>
@@ -57,6 +57,7 @@ contains
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     self=mergerTreeOperatorPerturbMasses(nbodyHaloMassError_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="nbodyHaloMassError_"/>
     return
   end function perturbMassesConstructorParameters
 

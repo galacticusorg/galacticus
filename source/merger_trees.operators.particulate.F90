@@ -32,7 +32,7 @@
   use HDF5                   , only : hsize_t
   use Galacticus_Nodes       , only : treeNode
 
-  !# <mergerTreeOperator name="mergerTreeOperatorParticulate" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorParticulate">
   !#  <description>Provides a merger tree operator which create particle representations of \glc\ halos.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
@@ -283,6 +283,10 @@ contains
        self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
     return
   end function particulateConstructorParameters
 
@@ -649,6 +653,7 @@ contains
              particleIDs     (  i)=i-1
           end do
           !$omp end do
+          call Node_Components_Thread_Uninitialize()
           deallocate(particulateSelf)
           !$omp end parallel
           call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)

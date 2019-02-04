@@ -29,7 +29,6 @@ module Stellar_Astrophysics
   !#  <descriptiveName>Stellar Astrophysics</descriptiveName>
   !#  <description>Class providing models of stellar astrophysics.</description>
   !#  <default>file</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="massInitial" >
   !#   <description>Returns the initial mass of a star of given {\normalfont \ttfamily lifetime} and {\normalfont \ttfamily metallicity}.</description>
   !#   <type>double precision</type>

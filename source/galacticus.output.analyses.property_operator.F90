@@ -30,7 +30,6 @@ module Output_Analysis_Property_Operators
   !#  <descriptiveName>Output Analysis Property Operator</descriptiveName>
   !#  <description>Class providing operators on properties for on-the-fly analysis of outputs.</description>
   !#  <default>identity</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="operate" >
   !#   <description>Operate on the given property.</description>
   !#   <type>double precision</type>

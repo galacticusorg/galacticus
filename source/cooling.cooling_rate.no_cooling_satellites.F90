@@ -20,7 +20,7 @@
   !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
 
   
-  !# <coolingRate name="coolingRateNoCoolingSatellites" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateNoCoolingSatellites">
   !#  <description>A cooling rate class which modifies another cooling rate by cutting off cooling in satellites</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateNoCoolingSatellites
@@ -51,6 +51,7 @@ contains
     !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
     self=coolingRateNoCoolingSatellites(coolingRate_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingRate_"/>
     return
   end function noCoolingSatellitesConstructorParameters
 

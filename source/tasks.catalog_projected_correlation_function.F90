@@ -21,7 +21,7 @@
   use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
   use Geometry_Surveys    , only : surveyGeometry     , surveyGeometryClass
 
-  !# <task name="taskCatalogProjectedCorrelationFunction" defaultThreadPrivate="yes">
+  !# <task name="taskCatalogProjectedCorrelationFunction">
   !#  <description>A task which computes projected correlation functions based on a simple halo model approach.</description>
   !# </task>
   type, extends(taskClass) :: taskCatalogProjectedCorrelationFunction
@@ -208,6 +208,9 @@ contains
     !# <objectBuilder class="surveyGeometry"      name="surveyGeometry_"      source="parameters"/>
     self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="surveyGeometry_"     />
     return
   end function catalogProjectedCorrelationFunctionConstructorParameters
   
@@ -235,12 +238,15 @@ contains
 
   subroutine catalogProjectedCorrelationFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class.
+    use Node_Components, only : Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
     implicit none
     type(taskCatalogProjectedCorrelationFunction), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%surveyGeometry_"     />
+    call Node_Components_Uninitialize       ()
+    call Node_Components_Thread_Uninitialize()
     return
   end subroutine catalogProjectedCorrelationFunctionDestructor
 

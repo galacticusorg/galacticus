@@ -107,6 +107,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=hotHaloOutflowReincorporationVelocityMaximumScaling(timeScale,timescaleMinimum,velocityExponent,redshiftExponent,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>  
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function velocityMaximumScalingConstructorParameters
 

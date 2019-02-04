@@ -55,6 +55,7 @@ contains
     !# <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters"/>
     self=hotHaloTemperatureProfileEnzoHydrostatic(darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"/>
     return
   end function enzoHydrostaticConstructorParameters
 

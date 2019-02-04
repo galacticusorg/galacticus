@@ -76,6 +76,8 @@ contains
     !# <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
     self=mergerRemnantSizeCovington2008(energyOrbital, efficiencyRadiative,darkMatterHaloScale_,mergerProgenitorProperties_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"       />
+    !# <objectDestructor name="mergerProgenitorProperties_"/>
     return
   end function covington2008ConstructorParameters
   

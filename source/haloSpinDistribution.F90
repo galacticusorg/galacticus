@@ -165,4 +165,6 @@ program haloSpinDistributions
   ! Close the output file.
   call parameters%destroy()
   call outputFile%close  ()
+  ! Uninitialize node components
+  call Node_Components_Uninitialize()
 end program haloSpinDistributions

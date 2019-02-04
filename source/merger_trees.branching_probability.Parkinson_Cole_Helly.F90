@@ -156,6 +156,7 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function parkinsonColeHellyConstructorParameters
 

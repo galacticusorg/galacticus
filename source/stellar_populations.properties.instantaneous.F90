@@ -63,6 +63,7 @@ contains
     !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
     self=stellarPopulationPropertiesInstantaneous(stellarPopulationSelector_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarPopulationSelector_"/>
     return
   end function instantaneousConstructorParameters
 
@@ -79,6 +80,8 @@ contains
     self%fuelMetallicityPrevious  =-huge(0.0d0)
     self%timePrevious             =-huge(0.0d0)
     self%populationIDPrevious     =-1_c_size_t
+    call self%rateLuminosityStellarPrevious(1)%reset()
+    call self%rateLuminosityStellarPrevious(2)%reset()
     return
   end function instantaneousConstructorInternal
 

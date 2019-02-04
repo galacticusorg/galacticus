@@ -20,7 +20,7 @@
   !% Implementation of a specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of
   !% the hot gas halo.
 
-  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean" defaultThreadPrivate="yes">
+  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean">
   !#  <description>
   !#   A specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of the hot gas halo.
   !#  </description>

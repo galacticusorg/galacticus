@@ -24,7 +24,7 @@
      type (weightOperatorList               ), pointer :: next      => null()
   end type weightOperatorList
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence">
   !#  <description>A sequence output analysis weight operator class.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence

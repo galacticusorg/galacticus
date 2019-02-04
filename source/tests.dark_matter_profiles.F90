@@ -131,4 +131,6 @@ program Test_Dark_Matter_Profiles
   ! End unit tests.
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()
+  ! Uninitialize node components.
+  call Node_Components_Uninitialize()
 end program Test_Dark_Matter_Profiles

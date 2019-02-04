@@ -93,6 +93,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=nbodyHaloMassErrorTrenti2010(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function nbodyHaloMassErrorTrenti2010Parameters
 
@@ -125,6 +126,7 @@ contains
        self%correlationMassExponent     =  correlationMassExponent
        self%correlationRedshiftExponent =  correlationRedshiftExponent
        self%cosmologyFunctions_         => cosmologyFunctions_
+       !# <referenceCountIncrement owner="self" object="cosmologyFunctions_"/>
     else
        self%correlationNormalization    =  0.0d0
        self%correlationMassExponent     =  0.0d0       

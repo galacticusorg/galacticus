@@ -21,9 +21,9 @@
 
 module Universe_Operators
   !% Provides a class that implements operators on universes.
-
   use Galacticus_Nodes, only : universe
-  
+  private
+
   !# <functionClass>
   !#  <name>universeOperator</name>
   !#  <descriptiveName>Universe Operators</descriptiveName>

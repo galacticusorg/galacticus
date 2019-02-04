@@ -19,7 +19,7 @@
 
   !% Implementation of a merger tree masses class which samples masses from a distribution using quasi-random sampling.
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionQuasiRandom" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionQuasiRandom">
   !#  <description>A merger tree masses class which samples masses from a distribution using quasi-random sampling.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionQuasiRandom

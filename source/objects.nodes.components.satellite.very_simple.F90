@@ -26,9 +26,9 @@ module Node_Component_Satellite_Very_Simple
     use Satellite_Merging_Timescales
  implicit none
   private
-  public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create      , &
-       &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute, &
-       &    Node_Component_Satellite_Very_Simple_Thread_Initialize
+  public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create             , &
+       &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute       , &
+       &    Node_Component_Satellite_Very_Simple_Thread_Initialize  , Node_Component_Satellite_Very_Simple_Thread_Uninitialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -101,6 +101,20 @@ contains
     end if
     return
   end subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Satellite_Very_Simple_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Satellite_Very_Simple_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple satellite module.
+    implicit none
+
+    if (defaultSatelliteComponent%verySimpleIsActive()) then
+       !# <objectDestructor name="virialOrbit_"               />
+       !# <objectDestructor name="satelliteMergingTimescales_"/>
+    end if
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_Thread_Uninitialize
 
   !# <haloFormationTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Halo_Formation_Task</unitName>

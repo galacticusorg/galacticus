@@ -21,13 +21,13 @@
 
 module Transfer_Functions
   !% Provides an object that implements transfer functions.
+  private
   
   !# <functionClass>
   !#  <name>transferFunction</name>
   !#  <descriptiveName>Transfer Function</descriptiveName>
   !#  <description>Object providing transfer functions.</description>
   !#  <default>eisensteinHu1999</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="value" >
   !#   <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
   !#   <type>double precision</type>

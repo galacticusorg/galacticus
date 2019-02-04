@@ -69,6 +69,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
     self=satelliteMergingTimescalesVillalobos2013(exponent,satelliteMergingTimescales_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="satelliteMergingTimescales_"/>
+    !# <objectDestructor name="cosmologyFunctions_"        />
     return
   end function villalobos2013ConstructorParameters
 

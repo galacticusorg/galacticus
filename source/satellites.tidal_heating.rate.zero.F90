@@ -21,7 +21,7 @@
 
   !% Contains a class which implements a tidal heating rate model in which the heating rate is always zero.
 
-  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateZero" defaultThreadPrivate="yes">
+  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateZero">
   !#  <description>A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.</description>
   !# </satelliteTidalHeatingRate>
   type, extends(satelliteTidalHeatingRateClass) :: satelliteTidalHeatingRateZero

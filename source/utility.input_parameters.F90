@@ -30,6 +30,7 @@ module Input_Parameters
   use FoX_dom
   use IO_XML
   use IO_HDF5
+  use Function_Classes
   private
   public :: inputParameters, inputParameter, inputParameterList, globalParameters
 
@@ -57,7 +58,7 @@ module Input_Parameters
   type :: genericObjectList
      !% A list-type for unlimited polymorphic pointers.
      private
-     class(*), pointer :: object => null()
+     class(functionClass), pointer :: object => null()
   end type genericObjectList
 
   type :: inputParameter
@@ -84,14 +85,14 @@ module Input_Parameters
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>objectGet</method>
-     !@     <type>\textcolor{red}{\textless *class(*)\textgreater}</type>
+     !@     <type>\textcolor{red}{\textless *class(functionClass)\textgreater}</type>
      !@     <arguments></arguments>
      !@     <description>Return a pointer to the object corresponding to this parameter.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>objectSet</method>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *class(*)\textgreater} object\argin, \logicalzero\ isShared\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless *class(functionClass)\textgreater} object\argin, \logicalzero\ isShared\argin</arguments>
      !@     <description>Set a pointer to the object corresponding to this parameter.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -335,14 +336,10 @@ module Input_Parameters
   !# </enumeration>
 
   ! Pointer to the global input parameters.
-  type   (inputParameters), pointer   :: globalParameters               => null()
-
-  ! Thread-scope state recording whether objects being built are threadprivate or public.
-  logical                 , public    :: parametersObjectBuildIsPrivate  
-  !$omp threadprivate(parametersObjectBuildIsPrivate)
+  type   (inputParameters), pointer   :: globalParameters       => null()
   
   ! Maximum length allowed for parameter entries.
-  integer                 , parameter :: parameterLengthMaximum         =  1024
+  integer                 , parameter :: parameterLengthMaximum =  1024
   
 contains
 
@@ -753,6 +750,7 @@ contains
        child => childNext
     end do
     nullify(self%firstChild)
+    call self%reset(children=.false.)
     return
   end subroutine inputParameterDestroy
   
@@ -789,7 +787,7 @@ contains
     
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
-       !$ if (parametersObjectBuildIsPrivate) then
+       !$ if (OMP_In_Parallel()) then
        !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
        !$ else
              instance=                               0
@@ -807,13 +805,13 @@ contains
     !$ use OMP_Lib
     use Galacticus_Error
     implicit none
-    class  (*             ), pointer       :: inputParameterObjectGet
+    class  (functionClass ), pointer       :: inputParameterObjectGet
     class  (inputParameter), intent(in   ) :: self
     integer                                :: instance
     
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
-       !$ if (parametersObjectBuildIsPrivate) then
+       !$ if (OMP_In_Parallel()) then
        !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
        !$ else
              instance=                               0
@@ -829,13 +827,18 @@ contains
   subroutine inputParameterObjectSet(self,object)
     !% Set a pointer to the object associated with this parameter.
     !$ use OMP_Lib
+#ifdef OBJECTDEBUG
+    use Galacticus_Display
+    use String_Handling
+    use ISO_Varying_String
+#endif
     implicit none
     class  (inputParameter), intent(inout)         :: self
-    class  (*             ), intent(in   ), target :: object
+    class  (functionClass ), intent(in   ), target :: object
     integer                                        :: instance
     
     !$omp critical (inputParameterObjects)
-    !$ if (parametersObjectBuildIsPrivate) then
+    !$ if (OMP_In_Parallel()) then
     !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
     !$ else
           instance=                               0 
@@ -846,34 +849,36 @@ contains
        !$ allocate(self%objects(0:OMP_Get_Max_Threads()))
     end if
     self%objects(instance)%object => object
+    !# <referenceCountIncrement owner="self%objects(instance)" object="object"/>
     !$omp end critical (inputParameterObjects)
     return
   end subroutine inputParameterObjectSet
   
-  recursive subroutine inputParameterReset(self)
+  recursive subroutine inputParameterReset(self,children)
     !% Reset objects associated with this parameter and any sub-parameters.
     !$ use OMP_Lib
     implicit none
-    class  (inputParameter), intent(inout) :: self
-    type   (inputParameter), pointer       :: child
-    integer                                :: i
+    class  (inputParameter), intent(inout)           :: self
+    logical                , intent(in   ), optional :: children
+    type   (inputParameter), pointer                 :: child
+    integer                                          :: i
+    !# <optionalArgument name="children" defaultsTo=".true."/>
     
     if (allocated(self%objects)) then
        do i=lbound(self%objects,dim=1),ubound(self%objects,dim=1)
-          ! If we are not in an OpenMP parallel region then we deallocate only element 0 of the object array (which corresponds to
-          ! objects allocated outside of the parallel region), as any objects built inside parallel regions will have been
-          ! deallocated when those regions are exited.          
-          !$ if (OMP_In_Parallel() .or. i == 0) then
-          if (associated(self%objects(i)%object)) deallocate(self%objects(i)%object)
-          !$ end if
-          nullify(self%objects(i)%object)
+          if (associated(self%objects(i)%object)) then
+             !# <objectDestructor name="self%objects(i)%object"/>
+          end if
        end do
     end if
-    child => self%firstChild
-    do while (associated(child))
-       call child%reset()
-       child => child%sibling
-    end do
+    ! Reset children if requested.
+    if (children_) then
+       child => self%firstChild
+       do while (associated(child))
+          call child%reset()
+          child => child%sibling
+       end do
+    end if
     return
   end subroutine inputParameterReset
 

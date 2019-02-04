@@ -21,7 +21,7 @@
 
   use Chemical_States, only : chemicalStateClass, chemicalState
 
-  !# <coolingFunction name="coolingFunctionCMBCompton" defaultThreadPrivate="yes">
+  !# <coolingFunction name="coolingFunctionCMBCompton">
   !#  <description>Class providing a cooling function due to Compton scattering off of \gls{cmb} photons.</description>
   !# </coolingFunction>
   type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton
@@ -54,6 +54,7 @@ contains
     !# <objectBuilder class="chemicalState" name="chemicalState_" source="parameters"/>
     self=coolingFunctionCMBCompton(chemicalState_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="chemicalState_"/>
     return
   end function cmbComptonConstructorParameters
 

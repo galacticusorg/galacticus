@@ -65,6 +65,7 @@ contains
     ! Build the object.
     self=surveyGeometryBaldry2012GAMA(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function baldry2012GAMAConstructorParameters
   

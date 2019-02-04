@@ -27,8 +27,8 @@ module Node_Component_Hot_Halo_Outflow_Tracking
   use Dark_Matter_Halo_Scales
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute     , Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set, &
-       &    Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize
+  public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute     , Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set          , &
+       &    Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize, Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -80,6 +80,19 @@ contains
     end if
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    implicit none
+
+    if (defaultHotHaloComponent%outflowTrackingIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"/>
+    end if
+    return
+  end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute</unitName>

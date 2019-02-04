@@ -64,6 +64,9 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterProfileConcentrationLudlow2016Fit(cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function ludlow2016FitConstructorParameters
   
@@ -144,7 +147,6 @@ contains
        select type (densityContrastDefinition)
        type is (virialDensityContrastFixed)
           densityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
-          call densityContrastDefinition%makeIndestructible()
        end select
        densityContrastDefinitionInitialized=.true.
     end if
@@ -173,7 +175,6 @@ contains
           type is (darkMatterHaloScaleVirialDensityContrastDefinition)
              darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
              densityProfileDefinition     =darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition                                                      )
-             call densityProfileDefinition%makeIndestructible()
           end select
        end select
        densityProfileDefinitionInitialized=.true.

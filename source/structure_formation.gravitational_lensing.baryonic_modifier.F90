@@ -81,6 +81,7 @@ contains
     ! Build the object.
     self=gravitationalLensingBaryonicModifier(gravitationalLensing_,alpha,beta)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="gravitationalLensing_"/>
     return
   end function baryonicModifierConstructorParameters
 

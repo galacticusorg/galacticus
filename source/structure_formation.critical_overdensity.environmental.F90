@@ -76,6 +76,11 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=criticalOverdensityEnvironmental(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="haloEnvironment_"         />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function environmentalConstructorParameters
 

@@ -21,6 +21,7 @@
 
 module Tasks
   !% Provides a class that implements general tasks to be performed by \glc.
+  private
   
   !# <functionClass>
   !#  <name>task</name>
@@ -28,6 +29,7 @@ module Tasks
   !#  <description>Class providing generak tasks to be performed by \glc.</description>
   !#  <default>evolveForests</default>
   !#  <stateful>no</stateful>
+  !#  <functionClassDestroy>no</functionClassDestroy>
   !#  <method name="perform" >
   !#   <description>Perform the task.</description>
   !#   <type>void</type>

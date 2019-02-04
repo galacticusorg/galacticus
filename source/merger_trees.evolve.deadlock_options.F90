@@ -21,6 +21,8 @@
 
 module Merger_Trees_Evolve_Deadlock_Status
   !% Provides an enumeration for tree deadlock statuses.  
+  public
+
   !# <enumeration>
   !#  <name>deadlockStatus</name>
   !#  <description>Specifies deadlock status during merger tree evolution.</description>

@@ -54,6 +54,7 @@ contains
     !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
     self=outputAnalysisDistributionOperatorSpinNBodyErrors(haloSpinDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloSpinDistribution_"/>
     return
   end function spinNBodyErrorsConstructorParameters
 

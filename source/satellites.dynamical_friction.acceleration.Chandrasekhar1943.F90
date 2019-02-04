@@ -23,7 +23,7 @@
   
   use Dark_Matter_Halo_Scales
   
-  !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943" defaultThreadPrivate="yes">
+  !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943">
   !#  <description>A satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.</description>
   !# </satelliteDynamicalFriction>
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionChandrasekhar1943
@@ -64,6 +64,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function chandrasekhar1943ConstructorParameters
 

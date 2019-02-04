@@ -28,8 +28,9 @@ module Node_Component_Black_Hole_Noncentral
   use Black_Hole_Binary_Separations
   implicit none
   private
-  public :: Node_Component_Black_Hole_Noncentral_Rate_Compute, Node_Component_Black_Hole_Noncentral_Scale_Set        , &
-       &    Node_Component_Black_Hole_Noncentral_Initialize  , Node_Component_Black_Hole_Noncentral_Thread_Initialize
+  public :: Node_Component_Black_Hole_Noncentral_Rate_Compute       , Node_Component_Black_Hole_Noncentral_Scale_Set        , &
+       &    Node_Component_Black_Hole_Noncentral_Initialize         , Node_Component_Black_Hole_Noncentral_Thread_Initialize, &
+       &    Node_Component_Black_Hole_Noncentral_Thread_Uninitialize
 
   !# <component>
   !#  <class>blackHole</class>
@@ -108,6 +109,22 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Black_Hole_Noncentral_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Black_Hole_Noncentral_Thread_Uninitialize()
+    !% Uninitializes the tree node random spin module.
+    implicit none
+
+    if (defaultBlackHoleComponent%noncentralIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"                />
+       !# <objectDestructor name="blackHoleBinaryRecoil_"              />
+       !# <objectDestructor name="blackHoleBinaryMerger_"              />
+       !# <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
+    end if
+    return
+  end subroutine Node_Component_Black_Hole_Noncentral_Thread_Uninitialize
 
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Rate_Compute</unitName>

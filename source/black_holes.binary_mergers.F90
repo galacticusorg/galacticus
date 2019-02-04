@@ -29,7 +29,6 @@ module Black_Hole_Binary_Mergers
   !#  <descriptiveName>Black Hole Binaries Merger</descriptiveName>
   !#  <description>Class providing models of black hole binary mergers.</description>
   !#  <default>rezzolla2008</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="merge" >
   !#   <description>The the properties of the black hole resulting from a binary merger.</description>
   !#   <type>void</type>

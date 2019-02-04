@@ -21,7 +21,7 @@
 
   use Hot_Halo_Mass_Distributions
 
-  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008">
   !#  <description>A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.</description>
   !# </hotHaloRamPressureForce>
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceFont2008
@@ -52,6 +52,7 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=hotHaloRamPressureForceFont2008(hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function font2008ConstructorParameters
 

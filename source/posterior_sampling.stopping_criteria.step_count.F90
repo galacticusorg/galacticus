@@ -21,7 +21,7 @@
 
   use Posterior_Sampling_Convergence
   
-  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount" defaultThreadPrivate="yes">
+  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount">
   !#  <description>A posterior sampling stopping class which stepCount converges.</description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionStepCount
@@ -61,6 +61,7 @@ contains
     !# <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
     self=posteriorSampleStoppingCriterionStepCount(stopAfterCount,posteriorSampleConvergence_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="posteriorSampleConvergence_"/>
    return
   end function stepCountConstructorParameters
 

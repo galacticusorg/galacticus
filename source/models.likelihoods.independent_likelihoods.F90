@@ -29,7 +29,7 @@
      logical                                                            :: parameterMapInitialized
   end type posteriorSampleLikelihoodList
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
   !#  <description>A posterior sampling likelihood class which combines other likelihoods assumed to be independent.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodIndependentLikelihoods

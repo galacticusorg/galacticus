@@ -97,15 +97,8 @@ contains
     class(criticalOverdensityClass                   ), intent(in   ), target :: referenceCriticalOverdensity     , criticalOverdensity_
     class(cosmologicalMassVarianceClass              ), intent(in   ), target :: referenceCosmologicalMassVariance, cosmologicalMassvariance_
     class(cosmologyFunctionsClass                    ), intent(in   ), target :: referenceCosmologyFunctions      , cosmologyFunctions_
-
-    ! Construct the object.
-    self%referenceConcentration             => referenceConcentration
-    self%referenceCriticalOverdensity       => referenceCriticalOverdensity
-    self%         criticalOverdensity_      =>          criticalOverdensity_
-    self%referenceCosmologicalMassVariance  => referenceCosmologicalMassVariance
-    self%         cosmologicalMassVariance_ =>          cosmologicalMassVariance_
-    self%referenceCosmologyFunctions        => referenceCosmologyFunctions
-    self%         cosmologyFunctions_       =>          cosmologyFunctions_
+    !# <constructorAssign variables="*referenceConcentration, *referenceCriticalOverdensity, *referenceCosmologicalMassVariance, *referenceCosmologyFunctions, *criticalOverdensity_, *cosmologicalMassvariance_, *cosmologyFunctions_"/>
+    
     return
   end function schneider2015ConstructorInternal
 

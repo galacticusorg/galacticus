@@ -22,7 +22,7 @@
 
   use Satellites_Tidal_Fields
 
-  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982Tidal" defaultThreadPrivate="yes">
+  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982Tidal">
   !#  <description>The \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.</description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityEfstathiou1982) :: galacticDynamicsBarInstabilityEfstathiou1982Tidal
@@ -40,6 +40,7 @@
      !@     <description>Compute the radial term of the tidal tensor.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                      efstathiou1982Destructor
      procedure :: tidalTensorRadial => efstathiou1982TidalTidalTensorRadial
      procedure :: timescale         => efstathiou1982TidalTimescale
      procedure :: estimator         => efstathiou1982TidalEstimator
@@ -73,6 +74,7 @@ contains
     !# <objectBuilder class="satelliteTidalField" name="self%satelliteTidalField_" source="parameters"/>
     self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(parameters)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="self%satelliteTidalField_"/>
     return
   end function efstathiou1982TidalConstructorParameters
 
@@ -83,7 +85,7 @@ contains
     double precision                                                   , intent(in   )         :: stabilityThresholdStellar, stabilityThresholdGaseous, &
          &                                                                                        timescaleMinimum         , massThresholdHarrassment
     class           (satelliteTidalFieldClass                         ), intent(in   ), target :: satelliteTidalField_
-   !# <constructorAssign variables="massThresholdHarrassment, *satelliteTidalField_"/>
+    !# <constructorAssign variables="massThresholdHarrassment, *satelliteTidalField_"/>
     
     self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum)
     return

@@ -26,8 +26,8 @@ sub Instrument {
     open(my $code,"<",\$codeIn);
     while ( my $line = <$code> ) {
 	++$lineNumber;
-	if ( $line =~ m/\{introspection:location\}/ ) {
-	    $line =~ s/\{introspection:location\}/{introspection:location:$lineNumber}/g;
+	if ( $line =~ m/\{introspection:location(:compact)??\}/ ) {
+	    $line =~ s/\{(introspection:location(:compact)??)\}/{$1:$lineNumber}/g;
 	}
 	$codeOut .= $line;
     }
@@ -46,10 +46,11 @@ sub Process_Source_Introspection {
 	    my $newCode;
 	    open(my $code,"<",\$node->{'content'});
 	    while ( my $line = <$code> ) {
-		if ( $line =~ m/\{introspection:location:(\d+)\}/ ) {
-		    my $lineNumber = $1;
-		    my $location   = &Location($node,$lineNumber);
-		    $line =~ s/\{introspection:location:\d+\}/$location/g;
+		if ( $line =~ m/\{introspection:location(:compact)??:(\d+)\}/ ) {
+		    my $compact    = defined($1);
+		    my $lineNumber = $2;
+		    my $location   = &Location($node,$lineNumber,compact => $compact);
+		    $line =~ s/\{introspection:location(:compact)??:\d+\}/$location/g;
 		}
 		$newCode .= $line;
 	    }
@@ -65,8 +66,11 @@ sub Location {
     # Get the node and line number.
     my $node       = shift();
     my $lineNumber = shift();
+    my %options    = @_;
+    $options{'compact'} = 0
+	unless ( exists($options{'compact'}) );
     # Construct the location.
-    my $location   = "char(10)//' Occurred at:'";
+    my $location   = $options{'compact'} ? "''" : "char(10)//' Occurred at:'";
     my $branch     = $node;
     while ( $branch ) {
 	if (
@@ -78,13 +82,21 @@ sub Location {
 	    ||
 	    $branch->{'type'} eq "subroutine"
 	    ) {
-	    $location .= "//char(10)//'   ".(" " x (10-length($branch->{'type'}))).$branch->{'type'}.":".$branch->{'name'}."'";			    
+	    if ( $options{'compact'} ) {
+		$location .= "//'".$branch->{'type'}."(".$branch->{'name'}.")'";
+	    } else {
+		$location .= "//char(10)//'   ".(" " x (10-length($branch->{'type'}))).$branch->{'type'}.":".$branch->{'name'}."'";
+	    }
 	}
 	$location .= "//char(10)//'    directive:".$branch->{'type'}."'"
-	    if ( exists($branch->{'directive'}) );
+	    if ( exists($branch->{'directive'}) && ! $options{'compact'} );
 	$branch = $branch->{'parent'};
     }
-    $location .= "//'   [line ".$lineNumber."]'";
+    if ( $options{'compact'} ) {
+	$location .= "//':".$lineNumber."'";
+    } else {
+	$location .= "//'   [line ".$lineNumber."]'";
+    }
     return $location;
 }
 

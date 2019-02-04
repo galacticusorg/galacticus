@@ -155,6 +155,11 @@ sub addImplicitDirectives {
 	 {
 	     always => 0                                                            ,
 	     tasks  => [ "calculationResetTask"                                    ]
+	 },
+	 functionClassDestroy => 
+	 {
+	     always => $directive->{'rootElementType'} eq "functionClass" && ! exists($directive->{'functionClassDestroy'}),
+	     tasks  => [ "functionClassDestroyTask"                                ]
 	 }
 	);
     foreach my $implicitDirective ( &List::ExtraUtils::hashList(\%implicitDirectives, keyAs => "directive") ) {

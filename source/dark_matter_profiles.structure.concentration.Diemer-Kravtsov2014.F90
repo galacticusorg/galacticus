@@ -153,6 +153,11 @@ contains
     !# <objectBuilder class="powerSpectrum"            name="powerSpectrum_"            source="parameters"/>
      self=darkMatterProfileConcentrationDiemerKravtsov2014(kappa,phi0,phi1,eta0,eta1,alpha,beta,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,powerSpectrum_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="powerSpectrum_"           />
     return
   end function diemerKravtsov2014ConstructorParameters
   
@@ -279,7 +284,6 @@ contains
        select type (densityContrastDefinition)
        type is (virialDensityContrastFixed)
           densityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
-          call densityContrastDefinition%makeIndestructible()
        end select
        densityContrastDefinitionInitialized=.true.
     end if
@@ -308,7 +312,6 @@ contains
           type is (darkMatterHaloScaleVirialDensityContrastDefinition)
              darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
              densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
-             call densityProfileDefinition%makeIndestructible()
           end select
        end select
        densityProfileDefinitionInitialized=.true.

@@ -255,6 +255,7 @@ contains
     ! Initialize the root finder variables if necessary.
     if (self%useDerivative) then
        if (.not.FGSL_Well_Defined(self%solverDerivative).or.self%resetRequired) then
+          if (FGSL_Well_Defined(self%solverDerivative)) call FGSL_Root_fdfSolver_Free(self%solverDerivative)
           self%fgslFunctionDerivative=FGSL_Function_fdf_Init   (                                         &
                &                                                Root_Finder_Wrapper_Function           , &
                &                                                Root_Finder_Wrapper_Function_Derivative, &
@@ -266,6 +267,7 @@ contains
        end if
     else
        if (.not.FGSL_Well_Defined(self%solver).or.self%resetRequired) then
+          if (FGSL_Well_Defined(self%solver)) call FGSL_Root_fSolver_Free(self%solver)
           self%fgslFunction          =FGSL_Function_Init       (Root_Finder_Wrapper_Function,parameterPointer)
           self%solver                =FGSL_Root_fSolver_Alloc  (self%solverType                              )
           self%resetRequired         =.false.

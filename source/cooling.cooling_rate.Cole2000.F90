@@ -22,7 +22,7 @@
   use Cooling_Infall_Radii
   use Hot_Halo_Mass_Distributions
 
-  !# <coolingRate name="coolingRateCole2000" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateCole2000">
   !#  <description>Computes the mass cooling rate in a hot gas halo utilizing the \cite{cole_hierarchical_2000} method. This is based on the
   !# properties of the halo at formation time, and gives a zero cooling rate when the cooling radius exceeds the virial radius.</description>
   !# </coolingRate>
@@ -57,6 +57,8 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=coolingRateCole2000(coolingInfallRadius_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingInfallRadius_"    />
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function cole2000ConstructorParameters
 

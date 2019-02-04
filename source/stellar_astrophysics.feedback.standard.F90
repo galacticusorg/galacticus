@@ -92,6 +92,10 @@ contains
     !# <objectBuilder class="stellarAstrophysics"     name="stellarAstrophysics_"     source="parameters"/>
     self=stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="supernovaeTypeIa_"       />
+    !# <objectDestructor name="supernovaePopulationIII_"/>
+    !# <objectDestructor name="stellarWinds_"           />
+    !# <objectDestructor name="stellarAstrophysics_"    />
     return
   end function standardConstructorParameters
   

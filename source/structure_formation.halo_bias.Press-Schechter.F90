@@ -21,7 +21,7 @@
 
   use Cosmological_Density_Field
   
-  !# <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter" defaultThreadPrivate="yes">
+  !# <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter">
   !#  <description>
   !#   A dark matter halo mass bias class utilizing the Press-Schechter algorithm \citep{mo_analytic_1996}.
   !#  </description>
@@ -57,6 +57,8 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterHaloBiasPressSchechter(criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function pressSchechterConstructorParameters
 

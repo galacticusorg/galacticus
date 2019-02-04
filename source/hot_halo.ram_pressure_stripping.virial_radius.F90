@@ -21,7 +21,7 @@
 
   use Dark_Matter_Halo_Scales
 
-  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingVirialRadius" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingVirialRadius">
   !#  <description>A hot halo ram pressure stripping class which simply returns the virial radius.</description>
   !# </hotHaloRamPressureStripping>
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingVirialRadius
@@ -52,6 +52,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloRamPressureStrippingVirialRadius(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function virialRadiusConstructorParameters
 

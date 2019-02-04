@@ -22,6 +22,7 @@
 module Galactic_Dynamics_Bar_Instabilities
   !% Provides a class that implements calculations of bar instability in galactic disks.
   use Galacticus_Nodes, only : treeNode
+  private
   
   !# <functionClass>
   !#  <name>galacticDynamicsBarInstability</name>

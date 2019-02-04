@@ -74,6 +74,7 @@ contains
     ! Build the object.
     self=surveyGeometryLiWhite2009SDSS(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function liWhite2009SDSSConstructorParameters
 

@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a merger tree operator which prunes branches to end at a fixed time.
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneByTime" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorPruneByTime">
   !#  <description>Provides a merger tree operator which prunes branches to end at a fixed time.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByTime

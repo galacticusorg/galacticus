@@ -155,6 +155,8 @@ contains
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="excursionSetBarrier_"/>
     return
   end function farahiConstructorParameters
 

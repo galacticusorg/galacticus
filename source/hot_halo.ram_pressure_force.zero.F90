@@ -19,7 +19,7 @@
 
   !% Implements a model of ram pressure stripping of hot halos which always returns zero force.
 
-  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceZero" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceZero">
   !#  <description>A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.</description>
   !# </hotHaloRamPressureForce>
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceZero

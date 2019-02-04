@@ -32,11 +32,12 @@ module Node_Component_Disk_Very_Simple
   use Dark_Matter_Profiles
   implicit none
   private
-  public :: Node_Component_Disk_Very_Simple_Post_Evolve, Node_Component_Disk_Very_Simple_Rate_Compute     , &
-       &    Node_Component_Disk_Very_Simple_Scale_Set  , Node_Component_Disk_Very_Simple_Satellite_Merging, &
-       &    Node_Component_Disk_Very_Simple_Initialize , Node_Component_Disk_Very_Simple_Pre_Evolve       , &
-       &    Node_Component_Disk_Very_Simple_Rates      , Node_Component_Disk_Very_Simple_Analytic_Solver  , &
-       &    Node_Component_Disk_Very_Simple_Post_Step  , Node_Component_Disk_Very_Simple_Thread_Initialize
+  public :: Node_Component_Disk_Very_Simple_Post_Evolve        , Node_Component_Disk_Very_Simple_Rate_Compute     , &
+       &    Node_Component_Disk_Very_Simple_Scale_Set          , Node_Component_Disk_Very_Simple_Satellite_Merging, &
+       &    Node_Component_Disk_Very_Simple_Initialize         , Node_Component_Disk_Very_Simple_Pre_Evolve       , &
+       &    Node_Component_Disk_Very_Simple_Rates              , Node_Component_Disk_Very_Simple_Analytic_Solver  , &
+       &    Node_Component_Disk_Very_Simple_Post_Step          , Node_Component_Disk_Very_Simple_Thread_Initialize, &
+       &    Node_Component_Disk_Very_Simple_Thread_Uninitialize
 
   !# <component>
   !#  <class>disk</class>
@@ -259,6 +260,24 @@ contains
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    implicit none
+
+    if (defaultDiskComponent%verySimpleIsActive()) then
+       !# <objectDestructor name="cosmologyFunctions_"         />
+       !# <objectDestructor name="stellarPopulationProperties_"/>
+       !# <objectDestructor name="darkMatterHaloScale_"        />
+       !# <objectDestructor name="darkMatterProfile_"          />
+       !# <objectDestructor name="starFormationFeedbackDisks_" />
+       !# <objectDestructor name="starFormationTimescaleDisks_"/>       
+    end if
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize
 
   !# <preEvolveTask>
   !# <unitName>Node_Component_Disk_Very_Simple_Pre_Evolve</unitName>

@@ -43,7 +43,7 @@
      double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
           &                                                                opticalDepthReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
-     type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation
      integer                                                            :: countChemicals
    contains
      !@ <objectMethods>
@@ -154,6 +154,12 @@ contains
     !# </inputParameter>
     self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="intergalacticMediumState_"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="accretionHaloTotal_"      />
+    !# <objectDestructor name="darkMatterHaloScale_"     />
+    !# <objectDestructor name="chemicalState_"           />
     return
   end function simpleConstructorParameters
        
@@ -173,8 +179,9 @@ contains
     class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
     !# <constructorAssign variables="timeReionization, velocitySuppressionReionization, accretionNegativeAllowed, accretionNewGrowthOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionHaloTotal_, *chemicalState_, *intergalacticMediumState_"/>
-   
-    self%radiation=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+
+    allocate(self%radiation)
+    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     ! Check that required properties have required attributes.       
     if     (                                                                                                       &
          &   accretionNewGrowthOnly                                                                                &
@@ -205,6 +212,7 @@ contains
     !# <objectDestructor name="self%accretionHaloTotal_"      />
     !# <objectDestructor name="self%chemicalState_"           />
     !# <objectDestructor name="self%intergalacticMediumState_"/>
+    !# <objectDestructor name="self%radiation"                />
     return
   end subroutine simpleDestructor
 

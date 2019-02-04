@@ -22,7 +22,7 @@
   use Virial_Density_Contrast
   use Cosmology_Functions
 
-  !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch" defaultThreadPrivate="yes">
+  !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch">
   !#  <description>
   !#   A dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
   !#  </description>
@@ -77,6 +77,8 @@ contains
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     self=darkMatterHaloMassLossRateVanDenBosch(timescaleNormalization,zeta,cosmologyFunctions_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="virialDensityContrast_"/>
     return
   end function vanDenBoschConstructorParameters
 

@@ -55,6 +55,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=blackHoleBinaryInitialSeparationVolonteri2003(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function volonteri2003ConstructorParameters
 

@@ -33,6 +33,7 @@ program Tests_Power_Spectrum
   use Numerical_Constants_Math
   use Cosmology_Parameters
   use Galacticus_Display
+  use Dark_Matter_Particles               , only : darkMatterParticleCDM
   implicit none
   type            (inputParameters                         ), target       :: parameters
   double precision                                          , parameter    :: radiusNormalization                      =8.0d0 ! Radius for σ(M) normalization in Mpc/h.

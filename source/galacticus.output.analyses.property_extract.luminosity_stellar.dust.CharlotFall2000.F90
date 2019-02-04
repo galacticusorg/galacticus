@@ -22,7 +22,7 @@
   use ISO_Varying_String
   use Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyStllrCF2000" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyStllrCF2000">
   !#  <description>A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyStllrCF2000
@@ -116,6 +116,7 @@ contains
        self=outputAnalysisPropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_                          )
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputTimes_"/>
     return
   end function lmnstyStllrChrltFll2000ConstructorParameters
 

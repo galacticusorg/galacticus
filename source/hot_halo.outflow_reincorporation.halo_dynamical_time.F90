@@ -64,6 +64,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=hotHaloOutflowReincorporationHaloDynamicalTime(multiplier,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>  
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function haloDynamicalTimeConstructorParameters
 

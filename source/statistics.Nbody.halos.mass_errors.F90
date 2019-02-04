@@ -30,7 +30,6 @@ module Statistics_NBody_Halo_Mass_Errors
   !#  <descriptiveName>N-body Halo Mass Errors</descriptiveName>
   !#  <description>Class providing models of errors on N-body halo masses.</description>
   !#  <default>null</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="errorFractional" >
   !#   <description>Return the fractional error on the mass of an N-body halo corresponding to the given {\normalfont \ttfamily \gls{node}}.</description>
   !#   <type>double precision</type>

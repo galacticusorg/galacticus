@@ -22,7 +22,7 @@
   use Kind_Numbers
   use Cosmology_Functions
 
-  !# <mergerTreeOperator name="mergerTreeOperatorProfiler" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorProfiler">
   !#  <description>
   !#   A merger tree operator which profiles merger tree structure.
   !# </description>
@@ -113,6 +113,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeOperatorProfiler(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function profilerConstructorParameters
   

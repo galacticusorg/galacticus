@@ -74,6 +74,7 @@ contains
     !# </inputParameter>
     self=surveyGeometryDavidzon2013VIPERS(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function davidzon2013VIPERSConstructorParameters
 

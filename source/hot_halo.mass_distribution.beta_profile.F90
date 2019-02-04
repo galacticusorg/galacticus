@@ -109,6 +109,7 @@ contains
     !# <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
     self=hotHaloMassDistributionBetaProfile(beta,hotHaloMassDistributionCoreRadius_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="hotHaloMassDistributionCoreRadius_"/>
     return
   end function betaProfileConstructorParameters
   

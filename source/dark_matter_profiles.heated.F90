@@ -116,6 +116,9 @@ contains
     self=darkMatterProfileHeated(unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !# <inputParametersValidate source="parameters"/>
 
+    !# <objectDestructor name="darkMatterProfile_"       />
+    !# <objectDestructor name="darkMatterHaloScale_"     />
+    !# <objectDestructor name="darkMatterProfileHeating_"/>
     return
   end function heatedConstructorParameters
 

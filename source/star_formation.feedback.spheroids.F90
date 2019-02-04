@@ -22,6 +22,7 @@
 module Star_Formation_Feedback_Spheroids
   !% Provides an object that implements calculations of feedback from star formation in spheroids.
   use Galacticus_Nodes, only : treeNode
+  private
   
   !# <functionClass>
   !#  <name>starFormationFeedbackSpheroids</name>

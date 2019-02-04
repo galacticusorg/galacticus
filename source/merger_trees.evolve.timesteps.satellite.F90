@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite" defaultThreadPrivate="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite">
   !#  <description>A merger tree evolution timestepping class which limits the step to the next satellite merger.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatellite

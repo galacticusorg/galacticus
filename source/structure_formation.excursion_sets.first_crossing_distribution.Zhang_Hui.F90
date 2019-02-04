@@ -107,6 +107,7 @@ contains
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetFirstCrossingZhangHui(excursionSetBarrier_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="excursionSetBarrier_"/>
     return
   end function zhangHuiConstructorParameters
 

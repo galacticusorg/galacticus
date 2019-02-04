@@ -115,6 +115,10 @@ contains
        self=intergalacticMediumStateInstantReionization(cosmologyFunctions_,cosmologyParameters_,linearGrowth_,preReionizationState,reionizationTemperature,presentDayTemperature,electronScatteringOpticalDepth=electronScatteringOpticalDepth)
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="preReionizationState"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="linearGrowth_"       />
     return
   end function instantReionizationIGMConstructorParameters
 

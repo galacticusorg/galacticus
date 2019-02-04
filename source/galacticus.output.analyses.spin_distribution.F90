@@ -26,7 +26,7 @@
   use Statistics_NBody_Halo_Mass_Errors
   use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
 
-  !# <outputAnalysis name="outputAnalysisSpinDistribution" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisSpinDistribution">
   !#  <description>A stellar mass function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisSpinDistribution
@@ -81,6 +81,13 @@ contains
     nullify(darkMatterHaloScale_         )
     nullify(darkMatterProfile_           )
     nullify(darkMatterProfileScaleRadius_)
+    !# <objectDestructor name="cosmologyFunctions_"          />
+    !# <objectDestructor name="outputTimes_"                 />
+    !# <objectDestructor name="nbodyHaloMassError_"          />
+    !# <objectDestructor name="haloMassFunction_"            />
+    !# <objectDestructor name="darkMatterHaloScale_"         />
+    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function spinDistributionConstructorParameters
 

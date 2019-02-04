@@ -29,7 +29,7 @@
   use Posterior_Sample_Differential_Random_Jump
   use Model_Parameters
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution" defaultThreadPrivate="yes">
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationDifferentialEvolution">
   !#  <description>A posterior sampling simulation class which implements the differential evolution algorithm.</description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
@@ -252,6 +252,15 @@ contains
     !# <inputParametersValidate source="parameters"/>
     nullify(modelParametersActive_  )
     nullify(modelParametersInactive_)
+    !# <objectDestructor name="posteriorSampleLikelihood_"              />
+    !# <objectDestructor name="posteriorSampleConvergence_"             />
+    !# <objectDestructor name="posteriorSampleStoppingCriterion_"       />
+    !# <objectDestructor name="posteriorSampleState_"                   />
+    !# <objectDestructor name="posteriorSampleStateInitialize_"         />
+    !# <objectDestructor name="posteriorSampleDffrntlEvltnProposalSize_"/>
+    !# <objectDestructor name="posteriorSampleDffrntlEvltnRandomJump_"  />
+    !# <objectDestructor name="modelParameter_"                         />
+    !# <objectDestructor name="modelParameter_"                         />
     return
   end function differentialEvolutionConstructorParameters
 

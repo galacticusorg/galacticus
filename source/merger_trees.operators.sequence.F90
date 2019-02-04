@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a sequence of operators on merger trees.
 
-  !# <mergerTreeOperator name="mergerTreeOperatorSequence" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorSequence">
   !#  <description>Provides a sequence of operators on merger trees.</description>
   !# </mergerTreeOperator>
 

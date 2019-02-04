@@ -22,7 +22,7 @@
   use Cosmological_Density_Field
   use Virial_Density_Contrast
 
-  !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010" defaultThreadPrivate="yes">
+  !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010">
   !#  <description>
   !#   A dark matter halo mass bias class utilizing the algorithm of \cite{tinker_large_2010}.
   !#  </description>
@@ -64,6 +64,9 @@ contains
     !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"   source="parameters"/>
     self=darkMatterHaloBiasTinker2010(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="virialDensityContrast_"   />
     return
   end function tinker2010ConstructorParameters
 

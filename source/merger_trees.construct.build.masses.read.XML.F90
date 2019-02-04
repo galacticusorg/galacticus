@@ -19,7 +19,7 @@
 
   !% Implementation of a merger tree masses class which reads masses from an XML file.
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReadXML" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReadXML">
   !#  <description>A merger tree masses class which reads masses from an XML file.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesRead) :: mergerTreeBuildMassesReadXML

@@ -24,7 +24,7 @@
   use Hot_Halo_Mass_Distributions
   use Kind_Numbers
 
-  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
   !#  <description>A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.</description>
   !# </hotHaloRamPressureStripping>
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingFont2008
@@ -80,6 +80,9 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"    />
+    !# <objectDestructor name="hotHaloRamPressureForce_"/>
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function font2008ConstructorParameters
 

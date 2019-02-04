@@ -81,6 +81,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
     self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
     return
   end function jiang2008ConstructorParameters
 

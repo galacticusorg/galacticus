@@ -86,6 +86,11 @@ contains
     !# </inputParameter>
     self=haloEnvironmentLogNormal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="criticalOverdensity_"     />
     return
   end function logNormalConstructorParameters
 

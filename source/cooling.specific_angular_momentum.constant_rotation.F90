@@ -24,7 +24,7 @@
   use Dark_Matter_Profiles
   use Hot_Halo_Mass_Distributions
 
-  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumConstantRotation" defaultThreadPrivate="yes">
+  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumConstantRotation">
   !#  <description>
   !#   A specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
   !#  </description>
@@ -113,6 +113,8 @@ contains
          &                                              useInteriorMean                                                                                         &
          &                                             )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"      />
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function constantRotationConstructorParameters
 

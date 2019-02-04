@@ -27,11 +27,11 @@ module Node_Component_Hot_Halo_Very_Simple
   use Accretion_Halos
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Very_Simple_Reset            , Node_Component_Hot_Halo_Very_Simple_Rate_Compute   , &
-       &    Node_Component_Hot_Halo_Very_Simple_Scale_Set        , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize, &
-       &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merging, Node_Component_Hot_Halo_Very_Simple_Promote        , &
-       &    Node_Component_Hot_Halo_Very_Simple_Post_Evolve      , Node_Component_Hot_Halo_Very_Simple_Node_Merger    , &
-       &    Node_Component_Hot_Halo_Very_Simple_Thread_Initialize
+  public :: Node_Component_Hot_Halo_Very_Simple_Reset            , Node_Component_Hot_Halo_Very_Simple_Rate_Compute       , &
+       &    Node_Component_Hot_Halo_Very_Simple_Scale_Set        , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize    , &
+       &    Node_Component_Hot_Halo_Very_Simple_Satellite_Merging, Node_Component_Hot_Halo_Very_Simple_Promote            , &
+       &    Node_Component_Hot_Halo_Very_Simple_Post_Evolve      , Node_Component_Hot_Halo_Very_Simple_Node_Merger        , &
+       &    Node_Component_Hot_Halo_Very_Simple_Thread_Initialize, Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -134,6 +134,21 @@ contains
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    implicit none
+
+    if (defaultHotHaloComponent%verySimpleIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"/>
+       !# <objectDestructor name="coolingRate_"        />
+       !# <objectDestructor name="accretionHalo_"      />
+    end if
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize
 
   !# <calculationResetTask>
   !# <unitName>Node_Component_Hot_Halo_Very_Simple_Reset</unitName>

@@ -21,7 +21,7 @@
 
   use Hot_Halo_Ram_Pressure_Forces
 
-  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsSimple" defaultThreadPrivate="yes">
+  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsSimple">
   !#  <description>A simple model of ram pressure stripping in galactic spheroids.</description>
   !# </ramPressureStrippingSpheroids>
   type, extends(ramPressureStrippingSpheroidsClass) :: ramPressureStrippingSpheroidsSimple
@@ -63,6 +63,7 @@ contains
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     self=ramPressureStrippingSpheroidsSimple(rateFractionalMaximum,hotHaloRamPressureForce_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="hotHaloRamPressureForce_"/>
     return
   end function simpleConstructorParameters
 

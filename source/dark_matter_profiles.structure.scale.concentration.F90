@@ -96,6 +96,12 @@ contains
     !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"/>
     self=darkMatterProfileScaleRadiusConcentration(correctForConcentrationDefinition,useMeanConcentration,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,virialDensityContrast_,darkMatterProfileConcentration_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"           />
+    !# <objectDestructor name="cosmologyFunctions_"            />
+    !# <objectDestructor name="darkMatterHaloScale_"           />
+    !# <objectDestructor name="darkMatterProfile_"             />
+    !# <objectDestructor name="virialDensityContrast_"         />
+    !# <objectDestructor name="darkMatterProfileConcentration_"/>
     return
   end function concentrationConstructorParameters
 
@@ -114,14 +120,10 @@ contains
 
     ! Get definitions of virial density contrast and dark matter profile as used by the concentration definition.
     allocate(self%darkMatterHaloScaleDefinition)
-    self%virialDensityContrastDefinition => self%darkMatterProfileConcentration_%  densityContrastDefinition()
-    self%darkMatterProfileDefinition     => self%darkMatterProfileConcentration_%darkMatterProfileDefinition()
-    self%darkMatterHaloScaleDefinition   =  darkMatterHaloScaleVirialDensityContrastDefinition(                                      &
-         &                                                                                     self%cosmologyParameters_           , &
-         &                                                                                     self%cosmologyFunctions_            , &
-         &                                                                                     self%virialDensityContrastDefinition  &
-         &                                                                                    )    
-    self%massRatioPrevious               =  2.0d0
+    !# <referenceAcquire   isResult="yes" owner="self" target="virialDensityContrastDefinition" source="self%darkMatterProfileConcentration_%  densityContrastDefinition()"/>
+    !# <referenceAcquire   isResult="yes" owner="self" target="darkMatterProfileDefinition"     source="self%darkMatterProfileConcentration_%darkMatterProfileDefinition()"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="darkMatterHaloScaleDefinition"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition)"/>
+    self%massRatioPrevious=2.0d0
   return
   end function concentrationConstructorInternal
 
@@ -130,7 +132,7 @@ contains
     implicit none
     type(darkMatterProfileScaleRadiusConcentration), intent(inout) :: self
 
-    nullify(self%darkMatterHaloScaleDefinition)
+    !# <objectDestructor name="self%darkMatterHaloScaleDefinition"  />
     !# <objectDestructor name="self%cosmologyParameters_"           />
     !# <objectDestructor name="self%cosmologyFunctions_"            />
     !# <objectDestructor name="self%darkMatterHaloScale_"           />

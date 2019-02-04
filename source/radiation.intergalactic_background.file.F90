@@ -84,6 +84,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=radiationFieldIntergalacticBackgroundFile(fileName,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function intergalacticBackgroundFileConstructorParameters
 

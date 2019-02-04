@@ -78,6 +78,9 @@ contains
     !# <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
     self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nBodyHaloMassError_,errorFractionalMaximum)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_" />
+    !# <objectDestructor name="nBodyHaloMassError_"  />
+    !# <objectDestructor name="massFunctionIntrinsic"/>
     return
   end function errorConvolvedConstructorParameters
 

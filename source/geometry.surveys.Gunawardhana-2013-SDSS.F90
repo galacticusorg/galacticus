@@ -52,6 +52,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=surveyGeometryGunawardhana2013SDSS(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function gunawardhana2013SDSSConstructorParameters
   

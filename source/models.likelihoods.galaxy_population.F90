@@ -31,7 +31,7 @@
      logical                          :: resolved
   end type inputParameterList
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for \glc\ models.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGalaxyPopulation

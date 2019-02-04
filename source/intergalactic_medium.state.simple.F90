@@ -91,6 +91,9 @@ contains
     ! Construct the object.
     self=intergalacticMediumStateSimple(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="linearGrowth_"       />
     return
   end function simpleIGMConstructorParameters
 

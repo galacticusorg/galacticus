@@ -30,7 +30,6 @@ module Stellar_Populations_Initial_Mass_Functions
   !#  <descriptiveName>Initial Mass Functions</descriptiveName>
   !#  <description>Class providing stellar initial mass functions.</description>
   !#  <default>chabrier2001</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="massMinimum" >
   !#   <description>Return the minimum mass in the initial mass function.</description>
   !#   <type>double precision</type>

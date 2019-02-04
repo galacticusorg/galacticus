@@ -60,6 +60,8 @@ contains
     !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
     self=powerSpectrumStandard(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologicalMassVariance_"          />
+    !# <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
     return
   end function standardConstructorParameters
 

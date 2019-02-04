@@ -27,10 +27,11 @@ module Node_Component_Black_Hole_Simple
   use Black_Hole_Binary_Mergers
   implicit none
   private
-  public :: Node_Component_Black_Hole_Simple_Initialize       , Node_Component_Black_Hole_Simple_Scale_Set        , &
-       &    Node_Component_Black_Hole_Simple_Satellite_Merging, Node_Component_Black_Hole_Simple_Output_Names     , &
-       &    Node_Component_Black_Hole_Simple_Output_Count     , Node_Component_Black_Hole_Simple_Output           , &
-       &    Node_Component_Black_Hole_Simple_Rate_Compute     , Node_Component_Black_Hole_Simple_Thread_Initialize
+  public :: Node_Component_Black_Hole_Simple_Initialize         , Node_Component_Black_Hole_Simple_Scale_Set        , &
+       &    Node_Component_Black_Hole_Simple_Satellite_Merging  , Node_Component_Black_Hole_Simple_Output_Names     , &
+       &    Node_Component_Black_Hole_Simple_Output_Count       , Node_Component_Black_Hole_Simple_Output           , &
+       &    Node_Component_Black_Hole_Simple_Rate_Compute       , Node_Component_Black_Hole_Simple_Thread_Initialize, &
+       &    Node_Component_Black_Hole_Simple_Thread_Uninitialize
 
   !# <component>
   !#  <class>blackHole</class>
@@ -161,6 +162,21 @@ contains
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Black_Hole_Simple_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize()
+    !% Uninitializes the tree node random spin module.
+    implicit none
+
+    if (defaultBlackHoleComponent%simpleIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"  />
+       !# <objectDestructor name="coolingRadius_"        />
+       !# <objectDestructor name="blackHoleBinaryMerger_"/>
+    end if
+    return
+  end subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize
 
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Scale_Set</unitName>

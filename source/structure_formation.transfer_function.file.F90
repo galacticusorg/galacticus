@@ -22,7 +22,7 @@
   use Tables
   use Cosmology_Parameters
 
-  !# <transferFunction name="transferFunctionFile" defaultThreadPrivate="yes">
+  !# <transferFunction name="transferFunctionFile">
   !#  <description>
   !# Provides a transfer function from a tabulation given in an XML or HDF5 file. The XML file format for transfer functions looks like:
   !# \begin{verbatim}
@@ -229,6 +229,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=transferFunctionFile(char(fileName),cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function fileConstructorParameters
 

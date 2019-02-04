@@ -64,6 +64,7 @@ contains
     !# </inputParameter>
     self=surveyGeometryCaputi2011UKIDSSUDS(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function caputi2011UKIDSSUDSConstructorParameters
 

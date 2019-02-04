@@ -25,7 +25,8 @@ module Node_Component_Position_Preset_Orphans
   use Satellite_Oprhan_Distributions
   implicit none
   private
-  public :: Node_Component_Position_Preset_Orphans_Initialize, Node_Component_Position_Preset_Orphans_Thread_Initialize
+  public :: Node_Component_Position_Preset_Orphans_Initialize         , Node_Component_Position_Preset_Orphans_Thread_Initialize, &
+       &    Node_Component_Position_Preset_Orphans_Thread_Uninitialize
 
   !# <component>
   !#  <class>position</class>
@@ -115,6 +116,19 @@ contains
     end if
     return
   end subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Position_Preset_Orphans_Thread_Uninitialize()
+    !% Uninitializes the tree node preset orphans position module.
+    implicit none
+
+    if (defaultPositionComponent%presetOrphansIsActive()) then
+       !# <objectDestructor name="satelliteOrphanDistribution_"/>
+    end if
+    return
+  end subroutine Node_Component_Position_Preset_Orphans_Thread_Uninitialize
 
   function Node_Component_Position_Preset_Orphans_Position_Orphan(self)
     !% Return the position of the orphan node.

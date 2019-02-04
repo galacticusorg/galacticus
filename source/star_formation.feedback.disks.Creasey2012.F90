@@ -21,7 +21,7 @@
 
   use Star_Formation_Rate_Surface_Density_Disks
  
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012">
   !#  <description>The \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.</description>
   !# </starFormationFeedbackDisks>
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksCreasey2012
@@ -83,6 +83,7 @@ contains
     !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     self=starFormationFeedbackDisksCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
     return
   end function creasey2012ConstructorParameters
 

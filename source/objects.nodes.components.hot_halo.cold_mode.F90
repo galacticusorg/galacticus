@@ -33,11 +33,11 @@ module Node_Component_Hot_Halo_Cold_Mode
   use Accretion_Halos
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute     , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize  , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging, &
-       &    Node_Component_Hot_Halo_Cold_Mode_Promote          , Node_Component_Hot_Halo_Cold_Mode_Formation        , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
+  public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize    , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Satellite_Merging  , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Promote          , Node_Component_Hot_Halo_Cold_Mode_Formation          , &
+       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -150,6 +150,25 @@ contains
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize()
+    !% Uninitializes the tree node hot halo cold mode methods module.
+    use Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
+    implicit none
+
+    if (defaultHotHaloComponent%coldModeIsActive()) then
+       !# <objectDestructor name="cosmologyParameters_"     />
+       !# <objectDestructor name="darkMatterHaloScale_"     />
+       !# <objectDestructor name="darkMatterProfile_"       />
+       !# <objectDestructor name="accretionHalo_"           />
+       !# <objectDestructor name="coldModeInfallRate_"      />
+       !# <objectDestructor name="hotHaloColdModeCoreRadii_"/>
+    end if
+    return
+  end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
 
   subroutine Node_Component_Hot_Halo_Cold_Mode_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes (along with appropriate amounts of metals and angular momentum) at the given rate.

@@ -54,6 +54,7 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
     !# <inputParametersValidate source="parameters"/>    
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end function sussingHDF5ConstructorParameters
 

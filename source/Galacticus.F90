@@ -35,19 +35,20 @@ program Galacticus
   use Functions_Global_Utilities
   use Galacticus_Error_Wait
   use System_Limits
+  use Galacticus_Function_Classes_Destroys
 #ifdef USEMPI
   use MPI
   use MPI_Utilities
 #endif
   implicit none
+#ifdef USEMPI
+  integer                                         :: status
+#endif
   integer                             , parameter :: fileNameLengthMaximum =1024
   class    (taskClass                ), pointer   :: task_
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
-#ifdef USEMPI
-  integer                                         :: status
-#endif
   
   ! Initialize MPI.
 #ifdef USEMPI
@@ -81,11 +82,14 @@ program Galacticus
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show()
   ! Perform task.
-  task_ => task()
+  !# <objectBuilder class="task" name="task_" source="parameters"/>
   if (task_%requiresOutputFile()) call Galacticus_Output_Open_File ()
   call task_     %perform()
   call parameters%destroy()
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
+  !# <objectDestructor name="task_"/>
+  call taskDoDestroy()
+  call Galacticus_Function_Classes_Destroy()
   ! Finalize MPI.
 #ifdef USEMPI
   call MPI_Barrier(MPI_Comm_World,status)

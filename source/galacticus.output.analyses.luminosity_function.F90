@@ -22,7 +22,7 @@
   use Geometry_Surveys
   use Cosmology_Functions
 
-  !# <outputAnalysis name="outputAnalysisLuminosityFunction" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisLuminosityFunction">
   !#  <description>A luminosity function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunction
@@ -123,6 +123,13 @@ contains
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
     self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,char(filterName),char(filterType),redshiftBand)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"                    />
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="cosmologyFunctionsData"             />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"    />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"/>
+    !# <objectDestructor name="surveyGeometry_"                    />
+    !# <objectDestructor name="outputTimes_"                       />
     return
   end function luminosityFunctionConstructorParameters
 

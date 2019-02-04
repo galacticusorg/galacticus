@@ -19,7 +19,7 @@
 
   !% Contains a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
 
-  !# <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry" defaultThreadPrivate="yes">
+  !# <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry">
   !#  <description>A satellite tidal field class which computes the tidal field assuming spherical symmetry.</description>
   !# </satelliteTidalField>
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldSphericalSymmetry

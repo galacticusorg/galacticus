@@ -29,7 +29,7 @@
   use Hot_Halo_Mass_Distributions
   use Radiation_Fields
 
-  !# <coolingRadius name="coolingRadiusBetaProfile" defaultThreadPrivate="yes">
+  !# <coolingRadius name="coolingRadiusBetaProfile">
   !#  <description>
   !#   A cooling radius class for $\beta$-profile halos. Computes the cooling radius by assuming that the hot gas density profile is a
   !#   $\beta$-profile ($\rho(r) \propto [r^2+r_\mathrm{c}^2]^{-1}$), and that the cooling rate scales as density squared, $\dot{E}\propto
@@ -92,6 +92,12 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
     self=coolingRadiusBetaProfile(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"       />
+    !# <objectDestructor name="darkMatterHaloScale_"      />
+    !# <objectDestructor name="coolingTimeAvailable_"     />
+    !# <objectDestructor name="coolingTime_"              />
+    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
+    !# <objectDestructor name="hotHaloMassDistribution_"  />
     return
   end function betaProfileConstructorParameters
 

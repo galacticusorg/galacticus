@@ -73,6 +73,7 @@ contains
     !# </inputParameter>
     self=surveyGeometryMoustakas2013PRIMUS(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function moustakas2013PRIMUSConstructorParameters
 

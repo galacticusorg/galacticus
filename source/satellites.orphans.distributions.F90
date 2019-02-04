@@ -29,7 +29,6 @@ module Satellite_Oprhan_Distributions
   !#  <descriptiveName>Satellite Orphan Distributions</descriptiveName>
   !#  <description>Class providing distributions for orphan satellites.</description>
   !#  <default>traceDarkMatter</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="extent" >
   !#   <description>The maximum extent of the distribution, i.e. the radius of a sphere centered on the host halo which encompasses all orphan satellites.</description>
   !#   <type>double precision</type>

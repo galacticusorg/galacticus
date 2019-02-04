@@ -120,6 +120,9 @@ contains
     ! Construct the object.
     self=darkMatterProfileConcentrationKlypin2015(enumerationKlypin2015SampleEncode(char(sample),includesPrefix=.false.),cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function klypin2015ConstructorParameters
   

@@ -24,7 +24,7 @@
   use Cosmology_Functions
   use Cosmological_Density_Field
 
-  !# <mergerTreeOperator name="mergerTreeOperatorExport" defaultThreadPrivate="true">
+  !# <mergerTreeOperator name="mergerTreeOperatorExport">
   !#  <description>
   !#   A merger tree operator which exports merger trees to file.
   !# </description>
@@ -88,6 +88,9 @@ contains
     exportFormat=enumerationMergerTreeFormatEncode(char(exportFormatText),includesPrefix=.false.)
     self=exportConstructorInternal(char(outputFileName),exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function exportConstructorParameters
 
@@ -130,7 +133,8 @@ contains
     use Numerical_Interpolation
     use Merger_Tree_Data_Structure
     use Merger_Tree_Walkers
-    use Galacticus_Nodes                , only : treeNode, nodeComponentBasic, nodeComponentPosition, defaultPositionComponent
+    use Galacticus_Nodes                , only : treeNode         , nodeComponentBasic, nodeComponentPosition, defaultPositionComponent
+    use FGSL                            , only : fgsl_interp_accel
     use Input_Parameters
     use Memory_Management
     use Sort

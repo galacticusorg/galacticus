@@ -21,7 +21,7 @@
   
   use Output_Analyses, only : outputAnalysis, outputAnalysisClass
 
-  !# <mergerTreeOutputter name="mergerTreeOutputterAnalyzer" defaultThreadPrivate="yes">
+  !# <mergerTreeOutputter name="mergerTreeOutputterAnalyzer">
   !#  <description>A merger tree outputter class which performs analyzes on the trees.</description>
   !# </mergerTreeOutputter>
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterAnalyzer
@@ -54,6 +54,7 @@ contains
     !# <objectBuilder class="outputAnalysis" name="outputAnalysis_" source="parameters"/>
     self=mergerTreeOutputterAnalyzer(outputAnalysis_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysis_"/>
     return
   end function analyzerConstructorParameters
 

@@ -29,7 +29,6 @@ module Supernovae_Type_Ia
   !#  <descriptiveName>Supernovae Type Ia</descriptiveName>
   !#  <description>Class providing models of supernovae type Ia.</description>
   !#  <default>nagashima2005</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="number" >
   !#   <description>Return the cumulative number of Type Ia supernovae from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
   !#   <type>double precision</type>

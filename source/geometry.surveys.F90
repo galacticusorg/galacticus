@@ -29,7 +29,6 @@ module Geometry_Surveys
   !#  <descriptiveName>Survey Geometry</descriptiveName>
   !#  <description>Object providing galaxy surveys geometries and related functions.</description>
   !#  <default>liWhite2009SDSS</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="fieldCount" >
   !#   <description>Returns the number of distinct fields included in the survey.</description>
   !#   <type>integer</type>

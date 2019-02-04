@@ -21,7 +21,7 @@
 
   use Posterior_Sampling_Convergence
   
-  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength" defaultThreadPrivate="yes">
+  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength">
   !#  <description>A posterior sampling stopping class which stops after a given number of correlation lengths.</description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionCorrelationLength
@@ -61,6 +61,7 @@ contains
     !# <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
     self=posteriorSampleStoppingCriterionCorrelationLength(stopAfterCount,posteriorSampleConvergence_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="posteriorSampleConvergence_"/>
    return
   end function correlationLengthConstructorParameters
 

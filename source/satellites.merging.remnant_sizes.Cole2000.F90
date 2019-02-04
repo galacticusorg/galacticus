@@ -62,6 +62,7 @@ contains
     !# <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
     self=mergerRemnantSizeCole2000(energyOrbital,mergerProgenitorProperties_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerProgenitorProperties_"/>
     return
   end function cole2000ConstructorParameters
 

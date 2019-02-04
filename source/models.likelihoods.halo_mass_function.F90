@@ -25,7 +25,7 @@
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profiles
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for halo mass functions.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodHaloMassFunction
@@ -165,6 +165,15 @@ contains
     !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"                       source="parameters"             />
     self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfile_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"                   />
+    !# <objectDestructor name="cosmologyParameters_"                  />
+    !# <objectDestructor name="cosmologicalMassVariance_"             />
+    !# <objectDestructor name="cosmologicalMassVarianceUnconditioned_"/>
+    !# <objectDestructor name="criticalOverdensity_"                  />
+    !# <objectDestructor name="criticalOverdensityUnconditioned_"     />
+    !# <objectDestructor name="darkMatterHaloScale_"                  />
+    !# <objectDestructor name="darkMatterProfile_"                    />
+    !# <objectDestructor name="haloEnvironment_"                      />
     return
   end function haloMassFunctionConstructorParameters
 

@@ -21,7 +21,7 @@
 
   use Cosmology_Functions
   
-  !# <galacticFilter name="galacticFilterStellarApparentMagnitudes" defaultThreadPrivate="yes">
+  !# <galacticFilter name="galacticFilterStellarApparentMagnitudes">
   !#  <description>
   !#  A galactic low-pass (i.e. bright-pass) filter for stellar apparent magnitudes. Galaxies with apparent magnitude in each
   !#  band, $i$, less than or equal to a fixed threshold, $m_{0,i}=${\normalfont \ttfamily [apparentMagnitudeThreshold]}.
@@ -74,6 +74,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>          
     self=galacticFilterStellarApparentMagnitudes(apparentMagnitudeThreshold,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyFunctions_"/>
    return
   end function stellarApparentMagnitudesConstructorParameters
 

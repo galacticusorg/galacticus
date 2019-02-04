@@ -238,6 +238,9 @@ contains
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
     self=chemicalReactionRateHydrogenNetwork(fast,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="atomicIonizationRateCollisional_"  />
+    !# <objectDestructor name="atomicRecombinationRateRadiative_" />
+    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
     return
   end function hydrogenNetworkConstructorParameters
 

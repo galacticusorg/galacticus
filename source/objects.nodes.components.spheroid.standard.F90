@@ -35,13 +35,14 @@ module Node_Component_Spheroid_Standard
   use Star_Formation_Timescales_Spheroids
   implicit none
   private
-  public :: Node_Component_Spheroid_Standard_Rate_Compute     , Node_Component_Spheroid_Standard_Scale_Set                    , &
-       &    Node_Component_Spheroid_Standard_Radius_Solver    , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
-       &    Node_Component_Spheroid_Standard_Initialize       , Node_Component_Spheroid_Standard_Post_Evolve                  , &
-       &    Node_Component_Spheroid_Standard_Pre_Evolve       , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
-       &    Node_Component_Spheroid_Standard_Satellite_Merging, Node_Component_Spheroid_Standard_Thread_Initialize            , &
-       &    Node_Component_Spheroid_Standard_State_Store      , Node_Component_Spheroid_Standard_State_Retrieve               , &
-       &    Node_Component_Spheroid_Standard_Inactive         , Node_Component_Spheroid_Standard_Post_Step
+  public :: Node_Component_Spheroid_Standard_Rate_Compute       , Node_Component_Spheroid_Standard_Scale_Set                    , &
+       &    Node_Component_Spheroid_Standard_Radius_Solver      , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
+       &    Node_Component_Spheroid_Standard_Initialize         , Node_Component_Spheroid_Standard_Post_Evolve                  , &
+       &    Node_Component_Spheroid_Standard_Pre_Evolve         , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
+       &    Node_Component_Spheroid_Standard_Satellite_Merging  , Node_Component_Spheroid_Standard_Thread_Initialize            , &
+       &    Node_Component_Spheroid_Standard_State_Store        , Node_Component_Spheroid_Standard_State_Retrieve               , &
+       &    Node_Component_Spheroid_Standard_Inactive           , Node_Component_Spheroid_Standard_Post_Step                    , &
+       &    Node_Component_Spheroid_Standard_Thread_Uninitialize
 
   !# <component>
   !#  <class>spheroid</class>
@@ -325,6 +326,27 @@ contains
     end if
     return
   end subroutine Node_Component_Spheroid_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Spheroid_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize()
+    !% Uninitializes the standard spheroid module for each thread.
+    implicit none
+
+    if (defaultSpheroidComponent%standardIsActive()) then
+       !# <objectDestructor name="stellarPopulationProperties_"            />
+       !# <objectDestructor name="starFormationFeedbackSpheroids_"         />
+       !# <objectDestructor name="starFormationExpulsiveFeedbackSpheroids_"/>
+       !# <objectDestructor name="starFormationTimescaleSpheroids_"        />
+       !# <objectDestructor name="ramPressureStrippingSpheroids_"          />
+       !# <objectDestructor name="tidalStrippingSpheroids_"                />
+       !# <objectDestructor name="darkMatterHaloScale_"                    />
+       !# <objectDestructor name="satelliteTidalField_"                    />
+       !# <objectDestructor name="spheroidMassDistribution"                />
+    end if
+    return
+  end subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize
 
   !# <preEvolveTask>
   !# <unitName>Node_Component_Spheroid_Standard_Pre_Evolve</unitName>

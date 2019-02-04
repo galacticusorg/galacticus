@@ -28,7 +28,6 @@ module Mass_Function_Incompletenesses
   !#  <descriptiveName>Mass Function Incompletenesses</descriptiveName>
   !#  <description>Class providing incompleteness calculations for observed mass functions.</description>
   !#  <default>complete</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="completeness" >
   !#   <description>Return the completeness of the observational sample at the given mass.</description>
   !#   <type>double precision</type>

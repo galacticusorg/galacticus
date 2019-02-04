@@ -85,6 +85,8 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=hotHaloMassDistributionCoreRadiusGrowing(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function growingConstructorParameters
 

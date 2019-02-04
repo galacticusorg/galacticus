@@ -97,6 +97,9 @@ contains
     !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
     self=gravitationalLensingTakahashi2011(cosmologyParameters_,cosmologyFunctions_,powerSpectrumNonlinear_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"   />
+    !# <objectDestructor name="cosmologyFunctions_"    />
+    !# <objectDestructor name="powerSpectrumNonlinear_"/>
     return
   end function takahashi2011ConstructorParameters
   

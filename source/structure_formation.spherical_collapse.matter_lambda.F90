@@ -269,10 +269,9 @@ contains
     use Numerical_Integration
     implicit none
     real   (kind=c_double             ), intent(in   )       :: epsilonPerturbation
-    type   (fgsl_function             )               , save :: integrandFunction
-    type   (fgsl_integration_workspace)               , save :: integrationWorkspace
-    logical                                           , save :: integrationReset     =.true.
-    !$omp threadprivate(integrandFunction,integrationWorkspace,integrationReset)
+    type   (fgsl_function             )                      :: integrandFunction
+    type   (fgsl_integration_workspace)                      :: integrationWorkspace
+    logical                                                  :: integrationReset
     real   (kind=c_double             ), parameter           :: aMinimum             =0.0d0
     real   (kind=c_double             ), parameter           :: numericalLimitEpsilon=1.0d-4
     real   (kind=c_double             )                      :: aMaximum                    , aUpperLimit, &
@@ -288,9 +287,11 @@ contains
     epsilonPerturbationShared=epsilonPerturbation
 
     ! Integrate the perturbation equation from size zero to maximum size to get the time to maximum expansion.
+    integrationReset=.true.
     tMaximum=Integrate(aMinimum,aMaximum,Perturbation_Integrand,integrandFunction,integrationWorkspace &
          &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6,hasSingularities=.true.,reset=integrationReset)&
          &/hubbleParameterInvGyr
+    call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Add on analytic correction for region close to aMaximum.
     tMaximum=tMaximum-2.0d0*sqrt(OmegaM/aMaximum+epsilonPerturbation+OmegaDE*aMaximum**2)/(2.0d0*OmegaDE*aMaximum-OmegaM&
          &/aMaximum**2)/hubbleParameterInvGyr

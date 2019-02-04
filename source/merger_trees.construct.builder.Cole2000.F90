@@ -172,6 +172,10 @@ contains
          &                                                                                                           criticalOverdensity_               &
          &                           )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerTreeBranchingProbability_"/>
+    !# <objectDestructor name="mergerTreeMassResolution_"      />
+    !# <objectDestructor name="cosmologyFunctions_"            />
+    !# <objectDestructor name="criticalOverdensity_"           />
     return
   end function cole2000ConstructorParameters
 
@@ -642,6 +646,7 @@ contains
 
     !# <objectDestructor name="self%criticalOverdensity_"/>
     self%criticalOverdensity_               =>      criticalOverdensity_
+    !# <referenceCountIncrement owner="self" object="criticalOverdensity_"/>
     self%criticalOverdensityIsMassDependent =  self%criticalOverdensity_%isMassDependent()
     return
   end subroutine cole2000CriticalOverdensitySet

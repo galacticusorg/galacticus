@@ -77,6 +77,7 @@ contains
     ! Build the object.
     self=surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function fullSkyConstructorParameters
 

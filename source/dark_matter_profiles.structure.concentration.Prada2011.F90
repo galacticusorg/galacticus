@@ -195,6 +195,10 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterProfileConcentrationPrada2011(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,linearGrowth_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function prada2011ConstructorParameters
 

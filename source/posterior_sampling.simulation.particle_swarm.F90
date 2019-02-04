@@ -26,7 +26,7 @@
   use Posterior_Sampling_State_Initialize
   use Model_Parameters
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm" defaultThreadPrivate="yes">
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
   !#  <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationParticleSwarm
@@ -226,6 +226,13 @@ contains
     !# <inputParametersValidate source="parameters"/>
     nullify(modelParametersActive_  )
     nullify(modelParametersInactive_)
+    !# <objectDestructor name="posteriorSampleLikelihood_"       />
+    !# <objectDestructor name="posteriorSampleConvergence_"      />
+    !# <objectDestructor name="posteriorSampleStoppingCriterion_"/>
+    !# <objectDestructor name="posteriorSampleState_"            />
+    !# <objectDestructor name="posteriorSampleStateInitialize_"  />
+    !# <objectDestructor name="modelParameter_"                  />
+    !# <objectDestructor name="modelParameter_"                  />
     return
   end function particleSwarmConstructorParameters
 

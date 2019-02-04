@@ -22,7 +22,7 @@
   use Statistics_Distributions
   use Math_Operators_Unary
   
-  !# <modelParameter name="modelParameterActive" defaultThreadPrivate="yes">
+  !# <modelParameter name="modelParameterActive">
   !#  <description>An active model parameter class.</description>
   !# </modelParameter>
   type, extends(modelParameterClass) :: modelParameterActive
@@ -75,6 +75,9 @@ contains
     !# <objectBuilder class="operatorUnary"          parameterName="operatorUnaryMapper"             name="mapper"    source="parameters"/>
     self=modelParameterActive(name,prior,perturber,mapper)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="prior"    />
+    !# <objectDestructor name="perturber"/>
+    !# <objectDestructor name="mapper"   />
     return
   end function activeConstructorParameters
 

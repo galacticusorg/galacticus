@@ -22,7 +22,7 @@
 
   use Nearest_Neighbors
   
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
   !#  <description>A posterior sampling likelihood class which implements a likelihood using a given posterior distribution over the parameters in the form of a set of MCMC chains.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPosteriorAsPrior
@@ -108,6 +108,7 @@ contains
     !# <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
     self=posteriorSampleLikelihoodPosteriorAsPrior(char(chainBaseName),neighborCount,tolerance,exclusions,posteriorSampleLikelihood_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="posteriorSampleLikelihood_"/>
     return
   end function posteriorAsPriorConstructorParameters
 

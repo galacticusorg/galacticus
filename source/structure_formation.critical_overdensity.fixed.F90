@@ -72,6 +72,9 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=criticalOverdensityFixed(criticalOverdensity_,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="linearGrowth_"            />
+   !# <objectDestructor name="cosmologyFunctions_"      />
+   !# <objectDestructor name="cosmologicalMassVariance_"/>
    return
   end function fixedConstructorParameters
 

@@ -33,14 +33,14 @@ module Node_Component_Disk_Standard
   use Tidal_Stripping_Mass_Loss_Rate_Disks
   implicit none
   private
-  public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve       , &
-       &    Node_Component_Disk_Standard_Radius_Solver_Plausibility   , Node_Component_Disk_Standard_Radius_Solver    , &
-       &    Node_Component_Disk_Standard_Star_Formation_History_Output, Node_Component_Disk_Standard_Rate_Compute     , &
-       &    Node_Component_Disk_Standard_Initialize                   , Node_Component_Disk_Standard_Post_Evolve      , &
-       &    Node_Component_Disk_Standard_Satellite_Merging            , Node_Component_Disk_Standard_Calculation_Reset, &
-       &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve   , &
-       &    Node_Component_Disk_Standard_Thread_Initialize            , Node_Component_Disk_Standard_Inactive         , &
-       &    Node_Component_Disk_Standard_Post_Step
+  public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve         , &
+       &    Node_Component_Disk_Standard_Radius_Solver_Plausibility   , Node_Component_Disk_Standard_Radius_Solver      , &
+       &    Node_Component_Disk_Standard_Star_Formation_History_Output, Node_Component_Disk_Standard_Rate_Compute       , &
+       &    Node_Component_Disk_Standard_Initialize                   , Node_Component_Disk_Standard_Post_Evolve        , &
+       &    Node_Component_Disk_Standard_Satellite_Merging            , Node_Component_Disk_Standard_Calculation_Reset  , &
+       &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve     , &
+       &    Node_Component_Disk_Standard_Thread_Initialize            , Node_Component_Disk_Standard_Inactive           , &
+       &    Node_Component_Disk_Standard_Post_Step                    , Node_Component_Disk_Standard_Thread_Uninitialize 
 
   !# <component>
   !#  <class>disk</class>
@@ -333,6 +333,28 @@ contains
     end if
     return
   end subroutine Node_Component_Disk_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Disk_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Disk_Standard_Thread_Uninitialize()
+    !% Uninitializes the standard disk component module for each thread.
+    use Node_Component_Disk_Standard_Data
+    implicit none
+    
+    if (defaultDiskComponent%standardIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"                />
+       !# <objectDestructor name="stellarPopulationProperties_"        />
+       !# <objectDestructor name="starFormationFeedbackDisks_"         />
+       !# <objectDestructor name="starFormationExpulsiveFeedbackDisks_"/>
+       !# <objectDestructor name="starFormationTimescaleDisks_"        />
+       !# <objectDestructor name="galacticDynamicsBarInstability_"     />
+       !# <objectDestructor name="ramPressureStrippingDisks_"          />
+       !# <objectDestructor name="tidalStrippingDisks_"                />
+       !# <objectDestructor name="diskMassDistribution"                />
+    end if
+    return
+  end subroutine Node_Component_Disk_Standard_Thread_Uninitialize
 
   !# <calculationResetTask>
   !#   <unitName>Node_Component_Disk_Standard_Calculation_Reset</unitName>

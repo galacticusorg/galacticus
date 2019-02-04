@@ -27,10 +27,10 @@ module Node_Component_Merging_Statistics_Recent
   use            :: Node_Component_Merging_Statistics_Recent_Data
   implicit none
   private
-  public :: Node_Component_Merging_Statistics_Recent_Merger_Tree_Init , Node_Component_Merging_Statistics_Recent_Node_Merger , &
-       &    Node_Component_Merging_Statistics_Recent_Node_Promotion   , Node_Component_Merging_Statistics_Recent_Output_Names, &
-       &    Node_Component_Merging_Statistics_Recent_Output_Count     , Node_Component_Merging_Statistics_Recent_Output      , &
-       &    Node_Component_Merging_Statistics_Recent_Thread_Initialize
+  public :: Node_Component_Merging_Statistics_Recent_Merger_Tree_Init , Node_Component_Merging_Statistics_Recent_Node_Merger        , &
+       &    Node_Component_Merging_Statistics_Recent_Node_Promotion   , Node_Component_Merging_Statistics_Recent_Output_Names       , &
+       &    Node_Component_Merging_Statistics_Recent_Output_Count     , Node_Component_Merging_Statistics_Recent_Output             , &
+       &    Node_Component_Merging_Statistics_Recent_Thread_Initialize, Node_Component_Merging_Statistics_Recent_Thread_Uninitialize
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -142,6 +142,21 @@ contains
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Merging_Statistics_Recent_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Merging_Statistics_Recent_Thread_Uninitialize()
+    !% Uninitializes the tree node recent merging flow statistics module.
+    use Galacticus_Nodes, only : defaultMergingStatisticsComponent
+    implicit none
+
+    if (defaultMergingStatisticsComponent%recentIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"/>
+       !# <objectDestructor name="outputTimes_"        />       
+    end if
+    return
+  end subroutine Node_Component_Merging_Statistics_Recent_Thread_Uninitialize
 
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Merger_Tree_Init</unitName>

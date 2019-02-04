@@ -28,7 +28,6 @@ module Stellar_Spectra_Dust_Attenuations
   !#  <descriptiveName>Stellar Spectra Dust Attenuation</descriptiveName>
   !#  <description>Class implementing dust attenuation of stellar spectra.</description>
   !#  <default>zero</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="attenuation" >
   !#   <description>Return the attenuation, in magnitudes, of stellar spectra due to dust at the given wavelength, age, and V-band extinction.</description>
   !#   <type>double precision</type>

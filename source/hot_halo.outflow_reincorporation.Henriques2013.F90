@@ -93,6 +93,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=hotHaloOutflowReincorporationHenriques2013(gamma,delta1,delta2,cosmologyFunctions_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>  
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function henriques2013ConstructorParameters
 

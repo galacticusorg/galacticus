@@ -84,6 +84,9 @@ contains
     !#  <argument name="formationRedshift" value="formationRedshift" parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function wechsler2002ConstructorParameters
 

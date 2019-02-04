@@ -25,7 +25,7 @@
   use Power_Spectra
   use Cosmological_Density_Field
 
-  !# <task name="taskExcursionSets" defaultThreadPrivate="yes">
+  !# <task name="taskExcursionSets">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
   !# </task>
   type, extends(taskClass) :: taskExcursionSets
@@ -162,6 +162,13 @@ contains
          &                 powerSpectrum_              &
          &                )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"      />
+    !# <objectDestructor name="cosmologyFunctions_"       />
+    !# <objectDestructor name="cosmologicalMassVariance_" />
+    !# <objectDestructor name="haloMassFunction_"         />
+    !# <objectDestructor name="excursionSetBarrier_"      />
+    !# <objectDestructor name="excursionSetFirstCrossing_"/>
+    !# <objectDestructor name="powerSpectrum_"            />
     return
   end function excursionSetsConstructorParameters
 
@@ -202,6 +209,7 @@ contains
   
   subroutine excursionSetsDestructor(self)
     !% Destructor for the {\normalfont \ttfamily excursionSets} task class.
+    use Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskExcursionSets), intent(inout) :: self
 
@@ -212,6 +220,7 @@ contains
     !# <objectDestructor name="self%excursionSetBarrier_"      />
     !# <objectDestructor name="self%excursionSetFirstCrossing_"/>
     !# <objectDestructor name="self%powerSpectrum_"            />
+    call Node_Components_Uninitialize()
     return
   end subroutine excursionSetsDestructor
 

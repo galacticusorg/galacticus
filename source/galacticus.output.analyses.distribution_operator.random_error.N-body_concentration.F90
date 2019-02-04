@@ -79,6 +79,7 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyExtractor" name="outputAnalysisPropertyExtractor_" source="parameters"/>
     self=outputAnalysisDistributionOperatorRndmErrNbdyCnc(a,b,massParticle,outputAnalysisPropertyExtractor_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"/>
     return
   end function randomErrorNbdyCncConstructorParameters
 

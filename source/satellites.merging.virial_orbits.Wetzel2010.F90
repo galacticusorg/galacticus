@@ -85,6 +85,9 @@ contains
     !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
     self=virialOrbitWetzel2010(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="criticalOverdensity_"/>
     return
   end function wetzel2010ConstructorParameters
 

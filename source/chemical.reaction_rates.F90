@@ -31,7 +31,6 @@ module Chemical_Reaction_Rates
   !#  <descriptiveName>Chemical Reaction Rates</descriptiveName>
   !#  <description>Class providing chemical reaction rates.</description>
   !#  <default>zero</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="rates" >
   !#   <description>Return the collisional excitation cooling rate , in units of J/m$^3$/s, for ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at temperature {\normalfont \ttfamily T} (in Kelvin).</description>
   !#   <type>void</type>

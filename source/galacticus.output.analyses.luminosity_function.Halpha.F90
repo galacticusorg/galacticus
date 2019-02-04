@@ -23,7 +23,7 @@
   use Cosmology_Functions
   use Stellar_Spectra_Dust_Attenuations
 
-  !# <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha">
   !#  <description>A luminosity function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunctionHalpha
@@ -139,6 +139,14 @@ contains
     !# <objectBuilder class="stellarSpectraDustAttenuation"      name="stellarSpectraDustAttenuation_"      source="parameters"            />
     self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"                    />
+    !# <objectDestructor name="outputTimes_"                       />
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="cosmologyFunctionsData"             />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"    />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"/>
+    !# <objectDestructor name="surveyGeometry_"                    />
+    !# <objectDestructor name="stellarSpectraDustAttenuation_"     />
     return
   end function luminosityFunctionHalphaConstructorParameters
 

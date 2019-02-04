@@ -23,6 +23,7 @@
 
 module Atomic_Ionization_Potentials
   !% Implements an atomic ionization potential class.
+  private
 
   !# <functionClass>
   !#  <name>atomicIonizationPotential</name>

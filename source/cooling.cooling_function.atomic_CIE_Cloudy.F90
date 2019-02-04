@@ -20,7 +20,7 @@
   !% Implements a cooling function class which utilizes the {\normalfont \scshape Cloudy} code to
   !% compute cooling in collisional ionization equilibrium.
   
-  !# <coolingFunction name="coolingFunctionAtomicCIECloudy" defaultThreadPrivate="yes">
+  !# <coolingFunction name="coolingFunctionAtomicCIECloudy">
   !#  <description>
   !#   Class providing cooling function by utilizing the {\normalfont \scshape Cloudy} code to
   !#   compute cooling in collisional ionization equilibrium. {\normalfont \scshape Cloudy} will

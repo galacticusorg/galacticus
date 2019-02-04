@@ -22,7 +22,7 @@
 
   use Cosmology_Parameters
   
-  !# <cosmologicalMassVariance name="cosmologicalMassVariancePeakBackgroundSplit" defaultThreadPrivate="yes">
+  !# <cosmologicalMassVariance name="cosmologicalMassVariancePeakBackgroundSplit">
   !#  <description>
   !#   The cosmological mass variance is computed by taking the variance from some other mass variance class, $\sigma^2(M)$, and
   !#   offsetting it by the variance of the background in the peak-background split model, $\sigma^2(M_\mathrm{e})$, where
@@ -71,6 +71,9 @@ contains
     ! Construct the instance.
     self=cosmologicalMassVariancePeakBackgroundSplit(haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloEnvironment_"         />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
     return
   end function variancePeakBackgroundSplitConstructorParameters
 

@@ -74,6 +74,7 @@ contains
     !# </inputParameter>
     self=surveyGeometryTomczak2014ZFOURGE(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function tomczak2014ZFOURGEConstructorParameters
 

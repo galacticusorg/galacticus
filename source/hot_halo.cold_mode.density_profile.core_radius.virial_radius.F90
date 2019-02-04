@@ -64,6 +64,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloColdModeCoreRadiiVirialFraction(coreRadiusOverVirialRadius,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function virialRadiusFractionConstructorParameters
 

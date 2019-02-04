@@ -31,7 +31,6 @@ module Hot_Halo_Mass_Distributions
   !#  <descriptiveName>Hot Halo Mass Distributions</descriptiveName>
   !#  <description>Object implementing hot halo mass distributions.</description>
   !#  <default>betaProfile</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="density" >
   !#   <description>Return the density of the hot halo at the given {\normalfont \ttfamily radius}.</description>
   !#   <type>double precision</type>

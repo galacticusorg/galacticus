@@ -23,6 +23,7 @@ module Merger_Tree_Outputters
   !% Provides a class that implements evolution of merger trees.
   use            :: Galacticus_Nodes, only : mergerTree
   use, intrinsic :: ISO_C_Binding   , only : c_size_t
+  private
   
   !# <functionClass>
   !#  <name>mergerTreeOutputter</name>

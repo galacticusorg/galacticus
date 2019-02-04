@@ -22,7 +22,7 @@
   use Output_Analysis_Property_Extractions
   use Output_Analysis_Property_Operators
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal">
   !#  <description>A weight operator class in which the weight is multiplied by an integral over a normal distribution.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorNormal
@@ -93,6 +93,8 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
     self=outputAnalysisWeightOperatorNormal(rangeLower,rangeUpper,rootVariance_,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperator_" />
     return
   end function normalConstructorParameters
 

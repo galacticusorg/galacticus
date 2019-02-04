@@ -19,7 +19,7 @@
 
   !% Implementation of a merger tree masses class which samples masses from a distribution using pseudo-random sampling.
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionPseudoRandom" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionPseudoRandom">
   !#  <description>A merger tree masses class which samples masses from a distribution using pseudo-random sampling.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionPseudoRandom

@@ -23,7 +23,7 @@
   use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use Dark_Matter_Profiles      , only : darkMatterProfile           , darkMatterProfileClass
 
-  !# <task name="taskHaloModelGenerate" defaultThreadPrivate="yes">
+  !# <task name="taskHaloModelGenerate">
   !#  <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
   !# </task>
   type, extends(taskClass) :: taskHaloModelGenerate
@@ -105,6 +105,11 @@ contains
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     self=taskHaloModelGenerate(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfile_,conditionalMassFunction_,darkMatterProfileScaleRadius_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"         />
+    !# <objectDestructor name="cosmologyFunctions_"          />
+    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="conditionalMassFunction_"     />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function haloModelGenerateConstructorParameters
   
@@ -126,6 +131,7 @@ contains
 
   subroutine haloModelGenerateDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloModelGenerate} task class.
+    use Node_Components, only : Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
     implicit none
     type(taskHaloModelGenerate), intent(inout) :: self
 
@@ -134,6 +140,8 @@ contains
     !# <objectDestructor name="self%darkMatterProfile_"           />
     !# <objectDestructor name="self%conditionalMassFunction_"     />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    call Node_Components_Uninitialize       ()
+    call Node_Components_Thread_Uninitialize()
     return
   end subroutine haloModelGenerateDestructor
 

@@ -21,7 +21,7 @@
   use Output_Analysis_Property_Extractions
   use Output_Analysis_Property_Operators
   
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty">
   !#  <description>An analysis weight operator class which weights by a property value.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorProperty
@@ -57,6 +57,8 @@ contains
     ! Construct the object.
     self=outputAnalysisWeightOperatorProperty(extractor_,operator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="extractor_"/>
+    !# <objectDestructor name="operator_" />
     return
   end function propertyConstructorParameters
 

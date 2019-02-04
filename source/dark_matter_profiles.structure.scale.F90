@@ -30,7 +30,6 @@ module Dark_Matter_Profile_Scales
   !#  <descriptiveName>Dark Matter Profile Scale Radii</descriptiveName>
   !#  <description>Class providing dark matter profile scale radii.</description>
   !#  <default>concentration</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="radius" >
   !#   <description>Returns the scale radius for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

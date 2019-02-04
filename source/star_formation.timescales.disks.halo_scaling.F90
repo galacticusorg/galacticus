@@ -22,7 +22,7 @@
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
 
-  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksHaloScaling" defaultThreadPrivate="yes">
+  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksHaloScaling">
   !#  <description>A haloScaling timescale for star formation feedback in galactic disks.</description>
   !# </starFormationTimescaleDisks>
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksHaloScaling
@@ -95,6 +95,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=starFormationTimescaleDisksHaloScaling(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function haloScalingConstructorParameters
 

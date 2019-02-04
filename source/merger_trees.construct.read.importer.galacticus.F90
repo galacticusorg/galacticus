@@ -144,6 +144,10 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>  
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="haloMassFunction_"        />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function galacticusConstructorParameters
 

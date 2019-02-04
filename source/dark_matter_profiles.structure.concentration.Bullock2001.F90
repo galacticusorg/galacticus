@@ -87,6 +87,10 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterProfileConcentrationBullock2001(F,K,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function bullock2001ConstructorParameters
 
@@ -170,7 +174,6 @@ contains
        select type (densityContrastDefinition)
        type is (virialDensityContrastSphericalCollapseMatterLambda)
           densityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(self%cosmologyFunctions_)
-          call densityContrastDefinition%makeIndestructible()
        end select
        densityContrastDefinitionInitialized=.true.
     end if
@@ -199,7 +202,6 @@ contains
           type is (darkMatterHaloScaleVirialDensityContrastDefinition)
              darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
              darkMatterProfileDefinition  =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
-             call darkMatterProfileDefinition%makeIndestructible()
           end select
        end select
        darkMatterProfileDefinitionInitialized=.true.

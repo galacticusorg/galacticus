@@ -21,7 +21,7 @@
 
   use Hot_Halo_Ram_Pressure_Forces
 
-  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksSimple" defaultThreadPrivate="yes">
+  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksSimple">
   !#  <description>A simple model of ram pressure stripping in galactic disks.</description>
   !# </ramPressureStrippingDisks>
   type, extends(ramPressureStrippingDisksClass) :: ramPressureStrippingDisksSimple
@@ -63,6 +63,7 @@ contains
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     self=ramPressureStrippingDisksSimple(rateFractionalMaximum,hotHaloRamPressureForce_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="hotHaloRamPressureForce_"/>
     return
   end function simpleConstructorParameters
 

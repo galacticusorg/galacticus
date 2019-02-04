@@ -108,6 +108,11 @@ contains
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"    source="parameters"/>
     self=haloMassFunctionFofBias(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyParameters_" />
+   !# <objectDestructor name="cosmologyFunctions_"  />
+   !# <objectDestructor name="massFunctionIntrinsic"/>
+   !# <objectDestructor name="darkMatterHaloScale_" />
+   !# <objectDestructor name="darkMatterProfile_"   />
    return
   end function fofBiasConstructorParameters
 

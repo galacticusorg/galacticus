@@ -22,7 +22,7 @@
   use Cosmology_Functions
   use Cosmological_Density_Field
 
-  !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
   !#  <description>Provides a merger tree operator which restructures the tree onto a fixed grid of timesteps.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
@@ -146,6 +146,8 @@ contains
     ! Build the instance.
     self=mergerTreeOperatorRegridTimes(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="criticalOverdensity_"/>
     return
   end function regridTimesConstructorParameters
 
