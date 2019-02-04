@@ -162,8 +162,6 @@ contains
     
     if (debugLocStackSize <= 0) then 
        debugStackGet='[unknown]'
-       write (0,*) 'BACKTRACE FOR UNKNOWN OWNER' !! AJB HACK
-       call backtrace()
     else 
        debugStackGet=debugLocStack(debugLocStackSize)
     end if
