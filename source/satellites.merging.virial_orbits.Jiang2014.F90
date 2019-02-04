@@ -30,11 +30,12 @@
   type, extends(virialOrbitClass) :: virialOrbitJiang2014
      !% A virial orbit class using the \cite{jiang_orbital_2014} orbital parameter distribution.
      private
-     class           (darkMatterHaloScaleClass), pointer        :: darkMatterHaloScale_ => null()
-     class           (cosmologyFunctionsClass ), pointer        :: cosmologyFunctions_  => null()
-     double precision                          , dimension(3,3) :: B                             , gamma, &
-          &                                                        sigma                         , mu
-     type            (table1DLinearLinear     ), dimension(3,3) :: voightDistributions
+     class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_   => null()
+     class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_    => null()
+     type            (virialDensityContrastFixed), pointer        :: virialDensityContrast_ => null()
+     double precision                            , dimension(3,3) :: B                               , gamma, &
+          &                                                          sigma                           , mu
+     type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
    contains
      final     ::                              jiang2014Destructor
      procedure :: orbit                     => jiang2014Orbit
@@ -191,7 +192,7 @@ contains
     double precision                              , dimension(3,3), save   :: previousB                          , previousGamma         , previousSigma , &
          &                                                                    previousMu
     type            (table1DLinearLinear         ), dimension(3,3), save   :: previousVoightDistributions
-    logical                                                            :: reUse
+    logical                                                                :: reUse
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     ! Assign parameters of the distribution.
@@ -253,6 +254,9 @@ contains
           end if
        end do
     end do
+    ! Create virial density contrast definition.
+    allocate(self%virialDensityContrast_)
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)"/>
     return
   end function jiang2014ConstructorInternal
 
@@ -261,8 +265,9 @@ contains
     implicit none
     type(virialOrbitJiang2014), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine jiang2014Destructor
 
@@ -295,11 +300,11 @@ contains
     basic     => node%basic()
     hostBasic => host%basic()
     ! Find virial density contrast under Jiang et al. (2014) definition.
-    virialDensityContrast_ => self %densityContrastDefinition()
+    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
     ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
-    deallocate(virialDensityContrast_)
+    !# <objectDestructor name="virialDensityContrast_"/>
     ! Select parameters appropriate for this host-satellite pair.
     if      (massHost < 10.0d0**12.5d0) then
        jiang2014I=1
@@ -427,11 +432,7 @@ contains
     class(virialDensityContrastClass), pointer       :: jiang2014DensityContrastDefinition
     class(virialOrbitJiang2014      ), intent(inout) :: self
 
-    allocate(virialDensityContrastFixed :: jiang2014DensityContrastDefinition)
-    select type (jiang2014DensityContrastDefinition)
-    type is (virialDensityContrastFixed)
-      jiang2014DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
-    end select
+    jiang2014DensityContrastDefinition => self%virialDensityContrast_
     return
   end function jiang2014DensityContrastDefinition
   
