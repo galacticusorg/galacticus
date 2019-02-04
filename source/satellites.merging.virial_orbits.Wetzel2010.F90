@@ -32,13 +32,14 @@
   type, extends(virialOrbitClass) :: virialOrbitWetzel2010
      !% A virial orbit class using the \cite{wetzel_orbits_2010} orbital parameter distribution.
      private
-     integer                                        :: pericentricRadiusCount
-     type   (table1DLogarithmicLinear)              :: pericentricRadiusTable
-     class  (table1D                 ), allocatable :: pericentricRadiusTableInverse
-     type   (rootFinder              )              :: finder
-     class  (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_          => null()
-     class  (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_           => null()
-     class  (criticalOverdensityClass), pointer     :: criticalOverdensity_          => null()
+     integer                                                     :: pericentricRadiusCount
+     type   (table1DLogarithmicLinear             )              :: pericentricRadiusTable
+     class  (table1D                              ), allocatable :: pericentricRadiusTableInverse
+     type   (rootFinder                           )              :: finder
+     class  (darkMatterHaloScaleClass             ), pointer     :: darkMatterHaloScale_          => null()
+     class  (cosmologyFunctionsClass              ), pointer     :: cosmologyFunctions_           => null()
+     class  (criticalOverdensityClass             ), pointer     :: criticalOverdensity_          => null()
+     type   (virialDensityContrastFriendsOfFriends), pointer     :: virialDensityContrast_        => null()
    contains
      final     ::                              wetzel2010Destructor
      procedure :: orbit                     => wetzel2010Orbit
@@ -136,6 +137,9 @@ contains
        call self%pericentricRadiusTable%populate(probabilityCumulative/probabilityCumulativeNormalization,iRadius)
     end do
     call self%pericentricRadiusTable%reverse(self%pericentricRadiusTableInverse)
+    ! Create virial density contrast definition.
+    allocate(self%virialDensityContrast_)
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFriendsOfFriends(linkingLength=0.168d0,densityRatio=4.688d0)"/>
     return
   end function wetzel2010ConstructorInternal
 
@@ -144,9 +148,10 @@ contains
     implicit none
     type(virialOrbitWetzel2010), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
-    !# <objectDestructor name="self%criticalOverdensity_" />
+    !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%criticalOverdensity_"  />
+    !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine wetzel2010Destructor
 
@@ -179,11 +184,11 @@ contains
     basic                => node%basic         ()
     hostBasic            => host%basic         ()
     ! Find virial density contrast under Wetzel (2010) definition.
-    virialDensityContrast_ => self%densityContrastDefinition()
+    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
     ! Find mass, radius, and velocity in the host corresponding to the Wetzel (2010) virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
-    deallocate(virialDensityContrast_)
+    !# <objectDestructor name="virialDensityContrast_"/>
     ! Get the time at which this node exists.
     timeNode=basic%time()
     ! Get the expansion factor.
@@ -244,13 +249,8 @@ contains
     implicit none
     class(virialDensityContrastClass), pointer       :: wetzel2010DensityContrastDefinition
     class(virialOrbitWetzel2010     ), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    allocate(virialDensityContrastFriendsOfFriends :: wetzel2010DensityContrastDefinition)
-    select type (wetzel2010DensityContrastDefinition)
-    type is (virialDensityContrastFriendsOfFriends)
-      wetzel2010DensityContrastDefinition=virialDensityContrastFriendsOfFriends(linkingLength=0.168d0,densityRatio=4.688d0)
-    end select
+
+    wetzel2010DensityContrastDefinition => self%virialDensityContrast_
     return
   end function wetzel2010DensityContrastDefinition
 
