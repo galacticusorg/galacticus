@@ -24,6 +24,7 @@ module Node_Component_Spheroid_Very_Simple
   use ISO_Varying_String
   use Galacticus_Nodes
   use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles
   use Stellar_Population_Properties
   use Star_Formation_Feedback_Spheroids
   use Star_Formation_Timescales_Spheroids
@@ -127,8 +128,9 @@ module Node_Component_Spheroid_Very_Simple
   class(stellarPopulationPropertiesClass    ), pointer :: stellarPopulationProperties_
   class(starFormationFeedbackSpheroidsClass ), pointer :: starFormationFeedbackSpheroids_
   class(darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileClass              ), pointer :: darkMatterProfile_
   class(starFormationTimescaleSpheroidsClass), pointer :: starFormationTimescaleSpheroids_
-  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,darkMatterHaloScale_,starFormationTimescaleSpheroids_)
+  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,darkMatterHaloScale_,starFormationTimescaleSpheroids_,darkMatterProfile_)
  
   ! Parameters controlling the physical implementation.
   double precision :: spheroidOutflowTimescaleMinimum    , spheroidStarFormationTimescaleMinimum, &
@@ -216,6 +218,7 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="parameters"/>
+       !# <objectBuilder class="darkMatterProfile"               name="darkMatterProfile_"               source="parameters"/>
        !# <objectBuilder class="stellarPopulationProperties"     name="stellarPopulationProperties_"     source="parameters"/>
        !# <objectBuilder class="starFormationFeedbackSpheroids"  name="starFormationFeedbackSpheroids_"  source="parameters"/>
        !# <objectBuilder class="starFormationTimescaleSpheroids" name="starFormationTimescaleSpheroids_" source="parameters"/>
@@ -232,6 +235,7 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        !# <objectDestructor name="darkMatterHaloScale_"            />
+       !# <objectDestructor name="darkMatterProfile_"              />
        !# <objectDestructor name="stellarPopulationProperties_"    />
        !# <objectDestructor name="starFormationFeedbackSpheroids_" />
        !# <objectDestructor name="starFormationTimescaleSpheroids_"/>
@@ -391,9 +395,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spheroid_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn,propertyType)
     !% Compute the very simple spheroid node mass rate of change.
-    use Star_Formation_Feedback_Spheroids
     use Stellar_Feedback
-    use Dark_Matter_Halo_Scales
     use Abundances_Structure
     use Galactic_Structure_Options
     use Histories
@@ -827,8 +829,7 @@ contains
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility(node)
-    !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass.                                                    
-    use Dark_Matter_Halo_Scales
+    !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass.
     implicit none
     type   (treeNode             ), intent(inout) :: node
     class  (nodeComponentSpheroid), pointer       :: spheroid
@@ -851,7 +852,6 @@ contains
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !% Interface for the size solver algorithm.
     use Dark_Matter_Halo_Spins
-    use Dark_Matter_Profiles
     implicit none
     type            (treeNode                                      ), intent(inout)          :: node
     logical                                                         , intent(  out)          :: componentActive
@@ -861,7 +861,6 @@ contains
     procedure       (Node_Component_Spheroid_Very_Simple_Radius_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
     class           (nodeComponentSpheroid                         )               , pointer :: spheroid
     class           (nodeComponentBasic                            )               , pointer :: basic
-    class           (darkMatterProfileClass                        )               , pointer :: darkMatterProfile_
 
     ! Determine if node has an active spheroid component supported by this module.
     componentActive =  .false.
@@ -870,7 +869,6 @@ contains
     class is (nodeComponentSpheroidVerySimple)
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
-          darkMatterProfile_      => darkMatterProfile      ()
           basic                   => node             %basic()
           specificAngularMomentum =  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
        end if

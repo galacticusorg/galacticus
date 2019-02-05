@@ -69,8 +69,7 @@ contains
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
     ! Find the scale length of the cold mode halo.
-    hotHaloColdModeCoreRadii_ => hotHaloColdModeCoreRadii        (        )
-    radiusCore                =  hotHaloColdModeCoreRadii_%radius(thisNode)
+    radiusCore=hotHaloColdModeCoreRadii_%radius(thisNode)
     ! Initialize the mass profile
     coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
     ! Compute the enclosed mass.
@@ -164,8 +163,7 @@ contains
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
     ! Find the scale length of the cold mode halo.
-    hotHaloColdModeCoreRadii_ => hotHaloColdModeCoreRadii        (        )
-    radiusCore                =  hotHaloColdModeCoreRadii_%radius(thisNode)
+    radiusCore=hotHaloColdModeCoreRadii_%radius(thisNode)
     ! Initialize the mass profile
     coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
     ! Compute the density.
