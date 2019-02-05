@@ -22,11 +22,13 @@
 module Node_Component_Merging_Statistics_Standard
   !% Implements the standard merging statistics component.
   use Galacticus_Nodes
+  use Dark_Matter_Halo_Mass_Accretion_Histories
   implicit none
   private
-  public :: Node_Component_Merging_Statistics_Standard_Merger_Tree_Init, Node_Component_Merging_Statistics_Standard_Node_Merger      , &
-       &    Node_Component_Merging_Statistics_Standard_Node_Promotion  , Node_Component_Merging_Statistics_Standard_Satellite_Merging, &
-       &    Node_Component_Merging_Statistics_Standard_Reset_Hierarchy , Node_Component_Merging_Statistics_Standard_Initialize
+  public :: Node_Component_Merging_Statistics_Standard_Merger_Tree_Init , Node_Component_Merging_Statistics_Standard_Node_Merger        , &
+       &    Node_Component_Merging_Statistics_Standard_Node_Promotion   , Node_Component_Merging_Statistics_Standard_Satellite_Merging  , &
+       &    Node_Component_Merging_Statistics_Standard_Reset_Hierarchy  , Node_Component_Merging_Statistics_Standard_Initialize         , &
+       &    Node_Component_Merging_Statistics_Standard_Thread_Initialize, Node_Component_Merging_Statistics_Standard_Thread_Uninitialize
 
   !# <component>
   !#  <class>mergingStatistics</class>
@@ -82,12 +84,16 @@ module Node_Component_Merging_Statistics_Standard
   !#  </properties>
   !# </component>
 
+  ! Classes used.
+  class          (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
+  !$omp threadprivate(darkMatterHaloMassAccretionHistory_)
+  
   ! Parameters controlling the statistics gathered.
-  double precision                                         :: nodeFormationMassFraction        , nodeMajorMergerFraction, &
-       &                                                      hierarchyLevelResetFactor
+  double precision                                                  :: nodeFormationMassFraction          , nodeMajorMergerFraction, &
+       &                                                               hierarchyLevelResetFactor
 
   ! Queriable merging statistics object.
-  type            (nodeComponentMergingStatisticsStandard) :: mergingStatistics
+  type            (nodeComponentMergingStatisticsStandard)          :: mergingStatistics
 
 contains
 
@@ -129,6 +135,34 @@ contains
     call mergingStatistics%nodeHierarchyLevelMaximumFunction(Node_Component_Merging_statistics_Standard_HLM            )
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Initialize
+
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Merging_Statistics_Standard_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(parameters)
+    !% Initializes the tree node standard merging statistics module.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultMergingStatisticsComponent%standardIsActive()) then
+       !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Merging_Statistics_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize()
+    !% Uninitializes the tree node standard merging statistics module.
+    implicit none
+
+    if (defaultMergingStatisticsComponent%standardIsActive()) then
+       !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    end if
+    return
+  end subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize
 
   integer function Node_Component_Merging_Statistics_Standard_Hierarchy_Level(self)
     !% Return the hierarchy level of a node, computing it if necessary.
@@ -213,15 +247,13 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init(node)
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
-    use Dark_Matter_Halo_Mass_Accretion_Histories
     use Dark_Matter_Halo_Formation_Times
     implicit none
-    type   (treeNode                               ), intent(inout), pointer :: node
-    type   (treeNode                               )               , pointer :: nodeHost
-    class  (nodeComponentMergingStatistics         )               , pointer :: mergingStatistics
-    class  (nodeComponentBasic                     )               , pointer :: basic
-    class  (darkMatterHaloMassAccretionHistoryClass)               , pointer :: darkMatterHaloMassAccretionHistory_
-    integer                                                                  :: nodeHierarchyLevel
+    type   (treeNode                      ), intent(inout), pointer :: node
+    type   (treeNode                      )               , pointer :: nodeHost
+    class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    class  (nodeComponentBasic            )               , pointer :: basic
+    integer                                                         :: nodeHierarchyLevel
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
@@ -233,9 +265,8 @@ contains
        nodeHost           => nodeHost          %parent
     end do    
     ! Create a merger statistics component and initialize it. 
-    darkMatterHaloMassAccretionHistory_ => darkMatterHaloMassAccretionHistory                  (                 )
-    mergingStatistics                   => node                              %mergingStatistics(autoCreate=.true.)
-    basic                               => node                              %basic            (                 )
+    mergingStatistics => node%mergingStatistics(autoCreate=.true.)
+    basic             => node%basic            (                 )
     call mergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel)
     call mergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel)
     call mergingStatistics%    massWhenFirstIsolatedSet(      basic%mass())
