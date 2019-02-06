@@ -69,8 +69,18 @@
      double precision                                          , allocatable, dimension(:,:) :: densityHydrogen                     , densityHelium  , &
           &                                                                                     massFilteringComposite
    contains
-     final     ::            intergalacticMediumStateEvolveDestructor
-     procedure :: operate => intergalacticMediumStateEvolveOperate
+     !@ <objectMethods>
+     !@   <object>universeOperatorIntergalacticMediumStateEvolve</object>
+     !@   <objectMethod>
+     !@     <method>stateSet</method>
+     !@     <type>void</type>
+     !@     <arguments>\textcolor{red}{\textless integer(c\_size\_t) \textgreater} iNow\argin</arguments>
+     !@     <description>Set the state of the IGM state class up to the given time index.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::             intergalacticMediumStateEvolveDestructor
+     procedure :: operate  => intergalacticMediumStateEvolveOperate
+     procedure :: stateSet => intergalacticMediumStateEvolveStateSet
   end type universeOperatorIntergalacticMediumStateEvolve
 
   interface universeOperatorIntergalacticMediumStateEvolve
@@ -176,15 +186,16 @@ contains
 
   function intergalacticMediumStateEvolveConstructorInternal(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
-    use Memory_Management
-    use Numerical_Ranges
-    use Intergalactic_Medium_Filtering_Masses
-    use Numerical_Constants_Math
-    use Numerical_Constants_Units
-    use Numerical_Constants_Atomic
-    use Numerical_Constants_Astronomical
-    use Numerical_Comparison
-    use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding                        , only : c_size_t
+    use            :: Memory_Management
+    use            :: Numerical_Ranges
+    use            :: Intergalactic_Medium_Filtering_Masses
+    use           ::  Numerical_Constants_Math
+    use           ::  Numerical_Constants_Units
+    use           ::  Numerical_Constants_Atomic
+    use           ::  Numerical_Constants_Astronomical
+    use            :: Numerical_Comparison
+    use            :: Galacticus_Error
     implicit none
     type            (universeOperatorIntergalacticMediumStateEvolve)                        :: self
     class           (outputTimesClass                              ), intent(in   ), target :: outputTimes_
@@ -320,17 +331,7 @@ contains
      ! Initialize optical depth.
      self%opticalDepth  (1)=0.0d0
      ! Initialize the IGM state object.
-     select type(intergalacticMediumState_ => self%intergalacticMediumState_)
-     class is (intergalacticMediumStateInternal)
-        call intergalacticMediumState_%timeSet         (self%time           (1:1  ))
-        call intergalacticMediumState_%temperatureSet  (self%temperature    (1:1  ))
-        call intergalacticMediumState_%densityH1Set    (self%densityHydrogen(1:1,1))
-        call intergalacticMediumState_%densityH2Set    (self%densityHydrogen(1:1,2))
-        call intergalacticMediumState_%densityHe1Set   (self%densityHelium  (1:1,1))
-        call intergalacticMediumState_%densityHe2Set   (self%densityHelium  (1:1,2))
-        call intergalacticMediumState_%densityHe3Set   (self%densityHelium  (1:1,3))
-        call intergalacticMediumState_%massFilteringSet(self%massFiltering  (1:1  ))
-     end select
+     call self%stateSet(1_c_size_t)
      return
    end function intergalacticMediumStateEvolveConstructorInternal
 
@@ -545,19 +546,7 @@ contains
            !$ call hdf5Access%unset()
         end if
         ! Store the past history to the default IGM state class.
-        select type (intergalacticMediumState_ => self%intergalacticMediumState_)
-           class is (intergalacticMediumStateInternal)
-           call intergalacticMediumState_%timeSet         (self%time           (1:iNow  ))
-           call intergalacticMediumState_%temperatureSet  (self%temperature    (1:iNow  ))
-           call intergalacticMediumState_%densityH1Set    (self%densityHydrogen(1:iNow,1))
-           call intergalacticMediumState_%densityH2Set    (self%densityHydrogen(1:iNow,2))
-           call intergalacticMediumState_%densityHe1Set   (self%densityHelium  (1:iNow,1))
-           call intergalacticMediumState_%densityHe2Set   (self%densityHelium  (1:iNow,2))
-           call intergalacticMediumState_%densityHe3Set   (self%densityHelium  (1:iNow,3))
-           call intergalacticMediumState_%massFilteringSet(self%massFiltering  (1:iNow  ))
-           class default
-           call Galacticus_Error_Report('"internal" IGM evolution calculation requires [intergalacticMediumStateMethod]=internal'//{introspection:location})
-        end select
+        call self%stateSet(iNow)
         ! Display message.
         call Galacticus_Display_Unindent('done')
         class default
@@ -1019,3 +1008,28 @@ contains
      end function integrandPhotoionizationHeatingRate
 
    end function intergalacticMediumStateEvolveODEs
+
+   subroutine intergalacticMediumStateEvolveStateSet(self,iNow)
+     use, intrinsic :: ISO_C_Binding, only : c_size_t
+     implicit none
+     class  (universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self
+     integer(c_size_t                                      ), intent(in   ) :: iNow
+     
+     !# <eventHook name="intergalacticMediumStateEvolveUpdate">
+     !#  <interface>
+     !#    double precision, intent(in   ), dimension(:) :: time            , densityHydrogen1
+     !#    double precision, intent(in   ), dimension(:) :: densityHydrogen2, densityHelium1
+     !#    double precision, intent(in   ), dimension(:) :: densityHelium2  , densityHelium3
+     !#    double precision, intent(in   ), dimension(:) :: temperature     , massFiltering
+     !#  </interface>
+     !#  <callWith>self%time           (1:iNow  ), &amp;
+     !#    &amp;   self%densityHydrogen(1:iNow,1), &amp;
+     !#    &amp;   self%densityHydrogen(1:iNow,2), &amp;
+     !#    &amp;   self%densityHelium  (1:iNow,1), &amp;
+     !#    &amp;   self%densityHelium  (1:iNow,2), &amp;
+     !#    &amp;   self%densityHelium  (1:iNow,3), &amp;
+     !#    &amp;   self%temperature    (1:iNow  ), &amp;
+     !#    &amp;   self%massFiltering  (1:iNow  )</callWith>
+     !# </eventHook>
+     return
+   end subroutine intergalacticMediumStateEvolveStateSet
