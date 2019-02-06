@@ -108,23 +108,23 @@ contains
     ! of merging can be both read and written.
     if (self%bufferIsolatedHalos) then
        self%positionHistoryAvailable=defaultPositionComponent%positionHistoryIsGettable()
-       if     (                                                                                                                    &
-            &  .not.(                                                                                                              &
-            &         defaultSatelliteComponent%timeOfMergingIsGettable()                                                          &
-            &        .and.                                                                                                         &
-            &         defaultSatelliteComponent%timeOfMergingIsSettable()                                                          &
-            &       )                                                                                                              &
-            & )                                                                                                                    &
-            & call Galacticus_Error_Report                                                                                         &
-            &      (                                                                                                               &
-            &       'buffering isolated halos requires that the position history property of the position component be gettable'// &
-            &       Galacticus_Component_List(                                                                                     &
-            &                                 'satellite'                                                                       ,  &
-            &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)      &
-            &                                  .intersection.                                                                      &
-            &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)      &
-            &                                 )                                                                                 // &
-            &       {introspection:location}                                                                                       &
+       if     (                                                                                                                               &
+            &  .not.(                                                                                                                         &
+            &         defaultSatelliteComponent%timeOfMergingIsGettable()                                                                     &
+            &        .and.                                                                                                                    &
+            &         defaultSatelliteComponent%timeOfMergingIsSettable()                                                                     &
+            &       )                                                                                                                         &
+            & )                                                                                                                               &
+            & call Galacticus_Error_Report                                                                                                    &
+            &      (                                                                                                                          &
+            &       'buffering isolated halos requires that the timeOfMerging property of the satellite component be gettable and settable'// &
+            &       Galacticus_Component_List(                                                                                                &
+            &                                 'satellite'                                                                                  ,  &
+            &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)                 &
+            &                                  .intersection.                                                                                 &
+            &                                   defaultSatelliteComponent%timeOfMergingAttributeMatch(requireSettable=.true.)                 &
+            &                                 )                                                                                            // &
+            &       {introspection:location}                                                                                                  &
             &      )
     end if
     return
