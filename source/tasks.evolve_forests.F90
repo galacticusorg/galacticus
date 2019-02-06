@@ -418,7 +418,7 @@ contains
     allocate(mergerTreeEvolver_    ,mold=self%mergerTreeEvolver_    )
     allocate(mergerTreeConstructor_,mold=self%mergerTreeConstructor_)
     allocate(mergerTreeOperator_   ,mold=self%mergerTreeOperator_   )
-    !# <deepCopy source="self%mergerTreeEvolver_"    destination="mergerTreeEvolver_"     />
+    !# <deepCopy source="self%mergerTreeEvolver_"     destination="mergerTreeEvolver_"    />
     !# <deepCopy source="self%mergerTreeOutputter_"   destination="mergerTreeOutputter_"  />
     !# <deepCopy source="self%mergerTreeConstructor_" destination="mergerTreeConstructor_"/>
     !# <deepCopy source="self%mergerTreeOperator_"    destination="mergerTreeOperator_"   />
