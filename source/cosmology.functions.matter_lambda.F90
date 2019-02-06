@@ -344,7 +344,11 @@ contains
     if     ( allocated (self%distanceTableLuminosityDistanceNegated          )) deallocate(self%distanceTableLuminosityDistanceNegated          )
     if     ( allocated (self%distanceTableLuminosityDistanceKCorrectedNegated)) deallocate(self%distanceTableLuminosityDistanceKCorrectedNegated)
     if     ( allocated (self%distanceTableTime                               )) deallocate(self%distanceTableTime                               )
-    call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
+    call Interpolate_Done(self%interpolationObject                            ,self%interpolationAccelerator                            ,self%resetInterpolation                            )
+    call Interpolate_Done(self%interpolationObjectDistance                    ,self%interpolationAcceleratorDistance                    ,self%resetInterpolationDistance                    )
+    call Interpolate_Done(self%interpolationObjectDistanceInverse             ,self%interpolationAcceleratorDistanceInverse             ,self%resetInterpolationDistanceInverse             )
+    call Interpolate_Done(self%interpolationObjectLuminosityDistance          ,self%interpolationAcceleratorLuminosityDistance          ,self%resetInterpolationLuminosityDistance          )
+    call Interpolate_Done(self%interpolationObjectLuminosityDistanceKCorrected,self%interpolationAcceleratorLuminosityDistanceKCorrected,self%resetInterpolationLuminosityDistanceKCorrected)
     return
   end subroutine matterLambdaDestructor
 
