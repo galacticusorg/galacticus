@@ -47,43 +47,47 @@
 
 contains
 
-  function sequenceConstructorParameters(parameters)
+  function sequenceConstructorParameters(parameters) result(self)
     !% Constructor for the sequence merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (mergerTreeOperatorSequence)                :: sequenceConstructorParameters
+    type   (mergerTreeOperatorSequence)                :: self
     type   (inputParameters           ), intent(inout) :: parameters
     type   (operatorList              ), pointer       :: operator_
     integer                                            :: i
 
-    !$omp critical(mergerTreeOperatorSequenceInitialize)
-    sequenceConstructorParameters%operators => null()
-    operator_                               => null()
+    self     %operators => null()
+    operator_           => null()
     do i=1,parameters%copiesCount('mergerTreeOperatorMethod',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next
        else
-          allocate(sequenceConstructorParameters%operators)
-          operator_ => sequenceConstructorParameters%operators
+          allocate(self%operators)
+          operator_ => self%operators
        end if
-       operator_%operator_ => mergerTreeOperator(parameters,i)
+       !# <objectBuilder class="mergerTreeOperator" name="operator_%operator_" source="parameters" copy="i" />
     end do
-    !$omp end critical(mergerTreeOperatorSequenceInitialize)
     return
   end function sequenceConstructorParameters
 
-  function sequenceConstructorInternal(operators)
+  function sequenceConstructorInternal(operators) result(self)
     !% Internal constructor for the sequence merger tree operator class.
     implicit none
-    type(mergerTreeOperatorSequence)                        :: sequenceConstructorInternal
+    type(mergerTreeOperatorSequence)                        :: self
     type(operatorList              ), target, intent(in   ) :: operators
+    type(operatorList              ), pointer               :: operator_
 
-    sequenceConstructorInternal%operators => operators
+    self     %operators => operators
+    operator_           => operators
+    do while (associated(operator_))
+       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       operator_ => operator_%next
+    end do
     return
   end function sequenceConstructorInternal
 
-  elemental subroutine sequenceDestructor(self)
+  subroutine sequenceDestructor(self)
     !% Destructor for the merger tree operator function class.
     implicit none
     type(mergerTreeOperatorSequence), intent(inout) :: self
@@ -93,8 +97,8 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          deallocate(operator_%operator_)
-          deallocate(operator_          )
+          !# <objectDestructor name="operator_%operator_"/>
+          deallocate(operator_)
           operator_ => operatorNext
        end do
     end if
@@ -155,7 +159,7 @@ contains
              operatorDestination_            => operatorNew_
           end if
           allocate(operatorNew_%operator_,mold=operator_%operator_)
-          call operator_%operator_%deepCopy(operatorNew_%operator_)
+          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
        end do       
     class default

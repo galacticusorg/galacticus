@@ -331,7 +331,7 @@ contains
 #endif
        !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_) if (.not.mpiSelf%isActive())
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
+       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
 #ifdef USEMPI
@@ -638,7 +638,7 @@ contains
        ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of sqrt[10])
        ! than the effective barrier height at zero variance for the minimum and maximum times that we must consider.
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
+       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        varianceMinimumRate            =min(                                                                                                                      &
             &                              +varianceMinimumRate                                                                                                , &
             &                              +1.0d-2                                                                                                               &
@@ -704,7 +704,7 @@ contains
 #endif
        !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_) if (.not.mpiSelf%isActive())
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
+       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCountRate
           if (.not.allocated(firstCrossingTableRateQuad)) allocate(firstCrossingTableRateQuad(0:self%varianceTableCountRate))

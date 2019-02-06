@@ -109,7 +109,7 @@ contains
 
     ! Make a private copy of the halo spin distribution object to avoid thread conflicts.
     allocate(haloSpinDistribution_,mold=self%haloSpinDistribution_)
-    call self%haloSpinDistribution_%deepCopy(haloSpinDistribution_)
+    !# <deepCopy source="self%haloSpinDistribution_" destination="haloSpinDistribution_"/>
     !$omp critical(spinNBodyErrorsOperateScalar)
     do i=1,size(propertyValueMinimum)
        select case (propertyType)

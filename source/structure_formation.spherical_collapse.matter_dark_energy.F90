@@ -190,10 +190,10 @@ contains
             &                         )
        !$omp parallel private(aExpansionNow,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,maximumExpansionExpansionFactor,q,y,timeEnergyFixed,a,b,x,linearGrowth__)       
        allocate(cosmologyFunctions__,mold=cosmologyFunctions_)
-       call cosmologyFunctions_%deepCopy(cosmologyFunctions__)
+       !# <deepCopy source="cosmologyFunctions_" destination="cosmologyFunctions__"/>
        if (calculationType == calculationDeltaCrit) then
           allocate(linearGrowth__,mold=linearGrowth_)
-          call linearGrowth_%deepCopy(linearGrowth__)
+          !# <deepCopy source="linearGrowth_" destination="linearGrowth__"/>
        end if
        !$omp do schedule(dynamic)
        do iTime=1,deltaTableNumberPoints

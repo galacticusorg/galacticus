@@ -355,10 +355,10 @@ contains
     !$omp threadprivate(event_)
     ! Variables used in processing individual forests in parallel.
     double precision                                                          , save :: timeBranchSplit
-    class           (mergerTreeOutputterClass     ), allocatable                     :: mergerTreeOutputter_
-    class           (mergerTreeEvolverClass       ), allocatable                     :: mergerTreeEvolver_
-    class           (mergerTreeConstructorClass   ), allocatable                     :: mergerTreeConstructor_
-    class           (mergerTreeOperatorClass      ), allocatable                     :: mergerTreeOperator_
+    class           (mergerTreeOutputterClass     ), pointer                         :: mergerTreeOutputter_
+    class           (mergerTreeEvolverClass       ), pointer                         :: mergerTreeEvolver_
+    class           (mergerTreeConstructorClass   ), pointer                         :: mergerTreeConstructor_
+    class           (mergerTreeOperatorClass      ), pointer                         :: mergerTreeOperator_
     type            (treeNode                     ), pointer                  , save :: node
     class           (nodeComponentBasic           ), pointer                  , save :: basic                                     , basicChild
     type            (evolveForestsBranchList      ), pointer                  , save :: branchList_                               , branchNew                   , &
@@ -418,10 +418,10 @@ contains
     allocate(mergerTreeEvolver_    ,mold=self%mergerTreeEvolver_    )
     allocate(mergerTreeConstructor_,mold=self%mergerTreeConstructor_)
     allocate(mergerTreeOperator_   ,mold=self%mergerTreeOperator_   )
-    call self%mergerTreeEvolver_    %deepCopy(mergerTreeEvolver_    )
-    call self%mergerTreeOutputter_  %deepCopy(mergerTreeOutputter_  )
-    call self%mergerTreeConstructor_%deepCopy(mergerTreeConstructor_)
-    call self%mergerTreeOperator_   %deepCopy(mergerTreeOperator_   )
+    !# <deepCopy source="self%mergerTreeEvolver_"    destination="mergerTreeEvolver_"     />
+    !# <deepCopy source="self%mergerTreeOutputter_"   destination="mergerTreeOutputter_"  />
+    !# <deepCopy source="self%mergerTreeConstructor_" destination="mergerTreeConstructor_"/>
+    !# <deepCopy source="self%mergerTreeOperator_"    destination="mergerTreeOperator_"   />
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Allow events to be attached to the universe.
@@ -933,10 +933,10 @@ contains
     ! Explicitly deallocate objects.
     call Node_Components_Thread_Uninitialize()
     call Galacticus_Function_Classes_Destroy()
-    deallocate(mergerTreeOutputter_  )
-    deallocate(mergerTreeEvolver_    )
-    deallocate(mergerTreeConstructor_)
-    deallocate(mergerTreeOperator_   )
+    !# <objectDestructor name="mergerTreeOutputter_"  />
+    !# <objectDestructor name="mergerTreeEvolver_"    />
+    !# <objectDestructor name="mergerTreeConstructor_"/>
+    !# <objectDestructor name="mergerTreeOperator_"   />
     !$omp end parallel
 
     ! Finalize outputs.

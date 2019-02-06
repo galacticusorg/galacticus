@@ -437,8 +437,8 @@ contains
           allocate(standardInitialMassFunction_,mold=self%initialMassFunction_)
           allocate(standardStellarFeedback_    ,mold=self%stellarFeedback_    )
           allocate(standardSupernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
-          call self%stellarAstrophysics_%deepCopy(standardStellarAstrophysics_)
-          call self%initialMassFunction_%deepCopy(standardInitialMassFunction_)
+          !# <deepCopy source="self%stellarAstrophysics_" destination="standardStellarAstrophysics_"/>
+          !# <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
           call self%stellarFeedback_    %deepCopy(standardStellarFeedback_    )
           call self%supernovaeTypeIa_   %deepCopy(standardSupernovaeTypeIa_   )
           call integrator_%initialize  (24                        ,61                        )

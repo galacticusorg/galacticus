@@ -74,7 +74,7 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       operator_%operator_ => outputAnalysisPropertyOperator(parameters,i)
+       !# <objectBuilder class="outputAnalysisPropertyOperator" name="operator_%operator_" source="parameters" copy="i" />
     end do
     return
   end function sequenceConstructorParameters
@@ -84,12 +84,18 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorSequence)                        :: self
     type(propertyOperatorList                  ), target, intent(in   ) :: operators
+    type(propertyOperatorList                  ), pointer               :: operator_
 
-    self%operators => operators
+    self     %operators => operators
+    operator_           => operators
+    do while (associated(operator_))
+       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       operator_ => operator_%next
+    end do
     return
   end function sequenceConstructorInternal
 
-  elemental subroutine sequenceDestructor(self)
+  subroutine sequenceDestructor(self)
     !% Destructor for the sequence property operator class.
     implicit none
     type(outputAnalysisPropertyOperatorSequence), intent(inout) :: self
@@ -99,8 +105,8 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          deallocate(operator_%operator_)
-          deallocate(operator_          )
+          !# <objectDestructor name="operator_%operator_"/>
+          deallocate(operator_)
           operator_ => operatorNext
        end do
     end if
@@ -165,7 +171,7 @@ contains
              operatorDestination_            => operatorNew_
           end if
           allocate(operatorNew_%operator_,mold=operator_%operator_)
-          call operator_%operator_%deepCopy(operatorNew_%operator_)
+          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
        end do       
     class default

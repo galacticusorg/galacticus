@@ -74,7 +74,7 @@ contains
           allocate(self%radiationFields)
           radiationField_ => self%radiationFields
        end if
-       radiationField_%radiationField_ => radiationField(parameters,i)
+       !# <objectBuilder class="radiationField" name="radiationField_%radiationField_" source="parameters" copy="i" />
     end do
     return
   end function summationConstructorParameters
@@ -84,12 +84,18 @@ contains
     implicit none
     type(radiationFieldSummation)                        :: self
     type(radiationFieldList     ), target, intent(in   ) :: radiationFields
+    type(radiationFieldList     ), pointer               :: radiationField_
 
-    self%radiationFields => radiationFields
+    self           %radiationFields => radiationFields
+    radiationField_                 => radiationFields
+    do while (associated(radiationField_))
+       !# <referenceCountIncrement owner="radiationField_" object="radiationField_"/>
+       radiationField_ => radiationField_%next
+    end do
     return
   end function summationConstructorInternal
 
-  elemental subroutine summationDestructor(self)
+  subroutine summationDestructor(self)
     !% Destructor for the summation radiation field class.
     implicit none
     type(radiationFieldSummation), intent(inout) :: self
@@ -99,8 +105,8 @@ contains
        radiationField_ => self%radiationFields
        do while (associated(radiationField_))
           radiationFieldNext => radiationField_%next
-          deallocate(radiationField_%radiationField_)
-          deallocate(radiationField_                )
+          !# <objectDestructor name="radiationField_%radiationField_"/>
+          deallocate(radiationField_)
           radiationField_ => radiationFieldNext
        end do
     end if
@@ -150,7 +156,7 @@ contains
              radiationFieldDestination_            => radiationFieldNew_
           end if
           allocate(radiationFieldNew_%radiationField_,mold=radiationField_%radiationField_)
-          call radiationField_%radiationField_%deepCopy(radiationFieldNew_%radiationField_)
+          !# <deepCopy source="radiationField_%radiationField_" destination="radiationFieldNew_%radiationField_"/>
           radiationField_ => radiationField_%next
        end do       
     class default

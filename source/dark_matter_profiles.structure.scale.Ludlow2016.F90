@@ -74,11 +74,11 @@
 
   ! Array used to store state.
   type :: ludlow2016State
-     class           (darkMatterProfileScaleRadiusLudlow2016), pointer     :: self
-     class           (cosmologyFunctionsClass               ), allocatable :: cosmologyFunctions_
-     type            (treeNode                              ), pointer     :: node
-     type            (rootFinder                            )              :: finder
-     double precision                                                      :: massHaloCharacteristic, massLimit
+     class           (darkMatterProfileScaleRadiusLudlow2016), pointer :: self
+     class           (cosmologyFunctionsClass               ), pointer :: cosmologyFunctions_
+     type            (treeNode                              ), pointer :: node
+     type            (rootFinder                            )          :: finder
+     double precision                                                  :: massHaloCharacteristic, massLimit
   end type ludlow2016State
   type   (ludlow2016State), allocatable, dimension(:) :: ludlow2016States
   integer                 , parameter                 :: ludlow2016StatesIncrement=10
@@ -206,9 +206,9 @@ contains
              allocate(ludlow2016States(size(states)+ludlow2016StatesIncrement))
              ludlow2016States(1:size(states))=states
              do i=1,size(states)
-                nullify                                                 (states(i)%self               )
-                nullify                                                 (states(i)%node               )
-                if (allocated(states(i)%cosmologyFunctions_)) deallocate(states(i)%cosmologyFunctions_)
+                nullify(states(i)%self               )
+                nullify(states(i)%node               )
+                nullify(states(i)%cosmologyFunctions_)
              end do
              deallocate(states)
           end if
@@ -242,9 +242,8 @@ contains
                &                                                                                                 )                                                                              **2  &
                &                                                                                                *  self%cosmologyFunctions_%expansionFactor       (                basic%time())**3  &
                &                                                                                               )
-          if (allocated(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_)) deallocate(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_)
           allocate(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_,mold=self%cosmologyFunctions_)
-          call self%cosmologyFunctions_%deepCopy(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_)
+          !# <deepCopy source="self%cosmologyFunctions_" destination="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
           ! Find the earliest time in the branch.
           timeBranchEarliest=huge                               (0.0d0)
           treeWalker        =mergerTreeWalkerIsolatedNodesBranch(node )
@@ -307,6 +306,7 @@ contains
        ! as our best estimate of the scale radius.
        ludlow2016Radius    =radiusScale
        ! Decrement the state index.
+       !# <objectDestructor name="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
        ludlow2016StateCount=ludlow2016StateCount-1
     end if
     return

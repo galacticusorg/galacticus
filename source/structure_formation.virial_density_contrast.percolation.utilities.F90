@@ -32,7 +32,7 @@ module Virial_Density_Contrast_Percolation_Utilities
   type            (treeNode                                 ), pointer :: workNode
   class           (nodeComponentDarkMatterProfile           ), pointer :: workDarkMatterProfile
   class           (darkMatterProfileClass                   ), pointer :: darkMatterProfile_
-  type            (darkMatterProfileScaleRadiusConcentration)          :: darkMatterProfileScaleRadius_
+  type            (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
   double precision                                                     :: boundingDensity              , densityMatterMean, &
        &                                                                  massHalo
   double precision                                           , pointer :: densityContrast
@@ -84,16 +84,21 @@ contains
     darkMatterProfileConcentration_ => darkMatterProfileConcentration()
     virialDensityContrast_          => virialDensityContrast         ()
     ! Build a scale radius object.
-    darkMatterProfileScaleRadius_=darkMatterProfileScaleRadiusConcentration(                                                                   &
-         &                                                                  correctForConcentrationDefinition=.true.                         , &
-         &                                                                  useMeanConcentration             =.true.                         , &
-         &                                                                  cosmologyParameters_             =cosmologyParameters_           , &
-         &                                                                  cosmologyFunctions_              =cosmologyFunctions_            , &
-         &                                                                  darkMatterHaloScale_             =darkMatterHaloScale_           , &
-         &                                                                  darkMatterProfile_               =darkMatterProfile_             , &
-         &                                                                  virialDensityContrast_           =virialDensityContrast_         , &
-         &                                                                  darkMatterProfileConcentration_  =darkMatterProfileConcentration_  &
-         &                                                                 )
+    allocate(darkMatterProfileScaleRadius_)
+    !# <referenceConstruct object="darkMatterProfileScaleRadius_">
+    !#  <constructor>
+    !#   darkMatterProfileScaleRadiusConcentration(                                                                   &amp;
+    !#    &amp;                                    correctForConcentrationDefinition=.true.                         , &amp;
+    !#    &amp;                                    useMeanConcentration             =.true.                         , &amp;
+    !#    &amp;                                    cosmologyParameters_             =cosmologyParameters_           , &amp;
+    !#    &amp;                                    cosmologyFunctions_              =cosmologyFunctions_            , &amp;
+    !#    &amp;                                    darkMatterHaloScale_             =darkMatterHaloScale_           , &amp;
+    !#    &amp;                                    darkMatterProfile_               =darkMatterProfile_             , &amp;
+    !#    &amp;                                    virialDensityContrast_           =virialDensityContrast_         , &amp;
+    !#    &amp;                                    darkMatterProfileConcentration_  =darkMatterProfileConcentration_  &amp;
+    !#    &amp;                                   )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Compute the bounding density, based on percolation theory (eq. 5 of More et al.).
     densityMatterMean=cosmologyFunctions_%matterDensityEpochal(time)
     boundingDensity=+densityMatterMean       &
@@ -126,6 +131,7 @@ contains
     radiusHalo=finder%find(rootGuess=radiusHalo)
     call workNode%destroy()
     deallocate(workNode)
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     ! Compute the corresponding density contrast.    
     Virial_Density_Contrast_Percolation_Solver=+3.0d0                &
          &                                     *mass                 &

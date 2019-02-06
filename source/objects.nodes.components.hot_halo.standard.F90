@@ -243,7 +243,7 @@ module Node_Component_Hot_Halo_Standard
        &                                                                 massHeatingRateRemaining                   , outerRadiusGrowthRateStored
   !$omp threadprivate(gotCoolingRate,gotAngularMomentumCoolingRate,gotOuterRadiusGrowthRate,rateCooling,massHeatingRateRemaining,angularMomentumHeatingRateRemaining,outerRadiusGrowthRateStored,uniqueIDPrevious)
   ! Radiation structure.
-  type           (radiationFieldSummation                )            :: radiation
+  type           (radiationFieldSummation                ), pointer   :: radiation
   type           (radiationFieldCosmicMicrowaveBackground), pointer   :: radiationCosmicMicrowaveBackground
   class          (radiationFieldClass                    ), pointer   :: radiationIntergalacticBackground
   type           (radiationFieldList                     ), pointer   :: radiationFieldList_
@@ -451,6 +451,7 @@ contains
        !# <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="parameters"/>
        !# <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="parameters"/>
        !# <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters"/>
+       allocate(radiation                         )
        allocate(radiationFieldList_               )
        allocate(radiationCosmicMicrowaveBackground)
        !# <referenceConstruct object="radiationCosmicMicrowaveBackground" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
@@ -468,7 +469,8 @@ contains
        else
           radiationIntergalacticBackground => null()
        end if
-       radiation=radiationFieldSummation(radiationFieldList_)
+       !# <referenceConstruct object="radiation" constructor="radiationFieldSummation(radiationFieldList_)"/>
+       nullify(radiationFieldList_)
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Initialize
@@ -497,7 +499,7 @@ contains
        !# <objectDestructor name="coolingRate_"                      />
        !# <objectDestructor name="radiationIntergalacticBackground"  />
        !# <objectDestructor name="radiationCosmicMicrowaveBackground"/>
-       deallocate(radiationFieldList_)
+       !# <objectDestructor name="radiation"                         />
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize

@@ -1,5 +1,5 @@
 # Contains a Perl module which implements processing of directives related to construction/destruction/referencing of
-# functionClass objects. Specifically five separate directives are supported:
+# functionClass objects. Specifically six separate directives are supported:
 #
 #    objectBuilder: This directive will get a functionClass object from the given parameter set. The object will be constructed if
 #    necessary (and stored in the inputParameter node for re-use), or will be retrieved from the inputParameter node and
@@ -19,6 +19,9 @@
 #
 #    referenceConstruct: This directive is intended for use when a functionClass object is being constructed directly. The
 #    reference count to the object is incremented.
+#
+#    deepCopy: This directive causes a deep copy to be made of a source object into a destination object. The reference count of
+#    the copied object is reset to unity.
 #
 # All of these directives supported output of debugging information (detailing the location of the object in question along with
 # that of its "owner") which can be analyzed by ./scripts/aux/functionClassReferencesDebug.pl.
@@ -512,8 +515,11 @@ sub Process_ObjectBuilder {
 	    $node->{'directive'}->{'processed'} =  1;
 	}
 	if ( $node->{'type'} eq "referenceConstruct" && ! $node->{'directive'}->{'processed'} ) {
-	    # Generate source code for the reference aquisition.
-	    my $constructCode  = (exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."=".$node->{'directive'}->{'constructor'}."\n";
+	    # Generate source code for the reference construction.
+	    my $constructor = $node->{'directive'}->{'constructor'};
+	    $constructor =~ s/^[\s\n]+//;
+	    $constructor =~ s/[\s\n]+$//;
+	    my $constructCode  = (exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."=".$constructor."\n";
 	    $constructCode    .= "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."\%referenceCountIncrement()\n";
  	    # If including debugging information push the target location to the debug stack.
 	    if ( $debugging ) {
@@ -591,7 +597,6 @@ sub Process_ObjectBuilder {
 		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 		
 	    }
-	    # Build a code node.
 	    my $newNode =
 	    {
 		type       => "code"      ,
@@ -603,6 +608,81 @@ sub Process_ObjectBuilder {
 	    # Mark the directive as processed.
 	    $node->{'directive'}->{'processed'} =  1;
 	}
+	if ( $node->{'type'} eq "deepCopy" && ! $node->{'directive'}->{'processed'} ) {
+	    # Generate source code for the deep copy.
+	    my $deepCopyCode  = "call ".$node->{'directive'}->{'source'}."%deepCopy(".$node->{'directive'}->{'destination'}.")\n";
+ 	    # If including debugging information push the target location to the debug stack.
+	    if ( $debugging ) {
+		my $ownerName;
+		my $ownerLoc;
+		my $objectClass;
+		if ( $node->{'directive'}->{'destination'} =~ m/^(.+)\%([a-zA-Z0-9_]+)$/ ) {
+		    $ownerName   = $1;
+		    $objectClass = $2;
+		    $ownerLoc    = "loc(".$ownerName.")";
+		} else {
+		    $objectClass = $node->{'directive'}->{'destination'};
+		    $ownerName   = $node->{'parent'}->{'name'};
+		    $ownerLoc    = "'code:unknown'";
+		    my $nodeParent = $node->{'parent'};
+		    while ( $nodeParent ) {
+			my $nodeChild = $nodeParent->{'firstChild'};
+			while ( $nodeChild ) {
+			    if ( $nodeChild->{'type'} eq "declaration" ) {
+				foreach my $declaration ( @{$nodeChild->{'declarations'}} ) {
+				    if ( grep {lc($_) eq lc($node->{'directive'}->{'destination'})} @{$declaration->{'variables'}} ) {
+					$ownerLoc = "'".$nodeParent->{'type'}.":".$nodeParent->{'name'}."'";
+				    }
+				}
+			    }
+			    $nodeChild = $nodeChild->{'sibling'};
+			}
+			$nodeParent = $nodeParent->{'parent'};
+		    }
+		}
+		$deepCopyCode .= "call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$objectClass." : ".$ownerName." : ')//".$ownerLoc."//' : '//loc(".$node->{'directive'}->{'destination'}.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).")\n";
+		my $usesNode =
+		{
+		    type      => "moduleUse",
+		    moduleUse =>
+		    {
+			Galacticus_Display =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			},
+			String_Handling    =>
+		        {
+			    intrinsic => 0,
+			    all       => 1
+			},
+			ISO_Varying_String =>
+		        {
+			    intrinsic => 0,
+			    all       => 1
+			},
+			Function_Classes   =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			}
+		    }
+		};
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+	    }
+	    # Build a code node.
+	    my $newNode =
+	    {
+		type       => "code"      ,
+		content    => $deepCopyCode,
+		firstChild => undef()
+	    };
+	    # Insert the node.
+	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
+	    # Mark the directive as processed.
+	    $node->{'directive'}->{'processed'} =  1;
+	}
+	
 	# Walk to the next node in the tree.
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }

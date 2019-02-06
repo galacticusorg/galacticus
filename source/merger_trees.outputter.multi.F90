@@ -20,8 +20,8 @@
   !% Implements a merger trees outputter class which combines multiple other outputters.
   
   type, public :: multiOutputterList
-     class(mergerTreeOutputterClass), pointer :: outputter_
-     type (multiOutputterList      ), pointer :: next  => null()
+     class(mergerTreeOutputterClass), pointer :: outputter_ => null()
+     type (multiOutputterList      ), pointer :: next       => null()
   end type multiOutputterList
   
   !# <mergerTreeOutputter name="mergerTreeOutputterMulti">
@@ -66,7 +66,7 @@ contains
           allocate(self%outputters)
           outputter_ => self%outputters
        end if
-       outputter_%outputter_ => mergerTreeOutputter(parameters,i)
+       !# <objectBuilder class="mergerTreeOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
     end do
     return
   end function multiConstructorParameters
@@ -76,12 +76,18 @@ contains
     implicit none
     type(mergerTreeOutputterMulti)                        :: self
     type(multiOutputterList      ), target, intent(in   ) :: outputters
-    !# <constructorAssign variables="*outputters"/>
+    type(multiOutputterList      ), pointer               :: outputter_
 
+    self      %outputters => outputters
+    outputter_            => outputters
+    do while (associated(outputter_))
+       !# <referenceCountIncrement owner="outputter_" object="outputter_"/>
+       outputter_ => outputter_%next
+    end do
     return
   end function multiConstructorInternal
   
-  elemental subroutine multiDestructor(self)
+  subroutine multiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily multi} outputter class.
     implicit none
     type(mergerTreeOutputterMulti), intent(inout) :: self
@@ -91,8 +97,8 @@ contains
        outputter_ => self%outputters
        do while (associated(outputter_))
           outputterNext => outputter_%next
-          deallocate(outputter_%outputter_)
-          deallocate(outputter_      )
+          !# <objectDestructor name="outputter_%outputter_"/>
+          deallocate(outputter_)
           outputter_ => outputterNext
        end do
     end if
@@ -179,7 +185,7 @@ contains
              outputterDestination_            => outputterNew_
           end if
           allocate(outputterNew_%outputter_,mold=outputter_%outputter_)
-          call outputter_%outputter_%deepCopy(outputterNew_%outputter_)
+          !# <deepCopy source="outputter_%outputter_" destination="outputterNew_%outputter_"/>
           outputter_ => outputter_%next
        end do       
     class default

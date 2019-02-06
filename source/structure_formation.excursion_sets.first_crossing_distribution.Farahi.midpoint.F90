@@ -180,7 +180,7 @@ contains
 #endif
        !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_) if (.not.mpiSelf%isActive())
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
+       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
 #ifdef USEMPI
