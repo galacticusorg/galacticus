@@ -944,7 +944,6 @@ CODE
 		$deepCopyCode .= "select type (destination)\n";
 		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$deepCopyCode .= "destination=self\n";
-		$deepCopyCode .= "call destination%referenceCountReset()\n";
 		$deepCopyCode .= $assignments
 		    if ( defined($assignments) );
 		$deepCopyCode .= "class default\n";
@@ -954,6 +953,8 @@ CODE
 		$deepCopyModules{'Galacticus_Error'} = 1;
 	    }
             $deepCopyCode .= "end select\n";
+            # Reset the reference count to this newly created object.
+            $deepCopyCode .= "call destination%referenceCountReset()\n";
             # Reset the state operation ID if necessary.
 	    $deepCopyCode .= "destination%stateOperationID=0_c_size_t\n"
                 if ( $directive->{'stateful'} eq "yes" );

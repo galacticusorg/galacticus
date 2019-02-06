@@ -307,7 +307,7 @@ contains
                    loopCount           = 0
                    !$omp parallel private(iAge,iMetallicity,integrandFunction,integrationWorkspace,toleranceRelative,errorStatus) copyin(filterIndexTabulate,redshiftTabulate,populationIDTabulate)
                    allocate(stellarPopulationSpectraPostprocessorTabulate,mold=stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_)
-                   call stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_%deepCopy(stellarPopulationSpectraPostprocessorTabulate)
+                   !# <deepCopy source="stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_" destination="stellarPopulationSpectraPostprocessorTabulate"/>
                    !$omp do
                    do iAge=1,luminosityTables(populationID)%agesCount
                       ageTabulate=luminosityTables(populationID)%age(iAge)

@@ -50,7 +50,7 @@
      class           (coolingTimeClass                       ), pointer :: coolingTime_
      class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_
      class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_
-     type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation
      integer         (kind=kind_int8                         )          :: lastUniqueID              =-1
      integer                                                            :: abundancesCount              , chemicalsCount
      ! Stored values of cooling radius.
@@ -127,7 +127,8 @@ contains
     self%abundancesCount=Abundances_Property_Count()
     self%chemicalsCount =Chemicals_Property_Count ()
     ! Initialize radiation field.
-    self%radiation=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+    allocate(self%radiation)
+    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     ! Check that required components are gettable.
     if     (                                                                                                                        &
          &  .not.(                                                                                                                  &
@@ -166,7 +167,7 @@ contains
     end select
     select type (hotHaloMassDistribution_   => self%hotHaloMassDistribution_  )
     class is (hotHaloMassDistributionBetaProfile)
-       ! An beta-model profile - this is acceptable.
+       ! A beta-model profile - this is acceptable.
     class default
        call Galacticus_Error_Report('assumption of β-model hot halo mass distribution is not met'     //{introspection:location})
     end select
@@ -184,6 +185,7 @@ contains
     !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
     !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%radiation"                 />
    return
   end subroutine betaProfileDestructor
 
@@ -191,7 +193,7 @@ contains
     !% Reset the cooling radius calculation.
     implicit none
     class(coolingRadiusBetaProfile), intent(inout) :: self
-    type (treeNode               ), intent(inout) :: node
+    type (treeNode                ), intent(inout) :: node
 
     self%radiusComputed          =.false.
     self%radiusGrowthRateComputed=.false.

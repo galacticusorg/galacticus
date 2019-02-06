@@ -39,18 +39,18 @@
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisScatterFunction1D
      !% A generic 1D scatter function (i.e. scatter of some property weighted by number density of objects binned by some property) output analysis class.
-     type            (varying_string              )                              :: label             , comment                , &
-          &                                                                         propertyLabel     , propertyComment        , &
-          &                                                                         scatterLabel      , scatterComment         , &
-          &                                                                         propertyUnits     , scatterUnits
-     double precision                                                            :: propertyUnitsInSI , scatterUnitsInSI
-     type            (outputAnalysisMeanFunction1D)                              :: meanFunction      , meanSquaredFunction
-     double precision                              , allocatable, dimension(:  ) :: binCenter         , scatterValue           , &
+     type            (varying_string              )                              :: label                       , comment                          , &
+          &                                                                         propertyLabel               , propertyComment                  , &
+          &                                                                         scatterLabel                , scatterComment                   , &
+          &                                                                         propertyUnits               , scatterUnits
+     double precision                                                            :: propertyUnitsInSI           , scatterUnitsInSI
+     type            (outputAnalysisMeanFunction1D), pointer                     :: meanFunction       => null(), meanSquaredFunction     => null()
+     double precision                              , allocatable, dimension(:  ) :: binCenter                   , scatterValue                     , &
           &                                                                         scatterValueTarget
-     double precision                              , allocatable, dimension(:,:) :: scatterCovariance , scatterCovarianceTarget
-     logical                                                                     :: finalized         , likelihoodNormalize
+     double precision                              , allocatable, dimension(:,:) :: scatterCovariance           , scatterCovarianceTarget
+     logical                                                                     :: finalized                   , likelihoodNormalize
    contains
-     procedure :: deepCopy      => scatterFunction1DDeepCopy
+     final     ::                  scatterFunction1DDestructor 
      procedure :: analyze       => scatterFunction1DAnalyze
      procedure :: finalize      => scatterFunction1DFinalize
      procedure :: reduce        => scatterFunction1DReduce
@@ -361,13 +361,6 @@ contains
     double precision                                         , intent(in   ), optional, dimension(:  ) :: scatterValueTarget
     double precision                                         , intent(in   ), optional, dimension(:,:) :: scatterCovarianceTarget
     type            (weightOperatorList                     ), pointer                                 :: weightOperatorWeight_                       , weightOperatorSquared_
-    class           (outputAnalysisPropertyExtractorClass   ), pointer                                 :: outputAnalysisPropertyExtractorSquared_     , outputAnalysisWeightPropertyExtractorSquared_
-    class           (outputAnalysisPropertyOperatorClass    ), pointer                                 :: outputAnalysisPropertyOperatorSquared_      , outputAnalysisPropertyUnoperatorSquared_     , &
-         &                                                                                                outputAnalysisWeightPropertyOperatorSquared_
-    class           (outputAnalysisWeightOperatorClass      ), pointer                                 :: outputAnalysisWeightOperatorSquared_
-    class           (outputAnalysisDistributionOperatorClass), pointer                                 :: outputAnalysisDistributionOperatorSquared_
-    class           (galacticFilterClass                    ), pointer                                 :: galacticFilterSquared_
-    class           (outputTimesClass                       ), pointer                                 :: outputTimesSquared_
     type            (propertyOperatorList                   ), pointer                                 :: propertyOperators_
     type            (outputAnalysisPropertyOperatorSequence ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquaring_
     type            (outputAnalysisPropertyOperatorSquare   ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquare_
@@ -378,106 +371,99 @@ contains
     ! Set normalization state for likelihood.
     self%likelihoodNormalize=.true.
     if (present(likelihoodNormalize)) self%likelihoodNormalize=likelihoodNormalize
-    ! Build copies of all objects for the squared mean function 1D object.
-    allocate(outputAnalysisWeightOperatorSquared_         ,mold=outputAnalysisWeightOperator_         )
-    allocate(outputAnalysisPropertyExtractorSquared_      ,mold=outputAnalysisPropertyExtractor_      )
-    allocate(outputAnalysisPropertyOperatorSquared_       ,mold=outputAnalysisPropertyOperator_       )
-    allocate(outputAnalysisPropertyUnoperatorSquared_     ,mold=outputAnalysisPropertyUnoperator_     )
-    allocate(outputAnalysisWeightPropertyExtractorSquared_,mold=outputAnalysisWeightPropertyExtractor_)
-    allocate(outputAnalysisWeightPropertyOperatorSquared_ ,mold=outputAnalysisWeightPropertyOperator_ )
-    allocate(outputAnalysisDistributionOperatorSquared_   ,mold=outputAnalysisDistributionOperator_   )
-    allocate(galacticFilterSquared_                       ,mold=galacticFilter_                       )
-    allocate(outputTimesSquared_                          ,mold=outputTimes_                          )
-    call outputAnalysisWeightOperator_         %deepCopy(outputAnalysisWeightOperatorSquared_         )
-    call outputAnalysisPropertyExtractor_      %deepCopy(outputAnalysisPropertyExtractorSquared_      )
-    call outputAnalysisPropertyOperator_       %deepCopy(outputAnalysisPropertyOperatorSquared_       )
-    call outputAnalysisPropertyUnoperator_     %deepCopy(outputAnalysisPropertyUnoperatorSquared_     )
-    call outputAnalysisWeightPropertyExtractor_%deepCopy(outputAnalysisWeightPropertyExtractorSquared_)
-    call outputAnalysisWeightPropertyOperator_ %deepCopy(outputAnalysisWeightPropertyOperatorSquared_ )
-    call outputAnalysisDistributionOperator_   %deepCopy(outputAnalysisDistributionOperatorSquared_   )
-    call galacticFilter_                       %deepCopy(galacticFilterSquared_                       )
-    call outputTimes_                          %deepCopy(outputTimesSquared_                          )
     ! Build the squaring operator.
     allocate(propertyOperators_                                )
     allocate(propertyOperators_                           %next)
     allocate(outputAnalysisWeightPropertyOperatorSquaring_     )
     allocate(outputAnalysisWeightPropertyOperatorSquare_       )
-    outputAnalysisWeightPropertyOperatorSquare_                  =  outputAnalysisPropertyOperatorSquare        (                  )
-    propertyOperators_                                %operator_ => outputAnalysisWeightPropertyOperatorSquared_
-    propertyOperators_                           %next%operator_ => outputAnalysisWeightPropertyOperatorSquare_
-    outputAnalysisWeightPropertyOperatorSquaring_                =  outputAnalysisPropertyOperatorSequence      (propertyOperators_)
+    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSquare_"   constructor="outputAnalysisPropertyOperatorSquare  (                  )"/>
+    propertyOperators_     %operator_ => outputAnalysisWeightPropertyOperator_
+    propertyOperators_%next%operator_ => outputAnalysisWeightPropertyOperatorSquare_
+    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSquaring_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperators_)"/>
     ! Build normal and squared mean function 1D objects.
-    self%meanFunction       =outputAnalysisMeanFunction1D(                                               &
-         &                                                label                                        , &
-         &                                                comment                                      , &
-         &                                                propertyLabel                                , &
-         &                                                propertyComment                              , &
-         &                                                propertyUnits                                , &
-         &                                                propertyUnitsInSI                            , &
-         &                                                scatterLabel                                 , &
-         &                                                scatterComment                               , &
-         &                                                scatterUnits                                 , &
-         &                                                scatterUnitsInSI                             , &
-         &                                                binCenter                                    , &
-         &                                                bufferCount                                  , &
-         &                                                outputWeight                                 , &
-         &                                                outputAnalysisPropertyExtractor_             , &
-         &                                                outputAnalysisWeightPropertyExtractor_       , &
-         &                                                outputAnalysisPropertyOperator_              , &
-         &                                                outputAnalysisWeightPropertyOperator_        , &
-         &                                                outputAnalysisPropertyUnoperator_            , &
-         &                                                outputAnalysisWeightOperator_                , &
-         &                                                outputAnalysisDistributionOperator_          , &
-         &                                                galacticFilter_                              , &
-         &                                                outputTimes_                                 , &
-         &                                                covarianceModel                              , &
-         &                                                covarianceBinomialBinsPerDecade              , &
-         &                                                covarianceBinomialMassHaloMinimum            , &
-         &                                                covarianceBinomialMassHaloMaximum              &
-         &                                               )
-    self%meanSquaredFunction=outputAnalysisMeanFunction1D(                                               &
-         &                                                label                                        , &
-         &                                                comment                                      , &
-         &                                                propertyLabel                                , &
-         &                                                propertyComment                              , &
-         &                                                propertyUnits                                , &
-         &                                                propertyUnitsInSI                            , &
-         &                                                scatterLabel                                 , &
-         &                                                scatterComment                               , &
-         &                                                scatterUnits                                 , &
-         &                                                scatterUnitsInSI                             , &
-         &                                                binCenter                                    , &
-         &                                                bufferCount                                  , &
-         &                                                outputWeight                                 , &
-         &                                                outputAnalysisPropertyExtractorSquared_      , &
-         &                                                outputAnalysisWeightPropertyExtractorSquared_, &
-         &                                                outputAnalysisPropertyOperatorSquared_       , &
-         &                                                outputAnalysisWeightPropertyOperatorSquaring_, &
-         &                                                outputAnalysisPropertyUnoperatorSquared_     , &
-         &                                                outputAnalysisWeightOperatorSquared_         , &
-         &                                                outputAnalysisDistributionOperatorSquared_   , &
-         &                                                galacticFilterSquared_                       , &
-         &                                                outputTimesSquared_                          , &
-         &                                                covarianceModel                              , &
-         &                                                covarianceBinomialBinsPerDecade              , &
-         &                                                covarianceBinomialMassHaloMinimum            , &
-         &                                                covarianceBinomialMassHaloMaximum              &
-         &                                               )
-    ! Nullify objects to avoid destruction.
-    nullify(outputAnalysisWeightOperatorSquared_         )
-    nullify(weightOperatorWeight_                        )
-    nullify(weightOperatorSquared_                       )
-    nullify(outputAnalysisWeightOperatorSquared_         )
-    nullify(outputAnalysisPropertyExtractorSquared_      )
-    nullify(outputAnalysisPropertyOperatorSquared_       )
-    nullify(outputAnalysisPropertyUnoperatorSquared_     )
-    nullify(outputAnalysisWeightPropertyExtractorSquared_)
-    nullify(outputAnalysisWeightPropertyOperatorSquared_ )
-    nullify(outputAnalysisDistributionOperatorSquared_   )
-    nullify(galacticFilterSquared_                       )
-    nullify(outputTimesSquared_                          )
+    allocate(self%meanFunction       )
+    allocate(self%meanSquaredFunction)
+    !# <referenceConstruct isResult="yes" owner="self" object="meanFunction">
+    !#  <constructor>
+    !#   outputAnalysisMeanFunction1D(                                               &amp;
+    !#    &amp;                       label                                        , &amp;
+    !#    &amp;                       comment                                      , &amp;
+    !#    &amp;                       propertyLabel                                , &amp;
+    !#    &amp;                       propertyComment                              , &amp;
+    !#    &amp;                       propertyUnits                                , &amp;
+    !#    &amp;                       propertyUnitsInSI                            , &amp;
+    !#    &amp;                       scatterLabel                                 , &amp;
+    !#    &amp;                       scatterComment                               , &amp;
+    !#    &amp;                       scatterUnits                                 , &amp;
+    !#    &amp;                       scatterUnitsInSI                             , &amp;
+    !#    &amp;                       binCenter                                    , &amp;
+    !#    &amp;                       bufferCount                                  , &amp;
+    !#    &amp;                       outputWeight                                 , &amp;
+    !#    &amp;                       outputAnalysisPropertyExtractor_             , &amp;
+    !#    &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
+    !#    &amp;                       outputAnalysisPropertyOperator_              , &amp;
+    !#    &amp;                       outputAnalysisWeightPropertyOperator_        , &amp;
+    !#    &amp;                       outputAnalysisPropertyUnoperator_            , &amp;
+    !#    &amp;                       outputAnalysisWeightOperator_                , &amp;
+    !#    &amp;                       outputAnalysisDistributionOperator_          , &amp;
+    !#    &amp;                       galacticFilter_                              , &amp;
+    !#    &amp;                       outputTimes_                                 , &amp;
+    !#    &amp;                       covarianceModel                              , &amp;
+    !#    &amp;                       covarianceBinomialBinsPerDecade              , &amp;
+    !#    &amp;                       covarianceBinomialMassHaloMinimum            , &amp;
+    !#    &amp;                       covarianceBinomialMassHaloMaximum              &amp;
+    !#    &amp;                      )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct isResult="yes" owner="self" object="meanSquaredFunction">
+    !#  <constructor>
+    !#   outputAnalysisMeanFunction1D(                                               &amp;
+    !#    &amp;                       label                                        , &amp;
+    !#    &amp;                       comment                                      , &amp;
+    !#    &amp;                       propertyLabel                                , &amp;
+    !#    &amp;                       propertyComment                              , &amp;
+    !#    &amp;                       propertyUnits                                , &amp;
+    !#    &amp;                       propertyUnitsInSI                            , &amp;
+    !#    &amp;                       scatterLabel                                 , &amp;
+    !#    &amp;                       scatterComment                               , &amp;
+    !#    &amp;                       scatterUnits                                 , &amp;
+    !#    &amp;                       scatterUnitsInSI                             , &amp;
+    !#    &amp;                       binCenter                                    , &amp;
+    !#    &amp;                       bufferCount                                  , &amp;
+    !#    &amp;                       outputWeight                                 , &amp;
+    !#    &amp;                       outputAnalysisPropertyExtractor_             , &amp;
+    !#    &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
+    !#    &amp;                       outputAnalysisPropertyOperator_              , &amp;
+    !#    &amp;                       outputAnalysisWeightPropertyOperatorSquaring_, &amp;
+    !#    &amp;                       outputAnalysisPropertyUnoperator_            , &amp;
+    !#    &amp;                       outputAnalysisWeightOperator_                , &amp;
+    !#    &amp;                       outputAnalysisDistributionOperator_          , &amp;
+    !#    &amp;                       galacticFilter_                              , &amp;
+    !#    &amp;                       outputTimes_                                 , &amp;
+    !#    &amp;                       covarianceModel                              , &amp;
+    !#    &amp;                       covarianceBinomialBinsPerDecade              , &amp;
+    !#    &amp;                       covarianceBinomialMassHaloMinimum            , &amp;
+    !#    &amp;                       covarianceBinomialMassHaloMaximum              &amp;
+    !#    &amp;                      )
+    !#  </constructor>
+    !# </referenceConstruct>
+    ! Clean up.
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSquare_"  />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSquaring_"/>
+    nullify(weightOperatorWeight_ )
+    nullify(weightOperatorSquared_)
     return
   end function scatterFunction1DConstructorInternal
+
+  subroutine scatterFunction1DDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily scatterFunction1D} output analysis class.
+    implicit none
+    type(outputAnalysisScatterFunction1D), intent(inout) :: self
+
+    !# <objectDestructor name="self%meanFunction"       />
+    !# <objectDestructor name="self%meanSquaredFunction"/>
+    return
+  end subroutine scatterFunction1DDestructor
   
   subroutine scatterFunction1DAnalyze(self,node,iOutput)
     !% Implement a scatterFunction1D output analysis.
@@ -618,53 +604,3 @@ contains
     end if
     return
   end function scatterFunction1DLogLikelihood
-
-  subroutine scatterFunction1DDeepCopy(self,destination)
-    !% Perform a deep copy for the {\normalfont \ttfamily scatterFunction1D} analysis class.
-    use Galacticus_Error
-    implicit none
-    class(outputAnalysisScatterFunction1D), intent(inout) :: self
-    class(outputAnalysisClass            ), intent(  out) :: destination
-
-    call self%outputAnalysisClass%deepCopy(destination)
-    select type (destination)
-    type is (outputAnalysisScatterFunction1D)
-       destination%label              =self%label
-       destination%comment            =self%comment
-       destination%propertyLabel      =self%propertyLabel
-       destination%propertyComment    =self%propertyComment
-       destination%scatterLabel       =self%scatterLabel
-       destination%scatterComment     =self%scatterComment
-       destination%propertyUnits      =self%propertyUnits
-       destination%scatterUnits       =self%scatterUnits
-       destination%propertyUnitsInSI  =self%propertyUnitsInSI
-       destination%scatterUnitsInSI   =self%scatterUnitsInSI
-       destination%finalized          =self%finalized
-       destination%likelihoodNormalize=self%likelihoodNormalize
-       if (allocated(self%binCenter)) then
-          allocate(destination%binCenter              (size(self%binCenter              ,dim=1)                                         ))
-          destination%binCenter              =self%binCenter
-       end if
-       if (allocated(self%scatterValue)) then
-          allocate(destination%scatterValue           (size(self%scatterValue           ,dim=1)                                         ))
-          destination%scatterValue           =self%scatterValue
-       end if
-       if (allocated(self%scatterValueTarget)) then
-          allocate(destination%scatterValueTarget     (size(self%scatterValueTarget     ,dim=1)                                         ))
-          destination%scatterValueTarget     =self%scatterValueTarget
-       end if
-       if (allocated(self%scatterCovariance)) then
-          allocate(destination%scatterCovariance      (size(self%scatterCovariance      ,dim=1),size(self%scatterCovariance      ,dim=2)))
-          destination%scatterCovariance      =self%scatterCovariance
-       end if
-       if (allocated(self%scatterCovarianceTarget)) then
-          allocate(destination%scatterCovarianceTarget(size(self%scatterCovarianceTarget,dim=1),size(self%scatterCovarianceTarget,dim=2)))
-          destination%scatterCovarianceTarget=self%scatterCovarianceTarget
-       end if
-       call self%meanFunction       %deepCopy(destination%meanFunction       )
-       call self%meanSquaredFunction%deepCopy(destination%meanSquaredFunction)
-    class default
-       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
-    end select
-    return
-  end subroutine scatterFunction1DDeepCopy

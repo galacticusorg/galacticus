@@ -49,10 +49,10 @@ contains
     !% Constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (mergerTreeEvolveTimestepMulti      )                :: self
-    type   (inputParameters                    ), intent(inout) :: parameters
-    type   (multiMergerTreeEvolveTimestepList  ), pointer       :: mergerTreeEvolveTimestep_
-    integer                                                     :: i
+    type   (mergerTreeEvolveTimestepMulti    )                :: self
+    type   (inputParameters                  ), intent(inout) :: parameters
+    type   (multiMergerTreeEvolveTimestepList), pointer       :: mergerTreeEvolveTimestep_
+    integer                                                   :: i
 
     self %mergerTreeEvolveTimesteps => null()
     mergerTreeEvolveTimestep_       => null()
@@ -66,7 +66,6 @@ contains
        end if
        !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" source="parameters" copy="i"/>
     end do
-    !# <objectDestructor name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_"/>
     return
   end function multiConstructorParameters
   
@@ -75,8 +74,14 @@ contains
     implicit none
     type(mergerTreeEvolveTimestepMulti    )                        :: self
     type(multiMergerTreeEvolveTimestepList), target, intent(in   ) :: mergerTreeEvolveTimesteps
-    !# <constructorAssign variables="*mergerTreeEvolveTimesteps"/>
+    type(multiMergerTreeEvolveTimestepList), pointer               :: mergerTreeEvolveTimestep_
 
+    self                     %mergerTreeEvolveTimesteps => mergerTreeEvolveTimesteps
+    mergerTreeEvolveTimestep_                           => mergerTreeEvolveTimesteps
+    do while (associated(mergerTreeEvolveTimestep_))
+       !# <referenceCountIncrement owner="mergerTreeEvolveTimestep_" object="mergerTreeEvolveTimestep_"/>
+       mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
+    end do
     return
   end function multiConstructorInternal
   
@@ -91,7 +96,7 @@ contains
        do while (associated(mergerTreeEvolveTimestep_))
           mergerTreeEvolveTimestepNext => mergerTreeEvolveTimestep_%next
           !# <objectDestructor name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_"/>
-          deallocate(mergerTreeEvolveTimestep_      )
+          deallocate(mergerTreeEvolveTimestep_)
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestepNext
        end do
     end if
@@ -160,7 +165,7 @@ contains
              mergerTreeEvolveTimestepDestination_            => mergerTreeEvolveTimestepNew_
           end if
           allocate(mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_,mold=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_)
-          call mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%deepCopy(mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_)
+          !# <deepCopy source="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" destination="mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_"/>
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
        end do       
     class default

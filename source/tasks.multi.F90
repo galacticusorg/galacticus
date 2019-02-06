@@ -63,7 +63,7 @@ contains
           allocate(self%tasks)
           task_ => self%tasks
        end if
-       task_%task_ => task(parameters,i)
+       !# <objectBuilder class="task" name="task_%task_" source="parameters" copy="i" />
     end do
     return
   end function multiConstructorParameters
@@ -73,12 +73,18 @@ contains
     implicit none
     type(taskMulti    )                        :: self
     type(multiTaskList), target, intent(in   ) :: tasks
-    !# <constructorAssign variables="*tasks"/>
+    type(multiTaskList), pointer               :: task_
 
+    self %tasks => tasks
+    task_       => tasks
+    do while (associated(task_))
+       !# <referenceCountIncrement owner="task_" object="task_"/>
+       task_ => task_%next
+    end do
     return
   end function multiConstructorInternal
   
-  elemental subroutine multiDestructor(self)
+  subroutine multiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily multi} task class.
     implicit none
     type(taskMulti    ), intent(inout) :: self
@@ -88,8 +94,8 @@ contains
        task_ => self%tasks
        do while (associated(task_))
           taskNext => task_%next
-          deallocate(task_%task_)
-          deallocate(task_      )
+          !# <objectDestructor name="task_%task_"/>
+          deallocate(task_)
           task_ => taskNext
        end do
     end if
@@ -153,7 +159,7 @@ contains
              taskDestination_            => taskNew_
           end if
           allocate(taskNew_%task_,mold=task_%task_)
-          call task_%task_%deepCopy(taskNew_%task_)
+          !# <deepCopy source="task_%task_" destination="taskNew_%task_"/>
           task_ => task_%next
        end do       
     class default

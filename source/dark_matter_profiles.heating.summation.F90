@@ -57,7 +57,6 @@ contains
     type   (heatSourceList                   ), pointer       :: heatSource
     integer                                                   :: i
 
-    !$omp critical(heatSourceSummationInitialize)
     heatSource => null()
     do i=1,parameters%copiesCount('darkMatterProfileHeatingMethod',zeroIfNotPresent=.true.)
        if (associated(heatSource)) then
@@ -67,9 +66,8 @@ contains
           allocate(self%heatSources)
           heatSource => self%heatSources
        end if
-       heatSource%heatSource => darkMatterProfileHeating(parameters,i)
+       !# <objectBuilder class="darkMatterProfileHeating" name="heatSource%heatSource" source="parameters" copy="i" />
     end do
-    !$omp end critical(heatSourceSummationInitialize)
     return
   end function summationConstructorParameters
 
@@ -78,8 +76,14 @@ contains
     implicit none
     type(darkMatterProfileHeatingSummation)                        :: self
     type(heatSourceList                   ), target, intent(in   ) :: heatSources
+    type(heatSourceList                   ), pointer               :: heatSource_
 
-    self%heatSources => heatSources
+    self       %heatSources => heatSources
+    heatSource_             => heatSources
+    do while (associated(heatSource_))
+       !# <referenceCountIncrement owner="heatSource_" object="heatSource"/>
+       heatSource_ => heatSource_%next
+    end do
     return
   end function summationConstructorInternal
   
@@ -92,9 +96,9 @@ contains
     heatSource => self%heatSources
     do while (associated(heatSource))
        heatSourceNext => heatSource    %next
-       deallocate(heatSource%heatSource)
-       deallocate(heatSource           )
-       heatSource     => heatSourceNext
+       !# <objectDestructor name="heatSource%heatSource"/>
+       deallocate(heatSource)
+       heatSource => heatSourceNext
     end do
     return
   end subroutine summationDestructor
@@ -190,7 +194,7 @@ contains
              heatSourceDestination_            => heatSourceNew_
           end if
           allocate(heatSourceNew_%heatSource,mold=heatSource_%heatSource)
-          call heatSource_%heatSource%deepCopy(heatSourceNew_%heatSource)
+          !# <deepCopy source="heatSource_%heatSource" destination="heatSourceNew_%heatSource"/>
           heatSource_ => heatSource_%next
        end do       
     class default

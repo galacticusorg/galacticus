@@ -30,7 +30,7 @@
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence
      !% A sequence output weight operator class.
      private
-     type(weightOperatorList), pointer :: operators
+     type(weightOperatorList), pointer :: operators => null()
    contains
      !@ <objectMethods>
      !@   <object>outputAnalysisWeightOperatorSequence</object>
@@ -74,22 +74,28 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       operator_%operator_ => outputAnalysisWeightOperator(parameters,i)
+       !# <objectBuilder class="outputAnalysisWeightOperator" name="operator_%operator_" source="parameters" copy="i" />
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !% Internal constructor for the sequence merger tree normalizer class.
+    !% Internal constructor for the sequence output analysis weight operator class.
     implicit none
     type(outputAnalysisWeightOperatorSequence)                        :: self
     type(weightOperatorList                  ), target, intent(in   ) :: operators
+    type(weightOperatorList                  ), pointer               :: operator_
 
-    self%operators => operators
+    self     %operators => operators
+    operator_           => operators
+    do while (associated(operator_))
+       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       operator_ => operator_%next
+    end do
     return
   end function sequenceConstructorInternal
 
-  elemental subroutine sequenceDestructor(self)
+  subroutine sequenceDestructor(self)
     !% Destructor for the sequence weight operator class.
     implicit none
     type(outputAnalysisWeightOperatorSequence), intent(inout) :: self
@@ -99,8 +105,8 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          deallocate(operator_%operator_)
-          deallocate(operator_          )
+          !# <objectDestructor name="operator_%operator_"/>
+          deallocate(operator_)
           operator_ => operatorNext
        end do
     end if
@@ -166,7 +172,7 @@ contains
              operatorDestination_            => operatorNew_
           end if
           allocate(operatorNew_%operator_,mold=operator_%operator_)
-          call operator_%operator_%deepCopy(operatorNew_%operator_)
+          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
        end do       
     class default

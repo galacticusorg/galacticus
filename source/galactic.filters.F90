@@ -38,7 +38,7 @@ module Galactic_Filters
   !# </functionClass>
   
   type, public :: filterList
-     class(galacticFilterClass), pointer :: filter_
+     class(galacticFilterClass), pointer :: filter_ => null()
      type (filterList         ), pointer :: next    => null()
   end type filterList
 

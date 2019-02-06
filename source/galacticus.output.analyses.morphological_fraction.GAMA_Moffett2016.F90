@@ -105,7 +105,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
     ! Build the object.
     self=outputAnalysisMorphologicalFractionGAMAMoffett2016(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>

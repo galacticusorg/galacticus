@@ -46,41 +46,47 @@
 
 contains
 
-  function sequenceConstructorParameters(parameters)
+  function sequenceConstructorParameters(parameters) result(self)
     !% Constructor for the sequence on-the-fly output normalizer class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (outputAnalysisDistributionNormalizerSequence)                :: sequenceConstructorParameters
+    type   (outputAnalysisDistributionNormalizerSequence)                :: self
     type   (inputParameters                             ), intent(inout) :: parameters
     type   (normalizerList                              ), pointer       :: normalizer_
     integer                                                              :: i
 
-    sequenceConstructorParameters%normalizers => null()
-    normalizer_                               => null()
+    self       %normalizers => null()
+    normalizer_             => null()
     do i=1,parameters%copiesCount('outputAnalysisDistributionNormalizerMethod',zeroIfNotPresent=.true.)
        if (associated(normalizer_)) then
           allocate(normalizer_%next)
           normalizer_ => normalizer_%next
        else
-          allocate(sequenceConstructorParameters%normalizers)
-          normalizer_ => sequenceConstructorParameters%normalizers
+          allocate(self%normalizers)
+          normalizer_ => self%normalizers
        end if
-       normalizer_%normalizer_ => outputAnalysisDistributionNormalizer(parameters,i)
+       !# <objectBuilder class="outputAnalysisDistributionNormalizer" name="normalizer_%normalizer_" source="parameters" copy="i" />
     end do
     return
   end function sequenceConstructorParameters
 
-  function sequenceConstructorInternal(normalizers)
+  function sequenceConstructorInternal(normalizers) result(self)
     !% Internal constructor for the sequence merger tree normalizer class.
     implicit none
-    type(outputAnalysisDistributionNormalizerSequence)                        :: sequenceConstructorInternal
+    type(outputAnalysisDistributionNormalizerSequence)                        :: self
     type(normalizerList                              ), target, intent(in   ) :: normalizers
+    type(normalizerList                              ), pointer               :: normalizer_
 
-    sequenceConstructorInternal%normalizers => normalizers
+    self       %normalizers => normalizers
+    normalizer_             => normalizers
+    do while (associated(normalizer_))
+       !# <referenceCountIncrement owner="normalizer_" object="normalizer_"/>
+       normalizer_ => normalizer_%next
+    end do
     return
   end function sequenceConstructorInternal
 
-  elemental subroutine sequenceDestructor(self)
+  subroutine sequenceDestructor(self)
     !% Destructor for the merger tree normalizer function class.
     implicit none
     type(outputAnalysisDistributionNormalizerSequence), intent(inout) :: self
@@ -90,8 +96,8 @@ contains
        normalizer_ => self%normalizers
        do while (associated(normalizer_))
           normalizerNext => normalizer_%next
-          deallocate(normalizer_%normalizer_)
-          deallocate(normalizer_            )
+          !# <objectDestructor name="normalizer_%normalizer_"/>
+          deallocate(normalizer_)
           normalizer_ => normalizerNext
        end do
     end if
@@ -140,7 +146,7 @@ contains
              normalizerDestination_            => normalizerNew_
           end if
           allocate(normalizerNew_%normalizer_,mold=normalizer_%normalizer_)
-          call normalizer_%normalizer_%deepCopy(normalizerNew_%normalizer_)
+          !# <deepCopy source="normalizer_%normalizer_" destination="normalizerNew_%normalizer_"/>
           normalizer_ => normalizer_%next
        end do       
     class default
