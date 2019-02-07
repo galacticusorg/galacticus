@@ -202,7 +202,7 @@ contains
                         &               /spinSibling%spin      ()
                 end do
                 ! Convert angular momentum back to spin.
-                spinValue =+Dark_Matter_Halo_Spin(node,Vector_Magnitude(angularMomentumTotal))
+                spinValue =+Dark_Matter_Halo_Spin(node,Vector_Magnitude(angularMomentumTotal),darkMatterProfile_)
                 spinVector=+spinValue                              &
                      &     *                 angularMomentumTotal  &
                      &     /Vector_Magnitude(angularMomentumTotal)
