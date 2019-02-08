@@ -28,7 +28,7 @@
      !% An SDSS color distribution output analysis class.
      private
      integer                                   :: distributionNumber
-     class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
      final :: colorDistributionSDSSDestructor
   end type outputAnalysisColorDistributionSDSS

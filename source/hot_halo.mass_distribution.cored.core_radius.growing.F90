@@ -29,8 +29,8 @@
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusGrowing
      !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
      private
-     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_
-     class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_
+     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_ => null()
+     class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_ => null()
      double precision                                        :: coreRadiusOverScaleRadius      , coreRadiusOverVirialRadiusMaximum
      double precision                                        :: coreRadiusMaximum              , coreRadiusMinimum
      double precision                                        :: hotGasFractionSaved            , coreRadiusOverVirialRadiusInitialSaved, &

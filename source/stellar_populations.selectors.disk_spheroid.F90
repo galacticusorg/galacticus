@@ -25,7 +25,7 @@
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorDiskSpheroid
      !% A stellar population selector class which returns a different population for disks and spheroids.
      private
-     class(stellarPopulationClass), pointer :: stellarPopulationDisk_, stellarPopulationSpheroid_
+     class(stellarPopulationClass), pointer :: stellarPopulationDisk_ => null(), stellarPopulationSpheroid_ => null()
    contains
      final     ::                                 diskSpheroidDestructor
      procedure :: select                       => diskSpheroidSelect

@@ -29,7 +29,7 @@
           &                                                                                        stepsPerLevel
      integer                                                                                    :: temperingStep                            , temperingLevelMonotonic
      double precision                                                                           :: temperatureMaximum
-     class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), pointer                   :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_
+     class           (posteriorSampleDffrntlEvltnPrpslSzTmpExpClass), pointer                   :: posteriorSampleDffrntlEvltnPrpslSzTmpExp_ => null()
      double precision                                               , allocatable, dimension(:) :: temperatures
      class           (posteriorSampleStateClass                    ), allocatable, dimension(:) :: temperedStates
    contains

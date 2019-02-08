@@ -27,7 +27,7 @@
   type, extends(ramPressureStrippingSpheroidsClass) :: ramPressureStrippingSpheroidsSimple
      !% Implementation of a simple model of ram pressure stripping of galactic spheroids.
      private
-     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
      double precision                                        :: rateFractionalMaximum
    contains
      final     ::                 simpleDestructor

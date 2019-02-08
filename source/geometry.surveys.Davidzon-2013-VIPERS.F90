@@ -26,7 +26,7 @@
   !#  <description>Implements the geometry of the VIPERS survey of \cite{davidzon_vimos_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryDavidzon2013VIPERS
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      integer                                            :: redshiftBin
      double precision                                   :: binDistanceMinimum , binDistanceMaximum
    contains

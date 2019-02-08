@@ -30,8 +30,8 @@
   type, extends(satelliteTidalHeatingRateClass) :: satelliteTidalHeatingRateGnedin1999
      !% A satellite tidal heating rate class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: epsilon             , gamma
    contains
      final     ::                gnedin1999Destructor

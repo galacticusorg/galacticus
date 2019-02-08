@@ -28,7 +28,7 @@
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleHaloDynamicalTime
      !% Implementation of a hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::              haloDynamicalTimeDestructor
      procedure :: timescale => haloDynamicalTimeTimescale

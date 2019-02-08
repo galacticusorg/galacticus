@@ -29,7 +29,7 @@
      !% Implementation of a timescale for star formation in galactic disks which computes the timescale by integrating a
      !% star formation rate over the disk.
      private
-     class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_
+     class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
      double precision                                                     :: tolerance                            , starFormationRatePrevious
    contains
      final     ::                     intgrtdSurfaceDensityDestructor

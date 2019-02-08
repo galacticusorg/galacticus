@@ -30,8 +30,8 @@
   type, extends(starFormationTimescaleSpheroidsClass) :: starFormationTimescaleSpheroidsVelocityMaxScaling
      !% Implementation of a velocityMaxScaling timescale for star formation in galactic spheroids.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
      double precision                                   :: expansionFactorFactorPrevious, exponentVelocity            , &
           &                                                exponentRedshift             , timescaleNormalization      , &
           &                                                timescaleStored              , velocityMaximumPrevious     , &

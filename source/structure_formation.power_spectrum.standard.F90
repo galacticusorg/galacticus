@@ -30,8 +30,8 @@
      !% A linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum
      !% correctly normalized to $z=0$.
      private
-     class(cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_
-     class(powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_
+     class(cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_ => null()
+     class(powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_ => null()
    contains
      final     ::                               standardDestructor
      procedure :: power                      => standardPower

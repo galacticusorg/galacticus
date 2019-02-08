@@ -27,7 +27,7 @@
   type, extends(supernovaeTypeIaClass) :: supernovaeTypeIaNagashima2005
      !% A supernovae type Ia class based on \cite{nagashima_metal_2005}.
      private
-     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_
+     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
      double precision                                                      :: totalYield
      double precision                          , allocatable, dimension(:) :: elementYield
    contains

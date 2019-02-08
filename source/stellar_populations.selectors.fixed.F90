@@ -25,7 +25,7 @@
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorFixed
      !% A fixed stellar population selector class.
      private
-     class(stellarPopulationClass), pointer :: stellarPopulation_
+     class(stellarPopulationClass), pointer :: stellarPopulation_ => null()
    contains
      final     ::                                 fixedDestructor
      procedure :: select                       => fixedSelect

@@ -31,8 +31,8 @@
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
      !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
      double precision                                   :: timeScaleNormalization , velocityExponent            , &
           &                                                redshiftExponent       , velocityMaximumFactor       , &
           &                                                expansionFactorFactor  , rateStored                  , &

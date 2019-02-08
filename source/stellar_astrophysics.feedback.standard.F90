@@ -30,10 +30,10 @@
   type, extends(stellarFeedbackClass) :: stellarFeedbackStandard
      !% A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
      private
-     class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_
-     class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_
-     class           (stellarWindsClass           ), pointer :: stellarWinds_
-     class           (stellarAstrophysicsClass    ), pointer :: stellarAstrophysics_
+     class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_ => null()
+     class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_ => null()
+     class           (stellarWindsClass           ), pointer :: stellarWinds_ => null()
+     class           (stellarAstrophysicsClass    ), pointer :: stellarAstrophysics_ => null()
      double precision                                        :: initialMassForSupernovaeTypeII, supernovaEnergy
    contains
      final     ::                          standardDestructor

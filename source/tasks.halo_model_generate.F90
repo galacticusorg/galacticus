@@ -29,11 +29,11 @@
   type, extends(taskClass) :: taskHaloModelGenerate
      !% Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
      private 
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_
-     class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_
-     class           (conditionalMassFunctionClass     ), pointer :: conditionalMassFunction_
-     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_ => null()
+     class           (conditionalMassFunctionClass     ), pointer :: conditionalMassFunction_ => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
      double precision                                             :: massMinimum                  , massMaximum
      type            (varying_string                   )          :: galaxyCatalogFileName        , haloCatalogFileName
    contains

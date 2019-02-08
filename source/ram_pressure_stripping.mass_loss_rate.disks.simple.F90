@@ -27,7 +27,7 @@
   type, extends(ramPressureStrippingDisksClass) :: ramPressureStrippingDisksSimple
      !% Implementation of a simple model of ram pressure stripping of galactic disks.
      private
-     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
      double precision                                        :: rateFractionalMaximum
    contains
      final     ::                 simpleDestructor

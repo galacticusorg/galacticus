@@ -27,7 +27,7 @@
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceFont2008
      !% Implementation of a hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.
      private
-     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
    contains
      final     ::          font2008Destructor
      procedure :: force => font2008Force

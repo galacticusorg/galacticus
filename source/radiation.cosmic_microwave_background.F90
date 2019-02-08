@@ -27,7 +27,7 @@
   type, extends(radiationFieldBlackBody) :: radiationFieldCosmicMicrowaveBackground
      !% A radiation field class for the cosmic microwave background.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: time
    contains
      !@ <objectMethods>

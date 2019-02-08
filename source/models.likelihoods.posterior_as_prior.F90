@@ -29,7 +29,7 @@
      !% Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
      !% over the parameters in the form of a set of MCMC chains.
      private
-     class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_
+     class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
      integer                                         , allocatable, dimension(:  ) :: neighborIndices           , exclusions
      logical                                         , allocatable, dimension(:  ) :: included
      double precision                                , allocatable, dimension(:  ) :: neighborDistances         , rootVariance

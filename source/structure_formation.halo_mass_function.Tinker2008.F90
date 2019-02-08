@@ -41,7 +41,7 @@
   type, extends(haloMassFunctionTinker2008Form) :: haloMassFunctionTinker2008
      !% A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}, and using their fits for the parameter values.
      private
-     class           (virialDensityContrastClass), pointer                                                  :: virialDensityContrast_
+     class           (virialDensityContrastClass), pointer                                                  :: virialDensityContrast_ => null()
      type            (table1DGeneric            )                                                           :: densityContrast
      double precision                            , dimension(tinker2008ParameterMin:tinker2008ParameterMax) :: parameters
      double precision                                                                                       :: alphaDensityContrast  , timeParameters, &

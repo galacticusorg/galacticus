@@ -27,7 +27,7 @@
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionCorrelationLength
      !% Implementation of a posterior sampling convergence class which stops after a given number of correlation lengths.
      private
-     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_
+     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_ => null()
      integer                                           :: stopAfterCount
    contains
      final     ::         correlationLengthDestructor

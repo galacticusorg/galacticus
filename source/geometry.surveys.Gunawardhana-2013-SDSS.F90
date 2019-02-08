@@ -26,7 +26,7 @@
   !#  <description>Implements the geometry of the SDSS survey of \cite{gunawardhana_galaxy_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryGunawardhana2013SDSS
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
      final     ::                    gunawardhana2013SDSSDestructor
      procedure :: distanceMinimum => gunawardhana2013SDSSDistanceMinimum

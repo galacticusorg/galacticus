@@ -30,7 +30,7 @@
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence
      !% A sequence output property operator class.
      private
-     type(propertyOperatorList), pointer :: operators
+     type(propertyOperatorList), pointer :: operators => null()
    contains
      !@ <objectMethods>
      !@   <object>outputAnalysisPropertyOperatorSequence</object>

@@ -35,7 +35,7 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodIndependentLikelihoods
      !% Implementation of a posterior sampling likelihood class which combines other likelihoods assumed to be independent.
      private
-     type(posteriorSampleLikelihoodList), pointer :: modelLikelihoods
+     type(posteriorSampleLikelihoodList), pointer :: modelLikelihoods => null()
    contains
      final     ::                    independentLikelihoodsDestructor
      procedure :: evaluate        => independentLikelihoodsEvaluate

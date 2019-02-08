@@ -28,8 +28,8 @@
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorNormal
      !% A high-pass filter weight operator class.
      private
-     class           (outputAnalysisPropertyExtractorClass), pointer :: outputAnalysisPropertyExtractor_
-     class           (outputAnalysisPropertyOperatorClass ), pointer :: outputAnalysisPropertyOperator_
+     class           (outputAnalysisPropertyExtractorClass), pointer :: outputAnalysisPropertyExtractor_ => null()
+     class           (outputAnalysisPropertyOperatorClass ), pointer :: outputAnalysisPropertyOperator_ => null()
      double precision                                                :: rangeLower                      , rangeUpper, &
           &                                                             rootVariance_
    contains

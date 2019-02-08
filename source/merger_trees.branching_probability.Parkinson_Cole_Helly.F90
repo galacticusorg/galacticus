@@ -45,7 +45,7 @@
           &                                                      haloMassPrevious                      , deltaCriticalPrevious              , &
           &                                                      massResolutionPrevious                , probabilityPrevious                , &
           &                                                      resolutionSigma                       , resolutionAlpha
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeBranchingProbabilityParkinsonColeHelly</object>

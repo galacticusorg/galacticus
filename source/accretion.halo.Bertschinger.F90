@@ -29,7 +29,7 @@
      !% A halo accretion class using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define
      !% available mass.
      private
-     class(darkMatterProfileClass), pointer:: darkMatterProfile_
+     class(darkMatterProfileClass), pointer:: darkMatterProfile_ => null()
    contains
      final     ::                  bertschingerDestructor
      procedure :: velocityScale => bertschingerVelocityScale

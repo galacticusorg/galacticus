@@ -35,13 +35,13 @@
      integer                                                   :: massesPerDecade           , timesPerDecade
      double precision                                          :: massMaximum               , massMinimum   , &
           &                                                       timeMinimum               , timeMaximum
-     class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
-     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
-     class           (haloMassFunctionClass         ), pointer :: haloMassFunction_
-     class           (excursionSetBarrierClass      ), pointer :: excursionSetBarrier_
-     class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_
-     class           (powerSpectrumClass            ), pointer :: powerSpectrum_
+     class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_ => null()
+     class           (haloMassFunctionClass         ), pointer :: haloMassFunction_ => null()
+     class           (excursionSetBarrierClass      ), pointer :: excursionSetBarrier_ => null()
+     class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
+     class           (powerSpectrumClass            ), pointer :: powerSpectrum_ => null()
    contains
      final     ::            excursionSetsDestructor
      procedure :: perform => excursionSetsPerform

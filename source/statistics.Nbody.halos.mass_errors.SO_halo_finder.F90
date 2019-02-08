@@ -31,8 +31,8 @@
      !% overdensity halo finders.
      private
      double precision                                    :: massParticle
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
    contains
      final     ::                    soHaloFinderDestructor
      procedure :: errorFractional => soHaloFinderErrorFractional

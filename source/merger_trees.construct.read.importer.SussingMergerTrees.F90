@@ -31,8 +31,8 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterSussing
      !% A merger tree importer class for ``Sussing Merger Trees'' format merger tree files \citep{srisawat_sussing_2013}.
      private
-     class           (cosmologyParametersClass), pointer                    :: cosmologyParameters_
-     class           (cosmologyFunctionsClass ), pointer                    :: cosmologyFunctions_
+     class           (cosmologyParametersClass), pointer                    :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer                    :: cosmologyFunctions_ => null()
      logical                                                                :: fatalMismatches         , treeIndicesRead    , &
           &                                                                    scaleRadiiAvailableValue, spinsAvailableValue, &
           &                                                                    fatalNonTreeNode

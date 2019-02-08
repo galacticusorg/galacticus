@@ -27,7 +27,7 @@
   type, extends(starFormationFeedbackDisksPowerLaw) :: starFormationFeedbackDisksPowerLawRedshiftScaling
      !% Implementation of a power-law outflow rate due to star formation feedback in galactic disks in which the characteristic velocity scales as a power of $(1+z)$.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: exponentRedshift
    contains
      final     ::                           powerLawRedshiftScalingDestructor

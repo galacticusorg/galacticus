@@ -27,7 +27,7 @@
   type, extends(virialDensityContrastClass) :: virialDensityContrastKitayamaSuto1996
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
-     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
    contains
      final     ::                                kitayamaSuto1996Destructor
      procedure :: densityContrast             => kitayamaSuto1996DensityContrast

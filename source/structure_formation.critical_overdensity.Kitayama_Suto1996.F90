@@ -31,8 +31,8 @@
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
      double precision                                   :: timePrevious       , valuePrevious
-     class           (linearGrowthClass      ), pointer :: linearGrowth_
-     class           (darkMatterParticleClass), pointer :: darkMatterParticle_
+     class           (linearGrowthClass      ), pointer :: linearGrowth_ => null()
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
     contains
      final     ::                    kitayamaSuto1996Destructor
      procedure :: value           => kitayamaSuto1996Value

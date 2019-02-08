@@ -29,10 +29,10 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationSchneider2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{schneider_structure_2015}.
      private
-     class           (darkMatterProfileConcentrationClass), pointer :: referenceConcentration
-     class           (cosmologyFunctionsClass            ), pointer :: referenceCosmologyFunctions      , cosmologyFunctions_
-     class           (criticalOverdensityClass           ), pointer :: referenceCriticalOverdensity     , criticalOverdensity_
-     class           (cosmologicalMassVarianceClass      ), pointer :: referenceCosmologicalMassVariance, cosmologicalMassVariance_
+     class           (darkMatterProfileConcentrationClass), pointer :: referenceConcentration            => null()
+     class           (cosmologyFunctionsClass            ), pointer :: referenceCosmologyFunctions       => null(), cosmologyFunctions_       => null()
+     class           (criticalOverdensityClass           ), pointer :: referenceCriticalOverdensity      => null(), criticalOverdensity_      => null()
+     class           (cosmologicalMassVarianceClass      ), pointer :: referenceCosmologicalMassVariance => null(), cosmologicalMassVariance_ => null()
      type            (rootFinder                         )          :: finder
      double precision                                               :: massFractionFormation
   contains

@@ -32,7 +32,7 @@
      !% Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
      !% another likelihood.
      private
-     class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_
+     class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
      integer                                                                       :: accumulatedStateCount     , emulatorRebuildCount       , &
           &                                                                           polynomialOrder           , polynomialCoefficientCount , &
           &                                                                           reportCount               , simulationCount            , &

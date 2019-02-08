@@ -30,7 +30,7 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPerturbMasses
      !% A merger tree operator class perturbs halo masses by some error model.
      private
-     class(nbodyHaloMassErrorClass     ), pointer :: nbodyHaloMassError_
+     class(nbodyHaloMassErrorClass     ), pointer :: nbodyHaloMassError_ => null()
      type (distributionFunction1DNormal)          :: standardNormal
    contains
      final     ::             perturbMassesDestructor

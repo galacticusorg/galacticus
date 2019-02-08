@@ -28,8 +28,8 @@
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCsmlgyVolume
      !% A cosmological volume corrector analysis weight operator class.
      private
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctionsModel, cosmologyFunctionsData
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
+     class(surveyGeometryClass    ), pointer :: surveyGeometry_         => null()
    contains
      final     ::            csmlgyVolumeDestructor
      procedure :: operate => csmlgyVolumeOperate

@@ -27,7 +27,7 @@
   type, extends(darkMatterParticleClass) :: darkMatterParticleWDMThermal
      !% A thermal warm dark matter particle class.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: massValue           , degreesOfFreedomEffectiveValue
    contains
      !@ <objectMethods>

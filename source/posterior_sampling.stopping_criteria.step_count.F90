@@ -28,7 +28,7 @@
      !% Implementation of a posterior sampling convergence class which stepCount converges.
      private
      integer                                           :: stopAfterCount
-     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_
+     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_ => null()
    contains
      final     ::         stepCountDestructor
      procedure :: stop => stepCountStop

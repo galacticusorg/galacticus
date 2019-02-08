@@ -30,11 +30,11 @@
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityGnrlzdPrssSchchtr
      !% A merger tree branching probability class using a generalized Press-Schechter approach.
      private
-     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_
-     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_
-     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_
-     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_
-     class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_
+     class           (cosmologicalMassVarianceClass              ), pointer :: cosmologicalMassVariance_ => null()
+     class           (criticalOverdensityClass                   ), pointer :: criticalOverdensity_ => null()
+     class           (cosmologyFunctionsClass                    ), pointer :: cosmologyFunctions_ => null()
+     class           (excursionSetFirstCrossingClass             ), pointer :: excursionSetFirstCrossing_ => null()
+     class           (mergerTreeBranchingProbabilityModifierClass), pointer :: mergerTreeBranchingProbabilityModifier_ => null()
      ! Parent halo shared variables.
      double precision                                          :: parentDTimeDDeltaCritical                  , parentDelta           , &
           &                                                       parentHaloMass                             , parentSigma           , &

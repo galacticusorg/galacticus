@@ -26,8 +26,8 @@
      !% Implementation of an accretion disk class in which accretion switches between thin-disk and ADAF modes.
      private
      ! Parameters controlling the range of accretion rates over which the accretion disk will be an ADAF.
-     class           (accretionDisksClass), pointer :: accretionDisksADAF_                              , accretionDisksShakuraSunyaev_
-     double precision                               :: accretionRateThinDiskMaximum                     , accretionRateThinDiskMinimum           , &
+     class           (accretionDisksClass), pointer :: accretionDisksADAF_                     => null(), accretionDisksShakuraSunyaev_           => null()
+     double precision                               :: accretionRateThinDiskMaximum                     , accretionRateThinDiskMinimum                     , &
           &                                            accretionRateTransitionWidth
      double precision                               :: accretionRateThinDiskMaximumLogarithmic          , accretionRateThinDiskMinimumLogarithmic
      logical                                        :: accretionRateThinDiskMaximumExists               , accretionRateThinDiskMinimumExists

@@ -32,8 +32,8 @@
           &                                                 exponentVelocity       , normalization        , &
           &                                                 velocityPrevious       , velocityFactor       , &
           &                                                 expansionFactorPrevious, expansionFactorFactor
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                haloScalingDestructor
      procedure :: outflowRate => haloScalingOutflowRate

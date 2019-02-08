@@ -28,8 +28,8 @@
   type, extends(modelParameterClass) :: modelParameterActive
      !% Implementation of an active model parameter class.
      private
-     class(distributionFunction1DClass), pointer :: prior , perturber
-     class(operatorUnaryClass         ), pointer :: mapper
+     class(distributionFunction1DClass), pointer :: prior  => null(), perturber => null()
+     class(operatorUnaryClass         ), pointer :: mapper => null()
      type (varying_string             )          :: name_
    contains
      final     ::                       activeDestructor

@@ -30,7 +30,7 @@
   type, extends(nbodyOperatorClass) :: nbodyOperatorSequence
      !% An N-body data operator which applies a sequence of other operators.
      private
-     type(nbodyOperatorList), pointer :: operators
+     type(nbodyOperatorList), pointer :: operators => null()
    contains
      final     ::             sequenceDestructor
      procedure :: operate  => sequenceOperate

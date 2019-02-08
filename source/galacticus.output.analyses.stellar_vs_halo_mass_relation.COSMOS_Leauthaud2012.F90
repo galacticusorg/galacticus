@@ -27,7 +27,7 @@
   type, extends(outputAnalysisClass) :: outputAnalysisStellarVsHaloMassRelationLeauthaud2012
      !% A stellar vs halo mass relation output analysis class.
      private
-     class  (outputAnalysisClass), pointer :: outputAnalysis_
+     class  (outputAnalysisClass), pointer :: outputAnalysis_ => null()
      integer(c_size_t           )          :: likelihoodBin
    contains
      final     ::                  stellarVsHaloMassRelationLeauthaud2012Destructor

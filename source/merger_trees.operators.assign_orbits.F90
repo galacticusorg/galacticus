@@ -28,8 +28,8 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAssignOrbits
      !% An orbit assigning merger tree operator class.
      private
-     class(virialOrbitClass               ), pointer :: virialOrbit_
-     class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_
+     class(virialOrbitClass               ), pointer :: virialOrbit_ => null()
+     class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
    contains
      final     ::            assignOrbitsDestructor
      procedure :: operate => assignOrbitsOperate

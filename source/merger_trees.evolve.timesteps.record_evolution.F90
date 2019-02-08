@@ -31,8 +31,8 @@
      !% Implementation of a merger tree evolution timestepping class which limits the step to the next epoch at which to record
      !% evolution of the main branch galaxy.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
-     class           (outputTimesClass       ), pointer                   :: outputTimes_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_ => null()
      logical                                                              :: oneTimeDatasetsWritten
      integer                                                              :: countSteps
      double precision                                                     :: timeBegin               , timeEnd

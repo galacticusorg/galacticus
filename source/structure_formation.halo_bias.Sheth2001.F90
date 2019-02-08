@@ -29,8 +29,8 @@
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasSheth2001
      !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::               sheth2001Destructor
      procedure :: biasByMass => sheth2001BiasByMass

@@ -31,22 +31,22 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodHaloMassFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
      private
-     double precision                               , dimension(:  ), allocatable :: mass                     , massFunction                          , &
-          &                                                                          massMinimum              , massMaximum
+     double precision                               , dimension(:  ), allocatable :: mass                               , massFunction                                    , &
+          &                                                                          massMinimum                        , massMaximum
      double precision                               , dimension(:,:), allocatable :: covarianceMatrix
-     class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
-     class           (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_
-     class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_, cosmologicalMassVarianceUnconditioned_
-     class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_     , criticalOverdensityUnconditioned_
-     class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_
-     class           (darkMatterProfileClass       ), pointer                     :: darkMatterProfile_
-     class           (haloEnvironmentClass         ), pointer                     :: haloEnvironment_
-     double precision                                                             :: time                     , massParticle                           , &
-          &                                                                          massRangeMinimum         , redshift     
+     class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_       => null()
+     class           (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_      => null()
+     class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_ => null(), cosmologicalMassVarianceUnconditioned_ => null()
+     class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_      => null(), criticalOverdensityUnconditioned_      => null()
+     class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_      => null()
+     class           (darkMatterProfileClass       ), pointer                     :: darkMatterProfile_        => null()
+     class           (haloEnvironmentClass         ), pointer                     :: haloEnvironment_          => null()
+     double precision                                                             :: time                               , massParticle                                    , &
+          &                                                                          massRangeMinimum                   , redshift     
      type            (vector                       )                              :: means
-     type            (matrix                       )                              :: covariance               , inverseCovariance
+     type            (matrix                       )                              :: covariance                         , inverseCovariance
      integer                                                                      :: errorModel
-     type            (varying_string               )                              :: fileName                 , massFunctionType
+     type            (varying_string               )                              :: fileName                           , massFunctionType
      logical                                                                      :: environmentAveraged
    contains
      final     ::                    haloMassFunctionDestructor

@@ -43,7 +43,7 @@
      double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
           &                                                                opticalDepthReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
-     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation => null()
      integer                                                            :: countChemicals
    contains
      !@ <objectMethods>

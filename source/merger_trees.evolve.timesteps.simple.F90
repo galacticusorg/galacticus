@@ -25,7 +25,7 @@
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSimple
      !% Implementation of an output times class which reads a simple of output times from a parameter.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: timeStepAbsolute   , timeStepRelative
    contains
      final     ::                 simpleDestructor

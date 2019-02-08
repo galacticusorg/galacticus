@@ -27,7 +27,7 @@
   type, extends(coldModeInfallRateClass) :: coldModeInfallRateDynamicalTime
      !% Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: dynamicalRateFraction
    contains
      final     ::               dynamicalTimeDestructor

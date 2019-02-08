@@ -27,7 +27,7 @@
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCole2000
      !% A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
      private
-     class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_
+     class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_ => null()
      double precision                                           :: energyOrbital
    contains
      final     ::        cole2000Destructor

@@ -29,7 +29,7 @@
      !% An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.
      private
      double precision                                    :: multiplier
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::         haloDynamicalTimeDestructor
      procedure :: rate => haloDynamicalTimeRate

@@ -26,7 +26,7 @@
   type, extends(coolingRateClass) :: coolingRateMultiplier
      !% Implementation of cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.
      private
-     class           (coolingRateClass), pointer :: coolingRate_
+     class           (coolingRateClass), pointer :: coolingRate_ => null()
      double precision                            :: multiplier
    contains
      final     ::         multiplierDestructor

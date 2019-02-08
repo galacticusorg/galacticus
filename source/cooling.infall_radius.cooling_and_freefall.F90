@@ -28,8 +28,8 @@
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall
      !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
      private
-     class(coolingRadiusClass ), pointer :: coolingRadius_
-     class(freefallRadiusClass), pointer :: freefallRadius_
+     class(coolingRadiusClass ), pointer :: coolingRadius_ => null()
+     class(freefallRadiusClass), pointer :: freefallRadius_ => null()
    contains
      final     ::                       coolingFreefallDestructor
      procedure :: radius             => coolingFreefallRadius

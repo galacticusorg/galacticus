@@ -31,9 +31,9 @@
      !% Implementation of a hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure
      !% acceleration.
      private
-     class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_
-     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
-     class(hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_ => null()
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
+     class(hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
    contains
      final     ::              ramPressureAccelerationDestructor
      procedure :: timescale => ramPressureAccelerationTimescale

@@ -37,10 +37,10 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_
-     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_
-     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_
-     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_
+     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_ => null()
+     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_ => null()
+     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_ => null()
+     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_ => null()
      type            (hdf5Object                   )                            :: file                     , forestHalos
      type            (statefulInteger              )                            :: hasSubhalos              , areSelfContained              , &
           &                                                                        includesHubbleFlow       , periodicPositions             , &

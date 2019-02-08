@@ -27,7 +27,7 @@
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSpinNBodyErrors
      !% An output distribution operator class to account for errors on N-body measurements of halo spin.
      private
-     class(haloSpinDistributionClass), pointer :: haloSpinDistribution_
+     class(haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
    contains
      final     ::                        spinNBodyErrorsDestructor
      procedure :: operateScalar       => spinNBodyErrorsOperateScalar

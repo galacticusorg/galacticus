@@ -30,7 +30,7 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorProfiler
      !% A merger tree operator class which profiles merger tree structure.
      private
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
      integer         (kind_int8              )                              :: nodeCount                  , singleProgenitorCount
      integer         (kind_int8              ), allocatable, dimension(:,:) :: nonPrimaryProgenitorCount
      integer                                                                :: massBinsCount              , timeBinsCount

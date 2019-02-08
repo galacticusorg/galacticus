@@ -28,7 +28,7 @@
      !% An N-body halo mass error class using the model of \cite{trenti_how_2010}.
      private
      ! Parameters of the correlation model.
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: correlationNormalization   , correlationMassExponent, &
           &                                                correlationRedshiftExponent
    contains

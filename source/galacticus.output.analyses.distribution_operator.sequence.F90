@@ -30,7 +30,7 @@
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSequence
      !% A sequence output distribution operator class.
      private
-     type(distributionOperatorList), pointer :: operators
+     type(distributionOperatorList), pointer :: operators => null()
    contains
      !@ <objectMethods>
      !@   <object>outputAnalysisDistributionOperatorSequence</object>

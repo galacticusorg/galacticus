@@ -32,9 +32,9 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorExport
      !% A merger tree operator class which exports merger trees to file.
      private
-     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_ => null()
+     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_ => null()
+     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      type   (varying_string               )          :: outputFileName
      integer                                         :: exportFormat
      logical                                         :: snapshotsRequired

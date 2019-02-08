@@ -29,8 +29,8 @@
   type, extends(coolingRateClass) :: coolingRateCole2000
      !% Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
      private
-     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_
-     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_ => null()
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
    contains
      final     ::         cole2000Destructor
      procedure :: rate => cole2000Rate

@@ -31,7 +31,7 @@
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingSummation
      !% A dark matter profile heating class which sums over other heat sources.
      private
-     type(heatSourceList), pointer :: heatSources
+     type(heatSourceList), pointer :: heatSources => null()
    contains
      final     ::                                   summationDestructor
      procedure :: specificEnergy                 => summationSpecificEnergy

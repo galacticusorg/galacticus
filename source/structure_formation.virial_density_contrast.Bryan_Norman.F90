@@ -28,8 +28,8 @@
   type, extends(virialDensityContrastClass) :: virialDensityContrastBryanNorman1998
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
      private
-     class (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
      integer                                   :: fitType
    contains
      final     ::                                bryanNorman1998Destructor

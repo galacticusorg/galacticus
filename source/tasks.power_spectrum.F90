@@ -32,14 +32,14 @@
   type, extends(taskClass) :: taskPowerSpectra
      !% Implementation of a task which computes and outputs the power spectrum and related quantities.
      private
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_
-     class           (linearGrowthClass                ), pointer :: linearGrowth_
-     class           (powerSpectrumClass               ), pointer :: powerSpectrum_
-     class           (powerSpectrumNonlinearClass      ), pointer :: powerSpectrumNonlinear_
-     class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_
-     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_
-     class           (outputTimesClass                 ), pointer :: outputTimes_
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_ => null()
+     class           (linearGrowthClass                ), pointer :: linearGrowth_ => null()
+     class           (powerSpectrumClass               ), pointer :: powerSpectrum_ => null()
+     class           (powerSpectrumNonlinearClass      ), pointer :: powerSpectrumNonlinear_ => null()
+     class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_ => null()
+     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_ => null()
+     class           (outputTimesClass                 ), pointer :: outputTimes_ => null()
      double precision                                             :: wavenumberMinimum           , wavenumberMaximum
      integer                                                      :: pointsPerDecade
      logical                                                      :: includeNonLinear

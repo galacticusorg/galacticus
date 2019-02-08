@@ -29,9 +29,9 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
      private
-     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
-     class           (stellarPopulationSelectorClass                   ), pointer                   :: stellarPopulationSelector_
-     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_
+     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_ => null()
+     class           (stellarPopulationSelectorClass                   ), pointer                   :: stellarPopulationSelector_ => null()
+     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_ => null()
      integer                                                                                        :: photometryCount                              , dustType           , &
           &                                                                                            burstCount                                   , startTimeType
      integer                                                            , allocatable, dimension(:) :: filterIndex                                  , luminosityIndex

@@ -25,7 +25,7 @@
   type, extends(mergerTreeWalkerAllNodes) :: mergerTreeWalkerAllAndFormationNodes
      !% A merger tree walker which iterates depth-first over all nodes including formation nodes.
      private
-     type(treeNode), pointer :: nodeNonFormation
+     type(treeNode), pointer :: nodeNonFormation => null()
    contains
      procedure :: next     => allAndFormationNodesNext
      procedure :: previous => allAndFormationNodesPrevious

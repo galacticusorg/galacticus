@@ -27,9 +27,9 @@
   type, extends(taskClass) :: taskCatalogProjectedCorrelationFunction
      !% Implementation of a task which computes projected correlation functions based on a simple halo model approach.
      private 
-     class           (cosmologyParametersClass         ), pointer      :: cosmologyParameters_
-     class           (cosmologyFunctionsClass          ), pointer      :: cosmologyFunctions_
-     class           (surveyGeometryClass              ), pointer      :: surveyGeometry_
+     class           (cosmologyParametersClass         ), pointer      :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass          ), pointer      :: cosmologyFunctions_ => null()
+     class           (surveyGeometryClass              ), pointer      :: surveyGeometry_ => null()
      type            (varying_string                   )               :: galaxyCatalogFileName
      integer                                                           :: separationCount        , randomSampleCount, &
           &                                                               randomSampleCountType

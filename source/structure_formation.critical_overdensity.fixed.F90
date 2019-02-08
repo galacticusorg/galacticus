@@ -28,7 +28,7 @@
      !% A fixed critical overdensity class.
      private
      double precision                             :: criticalOverdensity_
-     class           (linearGrowthClass), pointer :: linearGrowth_
+     class           (linearGrowthClass), pointer :: linearGrowth_ => null()
     contains
      final     ::                    fixedDestructor
      procedure :: value           => fixedValue

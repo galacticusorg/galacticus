@@ -32,12 +32,12 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorBuild
      !% A class implementing merger tree construction by building trees.
      private
-     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_
-     class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_
-     class           (mergerTreeBuildMassesClass), pointer                   :: mergerTreeBuildMasses_
-     class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_
-     class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_
-     class           (outputTimesClass          ), pointer                   :: outputTimes_
+     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_ => null()
+     class           (mergerTreeBuildMassesClass), pointer                   :: mergerTreeBuildMasses_ => null()
+     class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_ => null()
+     class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_ => null()
+     class           (outputTimesClass          ), pointer                   :: outputTimes_ => null()
      ! Variables giving the mass range and sampling frequency for mass function sampling.
      double precision                                                        :: timeBase               , timeSnapTolerance
      integer                                                                 :: treeBeginAt

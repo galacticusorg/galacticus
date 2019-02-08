@@ -28,7 +28,7 @@
   type, extends(satelliteOrphanDistributionRandomIsotropic) :: satelliteOrphanDistributionTraceDarkMatter
      !% An orphan satellite distribution which assumes an isotropic, random distribution with orphans tracing the radial distribution of dark matter.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                                        traceDarkMatterDestructor
      procedure :: extent                              => traceDarkMatterExtent

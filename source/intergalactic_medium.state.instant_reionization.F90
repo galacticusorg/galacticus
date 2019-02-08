@@ -26,7 +26,7 @@
      !% An \gls{igm} state class for a model in which the \gls{igm} is assumed to be instantaneously and fully reionized at a
      !% fixed redshift, and heated to a fixed temperature. Prior to that, the reionization state is provided by some other class.
      private
-     class           (intergalacticMediumStateClass), pointer :: preReionizationState
+     class           (intergalacticMediumStateClass), pointer :: preReionizationState => null()
      double precision                                         :: reionizationTime     , reionizationTemperature       , &
           &                                                      presentDayTemperature, expansionFactorReionizationLog
    contains

@@ -28,8 +28,8 @@
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCovington2008
      !% A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
      private
-     class           (darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_
-     class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_
+     class           (darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_ => null()
+     class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_ => null()
      double precision                                           :: energyOrbital              , efficiencyRadiative
      logical                                                    :: warningIssued
    contains

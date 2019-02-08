@@ -95,7 +95,7 @@ module Merger_Tree_Read_Importers
      logical                                                :: childIsSubhalo    , isSubhalo
      class           (nodeData ), pointer                   :: descendent        , host                    , & 
           &                                                    parent                                         
-     type            (treeNode ), pointer                   :: node
+     type            (treeNode ), pointer                   :: node => null()
   end type nodeData
 
   interface importerUnitConvert

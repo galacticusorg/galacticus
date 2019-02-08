@@ -28,8 +28,8 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneLightcone
      !% A pruning-by-mass merger tree operator class.
      private
-     class  (geometryLightconeClass          ), pointer :: geometryLightcone_
-     class  (satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_
+     class  (geometryLightconeClass          ), pointer :: geometryLightcone_ => null()
+     class  (satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_ => null()
      logical                                            :: bufferIsolatedHalos         , positionHistoryAvailable
    contains     
      final     ::            pruneLightconeDestructor

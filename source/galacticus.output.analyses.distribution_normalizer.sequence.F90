@@ -31,7 +31,7 @@
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerSequence
      !% A sequence on-the-fly-output normalizer class.
      private
-     type(normalizerList), pointer :: normalizers
+     type(normalizerList), pointer :: normalizers => null()
   contains
      final     ::               sequenceDestructor
      procedure :: normalize  => sequenceNormalize

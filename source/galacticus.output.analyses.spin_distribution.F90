@@ -32,7 +32,7 @@
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisSpinDistribution
      !% A spinDistribution output analysis class.
      private
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
      final :: spinDistributionDestructor
   end type outputAnalysisSpinDistribution

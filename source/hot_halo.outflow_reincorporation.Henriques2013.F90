@@ -36,8 +36,8 @@
      private
      double precision                                    :: gamma               , delta1, &
           &                                                 delta2
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::         henriques2013Destructor
      procedure :: rate => henriques2013Rate

@@ -31,7 +31,7 @@
      !% A transfer function class which utilizes the CAMB code to compute transfer functions.
      private
      logical                                             :: initialized
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
      double precision                                    :: wavenumberMaximum
      logical                                             :: wavenumberMaximumReached, lockFileGlobally
    contains

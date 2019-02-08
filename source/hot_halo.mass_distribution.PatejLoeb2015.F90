@@ -28,8 +28,8 @@
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionPatejLoeb2015
      !% An implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.
      private
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: gamma               , shockRadius
    contains
      final     ::                          patejLoeb2015Destructor

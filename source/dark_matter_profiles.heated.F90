@@ -29,9 +29,9 @@
   type, extends(darkMatterProfileClass) :: darkMatterProfileHeated
      !% A dark matter halo profile class implementing heated dark matter halos.
      private
-     class           (darkMatterProfileClass       ), pointer :: darkMatterProfile_
-     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_
+     class           (darkMatterProfileClass       ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_ => null()
      logical                                                  :: unimplementedIsFatal
      integer         (kind=kind_int8               )          :: lastUniqueID
      double precision                                         :: radiusFinalPrevious      , radiusInitialPrevious

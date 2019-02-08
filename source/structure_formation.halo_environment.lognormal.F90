@@ -30,11 +30,11 @@
   type, extends(haloEnvironmentClass) :: haloEnvironmentLogNormal
      !% A logNormal halo environment class.
      private
-     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_
-     class           (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_
-     class           (linearGrowthClass              ), pointer :: linearGrowth_
-     class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_
+     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_ => null()
+     class           (linearGrowthClass              ), pointer :: linearGrowth_ => null()
+     class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_ => null()
      type            (distributionFunction1DLogNormal)          :: distributionDensityContrast
      double precision                                           :: radiusEnvironment          , variance
    contains

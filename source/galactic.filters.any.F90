@@ -26,7 +26,7 @@
   type, extends(galacticFilterClass) :: galacticFilterAny
      !% A galactic filter class which is the ``any'' combination of a set of other filters.
      private
-     type(filterList), pointer :: filters
+     type(filterList), pointer :: filters => null()
   contains
      final     ::             anyDestructor
      procedure :: passes   => anyPasses

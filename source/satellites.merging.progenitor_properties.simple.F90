@@ -27,7 +27,7 @@
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesSimple
      !% A merger progenitor properties class which uses a simple calculation.
      private
-     class(mergerMassMovementsClass), pointer :: mergerMassMovements_
+     class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
    contains
      final     ::        simpleDestructor
      procedure :: get => simpleGet

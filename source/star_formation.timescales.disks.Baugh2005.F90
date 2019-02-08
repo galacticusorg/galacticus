@@ -27,7 +27,7 @@
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksBaugh2005
      !% Implementation of the \cite{baugh_can_2005} timescale for star formation in galactic disks.
      private
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
      double precision                                    :: timescaleValue         , exponentVelocity, &
           &                                                 exponentExpansionFactor
    contains

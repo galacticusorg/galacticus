@@ -25,7 +25,7 @@
   !#  <description>Implements survey geometries over the full sky.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryClass) :: surveyGeometryFullSky
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: limitDistanceMinimum, limitDistanceMaximum
    contains
      final     ::                            fullSkyDestructor

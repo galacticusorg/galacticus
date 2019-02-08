@@ -25,7 +25,7 @@
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapShethMoTormen
      !% An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
      private
-     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_
+     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
      double precision                                    :: a                   , b, &
           &                                                 c
      integer                                             :: applyTo

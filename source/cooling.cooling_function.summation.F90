@@ -31,7 +31,7 @@
   type, extends(coolingFunctionClass) :: coolingFunctionSummation
      !% A cooling function class which sums over other cooling functions.
      private
-     type(coolantList), pointer :: coolants
+     type(coolantList), pointer :: coolants => null()
    contains
      final     ::                                       summationDestructor
      procedure :: coolingFunction                    => summationCoolingFunction

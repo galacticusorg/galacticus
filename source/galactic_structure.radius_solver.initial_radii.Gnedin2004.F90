@@ -36,9 +36,9 @@
   type, extends(galacticStructureRadiiInitialClass) :: galacticStructureRadiiInitialGnedin2004
      !% A galactic structure initial radius class using the adiabatic contraction algorithm of \cite{gnedin_response_2004}.
      private
-     class           (cosmologyParametersClass), pointer                         :: cosmologyParameters_
-     class           (darkMatterHaloScaleClass), pointer                         :: darkMatterHaloScale_
-     class           (darkMatterProfileClass  ), pointer                         :: darkMatterProfile_
+     class           (cosmologyParametersClass), pointer                         :: cosmologyParameters_ => null()
+     class           (darkMatterHaloScaleClass), pointer                         :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass  ), pointer                         :: darkMatterProfile_ => null()
      ! Parameters of the adiabatic contraction algorithm.
      double precision                                                            :: A                              , omega
      ! Stored solutions for reuse.

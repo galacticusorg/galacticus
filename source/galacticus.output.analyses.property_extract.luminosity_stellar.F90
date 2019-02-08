@@ -32,7 +32,7 @@
           &                                                           postprocessChain
      double precision                                              :: redshiftBand
      integer                           , allocatable, dimension(:) :: luminosityIndex
-     class           (outputTimesClass), pointer                   :: outputTimes_
+     class           (outputTimesClass), pointer                   :: outputTimes_ => null()
    contains
      final     ::             luminosityStellarDestructor
      procedure :: extract  => luminosityStellarExtract

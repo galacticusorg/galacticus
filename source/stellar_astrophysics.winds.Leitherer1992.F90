@@ -28,7 +28,7 @@
   type, extends(stellarWindsClass) :: stellarWindsLeitherer1992
      !% A stellar winds class based on \cite{leitherer_deposition_1992}.
      private
-     class(stellarTracksClass), pointer :: stellarTracks_
+     class(stellarTracksClass), pointer :: stellarTracks_ => null()
    contains
      final     ::                     leitherer1992Destructor
      procedure :: rateMassLoss     => leitherer1992RateMassLoss

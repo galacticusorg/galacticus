@@ -31,7 +31,7 @@
      !% presently exists, \emph{not} at the time at which is was last isolated (as is used for standard definition of
      !% concentration).
      private
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
      final     ::             concentrationDestructor
      procedure :: extract  => concentrationExtract

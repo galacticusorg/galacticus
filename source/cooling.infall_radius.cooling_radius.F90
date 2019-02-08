@@ -27,7 +27,7 @@
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingRadius
      !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
      private
-     class(coolingRadiusClass), pointer :: coolingRadius_
+     class(coolingRadiusClass), pointer :: coolingRadius_ => null()
    contains
      final     ::                       coolingRadiusDestructor
      procedure :: radius             => coolingRadiusRadius

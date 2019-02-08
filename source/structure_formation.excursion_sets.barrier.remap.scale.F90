@@ -25,7 +25,7 @@
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapScale
      !% An excursion set barrier class which remaps another class by multiplying by a constant.
      private
-     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_
+     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
      double precision                                    :: factor
      integer                                             :: applyTo
      type            (varying_string          )          :: applyToText

@@ -28,8 +28,8 @@
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksHaloScaling
      !% Implementation of a haloScaling timescale for star formation feedback in galactic disks.
      private
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: expansionFactorFactorPrevious, exponentVelocityVirial , &
           &                                                 exponentRedshift             , timescaleNormalization , &
           &                                                 timescaleStored              , velocityPrevious       , &

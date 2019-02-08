@@ -30,7 +30,7 @@
   type, extends(galacticFilterClass) :: galacticFilterStellarApparentMagnitudes
      !% A galactic low-pass (i.e. bright pass) filter class for stellar apparent magnitudes.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
      double precision                         , allocatable, dimension(:) :: apparentMagnitudeThreshold
    contains
      final     ::           stellarApparentMagnitudesDestructor

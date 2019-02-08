@@ -35,21 +35,21 @@
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
      !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
      private
-     integer                                                                               :: parameterCount                          , stepsMaximum            , &
-          &                                                                                   stateSwapCount                          , acceptanceAverageCount  , & 
-          &                                                                                   logFlushCount                           , reportCount
-     double precision                                                                      :: logPosterior                            , logPrior
-     logical                                                                               :: isConverged                             , sampleOutliers          , &
+     integer                                                                               :: parameterCount                                    , stepsMaximum                      , &
+          &                                                                                   stateSwapCount                                    , acceptanceAverageCount            , & 
+          &                                                                                   logFlushCount                                     , reportCount
+     double precision                                                                      :: logPosterior                                      , logPrior
+     logical                                                                               :: isConverged                                       , sampleOutliers                    , &
           &                                                                                   isInteractive
-     type            (modelParameterList                          ), pointer, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
-     class           (posteriorSampleLikelihoodClass              ), pointer               :: posteriorSampleLikelihood_
-     class           (posteriorSampleConvergenceClass             ), pointer               :: posteriorSampleConvergence_
-     class           (posteriorSampleStoppingCriterionClass       ), pointer               :: posteriorSampleStoppingCriterion_
-     class           (posteriorSampleStateClass                   ), pointer               :: posteriorSampleState_
-     class           (posteriorSampleStateInitializeClass         ), pointer               :: posteriorSampleStateInitialize_
-     class           (posteriorSampleDffrntlEvltnProposalSizeClass), pointer               :: posteriorSampleDffrntlEvltnProposalSize_
-     class           (posteriorSampleDffrntlEvltnRandomJumpClass  ), pointer               :: posteriorSampleDffrntlEvltnRandomJump_
-     type            (varying_string                              )                        :: logFileRoot                             , interactionRoot
+     type            (modelParameterList                          ), pointer, dimension(:) :: modelParametersActive_                   => null(), modelParametersInactive_ => null()
+     class           (posteriorSampleLikelihoodClass              ), pointer               :: posteriorSampleLikelihood_               => null()
+     class           (posteriorSampleConvergenceClass             ), pointer               :: posteriorSampleConvergence_              => null()
+     class           (posteriorSampleStoppingCriterionClass       ), pointer               :: posteriorSampleStoppingCriterion_        => null()
+     class           (posteriorSampleStateClass                   ), pointer               :: posteriorSampleState_                    => null()
+     class           (posteriorSampleStateInitializeClass         ), pointer               :: posteriorSampleStateInitialize_          => null()
+     class           (posteriorSampleDffrntlEvltnProposalSizeClass), pointer               :: posteriorSampleDffrntlEvltnProposalSize_ => null()
+     class           (posteriorSampleDffrntlEvltnRandomJumpClass  ), pointer               :: posteriorSampleDffrntlEvltnRandomJump_   => null()
+     type            (varying_string                              )                        :: logFileRoot                                       , interactionRoot
    contains
      !@ <objectMethods>
      !@   <object>posteriorSampleSimulationDifferentialEvolution</object>

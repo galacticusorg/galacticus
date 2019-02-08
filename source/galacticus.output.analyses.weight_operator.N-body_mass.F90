@@ -28,7 +28,7 @@
   type, extends(outputAnalysisWeightOperatorNormal) :: outputAnalysisWeightOperatorNbodyMass
      !% A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.
      private
-     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_
+     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
    contains
      final     ::                 nbodyMassDestructor
      procedure :: rootVariance => nbodyMassRootVariance

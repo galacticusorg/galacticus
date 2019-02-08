@@ -30,7 +30,7 @@
   type, extends(radiationFieldClass) :: radiationFieldSummation
      !% A summation radiation field class.
      private
-     type(radiationFieldList), pointer :: radiationFields
+     type(radiationFieldList), pointer :: radiationFields => null()
    contains
      !@ <objectMethods>
      !@  <object>radiationFieldSummation</object>

@@ -28,8 +28,8 @@
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionStllrMssFnctn
      !% Implementation of merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
      private
-     class           (haloMassFunctionClass       ), pointer :: haloMassFunction_
-     class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+     class           (haloMassFunctionClass       ), pointer :: haloMassFunction_ => null()
+     class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_ => null()
      double precision                                        :: alpha                   , beta               , &
           &                                                     constant                , binWidthLogarithmic, &
           &                                                     massMinimum             , massMaximum        , &

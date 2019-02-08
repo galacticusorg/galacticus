@@ -27,7 +27,7 @@
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingVirialRadius
      !% Implementation of a hot halo ram pressure stripping class which simply returns the virial radius.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                   virialRadiusDestructor
      procedure :: radiusStripped => virialRadiusRadiusStripped
