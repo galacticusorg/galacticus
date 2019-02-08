@@ -22,8 +22,14 @@
 module Tasks_Evolve_Forests_Utilities
   !% Provides globally-accessible functions supporting the {\normalfont \ttfamily evolveForests} task class.
   private
-  public :: Tasks_Evolve_Forest_Construct, Tasks_Evolve_Forest_Perform
+  public :: Tasks_Evolve_Forest_Construct, Tasks_Evolve_Forest_Perform, &
+       &    Tasks_Evolve_Forest_Destruct
 
+  ! Module-scope pointer to our task object. This is used for reference counting so that debugging information is consistent
+  ! between the increments and decrements.
+  class(*), pointer :: task__
+  !$omp threadprivate(task__)
+  
 contains
 
   !# <functionGlobal>
@@ -43,13 +49,14 @@ contains
     type (inputParameters), intent(inout)          :: parameters
     class(*              ), intent(  out), pointer :: task_
 
-    task_ => task(parameters)
-    select type (task_)
+    task__ => task(parameters)
+    select type (task__)
     class is (taskEvolveForests)
-       ! This is as expected, do nothing.
+       !# <referenceCountIncrement object="task__"/>
     class default
        call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
     end select
+    task_ => task__
     return
   end subroutine Tasks_Evolve_Forest_Construct
   
@@ -59,8 +66,7 @@ contains
   !#  <arguments>class(*), intent(inout) :: task_</arguments>
   !# </functionGlobal>
   subroutine Tasks_Evolve_Forest_Perform(task_)
-    !% Build a {\normalfont \ttfamily taskEvolveForests} object from a given parameter set. This is a globally-callable function
-    !% to allow us to subvert the class/module hierarchy.
+    !% Perform the task for a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
     use Galacticus_Error, only : Galacticus_Error_Report
     use Tasks           , only : task                   , taskEvolveForests
     implicit none
@@ -74,5 +80,27 @@ contains
     end select
     return
   end subroutine Tasks_Evolve_Forest_Perform
+  
+  !# <functionGlobal>
+  !#  <unitName>Tasks_Evolve_Forest_Destruct</unitName>
+  !#  <type>void</type>
+  !#  <arguments>class(*), intent(inout) :: task_</arguments>
+  !# </functionGlobal>
+  subroutine Tasks_Evolve_Forest_Destruct(task_)
+    !% Destruct a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    use Tasks           , only : task                   , taskEvolveForests
+    implicit none
+    class(*), intent(inout), pointer :: task_
+
+    task__ => task_
+    select type (task__)
+    class is (taskEvolveForests)
+       !# <objectDestructor name="task__"/>
+    class default
+       call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
+    end select
+    return
+  end subroutine Tasks_Evolve_Forest_Destruct
   
 end module Tasks_Evolve_Forests_Utilities
