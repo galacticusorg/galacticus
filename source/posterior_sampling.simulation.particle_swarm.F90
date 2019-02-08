@@ -239,8 +239,8 @@ contains
     do i=1,inactiveParameterCount
        !# <objectDestructor name="modelParametersInactive_(i)%modelParameter_"/>
     end do
-    nullify(modelParametersActive_  )
-    nullify(modelParametersInactive_)
+    deallocate(modelParametersActive_  )
+    deallocate(modelParametersInactive_)
     return
   end function particleSwarmConstructorParameters
 
