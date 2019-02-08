@@ -141,8 +141,8 @@ contains
     implicit none
     type(haloSpinDistributionBett2007), intent(inout) :: self
     
-    call self%distributionTable  %destroy()
-    call self%distributionInverse%destroy()
+    call                                          self%distributionTable  %destroy()
+    if (allocated(self%distributionInverse)) call self%distributionInverse%destroy()
     return
   end subroutine bett2007Destructor
 
