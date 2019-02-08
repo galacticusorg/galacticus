@@ -148,8 +148,8 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorConditionalMF
      !% A merger tree operator class which accumulates conditional mass functions for trees.
      private
-     class           (nbodyHaloMassErrorClass), pointer                             :: haloMassError_
-     class           (cosmologyFunctionsClass), pointer                             :: cosmologyFunctions_
+     class           (nbodyHaloMassErrorClass), pointer                             :: haloMassError_ => null()
+     class           (cosmologyFunctionsClass), pointer                             :: cosmologyFunctions_ => null()
      double precision                         , allocatable, dimension(:          ) :: timeParents                         , timeProgenitors                      , &
           &                                                                            parentRedshifts                     , progenitorRedshifts                  , &
           &                                                                            massParents                         , massRatios                           , &

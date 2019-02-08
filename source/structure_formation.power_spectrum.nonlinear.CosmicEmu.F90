@@ -40,10 +40,10 @@
      logical                                                                      :: resetInterpolation
      double precision                                                             :: timePrevious
      type            (lockDescriptor                 )                            :: fileLock
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_
-     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_
-     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_
-     class           (cosmologicalMassVarianceClass  ), pointer                   :: cosmologicalMassVariance_
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_ => null()
+     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_ => null()
+     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_ => null()
+     class           (cosmologicalMassVarianceClass  ), pointer                   :: cosmologicalMassVariance_ => null()
    contains
      final     ::          cosmicEmuDestructor
      procedure :: value => cosmicEmuValue

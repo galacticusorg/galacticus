@@ -27,7 +27,7 @@
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSampledDistribution
      !% Implementation of a merger tree masses class which samples masses from a distribution.
      private
-     class           (mergerTreeBuildMassDistributionClass), pointer :: mergerTreeBuildMassDistribution_
+     class           (mergerTreeBuildMassDistributionClass), pointer :: mergerTreeBuildMassDistribution_ => null()
      double precision                                                :: massTreeMinimum                 , massTreeMaximum, &
           &                                                             treesPerDecade
    contains

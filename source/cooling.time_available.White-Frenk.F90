@@ -27,7 +27,7 @@
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableWhiteFrenk1991
      !% Implementation of a time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: ageFactor
    contains
      final     ::                              whiteFrenk1991Destructor

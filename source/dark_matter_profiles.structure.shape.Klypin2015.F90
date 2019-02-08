@@ -28,8 +28,8 @@
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeKlypin2015
      !% A dark matter halo profile shape parameter class implementing the algorithm of \cite{klypin_multidark_2014}.
      private
-     class  (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class  (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      integer                                         :: sample
    contains
      final     ::          klypin2015Destructor

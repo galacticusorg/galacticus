@@ -28,7 +28,7 @@
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHistory
      !% Implementation of a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
      logical                                                              :: diskActive               , spheroidActive
      integer                                                              :: historyCount
      double precision                                                     :: timeBegin                , timeEnd

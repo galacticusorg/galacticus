@@ -30,8 +30,8 @@
   type, extends(freefallRadiusClass) :: freefallRadiusDarkMatterHalo
      !% Implementation of freefall radius class in which the freefall radius is based on the freefall time in the dark matter halo.
      private
-     class(darkMatterProfileClass    ), pointer :: darkMatterProfile_
-     class(freefallTimeAvailableClass), pointer :: freefallTimeAvailable_
+     class(darkMatterProfileClass    ), pointer :: darkMatterProfile_ => null()
+     class(freefallTimeAvailableClass), pointer :: freefallTimeAvailable_ => null()
    contains
      final     ::                     darkMatterHaloDestructor
      procedure :: radius           => darkMatterHaloRadius

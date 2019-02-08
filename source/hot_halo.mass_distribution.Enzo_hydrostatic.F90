@@ -28,8 +28,8 @@
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionEnzoHydrostatic
      !% An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
      private
-     class(hotHaloTemperatureProfileClass        ), pointer :: hotHaloTemperatureProfile_
-     class(hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_
+     class(hotHaloTemperatureProfileClass        ), pointer :: hotHaloTemperatureProfile_ => null()
+     class(hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
      !@ <objectMethods>
      !@   <object>hotHaloMassDistributionEnzoHydrostatic</object>

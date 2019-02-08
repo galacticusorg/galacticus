@@ -45,20 +45,20 @@
   type, extends(universeOperatorClass) :: universeOperatorIntergalacticMediumStateEvolve
      !% Implementation of a universeOperator which computes and outputs the power spectrum and related quantities.
      private
-     class           (outputTimesClass                        ), pointer                     :: outputTimes_
-     class           (cosmologyParametersClass                ), pointer                     :: cosmologyParameters_
-     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_
-     class           (linearGrowthClass                       ), pointer                     :: linearGrowth_
-     class           (cosmologicalMassVarianceClass           ), pointer                     :: cosmologicalMassVariance_
-     class           (radiationFieldClass                     ), pointer                     :: radiationField_  
-     class           (gauntFactorClass                        ), pointer                     :: gauntFactor_
-     class           (atomicCrossSectionIonizationPhotoClass  ), pointer                     :: atomicCrossSectionIonizationPhoto_ 
-     class           (atomicIonizationPotentialClass          ), pointer                     :: atomicIonizationPotential_
-     class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_
-     class           (atomicRecombinationRateRadiativeClass   ), pointer                     :: atomicRecombinationRateRadiative_
-     class           (atomicIonizationRateCollisionalClass    ), pointer                     :: atomicIonizationRateCollisional_
-     class           (atomicExcitationRateCollisionalClass    ), pointer                     :: atomicExcitationRateCollisional_
-     class           (intergalacticMediumStateClass           ), pointer                     :: intergalacticMediumState_  
+     class           (outputTimesClass                        ), pointer                     :: outputTimes_ => null()
+     class           (cosmologyParametersClass                ), pointer                     :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_ => null()
+     class           (linearGrowthClass                       ), pointer                     :: linearGrowth_ => null()
+     class           (cosmologicalMassVarianceClass           ), pointer                     :: cosmologicalMassVariance_ => null()
+     class           (radiationFieldClass                     ), pointer                     :: radiationField_ => null()  
+     class           (gauntFactorClass                        ), pointer                     :: gauntFactor_ => null()
+     class           (atomicCrossSectionIonizationPhotoClass  ), pointer                     :: atomicCrossSectionIonizationPhoto_ => null() 
+     class           (atomicIonizationPotentialClass          ), pointer                     :: atomicIonizationPotential_ => null()
+     class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_ => null()
+     class           (atomicRecombinationRateRadiativeClass   ), pointer                     :: atomicRecombinationRateRadiative_ => null()
+     class           (atomicIonizationRateCollisionalClass    ), pointer                     :: atomicIonizationRateCollisional_ => null()
+     class           (atomicExcitationRateCollisionalClass    ), pointer                     :: atomicExcitationRateCollisional_ => null()
+     class           (intergalacticMediumStateClass           ), pointer                     :: intergalacticMediumState_ => null()  
      type            (intergalacticMediumStateRecFast         )                              :: intergalacticMediumStateInitial
      double precision                                          , allocatable, dimension(:  ) :: temperature                         , massFiltering  , &
           &                                                                                     clumpingFactor                      , opticalDepth

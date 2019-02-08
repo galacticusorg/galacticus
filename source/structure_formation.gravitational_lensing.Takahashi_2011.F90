@@ -29,9 +29,9 @@
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011     
-     class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_
-     class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_
+     class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_ => null()
+     class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_ => null()
      logical                                                :: tableInitialized        , cdfInitialized
      !$ type         (ompReadWriteLock           )          :: lock
      type            (table1DGeneric             )          :: convergencePDF

@@ -28,7 +28,7 @@
      !% A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.
      private
      type            (table1DLinearLinear  )          :: transferTable
-     class           (transferFunctionClass), pointer :: transferFunction_
+     class           (transferFunctionClass), pointer :: transferFunction_ => null()
      double precision                                 :: wavenumberLogarithmicMinimum, wavenumberLogarithmicMaximum
      integer                                          :: tablePointsPerDecade
      logical                                          :: tableInitialized

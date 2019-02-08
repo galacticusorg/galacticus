@@ -25,7 +25,7 @@
   type, extends(taskClass) :: taskPosteriorSample
      !% Implementation of a task which performs sampling from a posterior distribution.
      private
-     class(posteriorSampleSimulationClass), pointer :: posteriorSampleSimulation_
+     class(posteriorSampleSimulationClass), pointer :: posteriorSampleSimulation_ => null()
    contains
      final     ::            posteriorSampleDestructor
      procedure :: perform => posteriorSamplePerform

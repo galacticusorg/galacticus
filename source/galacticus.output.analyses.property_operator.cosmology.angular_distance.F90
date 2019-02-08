@@ -29,8 +29,8 @@
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc
      !% A cosmological angular distance corrector analysis property operator class.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel, cosmologyFunctionsData
-     class           (outputTimesClass       ), pointer                   :: outputTimes_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_            => null()
      double precision                         , allocatable, dimension(:) :: correctionFactor
    contains
      final     ::            csmlgyAngularDistanceDestructor

@@ -57,7 +57,7 @@
           &                                                     concentrationPrevious                  , burkertNormalizationFactorPrevious   , &
           &                                                     maximumVelocityPrevious
      ! Pointer to object setting halo scales.
-     class(darkMatterHaloScaleClass           ), pointer     :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass           ), pointer     :: darkMatterHaloScale_ => null()
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileBurkert</object>

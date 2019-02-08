@@ -30,7 +30,7 @@
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesUnion
      !% Implementation of a merger tree masses class which constructs the union of other classes.
      private
-     type(mergerTreeBuildMassesList), pointer :: mergerTreeBuildMasses_
+     type(mergerTreeBuildMassesList), pointer :: mergerTreeBuildMasses_ => null()
    contains
      final     ::              unionDestructor
      procedure :: construct => unionConstruct

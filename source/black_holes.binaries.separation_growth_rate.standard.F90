@@ -32,7 +32,7 @@
      !% terms for dynamical friction, hardening due to scattering of stars and emission of gravitational waves.
      private
      logical                                    :: stellarDensityChangeBinaryMotion, computeVelocityDispersion
-     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::               standardDestructor
      procedure :: growthRate => standardGrowthRate

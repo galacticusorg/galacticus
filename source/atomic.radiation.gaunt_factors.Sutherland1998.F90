@@ -27,7 +27,7 @@
   type, extends(gauntFactorClass) :: gauntFactorSutherland1998
      !% A gaunt factor class implementing the fitting function of \cite{sutherland_accurate_1998}.
      private
-     class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_
+     class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_ => null()
    contains
      final     ::          sutherland1998Destructor
      procedure :: total => sutherland1998Total

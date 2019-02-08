@@ -30,7 +30,7 @@
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti
      !% Implementation of a merger tree outputter which combines multiple other outputters.
      private
-     type(multiOutputterList), pointer :: outputters
+     type(multiOutputterList), pointer :: outputters => null()
    contains
      final     ::             multiDestructor
      procedure :: output   => multiOutput

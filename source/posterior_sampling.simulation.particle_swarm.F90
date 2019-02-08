@@ -32,18 +32,18 @@
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationParticleSwarm
      !% Implementation of a posterior sampling simulation class which implements the particle swarm algorithm.
      private
-     type            (modelParameterList                   ), pointer, dimension(:) :: modelParametersActive_           , modelParametersInactive_
-     class           (posteriorSampleLikelihoodClass       ), pointer               :: posteriorSampleLikelihood_
-     class           (posteriorSampleConvergenceClass      ), pointer               :: posteriorSampleConvergence_
-     class           (posteriorSampleStoppingCriterionClass), pointer               :: posteriorSampleStoppingCriterion_
-     class           (posteriorSampleStateClass            ), pointer               :: posteriorSampleState_
-     class           (posteriorSampleStateInitializeClass  ), pointer               :: posteriorSampleStateInitialize_
-     integer                                                                        :: parameterCount                   , stepsMaximum                 , &
-          &                                                                            reportCount                      , logFlushCount
-     double precision                                                               :: accelerationCoefficientPersonal  , accelerationCoefficientGlobal, &
-          &                                                                            inertiaWeight                    , velocityCoefficient
-     logical                                                                        :: isInteractive                    , resume
-     type            (varying_string                       )                        :: logFileRoot                      , interactionRoot              , &
+     type            (modelParameterList                   ), pointer, dimension(:) :: modelParametersActive_            => null(), modelParametersInactive_     => null()
+     class           (posteriorSampleLikelihoodClass       ), pointer               :: posteriorSampleLikelihood_        => null()
+     class           (posteriorSampleConvergenceClass      ), pointer               :: posteriorSampleConvergence_       => null()
+     class           (posteriorSampleStoppingCriterionClass), pointer               :: posteriorSampleStoppingCriterion_ => null()
+     class           (posteriorSampleStateClass            ), pointer               :: posteriorSampleState_             => null()
+     class           (posteriorSampleStateInitializeClass  ), pointer               :: posteriorSampleStateInitialize_   => null()
+     integer                                                                        :: parameterCount                             , stepsMaximum                          , &
+          &                                                                            reportCount                                , logFlushCount
+     double precision                                                               :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal         , &
+          &                                                                            inertiaWeight                              , velocityCoefficient
+     logical                                                                        :: isInteractive                              , resume
+     type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
           &                                                                            logFilePreviousRoot
    contains
      !@ <objectMethods>

@@ -30,7 +30,7 @@
   type, extends(outputAnalysisClass) :: outputAnalysisMulti
      !% Implementation of a merger tree analysis class which combines multiple other analyses.
      private
-     type(multiAnalysisList), pointer :: analyses
+     type(multiAnalysisList), pointer :: analyses => null()
    contains
      final     ::                  multiDestructor
      procedure :: analyze       => multiAnalyze

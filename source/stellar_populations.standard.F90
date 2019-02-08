@@ -62,11 +62,11 @@
      double precision                                                           :: massLongLived                      , ageEffective         , &
           &                                                                        recycledFraction_                  , metalYield_          , &
           &                                                                        recycledFraction                   , metalYield
-     class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_
-     class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_
-     class           (stellarFeedbackClass         ), pointer                   :: stellarFeedback_
-     class           (supernovaeTypeIaClass        ), pointer                   :: supernovaeTypeIa_
-     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_
+     class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_ => null()
+     class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_ => null()
+     class           (stellarFeedbackClass         ), pointer                   :: stellarFeedback_ => null()
+     class           (supernovaeTypeIaClass        ), pointer                   :: supernovaeTypeIa_ => null()
+     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_ => null()
      type            (populationTable              )                            :: recycleFraction
      type            (populationTable              )                            :: energyOutput
      type            (populationTable              ), allocatable, dimension(:) :: yield

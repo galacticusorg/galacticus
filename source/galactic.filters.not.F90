@@ -25,7 +25,7 @@
   type, extends(galacticFilterClass) :: galacticFilterNot
      !% A galactic filter which simply inverts the result of another filter.
      private
-     class(galacticFilterClass), pointer :: galacticFilter_
+     class(galacticFilterClass), pointer :: galacticFilter_ => null()
    contains
      final     ::           notDestructor
      procedure :: passes => notPasses

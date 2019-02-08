@@ -27,7 +27,7 @@
   type, extends(darkMatterProfileClass) :: darkMatterProfileIsothermal
      !% A dark matter halo profile class implementing isothermal dark matter halos.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final                                             isothermalDestructor
      procedure :: calculationReset                  => isothermalCalculationReset

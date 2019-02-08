@@ -30,9 +30,9 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionEnvironmentAveraged
      !% A halo mass function class which averages another (presumably environment-dependent) mass function over environment.
      private
-     class           (haloMassFunctionClass), pointer :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
-     class           (haloEnvironmentClass ), pointer :: haloEnvironment_
-     double precision                                 :: factorMatching              , timeMatching
+     class           (haloMassFunctionClass), pointer :: haloMassFunctionConditioned_ => null(), haloMassFunctionUnconditioned_ => null()
+     class           (haloEnvironmentClass ), pointer :: haloEnvironment_             => null()
+     double precision                                 :: factorMatching                        , timeMatching
    contains
      final     ::                 environmentAveragedDestructor
      procedure :: differential => environmentAveragedDifferential

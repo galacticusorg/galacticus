@@ -56,10 +56,10 @@
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     class           (cosmologyParametersClass               ), pointer     :: cosmologyParameters_
-     class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_
-     class           (powerSpectrumWindowFunctionClass       ), pointer     :: powerSpectrumWindowFunction_
-     type            (powerSpectrumWindowFunctionTopHat      ), pointer     :: powerSpectrumWindowFunctionTopHat_
+     class           (cosmologyParametersClass               ), pointer     :: cosmologyParameters_ => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_ => null()
+     class           (powerSpectrumWindowFunctionClass       ), pointer     :: powerSpectrumWindowFunction_ => null()
+     type            (powerSpectrumWindowFunctionTopHat      ), pointer     :: powerSpectrumWindowFunctionTopHat_ => null()
      logical                                                                :: initialized
      double precision                                                       :: tolerance                          , toleranceTopHat   , &
           &                                                                    sigma8Value                        , sigmaNormalization, &

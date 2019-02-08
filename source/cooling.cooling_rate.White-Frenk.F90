@@ -29,9 +29,9 @@
   type, extends(coolingRateClass) :: coolingRateWhiteFrenk1991
      !% Implementation of cooling rate class for the \cite{white_galaxy_1991} cooling rate calculation.
      private
-     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_
-     class           (coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_
-     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_ => null()
+     class           (coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_ => null()
+     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
      double precision                                        :: velocityCutOff
    contains
      final     ::         whiteFrenk1991Destructor

@@ -29,8 +29,8 @@
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasPressSchechter
      !% Implementation of a dark matter halo mass utilizing the Press-Schechter algorithm \citep{mo_analytic_1996}.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::               pressSchechterDestructor
      procedure :: biasByMass => pressSchechterBiasByMass

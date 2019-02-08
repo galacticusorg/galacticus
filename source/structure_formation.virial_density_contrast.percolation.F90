@@ -30,7 +30,7 @@
      !% A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}.
      private
      double precision                                   :: linkingLength
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      ! Tabulation of density contrast vs. time and mass.
      double precision                                   :: densityContrastTableTimeMinimum, densityContrastTableTimeMaximum                    
      double precision                                   :: densityContrastTableMassMinimum, densityContrastTableMassMaximum                     

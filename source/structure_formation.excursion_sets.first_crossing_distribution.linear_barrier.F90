@@ -27,7 +27,7 @@
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingLinearBarrier
      !% A linearBarrier excursion set barrier class.
      private
-     class(excursionSetBarrierClass), pointer :: excursionSetBarrier_
+     class(excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
    contains
      final     ::                    linearBarrierDestructor
      procedure :: probability     => linearBarrierProbability

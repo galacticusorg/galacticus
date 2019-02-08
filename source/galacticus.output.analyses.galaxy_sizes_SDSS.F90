@@ -29,7 +29,7 @@
      private
      integer                                            :: distributionNumber
      double precision                                   :: massStellarRatio
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
      final :: galaxySizesSDSSDestructor
   end type outputAnalysisGalaxySizesSDSS

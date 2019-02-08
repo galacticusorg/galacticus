@@ -27,7 +27,7 @@
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusVirialFraction
      !% An implementation of the hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: coreRadiusOverVirialRadius
    contains
      final     ::           virialFractionDestructor

@@ -30,7 +30,7 @@
   type, extends(satelliteTidalStrippingClass) :: satelliteTidalStrippingZentner2005
      !% Implementation of a satellite tidal stripping class which follows the model of \cite{zentner_physics_2005}.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: efficiency          , expandMultiplier, &
           &                                                 radiusTidalPrevious
      integer         (kind_int8               )          :: lastUniqueID

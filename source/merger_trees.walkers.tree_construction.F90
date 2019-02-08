@@ -26,8 +26,8 @@
   type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerTreeConstruction
      !% A merger tree walker for trees under construction.
      private
-     type   (mergerTree), pointer :: tree
-     type   (treeNode  ), pointer :: node
+     type   (mergerTree), pointer :: tree => null()
+     type   (treeNode  ), pointer :: node => null()
      logical                      :: nodesRemain_
    contains
      procedure :: next        => treeConstructionNext

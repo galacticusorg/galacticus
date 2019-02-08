@@ -27,7 +27,7 @@
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileVirial
      !% An implementation of the hot halo temperature profile class which uses an isothermal virial temperature.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                        virialDestructor
      procedure :: temperature         => virialTemperature

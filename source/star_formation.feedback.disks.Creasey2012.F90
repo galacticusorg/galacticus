@@ -27,7 +27,7 @@
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksCreasey2012
      !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
      private
-    class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_
+    class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
      double precision                                                    :: nu                                   , mu, &
           &                                                                 beta0
    contains

@@ -27,7 +27,7 @@
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesCole2000
      !% A merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
      private
-     class(mergerMassMovementsClass), pointer :: mergerMassMovements_
+     class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
    contains
      final     ::        cole2000Destructor
      procedure :: get => cole2000Get

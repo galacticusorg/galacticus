@@ -31,8 +31,8 @@
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyEmssnLine
      !% A stellar luminosity output analysis property extractor class.
      private
-     class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_
-     class           (outputTimesClass                  ), pointer                             :: outputTimes_
+     class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_ => null()
+     class           (outputTimesClass                  ), pointer                             :: outputTimes_ => null()
      type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
      double precision                                    , allocatable, dimension(:          ) :: metallicity                   , densityHydrogen             , &
           &                                                                                       ionizingFluxHydrogen          , ionizingFluxHeliumToHydrogen, &

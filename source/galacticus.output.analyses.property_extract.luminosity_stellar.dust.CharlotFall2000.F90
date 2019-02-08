@@ -33,7 +33,7 @@
           &                                                           depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
           &                                                           wavelengthExponent
      integer                           , allocatable, dimension(:) :: luminosityIndex           , luminosityRecentIndex
-     class           (outputTimesClass), pointer                   :: outputTimes_
+     class           (outputTimesClass), pointer                   :: outputTimes_ => null()
    contains
      final     ::             lmnstyStllrChrltFll2000Destructor
      procedure :: extract  => lmnstyStllrChrltFll2000Extract

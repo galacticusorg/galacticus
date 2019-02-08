@@ -28,9 +28,9 @@
   type, extends(transferFunctionClass) :: transferFunctionBBKSWDM
      !% A transfer function class which modifies another transfer function using the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
      private
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
+     class           (transferFunctionClass   ), pointer :: transferFunctionCDM => null()
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
      double precision                                    :: lengthFreeStreaming
    contains
      final     ::                          bbksWDMDestructor

@@ -29,7 +29,7 @@
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesWetzelWhite2010
      !% A class implementing the \cite{wetzel_what_2010} method for satellite merging timescales.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: timescaleMultiplier
    contains
      final     ::                     wetzelWhite2010Destructor

@@ -28,7 +28,7 @@
   type, extends(taskClass) :: taskMulti
      !% Implementation of a task which performs multiple other tasks.
      private
-     type(multiTaskList), pointer :: tasks
+     type(multiTaskList), pointer :: tasks => null()
    contains
      final     ::                       multiDestructor
      procedure :: perform            => multiPerform

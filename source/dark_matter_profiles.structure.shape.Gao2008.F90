@@ -27,8 +27,8 @@
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeGao2008
      !% A dark matter halo profile shape parameter class implementing the algorithm of \cite{gao_redshift_2008}.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::          gao2008Destructor
      procedure :: shape => gao2008Shape

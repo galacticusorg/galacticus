@@ -33,9 +33,9 @@
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVariancePeakBackgroundSplit
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (haloEnvironmentClass         ), pointer :: haloEnvironment_
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (haloEnvironmentClass         ), pointer :: haloEnvironment_ => null()
      double precision                                         :: varianceBackground       , massBackground
    contains
      final     ::                                       variancePeakBackgroundSplitDestructor

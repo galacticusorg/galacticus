@@ -38,11 +38,11 @@
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverStandard
      !% Implementation of the standars merger tree evolver.
      private
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class           (mergerTreeEvolveTimestepClass), pointer :: mergerTreeEvolveTimestep_
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_ => null()
+     class           (mergerTreeEvolveTimestepClass), pointer :: mergerTreeEvolveTimestep_ => null()
      logical                                                  :: allTreesExistAtFinalTime , dumpTreeStructure
      double precision                                         :: timestepHostAbsolute     , timestepHostRelative
-     type            (deadlockList                 ), pointer :: deadlockHeadNode
+     type            (deadlockList                 ), pointer :: deadlockHeadNode => null()
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeEvolverStandard</object>

@@ -26,7 +26,7 @@
   !#  <description>Implements the geometry of the ZFOURGE survey of \cite{tomczak_galaxy_2014}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryTomczak2014ZFOURGE
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      integer                                            :: redshiftBin
      double precision                                   :: binDistanceMinimum, binDistanceMaximum
    contains

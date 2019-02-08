@@ -28,8 +28,8 @@
   type, extends(coolingTimeClass) :: coolingTimeSimple
      !% Implementation of cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).
      private
-     class           (coolingFunctionClass), pointer :: coolingFunction_
-     class           (chemicalStateClass  ), pointer :: chemicalState_
+     class           (coolingFunctionClass), pointer :: coolingFunction_ => null()
+     class           (chemicalStateClass  ), pointer :: chemicalState_ => null()
      double precision                                :: degreesOfFreedom
    contains
      final     ::                                   simpleDestructor

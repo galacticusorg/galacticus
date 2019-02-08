@@ -32,8 +32,8 @@
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumConstantRotation
      !% Implementation of the specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
      private 
-     class           (darkMatterProfileClass      ), pointer :: darkMatterProfile_
-     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class           (darkMatterProfileClass      ), pointer :: darkMatterProfile_ => null()
+     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
      integer         (kind=kind_int8              )          :: lastUniqueID
      logical                                                 :: angularMomentumSpecificComputed
      double precision                                        :: angularMomentumSpecificPrevious

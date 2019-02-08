@@ -32,12 +32,12 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSpinDistribution
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
      private
-     class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_
-     class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_
-     class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_
-     class           (darkMatterProfileClass           ), pointer                     :: darkMatterProfile_
-     class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_
-     class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_
+     class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_ => null()
+     class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_ => null()
+     class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_ => null()
+     class           (darkMatterProfileClass           ), pointer                     :: darkMatterProfile_ => null()
+     class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
      double precision                                   , dimension(:  ), allocatable :: spin                         , distribution                      , &
           &                                                                              spinMinimum                  , spinMaximum                       , &
           &                                                                              distributionError

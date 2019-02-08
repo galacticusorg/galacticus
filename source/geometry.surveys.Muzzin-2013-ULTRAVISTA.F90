@@ -26,7 +26,7 @@
   !#  <description>Implements the geometry of the ULTRAVISTA survey of \cite{muzzin_evolution_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryMuzzin2013ULTRAVISTA
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      integer                                            :: redshiftBin
      double precision                                   :: binDistanceMinimum , binDistanceMaximum
    contains

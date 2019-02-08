@@ -34,8 +34,8 @@
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorGrvtnlLnsng
      !% A gravitational lensing output distribution operator class.
      private
-     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_
-     class           (outputTimesClass         ), pointer                   :: outputTimes_
+     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_ => null()
+     class           (outputTimesClass         ), pointer                   :: outputTimes_ => null()
      type            (grvtnlLnsngTransferMatrix), allocatable, dimension(:) :: transfer_
      double precision                                                       :: sizeSource
      !$ type         (ompReadWriteLock         ), allocatable, dimension(:) :: tabulateLock

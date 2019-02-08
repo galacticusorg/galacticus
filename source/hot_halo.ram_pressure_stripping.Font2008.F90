@@ -30,9 +30,9 @@
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingFont2008
      !% Implementation of a hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.
      private
-     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_
-     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
-     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_ => null()
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
+     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
      double precision                                        :: formFactor
      integer         (kind_int8                   )          :: uniqueIDLast            =-1
      double precision                                        :: radiusLast              =-1.0d0

@@ -26,7 +26,7 @@
      !% A halo mass function class which modifies another mass function using a simple model for systematics.
      private
      double precision                                 :: alpha                , beta
-     class           (haloMassFunctionClass), pointer :: referenceMassFunction
+     class           (haloMassFunctionClass), pointer :: referenceMassFunction => null()
     contains
      final     ::                 simpleSystematicDestructor
      procedure :: differential => simpleSystematicDifferential

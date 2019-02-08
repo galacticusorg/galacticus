@@ -25,7 +25,7 @@
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorRatio
      !% A ratio extractor output analysis class. This extractor extracts two other properties and takes their ratio.
      private
-     class(outputAnalysisPropertyExtractorClass), pointer :: propertyNumerator_, propertyDenominator_
+     class(outputAnalysisPropertyExtractorClass), pointer :: propertyNumerator_ => null(), propertyDenominator_ => null()
    contains
      final     ::             ratioDestructor
      procedure :: extract  => ratioExtract

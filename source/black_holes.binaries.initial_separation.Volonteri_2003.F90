@@ -29,7 +29,7 @@
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationVolonteri2003
      !% A black hole binary initial separation class based on the model of \cite{volonteri_assembly_2003}.
      private
-     class(darkMatterHaloScaleClass), pointer:: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer:: darkMatterHaloScale_ => null()
    contains
      final     ::                      volonteri2003Destructor
      procedure :: separationInitial => volonteri2003SeparationInitial

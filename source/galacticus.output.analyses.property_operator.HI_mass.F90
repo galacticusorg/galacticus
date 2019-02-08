@@ -27,7 +27,7 @@
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorHIMass
      !% A conversion of ISM mass to HI mass property operator class.
      private
-     class(outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_
+     class(outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_ => null()
    contains
      final     ::            hiMassDestructor
      procedure :: operate => hiMassOperate

@@ -28,8 +28,8 @@
   type, extends(hotHaloMassDistributionBetaProfile) :: hotHaloMassDistributionRicotti2000
      !% An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
      private
-     class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::               ricotti2000Destructor
      procedure :: initialize => ricotti2000Initialize

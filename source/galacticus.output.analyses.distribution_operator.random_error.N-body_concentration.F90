@@ -28,7 +28,7 @@
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbdyCnc
      !% A random error output distribution operator class providing errors in $\log_{10}$ of N-body halo mass.
      private
-     class           (outputAnalysisPropertyExtractorClass), pointer                   :: outputAnalysisPropertyExtractor_
+     class           (outputAnalysisPropertyExtractorClass), pointer                   :: outputAnalysisPropertyExtractor_ => null()
      double precision                                      , allocatable, dimension(:) :: a
      double precision                                                                  :: b                               , massParticle
    contains

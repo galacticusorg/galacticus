@@ -30,9 +30,9 @@
      private
      double precision                                    :: epsilon             , eta        , &
           &                                                 nu                  , scaleCutOff
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
+     class           (transferFunctionClass   ), pointer :: transferFunctionCDM => null()
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
    contains
      final     ::                          bode2001Destructor
      procedure :: value                 => bode2001Value

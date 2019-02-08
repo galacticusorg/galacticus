@@ -39,10 +39,10 @@
      double precision                                    :: massParticle           , massInfiniteToMassSharpEdge, &
           &                                                 linkingLength
      logical                                             :: linkingLengthIsComoving
-     class           (haloMassFunctionClass   ), pointer :: massFunctionIntrinsic
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class           (haloMassFunctionClass   ), pointer :: massFunctionIntrinsic => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
     contains
      final     ::                 fofBiasDestructor
      procedure :: differential => fofBiasDifferential

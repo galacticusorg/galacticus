@@ -27,7 +27,7 @@
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileEnzoHydrostatic
      !% An implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.
      private
-     class(darkMatterProfileClass), pointer :: darkMatterProfile_
+     class(darkMatterProfileClass), pointer :: darkMatterProfile_ => null()
    contains
      final     ::                        enzoHydrostaticDestructor
      procedure :: temperature         => enzoHydrostaticTemperature

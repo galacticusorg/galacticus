@@ -28,7 +28,7 @@
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingZhangHui
      !% An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
      private
-     class           (excursionSetBarrierClass), pointer                     :: excursionSetBarrier_
+     class           (excursionSetBarrierClass), pointer                     :: excursionSetBarrier_ => null()
      double precision                                                        :: timeMaximum                  =0.0d0  , timeMinimum                     =0.0d0 , &
           &                                                                     varianceMaximum              =0.0d0
      integer                                                                 :: timeTableCount                       , varianceTableCount

@@ -23,7 +23,7 @@
   type, extends(taskClass) :: taskHaloModelProjectedCorrelationFunction
      !% Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
      private 
-     class           (conditionalMassFunctionClass), pointer                   :: conditionalMassFunction_
+     class           (conditionalMassFunctionClass), pointer                   :: conditionalMassFunction_ => null()
      double precision                              , allocatable, dimension(:) :: separationProjectedBinned, correlationProjectedBinned
      double precision                                                          :: separationMinimum        , separationMaximum         , &
           &                                                                       massMinimum              , massMaximum               , &

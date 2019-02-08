@@ -27,7 +27,7 @@
   type, extends(coolingRateClass) :: coolingRateSimpleScaling
      !% Implementation of cooling rate class in which the cooling rate scales with the mass of the halo.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      ! Parameters controlling the cooling rate.
      double precision                                   :: timescale                         , exponentRedshift , &
           &                                                widthCutOff                       , massCutOff       , &

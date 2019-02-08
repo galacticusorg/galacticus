@@ -28,8 +28,8 @@
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesJiang2008
      !% A class implementing the \cite{jiang_fitting_2008} method for satellite merging timescales.
      private
-     class          (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-     class          (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     class          (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class          (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
      double precision                                   :: timescaleMultiplier
      ! Scatter (in log(T_merge)) to add to the merger times.
      double precision                                   :: scatter

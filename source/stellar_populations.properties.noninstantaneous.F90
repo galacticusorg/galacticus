@@ -28,8 +28,8 @@
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesNoninstantaneous
      !% A stellar population properties class based on the noninstantaneous recycling approximation.
      private
-     class (stellarPopulationSelectorClass), pointer :: stellarPopulationSelector_
-     class (outputTimesClass              ), pointer :: outputTimes_
+     class (stellarPopulationSelectorClass), pointer :: stellarPopulationSelector_ => null()
+     class (outputTimesClass              ), pointer :: outputTimes_ => null()
      ! Count of number of elements (plus total metals) that are to be tracked.
      integer                                         :: elementsCount
      ! Count of the number of histories required by this implementation.

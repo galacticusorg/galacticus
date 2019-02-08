@@ -29,7 +29,7 @@
   type, extends(galacticFilterClass) :: galacticFilterLightcone
      !% A galactic filter class on lightcone geometry.
      private
-     class(geometryLightconeClass), pointer :: geometryLightcone_
+     class(geometryLightconeClass), pointer :: geometryLightcone_ => null()
    contains
      final     ::           lightconeDestructor
      procedure :: passes => lightconePasses

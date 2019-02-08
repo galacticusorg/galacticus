@@ -27,8 +27,8 @@
   type, extends(darkMatterProfileClass) :: darkMatterProfileTruncated
      !% A dark matter halo profile class implementing truncated dark matter halos.
      private
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
      logical                                             :: unimplementedIsFatal
    contains

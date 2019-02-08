@@ -27,7 +27,7 @@
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterAnalyzer
      !% Implementation of a merger tree outputter class which performs analyzes on the trees.
      private
-     class(outputAnalysisClass), pointer :: outputAnalysis_
+     class(outputAnalysisClass), pointer :: outputAnalysis_ => null()
    contains
      final     ::             analyzerDestructor
      procedure :: output   => analyzerOutput

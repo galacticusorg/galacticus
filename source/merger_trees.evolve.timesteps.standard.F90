@@ -29,8 +29,8 @@
      !% Implementation of a merger tree evolution timestepping class which limits the step to the minimum of that given by the
      !% {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.
      private
-     type(mergerTreeEvolveTimestepSimple   ), pointer :: simple
-     type(mergerTreeEvolveTimestepSatellite), pointer :: satellite
+     type(mergerTreeEvolveTimestepSimple   ), pointer :: simple => null()
+     type(mergerTreeEvolveTimestepSatellite), pointer :: satellite => null()
    contains
      final     ::                 standardDestructor
      procedure :: timeEvolveTo => standardTimeEvolveTo

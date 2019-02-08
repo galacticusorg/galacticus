@@ -27,8 +27,8 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter
      !% A halo mass function class using the model of \cite{press_formation_1974}.
      private
-     class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
-     class(excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_
+     class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_ => null()
+     class(excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
     contains
      final     ::                 pressSchechterDestructor
      procedure :: differential => pressSchechterDifferential

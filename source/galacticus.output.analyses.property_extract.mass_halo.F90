@@ -30,7 +30,7 @@
      !% object. Note that the density contrast is defined here at the time at which the halo presently exists, \emph{not} at the
      !% time at which is was last isolated (as is used for standard definition of halo mass).
      private
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
      final     ::             massHaloDestructor
      procedure :: extract  => massHaloExtract

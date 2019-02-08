@@ -37,8 +37,8 @@
           &                                                                     attemptsMaximum             , massCutOffAttemptsMaximum, &
           &                                                                     massOvershootAttemptsMaximum
      logical                                                                 :: performChecks               , useOneNodeTrees
-     class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_
-     class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_
+     class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_ => null()
+     class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_ => null()
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeOperatorAugment</object>

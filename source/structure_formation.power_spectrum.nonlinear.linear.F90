@@ -29,8 +29,8 @@
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearLinear
      !% A linear transfer function class.
      private
-     class(linearGrowthClass ), pointer :: linearGrowth_
-     class(powerSpectrumClass), pointer :: powerSpectrum_
+     class(linearGrowthClass ), pointer :: linearGrowth_ => null()
+     class(powerSpectrumClass), pointer :: powerSpectrum_ => null()
    contains
      final     ::          linearDestructor
      procedure :: value => linearValue

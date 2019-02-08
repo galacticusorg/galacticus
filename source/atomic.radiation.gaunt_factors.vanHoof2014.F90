@@ -27,7 +27,7 @@
   type, extends(gauntFactorClass) :: gauntFactorVanHoof2014
      !% A gaunt factor class implementing the fitting function of \cite{van_hoof_accurate_2014}.
      private
-     class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_
+     class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_ => null()
    contains
      final     ::          vanHoof2014Destructor
      procedure :: total => vanHoof2014Total

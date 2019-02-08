@@ -30,7 +30,7 @@
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepMulti
      !% Implementation of a merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.
      private
-     type(multiMergerTreeEvolveTimestepList), pointer :: mergerTreeEvolveTimesteps
+     type(multiMergerTreeEvolveTimestepList), pointer :: mergerTreeEvolveTimesteps => null()
    contains
      final     ::                       multiDestructor
      procedure :: timeEvolveTo       => multiTimeEvolveTo

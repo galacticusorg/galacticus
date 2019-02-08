@@ -40,7 +40,7 @@
      private
      type   (hdf5Object             )          :: outputGroup
      type   (varying_string         )          :: outputGroupName
-     class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      logical                                   :: includeSpin        , includeSpinVector
    contains
      final     ::             massAccretionHistoryDestructor

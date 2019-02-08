@@ -30,9 +30,9 @@
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2010
      !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{tinker_large_2010}.
      private
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_ => null()
      double precision                                         :: timePrevious             , massPrevious, &
           &                                                      lowerA                   , upperA      , &
           &                                                      upperC

@@ -38,10 +38,10 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
      !% A merger tree operator which create particle representations of \glc\ halos.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
      type            (varying_string          )          :: outputFileName
      double precision                                    :: massParticle        , radiusTruncateOverRadiusVirial   , &
           &                                                 timeSnapshot        , energyDistributionPointsPerDecade, & 

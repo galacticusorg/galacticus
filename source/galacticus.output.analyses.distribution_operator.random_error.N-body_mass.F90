@@ -28,7 +28,7 @@
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbodyMass
      !% A random error output distribution operator class providing errors in $\log_{10}$ of N-body halo mass.
      private
-     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_
+     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
    contains
      final     ::                 randomErrorNbodyMassDestructor
      procedure :: rootVariance => randomErrorNbodyMassRootVariance

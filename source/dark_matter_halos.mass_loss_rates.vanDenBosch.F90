@@ -30,8 +30,8 @@
   type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateVanDenBosch
      !% Implementation of a dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
      private
-     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_
-     class           (virialDensityContrastClass), pointer :: virialDensityContrast_
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_ => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
      double precision                                      :: timescaleNormalization
      double precision                                      :: zeta
    contains

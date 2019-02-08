@@ -23,7 +23,7 @@
   !#  <description>Implements the gravitational lensing distribution by modifying another distribution for the effects of baryons.</description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingBaryonicModifier
-     class           (gravitationalLensingClass), pointer :: gravitationalLensing_
+     class           (gravitationalLensingClass), pointer :: gravitationalLensing_ => null()
      double precision                                     :: alpha                  , beta               , &
           &                                                  transitionMagnification, renormalization    , &
           &                                                  redshiftPrevious       , scaleSourcePrevious

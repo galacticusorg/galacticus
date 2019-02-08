@@ -48,13 +48,13 @@
      ! Tree universes used while processing all trees.
      type            (universe                   ), pointer :: universeWaiting               => null(), universeProcessed => null()
      ! Objects used in tree processing.
-     class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_
-     class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_
-     class           (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_
-     class           (outputTimesClass           ), pointer :: outputTimes_
-     class           (universeOperatorClass      ), pointer :: universeOperator_
-     class           (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_
-     class           (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_
+     class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_ => null()
+     class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_ => null()
+     class           (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_ => null()
+     class           (outputTimesClass           ), pointer :: outputTimes_ => null()
+     class           (universeOperatorClass      ), pointer :: universeOperator_ => null()
+     class           (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_ => null()
+     class           (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_ => null()
      ! Pointer to the parameters for this task.
      type            (inputParameters            )          :: parameters
    contains

@@ -27,7 +27,7 @@
   type, extends(stellarPopulationSpectraFile) :: stellarPopulationSpectraFSPS
      !% A stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
      private
-     class(initialMassFunctionClass), pointer :: initialMassFunction_
+     class(initialMassFunctionClass), pointer :: initialMassFunction_ => null()
    contains
      final     ::             fspsDestructor
      procedure :: readFile => fspsReadFile

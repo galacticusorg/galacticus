@@ -28,8 +28,8 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
      !% A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
      private
-     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_
-     class           (criticalOverdensityClass), pointer                   :: criticalOverdensity_
+     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_ => null()
+     class           (criticalOverdensityClass), pointer                   :: criticalOverdensity_ => null()
      logical                                                               :: dumpTrees
      double precision                                                      :: snapTolerance
      double precision                          , allocatable, dimension(:) :: timeGrid

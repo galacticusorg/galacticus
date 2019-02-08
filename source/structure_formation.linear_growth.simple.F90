@@ -34,8 +34,8 @@
      double precision                                        :: tableTimeMinimum            , tableTimeMaximum       , &
           &                                                     normalizationMatterDominated
      class           (table1D                 ), allocatable :: growthFactor
-     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_
-     class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_
+     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_ => null()
    contains
      !@ <objectMethods>
      !@   <object>linearGrowthSimple</object>

@@ -27,7 +27,7 @@
   type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton
      !% A cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
      private
-     class(chemicalStateClass), pointer :: chemicalState_
+     class(chemicalStateClass), pointer :: chemicalState_ => null()
    contains
      final     ::                                       cmbComptonDestructor
      procedure :: coolingFunction                    => cmbComptonCoolingFunction

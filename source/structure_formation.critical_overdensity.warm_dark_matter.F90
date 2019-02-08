@@ -28,9 +28,9 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityBarkana2001WDM
      !% A critical overdensity for collapse class which modifies another transfer function using the \gls{wdm} modifier of \cite{barkana_constraints_2001}.
      private
-     class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
-     class           (darkMatterParticleClass ), pointer                   :: darkMatterParticle_
+     class           (criticalOverdensityClass), pointer                   :: criticalOverdensityCDM => null()
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
+     class           (darkMatterParticleClass ), pointer                   :: darkMatterParticle_ => null()
      logical                                                               :: useFittingFunction
      double precision                                                      :: jeansMass
      integer                                                               :: deltaTableCount

@@ -34,8 +34,8 @@
           &                                                velocityPrevious       , velocityFactor              , &
           &                                                expansionFactorPrevious, expansionFactorFactor
      type            (fastExponentiator      )          :: velocityExponentiator  , expansionFactorExponentiator
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
    contains
      final     ::                vlctyMxSclngDestructor
      procedure :: outflowRate => vlctyMxSclngOutflowRate

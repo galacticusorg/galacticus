@@ -27,8 +27,8 @@
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryZhao2009
      !% A dark matter halo mass accretion historiy class using the \cite{zhao_accurate_2009} algorithm.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::         zhao2009Destructor
      procedure :: time => zhao2009Time

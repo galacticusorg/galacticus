@@ -44,13 +44,13 @@
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
      !% for cooling equals the cooling time.
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_
-     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_
-     class           (coolingTimeClass                       ), pointer :: coolingTime_
-     class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_
-     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_
-     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_ => null()
+     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_ => null()
+     class           (coolingTimeClass                       ), pointer :: coolingTime_ => null()
+     class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
+     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_ => null()
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation => null()
      integer         (kind=kind_int8                         )          :: lastUniqueID              =-1
      integer                                                            :: abundancesCount              , chemicalsCount
      ! Stored values of cooling radius.

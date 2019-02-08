@@ -28,8 +28,8 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorSmoothAccretion
      !% A class implementing merger tree construction by building trees assuming smooth accretion.
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
      double precision                                                   :: redshiftBase                       , massHalo          , &
           &                                                                massHaloDeclineFactor              , massHaloResolution
    contains

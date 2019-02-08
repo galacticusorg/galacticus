@@ -27,7 +27,7 @@
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesStandard
      !% A merger progenitor properties class which uses a standard calculation.
      private
-     class(mergerMassMovementsClass), pointer :: mergerMassMovements_
+     class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
    contains
      final     ::        standardDestructor
      procedure :: get => standardGet

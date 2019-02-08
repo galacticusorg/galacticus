@@ -28,7 +28,7 @@
   type, extends(accretionHaloSimple) :: accretionHaloColdMode
      !% A halo accretion class using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
      private
-     class           (coolingFunctionClass), pointer :: coolingFunction_
+     class           (coolingFunctionClass), pointer :: coolingFunction_ => null()
      double precision                                :: thresholdStabilityShock, widthTransitionStabilityShock
      integer         (kind=kind_int8      )          :: lastUniqueID
      double precision                                :: coldFractionStored

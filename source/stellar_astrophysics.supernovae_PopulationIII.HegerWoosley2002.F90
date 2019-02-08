@@ -28,7 +28,7 @@
   type, extends(supernovaePopulationIIIClass) :: supernovaePopulationIIIHegerWoosley2002
      !% A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}
      private
-     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_
+     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
      integer                                                               :: countTable
      double precision                          , allocatable, dimension(:) :: energy                  , massHeliumCore
      type            (fgsl_interp             )                            :: interpolationObject

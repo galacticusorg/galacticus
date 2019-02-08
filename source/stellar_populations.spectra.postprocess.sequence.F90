@@ -30,7 +30,7 @@
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorSequence
      !% A sequence stellar population spectra postprocessor class.
      private
-     type(postprocessorList), pointer :: postprocessors
+     type(postprocessorList), pointer :: postprocessors => null()
    contains
      final     ::                sequenceDestructor
      procedure :: multiplier  => sequenceMultiplier

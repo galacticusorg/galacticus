@@ -27,7 +27,7 @@
   type, extends(tidalStrippingSpheroidsClass) :: tidalStrippingSpheroidsSimple
      !% Implementation of a simple model of tidal stripping of galactic spheroids.
      private
-     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_
+     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
      double precision                                    :: rateFractionalMaximum
    contains
      final     ::                 simpleDestructor

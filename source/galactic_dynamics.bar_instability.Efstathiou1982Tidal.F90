@@ -28,7 +28,7 @@
   type, extends(galacticDynamicsBarInstabilityEfstathiou1982) :: galacticDynamicsBarInstabilityEfstathiou1982Tidal
      !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.
      private
-     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_
+     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
      double precision                                    :: massThresholdHarrassment
    contains
      !@ <objectMethods>

@@ -30,7 +30,7 @@
      private
      double precision                                             :: a                            , b, &
           &                                                          c
-     class           (outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_
+     class           (outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_ => null()
    contains
      final     ::                 randomErrorHIALFALFADestructor
      procedure :: rootVariance => randomErrorHIALFALFARootVariance

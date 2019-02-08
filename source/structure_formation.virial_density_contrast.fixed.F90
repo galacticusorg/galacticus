@@ -27,7 +27,7 @@
   type, extends(virialDensityContrastClass) :: virialDensityContrastFixed
      !% A dark matter halo virial density contrast class assuming fixed contrast.
      private
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
      double precision                                    :: densityContrastValue
      integer                                             :: densityType
    contains

@@ -27,8 +27,8 @@
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesFixedMass
      !% Implementation of a merger tree masses class which samples masses from a distribution.
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
-     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
+     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
      double precision                          , allocatable, dimension(:) :: massTree              , radiusTree
      integer                                   , allocatable, dimension(:) :: treeCount
      double precision                                                      :: massIntervalFractional

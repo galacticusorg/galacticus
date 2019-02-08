@@ -29,7 +29,7 @@
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundFile
      !% A radiation field class for intergalactic background light with properties read from file.
      private
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
      type            (varying_string         )                              :: fileName
      double precision                                                       :: time
      integer                                                                :: spectraTimesCount       , spectraWavelengthsCount

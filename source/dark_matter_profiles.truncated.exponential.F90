@@ -29,8 +29,8 @@
   type, extends(darkMatterProfileClass) :: darkMatterProfileTruncatedExponential
      !% A dark matter halo profile class implementing exponentially truncated dark matter halos.
      private
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: radiusFractionalDecay
      logical                                             :: unimplementedIsFatal
    contains

@@ -32,9 +32,9 @@
      private
      double precision                         , dimension(2) :: waveNumberPrevious , fNLPrevious        
      double precision                                        :: timePrevious      
-     class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctions_
-     class           (linearGrowthClass      ), pointer      :: linearGrowth_
-     class           (powerSpectrumClass     ), pointer      :: powerSpectrum_
+     class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctions_ => null()
+     class           (linearGrowthClass      ), pointer      :: linearGrowth_ => null()
+     class           (powerSpectrumClass     ), pointer      :: powerSpectrum_ => null()
   contains
      final     ::               peacockDodds1996Destructor
      procedure :: value      => peacockDodds1996Value

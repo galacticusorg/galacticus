@@ -27,9 +27,9 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityEnvironmental
      !% A critical overdensity class in which critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.
      private
-     class           (criticalOverdensityClass), pointer :: criticalOverdensity_
-     class           (linearGrowthClass       ), pointer :: linearGrowth_
-     class           (haloEnvironmentClass    ), pointer :: haloEnvironment_
+     class           (criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
+     class           (linearGrowthClass       ), pointer :: linearGrowth_ => null()
+     class           (haloEnvironmentClass    ), pointer :: haloEnvironment_ => null()
      double precision                                    :: a                   , massEnvironment
     contains
      final     ::                    environmentalDestructor

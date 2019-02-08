@@ -27,8 +27,8 @@
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorProperty
      !% An weight operator class which weights by a property value.
      private
-     class(outputAnalysisPropertyExtractorClass), pointer :: extractor_
-     class(outputAnalysisPropertyOperatorClass ), pointer :: operator_
+     class(outputAnalysisPropertyExtractorClass), pointer :: extractor_ => null()
+     class(outputAnalysisPropertyOperatorClass ), pointer :: operator_ => null()
    contains
      final     ::            propertyDestructor
      procedure :: operate => propertyOperate

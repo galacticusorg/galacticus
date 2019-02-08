@@ -28,8 +28,8 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBaryons
      !% A pruning operator on merger trees that removes all branches that can not contain any baryons.
      private
-     class(accretionHaloClass        ), pointer :: accretionHalo_
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_
+     class(accretionHaloClass        ), pointer :: accretionHalo_ => null()
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
      final     ::            pruneBaryonsDestructor
      procedure :: operate => pruneBaryonsOperate

@@ -29,9 +29,9 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMassFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for mass functions.
      private
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_
-     class           (haloMassFunctionClass  ), pointer                     :: haloMassFunction_
-     class           (surveyGeometryClass    ), pointer                     :: surveyGeometry_
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
+     class           (haloMassFunctionClass  ), pointer                     :: haloMassFunction_ => null()
+     class           (surveyGeometryClass    ), pointer                     :: surveyGeometry_ => null()
      logical                                                                :: useSurveyLimits       , modelSurfaceBrightness
      double precision                                                       :: haloMassMinimum       , haloMassMaximum       , &
           &                                                                    redshiftMinimum       , redshiftMaximum       , &

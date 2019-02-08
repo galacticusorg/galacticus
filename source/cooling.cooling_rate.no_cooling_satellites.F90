@@ -26,7 +26,7 @@
   type, extends(coolingRateClass) :: coolingRateNoCoolingSatellites
      !% Implementation of cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
      private
-     class(coolingRateClass), pointer :: coolingRate_
+     class(coolingRateClass), pointer :: coolingRate_ => null()
    contains
      final     ::         noCoolingSatellitesDestructor
      procedure :: rate => noCoolingSatellitesRate

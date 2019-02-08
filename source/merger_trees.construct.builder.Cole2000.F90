@@ -32,10 +32,10 @@
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000
      !% A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
      private
-     class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_
-     class           (mergerTreeMassResolutionClass            ), pointer :: mergerTreeMassResolution_
-     class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_
-     class           (mergerTreeBranchingProbabilityClass      ), pointer :: mergerTreeBranchingProbability_
+     class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_ => null()
+     class           (mergerTreeMassResolutionClass            ), pointer :: mergerTreeMassResolution_ => null()
+     class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_ => null()
+     class           (mergerTreeBranchingProbabilityClass      ), pointer :: mergerTreeBranchingProbability_ => null()
      logical                                                              :: criticalOverdensityIsMassDependent
      ! Variables controlling merger tree accuracy.
      double precision                                                     :: accretionLimit                          , timeEarliest             , &

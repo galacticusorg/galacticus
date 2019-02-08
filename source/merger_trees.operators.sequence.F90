@@ -31,7 +31,7 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorSequence
      !% A sequence merger tree operator class.
      private
-     type(operatorList), pointer :: operators
+     type(operatorList), pointer :: operators => null()
   contains
      final     ::             sequenceDestructor
      procedure :: operate  => sequenceOperate

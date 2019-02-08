@@ -28,9 +28,9 @@
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryWechsler2002
      !% A dark matter halo mass accretion historiy class using the \cite{wechsler_concentrations_2002} algorithm.
      private
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_ => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      logical                                                  :: formationRedshiftCompute
      double precision                                         :: formationRedshift
    contains

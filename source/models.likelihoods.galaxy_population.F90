@@ -40,9 +40,9 @@
      type   (varying_string     )                            :: baseParametersFileName
      logical                                                 :: randomize
      integer                                                 :: cpuLimit              , evolveForestsVerbosity
-     type   (inputParameters    ), pointer                   :: parametersModel
+     type   (inputParameters    ), pointer                   :: parametersModel => null()
      class  (*                  ), pointer                   :: task_
-     class  (outputAnalysisClass), pointer                   :: outputAnalysis_
+     class  (outputAnalysisClass), pointer                   :: outputAnalysis_ => null()
      type   (inputParameterList ), dimension(:), allocatable :: modelParametersActive_, modelParametersInactive_
    contains
      procedure :: evaluate        => galaxyPopulationEvaluate
