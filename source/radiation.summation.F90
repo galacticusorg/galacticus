@@ -136,7 +136,7 @@ contains
     use Galacticus_Error
     implicit none
     class(radiationFieldSummation), intent(inout) :: self
-    class(radiationFieldClass    ), intent(  out) :: destination
+    class(radiationFieldClass    ), intent(inout) :: destination
     type (radiationFieldList     ), pointer       :: radiationField_   , radiationFieldDestination_, &
          &                                           radiationFieldNew_
 

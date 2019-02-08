@@ -180,7 +180,7 @@ contains
     use Galacticus_Error
     implicit none
     class(outputAnalysisDistributionOperatorSequence), intent(inout) :: self
-    class(outputAnalysisDistributionOperatorClass   ), intent(  out) :: destination
+    class(outputAnalysisDistributionOperatorClass   ), intent(inout) :: destination
     type (distributionOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
          &                                                              operatorNew_
 

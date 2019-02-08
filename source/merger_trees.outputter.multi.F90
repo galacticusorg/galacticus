@@ -165,7 +165,7 @@ contains
     use Galacticus_Error
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
-    class(mergerTreeOutputterClass), intent(  out) :: destination
+    class(mergerTreeOutputterClass), intent(inout) :: destination
     type (multiOutputterList      ), pointer       :: outputter_   , outputterDestination_, &
          &                                            outputterNew_
 

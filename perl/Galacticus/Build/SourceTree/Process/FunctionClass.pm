@@ -968,7 +968,7 @@ CODE
 		recursive   => "yes",
 		pass        => "yes",
 		modules     => join(" ",keys(%deepCopyModules)),
-		argument    => [ "class(".$directive->{'name'}."Class), intent(  out) :: destination" ],
+		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
 		code        => $deepCopyCode
 	    };
 	    # Add "stateStore" and "stateRestore" method.

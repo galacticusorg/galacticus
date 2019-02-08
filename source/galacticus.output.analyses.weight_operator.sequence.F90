@@ -152,7 +152,7 @@ contains
     use Galacticus_Error
     implicit none
     class(outputAnalysisWeightOperatorSequence), intent(inout) :: self
-    class(outputAnalysisWeightOperatorClass   ), intent(  out) :: destination
+    class(outputAnalysisWeightOperatorClass   ), intent(inout) :: destination
     type (weightOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
          &                                                        operatorNew_
 

@@ -145,7 +145,7 @@ contains
     use Galacticus_Error
     implicit none
     class(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self
-    class(mergerTreeEvolveTimestepClass    ), intent(  out) :: destination
+    class(mergerTreeEvolveTimestepClass    ), intent(inout) :: destination
     type (multiMergerTreeEvolveTimestepList), pointer       :: mergerTreeEvolveTimestep_   , mergerTreeEvolveTimestepDestination_, &
          &                                                     mergerTreeEvolveTimestepNew_
 

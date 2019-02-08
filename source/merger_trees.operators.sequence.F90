@@ -139,7 +139,7 @@ contains
     use Galacticus_Error
     implicit none
     class(mergerTreeOperatorSequence), intent(inout) :: self
-    class(mergerTreeOperatorClass   ), intent(  out) :: destination
+    class(mergerTreeOperatorClass   ), intent(inout) :: destination
     type (operatorList              ), pointer       :: operator_   , operatorDestination_, &
          &                                              operatorNew_
 

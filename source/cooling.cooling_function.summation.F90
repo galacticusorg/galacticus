@@ -270,7 +270,7 @@ contains
     use Galacticus_Error
     implicit none
     class(coolingFunctionSummation), intent(inout) :: self
-    class(coolingFunctionClass    ), intent(  out) :: destination
+    class(coolingFunctionClass    ), intent(inout) :: destination
     type (coolantList             ), pointer       :: coolant_   , coolantDestination_, &
          &                                            coolantNew_
 

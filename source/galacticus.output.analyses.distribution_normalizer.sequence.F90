@@ -126,7 +126,7 @@ contains
     use Galacticus_Error
     implicit none
     class(outputAnalysisDistributionNormalizerSequence), intent(inout) :: self
-    class(outputAnalysisDistributionNormalizerClass   ), intent(  out) :: destination
+    class(outputAnalysisDistributionNormalizerClass   ), intent(inout) :: destination
     type (normalizerList                              ), pointer       :: normalizer_   , normalizerDestination_, &
          &                                                                normalizerNew_
 
