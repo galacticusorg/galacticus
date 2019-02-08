@@ -267,8 +267,8 @@ contains
     do i=1,inactiveParameterCount
        !# <objectDestructor name="modelParametersInactive_(i)%modelParameter_"/>
     end do
-    nullify(modelParametersActive_  )
-    nullify(modelParametersInactive_)
+    deallocate(modelParametersActive_  )
+    deallocate(modelParametersInactive_)
     return
   end function differentialEvolutionConstructorParameters
 
@@ -327,7 +327,9 @@ contains
     do i=1,size(self%modelParametersInactive_)
        !# <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
     end do
-   return
+    deallocate(self%modelParametersActive_  )
+    deallocate(self%modelParametersInactive_)
+    return
   end subroutine differentialEvolutionDestructor
 
   subroutine differentialEvolutionSimulate(self)
