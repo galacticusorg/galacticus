@@ -225,6 +225,7 @@ contains
        class is (modelParameterInactive)
           inactiveParameterCount=inactiveParameterCount+1
        end select
+       !# <objectDestructor name="modelParameter_"/>
     end do
     if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
     if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -243,15 +244,16 @@ contains
        class is (modelParameterInactive)
           iInactive=iInactive+1
           modelParametersInactive_(iInactive)%modelParameter_ => modelParameter_
+          !# <referenceCountIncrement owner="modelParametersInactive_(iInactive)" object="modelParameter_"/>
        class is (modelParameterActive  )
           iActive  =iActive  +1
           modelParametersActive_  (  iActive)%modelParameter_ => modelParameter_
+          !# <referenceCountIncrement owner="modelParametersActive_  (iActive  )" object="modelParameter_"/>
        end select
+       !# <objectDestructor name="modelParameter_"/>
     end do
     self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot))
     !# <inputParametersValidate source="parameters"/>
-    nullify(modelParametersActive_  )
-    nullify(modelParametersInactive_)
     !# <objectDestructor name="posteriorSampleLikelihood_"              />
     !# <objectDestructor name="posteriorSampleConvergence_"             />
     !# <objectDestructor name="posteriorSampleStoppingCriterion_"       />
@@ -259,8 +261,14 @@ contains
     !# <objectDestructor name="posteriorSampleStateInitialize_"         />
     !# <objectDestructor name="posteriorSampleDffrntlEvltnProposalSize_"/>
     !# <objectDestructor name="posteriorSampleDffrntlEvltnRandomJump_"  />
-    !# <objectDestructor name="modelParameter_"                         />
-    !# <objectDestructor name="modelParameter_"                         />
+    do i=1,  activeParameterCount
+       !# <objectDestructor name="modelParametersActive_  (i)%modelParameter_"/>
+    end do
+    do i=1,inactiveParameterCount
+       !# <objectDestructor name="modelParametersInactive_(i)%modelParameter_"/>
+    end do
+    nullify(modelParametersActive_  )
+    nullify(modelParametersInactive_)
     return
   end function differentialEvolutionConstructorParameters
 
@@ -281,8 +289,19 @@ contains
          &                                                                                            reportCount
     character(len=*                                         ), intent(in   )                       :: logFileRoot                             , interactionRoot
     logical                                                  , intent(in   )                       :: sampleOutliers
-    !# <constructorAssign variables="*modelParametersActive_, *modelParametersInactive_, *posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot"/>
+    integer                                                                                        :: i
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot"/>
 
+    allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
+    allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
+    self%modelParametersActive_  =modelParametersActive_
+    self%modelParametersInactive_=modelParametersInactive_
+    do i=1,size(modelParametersActive_  )
+       !# <referenceCountIncrement owner="self%modelParametersActive_  (i)" object="modelParameter_"/>
+    end do
+    do i=1,size(modelParametersInactive_)
+       !# <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
+    end do
     self%parameterCount=size(modelParametersActive_)
     self%isInteractive =trim(interactionRoot) /= "none"
     call self%posteriorSampleState_%parameterCountSet(self%parameterCount)
