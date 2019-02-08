@@ -827,11 +827,6 @@ contains
   subroutine inputParameterObjectSet(self,object)
     !% Set a pointer to the object associated with this parameter.
     !$ use OMP_Lib
-#ifdef OBJECTDEBUG
-    use Galacticus_Display
-    use String_Handling
-    use ISO_Varying_String
-#endif
     implicit none
     class  (inputParameter), intent(inout)         :: self
     class  (functionClass ), intent(in   ), target :: object
