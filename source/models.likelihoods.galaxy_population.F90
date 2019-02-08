@@ -124,7 +124,7 @@ contains
 
   double precision function galaxyPopulationEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the \glc\ likelihood function.
-    use Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Perform_
+    use Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Perform_, Tasks_Evolve_Forest_Destruct_
     use Models_Likelihoods_Constants  , only : logImpossible
     use Posterior_Sampling_State      , only : posteriorSampleStateClass
     use Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
@@ -358,7 +358,8 @@ contains
           timeEvaluate=timeEnd-timeBegin
        end if
        call mpiBarrier()
-       deallocate(self%task_)
+       call Tasks_Evolve_Forest_Destruct_(self%task_)
+       !# <objectDestructor name="self%outputAnalysis_"/>
        call self%parametersModel%reset()
     end do
     ! Restore verbosity level.
@@ -386,7 +387,7 @@ contains
     type            (modelParameterList                       ), intent(in   ), dimension(:) :: modelParameters_
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence
     double precision                                           , intent(in   )               :: temperature          , logLikelihoodCurrent, &
-         &                                                                                logPriorCurrent      , logPriorProposed
+         &                                                                                      logPriorCurrent      , logPriorProposed
     !GCC$ attributes unused :: self, simulationState, modelParameters_, simulationConvergence, temperature, logLikelihoodCurrent, logPriorCurrent
 
     ! Likelihood will not be evaluated if the proposed prior is impossible.
