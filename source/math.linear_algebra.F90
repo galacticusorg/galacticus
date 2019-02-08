@@ -296,7 +296,9 @@ contains
     status        =FGSL_LinAlg_LU_Decomp (selfMatrix    ,permutations,decompositionSign)
     status        =FGSL_LinAlg_LU_Invert (selfMatrix    ,permutations,selfInverse      )
     matrixInvert%elements=inverse    
-    call FGSL_Matrix_Free(selfMatrix)
+    call FGSL_Matrix_Free     (selfMatrix  )
+    call FGSL_Matrix_Free     (selfInverse )
+    call FGSL_Permutation_Free(permutations)
     ! Restore the original matrix.
     self%elements=selfArray
     return
