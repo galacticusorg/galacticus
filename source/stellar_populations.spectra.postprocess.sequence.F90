@@ -126,7 +126,7 @@ contains
     use Galacticus_Error
     implicit none
     class(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
-    class(stellarPopulationSpectraPostprocessorClass   ), intent(  out) :: destination
+    class(stellarPopulationSpectraPostprocessorClass   ), intent(inout) :: destination
     type (postprocessorList                            ), pointer       :: postprocessor_   , postprocessorDestination_, &
          &                                                                 postprocessorNew_
 

@@ -40,55 +40,55 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorRead
      !% A class implementing merger tree construction by reading trees from file.
      private
-     class           (cosmologyFunctionsClass            ), pointer                   :: cosmologyFunctions_
-     class           (mergerTreeImporterClass            ), pointer                   :: mergerTreeImporter_
-     class           (darkMatterProfileConcentrationClass), pointer                   :: darkMatterProfileConcentration_
-     class           (satelliteMergingTimescalesClass    ), pointer                   :: satelliteMergingTimescales_
-     class           (darkMatterHaloScaleClass           ), pointer                   :: darkMatterHaloScale_
-     class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_
-     class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_
-     class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
-     class           (outputTimesClass                   ), pointer                   :: outputTimes_
-     class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_
+     class           (cosmologyFunctionsClass            ), pointer                   :: cosmologyFunctions_                   => null()
+     class           (mergerTreeImporterClass            ), pointer                   :: mergerTreeImporter_                   => null()
+     class           (darkMatterProfileConcentrationClass), pointer                   :: darkMatterProfileConcentration_       => null()
+     class           (satelliteMergingTimescalesClass    ), pointer                   :: satelliteMergingTimescales_           => null()
+     class           (darkMatterHaloScaleClass           ), pointer                   :: darkMatterHaloScale_                  => null()
+     class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_                    => null()
+     class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_                 => null()
+     class           (virialOrbitClass                   ), pointer                   :: virialOrbit_                          => null()
+     class           (outputTimesClass                   ), pointer                   :: outputTimes_                          => null()
+     class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_         => null()
      integer                                                                          :: fileCurrent
-     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                             , presetNamedReals                    , &
+     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                      , presetNamedReals                    , &
           &                                                                              presetNamedIntegers
-     integer                                              , allocatable, dimension(:) :: indexNamedReals                       , indexNamedIntegers
+     integer                                              , allocatable, dimension(:) :: indexNamedReals                                , indexNamedIntegers
      logical                                                                          :: importerOpen
      integer         (kind_int8                          )                            :: beginAt
      double precision                                                                 :: treeWeightCurrent
      logical                                                                          :: allowBranchJumps
      logical                                                                          :: allowSubhaloPromotions
-     integer         (c_size_t                           )                            :: forestSizeMaximum                     , treeNumberOffset
+     integer         (c_size_t                           )                            :: forestSizeMaximum                              , treeNumberOffset
      logical                                                                          :: presetMergerTimes
      logical                                                                          :: presetMergerNodes
      logical                                                                          :: presetSubhaloMasses
      logical                                                                          :: presetSubhaloIndices
      logical                                                                          :: presetPositions
-     logical                                                                          :: presetScaleRadii                      , scaleRadiiFailureIsFatal
-     double precision                                                                 :: presetScaleRadiiMinimumMass           , presetScaleRadiiConcentrationMinimum, &
+     logical                                                                          :: presetScaleRadii                               , scaleRadiiFailureIsFatal
+     double precision                                                                 :: presetScaleRadiiMinimumMass                    , presetScaleRadiiConcentrationMinimum, &
           &                                                                              presetScaleRadiiConcentrationMaximum
-     logical                                                                          :: presetSpins                           , presetSpins3D                       , &
+     logical                                                                          :: presetSpins                                    , presetSpins3D                       , &
           &                                                                              presetUnphysicalSpins
-     logical                                                                          :: presetOrbits                          , presetOrbitsAssertAllSet            , & 
-          &                                                                              presetOrbitsBoundOnly                 , presetOrbitsSetAll          
+     logical                                                                          :: presetOrbits                                   , presetOrbitsAssertAllSet            , & 
+          &                                                                              presetOrbitsBoundOnly                          , presetOrbitsSetAll          
      integer                                                                          :: subhaloAngularMomentaMethod
      logical                                                                          :: missingHostsAreFatal
      logical                                                                          :: treeIndexToRootNodeIndex                                                       
      integer         (c_size_t                           )                            :: outputTimesCount                                                                             
      double precision                                                                 :: outputTimeSnapTolerance                                                        
      double precision                                     , allocatable, dimension(:) :: outputTimes
-     integer         (c_size_t                           ), allocatable, dimension(:) :: descendentLocations                    , nodeLocations                             
-     integer         (kind_int8                          ), allocatable, dimension(:) :: descendentIndicesSorted                , nodeIndicesSorted                         
+     integer         (c_size_t                           ), allocatable, dimension(:) :: descendentLocations                             , nodeLocations                             
+     integer         (kind_int8                          ), allocatable, dimension(:) :: descendentIndicesSorted                         , nodeIndicesSorted                         
      !$ integer      (omp_lock_kind                      )                            :: splitForestLock
      integer                                                                          :: splitForestActiveForest
-     integer         (c_size_t                           )                            :: splitForestNextTree                    , splitForestUniqueID
-     integer         (c_size_t                           ), allocatable, dimension(:) :: splitForestTreeSize                    , splitForestTreeStart               , &
+     integer         (c_size_t                           )                            :: splitForestNextTree                             , splitForestUniqueID
+     integer         (c_size_t                           ), allocatable, dimension(:) :: splitForestTreeSize                             , splitForestTreeStart               , &
           &                                                                              splitForestMapIndex
-     integer         (kind_int8                          ), allocatable, dimension(:) :: splitForestPushTo                      , splitForestPullFrom
+     integer         (kind_int8                          ), allocatable, dimension(:) :: splitForestPushTo                               , splitForestPullFrom
      integer                                              , allocatable, dimension(:) :: splitForestPushType
      double precision                                     , allocatable, dimension(:) :: splitForestPushTime
-     logical                                              , allocatable, dimension(:) :: splitForestIsPrimary                   , splitForestPushDone                , &
+     logical                                              , allocatable, dimension(:) :: splitForestIsPrimary                            , splitForestPushDone                , &
           &                                                                              splitForestPullDone
      logical                                                                          :: warningNestedHierarchyIssued
      logical                                                                          :: warningSplitForestNestedHierarchyIssued

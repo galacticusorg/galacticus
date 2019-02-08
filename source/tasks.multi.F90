@@ -139,7 +139,7 @@ contains
     use Galacticus_Error
     implicit none
     class(taskMulti    ), intent(inout) :: self
-    class(taskClass    ), intent(  out) :: destination
+    class(taskClass    ), intent(inout) :: destination
     type (multiTaskList), pointer       :: task_      , taskDestination_, &
          &                                 taskNew_
 

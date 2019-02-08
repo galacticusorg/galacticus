@@ -126,7 +126,7 @@ contains
     use Galacticus_Error
     implicit none
     class(galacticFilterAny  ), intent(inout) :: self
-    class(galacticFilterClass), intent(  out) :: destination
+    class(galacticFilterClass), intent(inout) :: destination
     type (filterList         ), pointer       :: filter_    , filterDestination_, &
          &                                       filterNew_
 

@@ -151,7 +151,7 @@ contains
     use Galacticus_Error
     implicit none
     class(outputAnalysisPropertyOperatorSequence), intent(inout) :: self
-    class(outputAnalysisPropertyOperatorClass   ), intent(  out) :: destination
+    class(outputAnalysisPropertyOperatorClass   ), intent(inout) :: destination
     type (propertyOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
          &                                                          operatorNew_
 

@@ -124,7 +124,7 @@ contains
     use Galacticus_Error
     implicit none
     class(nbodyOperatorSequence), intent(inout) :: self
-    class(nbodyOperatorClass   ), intent(  out) :: destination
+    class(nbodyOperatorClass   ), intent(inout) :: destination
     type (nbodyOperatorList    ), pointer       :: operator_   , operatorDestination_, &
          &                                         operatorNew_
 

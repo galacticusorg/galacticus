@@ -174,7 +174,7 @@ contains
     use Galacticus_Error
     implicit none
     class(darkMatterProfileHeatingSummation), intent(inout) :: self
-    class(darkMatterProfileHeatingClass    ), intent(  out) :: destination
+    class(darkMatterProfileHeatingClass    ), intent(inout) :: destination
     type (heatSourceList                   ), pointer       :: heatSource_   , heatSourceDestination_, &
          &                                                     heatSourceNew_
 

@@ -14398,7 +14398,7 @@ contains
     use Galacticus_Error
     implicit none
     class(hdf5Object) , intent(in   ) :: self
-    type (hdf5Object) , intent(  out) :: destination
+    type (hdf5Object) , intent(inout) :: destination
 
     ! Get a new object ID.
     if (self%isOpen()) then
