@@ -30,7 +30,7 @@
      private
      class(darkMatterHaloScaleClass                          ), pointer :: darkMatterHaloScale_   => null()
      class(cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_    => null()
-     type (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrast_
+     type (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrast_ => null()
    contains
      final     ::                              benson2005Destructor
      procedure :: orbit                     => benson2005Orbit
