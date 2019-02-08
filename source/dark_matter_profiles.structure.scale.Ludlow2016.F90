@@ -216,6 +216,8 @@ contains
           allocate(ludlow2016States(ludlow2016StatesIncrement))
        end if
        ludlow2016StateCount=ludlow2016StateCount+1
+       allocate(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+       !# <deepCopy source="self%cosmologyFunctions_" destination="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
        ! Get the dark matter profile component of the node.
        darkMatterProfile_ => node%darkMatterProfile()
        ! Set an initial guess to the scale radius using the fall-back concentration method.
@@ -242,8 +244,6 @@ contains
                &                                                                                                 )                                                                              **2  &
                &                                                                                                *  self%cosmologyFunctions_%expansionFactor       (                basic%time())**3  &
                &                                                                                               )
-          allocate(ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_,mold=self%cosmologyFunctions_)
-          !# <deepCopy source="self%cosmologyFunctions_" destination="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
           ! Find the earliest time in the branch.
           timeBranchEarliest=huge                               (0.0d0)
           treeWalker        =mergerTreeWalkerIsolatedNodesBranch(node )
