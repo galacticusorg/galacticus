@@ -39,12 +39,13 @@
      private
      type   (varying_string     )                            :: baseParametersFileName
      logical                                                 :: randomize
-     integer                                                 :: cpuLimit              , evolveForestsVerbosity
-     type   (inputParameters    ), pointer                   :: parametersModel => null()
+     integer                                                 :: cpuLimit                        , evolveForestsVerbosity
+     type   (inputParameters    ), pointer                   :: parametersModel        => null()
      class  (*                  ), pointer                   :: task_
-     class  (outputAnalysisClass), pointer                   :: outputAnalysis_ => null()
-     type   (inputParameterList ), dimension(:), allocatable :: modelParametersActive_, modelParametersInactive_
+     class  (outputAnalysisClass), pointer                   :: outputAnalysis_        => null()
+     type   (inputParameterList ), dimension(:), allocatable :: modelParametersActive_          , modelParametersInactive_
    contains
+     final     ::                    galaxyPopulationDestructor
      procedure :: evaluate        => galaxyPopulationEvaluate
      procedure :: functionChanged => galaxyPopulationFunctionChanged
      procedure :: willEvaluate    => galaxyPopulationWillEvaluate
@@ -65,11 +66,11 @@ contains
     use Galacticus_Display, only : Galacticus_Verbosity_Level
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                :: self
-    type   (inputParameters                    ), intent(inout) :: parameters
-    type   (varying_string)                                     :: baseParametersFileName
-    logical                                                     :: randomize
-    integer                                                     :: cpuLimit              , evolveForestsVerbosity
-    type   (inputParameters                    ), pointer       :: parametersModel
+    type   (inputParameters                          ), intent(inout) :: parameters
+    type   (varying_string)                                           :: baseParametersFileName
+    logical                                                           :: randomize
+    integer                                                           :: cpuLimit              , evolveForestsVerbosity
+    type   (inputParameters                          ), pointer       :: parametersModel
 
     !# <inputParameter>
     !#   <name>baseParametersFileName</name>
@@ -103,8 +104,8 @@ contains
     !#   <type>integer</type>
     !# </inputParameter>
     allocate(parametersModel)
-    parametersModel=inputParameters                    (baseParametersFileName                                          )
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel       ,randomize,cpuLimit,evolveForestsVerbosity)
+    parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,cpuLimit,evolveForestsVerbosity)
     !# <inputParametersValidate source="parameters"/>
     nullify(parametersModel)
     return
@@ -114,14 +115,24 @@ contains
     !% Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
-    type   (inputParameters                    ), intent(inout), target :: parametersModel
-    logical                                     , intent(in   )         :: randomize
-    integer                                     , intent(in   )         :: cpuLimit       , evolveForestsVerbosity
+    type   (inputParameters                          ), intent(inout), target :: parametersModel
+    logical                                           , intent(in   )         :: randomize
+    integer                                           , intent(in   )         :: cpuLimit       , evolveForestsVerbosity
     !# <constructorAssign variables="*parametersModel, randomize, cpuLimit, evolveForestsVerbosity"/>
 
     return
   end function galaxyPopulationConstructorInternal
 
+  subroutine galaxyPopulationDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
+    implicit none
+    type(posteriorSampleLikelihoodGalaxyPopulation), intent(inout) :: self
+
+    call self%parametersModel%destroy()
+    deallocate(self%parametersModel)
+    return
+  end subroutine galaxyPopulationDestructor
+  
   double precision function galaxyPopulationEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the \glc\ likelihood function.
     use Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Perform_, Tasks_Evolve_Forest_Destruct_
