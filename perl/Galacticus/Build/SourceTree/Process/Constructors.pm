@@ -73,8 +73,11 @@ sub Process_Constructors {
 		    $type =~ s/\s//g;
 		    if ( grep {lc($_) eq $type} (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}})) {
 			$assignmentSource .= "   ".$optional." call ".$returnValueLabel."%".$argumentName."%referenceCountIncrement()\n";
-			$assignmentSource .= "   ".$optional." call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$argumentName."] : ".$returnValueLabel." : ')//debugStackGet()//' : '//loc(".$returnValueLabel."%".$argumentName.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).")\n"
-			    if ( $debugging );
+			if ( $debugging ) {
+			    $assignmentSource .= "   if (mpiSelf\%isMaster()) then\n";
+			    $assignmentSource .= "   ".$optional." call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$argumentName."] : ".$returnValueLabel." : ')//debugStackGet()//' : '//loc(".$returnValueLabel."%".$argumentName.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).")\n";
+			    $assignmentSource .= "   end if\n";
+			}
 		    }
 		}
 	    }
@@ -97,6 +100,11 @@ sub Process_Constructors {
 		    type      => "moduleUse",
 		    moduleUse =>
 		    {
+			MPI_Utilities =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			},
 			Galacticus_Display =>
 			{
 			    intrinsic => 0,

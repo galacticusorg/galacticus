@@ -722,6 +722,7 @@ CODE
 	    # Add "deepCopy" method.
             my %deepCopyModules;
             if ( $debugging ) {
+		$deepCopyModules{'MPI_Utilities'     } = 1;
 		$deepCopyModules{'ISO_Varying_String'} = 1;
 		$deepCopyModules{'String_Handling'   } = 1;
 		$deepCopyModules{'Galacticus_Display'} = 1;
@@ -761,7 +762,7 @@ CODE
 					$assignments .= "nullify(destination%".$name.")\n";
 					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments .= "call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
 					    if ( $debugging );
 				    }
 				};
@@ -788,7 +789,7 @@ CODE
 						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments .= "call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
 					    if ( $debugging );
 					}
 				    }
@@ -894,7 +895,7 @@ CODE
 				$assignments .= "nullify(destination%".$name.")\n";
 				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments .= "call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+				$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
 				    if ( $debugging );
 			    }
 		    }
@@ -915,7 +916,7 @@ CODE
 		    if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
 			foreach my $name ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
 			    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-			    $assignments .= "call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+			    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
 				if ( $debugging );
 			}
 		    }
