@@ -192,11 +192,11 @@ contains
        do while (associated(analysis_))
           allocate(analysisNew_)
           if (associated(analysisDestination_)) then
-             analysisDestination_%next       => analysisNew_
-             analysisDestination_            => analysisNew_             
+             analysisDestination_%next     => analysisNew_
+             analysisDestination_          => analysisNew_             
           else
-             destination          %analyses => analysisNew_
-             analysisDestination_            => analysisNew_
+             destination         %analyses => analysisNew_
+             analysisDestination_          => analysisNew_
           end if
           allocate(analysisNew_%analysis_,mold=analysis_%analysis_)
           !# <deepCopy source="analysis_%analysis_" destination="analysisNew_%analysis_"/>
