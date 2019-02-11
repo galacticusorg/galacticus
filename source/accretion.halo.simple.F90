@@ -30,6 +30,9 @@
 
   !# <accretionHalo name="accretionHaloSimple">
   !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="radiation"/>
+  !#  </deepCopy>
   !# </accretionHalo>
   type, extends(accretionHaloClass) :: accretionHaloSimple
      !% A halo accretion class using simple truncation to mimic the effects of reionization.
@@ -43,7 +46,7 @@
      double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
           &                                                                opticalDepthReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
-     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation => null()
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
      integer                                                            :: countChemicals
    contains
      !@ <objectMethods>
