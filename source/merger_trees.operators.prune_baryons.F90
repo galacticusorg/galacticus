@@ -28,7 +28,7 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBaryons
      !% A pruning operator on merger trees that removes all branches that can not contain any baryons.
      private
-     class(accretionHaloClass        ), pointer :: accretionHalo_ => null()
+     class(accretionHaloClass        ), pointer :: accretionHalo_         => null()
      class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
      final     ::            pruneBaryonsDestructor
@@ -89,14 +89,14 @@ contains
     use Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use Galacticus_Nodes              , only : treeNode                       , nodeComponentBasic
     implicit none
-    class  (mergerTreeOperatorPruneBaryons), intent(inout), target :: self
-    type   (mergerTree                    ), intent(inout), target :: tree
-    type   (treeNode                      ), pointer               :: nodeNext       , node
-    class  (nodeComponentBasic            ), pointer               :: basic
-    type   (mergerTree                    ), pointer               :: treeCurrent
-    type   (mergerTreeWalkerIsolatedNodes )                        :: treeWalker
-    logical                                                        :: didPruning
-    double precision                                               :: densityContrast
+    class           (mergerTreeOperatorPruneBaryons), intent(inout), target :: self
+    type            (mergerTree                    ), intent(inout), target :: tree
+    type            (treeNode                      ), pointer               :: nodeNext       , node
+    class           (nodeComponentBasic            ), pointer               :: basic
+    type            (mergerTree                    ), pointer               :: treeCurrent
+    type            (mergerTreeWalkerIsolatedNodes )                        :: treeWalker
+    logical                                                                 :: didPruning
+    double precision                                                        :: densityContrast
     
     !# <workaround type="unknown">
     !#  <description>
