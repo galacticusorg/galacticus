@@ -29,6 +29,9 @@
   
   !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusConcentration">
   !#  <description>Dark matter halo scale radii are computed from the concentration.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="darkMatterHaloScaleDefinition"/>
+  !#  </deepCopy>
   !# </darkMatterProfileScaleRadius>
   type, extends(darkMatterProfileScaleRadiusClass) :: darkMatterProfileScaleRadiusConcentration
      !% A dark matter halo profile scale radius class which computes radii from the concentration.

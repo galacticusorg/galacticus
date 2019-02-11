@@ -24,6 +24,9 @@
 
   !# <virialOrbit name="virialOrbitBenson2005">
   !#  <description>Virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </deepCopy>
   !# </virialOrbit>
   type, extends(virialOrbitClass) :: virialOrbitBenson2005
      !% A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.

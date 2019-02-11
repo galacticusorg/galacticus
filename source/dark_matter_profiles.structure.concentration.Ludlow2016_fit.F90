@@ -26,6 +26,9 @@
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2016Fit">
   !#  <description>Dark matter halo concentrations are computed using the fitting function of \cite{ludlow_mass-concentration-redshift_2016}.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationLudlow2016Fit
      !% A dark matter halo profile concentration class implementing the fitting function of
