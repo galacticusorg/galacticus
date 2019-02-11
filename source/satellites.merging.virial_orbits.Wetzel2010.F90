@@ -27,6 +27,9 @@
 
   !# <virialOrbit name="virialOrbitWetzel2010">
   !#  <description>Virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </deepCopy>
   !# </virialOrbit>
 
   type, extends(virialOrbitClass) :: virialOrbitWetzel2010

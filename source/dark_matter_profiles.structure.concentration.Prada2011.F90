@@ -26,6 +26,9 @@
   
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationPrada2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{prada_halo_2011}.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationPrada2011
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{prada_halo_2011}.

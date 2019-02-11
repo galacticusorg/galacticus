@@ -26,6 +26,9 @@
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="darkMatterProfileDefinition_"/>
+  !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.

@@ -24,6 +24,9 @@
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationMunozCuartas2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{munoz-cuartas_redshift_2011}.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationMunozCuartas2011
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{munoz-cuartas_redshift_2011}.

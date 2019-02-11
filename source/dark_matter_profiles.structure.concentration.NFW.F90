@@ -26,6 +26,9 @@
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationNFW1996">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{navarro_structure_1996}.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationNFW1996
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{navarro_structure_1996}.

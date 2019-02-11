@@ -26,6 +26,9 @@
 
   !# <virialOrbit name="virialOrbitJiang2014">
   !#  <description>Virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </deepCopy>
   !# </virialOrbit>
   type, extends(virialOrbitClass) :: virialOrbitJiang2014
      !% A virial orbit class using the \cite{jiang_orbital_2014} orbital parameter distribution.

@@ -786,11 +786,15 @@ CODE
 					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments .= "nullify(destination%".$name.")\n";
+						$assignments .= "if (associated(self%".$name.")) then\n";
 						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
 					    if ( $debugging );
+					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+						$assignments .= "end if\n";
+					    }
 					}
 				    }
 				}
@@ -915,9 +919,17 @@ CODE
 		    # Deep copy of non-(class,pointer) functionClass objects.
 		    if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
 			foreach my $name ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+				$assignments .= "nullify(destination%".$name.")\n";
+				$assignments .= "if (associated(self%".$name.")) then\n";
+				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+			    }
 			    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 			    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
 				if ( $debugging );
+			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+				$assignments .= "end if\n";
+			    }
 			}
 		    }
 		    # Deallocate FGSL interpolators.
