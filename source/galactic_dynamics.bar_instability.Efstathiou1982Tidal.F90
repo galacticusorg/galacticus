@@ -74,7 +74,6 @@ contains
     !# <objectBuilder class="satelliteTidalField" name="self%satelliteTidalField_" source="parameters"/>
     self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(parameters)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="self%satelliteTidalField_"/>
     return
   end function efstathiou1982TidalConstructorParameters
 
