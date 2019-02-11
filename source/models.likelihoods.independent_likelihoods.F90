@@ -199,7 +199,8 @@ contains
        forall(i=1:size(modelLikelihood_%parameterMap))
           stateVectorMapped(i)=stateVector(modelLikelihood_%parameterMap(i))
        end forall
-       call modelLikelihood_%simulationState%update(stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
+       call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
+       call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
        ! Evaluate this likelihood
        independentLikelihoodsEvaluate                             =  +independentLikelihoodsEvaluate                                                        &
             &                                                        +modelLikelihood_%modelLikelihood_%evaluate(                                           &
