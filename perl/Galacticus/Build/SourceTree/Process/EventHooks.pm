@@ -62,6 +62,15 @@ end type hook{$interfaceType}
 type, extends(eventHook) :: eventHook{$interfaceType}
   private
  contains
+  !@ <objectMethods>
+  !@   <object>eventHook{$interfaceType}</object>
+  !@   <objectMethod>
+  !@     <method>attach</method>
+  !@     <type>\void</type>
+  !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
+  !@     <description>Attach a hook to the event.</description>
+  !@   </objectMethod>
+  !@ </objectMethods>
   procedure :: attach => eventHook{$interfaceType}Attach
 end type eventHook{$interfaceType}
 
