@@ -69,7 +69,9 @@ contains
     !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
     self=stellarPopulationSpectraPostprocessorBuilderLookup(names,postprocessors)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="postprocessors(i)%stellarPopulationSpectraPostprocessor_"/>
+    do i=1,countPostprocessors
+       !# <objectDestructor name="postprocessors(i)%stellarPopulationSpectraPostprocessor_"/>
+    end do
     return
   end function lookupConstructorParameters
   
@@ -77,12 +79,16 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder.
     use Galacticus_Error
     implicit none
-    type(stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
-    type(varying_string                                    ), intent(in   ), dimension(:) :: names
-    type(stellarPopulationSpectraPostprocessorList         ), intent(in   ), dimension(:) :: postprocessors
+    type   (stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
+    type   (varying_string                                    ), intent(in   ), dimension(:) :: names
+    type   (stellarPopulationSpectraPostprocessorList         ), intent(in   ), dimension(:) :: postprocessors
+    integer                                                                                  :: i
     !# <constructorAssign variables="names, postprocessors"/>
 
     if (size(names) /= size(postprocessors)) call Galacticus_Error_Report('number of names must match number of postprocessors'//{introspection:location})
+    do i=1,size(postprocessors)
+       !# <referenceCountIncrement owner="self%postprocessors(i)" object="stellarPopulationSpectraPostprocessor_"/>  
+    end do
     return
   end function lookupConstructorInternal
 
