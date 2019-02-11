@@ -41,6 +41,7 @@
      double precision, dimension(:), allocatable :: likelihoodMultiplier         , likelihoodAccept
    contains
      procedure :: evaluate => independentLikelihoodsSequantialEvaluate
+     procedure :: restore  => independentLikelihoodsSequentialRestore
   end type posteriorSampleLikelihoodIndpndntLklhdsSqntl
 
   interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
@@ -220,7 +221,8 @@ contains
        forall(i=1:size(modelLikelihood_%parameterMap))
           stateVectorMapped(i)=stateVector(modelLikelihood_%parameterMap(i))
        end forall
-       call modelLikelihood_%simulationState%update(stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
+       call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
+       call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
        ! Evaluate this likelihood
        logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                           &
             &                                                                                                 modelLikelihood_%simulationState         , &
@@ -250,9 +252,10 @@ contains
             &                                                     +timeEvaluate
        if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
           if (likelihoodCount > evaluateCounts(simulationState%chainIndex())) then                
-             ! We have matched or exceeded the previous number of likelihoods evaluated.
-             ! Force acceptance if this is the first time we have reached this far.
-             if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex())) then
+             ! We have matched or exceeded the previous number of likelihoods evaluated.             
+             ! Force acceptance if this is the first time we have reached this far (unless the proposed prior is impossible - we
+             ! do not want to accept states outside of the prior bounds).
+             if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex()) .and. logPriorProposed > logImpossible) then
                 if (.not.present(forceAcceptance)) call Galacticus_Error_Report('"forceAcceptance" argument must be present'//{introspection:location})
                 forceCounts    (simulationState%chainIndex())=evaluateCounts(simulationState%chainIndex())
                 forceAcceptance                              =.true.
@@ -290,4 +293,25 @@ contains
     end do
     return    
   end function independentLikelihoodsSequantialEvaluate
+
+  subroutine independentLikelihoodsSequentialRestore(self,simulationState,logLikelihood)
+    !% Process a previous state to restore progress state.
+    implicit none
+    class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
+    double precision                                              , intent(in   ), dimension(:) :: simulationState
+    double precision                                              , intent(in   )               :: logLikelihood
+    double precision                                              , save                        :: logLikelihoodSuccess=0.0d0
+    !$omp threadprivate(logLikelihoodSuccess)
+    !GCC$ attributes unused :: simulationState
+    
+    ! Detect the sequential state jumping to the next level.
+    if (logLikelihood-dble(self%evaluateCount)*logLikelihoodSuccess > 0.0d0) then
+       ! Store the jump in log-likelihood at the jump.
+       if (logLikelihoodSuccess <= 0.0d0) logLikelihoodSuccess=logLikelihood
+       ! Increment the record of the level achieved.
+       self%evaluateCount=self%evaluateCount+1
+       self%   forceCount=self%   forceCount+1
+    end if
+    return
+  end subroutine independentLikelihoodsSequentialRestore
 
