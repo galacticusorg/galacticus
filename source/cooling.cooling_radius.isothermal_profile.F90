@@ -35,23 +35,26 @@
   !#   \rho^2$, such that the cooling time scales as inverse density, $t_\mathrm{cool} \propto \rho^{-1}$. Consequently, the
   !#   cooling radius grows as the square root of the time available for cooling.
   !#  </description>
+  !#  <deepCopy>
+  !#   <functionClass variables="radiation"/>
+  !#  </deepCopy>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusIsothermal
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
      !% for cooling equals the cooling time.
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_ => null()
-     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_ => null()
-     class           (coolingTimeClass                       ), pointer :: coolingTime_ => null()
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
+     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_       => null()
+     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_      => null()
+     class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
      class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
-     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_ => null()
-     type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
-     integer         (kind=kind_int8                         )          :: lastUniqueID              =-1
-     integer                                                            :: abundancesCount              , chemicalsCount
+     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_   => null()
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
+     integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
+     integer                                                            :: abundancesCount                     , chemicalsCount
      ! Stored values of cooling radius.
-     logical                                                            :: radiusComputed               , radiusGrowthRateComputed
-     double precision                                                   :: radiusGrowthRateStored       , radiusStored
+     logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
+     double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      final     ::                     isothermalDestructor
      procedure :: radius           => isothermalRadius
@@ -123,7 +126,8 @@ contains
     self%abundancesCount=Abundances_Property_Count()
     self%chemicalsCount =Chemicals_Property_Count ()
     ! Initialize radiation field.
-    self%radiation=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+    allocate(self%radiation)
+    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     ! Check that required components are gettable.
     if     (                                                                                                                        &
          &  .not.(                                                                                                                  &
@@ -162,6 +166,7 @@ contains
     !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     !# <objectDestructor name="self%cosmologyFunctions_"       />
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
+    !# <objectDestructor name="self%radiation"                 />
    return
   end subroutine isothermalDestructor
 

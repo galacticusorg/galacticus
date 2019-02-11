@@ -39,23 +39,26 @@
   !#   \end{equation}
   !#   where $t_0$, and $t_\mathrm{virial}$ are the cooling times at zero radius and the virial radius respectively.
   !#  </description>
+  !#  <deepCopy>
+  !#   <functionClass variables="radiation"/>
+  !#  </deepCopy>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusBetaProfile
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
      !% for cooling equals the cooling time.
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_ => null()
-     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_ => null()
-     class           (coolingTimeClass                       ), pointer :: coolingTime_ => null()
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
+     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_       => null()
+     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_      => null()
+     class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
      class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
-     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_ => null()
-     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation => null()
-     integer         (kind=kind_int8                         )          :: lastUniqueID              =-1
-     integer                                                            :: abundancesCount              , chemicalsCount
+     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_   => null()
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
+     integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
+     integer                                                            :: abundancesCount                     , chemicalsCount
      ! Stored values of cooling radius.
-     logical                                                            :: radiusComputed               , radiusGrowthRateComputed
-     double precision                                                   :: radiusGrowthRateStored       , radiusStored
+     logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
+     double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      final     ::                     betaProfileDestructor
      procedure :: radius           => betaProfileRadius
