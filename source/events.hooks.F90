@@ -64,7 +64,7 @@ module Events_Hooks
      !% Class used to define a set of hooked function calls for a given event.
      private
    contains
-    !@ <objectMethods>
+     !@ <objectMethods>
      !@   <object>eventHookUnspecified</object>
      !@   <objectMethod>
      !@     <method>attach</method>
