@@ -35,21 +35,21 @@
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationDifferentialEvolution
      !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
      private
-     integer                                                                               :: parameterCount                                    , stepsMaximum                      , &
-          &                                                                                   stateSwapCount                                    , acceptanceAverageCount            , & 
-          &                                                                                   logFlushCount                                     , reportCount
-     double precision                                                                      :: logPosterior                                      , logPrior
-     logical                                                                               :: isConverged                                       , sampleOutliers                    , &
-          &                                                                                   isInteractive
-     type            (modelParameterList                          ), pointer, dimension(:) :: modelParametersActive_                   => null(), modelParametersInactive_ => null()
-     class           (posteriorSampleLikelihoodClass              ), pointer               :: posteriorSampleLikelihood_               => null()
-     class           (posteriorSampleConvergenceClass             ), pointer               :: posteriorSampleConvergence_              => null()
-     class           (posteriorSampleStoppingCriterionClass       ), pointer               :: posteriorSampleStoppingCriterion_        => null()
-     class           (posteriorSampleStateClass                   ), pointer               :: posteriorSampleState_                    => null()
-     class           (posteriorSampleStateInitializeClass         ), pointer               :: posteriorSampleStateInitialize_          => null()
-     class           (posteriorSampleDffrntlEvltnProposalSizeClass), pointer               :: posteriorSampleDffrntlEvltnProposalSize_ => null()
-     class           (posteriorSampleDffrntlEvltnRandomJumpClass  ), pointer               :: posteriorSampleDffrntlEvltnRandomJump_   => null()
-     type            (varying_string                              )                        :: logFileRoot                                       , interactionRoot
+     integer                                                                                   :: parameterCount                                    , stepsMaximum                      , & 
+          &                                                                                       stateSwapCount                                    , acceptanceAverageCount            , &  
+          &                                                                                       logFlushCount                                     , reportCount
+     double precision                                                                          :: logPosterior                                      , logPrior
+     logical                                                                                   :: isConverged                                       , sampleOutliers                    , &
+          &                                                                                       isInteractive
+     type            (modelParameterList                          ), allocatable, dimension(:) :: modelParametersActive_                            , modelParametersInactive_
+     class           (posteriorSampleLikelihoodClass              ), pointer                   :: posteriorSampleLikelihood_               => null()
+     class           (posteriorSampleConvergenceClass             ), pointer                   :: posteriorSampleConvergence_              => null()
+     class           (posteriorSampleStoppingCriterionClass       ), pointer                   :: posteriorSampleStoppingCriterion_        => null()
+     class           (posteriorSampleStateClass                   ), pointer                   :: posteriorSampleState_                    => null()
+     class           (posteriorSampleStateInitializeClass         ), pointer                   :: posteriorSampleStateInitialize_          => null()
+     class           (posteriorSampleDffrntlEvltnProposalSizeClass), pointer                   :: posteriorSampleDffrntlEvltnProposalSize_ => null()
+     class           (posteriorSampleDffrntlEvltnRandomJumpClass  ), pointer                   :: posteriorSampleDffrntlEvltnRandomJump_   => null()
+     type            (varying_string                              )                            :: logFileRoot                                       , interactionRoot
    contains
      !@ <objectMethods>
      !@   <object>posteriorSampleSimulationDifferentialEvolution</object>
@@ -275,31 +275,33 @@ contains
   function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot) result(self)
     !% Internal constructor for the ``differentialEvolution'' simulation class.
     implicit none
-    type     (posteriorSampleSimulationDifferentialEvolution)                                      :: self
-    type     (modelParameterList                            ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
-    class    (posteriorSampleLikelihoodClass                ), intent(in   ), target               :: posteriorSampleLikelihood_
-    class    (posteriorSampleConvergenceClass               ), intent(in   ), target               :: posteriorSampleConvergence_
-    class    (posteriorSampleStoppingCriterionClass         ), intent(in   ), target               :: posteriorSampleStoppingCriterion_
-    class    (posteriorSampleStateClass                     ), intent(in   ), target               :: posteriorSampleState_
-    class    (posteriorSampleStateInitializeClass           ), intent(in   ), target               :: posteriorSampleStateInitialize_
-    class    (posteriorSampleDffrntlEvltnProposalSizeClass  ), intent(in   ), target               :: posteriorSampleDffrntlEvltnProposalSize_
-    class    (posteriorSampleDffrntlEvltnRandomJumpClass    ), intent(in   ), target               :: posteriorSampleDffrntlEvltnRandomJump_
-    integer                                                  , intent(in   )                       :: stepsMaximum                            , acceptanceAverageCount  , &
-         &                                                                                            stateSwapCount                          , logFlushCount           , &
-         &                                                                                            reportCount
-    character(len=*                                         ), intent(in   )                       :: logFileRoot                             , interactionRoot
-    logical                                                  , intent(in   )                       :: sampleOutliers
-    integer                                                                                        :: i
+    type     (posteriorSampleSimulationDifferentialEvolution)                              :: self
+    type     (modelParameterList                            ), intent(in   ), dimension(:) :: modelParametersActive_                  , modelParametersInactive_
+    class    (posteriorSampleLikelihoodClass                ), intent(in   ), target       :: posteriorSampleLikelihood_
+    class    (posteriorSampleConvergenceClass               ), intent(in   ), target       :: posteriorSampleConvergence_
+    class    (posteriorSampleStoppingCriterionClass         ), intent(in   ), target       :: posteriorSampleStoppingCriterion_
+    class    (posteriorSampleStateClass                     ), intent(in   ), target       :: posteriorSampleState_
+    class    (posteriorSampleStateInitializeClass           ), intent(in   ), target       :: posteriorSampleStateInitialize_
+    class    (posteriorSampleDffrntlEvltnProposalSizeClass  ), intent(in   ), target       :: posteriorSampleDffrntlEvltnProposalSize_
+    class    (posteriorSampleDffrntlEvltnRandomJumpClass    ), intent(in   ), target       :: posteriorSampleDffrntlEvltnRandomJump_
+    integer                                                  , intent(in   )               :: stepsMaximum                            , acceptanceAverageCount  , &
+         &                                                                                    stateSwapCount                          , logFlushCount           , &
+         &                                                                                    reportCount
+    character(len=*                                         ), intent(in   )               :: logFileRoot                             , interactionRoot
+    logical                                                  , intent(in   )               :: sampleOutliers
+    integer                                                                                :: i
     !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
-    self%modelParametersActive_  =modelParametersActive_
-    self%modelParametersInactive_=modelParametersInactive_
     do i=1,size(modelParametersActive_  )
+       self%modelParametersActive_  (i)                 =  modelParameterList      ( )
+       self%modelParametersActive_  (i)%modelParameter_ => modelParametersActive_  (i)%modelParameter_
        !# <referenceCountIncrement owner="self%modelParametersActive_  (i)" object="modelParameter_"/>
     end do
     do i=1,size(modelParametersInactive_)
+       self%modelParametersInactive_(i)                 =  modelParameterList      ( )
+       self%modelParametersInactive_(i)%modelParameter_ => modelParametersInactive_(i)%modelParameter_
        !# <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
     end do
     self%parameterCount=size(modelParametersActive_)
@@ -509,11 +511,6 @@ contains
              end if
           end if
        end if
-
-       !! AJB HACK
-       exit
-
-       
     end do
     close(logFileUnit)
     return
