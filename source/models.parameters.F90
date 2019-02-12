@@ -82,7 +82,7 @@ module Model_Parameters
   
   type :: modelParameterList
      !% Class used to construct lists of model parameters.
-     class(modelParameterClass), public, pointer :: modelParameter_
+     class(modelParameterClass), public, pointer :: modelParameter_ => null()
   end type modelParameterList
 
 contains
