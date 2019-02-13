@@ -27,8 +27,7 @@
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark energy universe.
      private
    contains
-     final     ::                 sphericalCollapseMatterDEDestructor
-     procedure :: retabulate   => sphericalCollapseMatterDERetabulate
+     procedure :: retabulate => sphericalCollapseMatterDERetabulate
   end type criticalOverdensitySphericalCollapseMatterDE
 
   interface criticalOverdensitySphericalCollapseMatterDE
@@ -99,22 +98,6 @@ contains
     end select
     return
   end function sphericalCollapseMatterDEConstructorInternal
-
-  subroutine sphericalCollapseMatterDEDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} critical overdensity for collapse class.
-    implicit none
-    type (criticalOverdensitySphericalCollapseMatterDE), intent(inout) :: self
-    
-    !# <objectDestructor name="self%linearGrowth_"            />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%darkMatterParticle_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
-    if (self%tableInitialized) then
-       call self%overdensityCritical%destroy()
-       deallocate(self%overdensityCritical)
-    end if
-    return
-  end subroutine sphericalCollapseMatterDEDestructor
 
   subroutine sphericalCollapseMatterDERetabulate(self,time)
     !% Recompute the look-up tables for critical overdensity for collapse.
