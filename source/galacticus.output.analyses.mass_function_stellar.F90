@@ -301,35 +301,35 @@ contains
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(masses(2)/masses(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert masses to log10(masses) here.
-    self%outputAnalysisVolumeFunction1D=                                                           &
-         & outputAnalysisVolumeFunction1D(                                                         &
-         &                                'massFunctionStellar'//label                           , &
-         &                                comment                                                , &
-         &                                var_str('massStellar'                                 ), &
-         &                                var_str('Stellar mass at the bin center'              ), &
-         &                                var_str('M☉'                                         ), &
-         &                                massSolar                                              , &
-         &                                var_str('massFunction'                                ), &
-         &                                var_str('Stellar mass function averaged over each bin'), &
-         &                                var_str('ᵪMpc⁻³'                                      ), &
-         &                                megaParsec**(-3)                                       , &
-         &                                log10(masses)                                          , &
-         &                                bufferCount                                            , &
-         &                                outputWeight                                           , &
-         &                                outputAnalysisPropertyExtractor_                       , &
-         &                                outputAnalysisPropertyOperatorSequence_                , &
-         &                                outputAnalysisPropertyOperatorAntiLog10_               , &
-         &                                outputAnalysisWeightOperator_                          , &
-         &                                outputAnalysisDistributionOperator_                    , &
-         &                                outputAnalysisDistributionNormalizer_                  , &
-         &                                galacticFilter_                                        , &
-         &                                outputTimes_                                           , &
-         &                                outputAnalysisCovarianceModelBinomial                  , &
-         &                                covarianceBinomialBinsPerDecade                        , &
-         &                                covarianceBinomialMassHaloMinimum                      , &
-         &                                covarianceBinomialMassHaloMaximum                      , &
-         &                                functionValueTarget                                    , &
-         &                                functionCovarianceTarget                                 &
+    self%outputAnalysisVolumeFunction1D=                                                                                    &
+         & outputAnalysisVolumeFunction1D(                                                                                  &
+         &                                                         'massFunctionStellar'//label                           , &
+         &                                                         comment                                                , &
+         &                                                         var_str('massStellar'                                 ), &
+         &                                                         var_str('Stellar mass at the bin center'              ), &
+         &                                                         var_str('M☉'                                         ), &
+         &                                                         massSolar                                              , &
+         &                                                         var_str('massFunction'                                ), &
+         &                                                         var_str('Stellar mass function averaged over each bin'), &
+         &                                                         var_str('ᵪMpc⁻³'                                      ), &
+         &                                                         megaParsec**(-3)                                       , &
+         &                                                         log10(masses)                                          , &
+         &                                                         bufferCount                                            , &
+         &                                                         outputWeight                                           , &
+         &                                                         outputAnalysisPropertyExtractor_                       , &
+         &                                                         outputAnalysisPropertyOperatorSequence_                , &
+         &                                                         outputAnalysisPropertyOperatorAntiLog10_               , &
+         &                                                         outputAnalysisWeightOperator_                          , &
+         &                                                         outputAnalysisDistributionOperator_                    , &
+         &                                                         outputAnalysisDistributionNormalizer_                  , &
+         &                                                         galacticFilter_                                        , &
+         &                                                         outputTimes_                                           , &
+         &                                                         outputAnalysisCovarianceModelBinomial                  , &
+         &                                                         covarianceBinomialBinsPerDecade                        , &
+         &                                                         covarianceBinomialMassHaloMinimum                      , &
+         &                                                         covarianceBinomialMassHaloMaximum                      , &
+         &                                functionValueTarget     =functionValueTarget                                    , &
+         &                                functionCovarianceTarget=functionCovarianceTarget                                 &
          &                               )
     ! Clean up.
     nullify(outputAnalysisPropertyExtractor_                )

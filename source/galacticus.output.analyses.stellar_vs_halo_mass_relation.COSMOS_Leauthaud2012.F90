@@ -178,6 +178,7 @@ contains
          &                                                                                                   weightPropertyDescription                                     , groupRedshiftName
     type            (hdf5Object                                          )                                :: fileData                                                      , groupRedshift
     type            (table1DGeneric                                      )                                :: interpolator
+    character       (len=4                                               )                                :: redshiftMinimumLabel                                          , redshiftMaximumLabel
     
     ! Construct survey geometry.
     select case (redshiftInterval)
@@ -196,6 +197,8 @@ contains
     case default
        call Galacticus_Error_Report('redshiftInterval ∈ {1,2,3}'//{introspection:location})
     end select
+    write (redshiftMinimumLabel,'(f4.2)') redshiftMinimum
+    write (redshiftMaximumLabel,'(f4.2)') redshiftMaximum
     allocate(surveyGeometry_)
     !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryFullSky(redshiftMinimum,redshiftMaximum,cosmologyFunctions_)"/>
     ! Create output time weights.
@@ -354,72 +357,82 @@ contains
     type is (outputAnalysisScatterFunction1D)
        !# <referenceConstruct isResult="yes" object="outputAnalysis_">
        !#  <constructor>
-       !#   outputAnalysisScatterFunction1D(                                           &amp;
-       !#    &amp;                          analysisLabel                            , &amp;
-       !#    &amp;                          var_str('Stellar vs. halo mass relation'), &amp;
-       !#    &amp;                          var_str('massHalo'                      ), &amp;
-       !#    &amp;                          var_str('Halo mass'                     ), &amp;
-       !#    &amp;                          var_str('M☉'                            ), &amp;
-       !#    &amp;                          massSolar                                , &amp;
-       !#    &amp;                          weightPropertyLabel                      , &amp;
-       !#    &amp;                          weightPropertyDescription                , &amp;
-       !#    &amp;                          var_str(' '                             ), &amp;
-       !#    &amp;                          0.0d0                                    , &amp;
-       !#    &amp;                          massHalo                                 , &amp;
-       !#    &amp;                          0_c_size_t                               , &amp;
-       !#    &amp;                          outputWeight                             , &amp;
-       !#    &amp;                          outputAnalysisPropertyExtractor_         , &amp;
-       !#    &amp;                          outputAnalysisWeightPropertyExtractor_   , &amp;
-       !#    &amp;                          outputAnalysisPropertyOperator_          , &amp;
-       !#    &amp;                          outputAnalysisWeightPropertyOperator_    , &amp;
-       !#    &amp;                          outputAnalysisPropertyUnoperator_        , &amp;
-       !#    &amp;                          outputAnalysisWeightOperator_            , &amp;
-       !#    &amp;                          outputAnalysisDistributionOperator_      , &amp;
-       !#    &amp;                          galacticFilterAll_                       , &amp;
-       !#    &amp;                          outputTimes_                             , &amp;
-       !#    &amp;                          outputAnalysisCovarianceModelBinomial    , &amp;
-       !#    &amp;                          covarianceBinomialBinsPerDecade          , &amp;
-       !#    &amp;                          covarianceBinomialMassHaloMinimum        , &amp;
-       !#    &amp;                          covarianceBinomialMassHaloMaximum        , &amp;
-       !#    &amp;                          likelihoodNormalize                      , &amp;
-       !#    &amp;                          massStellarLogarithmicTarget             , &amp;
-       !#    &amp;                          massStellarLogarithmicCovarianceTarget     &amp;
+       !#   outputAnalysisScatterFunction1D(                                                                                                                    &amp;
+       !#    &amp;                          analysisLabel                                                                                                     , &amp;
+       !#    &amp;                          var_str('Scatter in stellar-halo mass relation for $')//redshiftMinimumLabel//' \le z &lt; '//redshiftMaximumLabel, &amp;
+       !#    &amp;                          var_str('massHalo'                                    )                                                           , &amp;
+       !#    &amp;                          var_str('Halo mass'                                   )                                                           , &amp;
+       !#    &amp;                          var_str('M☉'                                          )                                                           , &amp;
+       !#    &amp;                          massSolar                                                                                                         , &amp;
+       !#    &amp;                          weightPropertyLabel                                                                                               , &amp;
+       !#    &amp;                          weightPropertyDescription                                                                                         , &amp;
+       !#    &amp;                          var_str(' '                                           )                                                           , &amp;
+       !#    &amp;                          0.0d0                                                                                                             , &amp;
+       !#    &amp;                          massHalo                                                                                                          , &amp;
+       !#    &amp;                          0_c_size_t                                                                                                        , &amp;
+       !#    &amp;                          outputWeight                                                                                                      , &amp;
+       !#    &amp;                          outputAnalysisPropertyExtractor_                                                                                  , &amp;
+       !#    &amp;                          outputAnalysisWeightPropertyExtractor_                                                                            , &amp;
+       !#    &amp;                          outputAnalysisPropertyOperator_                                                                                   , &amp;
+       !#    &amp;                          outputAnalysisWeightPropertyOperator_                                                                             , &amp;
+       !#    &amp;                          outputAnalysisPropertyUnoperator_                                                                                 , &amp;
+       !#    &amp;                          outputAnalysisWeightOperator_                                                                                     , &amp;
+       !#    &amp;                          outputAnalysisDistributionOperator_                                                                               , &amp;
+       !#    &amp;                          galacticFilterAll_                                                                                                , &amp;
+       !#    &amp;                          outputTimes_                                                                                                      , &amp;
+       !#    &amp;                          outputAnalysisCovarianceModelBinomial                                                                             , &amp;
+       !#    &amp;                          covarianceBinomialBinsPerDecade                                                                                   , &amp;
+       !#    &amp;                          covarianceBinomialMassHaloMinimum                                                                                 , &amp;
+       !#    &amp;                          covarianceBinomialMassHaloMaximum                                                                                 , &amp;
+       !#    &amp;                          likelihoodNormalize                                                                                               , &amp;
+       !#    &amp;                          var_str('M_\mathrm{halo}/\mathrm{M}_\odot'            )                                                           , &amp;
+       !#    &amp;                          var_str('\sigma_{\log_{10}(M_\star/\mathrm{M}_\odot)}')                                                           , &amp;
+       !#    &amp;                          .true.                                                                                                            , &amp;
+       !#    &amp;                          .false.                                                                                                           , &amp;    
+       !#    &amp;                          var_str('More et al. (2009)'                          )                                                           , &amp;
+       !#    &amp;                          massStellarLogarithmicTarget                                                                                      , &amp;
+       !#    &amp;                          massStellarLogarithmicCovarianceTarget                                                                              &amp;
        !#    &amp;                         )
        !#  </constructor>
        !# </referenceConstruct>
     type is (outputAnalysisMeanFunction1D   )
        !# <referenceConstruct isResult="yes" object="outputAnalysis_">
        !#  <constructor>
-       !#   outputAnalysisMeanFunction1D   (                                           &amp;
-       !#    &amp;                          analysisLabel                            , &amp;
-       !#    &amp;                          var_str('Stellar vs. halo mass relation'), &amp;
-       !#    &amp;                          var_str('massHalo'                      ), &amp;
-       !#    &amp;                          var_str('Halo mass'                     ), &amp;
-       !#    &amp;                          var_str('M☉'                            ), &amp;
-       !#    &amp;                          massSolar                                , &amp;
-       !#    &amp;                          weightPropertyLabel                      , &amp;
-       !#    &amp;                          weightPropertyDescription                , &amp;
-       !#    &amp;                          var_str(' '                             ), &amp;
-       !#    &amp;                          0.0d0                                    , &amp;
-       !#    &amp;                          massHalo                                 , &amp;
-       !#    &amp;                          0_c_size_t                               , &amp;
-       !#    &amp;                          outputWeight                             , &amp;
-       !#    &amp;                          outputAnalysisPropertyExtractor_         , &amp;
-       !#    &amp;                          outputAnalysisWeightPropertyExtractor_   , &amp;
-       !#    &amp;                          outputAnalysisPropertyOperator_          , &amp;
-       !#    &amp;                          outputAnalysisWeightPropertyOperator_    , &amp;
-       !#    &amp;                          outputAnalysisPropertyUnoperator_        , &amp;
-       !#    &amp;                          outputAnalysisWeightOperator_            , &amp;
-       !#    &amp;                          outputAnalysisDistributionOperator_      , &amp;
-       !#    &amp;                          galacticFilterAll_                       , &amp;
-       !#    &amp;                          outputTimes_                             , &amp;
-       !#    &amp;                          outputAnalysisCovarianceModelBinomial    , &amp;
-       !#    &amp;                          covarianceBinomialBinsPerDecade          , &amp;
-       !#    &amp;                          covarianceBinomialMassHaloMinimum        , &amp;
-       !#    &amp;                          covarianceBinomialMassHaloMaximum        , &amp;
-       !#    &amp;                          likelihoodNormalize                      , &amp;
-       !#    &amp;                          massStellarLogarithmicTarget             , &amp;
-       !#    &amp;                          massStellarLogarithmicCovarianceTarget     &amp;
+       !#   outputAnalysisMeanFunction1D   (                                                                                                         &amp;
+       !#    &amp;                          analysisLabel                                                                                          , &amp;
+       !#    &amp;                          var_str('Stellar-halo mass relation for $')//redshiftMinimumLabel//' \le z &lt; '//redshiftMaximumLabel, &amp;
+       !#    &amp;                          var_str('massHalo'                            )                                                        , &amp;
+       !#    &amp;                          var_str('Halo mass'                           )                                                        , &amp;
+       !#    &amp;                          var_str('M☉'                                  )                                                        , &amp;
+       !#    &amp;                          massSolar                                                                                              , &amp;
+       !#    &amp;                          weightPropertyLabel                                                                                    , &amp;
+       !#    &amp;                          weightPropertyDescription                                                                              , &amp;
+       !#    &amp;                          var_str(' '                                   )                                                        , &amp;
+       !#    &amp;                          0.0d0                                                                                                  , &amp;
+       !#    &amp;                          massHalo                                                                                               , &amp;
+       !#    &amp;                          0_c_size_t                                                                                             , &amp;
+       !#    &amp;                          outputWeight                                                                                           , &amp;
+       !#    &amp;                          outputAnalysisPropertyExtractor_                                                                       , &amp;
+       !#    &amp;                          outputAnalysisWeightPropertyExtractor_                                                                 , &amp;
+       !#    &amp;                          outputAnalysisPropertyOperator_                                                                        , &amp;
+       !#    &amp;                          outputAnalysisWeightPropertyOperator_                                                                  , &amp;
+       !#    &amp;                          outputAnalysisPropertyUnoperator_                                                                      , &amp;
+       !#    &amp;                          outputAnalysisWeightOperator_                                                                          , &amp;
+       !#    &amp;                          outputAnalysisDistributionOperator_                                                                    , &amp;
+       !#    &amp;                          galacticFilterAll_                                                                                     , &amp;
+       !#    &amp;                          outputTimes_                                                                                           , &amp;
+       !#    &amp;                          outputAnalysisCovarianceModelBinomial                                                                  , &amp;
+       !#    &amp;                          covarianceBinomialBinsPerDecade                                                                        , &amp;
+       !#    &amp;                          covarianceBinomialMassHaloMinimum                                                                      , &amp;
+       !#    &amp;                          covarianceBinomialMassHaloMaximum                                                                      , &amp;
+       !#    &amp;                          likelihoodNormalize                                                                                    , &amp;
+       !#    &amp;                          var_str('M_\mathrm{halo}/\mathrm{M}_\odot'    )                                                        , &amp;
+       !#    &amp;                          var_str('\log_{10}(M_\star/\mathrm{M}_\odot)' )                                                        , &amp;
+       !#    &amp;                          .true.                                                                                                 , &amp;
+       !#    &amp;                          .false.                                                                                                , &amp;    
+       !#    &amp;                          var_str('Leauthaud et al. (2012)'             )                                                        , &amp;
+       !#    &amp;                          massStellarLogarithmicTarget                                                                           , &amp;
+       !#    &amp;                          massStellarLogarithmicCovarianceTarget                                                                   &amp;
        !#    &amp;                         )
        !#  </constructor>
        !# </referenceConstruct>

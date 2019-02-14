@@ -42,14 +42,17 @@
      type            (varying_string                )                              :: label                             , comment                         , &
           &                                                                           propertyLabel                     , propertyComment                 , &
           &                                                                           meanLabel                         , meanComment                     , &
-          &                                                                           propertyUnits                     , meanUnits
+          &                                                                           propertyUnits                     , meanUnits                       , &
+          &                                                                           xAxisLabel                        , yAxisLabel                      , &
+          &                                                                           targetLabel
      double precision                                                              :: propertyUnitsInSI                 , meanUnitsInSI
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionUnweighted => null(), volumeFunctionWeighted => null(), &
           &                                                                           volumeFunctionCross      => null()   
      double precision                                , allocatable, dimension(:  ) :: binCenter                         , meanValue                       , &
           &                                                                           meanValueTarget
      double precision                                , allocatable, dimension(:,:) :: meanCovariance                    , meanCovarianceTarget
-     logical                                                                       :: finalized                         , likelihoodNormalize
+     logical                                                                       :: finalized                         , likelihoodNormalize             , &
+          &                                                                           xAxisIsLog                        , yAxisIsLog
    contains
      !@ <objectMethods>
      !@   <object>outputAnalysisMeanFunction1D</object>
@@ -99,13 +102,15 @@ contains
          &                                                                                    propertyLabel                        , propertyComment                       , &
          &                                                                                    meanLabel                            , meanComment                           , &
          &                                                                                    propertyUnits                        , meanUnits                             , &
-         &                                                                                    covarianceModel
+         &                                                                                    covarianceModel                      , xAxisLabel                            , &
+         &                                                                                    yAxisLabel                           , targetLabel
     integer                                                                                :: covarianceBinomialBinsPerDecade
     type            (inputParameters                        )                              :: unoperatorParameters
     type            (inputParameters                        )                              :: weightParameters
     double precision                                                                       :: propertyUnitsInSI                    , meanUnitsInSI                         , &
          &                                                                                    covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
-    logical                                                                                :: likelihoodNormalize
+    logical                                                                                :: likelihoodNormalize                  , xAxisIsLog                            , &
+         &                                                                                    yAxisIsLog
 
     !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"       source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
@@ -128,6 +133,34 @@ contains
     !#   <variable>label</variable>
     !#   <description>A label for the analysis.</description>
     !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>xAxisLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the $x$-axis in a plot of this analysis.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>yAxisLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the $y$-axis in a plot of this analysis.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>xAxisIsLog</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>yAxisIsLog</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+    !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -295,6 +328,14 @@ contains
     else
        if (parameters%isPresent('meanCovariance')) call Galacticus_Error_Report('functionTarget must be specified if meanCovariance is present'//{introspection:location})
     end if
+    !# <inputParameter>
+    !#   <name>targetLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the target dataset in a plot of this analysis.</description>
+    !#   <defaultValue>var_str('')</defaultValue>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     ! Build the object.
     !# <conditionalCall>
     !#  <call>
@@ -325,7 +366,12 @@ contains
     !#        &amp;                        covarianceBinomialBinsPerDecade                                                              , &amp;
     !#        &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
     !#        &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;                      
-    !#        &amp;                        likelihoodNormalize                                                                            &amp;
+    !#        &amp;                        likelihoodNormalize                                                                          , &amp;
+    !#        &amp;                        xAxisLabel                                                                                   , &amp;
+    !#        &amp;                        yAxisLabel                                                                                   , &amp;
+    !#        &amp;                        xAxisIsLog                                                                                   , &amp;
+    !#        &amp;                        yAxisIsLog                                                                                   , &amp;
+    !#        &amp;                        targetLabel                                                                                    &amp;
     !#        &amp;                        {conditions}                                                                                   &amp;
     !#        &amp;                       )
     !#  </call>
@@ -345,7 +391,7 @@ contains
     return
   end function meanFunction1DConstructorParameters
 
-  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,meanValueTarget,meanCovarianceTarget) result (self)
+  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget) result (self)
     !% Constructor for the ``meanFunction1D'' output analysis class for internal use.
     use Memory_Management
     implicit none
@@ -354,11 +400,14 @@ contains
          &                                                                                                     propertyLabel                                   , propertyComment                                , &
          &                                                                                                     meanLabel                                       , meanComment                                    , &
          &                                                                                                     propertyUnits                                   , meanUnits
+    type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                                      , yAxisLabel                                     , &
+         &                                                                                                     targetLabel
     double precision                                                                                        :: propertyUnitsInSI                               , meanUnitsInSI
     double precision                                              , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
-    logical                                                       , intent(in   ), optional                 :: likelihoodNormalize
+    logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                      , yAxisIsLog                                     , &
+         &                                                                                                     likelihoodNormalize
     class           (outputAnalysisPropertyExtractorClass        ), intent(inout), target                   :: outputAnalysisPropertyExtractor_                , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_                 , outputAnalysisPropertyUnoperator_              , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
@@ -383,7 +432,7 @@ contains
          &                                                                                                     weightOperatorCrossProperty_
     type            (outputAnalysisPropertyOperatorBoolean       ), pointer                                 :: propertyOperatorUnweightedBoolean_
     type            (outputAnalysisPropertyOperatorSquareRoot    ), pointer                                 :: propertyOperatorCrossSquareRoot_ 
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, meanValueTarget, meanCovarianceTarget"/>
+    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget"/>
 
     ! Mark as unfinalized.
     self%finalized=.false.
@@ -681,20 +730,46 @@ contains
     !$ call hdf5Access%set()
     analysesGroup=galacticusOutputFile%openGroup('analyses'                         )
     analysisGroup=analysesGroup       %openGroup(char(self%label),char(self%comment))
-    call analysisGroup%writeDataset  (          self%binCenter               ,char(self%propertyLabel)              ,char(self%propertyComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%propertyUnits    )      ,'units'                                                                                                   )
-    call dataset      %writeAttribute(          self%propertyUnitsInSI       ,'unitsInSI'                                                                                               )
-    call dataset      %close()
-    call analysisGroup%writeDataset  (          self%meanValue               ,char(self%    meanLabel)              ,char(self%    meanComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    meanUnits    )      ,'units'                                                                                                   )
-    call dataset      %writeAttribute(          self%meanUnitsInSI           ,'unitsInSI'                                                                                               )
-    call dataset      %close()
-    call analysisGroup%writeDataset  (          self%meanCovariance          ,char(self%    meanLabel)//"Covariance",char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
-    call dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²",'units'                                                                                                   )
-    call dataset      %writeAttribute(          self%    meanUnitsInSI   **2 ,'unitsInSI'                                                                                               )
-    call dataset      %close()
-    call analysisGroup%close()
-    call analysesGroup%close()
+    ! Write metadata describing this analysis.
+    call    analysisGroup%writeAttribute(     char(self%   comment   )                    ,'description'                                                                                                   )
+    call    analysisGroup%writeAttribute("function1D"                                     ,'type'                                                                                                          )
+    call    analysisGroup%writeAttribute(     char(self%   xAxisLabel)                    ,'xAxisLabel'                                                                                                    )
+    call    analysisGroup%writeAttribute(     char(self%   yAxisLabel)                    ,'yAxisLabel'                                                                                                    )
+    call    analysisGroup%writeAttribute(          self%   xAxisIsLog                     ,'xAxisIsLog'                                                                                                    )
+    call    analysisGroup%writeAttribute(          self%   yAxisIsLog                     ,'yAxisIsLog'                                                                                                    )
+    call    analysisGroup%writeAttribute(     char(self%propertyLabel)                    ,'xDataset'                                                                                                      )
+    call    analysisGroup%writeAttribute(     char(self%    meanLabel)                    ,'yDataset'                                                                                                      )
+    call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"Target"          ,'yDatasetTarget'                                                                                                )
+    call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"Covariance"      ,'yCovariance'                                                                                                   )
+    call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                             )
+    ! Write computed datasets.
+    call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                    ,char(self%propertyComment)                 ,datasetReturned=dataset)
+    call    dataset      %writeAttribute(     char(self%propertyUnits    )                ,'units'                                                                                                         )
+    call    dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                     )
+    call    dataset      %close         (                                                                                                                                                                  )
+    call    analysisGroup%writeDataset  (          self%meanValue                         ,char(self%    meanLabel)                    ,char(self%    meanComment)                 ,datasetReturned=dataset)
+    call    dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
+    call    dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call    dataset      %close         (                                                                                                                                                                  )
+    call    analysisGroup%writeDataset  (          self%meanCovariance                    ,char(self%    meanLabel)//"Covariance"      ,char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
+    call    dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
+    call    dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
+    call    dataset      %close         (                                                                                                                                                                  )
+    ! If available, include the log-likelihood and target dataset.
+    if (allocated(self%meanValueTarget)) then
+       call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                 )
+       call analysisGroup%writeAttribute(     char(self%targetLabel         )             ,'targetLabel'                                                                                                   )
+       call analysisGroup%writeDataset  (          self%meanValueTarget                   ,char(self%    meanLabel)//"Target"          ,char(self%    meanComment)                 ,datasetReturned=dataset)
+       call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
+       call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+       call dataset      %close         (                                                                                                                                                                  )
+       call analysisGroup%writeDataset  (          self%meanCovarianceTarget              ,char(self%    meanLabel)//"CovarianceTarget",char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
+       call dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
+       call dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
+       call dataset      %close         (                                                                                                                                                                  )
+    end if
+    call    analysisGroup%close         (                                                                                                                                                                  )
+    call    analysesGroup%close         (                                                                                                                                                                  )
     !$ call hdf5Access%unset()    
     return
   end subroutine meanFunction1DFinalize
@@ -710,9 +785,9 @@ contains
     ! Finalize analysis.
     call meanFunction1DFinalizeAnalysis(self)
     ! Return results.
-    if (present(binCenter         )) then
-       if (allocated(binCenter         )) call deallocateArray(binCenter         )
-       call allocateArray(binCenter         ,shape(self%binCenter         ))
+    if (present(binCenter     )) then
+       if (allocated(binCenter     )) call deallocateArray(binCenter     )
+       call allocateArray(binCenter         ,shape(self%binCenter ))
        binCenter         =self%binCenter
     end if
     if (present(meanValue     )) then
