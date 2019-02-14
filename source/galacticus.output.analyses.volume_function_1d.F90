@@ -42,7 +42,9 @@
      type            (varying_string                           )                              :: label                                          , comment                                          , &
           &                                                                                      propertyLabel                                  , propertyComment                                  , &
           &                                                                                      distributionLabel                              , distributionComment                              , &
-          &                                                                                      propertyUnits                                  , distributionUnits
+          &                                                                                      propertyUnits                                  , distributionUnits                                , &
+          &                                                                                      xAxisLabel                                     , yAxisLabel                                       , &
+          &                                                                                      targetLabel
      double precision                                                                         :: propertyUnitsInSI                              , distributionUnitsInSI
      class           (outputAnalysisPropertyExtractorClass     ), pointer                     :: outputAnalysisPropertyExtractor_      => null()
      class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_       => null()                                                   , &
@@ -63,7 +65,8 @@
      integer                                                                                  :: covarianceModel                                , covarianceBinomialBinsPerDecade
      double precision                                                                         :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                , &
           &                                                                                      covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse
-     logical                                                                                  :: finalized
+     logical                                                                                  :: finalized                                      , xAxisIsLog                                       , &
+          &                                                                                      yAxisIsLog
      !$ integer      (omp_lock_kind                            )                              :: accumulateLock
    contains
      !@ <objectMethods>
@@ -114,11 +117,13 @@ contains
          &                                                                                      propertyLabel                        , propertyComment                  , &
          &                                                                                      distributionLabel                    , distributionComment              , &
          &                                                                                      propertyUnits                        , distributionUnits                , &
-         &                                                                                      covarianceModel
+         &                                                                                      covarianceModel                      , targetLabel                      , &
+         &                                                                                      xAxisLabel                           , yAxisLabel
     integer                                                                                  :: covarianceBinomialBinsPerDecade
     type            (inputParameters                          )                              :: unoperatorParameters
     double precision                                                                         :: propertyUnitsInSI                    , distributionUnitsInSI            , &
          &                                                                                      covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+    logical                                                                                  :: xAxisIsLog                           , yAxisIsLog
     
     ! Check and read parameters.
     !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"      source="parameters"          />
@@ -140,6 +145,34 @@ contains
     !#   <variable>label</variable>
     !#   <description>A label for the analysis.</description>
     !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>xAxisLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the $x$-axis in a plot of this analysis.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>yAxisLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the $y$-axis in a plot of this analysis.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>xAxisIsLog</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>yAxisIsLog</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+    !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -299,6 +332,14 @@ contains
     else
        if (parameters%isPresent('functionCovariance')) call Galacticus_Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
     end if
+    !# <inputParameter>
+    !#   <name>targetLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the target dataset in a plot of this analysis.</description>
+    !#   <defaultValue>var_str('')</defaultValue>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     ! Build the object.
     !# <conditionalCall>
     !#  <call>
@@ -327,7 +368,12 @@ contains
     !#        &amp;                          enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.)      , &amp;
     !#        &amp;                          covarianceBinomialBinsPerDecade                                                                   , &amp;
     !#        &amp;                          covarianceBinomialMassHaloMinimum                                                                 , &amp;
-    !#        &amp;                          covarianceBinomialMassHaloMaximum                                                                   &amp;
+    !#        &amp;                          covarianceBinomialMassHaloMaximum                                                                 , &amp;
+    !#        &amp;                          xAxisLabel                                                                                        , &amp;
+    !#        &amp;                          yAxisLabel                                                                                        , &amp;
+    !#        &amp;                          xAxisIsLog                                                                                        , &amp;
+    !#        &amp;                          yAxisIsLog                                                                                        , &amp;
+    !#        &amp;                          targetLabel                                                                                         &amp;
     !#        &amp;                          {conditions}                                                                                        &amp;
     !#        &amp;                         )
     !#  </call>
@@ -346,7 +392,7 @@ contains
     return
   end function volumeFunction1DConstructorParameters
 
-  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,functionValueTarget,functionCovarianceTarget) result (self)
+  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
     !% Constructor for the ``volumeFunction1D'' output analysis class for internal use.
     use Memory_Management
     implicit none
@@ -355,6 +401,9 @@ contains
          &                                                                                                  propertyLabel                        , propertyComment                  , &
          &                                                                                                  distributionLabel                    , distributionComment              , &
          &                                                                                                  propertyUnits                        , distributionUnits
+    type            (varying_string                           ), intent(in   ), optional                 :: xAxisLabel                           , yAxisLabel                       , &
+         &                                                                                                  targetLabel
+    logical                                                    , intent(in   ), optional                 :: xAxisIsLog                           , yAxisIsLog
     double precision                                                                                     :: propertyUnitsInSI                    , distributionUnitsInSI
     double precision                                           , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                 ), intent(in   )                           :: bufferCount
@@ -372,7 +421,7 @@ contains
     double precision                                           , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                           , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
     integer         (c_size_t                                 )                                          :: i
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, functionValueTarget, functionCovarianceTarget"/>
+    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, functionValueTarget, functionCovarianceTarget"/>
 
     ! Count bins.
     self%binCount     =size(binCenter,kind=c_size_t)
@@ -554,20 +603,46 @@ contains
     !$ call hdf5Access%set()
     analysesGroup=galacticusOutputFile%openGroup('analyses'                         )
     analysisGroup=analysesGroup       %openGroup(char(self%label),char(self%comment))
-    call analysisGroup%writeDataset  (self%binCenter    (1:self%binCount                     ),char(self%    propertyLabel)              ,char(self%    propertyComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    propertyUnits    )      ,'units'                                                                                                                        )
-    call dataset      %writeAttribute(          self%    propertyUnitsInSI       ,'unitsInSI'                                                                                                                    )
-    call dataset      %close()
-    call analysisGroup%writeDataset  (self%functionValue(1:self%binCount                     ),char(self%distributionLabel)              ,char(self%distributionComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%distributionUnits    )      ,'units'                                                                                                                        )
-    call dataset      %writeAttribute(          self%distributionUnitsInSI       ,'unitsInSI'                                                                                                                    )
-    call dataset      %close()
-    call analysisGroup%writeDataset  (self%functionCovariance(1:self%binCount,1:self%binCount),char(self%distributionLabel)//"Covariance",char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
-    call dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²",'units'                                                                                                                        )
-    call dataset      %writeAttribute(          self%distributionUnitsInSI   **2 ,'unitsInSI'                                                                                                                    )
-    call dataset      %close()
-    call analysisGroup%close()
-    call analysesGroup%close()
+    ! Write metadata describing this analysis.
+    call    analysisGroup%writeAttribute(     char(self%       comment   )                       ,'description'                                                                                                          )
+    call    analysisGroup%writeAttribute("function1D"                                            ,'type'                                                                                                                 )
+    call    analysisGroup%writeAttribute(     char(self%       xAxisLabel)                       ,'xAxisLabel'                                                                                                           )
+    call    analysisGroup%writeAttribute(     char(self%       yAxisLabel)                       ,'yAxisLabel'                                                                                                           )
+    call    analysisGroup%writeAttribute(          self%       xAxisIsLog                        ,'xAxisIsLog'                                                                                                           )
+    call    analysisGroup%writeAttribute(          self%       yAxisIsLog                        ,'yAxisIsLog'                                                                                                           )
+    call    analysisGroup%writeAttribute(     char(self%    propertyLabel)                       ,'xDataset'                                                                                                             )
+    call    analysisGroup%writeAttribute(     char(self%distributionLabel)                       ,'yDataset'                                                                                                             )
+    call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"Target"             ,'yDatasetTarget'                                                                                                       )
+    call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"Covariance"         ,'yCovariance'                                                                                                          )
+    call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"CovarianceTarget"   ,'yCovarianceTarget'                                                                                                    )
+    ! Write computed datasets.
+    call    analysisGroup%writeDataset  (self%binCenter    (1:self%binCount                     ),char(self%    propertyLabel)                   ,char(self%   propertyComment)                  ,datasetReturned=dataset)
+    call    dataset      %writeAttribute(     char(self%    propertyUnits    )                   ,'units'                                                                                                                )
+    call    dataset      %writeAttribute(          self%    propertyUnitsInSI                    ,'unitsInSI'                                                                                                            )
+    call    dataset      %close         (                                                                                                                                                                                )
+    call    analysisGroup%writeDataset  (self%functionValue(1:self%binCount                     ),char(self%distributionLabel)                   ,char(self%distributionComment)                 ,datasetReturned=dataset)
+    call    dataset      %writeAttribute(     char(self%distributionUnits    )                   ,'units'                                                                                                                )
+    call    dataset      %writeAttribute(          self%distributionUnitsInSI                    ,'unitsInSI'                                                                                                            )
+    call    dataset      %close         (                                                                                                                                                                                )
+    call    analysisGroup%writeDataset  (self%functionCovariance(1:self%binCount,1:self%binCount),char(self%distributionLabel)//"Covariance"     ,char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
+    call    dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²"             ,'units'                                                                                                                )
+    call    dataset      %writeAttribute(          self%distributionUnitsInSI   **2              ,'unitsInSI'                                                                                                            )
+    call    dataset      %close         (                                                                                                                                                                                )
+    ! If available, include the log-likelihood and target dataset.
+    if (allocated(self%functionValueTarget)) then
+       call analysisGroup%writeAttribute(          self%logLikelihood()                         ,'logLikelihood'                                                                                                         )
+       call analysisGroup%writeAttribute(     char(self%targetLabel          )                  ,'targetLabel'                                                                                                           )
+       call analysisGroup%writeDataset  (          self%functionValueTarget                     ,char(self%distributionLabel)//"Target"          ,char(self%distributionComment)                 ,datasetReturned=dataset)
+       call dataset      %writeAttribute(     char(self%distributionUnits    )                  ,'units'                                                                                                                 )
+       call dataset      %writeAttribute(          self%distributionUnitsInSI                   ,'unitsInSI'                                                                                                             )
+       call dataset      %close         (                                                                                                                                                                                )
+       call analysisGroup%writeDataset  (          self%functionCovarianceTarget                ,char(self%distributionLabel)//"CovarianceTarget",char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
+       call dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²"            ,'units'                                                                                                                 )
+       call dataset      %writeAttribute(          self%distributionUnitsInSI   **2             ,'unitsInSI'                                                                                                             )
+       call dataset      %close         (                                                                                                                                                                                )
+    end if
+    call    analysisGroup%close         (                                                                                                                                                                                )
+    call    analysesGroup%close         (                                                                                                                                                                                )
     !$ call hdf5Access%unset()    
     return
   end subroutine volumeFunction1DFinalize
