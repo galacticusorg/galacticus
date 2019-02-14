@@ -179,6 +179,9 @@ module Node_Component_Disk_Standard
   ! Disk structural parameters.
   double precision                            :: diskStructureSolverSpecificAngularMomentum  , diskRadiusSolverFlatVsSphericalFactor
   !$omp threadprivate(diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor)
+
+  ! Pipe attachment status.
+  logical                                     :: pipesAttached                        =.false.
   
 contains
 
@@ -199,7 +202,10 @@ contains
        ! Get number of abundance properties.
        abundancesCount  =Abundances_Property_Count            ()
        ! Attach the cooling mass/angular momentum pipes from the hot halo component.
-       call diskStandardComponent%attachPipes()
+       if (.not.pipesAttached) then
+          call diskStandardComponent%attachPipes()
+          pipesAttached=.true.
+       end if
        ! Bind the star formation rate function.
        call diskStandardComponent%starFormationRateFunction(Node_Component_Disk_Standard_Star_Formation_Rate)
        ! Read parameters controlling the physical implementation.
