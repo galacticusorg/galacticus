@@ -319,6 +319,7 @@ module IO_HDF5
      procedure :: IO_HDF5_Write_Attribute_Character_1D
      procedure :: IO_HDF5_Write_Attribute_VarString_Scalar
      procedure :: IO_HDF5_Write_Attribute_VarString_1D
+     procedure :: IO_HDF5_Write_Attribute_Logical_Scalar
      generic   :: writeAttribute      => IO_HDF5_Write_Attribute_Integer_Scalar  , &
           &                              IO_HDF5_Write_Attribute_Integer_1D      , &
           &                              IO_HDF5_Write_Attribute_Integer8_Scalar , &
@@ -329,7 +330,8 @@ module IO_HDF5
           &                              IO_HDF5_Write_Attribute_Character_Scalar, &
           &                              IO_HDF5_Write_Attribute_Character_1D    , &
           &                              IO_HDF5_Write_Attribute_VarString_Scalar, &
-          &                              IO_HDF5_Write_Attribute_VarString_1D
+          &                              IO_HDF5_Write_Attribute_VarString_1D    , &
+          &                              IO_HDF5_Write_Attribute_Logical_Scalar
      procedure :: IO_HDF5_Write_Dataset_Integer_1D
      procedure :: IO_HDF5_Write_Dataset_Integer_2D
      procedure :: IO_HDF5_Write_Dataset_Integer8_1D
@@ -1277,6 +1279,21 @@ contains
     return
   end function IO_HDF5_Open_Attribute
 
+  subroutine IO_HDF5_Write_Attribute_Logical_Scalar(thisObject,attributeValue,attributeName)
+    !% Open and write a logical scalar attribute in {\normalfont \ttfamily thisObject}.
+    implicit none
+    class    (hdf5Object    ), intent(inout)           :: thisObject
+    character(len=*         ), intent(in   ), optional :: attributeName
+    logical                  , intent(in   )           :: attributeValue
+
+    if (attributeValue) then
+       call thisObject%writeAttribute(1,attributeName)
+    else
+       call thisObject%writeAttribute(0,attributeName)
+    end if
+    return
+  end subroutine IO_HDF5_Write_Attribute_Logical_Scalar
+  
   subroutine IO_HDF5_Write_Attribute_Integer_Scalar(thisObject,attributeValue,attributeName)
     !% Open and write an integer scalar attribute in {\normalfont \ttfamily thisObject}.
     use Galacticus_Error
