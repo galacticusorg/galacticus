@@ -25,7 +25,8 @@
   type, extends(taskClass) :: taskPosteriorSample
      !% Implementation of a task which performs sampling from a posterior distribution.
      private
-     class(posteriorSampleSimulationClass), pointer :: posteriorSampleSimulation_ => null()
+     class  (posteriorSampleSimulationClass), pointer :: posteriorSampleSimulation_    => null()
+     logical                                          :: nodeClassHierarchyInitialized =  .false.
    contains
      final     ::            posteriorSampleDestructor
      procedure :: perform => posteriorSamplePerform
@@ -45,16 +46,28 @@ contains
     use Node_Components , only : Node_Components_Initialize
     use Galacticus_Nodes, only : nodeClassHierarchyInitialize
     implicit none
-    type (taskPosteriorSample           )                :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class(posteriorSampleSimulationClass), pointer       :: posteriorSampleSimulation_
+    type   (taskPosteriorSample           )                :: self
+    type   (inputParameters               ), intent(inout) :: parameters
+    class  (posteriorSampleSimulationClass), pointer       :: posteriorSampleSimulation_
+    logical                                                :: initializeNodeClassHierarchy
 
-    call nodeClassHierarchyInitialize(parameters)
-    call Node_Components_Initialize  (parameters)
+    !# <inputParameter>
+    !#   <name>initializeNodeClassHierarchy</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>If true then initialize the node class hierarchy in the posterior sampling class. This should be set to false if the likelihood function will instead perform this action.</description>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    if (initializeNodeClassHierarchy) then
+       call nodeClassHierarchyInitialize(parameters)
+       call Node_Components_Initialize  (parameters)
+    end if
     !# <objectBuilder class="posteriorSampleSimulation" name="posteriorSampleSimulation_" source="parameters"/>
     self=taskPosteriorSample(posteriorSampleSimulation_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleSimulation_"/>
+    if (initializeNodeClassHierarchy) self%nodeClassHierarchyInitialized=.true.
     return
   end function posteriorSampleConstructorParameters
 
@@ -75,7 +88,7 @@ contains
     type(taskPosteriorSample), intent(inout) :: self
 
     !# <objectDestructor name="self%posteriorSampleSimulation_"/>
-    call Node_Components_Uninitialize()
+    if (self%nodeClassHierarchyInitialized) call Node_Components_Uninitialize()
     return
   end subroutine posteriorSampleDestructor
 
