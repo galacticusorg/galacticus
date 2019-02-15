@@ -51,7 +51,7 @@ module Galacticus_Error
      subroutine H5Close_C() bind(c,name='H5Close_C')
      end subroutine H5Close_C
   end interface
-
+  
   ! Public error codes. Where relevant these copy GSL error codes, otherwise values above 1024
   ! are used so as not to conflict with GSL error codes.
   integer, parameter, public :: errorStatusSuccess     =FGSL_Success  ! Success.
@@ -92,7 +92,7 @@ contains
   end subroutine Galacticus_Error_Report_VarStr
 
   subroutine Galacticus_Error_Report_Char(message)
-    !% Display an error message (optionally reporting the unit name in which the error originated) and stop.
+    !% Display an error message.
     !$ use OMP_Lib
     implicit none
     character(len=*), intent(in   ) :: message
@@ -445,5 +445,5 @@ contains
     errorWaitTime=errorWaitTimeNew
     return
   end subroutine Galacticus_Error_Wait_Set
-  
+
 end module Galacticus_Error
