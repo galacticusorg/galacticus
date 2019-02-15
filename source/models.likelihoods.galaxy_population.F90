@@ -372,7 +372,7 @@ contains
           ! Forest evolution failed - record impossible likelihood.
           if (iRank == mpiSelf%rank()) then
              ! Dump the failed parameter set to file.
-             call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank)
+             call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank//".errCode"//status)
              ! Return impossible likelihood.
              galaxyPopulationEvaluate=logImpossible
           end if
