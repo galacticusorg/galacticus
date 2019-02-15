@@ -38,11 +38,11 @@
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverStandard
      !% Implementation of the standars merger tree evolver.
      private
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (mergerTreeEvolveTimestepClass), pointer :: mergerTreeEvolveTimestep_ => null()
-     logical                                                  :: allTreesExistAtFinalTime , dumpTreeStructure
-     double precision                                         :: timestepHostAbsolute     , timestepHostRelative
-     type            (deadlockList                 ), pointer :: deadlockHeadNode => null()
+     logical                                                  :: allTreesExistAtFinalTime           , dumpTreeStructure
+     double precision                                         :: timestepHostAbsolute               , timestepHostRelative
+     type            (deadlockList                 ), pointer :: deadlockHeadNode          => null()
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeEvolverStandard</object>
@@ -157,7 +157,7 @@ contains
     return
   end subroutine standardDestructor
 
-  subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,initializationLock)
+  subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
     !$ use OMP_Lib
     use Galacticus_Nodes                  , only : nodeEvent                         , nodeComponentBasic, interruptTask, nodeEventBranchJumpInterTree, &
@@ -174,6 +174,7 @@ contains
     use Merger_Tree_Walkers    
     implicit none
     class           (mergerTreeEvolverStandard )                    , intent(inout) :: self
+    integer                                     , optional          , intent(  out) :: status
     type            (mergerTree                )           , target , intent(inout) :: tree
     double precision                                                , intent(in   ) :: timeEnd
     logical                                                         , intent(  out) :: treeDidEvolve                     , suspendTree
@@ -439,7 +440,8 @@ contains
                             ! Update record of earliest time in the tree.
                             earliestTimeInTree=min(earliestTimeInTree,timeEndThisNode)
                             ! Evolve the node to the next interrupt event, or the end time.
-                            call Tree_Node_Evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure)
+                            call Tree_Node_Evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,status)
+                            if (present(status) .and. status /= errorStatusSuccess) return
                          end if
                          ! Check for interrupt.
                          if (interrupted) then

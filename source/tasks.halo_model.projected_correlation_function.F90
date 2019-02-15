@@ -183,15 +183,17 @@ contains
     return
   end subroutine haloModelProjectedCorrelationFunctionDestructor
   
-  subroutine haloModelProjectedCorrelationFunctionPerform(self)
+  subroutine haloModelProjectedCorrelationFunctionPerform(self,status)
     !% Generate a mock galaxy catalog using a simple halo model approach.   
     use IO_HDF5                          , only : hdf5Object
     use Galacticus_HDF5                  , only : galacticusOutputFile
     use Galacticus_Display               , only : Galacticus_Display_Indent       , Galacticus_Display_Unindent
+    use Galacticus_Error                 , only : errorStatusSuccess
     use Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
     implicit none
-    class(taskHaloModelProjectedCorrelationFunction), intent(inout) :: self
-    type (hdf5Object                               )                :: outputGroup
+    class  (taskHaloModelProjectedCorrelationFunction), intent(inout)           :: self
+    integer                                           , intent(  out), optional :: status
+    type   (hdf5Object                               )                          :: outputGroup
 
     call Galacticus_Display_Indent('Begin task: halo model projected correlation function')
     call Halo_Model_Projected_Correlation(                                 &
@@ -209,6 +211,7 @@ contains
     call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,commentText="Projected separation [Mpc]." )
     call outputGroup%writeDataset(self%correlationProjectedBinned,"projectedCorrelation",commentText="Projected correlation [Mpc].")
     call outputGroup%close       (                                                                                                 )
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: halo model projected correlation function' )
   end subroutine haloModelProjectedCorrelationFunctionPerform
 

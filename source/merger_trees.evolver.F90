@@ -40,6 +40,7 @@ module Merger_Trees_Evolve
   !#   <argument>logical                                  , intent(  out) :: treeDidEvolve     , suspendTree</argument>
   !#   <argument>logical                                  , intent(in   ) :: deadlockReporting              </argument>
   !#   <argument>integer         (omp_lock_kind), optional, intent(inout) :: initializationLock             </argument>
+  !#   <argument>integer                        , optional, intent(  out) :: status                         </argument>
   !#  </method>
   !# </functionClass>
   

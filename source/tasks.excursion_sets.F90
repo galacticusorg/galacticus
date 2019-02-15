@@ -224,7 +224,7 @@ contains
     return
   end subroutine excursionSetsDestructor
 
-  subroutine excursionSetsPerform(self)
+  subroutine excursionSetsPerform(self,status)
     !% Compute and output the halo mass function.
     use Numerical_Constants_Math
     use Memory_Management
@@ -232,8 +232,10 @@ contains
     use Numerical_Ranges
     use IO_HDF5
     use Galacticus_HDF5
+    use Galacticus_Error        , only : errorStatusSuccess
     implicit none
     class           (taskExcursionSets), intent(inout)                   :: self
+    integer                            , intent(  out), optional         :: status
     double precision                   , allocatable  , dimension(:    ) :: mass                    , time                    , &
          &                                                                  powerSpectrumValue      , variance                , &
          &                                                                  wavenumber
@@ -319,6 +321,7 @@ contains
     call deallocateArray(wavenumber              )
     call deallocateArray(powerSpectrumValue      )
     call deallocateArray(firstCrossingRate       )
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: excursion sets' )
     return
   end subroutine excursionSetsPerform

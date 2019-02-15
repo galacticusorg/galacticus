@@ -258,7 +258,7 @@ contains
     return
   end subroutine haloMassFunctionDestructor
 
-  subroutine haloMassFunctionPerform(self)
+  subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Error
@@ -276,6 +276,7 @@ contains
     use               FGSL                            , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (taskHaloMassFunction          ), intent(inout)                 :: self
+    integer                                         , intent(  out), optional       :: status
     double precision                                , allocatable  , dimension(:,:) :: massFunctionDifferentialLogarithmicBinAveraged       , biasHalo                     , &
          &                                                                             massFunctionCumulative                               , massFunctionDifferential     , &
          &                                                                             massFunctionDifferentialLogarithmic                  , massFunctionMassFraction     , &
@@ -304,7 +305,7 @@ contains
     type            (hdf5Object                    )                                :: outputsGroup                                         , outputGroup                  , &
          &                                                                             containerGroup                                       , powerSpectrumGroup           , &
          &                                                                             cosmologyGroup                                       , dataset
-    integer                                                                         :: status
+    integer                                                                         :: statusHalfModeMass
     type            (varying_string                )                                :: groupName                                            , commentText
    
     call Galacticus_Display_Indent('Begin task: halo mass function')
@@ -425,8 +426,8 @@ contains
        outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     ! Store half-mode mass if possible.
-    massHalfMode=self%transferFunction_%halfModeMass(status)
-    if (status == errorStatusSuccess) then
+    massHalfMode=self%transferFunction_%halfModeMass(statusHalfModeMass)
+    if (statusHalfModeMass == errorStatusSuccess) then
        if (self%outputGroup == ".") then
           powerSpectrumGroup=galacticusOutputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
        else
@@ -500,6 +501,7 @@ contains
     end do
     call outputsGroup%close()
     if (containerGroup%isOpen()) call containerGroup%close()
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: halo mass function' )
     return
 

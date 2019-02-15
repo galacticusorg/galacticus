@@ -92,14 +92,17 @@ contains
     return
   end subroutine posteriorSampleDestructor
 
-  subroutine posteriorSamplePerform(self)
+  subroutine posteriorSamplePerform(self,status)
     !% Perform the posterior sampling.
     use Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    use Galacticus_Error  , only : errorStatusSuccess
     implicit none
-    class(taskPosteriorSample), intent(inout) :: self
+    class  (taskPosteriorSample), intent(inout)           :: self
+    integer                     , intent(  out), optional :: status
 
     call Galacticus_Display_Indent('Begin task: posterior sampling')
     call self%posteriorSampleSimulation_%simulate()
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: posterior sampling' )
     return
   end subroutine posteriorSamplePerform
