@@ -37,7 +37,7 @@
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGalaxyPopulation
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
      private
-     type   (varying_string     )                            :: baseParametersFileName
+     type   (varying_string     )                            :: baseParametersFileName          , failedParametersFileName
      logical                                                 :: randomize
      integer                                                 :: cpuLimit                        , evolveForestsVerbosity
      type   (inputParameters    ), pointer                   :: parametersModel        => null()
@@ -67,7 +67,7 @@ contains
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                :: self
     type   (inputParameters                          ), intent(inout) :: parameters
-    type   (varying_string)                                           :: baseParametersFileName
+    type   (varying_string)                                           :: baseParametersFileName, failedParametersFileName
     logical                                                           :: randomize
     integer                                                           :: cpuLimit              , evolveForestsVerbosity
     type   (inputParameters                          ), pointer       :: parametersModel
@@ -103,22 +103,31 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>failedParametersFileName</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>The verbosity level to use while performing evolve forests tasks.</description>
+    !#   <defaultValue>var_str('./failedParameters.xml')</defaultValue>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
-    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,cpuLimit,evolveForestsVerbosity)
+    self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,cpuLimit,evolveForestsVerbosity,failedParametersFileName)
     !# <inputParametersValidate source="parameters"/>
     nullify(parametersModel)
     return
   end function galaxyPopulationConstructorParameters
 
-  function galaxyPopulationConstructorInternal(parametersModel,randomize,cpuLimit,evolveForestsVerbosity) result(self)
+  function galaxyPopulationConstructorInternal(parametersModel,randomize,cpuLimit,evolveForestsVerbosity,failedParametersFileName) result(self)
     !% Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
     type   (inputParameters                          ), intent(inout), target :: parametersModel
     logical                                           , intent(in   )         :: randomize
-    integer                                           , intent(in   )         :: cpuLimit       , evolveForestsVerbosity
-    !# <constructorAssign variables="*parametersModel, randomize, cpuLimit, evolveForestsVerbosity"/>
+    integer                                           , intent(in   )         :: cpuLimit                , evolveForestsVerbosity
+    type   (varying_string                           ), intent(in   )         :: failedParametersFileName
+    !# <constructorAssign variables="*parametersModel, randomize, cpuLimit, evolveForestsVerbosity, failedParametersFileName"/>
 
     return
   end function galaxyPopulationConstructorInternal
@@ -140,7 +149,7 @@ contains
     use Posterior_Sampling_State      , only : posteriorSampleStateClass
     use Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use MPI_Utilities                 , only : mpiSelf                        , mpiBarrier
-    use String_Handling               , only : String_Count_Words             , String_Split_Words          , String_Join
+    use String_Handling               , only : String_Count_Words             , String_Split_Words          , String_Join                  , operator(//)
     use Galacticus_Error              , only : Galacticus_Error_Report
     use Galacticus_Display            , only : Galacticus_Verbosity_Level_Set , Galacticus_Verbosity_Level
     use Kind_Numbers                  , only : kind_int8
@@ -160,7 +169,7 @@ contains
     integer                                                                                    :: iRank                 , parameterCount          , &
          &                                                                                        i                     , j                       , &
          &                                                                                        instance              , indexElement            , &
-         &                                                                                        verbosityLevel
+         &                                                                                        verbosityLevel        , status
     integer         (kind_int8                                )                                :: evaluator
     real                                                                                       :: timeBegin             , timeEnd
     double precision                                                                           :: logLikelihoodProposed , valueDerived
@@ -358,15 +367,26 @@ contains
        !# <objectBuilder class="outputAnalysis" name="self%outputAnalysis_" source="self%parametersModel"/>
        ! Perform the forest evolution tasks.
        call CPU_Time(timeBegin)
-       call Tasks_Evolve_Forest_Perform_(self%task_)
-       ! Extract the log-likelihood. This is evaluated by all chains (as they likely need to perform reduction across MPI
-       ! processes), but only stored for the chain of this rank.
-       logLikelihoodProposed=self%outputAnalysis_%logLikelihood()
-       if (iRank == mpiSelf%rank()) then
-          galaxyPopulationEvaluate=logLikelihoodProposed
-          ! Record timing information.
-          call CPU_Time(timeEnd)
-          timeEvaluate=timeEnd-timeBegin
+       call Tasks_Evolve_Forest_Perform_(self%task_,status)       
+       if (mpiSelf%any(status /= errorStatusSuccess)) then
+          ! Forest evolution failed - record impossible likelihood.
+          if (iRank == mpiSelf%rank()) then
+             ! Dump the failed parameter set to file.
+             call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank)
+             ! Return impossible likelihood.
+             galaxyPopulationEvaluate=logImpossible
+          end if
+       else
+          ! Forst evolution was successful - evaluate the likelihood.
+          ! Extract the log-likelihood. This is evaluated by all chains (as they likely need to perform reduction across MPI
+          ! processes), but only stored for the chain of this rank.
+          logLikelihoodProposed=self%outputAnalysis_%logLikelihood()
+          if (iRank == mpiSelf%rank()) then
+             galaxyPopulationEvaluate=logLikelihoodProposed
+             ! Record timing information.
+             call CPU_Time(timeEnd)
+             timeEvaluate=timeEnd-timeBegin
+          end if
        end if
        call mpiBarrier()
        call Tasks_Evolve_Forest_Destruct_(self%task_)

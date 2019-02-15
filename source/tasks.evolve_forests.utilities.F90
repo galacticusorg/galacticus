@@ -63,18 +63,20 @@ contains
   !# <functionGlobal>
   !#  <unitName>Tasks_Evolve_Forest_Perform</unitName>
   !#  <type>void</type>
-  !#  <arguments>class(*), intent(inout) :: task_</arguments>
+  !#  <arguments>class  (*), intent(inout)           :: task_</arguments>
+  !#  <arguments>integer   , intent(  out), optional :: status</arguments>
   !# </functionGlobal>
-  subroutine Tasks_Evolve_Forest_Perform(task_)
+  subroutine Tasks_Evolve_Forest_Perform(task_,status)
     !% Perform the task for a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
     use Galacticus_Error, only : Galacticus_Error_Report
     use Tasks           , only : task                   , taskEvolveForests
     implicit none
-    class(*), intent(inout) :: task_
-
+    class  (*), intent(inout)           :: task_
+    integer   , intent(  out), optional :: status
+    
     select type (task_)
     class is (taskEvolveForests)
-       call task_%perform()
+       call task_%perform(status)
     class default
        call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
     end select

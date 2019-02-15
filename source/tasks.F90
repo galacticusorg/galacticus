@@ -34,6 +34,7 @@ module Tasks
   !#   <description>Perform the task.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
+  !#   <argument>integer, intent(  out), optional :: status</argument>
   !#  </method>
   !#  <method name="requiresOutputFile" >
   !#   <description>Should return true if the task requires the main output file to be open.</description>

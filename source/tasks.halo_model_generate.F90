@@ -145,7 +145,7 @@ contains
     return
   end subroutine haloModelGenerateDestructor
 
-  subroutine haloModelGeneratePerform(self)
+  subroutine haloModelGeneratePerform(self,status)
     !% Generate a mock galaxy catalog using a simple halo model approach.
     use ISO_Varying_String
     use Memory_Management
@@ -166,6 +166,7 @@ contains
     use Conditional_Mass_Functions         , only : haloModelGalaxyTypeCentral, haloModelGalaxyTypeSatellite
     implicit none
     class           (taskHaloModelGenerate         ), intent(inout)                 :: self
+    integer                                         , intent(  out), optional       :: status
     double precision                                , allocatable  , dimension(  :) :: haloMass             , galaxyMass
     double precision                                , allocatable  , dimension(:,:) :: haloPosition         , haloVelocity             , &
          &                                                                             galaxyPosition       , galaxyVelocity
@@ -314,6 +315,7 @@ contains
     call haloFile%copyCosmology (galaxyFile)
     call haloFile%copySimulation(galaxyFile)
     call galaxyFile%writeHalos(1,redshift,galaxyPosition(:,1:galaxyCount),galaxyVelocity(:,1:galaxyCount),galaxyMass(1:galaxyCount))
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: halo model generate' )
 
   contains

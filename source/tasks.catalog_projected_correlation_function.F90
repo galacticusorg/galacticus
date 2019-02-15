@@ -250,7 +250,7 @@ contains
     return
   end subroutine catalogProjectedCorrelationFunctionDestructor
 
-  subroutine catalogProjectedCorrelationFunctionPerform(self)
+  subroutine catalogProjectedCorrelationFunctionPerform(self,status)
     !% Compute the projected correlation function from a galaxy catalog.
     use Galacticus_Error
     use ISO_Varying_String
@@ -267,6 +267,7 @@ contains
     use Galacticus_HDF5
     implicit none
     class           (taskCatalogProjectedCorrelationFunction), intent(inout)                 :: self
+    integer                                                  , intent(  out), optional       :: status
     double precision                                         , allocatable  , dimension(:,:) :: galaxyPosition       , galaxyVelocity          , &
          &                                                                                      randomPosition
     double precision                                         , allocatable  , dimension(:  ) :: correlation          , separation              , &
@@ -411,6 +412,7 @@ contains
     call thisDataset%writeAttribute(megaParsec,'unitsInSI')
     call thisDataset%close         (                      )
     call correlationFunctionGroup%close()
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: catalog projected correlation function' )
 
   contains

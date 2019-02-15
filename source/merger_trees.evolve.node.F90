@@ -103,6 +103,9 @@ module Merger_Trees_Evolve_Node
   double precision                            :: timePrevious          =-1.0d0
   double precision, allocatable, dimension(:) :: propertyValuesPrevious       , propertyRatesPrevious
   !$omp threadprivate(timePrevious,propertyValuesPrevious,propertyRatesPrevious)
+
+  ! Limit on system clock to not be exceeded.
+  integer(kind_int8), public :: systemClockMaximum=-1_kind_int8
   
 contains
 
@@ -248,7 +251,7 @@ contains
     return
   end subroutine Tree_Node_Evolve_Initialize
 
-  subroutine Tree_Node_Evolve(thisTree,node,timeEnd,interrupted,functionInterrupt)
+  subroutine Tree_Node_Evolve(thisTree,node,timeEnd,interrupted,functionInterrupt,status)
     !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
     use Galacticus_Nodes               , only : nodeComponentBasic  , mergerTree      , propertyTypeAll , propertyTypeActive, &
          &                                      propertyTypeInactive, rateComputeState, propertyTypeNone
@@ -276,25 +279,29 @@ contains
     include 'objects.tree_node.analytic_solver_task.modules.inc'
     !# </include>
     implicit none
-    class           (mergerTree                  )      , intent(inout)          :: thisTree
-    type            (treeNode                    )      , intent(inout), pointer :: node
-    double precision                                    , intent(in   )          :: timeEnd
-    logical                                             , intent(  out)          :: interrupted
-    procedure       (interruptTask               )      , intent(  out), pointer :: functionInterrupt
-    class           (nodeComponentBasic          )                     , pointer :: basicComponent
-    integer                                       , save                         :: propertyCountPrevious=-1
+    class           (mergerTree                  )             , intent(inout)          :: thisTree
+    type            (treeNode                    )             , intent(inout), pointer :: node
+    double precision                                           , intent(in   )          :: timeEnd
+    logical                                                    , intent(  out)          :: interrupted
+    procedure       (interruptTask               )             , intent(  out), pointer :: functionInterrupt
+    integer                                       , optional   , intent(  out)          :: status
+    class           (nodeComponentBasic          )                            , pointer :: basicComponent
+    integer                                       , save                                :: propertyCountPrevious=-1
     !$omp threadprivate(propertyCountPrevious)
-    class          (integratorMultiVectorized1D  ), allocatable                  :: integrator_
-    logical                                                                      :: solvedAnalytically      , solvedNumerically, &
-         &                                                                          jacobianSolver
-    double precision                                                             :: timeStart               , stepSize         , &
-         &                                                                          timeStartSaved
-    integer                                                                      :: lengthMaximum           , i                , &
-         &                                                                          odeStatus
-    type            (varying_string              )                               :: message                 , line
-    character       (len =12                     )                               :: label
-    type            (c_funptr                    )                               :: Error_Analyzer          , postStep
-    
+    class          (integratorMultiVectorized1D  ), allocatable                         :: integrator_
+    logical                                                                             :: solvedAnalytically      , solvedNumerically, &
+         &                                                                                 jacobianSolver
+    double precision                                                                    :: timeStart               , stepSize         , &
+         &                                                                                 timeStartSaved
+    integer                                                                             :: lengthMaximum           , i                , &
+         &                                                                                 odeStatus
+    integer         (kind_int8                   )                                      :: systemClockCount
+    type            (varying_string              )                                      :: message                 , line
+    character       (len =12                     )                                      :: label
+    type            (c_funptr                    )                                      :: Error_Analyzer          , postStep
+
+    ! Set status to success.
+    if (present(status)) status=errorStatusSuccess
     ! Initialize.
     call Tree_Node_Evolve_Initialize()
 
@@ -549,6 +556,19 @@ contains
                    propertyValuesActive  (1:propertyCountActive  )=propertyValuesActiveSaved  (1:propertyCountActive  )
                    propertyValuesInactive(1:propertyCountInactive)=propertyValuesInactiveSaved(1:propertyCountInactive)
                 end if
+                ! Check for exceeding wall time.
+                if (systemClockMaximum > 0_kind_int8) then
+                   call System_Clock(systemClockCount)
+                   if (systemClockCount > systemClockMaximum) then
+                      if (present(status)) then
+                         call Galacticus_Display_Message('maximum wall time exceeded'                          )
+                         status=errorStatusXCPU
+                         return
+                      else
+                         call Galacticus_Error_Report   ('maximum wall time exceeded'//{introspection:location})
+                      end if
+                   end if
+                end if
              end do
              if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
                 if (jacobianSolver) then
@@ -557,8 +577,12 @@ contains
                    jacobianSolver   =.false.
                    propertyValuesActive  (1:propertyCountActive  )=propertyValuesActiveSaved  (1:propertyCountActive  )
                    propertyValuesInactive(1:propertyCountInactive)=propertyValuesInactiveSaved(1:propertyCountInactive)
+                else if (present(status)) then
+                   call Galacticus_Display_Message('ODE integration failed '//{introspection:location})
+                   status=errorStatusFail
+                   return
                 else
-                   call Galacticus_Error_Report('ODE integration failed '//{introspection:location})
+                   call Galacticus_Error_Report   ('ODE integration failed '//{introspection:location})
                 end if
              end if
           end if
