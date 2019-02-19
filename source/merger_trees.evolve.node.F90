@@ -676,6 +676,7 @@ contains
     use ODE_Solver_Error_Codes
     use Galacticus_Nodes      , only : nodeComponentBasic
     use FGSL                  , only : FGSL_Success
+    use Galacticus_Error      , only : errorStatusXCPU
     implicit none
     double precision                     , intent(in   )               :: time
     double precision                     , intent(in   ), dimension(:) :: y
@@ -683,8 +684,16 @@ contains
     logical                                                            :: interrupt         , odeConverged
     procedure       (interruptTask     ), pointer                      :: functionInterrupt
     class           (nodeComponentBasic), pointer                      :: basic
+    integer         (kind_int8         )                               :: systemClockCount
 
-    
+    ! Check for exceeding wall time.
+    if (systemClockMaximum > 0_kind_int8) then
+       call System_Clock(systemClockCount)
+       if (systemClockCount > systemClockMaximum) then
+          Tree_Node_ODEs=errorStatusXCPU
+          return
+       end if
+    end if
     ! Return success by default.
     Tree_Node_ODEs=FGSL_Success
     ! Check if we can reuse the previous derivatives.
