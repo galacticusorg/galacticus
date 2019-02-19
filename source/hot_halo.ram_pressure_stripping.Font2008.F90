@@ -171,7 +171,7 @@ contains
                 self%radiusLast  =radiusVirial
                 self%uniqueIDLast=node%uniqueID()
              end if
-             font2008RadiusStripped=finder%find(rootGuess=self%radiusLast)
+             font2008RadiusStripped=finder%find(rootGuess=min(self%radiusLast,radiusVirial))
              self%radiusLast=font2008RadiusStripped
           end if
        end if
