@@ -401,16 +401,16 @@ contains
        radius        =disk%radius       ()
        abundancesFuel=disk%abundancesGas()
        call abundancesFuel%massToMassFraction(massGas)
-       if     (                                                                                                                                                        &
+       if     (                                                                                                                                                             &
             &   massGas        == self%massGasPrevious                                                                                                                      &
-            &  .and.                                                                                                                                                   &
+            &  .and.                                                                                                                                                        &
             &   radius         == self%radiusPrevious                                                                                                                       &
-            &  .and.                                                                                                                                                   &
+            &  .and.                                                                                                                                                        &
             &   abundancesFuel%metallicity         (metallicityTypeLinearByMassSolar) == self%abundancesFuelPrevious%metallicity         (metallicityTypeLinearByMassSolar) &
-            &  .and.                                                                                                                                                   &
+            &  .and.                                                                                                                                                        &
             &   abundancesFuel%hydrogenMassFraction(                                ) == self%abundancesFuelPrevious%hydrogenMassFraction(                                ) &
             & ) then
-          krumholz2009Unchanged=.true.
+          krumholz2009Unchanged      =.true.
        else
           krumholz2009Unchanged      =.false.
           self%massGasPrevious       =massGas
