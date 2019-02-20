@@ -373,8 +373,9 @@ contains
           if (iRank == mpiSelf%rank()) then
              ! Dump the failed parameter set to file.
              call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank//".errCode"//status)
-             ! Return impossible likelihood.
-             galaxyPopulationEvaluate=logImpossible
+             ! Return impossible likelihood. We use a somewhat-less-than-impossible value to avoid this being rejected as the
+             ! initial state.
+             galaxyPopulationEvaluate=1.0d-2*logImpossible
           end if
        else
           ! Forst evolution was successful - evaluate the likelihood.
