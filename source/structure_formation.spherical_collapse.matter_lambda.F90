@@ -618,7 +618,8 @@ contains
     !% Attempt to restore a table from file.
     use Galacticus_Error  , only : errorStatusSuccess, errorStatusFail
     use IO_HDF5           , only : hdf5Object        , hdf5Access
-    use File_Utilities    , only : File_Exists
+    use File_Utilities    , only : File_Exists       , lockDescriptor          , File_Lock_Initialize, File_Lock, &
+         &                         File_Unlock
     use Tables            , only : table1D           , table1DLogarithmicLinear
     use ISO_Varying_String, only : varying_string    , char    
     implicit none
@@ -628,9 +629,12 @@ contains
     integer                                               , intent(  out) :: status
     type            (hdf5Object             )                             :: file
     double precision                         , allocatable, dimension(:)  :: timeTable    , valueTable
+    type            (lockDescriptor         )                             :: fileLock
 
     status=errorStatusFail
     if (.not.File_Exists(fileName)) return
+    call File_Lock_Initialize(               fileLock)
+    call File_Lock           (char(fileName),fileLock)
     !$ call hdf5Access%set()
     call file%openFile(char(fileName))
     call file%readDataset('time',timeTable)
@@ -655,6 +659,7 @@ contains
     end if
     call file%close()
     !$ call hdf5Access%unset()
+    call File_Unlock(fileLock)
     return
   end subroutine Restore_Table
 
@@ -663,17 +668,22 @@ contains
     use IO_HDF5           , only : hdf5Object    , hdf5Access
     use Tables            , only : table1D
     use ISO_Varying_String, only : varying_string, char    
+    use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock
     implicit none
     class(table1D                ), intent(in   ) :: storeTable
     type (varying_string         ), intent(in   ) :: fileName
     type (hdf5Object             )                :: file
+    type (lockDescriptor         )                :: fileLock
 
+    call File_Lock_Initialize(               fileLock)
+    call File_Lock           (char(fileName),fileLock)
     !$ call hdf5Access%set()
     call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)
     call file%writeDataset(        storeTable%xs()                     ,'time'                                   )
     call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value'                                  )
     call file%close       (                                                                                      )
     !$ call hdf5Access%unset()
+    call File_Unlock(fileLock)
     return
   end subroutine Store_Table
 
