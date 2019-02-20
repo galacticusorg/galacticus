@@ -120,7 +120,7 @@ sub Build_Node_Event_Class {
 		  {
 		      intrinsic  => "procedure",
 		      type       => "nodeEventInterTreeMergeTimeSet",
-		      attributes => [ "pointer", "nopass" ],
+		      attributes => [ "pointer", "nopass", "public" ],
 		      variables  => [ "mergeTimeSet" ]
 		  }
 		 ]
@@ -157,7 +157,7 @@ sub Build_Node_Event_Class {
 		  {
 		      intrinsic  => "procedure",
 		      type       => "nodeEventInterTreeMergeTimeSet",
-		      attributes => [ "pointer", "nopass" ],
+		      attributes => [ "pointer", "nopass", "public" ],
 		      variables  => [ "mergeTimeSet" ]
 		  }
 		 ]
