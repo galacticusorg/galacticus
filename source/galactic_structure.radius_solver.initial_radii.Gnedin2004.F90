@@ -177,10 +177,11 @@ contains
     class           (galacticStructureRadiiInitialGnedin2004), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
     double precision                                         , intent(in   ) :: radius
-    double precision                                         , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    double precision                                         , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-2
     type            (rootFinder                             ), save          :: finder
     !$omp threadprivate(finder)
-    integer                                                                  :: i                      , j
+    integer                                                                  :: i                      , j                       , &
+         &                                                                      iMod
     double precision                                                         :: radiusUpperBound
     
     ! Reset stored solutions if the node has changed.
@@ -210,8 +211,9 @@ contains
              if (self%radiusPreviousIndexMaximum > 0) then
                 ! No exact match exists, look for approximate matches.
                 do i=1,self%radiusPreviousIndexMaximum
-                   if (abs(radius-self%radiusPrevious(i))/self%radiusPrevious(i) < toleranceRelative) then
-                      j=i
+                   iMod=modulo(self%radiusPreviousIndex-i,gnedin2004StoreCount)+1
+                   if (abs(radius-self%radiusPrevious(iMod))/self%radiusPrevious(iMod) < toleranceRelative) then
+                      j=iMod
                       exit
                    end if
                 end do
@@ -265,8 +267,8 @@ contains
           end if
        end if
        ! Store this solution.       
-       self%radiusPreviousIndex                                 =mod(self%radiusPreviousIndex         ,gnedin2004StoreCount)+1
-       self%radiusPreviousIndexMaximum                          =min(self%radiusPreviousIndexMaximum+1,gnedin2004StoreCount)
+       self%radiusPreviousIndex                                 =modulo(self%radiusPreviousIndex         ,gnedin2004StoreCount)+1
+       self%radiusPreviousIndexMaximum                          =min   (self%radiusPreviousIndexMaximum+1,gnedin2004StoreCount)
        self%radiusPrevious            (self%radiusPreviousIndex)=radius
        self%radiusInitialPrevious     (self%radiusPreviousIndex)=gnedin2004Radius
     end if
