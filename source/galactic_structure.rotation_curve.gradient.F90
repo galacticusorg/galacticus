@@ -23,7 +23,6 @@
 
 module Galactic_Structure_Rotation_Curve_Gradients
   !% Implements calculations of the rotation curve gradient
-  use Galacticus_Nodes
   use Galactic_Structure_Options
   private
   public :: Galactic_Structure_Rotation_Curve_Gradient
@@ -33,11 +32,13 @@ module Galactic_Structure_Rotation_Curve_Gradients
   logical          :: haloLoadedShared
   double precision :: radiusShared
   !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,radiusShared)
+  
 contains
 
   double precision function Galactic_Structure_Rotation_Curve_Gradient(thisNode,radius,componentType,massType,haloLoaded)
     !% Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
     use Galactic_Structure_Rotation_Curves
+    use Galacticus_Nodes                  , only : treeNode, optimizeForRotationCurveGradientSummation, reductionSummation
     !# <include directive="rotationCurveGradientTask" type="moduleUse">
     include 'galactic_structure.rotation_curve.gradient.tasks.modules.inc'
     !# </include>
@@ -88,6 +89,7 @@ contains
 
   double precision function Component_Rotation_Curve_Gradient(component)
     !% Unary function returning the gradient of the squared rotation curve in a component. Suitable for mapping over components.
+    use Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 

@@ -21,7 +21,7 @@
 
 module Node_Component_Merging_Statistics_Standard
   !% Implements the standard merging statistics component.
-  use Galacticus_Nodes
+  use Galacticus_Nodes                         , only : nodeComponentMergingStatisticsStandard
   use Dark_Matter_Halo_Mass_Accretion_Histories
   implicit none
   private
@@ -142,6 +142,7 @@ contains
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(parameters)
     !% Initializes the tree node standard merging statistics module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -156,6 +157,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard merging statistics module.
+    use Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
@@ -166,6 +168,7 @@ contains
 
   integer function Node_Component_Merging_Statistics_Standard_Hierarchy_Level(self)
     !% Return the hierarchy level of a node, computing it if necessary.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     class  (nodeComponentMergingStatisticsStandard), intent(inout) :: self
     type   (treeNode                              ), pointer       :: hostNode
@@ -186,6 +189,7 @@ contains
 
   integer function Node_Component_Merging_Statistics_Standard_HLM(self)
     !% Return the maximum hierarchy level of a node, computing it if necessary.
+    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, nodeEvent, nodeEventSubhaloPromotion, nodeComponentBasic
     implicit none
     class  (nodeComponentMergingStatisticsStandard), intent(inout) :: self
     class  (nodeComponentMergingStatistics        ), pointer       :: mergingStatisticsProgenitor
@@ -248,6 +252,7 @@ contains
   subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init(node)
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
     use Dark_Matter_Halo_Formation_Times
+    use Galacticus_Nodes                , only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
     implicit none
     type   (treeNode                      ), intent(inout), pointer :: node
     type   (treeNode                      )               , pointer :: nodeHost
@@ -281,6 +286,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Merging_Statistics_Standard_Node_Merger(node)
     !% Record any major merger of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
@@ -313,6 +319,7 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Merging_Statistics_Standard_Node_Promotion(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     class(nodeComponentMergingStatistics)               , pointer :: mergingStatisticsParent, mergingStatistics
@@ -338,10 +345,11 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
     !% Reset the maximum node hierarchy level if the node has grown sufficiently in mass.
+    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
     implicit none
-    type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentBasic            )               , pointer :: basic
-    class           (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    type (treeNode                      ), intent(inout), pointer :: node
+    class(nodeComponentBasic            )               , pointer :: basic
+    class(nodeComponentMergingStatistics)               , pointer :: mergingStatistics
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
@@ -360,6 +368,7 @@ contains
   subroutine Node_Component_Merging_Statistics_Standard_Satellite_Merging(node)
     !% Record properties of a merging event for {\normalfont \ttfamily node}.
     use Satellite_Merging_Remnant_Properties
+    use Galacticus_Nodes                    , only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node
     type (treeNode                      )               , pointer :: nodeHost

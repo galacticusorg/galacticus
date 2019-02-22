@@ -40,7 +40,7 @@ contains
   double precision function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for the cold mode hot halo component.
     use Galactic_Structure_Options
-    use Galacticus_Nodes
+    use Galacticus_Nodes          , only : treeNode, nodeComponentHotHalo, defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout)           :: thisNode
     integer                               , intent(in   )           :: componentType, massType   , &
@@ -84,7 +84,7 @@ contains
     !% Computes the rotation curve at a given radius for the hot halo density profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType, massType
@@ -107,7 +107,7 @@ contains
   !# </rotationCurveGradientTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
@@ -137,7 +137,7 @@ contains
   !# </densityTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
-    use Galacticus_Nodes
+    use Galacticus_Nodes          , only : treeNode, nodeComponentHotHalo, defaultHotHaloComponent
     use Galactic_Structure_Options
     use Coordinates
     implicit none

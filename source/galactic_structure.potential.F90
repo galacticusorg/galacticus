@@ -24,7 +24,6 @@
 module Galactic_Structure_Potentials
   !% Implements calculations of the gravitational potential.
   use Kind_Numbers
-  use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
   private
@@ -46,6 +45,7 @@ contains
 
   double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,haloLoaded,status)
     !% Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
+    use Galacticus_Nodes       , only : treeNode, optimizeForPotentialSummation, reductionSummation
     use Dark_Matter_Halo_Scales
     !# <include directive="potentialTask" type="moduleUse">
     include 'galactic_structure.potential.tasks.modules.inc'
@@ -117,6 +117,7 @@ contains
 
   double precision function Component_Potential(component)
     !% Unary function returning the potential in a component. Suitable for mapping over components.
+    use Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -129,6 +130,7 @@ contains
   !# </calculationResetTask>
   subroutine Galactic_Structure_Potential_Standard_Reset(node)
     !% Reset calculations for galactic structure potentials.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(in   ) :: node
 

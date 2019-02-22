@@ -23,7 +23,6 @@
 module Node_Component_Basic_Standard_Extended
   !% Extends the standard implementation of basic component to track the Bertschinger mass.
   use Virial_Density_Contrast
-  use Galacticus_Nodes
   use Cosmology_Functions
   use Cosmology_Parameters
   implicit none
@@ -97,6 +96,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Basic_Extended_Bindings(parameters)
     !% Initializes the ``extended'' implementation of the basic component.
+    use Galacticus_Nodes                     , only : nodeComponentBasicStandardExtended
     use ISO_Varying_String
     use Input_Parameters
     use Spherical_Collapse_Matter_Dark_Energy
@@ -148,6 +148,7 @@ contains
   subroutine Node_Component_Basic_Extended_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
     
@@ -163,6 +164,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Basic_Extended_Thread_Uninitialize()
     !% Uninitializes the tree node random spin module.
+    use Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     
     if (defaultBasicComponent%standardExtendedIsActive()) then
@@ -175,6 +177,7 @@ contains
   subroutine Node_Component_Basic_Extended_Bertschinger_Solver(self)
     !% Compute the Bertschinger mass and turnaround radii
     use Dark_Matter_Profile_Mass_Definitions
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasicStandardExtended
     implicit none
     class           (nodeComponentBasicStandardExtended), intent(inout) :: self
     type            (treeNode                          ), pointer       :: selfNode
@@ -222,6 +225,7 @@ contains
   
   double precision function Node_Component_Basic_Extended_Mass_Bertschinger(self)
     !% Return the Bertschinger mass.
+    use Galacticus_Nodes, only : nodeComponentBasicStandardExtended
     implicit none
     class(nodeComponentBasicStandardExtended), intent(inout) :: self
     
@@ -232,6 +236,7 @@ contains
 
   double precision function Node_Component_Basic_Extended_Radius_Turnaround(self)
     !% Return the turnaround radius.
+    use Galacticus_Nodes, only : nodeComponentBasicStandardExtended
     implicit none
     class(nodeComponentBasicStandardExtended), intent(inout) :: self
     
@@ -245,6 +250,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Basic_Standard_Extended_Initialize(node)
     !% Set the mass accretion rate for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: nodeChild          , nodeParent
@@ -316,6 +322,7 @@ contains
 
   double precision function Node_Component_Basic_Standard_Extended_Unresolved_Mass(node)
     !% Return the unresolved mass for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: child
@@ -340,6 +347,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Basic_Standard_Extended_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended, propertyTypeInactive
     implicit none
     type     (treeNode          ), intent(inout), pointer :: node
     logical                      , intent(in   )          :: odeConverged
@@ -369,6 +377,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Basic_Standard_Extended_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the basic component.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: scaleLengthRelative=1.0d-6
@@ -393,6 +402,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Basic_Standard_Extended_Node_Merger(node)
     !% Switch off accretion of new mass onto this node once it becomes a satellite.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     class(nodeComponentBasic)               , pointer :: basic
@@ -415,6 +425,7 @@ contains
    subroutine Node_Component_Basic_Standard_Extended_Promote(node)
      !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
      !% update the mass of {\normalfont \ttfamily node} to be that of its parent.
+     use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardExtended
      use Galacticus_Error
      implicit none
      type (treeNode          ), intent(inout), pointer :: node

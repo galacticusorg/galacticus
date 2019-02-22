@@ -23,7 +23,8 @@ program Test_Nodes
   !% Tests the \glspl{node} implementation.
   use Unit_Tests
   use Memory_Management
-  use Galacticus_Nodes
+  use Galacticus_Nodes  , only : treeNode       , nodeComponent               , nodeComponentBasic        , nodeComponentPosition, &
+       &                         propertyTypeAll, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
   use Galacticus_Error
   use ISO_Varying_String
   use Input_Parameters

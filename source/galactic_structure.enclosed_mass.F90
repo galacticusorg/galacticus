@@ -21,8 +21,8 @@
 
 module Galactic_Structure_Enclosed_Masses
   !% Implements calculations of the mass enclosed within a specified radius.
-  use Galacticus_Nodes
   use Galactic_Structure_Options
+  use Galacticus_Nodes          , only : treeNode
   implicit none
   private
   public :: Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass, Galactic_Structure_Radius_Enclosing_Density
@@ -34,11 +34,13 @@ module Galactic_Structure_Enclosed_Masses
   logical                             :: haloLoadedShared
   type            (treeNode), pointer :: activeNode
   !$omp threadprivate(massRoot,densityRoot,radiusShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared,activeNode)
+  
 contains
 
   double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
+    use Galacticus_Nodes, only : optimizeForEnclosedMassSummation, reductionSummation
     !# <include directive="enclosedMassTask" type="moduleUse">
     include 'galactic_structure.enclosed_mass.tasks.modules.inc'
     !# </include>
@@ -143,6 +145,7 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
+    use Galacticus_Nodes       , only : nodeComponentBasic
     implicit none
     type            (treeNode                ), intent(inout), target   :: thisNode
     integer                                   , intent(in   ), optional :: componentType       , massType       , weightBy, weightIndex
@@ -251,6 +254,7 @@ contains
 
   double precision function Component_Enclosed_Mass(component)
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components.
+    use Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 

@@ -23,7 +23,6 @@
 module Node_Component_Hot_Halo_Cold_Mode
   !% Implements an extension to the standard hot halo node component which supports a cold mode
   !% reservoir.
-  use Galacticus_Nodes
   use Cosmology_Parameters
   use Radiation_Fields
   use ISO_Varying_String
@@ -101,6 +100,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize(parameters)
     !% Initializes the tree node hot halo methods module.
+    use Galacticus_Nodes    , only : nodeComponentHotHaloColdMode, defaultHotHaloComponent
     use Abundances_Structure
     use Input_Parameters
     implicit none
@@ -137,6 +137,7 @@ contains
     use Input_Parameters
     use Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
     use Hot_Halo_Cold_Mode_Density_Core_Radii
+    use Galacticus_Nodes                                 , only : defaultHotHaloComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -157,6 +158,7 @@ contains
   subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize()
     !% Uninitializes the tree node hot halo cold mode methods module.
     use Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
+    use Galacticus_Nodes                                 , only : defaultHotHaloComponent
     implicit none
 
     if (defaultHotHaloComponent%coldModeIsActive()) then
@@ -175,6 +177,7 @@ contains
     use Galacticus_Error
     use Abundances_Structure
     use Node_Component_Hot_Halo_Standard_Data
+    use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloColdMode, interruptTask
     implicit none
     type            (treeNode                    ), intent(inout)          , pointer :: node
     double precision                              , intent(in   )                    :: massRate
@@ -239,6 +242,8 @@ contains
     use Node_Component_Hot_Halo_Standard_Data
     use Galactic_Structure_Options
     use Galactic_Structure_Densities
+    use Galacticus_Nodes                     , only : treeNode               , nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentBasic, &
+         &                                            defaultHotHaloComponent, propertyTypeInactive, interruptTask
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
     logical                                   , intent(in   )          :: odeConverged
@@ -328,6 +333,7 @@ contains
     use Galactic_Structure_Densities
     use Galactic_Structure_Options
     use Node_Component_Hot_Halo_Standard_Data
+    use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHaloStandard, nodeComponentHotHaloColdMode, nodeComponentBasic, interruptTask
     implicit none
     class           (nodeComponentHotHaloStandard), intent(inout)          :: self
     logical                                       , intent(inout)          :: interrupt
@@ -400,6 +406,7 @@ contains
   subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use Abundances_Structure
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentBasic
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
@@ -438,6 +445,8 @@ contains
     !% accreted if the merger tree had infinite resolution).
     use Dark_Matter_Halo_Spins
     use Abundances_Structure
+    use Galacticus_Nodes      , only : treeNode                 , nodeComponentHotHalo   , nodeComponentBasic, nodeEvent, &
+         &                             nodeEventSubhaloPromotion, defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
@@ -490,6 +499,7 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Node_Component_Hot_Halo_Standard_Data
+    use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentBasic, nodeComponentSpin
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     type            (treeNode            )               , pointer :: nodeParent
@@ -558,7 +568,7 @@ contains
             &               /basicParent           %          mass()
        !! Reaccrete the metals.
        call hotHaloParent%abundancesColdSet(hotHaloParent%abundancesCold()+massMetalsReaccreted)
-      ! Determine if starvation is to be applied and if .
+       ! Determine if starvation is to be applied and if .
        if (starveSatellites) then
           ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
           ! this hot halo (and will be moved to the parent at the end of the evolution timestep).
@@ -621,10 +631,11 @@ contains
     !% Remove any cold mode gas associated with {\normalfont \ttfamily node} before it merges with its host halo.
     use Abundances_Structure
     use Node_Component_Hot_Halo_Standard_Data
+    use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloColdMode, nodeComponentSpin
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: nodeHost
-    class(nodeComponentHotHalo)               , pointer :: hotHaloHost         , hotHalo
+    class(nodeComponentHotHalo)               , pointer :: hotHaloHost, hotHalo
     class(nodeComponentSpin   )               , pointer :: spinHost
 
     ! Return immediately if satellites are starved, as in that case there is no hot halo to transfer.
@@ -675,6 +686,7 @@ contains
     !% update the cold mode mass of {\normalfont \ttfamily node} to account for any cold mode gas already in the
     !% parent.
     use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes       , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloColdMode
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: nodeParent
@@ -718,9 +730,10 @@ contains
     use Dark_Matter_Halo_Scales
     use Numerical_Constants_Astronomical
     use Node_Component_Hot_Halo_Standard_Data
+    use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloColdMode
     implicit none
-    type            (treeNode            ), intent(inout), pointer :: node
-    class           (nodeComponentHotHalo)               , pointer :: hotHalo
+    type (treeNode            ), intent(inout), pointer :: node
+    class(nodeComponentHotHalo)               , pointer :: hotHalo
 
     ! Return immediately if return of outflowed gas on formation events is not requested.
     if (.not.hotHaloOutflowReturnOnFormation) return

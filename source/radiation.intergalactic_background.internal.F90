@@ -383,7 +383,6 @@ contains
     !% Update the radiation background for a given universe.
     use, intrinsic :: ISO_C_Binding
     use            :: Kind_Numbers
-    use            :: Galacticus_Nodes
     use            :: Galacticus_Display
     use            :: Galactic_Structure_Options
     use            :: Galacticus_Error
@@ -401,9 +400,10 @@ contains
     use            :: ISO_Varying_String
     use            :: Galacticus_HDF5
     use            :: IO_HDF5
-    use            :: FGSL                       , only : fgsl_function    , fgsl_integration_workspace, FGSL_Success
-    use            :: Galacticus_Nodes           , only : universeEvent    , universe                  , mergerTreeList, nodeComponentBasic, &
-         &                                                nodeComponentDisk, nodeComponentSpheroid
+    use            :: FGSL                       , only : fgsl_function           , fgsl_integration_workspace, FGSL_Success
+    use            :: Galacticus_Nodes           , only : universeEvent           , universe                  , mergerTreeList, nodeComponentBasic  , &
+         &                                                nodeComponentDisk       , nodeComponentSpheroid     , treeNode      , defaultDiskComponent, &
+         &                                                defaultSpheroidComponent
     use            :: Abundances_Structure       , only : abundances
     implicit none
     class           (universeEvent                       ), intent(in   ) :: event

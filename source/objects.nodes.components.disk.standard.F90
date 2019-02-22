@@ -21,7 +21,6 @@
 
 module Node_Component_Disk_Standard
   !% Implements the standard disk node component.
-  use Galacticus_Nodes
   use ISO_Varying_String
   use Dark_Matter_Halo_Scales
   use Stellar_Population_Properties
@@ -194,6 +193,7 @@ contains
     use Abundances_Structure
     use Galacticus_Error
     use Node_Component_Disk_Standard_Data
+    use Galacticus_Nodes                 , only : defaultDiskComponent, nodeComponentDiskStandard
     implicit none
     type(inputParameters          ), intent(inout) :: parameters
     type(nodeComponentDiskStandard)                :: diskStandardComponent
@@ -277,6 +277,7 @@ contains
     use Input_Parameters
     use Galacticus_Error
     use Node_Component_Disk_Standard_Data
+    use Galacticus_Nodes                 , only : defaultDiskComponent
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     double precision                                 :: diskMassDistributionDensityMoment1, diskMassDistributionDensityMoment2
@@ -346,6 +347,7 @@ contains
   subroutine Node_Component_Disk_Standard_Thread_Uninitialize()
     !% Uninitializes the standard disk component module for each thread.
     use Node_Component_Disk_Standard_Data
+    use Galacticus_Nodes                 , only : defaultDiskComponent
     implicit none
     
     if (defaultDiskComponent%standardIsActive()) then
@@ -368,6 +370,7 @@ contains
   subroutine Node_Component_Disk_Standard_Calculation_Reset(node)
     !% Reset standard disk structure calculations.
     use Node_Component_Disk_Standard_Data
+    use Galacticus_Nodes                 , only : treeNode
     implicit none
     type(treeNode), intent(inout) :: node
 
@@ -380,6 +383,7 @@ contains
   !# </preEvolveTask>
   subroutine Node_Component_Disk_Standard_Pre_Evolve(node)
     !% Ensure the disk has been initialized.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk, nodeComponentDiskStandard
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentDisk)               , pointer :: disk
@@ -402,6 +406,7 @@ contains
     !% Trim histories attached to the disk.
     use Histories
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard, nodeComponentBasic
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     class(nodeComponentDisk )               , pointer :: disk
@@ -428,6 +433,7 @@ contains
   subroutine Node_Component_Disk_Standard_Post_Step(node,status)
     !% Trim histories attached to the disk.
     use FGSL                           , only : FGSL_Failure
+    use Galacticus_Nodes               , only : treeNode    , nodeComponentDisk, nodeComponentDiskStandard, nodeComponentSpin
     use Galacticus_Display
     use String_Handling
     use ISO_Varying_String
@@ -597,6 +603,7 @@ contains
     !% Create properties in an standard disk component.
     use Histories
     use Galacticus_Output_Star_Formation_Histories
+    use Galacticus_Nodes                          , only : treeNode, nodeComponentDisk, nodeComponentSpheroid, nodeComponentBasic
     implicit none
     type   (treeNode             ), intent(inout), pointer :: node
     class  (nodeComponentDisk    )               , pointer :: disk
@@ -653,6 +660,9 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes                          , only : treeNode            , nodeComponentDisk   , nodeComponentDiskStandard, nodeComponentSpheroid, &
+         &                                                 nodeComponentHotHalo, interruptTask       , defaultDiskComponent     , propertyTypeActive   , &
+         &                                                 propertyTypeAll     , propertyTypeInactive
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(in   )          :: odeConverged
@@ -897,6 +907,7 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Abundances_Structure
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes                          , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard, nodeComponentSpheroid
     implicit none
     type            (treeNode                        ), intent(inout), pointer :: node
     class           (nodeComponentDisk               )               , pointer :: disk
@@ -970,6 +981,7 @@ contains
   subroutine Node_Component_Disk_Standard_Inactive(node)
     !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentDisk)               , pointer :: disk
@@ -996,6 +1008,7 @@ contains
     use Stellar_Luminosities_Structure
     use Satellite_Merging_Mass_Movements
     use Satellite_Merging_Remnant_Properties
+    use Galacticus_Nodes                    , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard, nodeComponentSpheroid
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentDisk    )               , pointer :: diskHost               , disk
@@ -1132,6 +1145,7 @@ contains
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Disk_Standard_Radius_Solver_Plausibility(node)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk, nodeComponentDiskStandard, defaultDiskComponent
     implicit none
     type            (treeNode         ), intent(inout) :: node
     class           (nodeComponentDisk), pointer       :: disk
@@ -1191,6 +1205,7 @@ contains
 
   double precision function Node_Component_Disk_Standard_Radius_Solve(node)
     !% Return the radius of the standard disk used in structure solvers.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type (treeNode         ), intent(inout) :: node
     class(nodeComponentDisk), pointer       :: disk
@@ -1202,6 +1217,7 @@ contains
 
   subroutine Node_Component_Disk_Standard_Radius_Solve_Set(node,radius)
     !% Set the radius of the standard disk used in structure solvers.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: radius
@@ -1214,6 +1230,7 @@ contains
 
   double precision function Node_Component_Disk_Standard_Velocity(node)
     !% Return the circular velocity of the standard disk.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type (treeNode         ), intent(inout) :: node
     class(nodeComponentDisk), pointer       :: disk
@@ -1225,6 +1242,7 @@ contains
 
   subroutine Node_Component_Disk_Standard_Velocity_Set(node,velocity)
     !% Set the circular velocity of the standard disk.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: velocity
@@ -1241,6 +1259,7 @@ contains
   subroutine Node_Component_Disk_Standard_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
+    use Galacticus_Nodes                 , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard
     use Tables
     use Node_Component_Disk_Standard_Data
     use Numerical_Constants_Physical
@@ -1307,6 +1326,7 @@ contains
 
   double precision function Node_Component_Disk_Standard_Star_Formation_Rate(self)
     !% Return the star formation rate of the standard disk.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDiskStandard
     implicit none
     class           (nodeComponentDiskStandard), intent(inout) :: self
     type            (treeNode                 ), pointer       :: node
@@ -1341,9 +1361,10 @@ contains
   subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use, intrinsic :: ISO_C_Binding
-    use Kind_Numbers
-    use Histories
-    use Galacticus_Output_Star_Formation_Histories
+    use            :: Galacticus_Nodes                          , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard
+    use            :: Kind_Numbers
+    use            :: Histories
+    use            :: Galacticus_Output_Star_Formation_Histories
     implicit none
     type   (treeNode         ), intent(inout), pointer :: node
     integer(c_size_t         ), intent(in   )          :: iOutput

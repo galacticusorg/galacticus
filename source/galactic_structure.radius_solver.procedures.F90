@@ -21,7 +21,7 @@
 
 module Galactic_Structure_Radius_Solver_Procedures
   !% Holds procedure pointers used by the galactic structure radii solver subsystem.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   public
 

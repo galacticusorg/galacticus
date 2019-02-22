@@ -23,7 +23,6 @@
 module Node_Component_Hot_Halo_Outflow_Tracking
   !% Implements an extension of the standard hot halo node component which tracks the metals arriving from               
   !% outflows.
-  use Galacticus_Nodes
   use Dark_Matter_Halo_Scales
   implicit none
   private
@@ -72,6 +71,7 @@ contains
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(parameters)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -86,6 +86,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
     if (defaultHotHaloComponent%outflowTrackingIsActive()) then
@@ -101,6 +102,7 @@ contains
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Node_Component_Hot_Halo_Standard_Data
+    use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, propertyTypeInactive, defaultHotHaloComponent, interruptTask
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -139,6 +141,7 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes             , only : treeNode, nodeComponentHotHalo, nodeComponentBasic, nodeComponentHotHaloOutflowTracking
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo

@@ -21,7 +21,6 @@
 
 module Node_Component_Hot_Halo_Very_Simple
   !% Implements a very simple hot halo node component.
-  use Galacticus_Nodes
   use Dark_Matter_Halo_Scales
   use Cooling_Rates
   use Accretion_Halos
@@ -107,6 +106,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Initialize()
     !% Initializes the very simple hot halo component module.
+    use Galacticus_Nodes, only : nodeComponentHotHaloVerySimple
     implicit none
     type(nodeComponentHotHaloVerySimple) :: hotHalo
     
@@ -124,6 +124,7 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(parameters)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -140,6 +141,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize()
     !% Uninitializes the tree node very simple disk profile module.
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
     if (defaultHotHaloComponent%verySimpleIsActive()) then
@@ -155,6 +157,7 @@ contains
   !# </calculationResetTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Reset(node)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(inout) :: node
     !GCC$ attributes unused :: node
@@ -165,6 +168,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Push_To_Cooling_Pipes(node,massRate,interrupt,interruptProcedure)
     !% Push mass through the cooling pipes at the given rate.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimple
     use Abundances_Structure
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
@@ -198,6 +202,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                      , intent(in   )                    :: rate
@@ -212,6 +217,7 @@ contains
   
   subroutine Node_Component_Hot_Halo_Very_Simple_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas abundances from a galaxy and deposit them into very simple hot halo.
+    use Galacticus_Nodes    , only : nodeComponentHotHalo
     use Abundances_Structure
     implicit none
     class    (nodeComponentHotHalo), intent(inout)                    :: self
@@ -227,6 +233,7 @@ contains
   
   double precision function Node_Component_Hot_Halo_Very_Simple_Outer_Radius(self)
     !% Return the outer radius of the hot halo. Assumes a simple model in which this always equals the virial radius.
+    use Galacticus_Nodes, only : nodeComponentHotHaloVerySimple
     implicit none
     class(nodeComponentHotHaloVerySimple), intent(inout) :: self
 
@@ -239,6 +246,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
+    use Galacticus_Nodes, only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimple, propertyTypeInactive
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     logical                               , intent(in   )          :: odeConverged
@@ -278,6 +286,7 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
     use Abundances_Structure
+    use Galacticus_Nodes    , only : nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloVerySimple, treeNode
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     double precision                      , parameter              :: scaleMassRelative=1.0d-2
@@ -310,6 +319,8 @@ contains
     !% Initialize the contents of the very simple hot halo component.
     use Cosmology_Parameters
     use Abundances_Structure
+    use Galacticus_Nodes    , only : treeNode               , nodeComponentHotHalo, nodeEvent, nodeEventSubhaloPromotion, &
+         &                           defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHaloCurrent, hotHalo
@@ -361,6 +372,7 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Satellite_Merging(node)
     !% Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
     use Abundances_Structure
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimple
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: nodeHost
@@ -373,7 +385,7 @@ contains
     class is (nodeComponentHotHaloVerySimple)
 
        ! Find the node to merge with.
-       nodeHost             => node%mergesWith(                 )
+       nodeHost    => node%mergesWith(                 )
        hotHaloHost => nodeHost%hotHalo   (autoCreate=.true.)
 
        ! Move the hot halo to the host.
@@ -401,6 +413,7 @@ contains
   subroutine Node_Component_Hot_Halo_Very_Simple_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
     !% node} to account for any hot halo already in the parent.
+    use Galacticus_Nodes, only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimple
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: nodeParent
@@ -440,6 +453,7 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Post_Evolve(node)
     !% Do processing of the node required after evolution.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimple
     use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
@@ -472,6 +486,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_Very_Simple_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimple, nodeComponentBasic
     use Abundances_Structure
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
@@ -544,6 +559,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Cooling_Rate(node)
     !% Get and store the cooling rate for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentHotHalo
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     class(nodeComponentHotHalo)               , pointer :: hotHalo
@@ -565,6 +581,7 @@ contains
 
   subroutine Node_Component_Hot_Halo_Very_Simple_Create(node)
     !% Creates a very simple hot halo component for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentHotHalo
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     class(nodeComponentHotHalo)               , pointer :: hotHalo

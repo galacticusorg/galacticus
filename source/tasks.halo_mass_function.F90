@@ -70,7 +70,7 @@ contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeClassHierarchyInitialize
     use Node_Components
     use Input_Parameters
     implicit none
@@ -263,7 +263,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Error
     use               Galacticus_Display    
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                , only : mergerTree   , nodeComponentBasic        , nodeComponentDarkMatterProfile
     use               Galacticus_Calculations_Resets
     use               Galacticus_HDF5
     use               Numerical_Constants_Astronomical

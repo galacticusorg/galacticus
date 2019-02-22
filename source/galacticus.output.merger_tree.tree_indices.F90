@@ -21,7 +21,7 @@
 
 module Galacticus_Output_Trees_Tree_Indices
   !% Handles outputting of tree index data to the \glc\ output file.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
   public :: Galacticus_Output_Tree_Tree_Indices, Galacticus_Output_Tree_Tree_Indices_Property_Count, Galacticus_Output_Tree_Tree_Indices_Names

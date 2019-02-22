@@ -52,7 +52,7 @@ contains
     !% Initializes the module by determining whether or not satellite host data should be output.
     use Input_Parameters
     use Galacticus_Error
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, defaultSatelliteComponent, defaultPositionComponent
     use ISO_Varying_String
     implicit none
     type(varying_string) :: statusOrphanDiscriminatorText
@@ -132,7 +132,7 @@ contains
   subroutine Galacticus_Output_Tree_Satellite_Status_Names(node,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of satellite orbital extremum properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout) :: node
@@ -162,7 +162,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Satellite_Status_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of satellite host properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
@@ -184,7 +184,7 @@ contains
   subroutine Galacticus_Output_Tree_Satellite_Status(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store satellite host halo properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSatellite, nodeComponentPosition
     use Kind_Numbers
     use Histories
     use Multi_Counters

@@ -22,7 +22,6 @@
 module Node_Component_Disk_Very_Simple_Size
   !% Implements a very simple disk component.
   use ISO_Varying_String
-  use Galacticus_Nodes
   use Dark_Matter_Profiles
   implicit none
   private
@@ -79,6 +78,7 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Size_Initialize()
     !% Initializes the tree node exponential disk methods module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultDiskComponent
     implicit none
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
@@ -100,11 +100,12 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters)
     !% Initializes the tree node standard merging statistics module.
+    use Galacticus_Nodes, only : defaultDiskComponent
     use Input_Parameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
-    if (defaultMergingStatisticsComponent%standardIsActive()) then
+    if (defaultDiskComponent%verySimpleSizeIsActive()) then
        !# <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters"/>
     end if
     return
@@ -115,9 +116,10 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize()
     !% Uninitializes the tree node standard merging statistics module.
+    use Galacticus_Nodes, only : defaultDiskComponent
     implicit none
 
-    if (defaultMergingStatisticsComponent%standardIsActive()) then
+    if (defaultDiskComponent%verySimpleSizeIsActive()) then
        !# <objectDestructor name="darkMatterProfile_"/>
     end if
     return
@@ -128,6 +130,7 @@ contains
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(node)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass.
+    use Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDiskVerySimpleSize, treeNode, nodeComponentDisk
     implicit none
     type (treeNode         ), intent(inout) :: node
     class(nodeComponentDisk), pointer       :: disk
@@ -150,6 +153,7 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !% Interface for the size solver algorithm.
+    use Galacticus_Nodes      , only : treeNode, nodeComponentDisk, nodeComponentBasic, nodeComponentDiskVerySimpleSize
     use Dark_Matter_Halo_Spins
     implicit none
     type            (treeNode                                       ), intent(inout)          :: node
@@ -182,6 +186,7 @@ contains
 
   double precision function Node_Component_Disk_Very_Simple_Size_Radius(node)
     !% Return the radius of the disk used in structure solvers.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type (treeNode         ), intent(inout) :: node
     class(nodeComponentDisk), pointer       :: disk
@@ -193,6 +198,7 @@ contains
 
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set(node,radius)
     !% Set the radius of the disk used in structure solvers.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: radius
@@ -205,6 +211,7 @@ contains
 
   double precision function Node_Component_Disk_Very_Simple_Size_Velocity(node)
     !% Return the circular velocity of the disk.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type (treeNode         ), intent(inout) :: node
     class(nodeComponentDisk), pointer       :: disk
@@ -216,6 +223,7 @@ contains
 
   subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set(node,velocity)
     !% Set the circular velocity of the disk.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: velocity

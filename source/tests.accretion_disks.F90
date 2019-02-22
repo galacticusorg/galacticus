@@ -21,7 +21,7 @@
 
 program Test_Accretion_Disks
   !% Tests of accretion disk functions.
-  use Galacticus_Nodes
+  use Galacticus_Nodes            , only : nodeComponentBlackHoleStandard
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Physical
   use Accretion_Disks

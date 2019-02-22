@@ -22,7 +22,7 @@
 module Galacticus_Output_Trees_Velocity_Dispersion
   !% Handles outputting of velocity dispersion data to the \glc\ output file.
   use ISO_Varying_String
-    use Galacticus_Nodes
+  use Galacticus_Nodes  , only : treeNode
   implicit none
   private
   public :: Galacticus_Output_Tree_Velocity_Dispersion, Galacticus_Output_Tree_Velocity_Dispersion_Property_Count,&
@@ -69,6 +69,7 @@ module Galacticus_Output_Trees_Velocity_Dispersion
        &                                                                     weightBy                             , weightIndex
   double precision                                                        :: radiusImpact                         , radiusOuter
   !$omp threadprivate(activeNode,radiusOuter,haloLoaded,massType,componentType,weightBy,weightIndex,radiusImpact)
+  
 contains
 
   subroutine Galacticus_Output_Tree_Velocity_Dispersion_Initialize
@@ -78,6 +79,7 @@ contains
     use String_Handling
     use Galactic_Structure_Options
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type     (varying_string), dimension(6) :: radiusDefinition
     type     (varying_string), dimension(3) :: fractionDefinition
@@ -345,11 +347,12 @@ contains
     use Kind_Numbers
     use Galactic_Structure_Velocity_Dispersions
     use Dark_Matter_Halo_Scales
-    use FGSL                                   , only : fgsl_function, fgsl_integration_workspace
+    use FGSL                                   , only : fgsl_function    , fgsl_integration_workspace
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     use Multi_Counters
+    use Galacticus_Nodes                       , only : nodeComponentDisk, nodeComponentSpheroid     , nodeComponentDarkMatterProfile
     implicit none
     double precision                                , intent(in   )         :: time
     type            (treeNode                      ), intent(inout), target :: thisNode

@@ -21,7 +21,6 @@
 
 module Node_Component_Black_Hole_Noncentral
   !% Implement black hole tree node methods.
-  use Galacticus_Nodes
   use Dark_Matter_Halo_Scales
   use Black_Hole_Binary_Recoil_Velocities
   use Black_Hole_Binary_Mergers
@@ -98,6 +97,7 @@ contains
   subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -115,6 +115,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Black_Hole_Noncentral_Thread_Uninitialize()
     !% Uninitializes the tree node random spin module.
+    use Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
 
     if (defaultBlackHoleComponent%noncentralIsActive()) then
@@ -132,6 +133,7 @@ contains
   subroutine Node_Component_Black_Hole_Noncentral_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole node mass rate of change.
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : treeNode, nodeComponentBlackHole, defaultBlackHoleComponent, propertyTypeInactive, interruptTask
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     logical                                 , intent(inout)          :: interrupt
@@ -255,6 +257,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Black_Hole_Noncentral_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole, defaultBlackHoleComponent, nodeComponentSpheroid
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     double precision                        , parameter              :: scaleSizeRelative=1.0d-4
@@ -288,6 +291,7 @@ contains
 
   subroutine Node_Component_Black_Hole_Noncentral_Merge_Black_Holes(node)
     !% Merge two black holes.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
@@ -338,6 +342,7 @@ contains
   subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction(node)
     !% Handles triple black holes interactions, using conditions similar to those of \cite{volonteri_assembly_2003}.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBasic
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     class           (nodeComponentBasic    )               , pointer :: basic
@@ -441,12 +446,13 @@ contains
     !% Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     use Galactic_Structure_Potentials
     use Galactic_Structure_Options
+    use Galacticus_Nodes             , only : treeNode
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    double precision                          , intent(in   )          :: recoilVelocity        , radius
-    logical                                   , intent(in   )          :: ignoreCentralBlackHole
-    double precision                                                   :: potentialCentral      , potentialCentralSelf, &
-         &                                                                potentialHalo         , potentialHaloSelf
+    type            (treeNode), intent(inout), pointer :: node
+    double precision          , intent(in   )          :: recoilVelocity        , radius
+    logical                   , intent(in   )          :: ignoreCentralBlackHole
+    double precision                                   :: potentialCentral      , potentialCentralSelf, &
+         &                                                potentialHalo         , potentialHaloSelf
 
     ! Compute relevant potentials.
     potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )

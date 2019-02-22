@@ -164,7 +164,7 @@ contains
   subroutine Star_Formation_History_Create_Metallicity_Split(node,historyStarFormation,timeBegin)
     !% Create the history required for storing star formation history.
     use Histories
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     use Output_Times
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
@@ -331,10 +331,10 @@ contains
   subroutine Star_Formation_History_Record_Metallicity_Split(node,historyStarFormation,fuelAbundances,starFormationRate)
     !% Record the star formation history for {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
-    use Histories
-    use Galacticus_Nodes
-    use Abundances_Structure
-    use Arrays_Search
+    use            :: Histories
+    use            :: Galacticus_Nodes    , only : treeNode, nodeComponentBasic
+    use            :: Abundances_Structure
+    use            :: Arrays_Search
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (history           ), intent(inout)          :: historyStarFormation
@@ -372,13 +372,13 @@ contains
   subroutine Star_Formation_History_Output_Metallicity_Split(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,componentLabel)
     !% Output the star formation history for {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
-    use Histories
-    use ISO_Varying_String
-    use Galacticus_HDF5
-    use Galacticus_Nodes
-    use String_Handling
-    use Kind_Numbers
-    use Output_Times
+    use            :: Histories
+    use            :: ISO_Varying_String
+    use            :: Galacticus_HDF5
+    use            :: Galacticus_Nodes  , only : treeNode, nodeComponentBasic
+    use            :: String_Handling
+    use            :: Kind_Numbers
+    use            :: Output_Times
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     logical                             , intent(in   )          :: nodePassesFilter

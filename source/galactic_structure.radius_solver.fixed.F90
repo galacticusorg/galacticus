@@ -45,7 +45,7 @@ contains
     !% Initializes the ``fixed'' galactic radii solver module.
     use ISO_Varying_String
     use Input_Parameters
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : defaultBasicComponent
     use Galacticus_Error
     implicit none
     type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod
@@ -125,6 +125,7 @@ contains
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
+    use Galacticus_Nodes       , only : treeNode, nodeComponentSpin, nodeComponentBasic
     implicit none
     type            (treeNode                  ), intent(inout)          :: node
     double precision                            , intent(in   )          :: specificAngularMomentum

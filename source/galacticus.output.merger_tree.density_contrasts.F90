@@ -21,7 +21,7 @@
 
 module Galacticus_Output_Trees_Density_Contrasts
   !% Handles outputting of node density contrast properties (radii and masses).
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode, nodeComponentBasic
   implicit none
   private
   public :: Galacticus_Output_Tree_Density_Contrast, Galacticus_Output_Tree_Density_Contrast_Property_Count, Galacticus_Output_Tree_Density_Contrast_Names
@@ -51,6 +51,7 @@ module Galacticus_Output_Trees_Density_Contrasts
   class           (nodeComponentBasic), pointer                   :: activeBasicComponent
   double precision                                                :: meanDensityContrastTarget
   !$omp threadprivate(activeNode,activeBasicComponent,meanDensityContrastTarget)
+  
 contains
 
   subroutine Galacticus_Output_Tree_Density_Contrast_Initialize
