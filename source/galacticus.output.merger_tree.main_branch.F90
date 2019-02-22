@@ -72,7 +72,7 @@ contains
   subroutine Galacticus_Output_Tree_Main_Branch_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of main branch properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode)              , intent(inout) :: thisNode
     double precision                        , intent(in   ) :: time
@@ -100,7 +100,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Main_Branch_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of main branch properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: thisNode
     double precision          , intent(in   ) :: time
@@ -121,7 +121,7 @@ contains
   subroutine Galacticus_Output_Tree_Main_Branch(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store mainBranch properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Kind_Numbers
     use Multi_Counters
     implicit none

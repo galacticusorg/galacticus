@@ -23,8 +23,8 @@ module Galacticus_Output_Trees_Satellite_Extremum
   !% Handles outputting of satellite orbital extremum data to the \glc\ output file.
   implicit none
   private
-  public :: Galacticus_Output_Tree_Satellite_Extremum, Galacticus_Output_Tree_Satellite_Extremum_Property_Count,&
-       & Galacticus_Output_Tree_Satellite_Extremum_Names
+  public :: Galacticus_Output_Tree_Satellite_Extremum      , Galacticus_Output_Tree_Satellite_Extremum_Property_Count,&
+       &    Galacticus_Output_Tree_Satellite_Extremum_Names
 
   ! Number of orbital properties.
   integer :: satelliteExtremumPropertyCount
@@ -82,7 +82,7 @@ contains
   subroutine Galacticus_Output_Tree_Satellite_Extremum_Names(node,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of satellite orbital extremum properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                , only : treeNode
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout) :: node
@@ -127,7 +127,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Satellite_Extremum_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of satellite orbital extremum properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
@@ -149,7 +149,7 @@ contains
   subroutine Galacticus_Output_Tree_Satellite_Extremum(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store satellite orbital extremum properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentSatellite
     use Kind_Numbers
     use Kepler_Orbits
     use Satellite_Orbits

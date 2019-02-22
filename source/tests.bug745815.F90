@@ -24,7 +24,7 @@ program Tests_Bug745815
   use Input_Parameters
   use ISO_Varying_String
   use Memory_Management
-  use Galacticus_Nodes
+  use Galacticus_Nodes   , only : treeNode, treeNodeList, mergerTree, treeNode
   use Kind_Numbers
   use Merger_Tree_Walkers
   use Galacticus_Display

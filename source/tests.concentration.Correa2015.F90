@@ -28,18 +28,18 @@ program Test_Correa2015_Concentration
   use Cosmology_Functions
   use Unit_Tests
   use Galacticus_Paths
-  use Galacticus_Nodes
+  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic
   use Galacticus_Display
   implicit none
-  type            (treeNode                               ), pointer      :: node
-  class           (nodeComponentBasic                     ), pointer      :: basic
-  class           (cosmologyFunctionsClass                ), pointer      :: cosmologyFunctions_
-  class           (darkMatterProfileConcentrationClass    ), pointer      :: darkMatterProfileConcentration_
-  type            (varying_string                         )               :: parameterFile
-  type            (inputParameters                        )               :: parameters
-  double precision                                         , dimension(3) :: concentrationTarget                , mass         , &
-       &                                                                     redshift                           , concentration
-  integer                                                                 :: i
+  type            (treeNode                           ), pointer      :: node
+  class           (nodeComponentBasic                 ), pointer      :: basic
+  class           (cosmologyFunctionsClass            ), pointer      :: cosmologyFunctions_
+  class           (darkMatterProfileConcentrationClass), pointer      :: darkMatterProfileConcentration_
+  type            (varying_string                     )               :: parameterFile
+  type            (inputParameters                    )               :: parameters
+  double precision                                     , dimension(3) :: concentrationTarget            , mass         , &
+       &                                                                 redshift                       , concentration
+  integer                                                             :: i
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)

@@ -24,7 +24,7 @@
 
 module Galactic_Structure_Velocity_Dispersions
   !% Implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans equation.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
   public :: Galactic_Structure_Velocity_Dispersion

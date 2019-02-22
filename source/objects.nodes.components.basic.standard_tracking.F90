@@ -21,7 +21,6 @@
 
 module Node_Component_Basic_Standard_Tracking
   !% Extends the standard implementation of basic component to track the maximum progenitor mass.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Basic_Standard_Tree_Tracking_Initialize, Node_Component_Basic_Standard_Tracking_Promote
@@ -51,6 +50,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Basic_Standard_Tree_Tracking_Initialize(node)
     !% Set the mass accretion rate for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardTracking
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: nodeProgenitor
@@ -82,6 +82,7 @@ contains
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum mass of {\normalfont \ttfamily
     !% node} to be that of its parent.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandardTracking
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent

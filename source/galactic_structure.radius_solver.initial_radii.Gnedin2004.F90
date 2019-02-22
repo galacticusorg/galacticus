@@ -323,6 +323,8 @@ contains
     !% Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     !% algorithm of \cite{gnedin_response_2004}.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : treeNode          , nodeComponentBasic               , optimizeForRotationCurveGradientSummation, optimizeForEnclosedMassSummation, &
+         &                                   reductionSummation, optimizeForRotationCurveSummation
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve.tasks.modules.inc'
@@ -428,8 +430,8 @@ contains
   double precision function gnedin2004Solver(radiusInitial)
     !% Root function used in finding the initial radius in the dark matter halo when solving for adiabatic contraction.
     implicit none
-    double precision                        , intent(in   ) :: radiusInitial
-    double precision                                        :: massDarkMatterInitial, radiusInitialMean
+    double precision, intent(in   ) :: radiusInitial
+    double precision                :: massDarkMatterInitial, radiusInitialMean
 
     ! Find the initial mean orbital radius.
     radiusInitialMean    =gnedin2004Self                   %radiusOrbitalMean(               radiusInitial    )
@@ -450,9 +452,9 @@ contains
     !% contraction.
     use Numerical_Constants_Math
     implicit none
-    double precision                        , intent(in   ) :: radiusInitialDerivative
-    double precision                                        :: densityDarkMatterInitial, massDarkMatterInitial, &
-         &                                                     radiusInitialMean
+    double precision, intent(in   ) :: radiusInitialDerivative
+    double precision                :: densityDarkMatterInitial, massDarkMatterInitial, &
+         &                             radiusInitialMean
 
     ! Find the initial mean orbital radius.
     radiusInitialMean       =gnedin2004Self                   %radiusOrbitalMean(               gnedin2004Self%radiusInitial    )
@@ -516,6 +518,7 @@ contains
   double precision function gnedin2004MassEnclosed(component)
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components. Ignores the dark matter
     !% profile.
+    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -530,6 +533,7 @@ contains
 
   double precision function gnedin2004VelocityCircularSquared(component)
     !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
+    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -544,6 +548,7 @@ contains
 
   double precision function gnedin2004VelocityCircularSquaredGradient(component)
     !% Unary function returning the squared rotation curve gradient in a component. Suitable for mapping over components.
+    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -558,6 +563,7 @@ contains
 
   subroutine gnedin2004CalculationReset(self,node)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     class(galacticStructureRadiiInitialGnedin2004), intent(inout) :: self
     type (treeNode                               ), intent(inout) :: node

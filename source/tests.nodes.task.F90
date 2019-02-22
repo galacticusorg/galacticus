@@ -32,15 +32,15 @@ contains
 
   subroutine Test_Node_Task(thisNode)
     !% Implements simple tests of mapping functions over all components in a \gls{node}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes  , only : treeNode, nodeComponent, nodeComponentBlackHole, reductionSummation
     use Unit_Tests
-  use Galacticus_Display
+    use Galacticus_Display
     implicit none
-    type            (treeNode                    ), intent(inout) :: thisNode
-    procedure       (testVoidFunc                ), pointer       :: myFuncVoid   =>testVoidFunc
-    procedure       (testFuncDouble0             ), pointer       :: myFuncDouble0=>testFuncDouble0
-    class           (nodeComponent               ), pointer       :: thisComponent
-    double precision                                              :: mapResult
+    type            (treeNode       ), intent(inout) :: thisNode
+    procedure       (testVoidFunc   ), pointer       :: myFuncVoid    => testVoidFunc
+    procedure       (testFuncDouble0), pointer       :: myFuncDouble0 => testFuncDouble0
+    class           (nodeComponent  ), pointer       :: thisComponent
+    double precision                                 :: mapResult
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -63,9 +63,9 @@ contains
 
   subroutine testVoidFunc(component)
     !% A simple void function used in testing mapping over a function over all components.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponent
     use ISO_Varying_String
-  use Galacticus_Display
+    use Galacticus_Display
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -77,9 +77,9 @@ contains
   double precision function testFuncDouble0(component)
     !% A simple test function which returns the enclosed mass for a component. Used in testing mapping over a function over all
     !% components.
-    use Galacticus_Nodes
+    use Galacticus_Nodes          , only : nodeComponent
     use Galactic_Structure_Options
-  use Galacticus_Display
+    use Galacticus_Display
     implicit none
     class(nodeComponent), intent(inout) :: component
 

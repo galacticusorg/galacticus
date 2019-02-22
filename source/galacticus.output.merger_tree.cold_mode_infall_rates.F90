@@ -22,7 +22,7 @@
 module Cold_Mode_Infall_Rates_Output
   !% Implements output of cold mode infall rates.
   use ISO_Varying_String
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
   public :: Cooling_Cold_Mode_Infall_Output_Names, Cooling_Cold_Mode_Infall_Output_Count, Cooling_Cold_Mode_Infall_Output

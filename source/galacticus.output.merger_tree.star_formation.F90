@@ -23,7 +23,7 @@ module Galacticus_Output_Star_Formation_Histories
   !% Handles computation and output of star formation histories for galaxies.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   use Abundances_Structure
   use Histories
   use Kind_Numbers

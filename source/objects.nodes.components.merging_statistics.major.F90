@@ -22,7 +22,6 @@
 module Node_Component_Merging_Statistics_Major
   !% Implements the major merging statistics component.
   use, intrinsic :: ISO_C_Binding
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Merging_Statistics_Major_Satellite_Merging, Node_Component_Merging_Statistics_Major_Node_Promotion, &
@@ -52,6 +51,7 @@ contains
     !% Record any major merger of {\normalfont \ttfamily node}.
     use Satellite_Merging_Remnant_Properties
     use Satellite_Merging_Mass_Movements
+    use Galacticus_Nodes                    , only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
     implicit none
     type            (treeNode                      ), intent(inout), pointer      :: node
     class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
@@ -89,6 +89,7 @@ contains
   !# </nodePromotionTask>
   subroutine Node_Component_Merging_Statistics_Major_Node_Promotion(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    use Galacticus_Nodes, only : treeNode, nodeComponentMergingStatistics, defaultMergingStatisticsComponent
     implicit none
     type (treeNode                      ), intent(inout), pointer      :: node
     class(nodeComponentMergingStatistics)               , pointer      :: mergingStatisticsParent, mergingStatistics
@@ -115,10 +116,11 @@ contains
   subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Output properties for all black holes in {\normalfont \ttfamily node}.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_HDF5
-    use Kind_Numbers
-    use ISO_Varying_String
-    use String_Handling
+    use            :: Galacticus_Nodes  , only : treeNode, nodeComponentMergingStatistics, defaultMergingStatisticsComponent
+    use            :: Galacticus_HDF5
+    use            :: Kind_Numbers
+    use            :: ISO_Varying_String
+    use            :: String_Handling
     implicit none
     type            (treeNode                      ), intent(inout), pointer      :: node
     integer         (kind=kind_int8                ), intent(in   )               :: treeIndex

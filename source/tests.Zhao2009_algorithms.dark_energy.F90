@@ -31,7 +31,7 @@ program Test_Zhao2009_Dark_Energy
   use Dark_Matter_Profiles_Concentration
   use Dark_Matter_Halo_Mass_Accretion_Histories
   use Cosmology_Functions
-  use Galacticus_Nodes
+  use Galacticus_Nodes                         , only : treeNode, nodeComponentBasic
   use Unit_Tests
   use String_Handling
   use Galacticus_Paths

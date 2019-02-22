@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use Galacticus_Nodes
+  use Galacticus_Nodes               , only : universe           , mergerTree            , treeNode
   use Merger_Tree_Operators
   use Merger_Tree_Construction
   use Task_Evolve_Forests_Work_Shares
@@ -102,6 +102,7 @@ contains
     use System_Load
     use Galacticus_Error
     use Node_Components
+    use Galacticus_Nodes, only : nodeClassHierarchyInitialize
     implicit none
     type            (taskEvolveForests          )                :: self
     type            (inputParameters            ), intent(inout) :: parameters
@@ -307,6 +308,7 @@ contains
   subroutine evolveForestsPerform(self,status)
     !% Evolves the complete set of merger trees as specified.
     use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Nodes                    , only : nodeComponentBasic, universeEvent
     use               String_Handling
     use               Merger_Tree_Walkers
     use               Galacticus_Display

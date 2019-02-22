@@ -28,7 +28,7 @@ program Test_Correa2015_MAH
   use Cosmology_Functions
   use Unit_Tests
   use Galacticus_Paths
-  use Galacticus_Nodes
+  use Galacticus_Nodes                         , only : treeNode, nodeComponentBasic
   use Galacticus_Display
   implicit none
   type            (treeNode                               ), pointer      :: node

@@ -27,7 +27,7 @@ program Test_DiemerKravtsov2014_Concentration
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
   use Cosmology_Parameters
-  use Galacticus_Nodes
+  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic
   use Unit_Tests
   use System_Command
   use Galacticus_Error

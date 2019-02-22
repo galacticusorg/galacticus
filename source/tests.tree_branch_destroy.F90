@@ -20,7 +20,7 @@
 program Tests_Tree_Branch_Destroy
   use Unit_Tests
   use Memory_Management
-  use Galacticus_Nodes
+  use Galacticus_Nodes  , only : mergerTree, treeNodeList, treeNode
   use Kind_Numbers
   use Input_Parameters
   use Galacticus_Display

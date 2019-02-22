@@ -21,7 +21,6 @@
 
 module Node_Component_Spin_Random
   !% Implement random spin tree node method.
-  use Galacticus_Nodes
   use Halo_Spin_Distributions
   implicit none
   private
@@ -83,6 +82,7 @@ contains
   subroutine Node_Component_Spin_Random_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultSpinComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -97,6 +97,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Spin_Random_Thread_Uninitialize()
     !% Uninitializes the tree node random spin module.
+    use Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
     if (defaultSpinComponent%randomIsActive()) then
@@ -111,6 +112,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Random_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentBasic, defaultSpinComponent
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: nodeRelated
@@ -162,6 +164,7 @@ contains
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinRandom, nodeComponentBasic
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent

@@ -23,7 +23,7 @@
 module Galactic_Structure_Initial_Radii
   !% Implements a class for calculations of the initial radius in the dark matter halo for use when solving for galactic
   !% structure.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 

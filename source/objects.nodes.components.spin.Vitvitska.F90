@@ -24,7 +24,6 @@
 
 module Node_Component_Spin_Vitvitska
   !% Implements a node spin component using the approach of \cite{vitvitska_origin_2002}.
-  use Galacticus_Nodes
   use Kepler_Orbits
   use Vectors
   use Dark_Matter_Halo_Spins
@@ -84,11 +83,12 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Bindings(parameters)
     !% Initializes the ``Vitvitskae'' implementation of the spin component.
     use Input_Parameters
+    use Galacticus_Nodes, only : nodeComponentspinVitvitska
     implicit none
     type(inputParameters           ), intent(inout) :: parameters
     type(nodeComponentspinVitvitska)                :: spin
     !GCC$ attributes unused :: parameters
-    
+
     !# <inputParameter>
     !#   <name>spinVitvitskaMassExponent</name>
     !#   <defaultValue>1.0d0</defaultValue>
@@ -110,6 +110,7 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(parameters)
     !% Initializes the tree node Vitvitsake spin module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultSpinComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -125,6 +126,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize()
     !% Uninitializes the tree node Vitvitsake spin module.
+    use Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
@@ -141,6 +143,7 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
     use ISO_Varying_String
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin, nodeComponentSpinVitvitska, nodeComponentSatellite, defaultSpinComponent
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     type            (treeNode              )               , pointer :: nodeChild             , nodeSibling
@@ -218,6 +221,7 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Branch_Initialize(self)
     !% Ensure a branch of a merger tree is initialized with spins in the Vitvitska model.
     use Merger_Tree_Walkers
+    use Galacticus_Nodes   , only : treeNode, nodeComponentSpinVitvitska
     implicit none
     class  (nodeComponentSpinVitvitska         ), intent(inout) :: self
     type   (treeNode                           ), pointer       :: node
@@ -232,6 +236,7 @@ contains
   
   double precision function Node_Component_Spin_Vitvitska_Spin(self)
     !% Return the spin parameter.
+    use Galacticus_Nodes, only : nodeComponentSpinVitvitska
     implicit none
     class(nodeComponentSpinVitvitska), intent(inout) :: self
     
@@ -242,6 +247,7 @@ contains
 
   function Node_Component_Spin_Vitvitska_Spin_Vector(self)
     !% Return the spin parameter vector.
+    use Galacticus_Nodes, only : nodeComponentSpinVitvitska
     implicit none
     double precision                            , dimension(:) , allocatable :: Node_Component_Spin_Vitvitska_Spin_Vector
     class           (nodeComponentSpinVitvitska), intent(inout)              :: self
@@ -253,6 +259,7 @@ contains
 
   double precision function Node_Component_Spin_Vitvitska_Spin_Growth_Rate(self)
     !% Return the growth rate of the spin parameter.
+    use Galacticus_Nodes, only : nodeComponentSpinVitvitska, nodeComponentBasic
     implicit none
     class(nodeComponentSpinVitvitska), intent(inout) :: self
     class(nodeComponentBasic        ), pointer       :: basic
@@ -280,6 +287,7 @@ contains
     !% case, we simply update the spin of {\normalfont \ttfamily node} to be consistent with the
     !% merging event.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinVitvitska, nodeComponentBasic
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent
@@ -308,6 +316,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spin_Vitvitska_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the Vitvitska implementation of the spin component.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinVitvitska, defaultSpinComponent, propertyTypeInactive
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
     logical                            , intent(in   )          :: odeConverged
@@ -345,6 +354,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spin_Vitvitska_Scale_Set(node)
     !% Set scales for properties in the Vitvitska implementation of the spin component.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinVitvitska 
     implicit none
     type            (treeNode         ), intent(inout), pointer :: node
     double precision                   , parameter              :: spinScaleAbsolute=1.0d-4
@@ -368,6 +378,7 @@ contains
     use Virial_Orbits
     use Satellite_Merging_Timescales
     use Vectors
+    use Galacticus_Nodes            , only : treeNode, nodeComponentSatellite, nodeComponentBasic 
     implicit none
     double precision                        , dimension(3)                :: Orbital_Angular_Momentum
     type            (treeNode              ), pointer     , intent(inout) :: node

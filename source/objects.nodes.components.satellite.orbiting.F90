@@ -22,7 +22,6 @@
 !% Contains a module of satellite orbit tree node methods.
 module Node_Component_Satellite_Orbiting
   !% Implements the orbiting satellite component.
-  use Galacticus_Nodes
   use Kepler_Orbits
   use Tensors
   use Satellite_Dynamical_Friction
@@ -127,8 +126,9 @@ contains
   subroutine Node_Component_Satellite_Orbiting_Initialize()
     !% Initializes the orbiting satellite methods module.
     use Input_Parameters
+    use Galacticus_Nodes, only : nodeComponentSatelliteOrbiting, defaultSatelliteComponent
     implicit none
-     type(nodeComponentSatelliteOrbiting) :: satelliteComponent
+    type(nodeComponentSatelliteOrbiting) :: satelliteComponent
 
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
@@ -159,6 +159,7 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters)
     !% Initializes the tree node orbiting satellite module.
+    use Galacticus_Nodes, only : defaultSatelliteComponent
     use Input_Parameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
@@ -178,6 +179,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize()
     !% Uninitializes the tree node orbiting satellite module.
+    use Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
@@ -195,8 +197,9 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(thisNode)
     !% Initialize the orbiting satellite component.
+    use Galacticus_Nodes, only : treeNode
     implicit none
-    type (treeNode), pointer, intent(inout) :: thisNode
+    type(treeNode), pointer, intent(inout) :: thisNode
 
     if (thisNode%isSatellite()) call Node_Component_Satellite_Orbiting_Create(thisNode)
     return
@@ -215,6 +218,8 @@ contains
     use Vectors
     use Galactic_Structure_Densities
     use Galactic_Structure_Options
+    use Galacticus_Nodes                  , only : treeNode            , nodeComponentBasic, nodeComponentSatellite   , nodeComponentSatelliteOrbiting, &
+         &                                         propertyTypeInactive, interruptTask     , defaultSatelliteComponent
     implicit none
     type            (treeNode                       ), pointer     , intent(inout) :: thisNode
     logical                                                        , intent(in   ) :: odeConverged
@@ -363,6 +368,7 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                  , only : treeNode, nodeComponentSatellite, nodeComponentSatelliteOrbiting
     implicit none
     type            (treeNode              ), pointer  , intent(inout) :: thisNode
     class           (nodeComponentSatellite), pointer                  :: satelliteComponent
@@ -420,12 +426,13 @@ contains
     !% Create a satellite orbit component and assign initial position, velocity, orbit, and tidal heating quantities. (The initial
     !% bound mass is automatically set to the original halo mass by virtue of that being the class default).
     use Satellite_Merging_Timescales
+    use Galacticus_Nodes            , only : treeNode, nodeComponentSatellite, nodeComponentSatelliteOrbiting, defaultSatelliteComponent
     implicit none
-    type            (treeNode              ), pointer     , intent(inout) :: thisNode
-    type            (treeNode              ), pointer                     :: hostNode
-    class           (nodeComponentSatellite), pointer                     :: satelliteComponent
-    logical                                                               :: isNewSatellite
-    type            (keplerOrbit           )                              :: thisOrbit
+    type            (treeNode              ), pointer, intent(inout) :: thisNode
+    type            (treeNode              ), pointer                :: hostNode
+    class           (nodeComponentSatellite), pointer                :: satelliteComponent
+    logical                                                          :: isNewSatellite
+    type            (keplerOrbit           )                         :: thisOrbit
 
     ! Return immediately if this method is not active.
     if (.not.defaultSatelliteComponent%orbitingIsActive()) return
@@ -454,6 +461,7 @@ contains
 
   subroutine Node_Component_Satellite_Orbiting_Trigger_Merger(thisNode)
     !% Trigger a merger of the satellite by setting the time until merging to zero.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSatellite
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentSatellite)               , pointer :: satelliteComponent
@@ -467,6 +475,7 @@ contains
     !% Set the orbit of the satellite at the virial radius.
     use Numerical_Constants_Math
     use Vectors
+    use Galacticus_Nodes        , only : nodeComponentSatellite, nodeComponentSatelliteOrbiting
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: self
     type            (keplerOrbit           ), intent(in   ) :: thisOrbit

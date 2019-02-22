@@ -21,7 +21,6 @@
 
 module Node_Component_Formation_Times_Cole2000
   !% Implement tracking of halo formation times.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Formation_Times_Cole2000_Initialize    , Node_Component_Formation_Time_Cole2000_Rate_Compute  , &
@@ -81,6 +80,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Formation_Time_Cole2000_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Check for need to update the formation time of a node in the {\normalfont \ttfamily Cole2000} formation time component.
+    use Galacticus_Nodes, only : treeNode, interruptTask, nodeComponentFormationTime, nodeComponentBasic, propertyTypeInactive, defaultFormationTimeComponent
     implicit none
     type     (treeNode                   ), intent(inout), pointer :: node
     logical                               , intent(in   )          :: odeConverged
@@ -117,6 +117,7 @@ contains
   !#  <after>re:Node_Component_Hot_Halo_.*_Promote</after>
   !# </nodePromotionTask>
   subroutine Node_Component_Formation_Time_Cole2000_Node_Promotion(node)
+    use Galacticus_Nodes, only : treeNode, nodeComponentFormationTime, nodeComponentFormationTimeCole2000, nodeComponentBasic
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime
@@ -141,6 +142,7 @@ contains
     !% Creates a halo formation time component for {\normalfont \ttfamily node}. This function is also used to ``reform'' the halo, since it
     !% simply resets the formation time and mass to the current values.
     use Events_Halo_Formation
+    use Galacticus_Nodes     , only : treeNode, nodeComponentFormationTime
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime
@@ -174,6 +176,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Formation_Time_Cole2000_Tree_Initialize(node)
     !% Initialize the formation node pointer for any childless node.
+    use Galacticus_Nodes, only : treeNode, defaultFormationTimeComponent
     implicit none
     type(treeNode), intent(inout), pointer :: node
 

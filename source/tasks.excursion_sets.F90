@@ -58,9 +58,9 @@ contains
   function excursionSetsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
     use Galacticus_HDF5
-    use Galacticus_Nodes
     use Node_Components
     use Input_Parameters
+    use Galacticus_Nodes, only : nodeClassHierarchyInitialize
     implicit none
     type            (taskExcursionSets             )                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -233,6 +233,7 @@ contains
     use IO_HDF5
     use Galacticus_HDF5
     use Galacticus_Error        , only : errorStatusSuccess
+    use Galacticus_Nodes        , only : treeNode
     implicit none
     class           (taskExcursionSets), intent(inout)                   :: self
     integer                            , intent(  out), optional         :: status

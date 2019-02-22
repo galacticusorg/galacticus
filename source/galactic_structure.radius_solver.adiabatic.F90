@@ -92,6 +92,7 @@ contains
     use Cosmology_Parameters
     use Galacticus_Error
     use Galacticus_Display
+    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none

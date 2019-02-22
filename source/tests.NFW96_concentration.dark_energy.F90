@@ -30,7 +30,7 @@ program Test_NFW96_Concentration_Dark_Energy
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
   use Cosmology_Parameters
-  use Galacticus_Nodes
+  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic
   use String_Handling
   use Unit_Tests
   use Galacticus_Display

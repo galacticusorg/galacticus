@@ -21,7 +21,6 @@
 
 module Node_Component_Inter_Output_Standard
   !% Implements the standard indices component.
-  use Galacticus_Nodes
   use Output_Times
   implicit none
   private
@@ -65,6 +64,7 @@ contains
   subroutine Node_Component_Interoutput_Standard_Thread_Initialize(parameters)
     !% Initializes the tree node standard interoutput module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultInteroutputComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -79,6 +79,7 @@ contains
   !# </nodeComponentThreadUninitializationTask>
   subroutine Node_Component_Interoutput_Standard_Thread_Uninitialize()
     !% Uninitializes the tree node standard interoutput module.
+    use Galacticus_Nodes, only : defaultInteroutputComponent
     implicit none
 
     if (defaultInteroutputComponent%standardIsActive()) then
@@ -92,6 +93,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Inter_Output_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentInterOutput, nodeComponentDisk, nodeComponentSpheroid, nodeComponentInterOutputStandard
     implicit none
     type            (treeNode                ), intent(inout), pointer :: node
     class           (nodeComponentInterOutput)               , pointer :: interOutput
@@ -123,6 +125,8 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Inter_Output_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
+    use Galacticus_Nodes, only : treeNode          , nodeComponentInterOutput, nodeComponentDisk   , nodeComponentSpheroid      , &
+         &                       nodeComponentBasic, interruptTask           , propertyTypeInactive, defaultInteroutputComponent
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -170,7 +174,8 @@ contains
   subroutine Node_Component_Inter_Output_Standard_Reset(node,iOutput,treeIndex,nodePassesFilter)
     !% Reset interoutput accumulated quantities.
     use, intrinsic :: ISO_C_Binding
-    use Kind_Numbers
+    use            :: Kind_Numbers
+    use            :: Galacticus_Nodes, only : treeNode, nodeComponentInterOutput, nodeComponentInterOutputStandard
     implicit none
     type   (treeNode                ), intent(inout), pointer :: node
     integer(c_size_t                ), intent(in   )          :: iOutput
@@ -198,6 +203,7 @@ contains
     use Satellite_Merging_Remnant_Properties
     use Satellite_Merging_Mass_Movements
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentInterOutput, nodeComponentInterOutputStandard
     implicit none
     type   (treeNode                ), intent(inout), pointer :: node
     type   (treeNode                )               , pointer :: nodeHost

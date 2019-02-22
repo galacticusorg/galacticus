@@ -21,7 +21,6 @@
 
 module Galactic_Structure_Surface_Densities
   !% Implements calculations of the surface density at a specific position.
-  use Galacticus_Nodes
   use Galactic_Structure_Options
   implicit none
   private
@@ -32,6 +31,7 @@ module Galactic_Structure_Surface_Densities
   logical                        :: haloLoadedShared
   double precision, dimension(3) :: positionCylindricalShared
   !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,positionCylindricalShared,weightByShared,weightIndexShared)
+
 contains
 
   double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex,haloLoaded)
@@ -39,6 +39,7 @@ contains
     !% been computed.
     use Galacticus_Error
     use Coordinate_Systems
+    use Galacticus_Nodes  , only : treeNode, optimizeforsurfacedensitysummation, reductionsummation
     implicit none
     type            (treeNode                 ), intent(inout)           :: thisNode
     integer                                    , intent(in   ), optional :: componentType                     , coordinateSystem, &
@@ -101,6 +102,7 @@ contains
 
   double precision function Component_Surface_Density(component)
     !% Unary function returning the surface density in a component. Suitable for mapping over components.
+    use Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 

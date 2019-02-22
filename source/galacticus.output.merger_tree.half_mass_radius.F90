@@ -21,7 +21,7 @@
 
 module Galacticus_Output_Tree_Half_Mass_Radii
   !% Handles outputting of galaxy half-mass radii.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
   public :: Galacticus_Output_Tree_Half_Mass, Galacticus_Output_Tree_Half_Mass_Property_Count, Galacticus_Output_Tree_Half_Mass_Names

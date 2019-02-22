@@ -21,7 +21,6 @@
 
 module Galacticus_Output_Trees_Redshifts
   !% Handles outputting of node redshift data to the \glc\ output file.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Galacticus_Output_Redshifts, Galacticus_Output_Redshifts_Property_Count, Galacticus_Output_Redshifts_Names
@@ -41,6 +40,7 @@ contains
   subroutine Galacticus_Output_Redshifts_Initalize()
     !% Intialize the ``redshift'' output module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultBasicComponent
     implicit none
 
     ! Initialize if necessary.
@@ -80,6 +80,7 @@ contains
   subroutine Galacticus_Output_Redshifts_Names(node,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode)              , intent(inout) :: node
     double precision                        , intent(in   ) :: time
@@ -105,6 +106,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Redshifts_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
@@ -123,6 +125,7 @@ contains
   subroutine Galacticus_Output_Redshifts(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store link properties in the \glc\ output file buffers.
+    use Galacticus_Nodes   , only : treeNode, nodeComponentBasic
     use Kind_Numbers
     use Cosmology_Functions
     use Multi_Counters

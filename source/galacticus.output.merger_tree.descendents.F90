@@ -21,7 +21,6 @@
 
 module Galacticus_Output_Trees_Descendents
   !% Handles outputting of tree descendent data to the \glc\ output file.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Galacticus_Output_Tree_Descendents, Galacticus_Output_Tree_Descendents_Property_Count, Galacticus_Output_Tree_Descendents_Names
@@ -42,6 +41,7 @@ contains
     use Input_Parameters
     use ISO_Varying_String
     use Galacticus_Error
+    use Galacticus_Nodes  , only : defaultSatelliteComponent
     implicit none
 
     if (.not.outputDescendentsInitialized) then
@@ -85,6 +85,7 @@ contains
   subroutine Galacticus_Output_Tree_Descendents_Names(node,integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of descendent properties to be written to the \glc\ output file.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode)              , intent(inout) :: node
     double precision                        , intent(in   ) :: time
@@ -113,6 +114,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Descendents_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of descendent properties to be written to the \glc\ output file.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode              ), intent(inout) :: node
     double precision                        , intent(in   ) :: time
@@ -137,6 +139,7 @@ contains
     use Kind_Numbers
     use Output_Times
     use Multi_Counters
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSatellite
     implicit none
     double precision                        , intent(in   )         :: time
     type            (treeNode              ), intent(inout), target :: node
