@@ -14,7 +14,7 @@ use List::ExtraUtils;
 # Andrew Benson (06-September-2016)
 
 # Define the source directory
-die "Usage: findUseDependencies.pl sourcedir"
+die "Usage: useDependencies.pl sourcedir"
     unless ( scalar(@ARGV) == 1 );
 my $rootSourceDirectoryName = $ARGV[0];
 # Specify work directory.
@@ -86,7 +86,7 @@ foreach my $sourceDirectoryName ( @sourceDirectoryNames ) {
     (my $subDirectoryName = $sourceDirectoryName) =~ s/^$rootSourceDirectoryName\/source\/?//;
     # Find all source files to process.
     opendir(my $sourceDirectory,$sourceDirectoryName) 
-	or die "findUseDependencies.pl: can not open the source directory: #!";
+	or die "useDependencies.pl: can not open the source directory: #!";
     push
 	(
 	 @sourceFilesToProcess,
