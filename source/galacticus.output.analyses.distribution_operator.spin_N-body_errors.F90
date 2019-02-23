@@ -100,7 +100,7 @@ contains
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: spinNBodyErrorsOperateScalar
-    class           (haloSpinDistributionClass                        ), allocatable                                          :: haloSpinDistribution_
+    class           (haloSpinDistributionClass                        ), pointer                                              :: haloSpinDistribution_
     integer         (c_size_t                                         )                                                       :: i
     double precision                                                                                                          :: spinMeasuredMinimum         , spinMeasuredMaximum
     type            (fgsl_function                                    )                                                       :: integrandFunction
@@ -138,6 +138,7 @@ contains
        call Integrate_Done(integrandFunction,integrationWorkspace)
     end do
     !$omp end critical(spinNBodyErrorsOperateScalar)
+    !# <objectDestructor name="haloSpinDistribution_" />
     return
     
   contains
