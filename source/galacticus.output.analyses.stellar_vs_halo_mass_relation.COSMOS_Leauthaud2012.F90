@@ -426,8 +426,8 @@ contains
        !#    &amp;                          covarianceBinomialMassHaloMinimum                                                                      , &amp;
        !#    &amp;                          covarianceBinomialMassHaloMaximum                                                                      , &amp;
        !#    &amp;                          likelihoodNormalize                                                                                    , &amp;
-       !#    &amp;                          var_str('M_\mathrm{halo}/\mathrm{M}_\odot'    )                                                        , &amp;
-       !#    &amp;                          var_str('\log_{10}(M_\star/\mathrm{M}_\odot)' )                                                        , &amp;
+       !#    &amp;                          var_str('$M_\mathrm{halo}/\mathrm{M}_\odot$'    )                                                      , &amp;
+       !#    &amp;                          var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$' )                                                      , &amp;
        !#    &amp;                          .true.                                                                                                 , &amp;
        !#    &amp;                          .false.                                                                                                , &amp;    
        !#    &amp;                          var_str('Leauthaud et al. (2012)'             )                                                        , &amp;
