@@ -421,7 +421,7 @@ contains
     double precision                                           , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                           , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
     integer         (c_size_t                                 )                                          :: i
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget"/>
 
     ! Count bins.
     self%binCount     =size(binCenter,kind=c_size_t)
@@ -577,10 +577,12 @@ contains
     select type (reduced)
     class is (outputAnalysisVolumeFunction1D)
        !$ call OMP_Set_Lock(reduced%accumulateLock)
-       reduced%weightMainBranch       =reduced%weightMainBranch       +self%weightMainBranch
-       reduced%weightSquaredMainBranch=reduced%weightSquaredMainBranch+self%weightSquaredMainBranch
-       reduced%functionCovariance     =reduced%functionCovariance     +self%functionCovariance
-       reduced%functionValue          =reduced%functionValue          +self%functionValue
+       if (self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
+          reduced%weightMainBranch       =reduced%weightMainBranch       +self%weightMainBranch
+          reduced%weightSquaredMainBranch=reduced%weightSquaredMainBranch+self%weightSquaredMainBranch
+       end if
+       reduced%functionCovariance        =reduced%functionCovariance     +self%functionCovariance
+       reduced%functionValue             =reduced%functionValue          +self%functionValue
        !$ call OMP_Unset_Lock(reduced%accumulateLock)
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
