@@ -65,6 +65,12 @@ foreach my $analysisName ( @analyses ) {
 	my $yLower       = $data->{'yDataset'      }-$data->{'yCovariance'      }->diagonal(0,1)->sqrt();
 	my $yUpperTarget = $data->{'yDatasetTarget'}+$data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
 	my $yLowerTarget = $data->{'yDatasetTarget'}-$data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
+	if ( $attributes->{'yAxisIsLog'} ) {
+	    my $negativeY                      = which($yLower       < 0.0);
+	    my $negativeYTarget                = which($yLowerTarget < 0.0);
+	    $yLower      ->($negativeY      ) .= $data->{'yDataset'      }->($negativeY      );
+	    $yLowerTarget->($negativeYTarget) .= $data->{'yDatasetTarget'}->($negativeYTarget);
+	}
 	my $yUpperBoth   = $yUpper->($nonZero)->append($yUpperTarget->($nonZeroTarget));
 	my $yLowerBoth   = $yLower->($nonZero)->append($yLowerTarget->($nonZeroTarget));
 	my $xMinimum = $data->{'xDataset'}->($nonZeroBoth)->minimum();
@@ -111,6 +117,10 @@ foreach my $analysisName ( @analyses ) {
 	    $yMinimum  -= 0.05*$yRange;
 	    $yMaximum  += 0.05*$yRange;
 	}
+	# Determine a suitable pointsize.
+	my $pointSize = "1.0";
+	$pointSize = 0.25
+	    if ( nelem($data->{'xDataset'}) > 100 );
 	# Construct a plot.
 	my $plot;
 	my $gnuPlot;
@@ -137,7 +147,7 @@ foreach my $analysisName ( @analyses ) {
 	}
 	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
 	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
-	print $gnuPlot "set pointsize 1.0\n";
+	print $gnuPlot "set pointsize ".$pointSize."\n";
 	&GnuPlot::PrettyPlots::Prepare_Dataset(
 	    \$plot,
 	    $data->{'xDataset'      }->($nonZeroTarget),
