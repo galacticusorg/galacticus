@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic high-pass filter for total stellar mass.
+!% Contains a module which implements a galactic high-pass filter for the default ``basic'' halo mass.
 
   !# <galacticFilter name="galacticFilterBasicMass">
   !#  <description>
