@@ -48,9 +48,14 @@ sub Process_Constructors {
 	    my $assignmentSource = "  ! Auto-generated constructor assignment\n";
 	    (my $variables = $node->{'directive'}->{'variables'}) =~ s/^\s*(.*?)\s*$/$1/;
 	    foreach ( grep {$_ ne ""} split(/\s*,\s*/,$variables) ) {
-		my $isPointer = $_ =~ m/^\*(.*)/;
-		my $argumentName = $isPointer ? $1     : $_ ;
+		my $matches      = $_ =~ m/^(\*??)([a-zA-Z0-9_]+)/;
+		my $isPointer    = $1 eq "*";
+		my $argumentName = $2;
 		my $assigner     = $isPointer ? " => " : "=";
+		my $hasDefault   = $_ =~ m/=\s*(.+)/;
+		my $default      = $hasDefault ? $1 : undef();
+		die("Galacticus::Build::SourceTree::Process::Constructor::Process_Constructors(): syntax error")
+		    unless ( $matches );
 		# Get the variable declaration.
 		my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$argumentName);
 		# Detect optional arguments.
@@ -62,7 +67,13 @@ sub Process_Constructors {
 		    $assignmentSource .= "   ".$optional."allocate(".$returnValueLabel."%".$argumentName."(".join(",",map {"size(".$argumentName.",dim=".$_.")"} 1..$rank)."))\n";
 		}
 		# Build the assignment.
-		$assignmentSource   .= "   ".$optional.$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
+		if ( $optional eq "" ) {
+		    $assignmentSource   .= "   "                    .$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
+		} elsif ( $hasDefault ) {
+		    $assignmentSource   .= "   ".$optional." then\n".$returnValueLabel."%".$argumentName.$assigner.$argumentName."\nelse\n".$returnValueLabel."%".$argumentName.$assigner.$default."\nend if\n";
+		} else {
+		    $assignmentSource   .= "   ".$optional          .$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
+		}
 		# Detect functionClass objects and increment their reference count.
 		if ( 
 		    ( $declaration->{'intrinsic'} eq "type" || $declaration->{'intrinsic'} eq "class" )
