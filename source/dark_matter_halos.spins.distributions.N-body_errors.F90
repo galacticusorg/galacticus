@@ -210,6 +210,8 @@ contains
     self%spinMaximum=nbodyErrorsSpinMaximum
     self%massMinimum=nbodyErrorsMassMinimum
     self%massMaximum=nbodyErrorsMassMaximum
+    self%spinFixed  =-huge(0.0d0)
+    self%massMinimum=-huge(0.0d0)
     return
   end function nbodyErrorsConstructorInternal
 
