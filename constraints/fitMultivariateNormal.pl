@@ -35,12 +35,11 @@ my %options =
 # Build any parameter name map.
 my %parameterNameMap;
 if ( exists($options{'parameterName'}) ) {
-    foreach ( @{$options{'parameterName'}} ) {
-	if ( $_ =~ m/([^:]+):([^:]+):([^:]+)/ ) {
+    foreach ( &List::ExtraUtils::as_array($options{'parameterName'}) ) {
+	if ( $_ =~ m/([^\/]+)\/([^\/]+)/ ) {
 	    my $inputName   = $1;
 	    my $outputName  = $2;
-	    my $outputLabel = $3;
-	    $parameterNameMap{$inputName} = {name => $outputName, label => $outputLabel};
+	    $parameterNameMap{$inputName} = $outputName;
 	} else {
 	    die("fitMultivariateNormal.pl: parameterName option has incorrect syntax");
 	}
@@ -51,17 +50,18 @@ if ( exists($options{'parameterName'}) ) {
 my $config = &Galacticus::Constraints::Parameters::Parse_Config($configFile);
 
 # Read a sample matrix of all chain states.
-my $sampleMatrix = &Galacticus::Constraints::Parameters::Sample_Matrix($config,\%options);
+(my $sampleMatrix, my $sampleLikelihood) = &Galacticus::Constraints::Parameters::Sample_Matrix($config,\%options);
 
 # Determine which, if any, parameters are being excluded.
 my $j = -1;
 my $activeParameters = pdl [];
-foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
+my $modelParameters = exists($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}) ? $config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'} : $config->{'modelParameterMethod'};
+foreach my $parameter ( @{$modelParameters} ) {
     next 
-	unless ( exists($parameter->{'prior'}) );
+	unless ( exists($parameter->{'distributionFunction1DPrior'}) );
     ++$j;
     $activeParameters = $activeParameters->append($j)
-	unless ( exists($options{'exclude'}) && grep {$parameter->{'name'} eq $_} &List::ExtraUtils::as_array($options{'exclude'}) );
+	unless ( exists($options{'exclude'}) && grep {$parameter->{'name'}->{'value'} eq $_} &List::ExtraUtils::as_array($options{'exclude'}) );
 }
 my $sampleMatrixExcluded = $sampleMatrix->($activeParameters,:);
 
@@ -88,11 +88,11 @@ my $cholesky = mchol($parameterCovariance);
 # Construct a parameter definition file to describe this multivariate normal distribution.
 my $i = -1;
 my $parametersOutput;
-foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
+foreach my $parameter ( @{$modelParameters} ) {
     next 
-	unless ( exists($parameter->{'prior'}) );
+	unless ( exists($parameter->{'distributionFunction1DPrior'}) );
     next
- 	if ( exists($options{'exclude'}) && grep {$parameter->{'name'} eq $_} &List::ExtraUtils::as_array($options{'exclude'}) );
+ 	if ( exists($options{'exclude'}) && grep {$parameter->{'name'}->{'value'} eq $_} &List::ExtraUtils::as_array($options{'exclude'}) );
     ++$i;    
     my $definition = $parameterMean->(($i))->string();
     for(my $j=0;$j<nelem($parameterMean);++$j) {
@@ -100,13 +100,12 @@ foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
 	$definition .= "+\%[".$options{'metaName'}.$j."]*".$coefficient
 	    if ( $coefficient != 0.0 );
     }
-    my $name  = exists($parameterNameMap{$parameter->{'name'}}) ? $parameterNameMap{$parameter->{'name'}}->{'name' } : $parameter->{'name' };
-    my $label = exists($parameterNameMap{$parameter->{'name'}}) ? $parameterNameMap{$parameter->{'name'}}->{'label'} : $parameter->{'label'};
+    my $name  = exists($parameterNameMap{$parameter->{'name'}->{'value'}}) ? $parameterNameMap{$parameter->{'name'}->{'value'}} : $parameter->{'name' }->{'value'};
     my %parameterOutput = 
 	(
-	 name   => $name      ,
-	 label  => $label     ,
-	 define => $definition
+	 value      => "derived",
+         name       => {value => $name      },
+	 definition => {value => $definition}
 	);
     push(@{$parametersOutput->{'parameter'}},\%parameterOutput);
 }
@@ -114,33 +113,37 @@ foreach my $parameter ( @{$config->{'parameters'}->{'parameter'}} ) {
 for(my $i=0;$i<nelem($parameterMean);++$i) {
     my %parameterOutput =
         (
-         name   => $options{'metaName'}.$i,
-	 label  => "\\hbox{".$options{'metaName'}.$i."}",
-	 random => {
-	     scale => 1.0e-5,
-	     type => "Cauchy",
-	     median => 0.0
+	 value => "active",
+         name                            => 
+	 {
+	     value => $options{'metaName'}.$i
 	 },
-	 mapping => {
-	     type => "linear"
+	 distributionFunction1DPerturber => 
+	 {
+	     value  => "cauchy",
+	     scale  => {value => 1.0e-5},
+	     median => {value => 0.0e+0}
 	 },
-	 prior => {
-	     distribution => [{
-		 type     => "normal",
-		 mean     => +0.0,
-		 variance => +1.0,
-		 minimum  => -5.0,
-		 maximum  => +5.0
-	     }]
+	 operatorUnaryMapper => 
+	 {
+	     value => "identity"
+	 },
+	 distributionFunction1DPrior => 
+	 {
+	     value      => "normal",
+	     mean       => {value => +0.0},
+	     variance   => {value => +1.0},
+	     limitLower => {value => -5.0},
+	     limitUpper => {value => +5.0}	     
 	 }	 
         );
-    push(@{$parametersOutput->{'parameter'}},\%parameterOutput);
+    push(@{$parametersOutput->{'modelParameterMethod'}},\%parameterOutput);
 }
 
 # Output the parameter definition file.
 my $xml = new XML::Simple();
 open(my $outputFile,">".$options{'outputFile'});
-print $outputFile $xml->XMLout($parametersOutput, RootName => "parameters", NoAttr => 1);
+print $outputFile $xml->XMLout($parametersOutput, RootName => "parameters", KeyAttr => ["value"]);
 close($outputFile);
 
 exit 0;
