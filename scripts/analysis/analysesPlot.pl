@@ -66,8 +66,8 @@ foreach my $analysisName ( @analyses ) {
 	my $yUpperTarget = $data->{'yDatasetTarget'}+$data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
 	my $yLowerTarget = $data->{'yDatasetTarget'}-$data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
 	if ( $attributes->{'yAxisIsLog'} ) {
-	    my $negativeY                      = which($yLower       < 0.0);
-	    my $negativeYTarget                = which($yLowerTarget < 0.0);
+	    my $negativeY                      = which($yLower       <= 0.0);
+	    my $negativeYTarget                = which($yLowerTarget <= 0.0);
 	    $yLower      ->($negativeY      ) .= $data->{'yDataset'      }->($negativeY      );
 	    $yLowerTarget->($negativeYTarget) .= $data->{'yDatasetTarget'}->($negativeYTarget);
 	}
