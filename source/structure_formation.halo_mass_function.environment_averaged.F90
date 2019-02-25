@@ -114,8 +114,7 @@ contains
          &                                                                            cdfTarget                         , massBackground
     type            (fgsl_function                      )                          :: integrandFunction
     type            (fgsl_integration_workspace         )                          :: integrationWorkspace
-    type            (rootFinder                         ), save                    :: finder
-    !$omp threadprivate(finder)
+    type            (rootFinder                         )                          :: finder
 
     massBackground=self%haloEnvironment_%environmentMass()
     if (mass >= massBackground) then

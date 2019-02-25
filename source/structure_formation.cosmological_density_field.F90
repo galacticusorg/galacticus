@@ -61,12 +61,9 @@ module Cosmological_Density_Field
   !#   <code>
   !#    double precision            , parameter :: toleranceRelative=1.0d-12, toleranceAbsolute=0.0d0
   !#    double precision                        :: timeBigCrunch
-  !#    type            (rootFinder), save      :: finder
-  !#    !$omp threadprivate(finder)
-  !#    if (.not.finder%isInitialized()) then
-  !#       call finder%rootFunction(collapseTimeRoot                   )
-  !#       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-  !#    end if
+  !#    type            (rootFinder)            :: finder
+  !#    call finder%rootFunction(collapseTimeRoot                   )
+  !#    call finder%tolerance   (toleranceAbsolute,toleranceRelative)
   !#    timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
   !#    if (timeBigCrunch &lt; 0.0d0) then
   !#       timeBigCrunch=huge(0.0d0)

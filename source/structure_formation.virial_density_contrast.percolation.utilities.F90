@@ -69,8 +69,7 @@ contains
     class           (darkMatterProfileConcentrationClass), pointer               :: darkMatterProfileConcentration_
     class           (virialDensityContrastClass         ), pointer               :: virialDensityContrast_
     class           (nodeComponentBasic                 ), pointer               :: workBasic
-    type            (rootFinder                         ), save                  :: finder
-    !$omp threadprivate(finder)
+    type            (rootFinder                         )                        :: finder
     double precision                                                             :: radiusHalo
 
     ! Initialize module-scope variables.
@@ -115,19 +114,17 @@ contains
     ! Make an initial guess at the halo radius.
     radiusHalo=(mass/4.0d0/Pi/boundingDensity)**(1.0d0/3.0d0)
     ! Find the corresponding halo radius.
-    if (.not.finder%isInitialized()) then
-       call finder   %tolerance          (                                               &
-            &                             toleranceRelative  =1.0d-3                     &
-            &                            )
-       call finder   %rangeExpand        (                                               &
-            &                             rangeExpandUpward  =2.0d0                    , &
-            &                             rangeExpandDownward=0.5d0                    , &
-            &                             rangeExpandType    =rangeExpandMultiplicative  &
-            &                            )
-       call finder   %rootFunction       (                                               &
-            &                                                 haloRadiusRootFunction     &
-            &                            )
-    end if
+    call finder   %tolerance          (                                               &
+         &                             toleranceRelative  =1.0d-3                     &
+         &                            )
+    call finder   %rangeExpand        (                                               &
+         &                             rangeExpandUpward  =2.0d0                    , &
+         &                             rangeExpandDownward=0.5d0                    , &
+         &                             rangeExpandType    =rangeExpandMultiplicative  &
+         &                            )
+    call finder   %rootFunction       (                                               &
+         &                                                 haloRadiusRootFunction     &
+         &                            )
     radiusHalo=finder%find(rootGuess=radiusHalo)
     call workNode%destroy()
     deallocate(workNode)
