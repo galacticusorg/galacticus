@@ -72,8 +72,7 @@ contains
     class           (darkMatterHaloScaleClass), intent(inout)           :: darkMatterHaloScale_
     class           (darkMatterProfileClass  ), intent(inout), target   :: darkMatterProfile_
     double precision                          , parameter               :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder              ), save                    :: finder
-    !$omp threadprivate(finder)
+    type            (rootFinder              )                          :: finder
     type            (keplerOrbit             )                          :: orbitCurrent
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
@@ -94,17 +93,15 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
        if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
-          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-       end if
+       call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                   rangeExpandType              =rangeExpandMultiplicative      &
+            &                  )
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(nodeHost))
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if

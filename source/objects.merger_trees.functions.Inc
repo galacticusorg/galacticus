@@ -49,6 +49,8 @@ subroutine Merger_Tree_Destroy(tree)
         deallocate(event)
         event => eventNext
      end do
+     ! Destroy the property hash.
+     call tree%properties%destroy()
   end select
   return
 end subroutine Merger_Tree_Destroy

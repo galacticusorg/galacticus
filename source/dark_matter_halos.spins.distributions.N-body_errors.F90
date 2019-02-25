@@ -897,24 +897,21 @@ contains
     use Root_Finder
     implicit none
     double precision            , intent(in   ) :: chi
-    type            (rootFinder), save          :: finder
-    !$omp threadprivate(finder)
+    type            (rootFinder)                :: finder
 
-    if (.not.finder%isInitialized()) then
-       call finder%tolerance   (                                                                     &
-            &                   toleranceRelative            =1.0d-3                                 &
-            &                  )
-       call finder%rangeExpand (                                                                     &
-            &                   rangeExpandUpward            =2.0d0                                , &
-            &                   rangeExpandDownward          =0.5d0                                , &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative        , &
-            &                   rangeExpandType              =rangeExpandMultiplicative              &
-            &                  )
-       call finder%rootFunction(                                                                     &
-            &                                                 nbodyErrorsNonCentralChiSquareModeRoot &
-            &                  )
-    end if
+    call finder%tolerance   (                                                                     &
+         &                   toleranceRelative            =1.0d-3                                 &
+         &                  )
+    call finder%rangeExpand (                                                                     &
+         &                   rangeExpandUpward            =2.0d0                                , &
+         &                   rangeExpandDownward          =0.5d0                                , &
+         &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive        , &
+         &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative        , &
+         &                   rangeExpandType              =rangeExpandMultiplicative              &
+         &                  )
+    call finder%rootFunction(                                                                     &
+         &                                                 nbodyErrorsNonCentralChiSquareModeRoot &
+         &                  )
     nbodyErrorsNonCentralChiSquareChi =                                chi
     nbodyErrorsNonCentralChiSquareMode=finder%find(rootGuess=max(1.0d0,chi))
     return
