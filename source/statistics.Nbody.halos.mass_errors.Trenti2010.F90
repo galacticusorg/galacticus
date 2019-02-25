@@ -28,8 +28,8 @@
      !% An N-body halo mass error class using the model of \cite{trenti_how_2010}.
      private
      ! Parameters of the correlation model.
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: correlationNormalization   , correlationMassExponent, &
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
+     double precision                                   :: correlationNormalization             , correlationMassExponent, &
           &                                                correlationRedshiftExponent
    contains
      final     ::                trenti2010Destructor
@@ -126,7 +126,7 @@ contains
        self%correlationMassExponent     =  correlationMassExponent
        self%correlationRedshiftExponent =  correlationRedshiftExponent
        self%cosmologyFunctions_         => cosmologyFunctions_
-       !# <referenceCountIncrement owner="self" object="cosmologyFunctions_"/>
+       !# <referenceCountIncrement owner="self" isResult="yes" object="cosmologyFunctions_"/>
     else
        self%correlationNormalization    =  0.0d0
        self%correlationMassExponent     =  0.0d0       
