@@ -29,9 +29,9 @@
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
      private
      class           (haloMassFunctionClass), pointer :: haloMassFunction_ => null()
-     class           (haloEnvironmentClass ), pointer :: haloEnvironment_ => null()
-     double precision                                 :: abundanceMinimum, abundanceMaximum, &
-          &                                              modifier1       , modifier2
+     class           (haloEnvironmentClass ), pointer :: haloEnvironment_  => null()
+     double precision                                 :: abundanceMinimum           , abundanceMaximum, &
+          &                                              modifier1                  , modifier2
    contains
      final     ::           haloMassFunctionDestructor
      procedure :: sample => haloMassFunctionSample
