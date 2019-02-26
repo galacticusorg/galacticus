@@ -427,6 +427,7 @@ contains
     !% specified as a character variable.
     use Galacticus_Error
     use File_Utilities
+    use IO_XML
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorFileChar
     character(len=*          )              , intent(in   )           :: fileName
@@ -439,7 +440,7 @@ contains
     
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    parameterNode => parseFile(fileName,iostat=errorStatus)
+    parameterNode => XML_Parse(fileName,iostat=errorStatus)
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
           call Galacticus_Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
