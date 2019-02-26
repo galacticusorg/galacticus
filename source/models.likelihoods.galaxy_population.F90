@@ -318,11 +318,7 @@ contains
                    end if
                    !! For inactive parameters we must consider them each iteration as they become resolved.
                    do j=1,size(modelParametersInactive_)
-  
-                      !! AJB HACK
-                      write (0,*) "attempt replace ",char(modelParametersInactive_(i)%modelParameter_%name())," : ",char(modelParametersInactive_(j)%modelParameter_%name())," : ",index(self%modelParametersInactive_(i)%definition,"%["//modelParametersInactive_(j)%modelParameter_%name()//"]") 
-                      
-                      if (i /= j .and. self%modelParametersInactive_(i)%resolved) then
+                      if (i /= j .and. self%modelParametersInactive_(j)%resolved) then
                          if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersInactive_(j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
                          self%modelParametersInactive_(i)%definition=replace(                                                                     &
                               &                                                    self% modelParametersInactive_(i)%definition                 , &
