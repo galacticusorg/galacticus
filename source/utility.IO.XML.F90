@@ -384,7 +384,7 @@ contains
     ! Process the document.
     do while (stackCount > 0)
        ! Parse the document.
-       nodeNew      => parseFile(char(filePath//stack(stackCount)%fileName  ),iostat=iostat)
+       nodeNew      => parseFile(char(filePath//stack(stackCount)%fileName    ),iostat=iostat)
        nodeParent   =>                          stack(stackCount)%nodeParent
        nodeXInclude =>                          stack(stackCount)%nodeXInclude
        if (stack(stackCount)%xPath == "") then
@@ -400,7 +400,9 @@ contains
           end if
        end if
        if (present(iostat).and.iostat /= 0) return
-       stackCount   =  stackCount-1
+       ! We drop the entire stack after popping off just one element. This is because when we insert a new node into the document
+       ! it will change all of the pointers, so we must rescan it to handle any additional xi:include elements.
+       stackCount=0
        ! Insert this document.
        if (associated(nodeParent)) then
           ! Insert the newly parsed document into the parent node.
@@ -434,11 +436,11 @@ contains
           ! No node, this is therefore the base document.
           document => nodeNew
        end if
-       ! Search for any XIncludes.
+       ! Search for any XIncludes - rescan the entire document as we can handle inserting only one xi:include element at a time.
        stackListCount=0
-       if (hasChildNodes(nodeNew)) then
+       if (hasChildNodes(document)) then
           stackListCount                       =  1
-          stackList     (stackListCount)%nodes => getChildNodes(nodeNew)
+          stackList     (stackListCount)%nodes => getChildNodes(document)
        end if
        do while (stackListCount > 0)
           nodesCurrent   => stackList(stackListCount)%nodes
