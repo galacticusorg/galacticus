@@ -69,21 +69,29 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitLower</name>
-    !#   <cardinality>1</cardinality>
-    !#   <description>The lower limit of the normal distribution.</description>
-    !#   <source>parameters</source>
-    !#   <type>real</type>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitUpper</name>
-    !#   <cardinality>1</cardinality>
-    !#   <description>The upper limit of the normal distribution.</description>
-    !#   <source>parameters</source>
-    !#   <type>real</type>
-    !# </inputParameter>
-    self=distributionFunction1DNormal(mean,variance,limitLower,limitUpper)
+    if (parameters%isPresent('limitLower')) then
+       !# <inputParameter>
+       !#   <name>limitLower</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The lower limit of the normal distribution.</description>
+       !#   <source>parameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+    end if
+    if (parameters%isPresent('limitUpper')) then
+       !# <inputParameter>
+       !#   <name>limitUpper</name>
+       !#   <cardinality>1</cardinality>
+       !#   <description>The upper limit of the normal distribution.</description>
+       !#   <source>parameters</source>
+       !#   <type>real</type>
+       !# </inputParameter>
+    end if
+    !# <conditionalCall>
+    !#   <call>self=distributionFunction1DNormal(mean,variance{conditions})</call>
+    !#   <argument name="limitLower" value="limitLower" parameterPresent="parameters"/>
+    !#   <argument name="limitUpper" value="limitUpper" parameterPresent="parameters"/>
+    !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
     return
   end function normalConstructorParameters
