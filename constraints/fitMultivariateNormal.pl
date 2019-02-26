@@ -107,7 +107,7 @@ foreach my $parameter ( @{$modelParameters} ) {
          name       => {value => $name      },
 	 definition => {value => $definition}
 	);
-    push(@{$parametersOutput->{'parameter'}},\%parameterOutput);
+    push(@{$parametersOutput->{'modelParameterMethod'}},\%parameterOutput);
 }
 # Append meta-parameters.
 for(my $i=0;$i<nelem($parameterMean);++$i) {
