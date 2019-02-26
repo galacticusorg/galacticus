@@ -417,7 +417,10 @@ cd ..
 rm -rf gcc-build
 mkdir gcc-build
 cd gcc-build
-../gcc-trunk/configure --prefix=/your/install/path --enable-languages=c,c++,fortran --disable-multilib
+../gcc-trunk/configure            \
+ --prefix=/your/install/path      \
+ --enable-languages=c,c++,fortran \
+ --disable-multilib
 make
 make install
 
