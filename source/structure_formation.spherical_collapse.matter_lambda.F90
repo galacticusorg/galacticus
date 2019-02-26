@@ -32,14 +32,19 @@ module Spherical_Collapse_Matter_Lambda
   integer         , parameter :: deltaTableNPointsPerDecade=1000
 
   ! Variables used in root finding.
-  double precision            :: OmegaDE                          , OmegaM                      , &
-       &                         epsilonPerturbationShared        , hubbleParameterInvGyr       , &
-       &                         tNow                             , timeTarget, radiusMaximum
+  double precision            :: OmegaDE                             , OmegaM                 , &
+       &                         epsilonPerturbationShared           , hubbleParameterInvGyr  , &
+       &                         tNow                                , timeTarget             , &
+       &                         radiusMaximum
   !$omp threadprivate(OmegaDE,OmegaM,epsilonPerturbationShared,hubbleParameterInvGyr,tNow,timeTarget,radiusMaximum)
   
   ! Calculation types.
-  integer         , parameter :: calculationDeltaCrit          =0     , calculationDeltaVirial=1
+  integer         , parameter :: calculationDeltaCrit       =0      , calculationDeltaVirial=1
 
+  ! Tabulation status.
+  logical                     :: moduleInitialized          =.false.
+  logical                     :: sphericalCollapseTableStore
+  
 contains
 
   subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,deltaCritTable,cosmologyFunctions_,linearGrowth_)
@@ -614,6 +619,29 @@ contains
     return
   end function Radius_Root
 
+  subroutine Initialize_Table()
+    !% Initialize tabulation support.
+    use Input_Parameters
+    implicit none
+
+    if (.not.moduleInitialized) then
+       !$omp critical(sphericalCollapseMatterLambdaInit)
+       if (.not.moduleInitialized) then
+          !# <inputParameter>
+          !#   <name>sphericalCollapseTableStore</name>
+          !#   <cardinality>1</cardinality>
+          !#   <description>If true, store and restore spherical collapse tabulated solutions to file.</description>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          moduleInitialized=.true.
+       end if
+       !$omp end critical(sphericalCollapseMatterLambdaInit)
+    end if
+    return
+  end subroutine Initialize_Table
+  
   subroutine Restore_Table(time,restoredTable,fileName,status)
     !% Attempt to restore a table from file.
     use Galacticus_Error  , only : errorStatusSuccess, errorStatusFail
@@ -632,6 +660,8 @@ contains
     type            (lockDescriptor         )                             :: fileLock
 
     status=errorStatusFail
+    call Initialize_Table()
+    if (.not.sphericalCollapseTableStore) return
     if (.not.File_Exists(fileName)) return
     call File_Lock_Initialize(               fileLock)
     call File_Lock           (char(fileName),fileLock)
@@ -675,6 +705,8 @@ contains
     type (hdf5Object             )                :: file
     type (lockDescriptor         )                :: fileLock
 
+    call Initialize_Table()
+    if (.not.sphericalCollapseTableStore) return
     call File_Lock_Initialize(               fileLock)
     call File_Lock           (char(fileName),fileLock)
     !$ call hdf5Access%set()
