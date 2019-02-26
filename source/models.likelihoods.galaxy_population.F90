@@ -151,7 +151,8 @@ contains
     use MPI_Utilities                 , only : mpiSelf                        , mpiBarrier
     use String_Handling               , only : String_Count_Words             , String_Split_Words          , String_Join                  , operator(//)
     use Galacticus_Error              , only : Galacticus_Error_Report
-    use Galacticus_Display            , only : Galacticus_Verbosity_Level_Set , Galacticus_Verbosity_Level
+    use Galacticus_Display            , only : Galacticus_Verbosity_Level_Set , Galacticus_Verbosity_Level  , Galacticus_Display_Message   , Galacticus_Display_Indent, &
+         &                                     Galacticus_Display_Unindent    , verbosityStandard
     use Kind_Numbers                  , only : kind_int8
     implicit none
     class           (posteriorSampleLikelihoodGalaxyPopulation), intent(inout)                 :: self
@@ -317,6 +318,10 @@ contains
                    end if
                    !! For inactive parameters we must consider them each iteration as they become resolved.
                    do j=1,size(modelParametersInactive_)
+  
+                      !! AJB HACK
+                      write (0,*) "attempt replace ",char(modelParametersInactive_(i)%modelParameter_%name())," : ",char(modelParametersInactive_(j)%modelParameter_%name())," : ",index(self%modelParametersInactive_(i)%definition,"%["//modelParametersInactive_(j)%modelParameter_%name()//"]") 
+                      
                       if (i /= j .and. self%modelParametersInactive_(i)%resolved) then
                          if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersInactive_(j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
                          self%modelParametersInactive_(i)%definition=replace(                                                                     &
@@ -359,7 +364,18 @@ contains
                 call Galacticus_Error_Report('support for this parameter type is not implemented'//{introspection:location})
              end select
           end do
-          if (.not.dependenciesUpdated) call Galacticus_Error_Report('can not resolve parameter dependencies'//{introspection:location})
+          if (.not.dependenciesUpdated) then
+             call Galacticus_Verbosity_Level_Set(verbosityStandard)
+             call Galacticus_Display_Indent('unresolved parameters')
+             do i=1,size(modelParametersInactive_)
+                select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
+                   class is (modelParameterDerived)
+                   if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) call Galacticus_Display_Message(modelParametersInactive_(i)%modelParameter_%name()//" : "//self%modelParametersInactive_(i)%definition)
+                end select
+             end do
+             call Galacticus_Display_Unindent('unresolved parameters')
+             call Galacticus_Error_Report('can not resolve parameter dependencies'//{introspection:location})
+          end if
           firstIteration=.false.
        end do
        ! Build the task and outputter objects.
