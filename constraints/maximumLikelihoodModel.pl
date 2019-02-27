@@ -217,7 +217,7 @@ while ( scalar(@modelStack) > 0 ) {
     die("maximumLikelihoodModel.pl: Galacticus model failed")
 	unless ( $? == 0 );
     # Store raw XML parameter file in the model.
-    &storeXML($maximumLikelihoodDirectory."/galacticus".$arguments{'mpi'} > 0 ? ":MPI".sprintf("%4.4i",$arguments{'mpi'}) : "").".hdf5",$maximumLikelihoodDirectory."/parameters.xml");
+    &storeXML($maximumLikelihoodDirectory."/galacticus".($arguments{'mpi'} > 0 ? ":MPI".sprintf("%4.4i",$arguments{'mpi'}) : "").".hdf5",$maximumLikelihoodDirectory."/parameters.xml");
 }
 exit;
 
