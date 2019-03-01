@@ -19,6 +19,7 @@ die("Usage: analysesPlot.pl <galacticusFile> [options]")
     unless ( scalar(@ARGV) >= 1 );
 my $galacticusFileName  = $ARGV[0];
 my %options;
+$options{'outputDirectory'} = $galacticusFileName =~ m/^(.*)\/[^\/]+$/ ? $1 : ".";
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 # Open the Galacticus file.
 my $galacticusFile = new PDL::IO::HDF5($galacticusFileName);
@@ -124,7 +125,7 @@ foreach my $analysisName ( @analyses ) {
 	# Construct a plot.
 	my $plot;
 	my $gnuPlot;
-	my $plotFileTeX = $analysisName.".tex";
+	my $plotFileTeX = $options{'outputDirectory'}."/".$analysisName.".tex";
 	open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 	print $gnuPlot "set terminal cairolatex pdf standalone color lw 2 size 4in,4in\n";
 	print $gnuPlot "set output '".$plotFileTeX."'\n";
