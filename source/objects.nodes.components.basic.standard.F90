@@ -187,6 +187,12 @@ contains
              ! Compute the time available for accretion.
              deltaTime=basicParent%time()-basic%time()
              ! Compute mass growth rate.
+
+
+             !! AJB HACK
+             write (0,*) "RATE SET ",node%index(),(massUnresolved/deltaTime)*(basic%mass()/progenitorMassTotal),massUnresolved*(basic%mass()/progenitorMassTotal),basic%mass()
+
+             
              if (deltaTime > 0.0d0) call basic%accretionRateSet((massUnresolved/deltaTime)*(basic%mass()/progenitorMassTotal))
           end if
        end if
@@ -285,7 +291,7 @@ contains
   !#  <unitName>Node_Component_Basic_Standard_Plausibility</unitName>
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Basic_Standard_Plausibility(node)
-    !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
+    !% Determines whether the basic is physically plausible. Require the mass and time to be positive.
     use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandard
     implicit none
     type   (treeNode          ), intent(inout) :: node
