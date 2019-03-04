@@ -191,82 +191,88 @@ contains
              exit
           end if
        end do
-    else
-       ! Get the virial radius of the node.
-       self%radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
-       ! Return radius unchanged if larger than the virial radius.
-       if (radius >= self%radiusVirial) then
-          gnedin2004Radius=radius
-       else
-          ! Compute the various factors needed by this calculation.
-          call self%computeFactors(node,radius,computeGradientFactors=.false.)
-          if (gnedin2004Solver(self%radiusVirial) < 0.0d0) then ! Check that solution is within bounds.
-             gnedin2004Radius=self%radiusVirial
-          else
-             j=-1
-             if (self%radiusPreviousIndexMaximum > 0) then
-                ! No exact match exists, look for approximate matches.
-                do i=1,self%radiusPreviousIndexMaximum
-                   if (abs(radius-self%radiusPrevious(i))/self%radiusPrevious(i) < toleranceRelative) then
-                      j=i
-                      exit
-                   end if
-                end do
-             end if
-             ! Initialize our root finder.
-             if (.not.finder%isInitialized()) then
-                call finder%rootFunction(gnedin2004Solver                   )
-                call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-             end if
-             ! Find the solution for initial radius.
-             if (j == -1) then
-                ! No previous solution to use as an initial guess. Instead, we make an estimate of the initial radius under the
-                ! assumption that the mass of dark matter (in the initial profile) enclosed within the mean initial radius is the
-                ! same as enclosed within the mean final radius. Since the initial and final radii are typically not too
-                ! different, and since the mean radius is a weak (ѡ<1) function of the radius this is a useful
-                ! approximation. Furthermore, since it will underestimate the actual mass within the initial mean radius it gives
-                ! an overestimate of the initial radius. This means that we have a bracketing of the initial radius which we can
-                ! use in the solver.
-                radiusUpperBound   =  +(                                                                                     &
-                     &                  +self%baryonicFinalTerm                                                              &
-                     &                  /self%darkMatterProfile_%enclosedMass(node,self%radiusOrbitalMean(self%radiusFinal)) &
-                     &                  +self%darkMatterFraction                                                             &
-                     &                  *self%radiusFinal                                                                    &
-                     &                 )                                                                                     &
-                     &                /  self%initialMassFraction
-                if (radiusUpperBound < radius) radiusUpperBound=radius
-                call finder%rangeExpand(                                                             &
-                     &                  rangeExpandUpward            =1.1d0                        , &
-                     &                  rangeExpandDownward          =0.9d0                        , &
-                     &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-                     &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-                     &                  rangeExpandType              =rangeExpandMultiplicative      &
-                     &                 )
-                gnedin2004Radius=finder%find(rootRange=[radius,radiusUpperBound])
-             else
-               ! Use previous solution as an initial guess.
-               call finder%rangeExpand(                                                                   &
-                    &                  rangeExpandDownward          =1.0d0/sqrt(1.0d0+toleranceRelative), &
-                    &                  rangeExpandUpward            =1.0d0*sqrt(1.0d0+toleranceRelative), &
-                    &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative      , &
-                    &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      , &
-                    &                  rangeExpandType              =rangeExpandMultiplicative            &
-                    &                 )
-               gnedin2004Radius=finder%find(                                                                        &
-                    &                       rootRange=[                                                             &
-                    &                                  self%radiusInitialPrevious(j)/sqrt(1.0d0+toleranceRelative), &
-                    &                                  self%radiusInitialPrevious(j)*sqrt(1.0d0+toleranceRelative)  &
-                    &                                 ]                                                             &
-                    &                      )
-            end if
-          end if
-       end if
-       ! Store this solution.       
-       self%radiusPreviousIndex                                 =mod(self%radiusPreviousIndex         ,gnedin2004StoreCount)+1
-       self%radiusPreviousIndexMaximum                          =min(self%radiusPreviousIndexMaximum+1,gnedin2004StoreCount)
-       self%radiusPrevious            (self%radiusPreviousIndex)=radius
-       self%radiusInitialPrevious     (self%radiusPreviousIndex)=gnedin2004Radius
+       return
     end if
+    ! Get the virial radius of the node.
+    self%radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    ! Return radius unchanged if larger than the virial radius.
+    if (radius >= self%radiusVirial) then
+       gnedin2004Radius=radius
+       return
+    end if
+    ! Compute the various factors needed by this calculation.
+    call self%computeFactors(node,radius,computeGradientFactors=.false.)
+    ! If no baryons present at this radius, so initial radius is unchanged.
+    if (self%baryonicFinalTerm <= 0.0d0) then
+       gnedin2004Radius=radius
+       return
+    end if
+    ! Check that solution is within bounds.
+    if (gnedin2004Solver(self%radiusVirial) < 0.0d0) then
+       gnedin2004Radius=self%radiusVirial
+       return
+    end if
+    j=-1
+    if (self%radiusPreviousIndexMaximum > 0) then
+       ! No exact match exists, look for approximate matches.
+       do i=1,self%radiusPreviousIndexMaximum
+          if (abs(radius-self%radiusPrevious(i))/self%radiusPrevious(i) < toleranceRelative) then
+             j=i
+             exit
+          end if
+       end do
+    end if
+    ! Initialize our root finder.
+    if (.not.finder%isInitialized()) then
+       call finder%rootFunction(gnedin2004Solver                   )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    end if
+    ! Find the solution for initial radius.
+    if (j == -1) then
+       ! No previous solution to use as an initial guess. Instead, we make an estimate of the initial radius under the
+       ! assumption that the mass of dark matter (in the initial profile) enclosed within the mean initial radius is the
+       ! same as enclosed within the mean final radius. Since the initial and final radii are typically not too
+       ! different, and since the mean radius is a weak (ѡ<1) function of the radius this is a useful
+       ! approximation. Furthermore, since it will underestimate the actual mass within the initial mean radius it gives
+       ! an overestimate of the initial radius. This means that we have a bracketing of the initial radius which we can
+       ! use in the solver.
+       radiusUpperBound   =  +(                                                                                     &
+            &                  +self%baryonicFinalTerm                                                              &
+            &                  /self%darkMatterProfile_%enclosedMass(node,self%radiusOrbitalMean(self%radiusFinal)) &
+            &                  +self%darkMatterFraction                                                             &
+            &                  *self%radiusFinal                                                                    &
+            &                 )                                                                                     &
+            &                /  self%initialMassFraction
+       if (radiusUpperBound < radius) radiusUpperBound=radius
+       call finder%rangeExpand(                                                             &
+            &                  rangeExpandUpward            =1.1d0                        , &
+            &                  rangeExpandDownward          =0.9d0                        , &
+            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                  rangeExpandType              =rangeExpandMultiplicative      &
+            &                 )
+       gnedin2004Radius=finder%find(rootRange=[radius,radiusUpperBound])
+    else
+       ! Use previous solution as an initial guess.
+       call finder%rangeExpand(                                                                   &
+            &                  rangeExpandDownward          =1.0d0/sqrt(1.0d0+toleranceRelative), &
+            &                  rangeExpandUpward            =1.0d0*sqrt(1.0d0+toleranceRelative), &
+            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative      , &
+            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive      , &
+            &                  rangeExpandType              =rangeExpandMultiplicative            &
+            &                 )
+       gnedin2004Radius=finder%find(                                                                        &
+            &                       rootRange=[                                                             &
+            &                                  self%radiusInitialPrevious(j)/sqrt(1.0d0+toleranceRelative), &
+            &                                  self%radiusInitialPrevious(j)*sqrt(1.0d0+toleranceRelative)  &
+            &                                 ]                                                             &
+            &                      )
+    end if
+    ! Store this solution.       
+    self%radiusPreviousIndex                                 =mod(self%radiusPreviousIndex         ,gnedin2004StoreCount)+1
+    self%radiusPreviousIndexMaximum                          =min(self%radiusPreviousIndexMaximum+1,gnedin2004StoreCount)
+    self%radiusPrevious            (self%radiusPreviousIndex)=radius
+    self%radiusInitialPrevious     (self%radiusPreviousIndex)=gnedin2004Radius
     return
   end function gnedin2004Radius
 
