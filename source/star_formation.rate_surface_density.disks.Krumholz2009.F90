@@ -139,9 +139,11 @@ contains
     logical                                                           , intent(in   ) :: molecularFractionFast , assumeMonotonicSurfaceDensity
     !# <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast, assumeMonotonicSurfaceDensity"/>
 
-    self%lastUniqueID   =-1_kind_int8
-    self%massGasPrevious=-1.0d0
-    self%factorsComputed=.false.
+    self%lastUniqueID          =-1_kind_int8
+    self%massGasPrevious       =-1.0d0
+    self%radiusPrevious        =-1.0d0
+    self%abundancesFuelPrevious=-unitAbundances
+    self%factorsComputed   =.false.
     ! Set a pointer to the molecular hydrogen fraction fitting function to be used.
     select case (molecularFractionFast)
     case (.true.)
