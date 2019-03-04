@@ -4,6 +4,8 @@ use warnings;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use XML::Simple;
+use XML::LibXML;
+use XML::Twig;
 use Data::Dumper;
 use System::Redirect;
 use File::NFSLock;
@@ -33,8 +35,12 @@ my %arguments = (
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 # Parse the constraint config file.
-my $xml = new XML::Simple();
-my $config = $xml->XMLin($parameterFile);
+my $parser = XML::LibXML->new();
+my $dom    = $parser->load_xml(location => $parameterFile);
+$parser->process_xincludes($dom);
+my $xml    = new XML::Simple();
+my $config = $xml->XMLin($dom->serialize());
+
 # Determine the MCMC directory.
 my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
 (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
