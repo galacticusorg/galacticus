@@ -144,6 +144,12 @@ module MPI_Utilities
      !@     <description>Return true if any of {\normalfont \ttfamily scalar} is true over all processes.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>all</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\logicalzero\ scalar\argin, \logicalzero\ [mask]\argin</arguments>
+     !@     <description>Return true if every {\normalfont \ttfamily scalar} is true over all processes.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>minloc</method>
      !@     <type>\intone</type>
      !@     <arguments>\doubleone array\argin</arguments>
@@ -181,6 +187,8 @@ module MPI_Utilities
           &                         mpiSumArrayTwoDouble, mpiSumArrayThreeDouble
      procedure ::                   mpiAnyLogicalScalar
      generic   :: any            => mpiAnyLogicalScalar
+     procedure ::                   mpiAllLogicalScalar
+     generic   :: all            => mpiAllLogicalScalar
      procedure :: maxloc         => mpiMaxloc
      procedure ::                   mpiMaxvalScalar     , mpiMaxvalArray
      generic   :: maxval         => mpiMaxvalScalar     , mpiMaxvalArray
@@ -1316,6 +1324,34 @@ contains
 #endif
     return
   end function mpiAnyLogicalScalar
+
+  logical function mpiAllLogicalScalar(self,boolean,mask)
+    !% Return true if all of the given booleans are true over all processes.
+#ifdef USEMPI
+    use Galacticus_Error
+#endif
+    implicit none
+    class  (mpiObject), intent(in   )                         :: self
+    logical           , intent(in   )                         :: boolean
+    logical           , intent(in   ), dimension(:), optional :: mask
+#ifdef USEMPI
+    integer                                                   :: iError
+    logical                          , dimension(1)           :: array
+#endif
+
+#ifdef USEMPI
+    array=boolean
+    if (present(mask)) then
+       if (.not.mask(self%rank())) array=.false.
+    end if
+    call MPI_AllReduce(array,mpiAllLogicalScalar,size(array),MPI_Logical,MPI_LAnd,MPI_Comm_World,iError)
+#else
+    !GCC$ attributes unused :: self, boolean, mask
+    mpiAllLogicalScalar=.false.
+    call Galacticus_Error_Report('code was not compiled for MPI'//{introspection:location})
+#endif
+    return
+  end function mpiAllLogicalScalar
 
   function mpiGatherScalar(self,scalar)
     !% Gather a scalar from all processes, returning it as a 1-D array.
