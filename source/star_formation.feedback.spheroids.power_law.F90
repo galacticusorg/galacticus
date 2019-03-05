@@ -79,11 +79,17 @@ contains
 
   function powerLawConstructorInternal(velocityCharacteristic_,exponent) result(self)
     !% Internal constructor for the power-law star formation feedback from spheroids class.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsPowerLaw)                :: self
     double precision                                        , intent(in   ) :: velocityCharacteristic_, exponent
-
+    character       (len=13                                )                :: label
     !# <constructorAssign variables="velocityCharacteristic_, exponent"/>    
+
+    if (velocityCharacteristic_ <= 0.0d0) then
+       write (label,'(e13.6)') velocityCharacteristic_
+       call Galacticus_Error_Report('characteristic velocity must be positive ['//trim(adjustl(label))//' ≤ 0]'//{introspection:location})
+    end if
     return
   end function powerLawConstructorInternal
 
