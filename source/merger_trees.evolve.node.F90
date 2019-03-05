@@ -631,7 +631,8 @@ contains
 
   subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,evaluate,integrands)
     !% A set of integrands for unit tests.
-    use Galacticus_Nodes, only : rateComputeState
+    use Galacticus_Nodes        , only : rateComputeState
+    use Galactic_Structure_Radii, only : Galactic_Structure_Radii_Revert
     implicit none
     integer                        , intent(in   )                                              :: propertyCountActive       , propertyCountInactive
     double precision               , intent(in   ), dimension(                              : ) :: time
@@ -661,7 +662,8 @@ contains
           ! Set derivatives to zero initially.
           call activeNode%odeStepRatesInitialize()
           ! Compute derivatives.
-          call Tree_Node_Compute_Derivatives(activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeIntegrator)      
+          call Galactic_Structure_Radii_Revert(activeNode                                                                )
+          call Tree_Node_Compute_Derivatives  (activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeIntegrator)      
           ! Serialize rates into integrand array.
           call activeNode%serializeRates(integrands(:,iTime),propertyTypeIntegrator)
        end if
