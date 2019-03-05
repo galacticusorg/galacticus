@@ -105,13 +105,13 @@ contains
          &                                                                             parameterA                        , parameterB
 
     ! Get the basic component.
-    basic               => node%basic()
+    basic                   => node%basic()
     ! Compute the concentration.
     logarithmHaloMass       =log10(littleHubbleConstantGao2008             *basic%mass())
     logarithmExpansionFactor=log10(self%cosmologyFunctions_%expansionFactor(basic%time()))
-    parameterA              =-0.140d0*exp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
-    parameterB              = 2.646d0*exp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
-    gao2008Concentration    =10.0d0**(parameterA*logarithmHaloMass+parameterB)
+    parameterA              =- 0.140d0*exp(-((logarithmExpansionFactor+0.05d0)/0.35d0)**2)
+    parameterB              =+ 2.646d0*exp(-((logarithmExpansionFactor+0.00d0)/0.50d0)**2)
+    gao2008Concentration    =+10.0d0**(parameterA*logarithmHaloMass+parameterB)
     return
   end function gao2008Concentration
 
