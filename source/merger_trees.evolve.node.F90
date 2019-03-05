@@ -876,10 +876,11 @@ contains
     integer         (kind=c_int    ), intent(in   )                                 :: status
     real            (kind=c_double ), intent(in   )                                 :: time
     real            (kind=c_double ), intent(in   ), dimension(propertyCountActive) :: y
-    real            (kind=c_double )               , dimension(propertyCountActive) :: dydt      , yError       , &
+    real            (kind=c_double )               , dimension(propertyCountActive) :: dydt          , yError       , &
          &                                                                             yTolerance
-    type            (varying_string)                                                :: message   , line
-    integer                                                                         :: i         , lengthMaximum
+    type            (varying_string)                                                :: message       , line
+    integer                                                                         :: i             , lengthMaximum, &
+         &                                                                             verbosityLevel
     character       (len =12       )                                                :: label
     integer         (kind=c_int    )                                                :: odeStatus
     double precision                                                                :: stepFactor
@@ -890,7 +891,8 @@ contains
        call FODEIV2_Driver_Errors(ode2Driver,yError)
        yTolerance=treeNodeODEStepTolerances(y)
        ! Report the failure message.
-       if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
+       verbosityLevel=Galacticus_Verbosity_Level()
+       if (verbosityLevel < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
        message="ODE solver failed with error code "
        message=message//status//" in tree #"//activeTreeIndex
        call Galacticus_Display_Message(message)
@@ -925,6 +927,7 @@ contains
        end do
        call Galacticus_Display_Message(line)
        call Galacticus_Display_Unindent('done')
+       call Galacticus_Verbosity_Level_Set(verbosityLevel)
     end if
     return
   end subroutine Tree_Node_ODEs_Error_Handler
