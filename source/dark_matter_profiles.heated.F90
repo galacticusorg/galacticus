@@ -327,20 +327,28 @@ contains
     double precision                         , intent(in   )          :: radiusFinal
     double precision                         , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
     type            (rootFinder             ), save                   :: finder
+    double precision                                                  :: factorExpand
     !$omp threadprivate(finder)
 
+    ! If profile is unheated, the initial radius equals the final radius.
+    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%unheatedProfile)) then
+       heatedRadiusInitial=radiusFinal
+       return
+    end if
     ! Reset calculations if necessary.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Find the initial radius in the unheated profile.
     if (radiusFinal /= self%radiusFinalPrevious) then
-       self%radiusFinalPrevious =  radiusFinal
        heatedSelf        => self
        heatedNode        => node
        heatedRadiusFinal =  radiusFinal
-       ! Initialize the root finder.
        if (.not.finder%isInitialized()) then
-          call finder%rootFunction(heatedRadiusInitialRoot     )
-          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          call finder%rootFunction(heatedRadiusInitialRoot                  )
+          call finder%tolerance   (toleranceAbsolute      ,toleranceRelative)
+       end if
+       if (self%radiusFinalPrevious <= -huge(0.0d0) .or. radiusFinal < self%radiusInitialPrevious) then    
+          ! No previous solution is available, or the requested final radius is smaller than the previous initial radius. In this
+          ! case, our guess for the initial radius is the final radius, and we expand the range downward to find a solution.
           call finder%rangeExpand (                                                             &
                &                   rangeExpandUpward            =1.01d0                       , &
                &                   rangeExpandDownward          =0.50d0                       , &
@@ -348,8 +356,27 @@ contains
                &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
                &                   rangeExpandType              =rangeExpandMultiplicative      &
                &                  )
+          self%radiusInitialPrevious=finder%find(rootGuess=radiusFinal)
+       else
+          ! Previous solution exists, and the requested final radius is larger than the previous initial radius. Use the previous
+          ! initial radius as a guess for the solution, with range expansion in steps determined by the relative values of the
+          ! current and previous final radii. If the current final radius is close to the previous final radius this should give a
+          ! guess for the initial radius close to the actual solution.
+          if (radiusFinal > self%radiusFinalPrevious) then
+             factorExpand=     radiusFinal        /self%radiusFinalPrevious
+          else
+             factorExpand=self%radiusFinalPrevious/     radiusFinal
+          end if
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandUpward            =1.0d0*factorExpand           , &
+               &                   rangeExpandDownward          =1.0d0/factorExpand           , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+          self%radiusInitialPrevious=finder%find(rootGuess=self%radiusInitialPrevious)
        end if
-       self%radiusInitialPrevious=finder%find(rootGuess=radiusFinal)
+       self%radiusFinalPrevious=radiusFinal
     end if
     heatedRadiusInitial=self%radiusInitialPrevious
     return
@@ -362,15 +389,15 @@ contains
     double precision, intent(in   ) :: radiusInitial
     double precision                :: massEnclosed
     
-    massEnclosed                  =+heatedSelf%darkMatterProfile_          %enclosedMass  (heatedNode,                                  radiusInitial)
+    massEnclosed           =+heatedSelf%darkMatterProfile_       %enclosedMass  (heatedNode,                              radiusInitial)
     heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,heatedSelf%darkMatterProfile_,radiusInitial) &
-         &                         +0.5d0                                                                                                                         &
-         &                         *gravitationalConstantGalacticus                                                                                               &
-         &                         *massEnclosed                                                                                                                  &
-         &                         *(                                                                                                                             &
-         &                           +1.0d0/heatedRadiusFinal                                                                                              &
-         &                           -1.0d0/radiusInitial                                                                                                         &
-         &                          )
+         &                  +0.5d0                                                                                                    &
+         &                  *gravitationalConstantGalacticus                                                                          &
+         &                  *massEnclosed                                                                                             &
+         &                  *(                                                                                                        &
+         &                    +1.0d0/heatedRadiusFinal                                                                                &
+         &                    -1.0d0/radiusInitial                                                                                    &
+         &                   )
     return
   end function heatedRadiusInitialRoot
 
