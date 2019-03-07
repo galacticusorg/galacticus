@@ -333,7 +333,9 @@ contains
     class           (nodeComponentSpheroid         ), pointer       :: spheroid
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    integer                                                         :: i
+    integer                                                         :: i                         , multiplier    , mass              , &
+         &                                                             component
+    logical                                                         :: loaded
     double precision                                                :: radiusProjected           , radiusOuter   , radiusVirial
     type            (fgsl_function                 )                :: integrandFunction
     type            (fgsl_integration_workspace    )                :: integrationWorkspace
@@ -344,13 +346,23 @@ contains
     ! Store property data if we are outputting projected density data.
     if (outputProjectedDensityData) then
        ! Compute required quantities.
+       if (outputProjectedDensityIncludeRadii) then
+          multiplier=2
+       else
+          multiplier=1
+       end if
        darkMatterHaloScale_ => darkMatterHaloScale()
        radiusVirial         = 0.0d0
        if (         virialRadiusIsNeeded) radiusVirial      =  darkMatterHaloScale_%virialRadius(node                    )
        if (                 diskIsNeeded) disk              =>                                   node%disk             ()
        if (             spheroidIsNeeded) spheroid          =>                                   node%spheroid         ()
        if (darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                   node%darkMatterProfile()
+       !$omp parallel do private(radiusProjected,radiusOuter,integrandFunction,integrationWorkspace,mass,component,loaded)
        do i=1,radiiCount
+          ! Extract options,
+          mass     =radii(i)%mass
+          component=radii(i)%component
+          loaded   =radii(i)%loaded
           ! Find the projected radius.
           radiusProjected=radii(i)%value
           select case (radii(i)%type)
@@ -384,22 +396,20 @@ contains
           ! Find the outer radius.
           radiusOuter=darkMatterHaloScale_%virialRadius(node)
           ! Store the projected density.
-          doubleProperty=doubleProperty+1
-          doubleBuffer(doubleBufferCount,doubleProperty)=Integrate(                                                           &
-               &                                                   radiusProjected                                          , &
-               &                                                   radiusOuter                                              , &
-               &                                                   Galacticus_Output_Tree_Projected_Density_Integrand       , &
-               &                                                   integrandFunction                                        , &
-               &                                                   integrationWorkspace                                     , &
-               &                                                   toleranceAbsolute                                 =0.0d+0, &
-               &                                                   toleranceRelative                                 =1.0d-3  &
-               &                                                  )          
+          doubleBuffer(doubleBufferCount,doubleProperty+(i-1)*multiplier+1)=Integrate(                                                           &
+               &                                                                      radiusProjected                                          , &
+               &                                                                      radiusOuter                                              , &
+               &                                                                      Galacticus_Output_Tree_Projected_Density_Integrand       , &
+               &                                                                      integrandFunction                                        , &
+               &                                                                      integrationWorkspace                                     , &
+               &                                                                      toleranceAbsolute                                 =0.0d+0, &
+               &                                                                      toleranceRelative                                 =1.0d-3  &
+               &                                                                     )          
           call Integrate_Done(integrandFunction,integrationWorkspace)
-          if (outputProjectedDensityIncludeRadii) then
-             doubleProperty=doubleProperty+1
-             doubleBuffer(doubleBufferCount,doubleProperty)=radiusProjected
-          end if
+          if (outputProjectedDensityIncludeRadii) doubleBuffer(doubleBufferCount,doubleProperty+(i-1)*multiplier+2)=radiusProjected
        end do
+       !$omp end parallel do
+       doubleProperty=doubleProperty+multiplier*radiiCount
     end if
     return
     
@@ -407,30 +417,29 @@ contains
     
     double precision function Galacticus_Output_Tree_Projected_Density_Integrand(radius)
       !% Integrand function used for computing projected densities.
-      use, intrinsic :: ISO_C_Binding
-      use Galactic_Structure_Densities
+      use Galactic_Structure_Densities, only : Galactic_Structure_Density
       implicit none
       double precision, intent(in   ) :: radius
 
       if (radius <= radiusProjected) then
          Galacticus_Output_Tree_Projected_Density_Integrand=+0.0d0
       else
-         Galacticus_Output_Tree_Projected_Density_Integrand=+2.0d0                                                        &
-              &                                             *radius                                                       &
-              &                                             /sqrt(                                                        &
-              &                                                   +radius         **2                                     &
-              &                                                   -radiusProjected**2                                     &
-              &                                             )                                                             &
-              &                                             *Galactic_Structure_Density(                                  &
-              &                                                                         node                            , &
-              &                                                                         [                                 &
-              &                                                                          radius                         , &
-              &                                                                          0.0d0                          , &
-              &                                                                          0.0d0                            &
-              &                                                                         ]                               , &
-              &                                                                         componentType=radii(i)%component, &
-              &                                                                         massType     =radii(i)%mass     , &
-              &                                                                         haloLoaded   =radii(i)%loaded     &
+         Galacticus_Output_Tree_Projected_Density_Integrand=+2.0d0                                               &
+              &                                             *radius                                              &
+              &                                             /sqrt(                                               &
+              &                                                   +radius         **2                            &
+              &                                                   -radiusProjected**2                            &
+              &                                             )                                                    &
+              &                                             *Galactic_Structure_Density(                         &
+              &                                                                         node                   , &
+              &                                                                         [                        &
+              &                                                                          radius                , &
+              &                                                                          0.0d0                 , &
+              &                                                                          0.0d0                   &
+              &                                                                         ]                      , &
+              &                                                                         componentType=component, &
+              &                                                                         massType     =mass     , &
+              &                                                                         haloLoaded   =loaded     &
               &                                                                        )
       end if
       return
