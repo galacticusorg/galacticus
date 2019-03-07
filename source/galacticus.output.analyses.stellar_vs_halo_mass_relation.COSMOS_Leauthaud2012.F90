@@ -344,7 +344,7 @@ contains
        do iBin=1,massHaloCount
           if (self%likelihoodBin <= 0_c_size_t .or. self%likelihoodBin == iBin) then        
              massStellarLogarithmicTarget          (iBin     )=0.16d0
-             massStellarLogarithmicCovarianceTarget(iBin,iBin)=0.04d0
+             massStellarLogarithmicCovarianceTarget(iBin,iBin)=0.04d0**2
           end if
        end do
     else
