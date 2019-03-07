@@ -78,15 +78,20 @@ contains
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
+    use Kind_Numbers           , only : kind_int8
     implicit none
     type            (treeNode                ), intent(inout), target   :: thisNode
-    integer                                   , intent(in   ), optional :: componentType       , massType   , &
-         &                                                                 weightBy            , weightIndex
-    double precision                          , intent(in   ), optional :: fractionalMass      , mass
+    integer                                   , intent(in   ), optional :: componentType                    , massType   , &
+         &                                                                 weightBy                         , weightIndex
+    double precision                          , intent(in   ), optional :: fractionalMass                   , mass
     logical                                   , intent(in   ), optional :: haloLoaded
     class           (darkMatterHaloScaleClass), pointer                 :: darkMatterHaloScale_
     type            (rootFinder              ), save                    :: finder
     !$omp threadprivate(finder)
+    double precision                          , save                    :: radiusPrevious      =-huge(0.0d0)
+    integer         (kind_int8               ), save                    :: uniqueIDPrevious=   -1_kind_int8
+    !$omp threadprivate(radiusPrevious,uniqueIDPrevious)
+    double precision :: radiusGuess
     type            (varying_string          )                          :: message
     character       (len=11                  )                          :: massLabel
 
@@ -107,10 +112,12 @@ contains
     end if
     ! Initialize our root finder.
     if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                                           &
-            &                   rangeExpandUpward          =2.0d0                        , &
-            &                   rangeExpandUpwardSignExpect=rangeExpandSignExpectPositive, &
-            &                   rangeExpandType            =rangeExpandMultiplicative      &
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                   rangeExpandType              =rangeExpandMultiplicative      &
             &                  )
        call finder%rootFunction(Enclosed_Mass_Root                              )
        call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
@@ -128,8 +135,15 @@ contains
        Galactic_Structure_Radius_Enclosing_Mass=0.0d0
        return
     end if
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootRange=[0.0d0,darkMatterHaloScale_%virialRadius(thisNode)])
+    if (thisNode%uniqueID() == uniqueIDPrevious) then
+       radiusGuess          =  radiusPrevious
+    else
+       darkMatterHaloScale_ => darkMatterHaloScale              (        )
+       radiusGuess          =  darkMatterHaloScale_%virialRadius(thisNode)
+    end if
+    Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootGuess=radiusGuess)
+    uniqueIDPrevious                        =thisNode%uniqueID()
+    radiusPrevious                          =Galactic_Structure_Radius_Enclosing_Mass
     return
   end function Galactic_Structure_Radius_Enclosing_Mass
 
