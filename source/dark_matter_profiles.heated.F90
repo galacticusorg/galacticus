@@ -29,8 +29,8 @@
   type, extends(darkMatterProfileClass) :: darkMatterProfileHeated
      !% A dark matter halo profile class implementing heated dark matter halos.
      private
-     class           (darkMatterProfileClass       ), pointer :: darkMatterProfile_ => null()
-     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass       ), pointer :: darkMatterProfile_        => null()
+     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_      => null()
      class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_ => null()
      logical                                                  :: unimplementedIsFatal
      integer         (kind=kind_int8               )          :: lastUniqueID
@@ -331,7 +331,7 @@ contains
     !$omp threadprivate(finder)
 
     ! If profile is unheated, the initial radius equals the final radius.
-    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%unheatedProfile)) then
+    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfile_)) then
        heatedRadiusInitial=radiusFinal
        return
     end if
