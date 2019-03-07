@@ -1725,12 +1725,14 @@ CODE
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
 	    $postContains->[0]->{'content'} .= "      class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."CnstrctrDflt\n\n";
             if ( $requireThreadPublicDefault  == 1 ) {
-		$postContains->[0]->{'content'} .= "      !\$omp critical(".$directive->{'name'}."StateOpInit)\n";
 		$postContains->[0]->{'content'} .= "      !\$ if (.not.allocated(".$directive->{'name'}."DefaultStateOperationID)) then\n";
-		$postContains->[0]->{'content'} .= "      !\$  allocate(".$directive->{'name'}."DefaultStateOperationID(OMP_Get_Max_Threads()))\n";
-		$postContains->[0]->{'content'} .= "      !\$  ".$directive->{'name'}."DefaultStateOperationID=0_c_size_t\n";
-		$postContains->[0]->{'content'} .= "      !\$ end if\n";
+		$postContains->[0]->{'content'} .= "      !\$omp critical(".$directive->{'name'}."StateOpInit)\n";
+		$postContains->[0]->{'content'} .= "      !\$  if (.not.allocated(".$directive->{'name'}."DefaultStateOperationID)) then\n";
+		$postContains->[0]->{'content'} .= "      !\$   allocate(".$directive->{'name'}."DefaultStateOperationID(OMP_Get_Max_Threads()))\n";
+		$postContains->[0]->{'content'} .= "      !\$   ".$directive->{'name'}."DefaultStateOperationID=0_c_size_t\n";
+		$postContains->[0]->{'content'} .= "      !\$  end if\n";
 		$postContains->[0]->{'content'} .= "      !\$omp end critical(".$directive->{'name'}."StateOpInit)\n";
+		$postContains->[0]->{'content'} .= "      !\$ end if\n";
 		my $usesNode =
 		{
 		    type      => "moduleUse",
