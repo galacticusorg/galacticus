@@ -358,7 +358,6 @@ contains
        if (                 diskIsNeeded) disk              =>                                   node%disk             ()
        if (             spheroidIsNeeded) spheroid          =>                                   node%spheroid         ()
        if (darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                   node%darkMatterProfile()
-       !$omp parallel do private(radiusProjected,radiusOuter,integrandFunction,integrationWorkspace,mass,component,loaded)
        do i=1,radiiCount
           ! Extract options,
           mass     =radii(i)%mass
@@ -409,7 +408,6 @@ contains
           call Integrate_Done(integrandFunction,integrationWorkspace)
           if (outputProjectedDensityIncludeRadii) doubleBuffer(doubleBufferCount,doubleProperty+(i-1)*multiplier+2)=radiusProjected
        end do
-       !$omp end parallel do
        doubleProperty=doubleProperty+multiplier*radiiCount
     end if
     return
