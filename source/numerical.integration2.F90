@@ -424,8 +424,14 @@ contains
          &                              )
     self%toleranceAbsolute=0.0d0
     self%toleranceRelative=0.0d0
-    if (present(toleranceAbsolute)) self%toleranceAbsolute=toleranceAbsolute
-    if (present(toleranceRelative)) self%toleranceRelative=toleranceRelative
+    if (present(toleranceAbsolute)) then
+       if (toleranceAbsolute < 0.0d0) call Galacticus_Error_Report('absolute tolerance must be non-negative'//{introspection:location})
+       self%toleranceAbsolute=toleranceAbsolute
+    end if
+    if (present(toleranceRelative)) then
+       if (toleranceRelative < 0.0d0) call Galacticus_Error_Report('relative tolerance must be non-negative'//{introspection:location})
+       self%toleranceRelative=toleranceRelative
+    end if
     return
   end subroutine toleranceSetGeneric
 
@@ -1421,8 +1427,14 @@ contains
     call allocateArray(self%toleranceRelative,[toleranceCount])
     self%toleranceAbsolute=0.0d0
     self%toleranceRelative=0.0d0
-    if (present(toleranceAbsolute)) self%toleranceAbsolute=toleranceAbsolute
-    if (present(toleranceRelative)) self%toleranceRelative=toleranceRelative
+    if (present(toleranceAbsolute)) then
+       if (any(toleranceAbsolute < 0.0d0)) call Galacticus_Error_Report('absolute tolerances must be non-negative'//{introspection:location})
+       self%toleranceAbsolute=toleranceAbsolute
+    end if
+    if (present(toleranceRelative)) then
+       if (any(toleranceRelative < 0.0d0)) call Galacticus_Error_Report('relative tolerances must be non-negative'//{introspection:location})
+       self%toleranceRelative=toleranceRelative
+    end if
     return
   end subroutine tolerancesSetGeneric
   
@@ -1606,16 +1618,16 @@ contains
     class           (integratorMultiVectorizedCompositeGaussKronrod1D), intent(inout)                              :: self
     double precision                                                  , intent(in   )                              :: a                , b
     integer                                                           , intent(  out)                 , optional   :: status
-    double precision                                                  , dimension(self%integrandCount)             :: integral         , error       , &
-         &                                                                                                            errorScale
-    logical                                                           , dimension(self%integrandCount)             :: converged        , mustEvaluate, &
+    double precision                                                  , dimension(self%integrandCount)             :: integral         , error        , &
+         &                                                                                                            errorScale       , errorsMaximum
+    logical                                                           , dimension(self%integrandCount)             :: converged        , mustEvaluate , &
          &                                                                                                            convergedPrevious
     double precision                                                                                               :: midpoint         , errorMaximum
     type            (intervalMultiList                               ), dimension(:)                 , allocatable :: list
     double precision                                                  , dimension(:)                 , allocatable :: listValue
     integer         (c_size_t                                        ), dimension(:)                 , allocatable :: listRank
-    type            (intervalMulti                                   ), pointer                                    :: head             , newInterval1, &
-         &                                                                                                            newInterval2     , current     , &
+    type            (intervalMulti                                   ), pointer                                    :: head             , newInterval1 , &
+         &                                                                                                            newInterval2     , current      , &
          &                                                                                                            previous         , newInterval
     integer         (c_size_t)                                                                                     :: iInterval        , intervalCount
 
@@ -1692,10 +1704,10 @@ contains
                & +newInterval1%error    &
                & +newInterval2%error
           ! Test for convergence.
-          converged=                                                &
-               &  abs(error) < self%toleranceAbsolute               &
-               & .or.                                               &
-               &  abs(error) < self%toleranceRelative*abs(integral)
+          converged=                                           &
+               &  error < self%toleranceAbsolute               &
+               & .or.                                          &
+               &  error < self%toleranceRelative*abs(integral)
        elsewhere
           newInterval1%integral=current%integral/2.0d0
           newInterval2%integral=current%integral/2.0d0
@@ -1714,9 +1726,9 @@ contains
           allocate(listRank (intervalCount))
           newInterval => head
           do iInterval=1_c_size_t,intervalCount
-             list     (iInterval)%interval_ =>            newInterval
-             listValue(iInterval)           =  maxval(abs(newInterval%error/errorScale),mask=.not.converged)
-             newInterval                    =>            newInterval%next
+             list     (iInterval)%interval_ =>        newInterval
+             listValue(iInterval)           =  maxval(newInterval%error/errorScale,mask=.not.converged)
+             newInterval                    =>        newInterval%next
           end do
           listRank    =  Sort_Index_Do(listValue)
           head        => list(listRank(intervalCount))%interval_
@@ -1744,19 +1756,19 @@ contains
              ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack. The sorting is
              ! such that the stack is ordered with the interval for which the scaled error (i.e. error divided by the larger of
              ! the absolute and relative tolerances) of non-converged integrals is descending.
-             current      => head
-             previous     => head
-             errorScale   =  max(                                    &
-                  &            self%toleranceAbsolute              , &
-                  &            self%toleranceRelative*abs(integral)  &
-                  &           )
-             errorMaximum =  maxval(abs(newInterval%error/errorScale),mask=.not.converged)
-             do while (                                                                &
-                  &      associated(    current%next            )                      &
-                  &    .and.                                                           &
-                  &      maxval    (abs(current%error/errorScale),mask=.not.converged) &
-                  &     >                                                              &
-                  &      errorMaximum                                                  &
+             current       =>  head
+             previous      =>  head
+             errorScale    =   max(                                    &
+                  &              self%toleranceAbsolute              , &
+                  &              self%toleranceRelative*abs(integral)  &
+                  &             )
+             errorMaximum  =   max(0.0d0,maxval(newInterval%error/errorScale,mask=.not.converged))
+             errorsMaximum =  +errorScale   &
+                  &           *errorMaximum
+             do while (                                                                 &
+                  &      associated(                     current%next                 ) &
+                  &    .and.                                                            &
+                  &      any       (.not.converged .and. current%error > errorsMaximum) &
                   &   )
                 previous => current
                 current  => current%next
@@ -1764,7 +1776,7 @@ contains
              ! Check if we reached the end of the stack.
              if (.not.associated(current%next)) then
                 ! End of stack reached. Check if new interval goes before or after the final stack entry.
-                if (maxval(abs(current%error/errorScale),mask=.not.converged) > errorMaximum) then
+                if (maxval(current%error/errorScale,mask=.not.converged) > errorMaximum) then
                    ! New interval goes at the end of the stack.
                    current%next => newInterval
                 else
@@ -1934,21 +1946,21 @@ contains
     class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self
     double precision                                                 , intent(in   )                                :: a                , b
     integer                                                          , intent(  out)                   , optional   :: status
-    double precision                                                 , dimension(self%integrandCount  )             :: integral         , error       , &
-         &                                                                                                             errorScale
+    double precision                                                 , dimension(self%integrandCount  )             :: integral         , error        , &
+         &                                                                                                             errorScale       , errorsMaximum
     logical                                                          , dimension(self%integrandCount  )             :: converged        , mustEvaluate, &
          &                                                                                                             convergedPrevious
     double precision                                                 , dimension(                    2)             :: xUnion
     double precision                                                 , dimension(self%integrandCount,2)             :: fUnion
-    double precision                                                 , dimension(self%integrandCount  )             :: fa               , fb          , &
+    double precision                                                 , dimension(self%integrandCount  )             :: fa               , fb           , &
          &                                                                                                             fm
-    double precision                                                                                                :: midpoint         , width       , &
+    double precision                                                                                                :: midpoint         , width        , &
          &                                                                                                             errorMaximum
     type            (intervalMultiList                              ), dimension(:)                   , allocatable :: list
     double precision                                                 , dimension(:)                   , allocatable :: listValue
     integer         (c_size_t                                       ), dimension(:)                   , allocatable :: listRank
-    type            (intervalMulti                                  ), pointer                                      :: head             , newInterval1, &
-         &                                                                                                             newInterval2     , current     , &
+    type            (intervalMulti                                  ), pointer                                      :: head             , newInterval1 , &
+         &                                                                                                             newInterval2     , current      , &
          &                                                                                                             previous         , newInterval
     integer         (c_size_t                                       )                                               :: iInterval        , intervalCount
     type            (varying_string                                 )                                               :: message
@@ -1977,7 +1989,7 @@ contains
     head%integral=+0.5d0             &
          &        *(head%fb+head%fa) &
          &        *(head% b-head% a)
-    head%error   =head%integral
+    head%error   =abs(head%integral)
     ! Initialize current integral and error estimates, and flag that we're not converged.
     integral =head%integral
     error    =head%error
@@ -2106,9 +2118,9 @@ contains
           allocate(listRank (intervalCount))
           newInterval => head
           do iInterval=1_c_size_t,intervalCount
-             list     (iInterval)%interval_ =>            newInterval
-             listValue(iInterval)           =  maxval(abs(newInterval%error/errorScale),mask=.not.converged)
-             newInterval                    =>            newInterval%next
+             list     (iInterval)%interval_ =>        newInterval
+             listValue(iInterval)           =  maxval(newInterval%error/errorScale,mask=.not.converged)
+             newInterval                    =>        newInterval%next
           end do
           listRank    =  Sort_Index_Do(listValue)
           head        => list(listRank(intervalCount))%interval_
@@ -2132,19 +2144,19 @@ contains
           ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack. The sorting is
           ! such that the stack is ordered with the interval for which the scaled error (i.e. error divided by the larger of
           ! the absolute and relative tolerances) of non-converged integrals is descending.
-          current      => head
-          previous     => head
-          errorScale   =  max(                                    &
-               &            self%toleranceAbsolute              , &
-               &            self%toleranceRelative*abs(integral)  &
-               &           )
-          errorMaximum =  maxval(abs(newInterval1%error/errorScale),mask=.not.converged)
-          do while (                                                                &
-               &      associated(    current%next            )                      &
-               &    .and.                                                           &
-               &      maxval    (abs(current%error/errorScale),mask=.not.converged) &
-               &     >                                                              &
-               &      errorMaximum                                                  &
+          current       =>  head
+          previous      =>  head
+          errorScale    =   max(                                    &
+               &              self%toleranceAbsolute              , &
+               &              self%toleranceRelative*abs(integral)  &
+               &             )
+          errorMaximum  =   max(0.0d0,maxval(newInterval1%error/errorScale,mask=.not.converged))
+          errorsMaximum =  +errorScale   &
+               &           *errorMaximum
+          do while (                                                                 &
+               &      associated(                     current%next                 ) &
+               &    .and.                                                            &
+               &      any       (.not.converged .and. current%error > errorsMaximum) &
                &   )
              previous => current
              current  => current%next
@@ -2152,7 +2164,7 @@ contains
           ! Check if we reached the end of the stack.
           if (.not.associated(current%next)) then
              ! End of stack reached. Check if new interval goes before or after the final stack entry.
-             if (maxval(abs(current%error/errorScale),mask=.not.converged) > errorMaximum) then
+             if (maxval(current%error/errorScale,mask=.not.converged) > errorMaximum) then
                 ! New intervals goes at the end of the stack.
                 current%next => newInterval1
              else
