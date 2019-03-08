@@ -27,9 +27,9 @@
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesFixedMass
      !% Implementation of a merger tree masses class which samples masses from a distribution.
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
-     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_ => null()
-     double precision                          , allocatable, dimension(:) :: massTree              , radiusTree
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_   => null()
+     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_   => null()
+     double precision                          , allocatable, dimension(:) :: massTree                        , radiusTree
      integer                                   , allocatable, dimension(:) :: treeCount
      double precision                                                      :: massIntervalFractional
    contains
@@ -53,7 +53,7 @@ contains
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                            :: self
     type            (inputParameters               ), intent(inout)             :: parameters
-    double precision                                , allocatable, dimension(:) :: massTree            , radiusTree
+    double precision                                , allocatable, dimension(:) :: massTree              , radiusTree
     integer                                         , allocatable, dimension(:) :: treeCount
     class           (cosmologyParametersClass      ), pointer                   :: cosmologyParameters_
     class           (darkMatterHaloScaleClass      ), pointer                   :: darkMatterHaloScale_
@@ -105,7 +105,7 @@ contains
     !#   <name>massTree</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(1.0d12,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the masses of halos to insert into the halo mass sample when building halos.</description>
+    !#   <description>Specifies the masses of halos to use when building halos.</description>
     !#   <source>parameters</source>
     !#   <type>float</type>
     !# </inputParameter>
@@ -113,7 +113,7 @@ contains
     !#   <name>treeCount</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(1,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the number of halos to insert into the halo mass sample when building halos.</description>
+    !#   <description>Specifies the number of halos to use when building halos.</description>
     !#   <source>parameters</source>
     !#   <type>float</type>
     !# </inputParameter>
@@ -121,7 +121,7 @@ contains
     !#   <name>radiusTree</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(-1.0d0,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the radii within which halo masses are specified when inserting fixed mass halos into the mass sample when building halos.</description>
+    !#   <description>Specifies the radii within which halo masses are specified when building halos.</description>
     !#   <source>parameters</source>
     !#   <type>float</type>
     !# </inputParameter>
@@ -193,9 +193,18 @@ contains
           ! Set the halo mass.
           call Galacticus_Calculations_Reset(node)
           ! Convert masses to virial masses.
-          call finder%tolerance(1.0d-6,1.0d-6)
-          call finder%rangeExpand(rangeExpandUpward=2.0d0,rangeExpandDownward=0.5d0,rangeExpandType=rangeExpandMultiplicative)
-          call finder%rootFunction(massEnclosed)
+          call finder%tolerance   (                                               &
+               &                   toleranceAbsolute  =1.0d-6                   , &
+               &                   toleranceRelative  =1.0d-6                     &
+               &                  )
+          call finder%rangeExpand (                                               &
+               &                   rangeExpandUpward  =2.0d+0                   , &
+               &                   rangeExpandDownward=0.5d+0                   , &
+               &                   rangeExpandType    =rangeExpandMultiplicative  &
+               &                  )
+          call finder%rootFunction(                                               &
+               &                                       massEnclosed               &
+               &                  )
           self%massTree(i)=finder%find(rootGuess=self%massTree(i))
        end if
     end do
@@ -240,14 +249,17 @@ contains
 
       call basic%massSet(massTree)
       call Galacticus_Calculations_Reset(node)
-      massEnclosed=                                                                           &
-           & +Galactic_Structure_Enclosed_Mass(node,self%radiusTree(i),massType=massTypeDark) &
-           & *  self%cosmologyParameters_%OmegaMatter()                                       &
-           & /(                                                                               &
-           &   +self%cosmologyParameters_%OmegaMatter()                                       &
-           &   -self%cosmologyParameters_%OmegaBaryon()                                       &
-           &  )                                                                               &
-           & -self%massTree(i)
+      massEnclosed=+Galactic_Structure_Enclosed_Mass(                              &
+           &                                                   node              , &
+           &                                                   self%radiusTree(i), &
+           &                                          massType=massTypeDark        &
+           &                                         )                             &
+           &       *  self%cosmologyParameters_%OmegaMatter()                      &
+           &       /(                                                              &
+           &         +self%cosmologyParameters_%OmegaMatter()                      &
+           &         -self%cosmologyParameters_%OmegaBaryon()                      &
+           &        )                                                              &
+           &       -self%massTree(i)
       return
     end function massEnclosed
 
