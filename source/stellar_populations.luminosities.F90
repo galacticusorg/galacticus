@@ -277,9 +277,7 @@ contains
                         &               "::postprocessing:"                                                                         // &
                         &               Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
                         &               "::dependencies:"                                                                           // &
-                        !!AJB HACK
-                        !!&               stellarLuminositiesUniqueLabel                                                              // &
-                        &"UUoROjgX.IwAleNSgirGC0"// &
+                        &               stellarLuminositiesUniqueLabel                                                              // &                        
                         &               ".hdf5"
                    if (File_Exists(luminositiesFileName)) then
                       ! Construct the dataset name.
