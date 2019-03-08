@@ -85,9 +85,9 @@ contains
     character       (len=13                            )                :: label
     !# <constructorAssign variables="velocityCharacteristic_, exponent"/>    
 
-    if (velocityCharacteristic_ <= 0.0d0) then
+    if (velocityCharacteristic_ < 0.0d0) then
        write (label,'(e13.6)') velocityCharacteristic_
-       call Galacticus_Error_Report('characteristic velocity must be positive ['//trim(adjustl(label))//' ≤ 0]'//{introspection:location})
+       call Galacticus_Error_Report('characteristic velocity must be non-negative ['//trim(adjustl(label))//' < 0]'//{introspection:location})
     end if
     return
   end function powerLawConstructorInternal
