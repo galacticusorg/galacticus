@@ -277,7 +277,9 @@ contains
                         &               "::postprocessing:"                                                                         // &
                         &               Stellar_Population_Spectrum_Postprocess_Chain_Methods(postprocessingChainIndex(iLuminosity))// &
                         &               "::dependencies:"                                                                           // &
-                        &               stellarLuminositiesUniqueLabel                                                              // &
+                        !!AJB HACK
+                        !!&               stellarLuminositiesUniqueLabel                                                              // &
+                        &"UUoROjgX.IwAleNSgirGC0"// &
                         &               ".hdf5"
                    if (File_Exists(luminositiesFileName)) then
                       ! Construct the dataset name.
@@ -473,16 +475,16 @@ contains
     use Galacticus_Error
     use Numerical_Interpolation
     implicit none
-    integer                                                                                    , intent(in   ) :: filterIndex                  (:), imfIndex                   , &
-         &                                                                                                        luminosityIndex              (:), postprocessingChainIndex(:)
-    double precision                                                                           , intent(in   ) :: age                          (:), redshift                (:)
-    type            (abundances                )                                               , intent(in   ) :: abundancesStellar
-    double precision                                         , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
-    double precision                                         , dimension(0:1                  )                :: hAge                            , hMetallicity
-    integer         (c_size_t                  )                                                               :: iAge                            , iLuminosity                , &
-         &                                                                                                        iMetallicity                    , jAge                       , &
-         &                                                                                                        jMetallicity
-    double precision                                                                                           :: ageLast                         , metallicity
+    integer                                                       , intent(in   ) :: imfIndex
+    integer                     , dimension( :                   ), intent(in   ) :: filterIndex                  , luminosityIndex, &
+         &                                                                           postprocessingChainIndex
+    double precision            , dimension( :                   ), intent(in   ) :: age                          , redshift
+    type            (abundances)                                  , intent(in   ) :: abundancesStellar
+    double precision            , dimension(size(luminosityIndex))                :: Stellar_Population_Luminosity
+    double precision            , dimension(0:1                  )                :: hAge                         , hMetallicity
+    integer         (c_size_t  )                                                  :: iAge                         , iMetallicity   , &
+         &                                                                           iLuminosityStart             , iLuminosityEnd
+    double precision                                                              :: metallicity
 
     ! Tabulate the luminosities.
     call Stellar_Population_Luminosity_Tabulate(luminosityIndex,filterIndex,postprocessingChainIndex,imfIndex,redshift)
@@ -497,44 +499,44 @@ contains
        iMetallicity=luminosityTables(imfIndex)%metallicitiesCount-1
        hMetallicity=[0.0d0,1.0d0]
     else
-       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicity &
-            &,luminosityTables(imfIndex)%interpolationAcceleratorMetallicity,metallicity &
-            &,luminosityTables(imfIndex)%resetMetallicity)
+       iMetallicity=Interpolate_Locate(luminosityTables(imfIndex)%metallicity,luminosityTables(imfIndex)%interpolationAcceleratorMetallicity,metallicity,luminosityTables(imfIndex)%resetMetallicity)
        hMetallicity=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%metallicity ,iMetallicity,metallicity)
     end if
-    ! Do the interpolation.
-    Stellar_Population_Luminosity(:)= 0.0d0
-    ageLast                         =-1.0d0
-    do iLuminosity=1,size(luminosityIndex)
+    ! Do the interpolations.  
+    iLuminosityStart=0
+    do while (iLuminosityStart < size(luminosityIndex))
+       iLuminosityStart=iLuminosityStart+1
+       ! Find all contiguous luminosities at this age.
+       iLuminosityEnd=iLuminosityStart
+       do while (age(iLuminosityEnd) == age(iLuminosityStart) .or. (age(iLuminosityStart) < 0.0d0 .and. age(iLuminosityEnd) < 0.0d0))
+          iLuminosityEnd=iLuminosityEnd+1                       
+          if (iLuminosityEnd > size(luminosityIndex)) exit
+       end do
+       iLuminosityEnd=iLuminosityEnd-1
        ! Only compute luminosities for entries with positive age (negative age implies that the luminosity required is for a
        ! population observed prior to the formation of this population).
-       if (age(iLuminosity) >= 0.0d0) then
-          ! Get interpolation in age if the age for this luminosity differs from the previous one.
-          if (iLuminosity == 1 .or. age(iLuminosity) /= ageLast) then
-             ! Check for out of range age.
-             if (age(iLuminosity) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) then
-                if (stellarPopulationLuminosityMaximumAgeExceededIsFatal) then
-                   call Galacticus_Error_Report('age exceeds the maximum tabulated'//{introspection:location})
-                else
-                   iAge=luminosityTables(imfIndex)%agesCount-1
-                   hAge=[0.0d0,1.0d0]
-                end if
+       if (age(iLuminosityStart) < 0.0d0) then
+          Stellar_Population_Luminosity(iLuminosityStart:iLuminosityEnd)=0.0d0
+       else
+          ! Check for out of range age.
+          if (age(iLuminosityStart) > luminosityTables(imfIndex)%age(luminosityTables(imfIndex)%agesCount)) then
+             if (stellarPopulationLuminosityMaximumAgeExceededIsFatal) then
+                call Galacticus_Error_Report('age exceeds the maximum tabulated'//{introspection:location})
              else
-                iAge=Interpolate_Locate(luminosityTables(imfIndex)%age &
-                     &,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosity),luminosityTables(imfIndex)%resetAge)
-                hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%age,iAge&
-                     &,age(iLuminosity))
+                iAge=luminosityTables(imfIndex)%agesCount-1
+                hAge=[0.0d0,1.0d0]
              end if
-             ageLast=age(iLuminosity)
+          else
+             iAge=Interpolate_Locate                 (luminosityTables(imfIndex)%age,luminosityTables(imfIndex)%interpolationAcceleratorAge,age(iLuminosityStart),luminosityTables(imfIndex)%resetAge)
+             hAge=Interpolate_Linear_Generate_Factors(luminosityTables(imfIndex)%age,iAge                                                  ,age(iLuminosityStart)                                    )
           end if
-          do jAge=0,1
-             do jMetallicity=0,1
-                Stellar_Population_Luminosity(iLuminosity)=Stellar_Population_Luminosity(iLuminosity)&
-                     &+luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosity),iAge +jAge,iMetallicity+jMetallicity)&
-                     &*hAge(jAge)*hMetallicity(jMetallicity)
-             end do
-          end do
+          Stellar_Population_Luminosity(iLuminosityStart:iLuminosityEnd)=                                                                               &
+               & +luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosityStart:iLuminosityEnd),iAge+0,iMetallicity+0)*hAge(0)*hMetallicity(0) &
+               & +luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosityStart:iLuminosityEnd),iAge+0,iMetallicity+1)*hAge(0)*hMetallicity(1) &
+               & +luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosityStart:iLuminosityEnd),iAge+1,iMetallicity+0)*hAge(1)*hMetallicity(0) &
+               & +luminosityTables(imfIndex)%luminosity(luminosityIndex(iLuminosityStart:iLuminosityEnd),iAge+1,iMetallicity+1)*hAge(1)*hMetallicity(1)
        end if
+       iLuminosityStart=iLuminosityEnd
     end do
     call luminosityTableLock%unsetRead()
     ! Prevent interpolation from returning negative fluxes.
@@ -550,16 +552,17 @@ contains
     use Memory_Management
     use Numerical_Interpolation
     implicit none
-    integer                                                                    , intent(in   ) :: filterIndex      (:), imfIndex                   , &
-         &                                                                                        luminosityIndex  (:), postprocessingChainIndex(:)
-    double precision                                                           , intent(in   ) :: redshift         (:)
-    type            (abundances                )                               , intent(in   ) :: abundancesStellar
-    double precision                            , allocatable, dimension(:    ), intent(  out) :: ages
-    double precision                            , allocatable, dimension(:  ,:), intent(  out) :: luminosities
-    double precision                                         , dimension(0:1  )                :: hMetallicity
-    integer         (c_size_t                  )                                               :: iLuminosity         , iMetallicity               , &
-         &                                                                                        jMetallicity
-    double precision                                                                           :: metallicity
+    integer                                                    , intent(in   ) :: imfIndex
+    integer                                  , dimension( :   ), intent(in   ) :: filterIndex             , luminosityIndex, &
+         &                                                                        postprocessingChainIndex
+    double precision                         , dimension( :   ), intent(in   ) :: redshift
+    type            (abundances)                               , intent(in   ) :: abundancesStellar
+    double precision            , allocatable, dimension( :   ), intent(  out) :: ages
+    double precision            , allocatable, dimension( : ,:), intent(  out) :: luminosities
+    double precision                         , dimension(0:1  )                :: hMetallicity
+    integer         (c_size_t  )                                               :: iLuminosity             , iMetallicity   , &
+         &                                                                        jMetallicity
+    double precision                                                           :: metallicity
 
     ! Obtain a read lock on the luminosity tables.
     call luminosityTableLock%setRead()
