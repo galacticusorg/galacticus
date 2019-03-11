@@ -204,8 +204,8 @@ contains
     massFunctionSampleCount=jSample
     if (massFunctionSampleCount < 2) call Galacticus_Error_Report('tabulated mass function sampling density has fewer than 2 non-zero points'//{introspection:location})
     ! Normalize the cumulative probability distribution.
-    massFunctionSampleProbability=+massFunctionSampleProbability                          &
-         &                        /massFunctionSampleProbability(massFunctionSampleCount)
+    massFunctionSampleProbability(1:massFunctionSampleCount)=+massFunctionSampleProbability(1:massFunctionSampleCount) &
+         &                                                   /massFunctionSampleProbability(  massFunctionSampleCount)
     ! Generate a set of points in the cumulative distribution, sort them, and find the mass ranges which they occupy.
     call self%sampleCMF(mass)
     call Sort_Do(mass)
