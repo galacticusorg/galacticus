@@ -289,7 +289,7 @@ contains
     disk     => node%disk    ()
     spheroid => node%spheroid()
     ! Determine output index.
-    output   =  Galacticus_Output_Time_Index(basic%time())
+    output   =  Galacticus_Output_Time_Index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
     luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar()
     luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar()
@@ -316,6 +316,11 @@ contains
          &     .and.                                                                        &
          &      luminosityIonizing(ionizingContinuumHydrogen,:) > luminosityIonizingMinimum
     ! Convert ionizing continuum luminosities from AB units to units of photons s⁻¹.
+
+
+    !! AJB HACK
+write (0,*) luminosityIonizing(1,1) ,luminosityZeroPointAB,plancksConstant,self%filterExtent(2,1),self%filterExtent(1,1)
+
     forall(continuum=1:3)
        luminosityIonizing(continuum,:)=+luminosityIonizing(continuum,:)     &
             &                          *luminosityZeroPointAB               &
@@ -329,6 +334,10 @@ contains
     do component=1,2
        if (isPhysical(component)) then
           call abundancesGas(component)%massToMassFraction(massGas(component))
+
+if (component==1)write (0,*) "mets ",node%index(),abundancesGas(1)%metallicity(),abundancesGas(component)%metallicity(metallicityTypeLogarithmicByMassSolar)
+
+          
           metallicityGas(component)=abundancesGas(component)%metallicity(metallicityTypeLogarithmicByMassSolar)
        else
           metallicityGas(component)=0.0d0
@@ -360,7 +369,7 @@ contains
             &                                 *massSolar                   &
             &                                 /atomicMassUnit              &
             &                                 /atomicMassHydrogen          &
-            &                                )
+            &                                )       
        ! Compute logarithm of Lyman continuum luminosity.
        luminosityLymanContinuum       =+log10(                                                                             luminosityIonizing(ionizingContinuumHydrogen,:))
        ! Compute helium to Lyman continuum luminosity logarithmic ratio.
@@ -442,15 +451,24 @@ contains
           ! Compute the final luminosity in ergs s⁻¹.
           lmnstyEmssnLineExtract=+        lmnstyEmssnLineExtract                                                                              &
                &                 +10.0d0**luminosityLinePerHIIRegion                                                                          &
-               &                 *        countHIIRegion                                                                         (component)  &
-               &                 *exp(                                                                                                        &
-               &                      -stellarSpectraDustAttenuation_%attenuation(                                                            &
-               &                                                                  wavelength      =self               %wavelength(     line), &
-               &                                                                  age             =0.0d0                                    , &
-               &                                                                  vBandAttenuation=depthOpticalDiffuse           (component)  &
-               &                                                                 )                                                            &
-               &                     )
+               &                 *        countHIIRegion                                                                         (component) ! & !! AJB HACK
+               ! &                 *exp(                                                                                                        &
+               ! &                      -stellarSpectraDustAttenuation_%attenuation(                                                            &
+               ! &                                                                  wavelength      =self               %wavelength(     line), &
+               ! &                                                                  age             =0.0d0                                    , &
+               ! &                                                                  vBandAttenuation=depthOpticalDiffuse           (component)  &
+               ! &                                                                 )                                                            &
+               ! &                     )
        end do
+
+
+
+
+
+          !! AJB HACK
+          write (0,*) "PRE ",line,node%index(),lmnstyEmssnLineExtract,countHIIRegion(component),metallicityGas(component),densityHydrogen(component),luminosityLymanContinuum(component),ratioLuminosityHeliumToHydrogen(component),ratioLuminosityOxygenToHydrogen(component)
+
+       
     end do
     return
   end function lmnstyEmssnLineExtract

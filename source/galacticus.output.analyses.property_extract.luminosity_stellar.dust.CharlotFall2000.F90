@@ -196,7 +196,7 @@ contains
     basic                          =>                                  node               %basic              (                             )
     disk                           =>                                  node               %disk               (                             )
     spheroid                       =>                                  node               %spheroid           (                             )
-    i                              =  Galacticus_Output_Time_Index    (basic              %time               (                             ))
+    i                              =  Galacticus_Output_Time_Index    (basic              %time               (                             ),findClosest=.true.)
     luminositiesStellar            =                                   disk               %luminositiesStellar(                             )
     abundancesGas                  =                                   disk               %abundancesGas      (                             )
     call abundancesGas%massToMassFraction(disk    %massGas())
