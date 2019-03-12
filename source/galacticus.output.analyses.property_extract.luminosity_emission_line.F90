@@ -299,7 +299,7 @@ contains
     disk     => node%disk    ()
     spheroid => node%spheroid()
     ! Determine output index.
-    output   =  self%outputTimes_%index(basic%time())
+    output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
     luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar()
     luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar()

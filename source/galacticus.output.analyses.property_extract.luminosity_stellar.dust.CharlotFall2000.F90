@@ -211,7 +211,7 @@ contains
     basic                          =>                         node               %basic              (                             )
     disk                           =>                         node               %disk               (                             )
     spheroid                       =>                         node               %spheroid           (                             )
-    i                              =  self%outputTimes_%index(basic              %time               (                             ))
+    i                              =  self%outputTimes_%index(basic              %time               (                             ),findClosest=.true.)
     luminositiesStellar            =                          disk               %luminositiesStellar(                             )
     abundancesGas                  =                          disk               %abundancesGas      (                             )
     call abundancesGas%massToMassFraction(disk    %massGas())
