@@ -155,7 +155,7 @@ contains
     summationSpecificEnergyIsEverywhereZero =  .true.
     heatSource                              => self%heatSources
     do while (associated(heatSource))
-       if (heatSource%heatSource%specificEnergyIsEverywhereZero(node,darkMatterProfile_)) then
+       if (.not.heatSource%heatSource%specificEnergyIsEverywhereZero(node,darkMatterProfile_)) then
           summationSpecificEnergyIsEverywhereZero=.false.
           exit
        end if
