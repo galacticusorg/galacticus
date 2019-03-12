@@ -162,8 +162,8 @@ contains
     integer(c_size_t                                        )                :: i
     
     basic                    =>                                  node %basic()
-    i                        =  self%outputTimes_%index         (basic%time ()                                                                                                     )
-    luminosityStellarExtract =  Galactic_Structure_Enclosed_Mass(node         ,radiusLarge,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
+    i                        =  self%outputTimes_%index         (basic%time (),findClosest=.true.                                                                                              )
+    luminosityStellarExtract =  Galactic_Structure_Enclosed_Mass(node         ,            radiusLarge,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
     return
   end function luminosityStellarExtract
   
