@@ -31,7 +31,8 @@
      private
      class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: radiusFractionalDecay
+     double precision                                    :: radiusFractionalDecay, alpha, &
+          &                                                 beta                 , gamma
      logical                                             :: unimplementedIsFatal
    contains
      final                                             truncatedExponentialDestructor
@@ -70,7 +71,8 @@ contains
     class           (darkMatterProfileClass               ), pointer       :: darkMatterProfile_
     class           (darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
     logical                                                                :: unimplementedIsFatal
-    double precision                                                       :: radiusFractionalDecay
+    double precision                                                       :: radiusFractionalDecay, alpha, &
+         &                                                                    beta                 , gamma
 
     !# <inputParameter>
     !#   <name>unimplementedIsFatal</name>
@@ -88,24 +90,49 @@ contains
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>alpha</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>Parameter $\alpha$ in the \cite{kazantzidis_2006} truncated profile.</description>
+    !#   <type>float</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>beta</name>
+    !#   <defaultValue>3.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>Parameter $\beta$ in the \cite{kazantzidis_2006} truncated profile.</description>
+    !#   <type>float</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>gamma</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>Parameter $\gamma$ in the \cite{kazantzidis_2006} truncated profile.</description>
+    !#   <type>float</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=darkMatterProfileTruncatedExponential(radiusFractionalDecay,unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_)
+    self=darkMatterProfileTruncatedExponential(radiusFractionalDecay,alpha,beta,gamma,unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterProfile_"  />
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function truncatedExponentialConstructorParameters
 
-  function truncatedExponentialConstructorInternal(radiusFractionalDecay,unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_) result(self)
+  function truncatedExponentialConstructorInternal(radiusFractionalDecay,alpha,beta,gamma,unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily exponentially truncated} dark matter profile class.
     implicit none
     type            (darkMatterProfileTruncatedExponential)                        :: self
     class           (darkMatterProfileClass               ), intent(in   ), target :: darkMatterProfile_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                                       , intent(in   )         :: radiusFractionalDecay
+    double precision                                       , intent(in   )         :: radiusFractionalDecay, alpha, &
+         &                                                                            beta                 , gamma
     logical                                                , intent(in   )         :: unimplementedIsFatal
-    !# <constructorAssign variables="radiusFractionalDecay,unimplementedIsFatal,*darkMatterProfile_,*darkMatterHaloScale_"/>
+    !# <constructorAssign variables="radiusFractionalDecay,alpha,beta,gamma,unimplementedIsFatal,*darkMatterProfile_,*darkMatterHaloScale_"/>
 
     return
   end function truncatedExponentialConstructorInternal
@@ -130,8 +157,7 @@ contains
     double precision                                       , intent(in   ) :: radius
     class           (nodeComponentDarkMatterProfile       ), pointer       :: darkMatterProfile
     double precision                                                       :: radiusVirial, scaleRadius, concentration
-    double precision                                                       :: alpha = 1.0d0, beta = 3.0d0, gamma = 1.0d0
-    double precision                                                       :: kappa, radiusDecay
+    double precision                                                       :: kappa       , radiusDecay
 
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     
@@ -139,8 +165,9 @@ contains
     scaleRadius   =darkMatterProfile%scale()
     concentration =radiusVirial/scaleRadius
 
-    kappa         =(-gamma-beta*concentration**alpha)/(1.0d0+concentration**alpha)+1.0d0/self%radiusFractionalDecay
-    radiusDecay   =self%radiusFractionalDecay*radiusVirial
+    kappa         = -(self%gamma+self%beta*concentration**self%alpha)/(1.0d0+concentration**self%alpha) &
+         &          +1.0d0/self%radiusFractionalDecay
+    radiusDecay   =  self%radiusFractionalDecay*radiusVirial
 
     if      (radius <= radiusVirial) then
        truncatedExponentialDensity=+self%darkMatterProfile_%density(node,radius      )
