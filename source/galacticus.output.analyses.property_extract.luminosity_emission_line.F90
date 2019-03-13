@@ -253,7 +253,7 @@ contains
     double precision                                                , parameter        :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
     double precision                                                , parameter        :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
     double precision                                                , parameter        :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
-    double precision                                                , parameter        :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻³
+    double precision                                                , parameter        :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
     double precision                                                , parameter        :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
     double precision                                                , parameter        :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
     double precision                                                , parameter        :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
@@ -344,7 +344,10 @@ contains
           metallicityGas(component)=0.0d0
        end if
     end do
-    ! Compute the (logarithm of) hydrogen density, based on the model of Krumholz, McKee, & Tumlinson (2009) for molecular cloud properties.
+    ! Compute the (logarithm of) hydrogen density, based on the model of Krumholz, McKee, & Tumlinson (2009) for molecular cloud
+    ! properties. The assumption is that clouds have a mean surface density, Σ, which is the larger of the gas surface density and
+    ! the critical density. Assuming spherical clouds, with a mass, M, that scales with the gas density, then we can determine
+    ! their radius, r, from that fact that Σ=M/πr², and from this determine their volume density ρ=3M/4πr³.
     densitySurfaceGas=+0.0d0
     where (isPhysical)
        densitySurfaceGas              =+massGas                            &
