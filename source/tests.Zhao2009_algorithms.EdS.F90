@@ -26,7 +26,6 @@ program Test_Zhao2009_Flat
   !% comparison tolerances are relatively large since we have not attempted to match details (such as critical density
   !% calculation) with ``{\normalfont \ttfamily mandc}''.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Dark_Matter_Profiles_Concentration
   use Dark_Matter_Halo_Mass_Accretion_Histories
@@ -58,10 +57,6 @@ program Test_Zhao2009_Flat
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.Zhao2009_algorithms.EdS.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Zhao et al. 2009 algorithms: Einstein-de Sitter cosmology")
 

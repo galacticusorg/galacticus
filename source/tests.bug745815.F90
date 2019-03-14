@@ -23,7 +23,6 @@ program Tests_Bug745815
   use Unit_Tests
   use Input_Parameters
   use ISO_Varying_String
-  use Memory_Management
   use Galacticus_Nodes   , only : treeNode, treeNodeList, mergerTree, treeNode
   use Kind_Numbers
   use Merger_Tree_Walkers
@@ -39,11 +38,7 @@ program Tests_Bug745815
   type   (mergerTreeWalkerAllNodes)          :: treeWalker
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.bug745815.size')
-
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)  
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Bug #745815: Node skip during tree-walk")
 

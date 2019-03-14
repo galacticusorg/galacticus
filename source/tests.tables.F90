@@ -23,7 +23,6 @@ program Test_Tables
   !% Tests that tables work correctly.
   use Unit_Tests
   use Tables
-  use Memory_Management
   use Array_Utilities
   use Galacticus_Display
   implicit none
@@ -38,9 +37,6 @@ program Test_Tables
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.tables.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tables")
 

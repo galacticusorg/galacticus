@@ -24,7 +24,6 @@ program Simple_Merger_Tree_File_Maker
   use Merger_Tree_Data_Structure
   use Merger_Trees_Simple
   use Command_Arguments
-  use Memory_Management
   use ISO_Varying_String
   use Input_Parameters
   use HDF5
@@ -34,9 +33,6 @@ program Simple_Merger_Tree_File_Maker
   type     (mergerTreeData ) :: mergerTrees
   type     (varying_string ) :: parameterFile
   type     (inputParameters) :: parameters
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('Simple_Merger_Tree_File_Maker.size')
 
   ! Get the name of the input and output files.
   if (Command_Argument_Count() < 4 .or. Command_Argument_Count() > 6) stop "Usage: Simple_Tree_File_Maker.exe <nodesFile> <outputFile> <outputFormat> <parameterFile> [<hdfChunkSize> [hdfCompressionLevel]]"

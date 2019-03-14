@@ -27,7 +27,6 @@ program Tests_Spherical_Collapse_Dark_Energy_Open
   use Input_Parameters
   use ISO_Varying_String
   use Cosmology_Functions
-  use Memory_Management
   use Numerical_Constants_Math
   use Cosmological_Density_Field
   use Linear_Growth
@@ -47,9 +46,6 @@ program Tests_Spherical_Collapse_Dark_Energy_Open
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.spherical_collapse.dark_energy.open.size')
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (open cosmology)")

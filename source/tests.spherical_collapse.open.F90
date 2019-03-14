@@ -26,7 +26,6 @@ program Tests_Spherical_Collapse_Open
   use Input_Parameters
   use ISO_Varying_String
   use Cosmology_Functions
-  use Memory_Management
   use Virial_Density_Contrast
   use Numerical_Constants_Math
   use Galacticus_Display
@@ -45,9 +44,6 @@ program Tests_Spherical_Collapse_Open
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.spherical_collapse.open.size')
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: open cosmology")

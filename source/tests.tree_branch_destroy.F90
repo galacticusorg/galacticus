@@ -19,7 +19,6 @@
 
 program Tests_Tree_Branch_Destroy
   use Unit_Tests
-  use Memory_Management
   use Galacticus_Nodes  , only : mergerTree, treeNodeList, treeNode
   use Kind_Numbers
   use Input_Parameters
@@ -33,8 +32,6 @@ program Tests_Tree_Branch_Destroy
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.tree_branch_destroy.size')
   ! Initialize parameters.
   parameters=inputParameters()
   call parameters%markGlobal()

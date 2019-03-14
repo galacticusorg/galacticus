@@ -32,6 +32,9 @@ module Memory_Management
   public :: Memory_Usage_Get
 #endif
 
+  ! Code memory size initialization status.
+  logical                 :: codeMemoryUsageInitialized=.false.
+  
   ! Count of number of successive decreases in memory usage.
   integer                 :: successiveDecreaseCount=0
 
@@ -79,12 +82,20 @@ module Memory_Management
   end interface
 #endif
 
+  ! Interface to getpagesize() function.
+  interface
+     function getPageSize() bind(c)
+       import c_int
+       integer(c_int) :: getPageSize
+     end function getPageSize
+  end interface
+  
   ! Include automatically generated inferfaces.
   include 'utility.memory_management.preContain.inc'
 
 contains
 
-  subroutine Memory_Usage_Report
+  subroutine Memory_Usage_Report()
     !% Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
     !% units prior to output.
     use ISO_Varying_String
@@ -95,6 +106,7 @@ contains
     type            (varying_string)            :: headerText                 , usageText
     character       (len=1         )            :: join
 
+    call Code_Memory_Usage()
     issueNewReport=.false.
     usedMemory%memoryType(memoryTypeTotal)%usage=sum(usedMemory%memoryType(1:memoryTypeTotal-1)%usage)
     if (usageAtPreviousReport <= 0) then ! First call, so always report memory usage.
@@ -192,43 +204,29 @@ contains
     return
   end subroutine Set_Memory_Prefix
 
-  subroutine Code_Memory_Usage(codeSizeFile)
-    !% If present reads the file {\normalfont \ttfamily $\langle$executable$\rangle$.size} to determine the amount
-    !% of memory the {\normalfont \ttfamily $\langle$executable$\rangle$.exe} code needs before other memory is
-    !% allocated. This is stored to allow an accurate calculation of the
-    !% memory used by the code.
-    !%
-    !% The {\normalfont \ttfamily $\langle$executable$\rangle$.size} file is made by running the Perl script {\normalfont \ttfamily Find\_Executable\_Size.pl} (which is done
-    !% automatically when the executable is built by {\normalfont \ttfamily make}).
-    use ISO_Varying_String
-    use Galacticus_Display
-    use Galacticus_Paths
+  subroutine Code_Memory_Usage()
+    !% Determines the size of the ``text'' (i.e. code) size.
     implicit none
-    character       (len=*         ), intent(in   ) :: codeSizeFile
-    integer                                         :: ioError              , unitNumber
-    double precision                                :: dummy
-    character       (len=80        )                :: line
-    type            (varying_string)                :: codeSizeFileExtension
+    character(len=80) :: procFileName, pid
+    integer           :: ioStatus    , proc         , &
+         &               pagesTotal  , pagesResident, &
+         &               pagesShared , pagesText    , &
+         &               pagesData   , pagesLibrary , &
+         &               pagesDirty
 
-    usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
-    codeSizeFileExtension=char(galacticusPath(pathTypeExec))//BUILDPATH//'/'//trim(codeSizeFile)
-    open (newunit=unitNumber,file=char(codeSizeFileExtension),iostat=ioError,status='old',form='formatted')
-    read (unitNumber,'(a80)',iostat=ioError) line ! Read header line.
-    line=adjustl(line)
-    if (ioError == 0) then
-       if      (line(1:4) == "text"  ) then
-          read (unitNumber,*) dummy,dummy,dummy,usedMemory%memoryType(memoryTypeCode)%usage
-       else if (line(1:6) == "__TEXT") then
-          read (unitNumber,*) usedMemory%memoryType(memoryTypeCode)%usage
-       else
-          call Galacticus_Display_Message('Code size file ['//codeSizeFileExtension//'] format is not recognized')
+    if (.not.codeMemoryUsageInitialized) then
+       usedMemory%memoryType(memoryTypeCode)%usage=0  ! Default value in case size file is unreadable.
+       write (pid         ,'(i12)'  ) getPID()
+       write (procFileName,'(a,a,a)') '/proc/',trim(adjustl(pid)),'/statm'
+       open (newUnit=proc,file=procFileName,status='old',form='formatted',ioStat=ioStatus)
+       if (ioStatus == 0) then
+          read (proc,*) pagesTotal,pagesResident,pagesShared,pagesText,pagesData,pagesLibrary,pagesDirty
+          if (ioStatus == 0) usedMemory%memoryType(memoryTypeCode)%usage=pagesText*getPageSize()
        end if
-       close (unitNumber)
-       return
-    else
-       call Galacticus_Display_Message('Code size file ['//codeSizeFileExtension//'] not present or unreadable: can be made using scripts/build/executableSize.pl')
-       return
-    endif
+       close(proc)
+       codeMemoryUsageInitialized=.true.
+    end if
+    return
   end subroutine Code_Memory_Usage
 
   subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount,file,line)

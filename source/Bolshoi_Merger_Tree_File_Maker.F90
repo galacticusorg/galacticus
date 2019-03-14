@@ -28,15 +28,11 @@ program Bolshoi_Merger_Tree_File_Maker
   use Merger_Tree_Data_Structure
   use Merger_Trees_Bolshoi
   use Command_Arguments
-  use Memory_Management
   use HDF5
   implicit none
   integer                   :: hdfChunkSize=1024, hdfCompressionLevel=9
   character(len=1024      ) :: nodesFile    , outputFile       , outputFormat
   type     (mergerTreeData) :: mergerTrees
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('Bolshoi_Merger_Tree_File_Maker.size')
 
   ! Get the name of the input and output files.
   if (Command_Argument_Count() < 3 .or. Command_Argument_Count() > 5) stop "Usage: Bolshoi_Merger_Tree_File_Maker.exe <nodesFile> <outputFile> <outputFormat> [<hdfChunkSize> [hdfCompressionLevel]]"
