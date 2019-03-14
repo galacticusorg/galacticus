@@ -29,7 +29,6 @@ program Test_Nodes
   use ISO_Varying_String
   use Input_Parameters
   use Array_Utilities
-  use Memory_Management
   use Test_Nodes_Tasks
   use Galacticus_Display
   implicit none
@@ -45,10 +44,6 @@ program Test_Nodes
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.nodes.size')
-  
   ! Open the parameter file.
   parameterFile='testSuite/parameters/nodes/nodes.xml'
   parameters=inputParameters(parameterFile)

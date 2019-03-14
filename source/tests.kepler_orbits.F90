@@ -22,7 +22,6 @@ program Tests_Kepler_Orbits
   use Unit_Tests
   use Input_Parameters
   use ISO_Varying_String
-  use Memory_Management
   use Kepler_Orbits
   use Numerical_Constants_Physical
   use Galacticus_Display
@@ -34,10 +33,6 @@ program Tests_Kepler_Orbits
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.kepler_orbits.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Orbital parameter conversions")
 

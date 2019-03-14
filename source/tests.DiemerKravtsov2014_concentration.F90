@@ -22,7 +22,6 @@
 program Test_DiemerKravtsov2014_Concentration
   !% Tests the \cite{diemer_universal_2014} halo concentration algorithm. Values of concentration are taken from their \href{http://www.benediktdiemer.com/wp-content/uploads/2014/07/Concentration_WMAP7_median.txt}{website}.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
@@ -56,9 +55,6 @@ program Test_DiemerKravtsov2014_Concentration
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.DiemerKravtsov2014_concentration.size')
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("DiemerKravtsov2014 halo concentration algorithm")
   ! Test DiemerKravtsov2014 halo concentration algorithm.

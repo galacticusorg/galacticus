@@ -23,29 +23,38 @@ module Galacticus_Versioning
   !% Implements writing of the version number and run time to the \glc\ output file.
   implicit none
   private
-  public :: Galacticus_Version_Output, Galacticus_Version
-
-  ! Define the version.
-  integer, parameter :: versionMajor   =0
-  integer, parameter :: versionMinor   =9
-  integer, parameter :: versionRevision=4
+  public :: Galacticus_Version_Output, Galacticus_Version_String, Galacticus_Version
 
   ! Include the automatically generated Mercurial revision number.
   include 'galacticus.output.version.revision.inc'
 
 contains
+  
+  subroutine Galacticus_Version(hgRevision_,hgHash_,hgBranch_,buildTime_)
+    !% Return version information
+    use ISO_Varying_String
+    implicit none
+    integer                  , intent(  out), optional :: hgRevision_
+    character(len=12        ), intent(  out), optional :: hgHash_
+    type     (varying_string), intent(  out), optional :: hgBranch_  , buildTime_
 
-  function Galacticus_Version()
+    if (present(hgRevision_)) hgRevision_=     hgRevision
+    if (present(hgHash_    )) hgHash_    =     hgHash
+    if (present(hgBranch_  )) hgBranch_  =trim(hgBranch  )
+    if (present(buildTime_ )) buildTime_ =trim(buildTime )
+    return
+  end subroutine Galacticus_Version
+  
+  function Galacticus_Version_String()
     !% Returns a string describing the version of \glc.
     use ISO_Varying_String
     use String_Handling
     implicit none
-    type(varying_string) :: Galacticus_Version
+    type(varying_string) :: Galacticus_Version_String
 
-    Galacticus_Version="v"
-    Galacticus_Version=Galacticus_Version//versionMajor//"."//versionMinor//"."//versionRevision//".r"//hgRevision//":"//hgHash
+    Galacticus_Version_String=var_str("revision ")//hgRevision//":"//hgHash//" (branch: "//trim(hgBranch)//"; build time: "//trim(buildTime)//")"
     return
-  end function Galacticus_Version
+  end function Galacticus_Version_String
 
   !# <outputFileOpenTask>
   !#  <unitName>Galacticus_Version_Output</unitName>
@@ -73,14 +82,13 @@ contains
     call galacticusOutputFile%writeAttribute(generate_UUID(4),'UUID')
 
     ! Create a group for version information.
+    runTime     =Formatted_Date_and_Time()
     versionGroup=galacticusOutputFile%openGroup('Version','Version and timestamp for this model.')
-    call versionGroup%writeAttribute(versionMajor   ,'versionMajor'   )
-    call versionGroup%writeAttribute(versionMinor   ,'versionMinor'   )
-    call versionGroup%writeAttribute(versionRevision,'versionRevision')
-    call versionGroup%writeAttribute(hgRevision     ,'hgRevision'     )
-    call versionGroup%writeAttribute(hgHash         ,'hgHash'         )
-    runTime=Formatted_Date_and_Time()
-    call versionGroup%writeAttribute(runTime        ,'runTime'        )
+    call versionGroup%writeAttribute(     hgRevision ,'hgRevision'     )
+    call versionGroup%writeAttribute(     hgHash     ,'hgHash'         )
+    call versionGroup%writeAttribute(trim(hgBranch  ),'hgBranch'       )
+    call versionGroup%writeAttribute(trim(buildTime ),'buildTime'      )
+    call versionGroup%writeAttribute(     runTime    ,'runTime'        )
 
     ! Check if a galacticusConfig.xml file exists.
     if (File_Exists("galacticusConfig.xml")) then

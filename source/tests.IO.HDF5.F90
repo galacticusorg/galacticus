@@ -24,7 +24,6 @@ program Tests_IO_HDF5
   use Kind_Numbers
   use Unit_Tests
   use ISO_Varying_String
-  use Memory_Management
   use Galacticus_Display
   implicit none
   type            (hdf5Object    ), target                                 :: datasetObject                  , fileObject           , &
@@ -65,9 +64,6 @@ program Tests_IO_HDF5
   double precision                , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
   type            (varying_string), allocatable, dimension( :)             :: datasetNames
   type            (varying_string)             , dimension(17)             :: datasetNamesReference
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.IO.HDF5.size')
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)

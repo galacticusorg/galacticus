@@ -25,11 +25,10 @@ program Test_Parameters
   use               Unit_Tests
   use               IO_HDF5
   use               ISO_Varying_String
-  use               Memory_Management
   use               Input_Parameters
   use               Cosmology_Parameters
   use               Cosmological_Density_Field
-  use Galacticus_Display
+  use               Galacticus_Display
   implicit none
   type (hdf5Object                   )          :: outputFile
   type (varying_string               )          :: parameterFile
@@ -39,9 +38,6 @@ program Test_Parameters
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.parameters.size')
   ! Open an output file.
   call outputFile%openFile("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
   parameterFile  ='testSuite/parameters/testsParameters.xml'

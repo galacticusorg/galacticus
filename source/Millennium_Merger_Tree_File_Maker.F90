@@ -26,16 +26,12 @@ program Millennium_Merger_Tree_File_Maker
   use Merger_Tree_Data_Structure
   use Merger_Trees_Millennium
   use Command_Arguments
-  use Memory_Management
   use HDF5
   implicit none
   integer                   :: generation   , hdfChunkSize=1024, hdfCompressionLevel=9
   character(len=1024      ) :: nodesFile    , outputFile       , outputFormat          , &
        &                       particlesFile
   type     (mergerTreeData) :: mergerTrees
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('Millennium_Merger_Tree_File_Maker.size')
 
   ! Get the name of the input and output files.
   if (Command_Argument_Count() < 5 .or. Command_Argument_Count() > 7) stop "Usage: Merger_Tree_File_Maker.exe <nodesFile> <particlesFile> <outputFile> <outputFormat> <generation> [<hdfChunkSize> [hdfCompressionLevel]]"

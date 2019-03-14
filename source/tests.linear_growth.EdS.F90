@@ -24,7 +24,6 @@ program Tests_Linear_Growth_EdS
   use ISO_Varying_String
   use Linear_Growth
   use Cosmology_Functions
-  use Memory_Management
   use Galacticus_Display
   implicit none
   double precision                         , dimension(8), parameter :: redshift                 =[0.0d0,1.0d0,3.0d0,9.0d0,30.0d0,100.0d0,300.0d0,1000.0d0]
@@ -38,10 +37,6 @@ program Tests_Linear_Growth_EdS
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.linear_growth.EdS.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: Einstein-de Sitter")
 

@@ -283,6 +283,7 @@ contains
     !# <constructorAssign variables="evolveSingleForest, evolveSingleForestSections, evolveSingleForestMassMinimum, walltimeMaximum, limitLoadAverage, loadAverageMaximum, threadLock, threadsMaximum, threadLockName, suspendToRAM, suspendPath, *mergerTreeConstructor_, *mergerTreeOperator_, *evolveForestsWorkShare_, *outputTimes_, *universeOperator_, *mergerTreeEvolver_, *mergerTreeOutputter_"/>
 
     self%parameters=inputParameters(parameters)
+    call self%parameters%parametersGroupCopy(parameters)
     return
   end function evolveForestsConstructorInternal
 

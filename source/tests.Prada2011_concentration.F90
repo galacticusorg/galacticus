@@ -22,7 +22,6 @@
 program Test_Prada2011_Concentration
   !% Tests the \cite{prada_halo_2011} halo concentration algorithm. Values of concentration were read from their Figure~12.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
@@ -46,10 +45,6 @@ program Test_Prada2011_Concentration
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.Prada2011_concentration.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Prada2011 halo concentration algorithm")
 
