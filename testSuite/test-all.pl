@@ -469,8 +469,9 @@ my %testBuildJob =
      launchFile   => "testSuite/compileTests.pbs",
      label        => "testSuite-compileTests"    ,
      logFile      => "testSuite/compileTests.log",
-     command      =>  $compileCommand,
-     ppn          => 16,
+     command      =>  $compileCommand            ,
+     ppn          => 16                          ,
+     tracejob     => "yes"                       ,
      onCompletion => 
      {
 	 function  => \&testCompileFailure,
@@ -486,7 +487,7 @@ my @launchFiles;
 @jobStack = ();
 foreach my $executable ( @executablesToRun ) {
     # Generate the job.
-    if ( -e $executable->{'name'} ) {
+    if ( exists($executable->{'name'}) ) {
 	(my $label = $executable->{'name'}) =~ s/\./_/;
 	my $ppn = exists($executable->{'ppn'}) ? $executable->{'ppn'} : 1;
 	my $launchFile = "testSuite/".$label.".pbs";
@@ -497,6 +498,7 @@ foreach my $executable ( @executablesToRun ) {
 	     label        => "testSuite-".$label       ,
 	     logFile      => "testSuite/".$label.".log",
 	     ppn          => $ppn                      ,
+	     tracejob     => "yes"                     ,
 	     onCompletion => 
 	     {
 		 function  => \&testFailure,
@@ -513,7 +515,6 @@ foreach my $executable ( @executablesToRun ) {
 	push(@jobStack,\%job);
     }
 }
-
 &Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@jobStack);
 unlink(@launchFiles);
 
@@ -532,7 +533,8 @@ foreach $mpi ( "noMPI", "MPI" ) {
 	 label        => "testSuite-compileGalacticus".$mpi       ,
 	 logFile      => "testSuite/compileGalacticus".$mpi.".log",
 	 command      => "rm *.exe; make ".($mpi eq "MPI" ? "GALACTICUS_BUILD_OPTION=MPI" : "")." -j16 all; cp Galacticus.exe Galacticus_".$mpi.".exe",
-	 ppn          => 16,
+	 ppn          => 16                                       ,
+	 tracejob     => "yes"                                    ,
 	 onCompletion => 
 	 {
 	     function  => \&testCompileFailure,
@@ -656,7 +658,8 @@ sub runTestScript {
 			label        => "testSuite-".$label       ,
 			logFile      => "testSuite/".$label.".log",
 			command      => "cd testSuite; ".$fileName,
-			ppn          => 16,
+			ppn          => 16                        ,
+			tracejob     => "yes"                     ,
 			onCompletion => 
 			{
 			    function  => \&testFailure,
