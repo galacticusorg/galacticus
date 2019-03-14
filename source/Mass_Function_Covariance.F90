@@ -23,7 +23,6 @@ program Mass_Function_Covariance
   !% Compute covariance matrices for mass function estimates.
   use IO_HDF5
   use ISO_Varying_String
-  use Memory_Management
   use Galacticus_Error
   use Input_Parameters
   use Statistics_Mass_Function_Covariance
@@ -41,9 +40,6 @@ program Mass_Function_Covariance
   integer                                                           :: massFunctionCovarianceBinCount
   double precision                                                  :: massFunctionCovarianceRedshiftMinimum,massFunctionCovarianceRedshiftMaximum,&
        &massFunctionCovarianceMassMinimum ,massFunctionCovarianceMassMaximum, completenessErrorObserved
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('Mass_Function_Covariance.size')
 
   ! Get the name of the parameter file from the first command line argument.
   call Get_Command_Argument(1,parameterFileCharacter)

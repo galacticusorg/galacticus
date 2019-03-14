@@ -30,7 +30,6 @@ program Galacticus
   use Galacticus_HDF5
   use Tasks
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Functions_Global_Utilities
   use Galacticus_Error_Wait
@@ -60,8 +59,6 @@ program Galacticus
 #endif
   ! Register error handlers.
   call Galacticus_Error_Handler_Register()
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('Galacticus.size')
   ! Get the name of the parameter file from the first command line argument.
   call Get_Command_Argument(1,parameterFileCharacter)
   if (len_trim(parameterFileCharacter) == 0) call Galacticus_Error_Report(message="Usage: Galacticus.exe <parameterFile>")

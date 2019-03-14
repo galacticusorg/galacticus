@@ -381,8 +381,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # file.
 %.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
-	 ./scripts/build/executableSize.pl $*.exe$(SUFFIX) $*.size
-	 ./scripts/build/parameterDependencies.pl `pwd` $*.exe
+	./scripts/build/parameterDependencies.pl `pwd` $*.exe
 
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: %.o %.d %.dd %.m %.make %.Inc $(BUILDPATH)/%.p.F90

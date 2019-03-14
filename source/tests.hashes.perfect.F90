@@ -24,8 +24,8 @@ program Test_Perfect_Hashes
   use Unit_Tests
   use Hashes_Perfect
   use Kind_Numbers
-  use Memory_Management
   use Galacticus_Display
+  use Memory_Management
   implicit none
   integer                , parameter                        :: keyCount   =11
   integer(kind=kind_int8)                                   :: i
@@ -36,10 +36,6 @@ program Test_Perfect_Hashes
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.hashes.perfect.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Perfect hashes")
 

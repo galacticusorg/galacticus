@@ -22,7 +22,6 @@ program Tests_Sigma
   use Unit_Tests
   use Input_Parameters
   use ISO_Varying_String
-  use Memory_Management
   use Cosmological_Density_Field
   use Power_Spectrum_Window_Functions
   use Power_Spectra_Primordial
@@ -52,9 +51,6 @@ program Tests_Sigma
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.sigma.size')
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Power spectrum: σ(M)")
   ! Open the parameter file.

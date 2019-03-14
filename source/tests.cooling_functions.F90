@@ -22,7 +22,6 @@
 program Test_Cooling_Functions
   !% Tests cooling function functionality.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Unit_Tests
   use Galacticus_Paths
@@ -53,9 +52,6 @@ program Test_Cooling_Functions
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.cooling_functions.size')
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Cooling functions")
   ! Read in controlling parameters.

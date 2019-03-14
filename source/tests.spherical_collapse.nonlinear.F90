@@ -21,7 +21,6 @@
 
 program Tests_Spherical_Collapse_NonLinear
   !% Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
-  use Memory_Management
   use Tables
   use Unit_Tests
   use Input_Parameters
@@ -44,9 +43,6 @@ program Tests_Spherical_Collapse_NonLinear
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.spherical_collapse.nonlinear.size')
   ! Initialize cosmology.
   cosmologyParameters_=cosmologyParametersSimple     (                                      &
        &                                              OmegaMatter    = 1.00d0             , &

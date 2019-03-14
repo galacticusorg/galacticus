@@ -22,7 +22,6 @@
 program Test_Correa2015_MAH
   !% Tests the \cite{correa_accretion_2015} halo mass formation history algorithm.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Dark_Matter_Halo_Mass_Accretion_Histories
   use Cosmology_Functions
@@ -43,9 +42,6 @@ program Test_Correa2015_MAH
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.mass_accretion_history.Correa2015.size')
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Correa et al. 2015 mass accretion history algorithms")
   ! Test Correa et al. 2015 algorithm.
