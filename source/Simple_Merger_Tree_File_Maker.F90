@@ -44,7 +44,7 @@ program Simple_Merger_Tree_File_Maker
   if (Command_Argument_Count() == 6) call Get_Argument(6,hdfCompressionLevel)
 
   ! Open the parameter file.
-  parameters=inputParameters(parameterFile,allowedParametersFile='Simple_Merger_Tree_File_Maker.parameters.xml')
+  parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
 
   ! Process file.

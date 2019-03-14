@@ -47,7 +47,7 @@ program Mass_Function_Covariance
   parameterFile=parameterFileCharacter
 
   ! Open the parameter file.
-  parameters=inputParameters(parameterFile,outputParametersGroup=outputFile,allowedParametersFile='Mass_Function_Covariance.parameters.xml')
+  parameters=inputParameters(parameterFile,outputParametersGroup=outputFile)
   call parameters%markGlobal()
 
   ! Get the name of the output file.
