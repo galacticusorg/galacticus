@@ -488,17 +488,14 @@ contains
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                      , noBuild
-    type     (node           ), pointer                               :: thisNode                      , allowedParameterDoc    , &
-         &                                                               versionElement
-    type     (nodeList       ), pointer                               :: allowedParameterList
+    type     (node           ), pointer                               :: thisNode                      , versionElement
     type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined, allowedParameterNamesTmp
-    integer                                                           :: allowedParameterFromFileCount, allowedParameterCount   , &
-         &                                                               errorStatus                  , i
+    integer                                                           :: allowedParameterFromFileCount, allowedParameterCount
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
     !# <optionalArgument name="noOutput" defaultsTo=".false." />
     !# <optionalArgument name="noBuild"  defaultsTo=".false." />
-    
+
     inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)    
