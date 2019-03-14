@@ -64,7 +64,7 @@ program Galacticus
   if (len_trim(parameterFileCharacter) == 0) call Galacticus_Error_Report(message="Usage: Galacticus.exe <parameterFile>")
   parameterFile=parameterFileCharacter
   ! Open the parameter file.
-  parameters=inputParameters(parameterFile,allowedParametersFile='Galacticus.parameters.xml')
+  parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   ! Tell OpenMP that nested parallelism is allowed.
   !$ call OMP_Set_Nested(.true.)

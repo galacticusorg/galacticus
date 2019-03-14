@@ -340,6 +340,14 @@ module Input_Parameters
   
   ! Maximum length allowed for parameter entries.
   integer                 , parameter :: parameterLengthMaximum =  1024
+
+  ! Interface to the (auto-generated) knownParameterNames() function.
+  interface
+     subroutine knownParameterNames(names)
+       import varying_string
+       type(varying_string), dimension(:), allocatable, intent(inout) :: names
+     end subroutine knownParameterNames
+  end interface
   
 contains
 
@@ -361,14 +369,13 @@ contains
     return
   end function inputParametersConstructorNull
   
-  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
+  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorVarStr
     type     (varying_string    )              , intent(in   )           :: xmlString
     character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    character(len=*             )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput
     type     (node              ), pointer                               :: parameterNode
@@ -385,7 +392,6 @@ contains
             &                                                                                                  'parameters'   &
             &                                                                                                 )             , &
             &                                                                allowedParameterNames                          , &
-            &                                                                allowedParametersFile                          , &
             &                                                                outputParametersGroup                          , &
             &                                                                noOutput                                         &
             &                                                               )
@@ -393,7 +399,6 @@ contains
        inputParametersConstructorVarStr=inputParametersConstructorFileVarStr(                                                 &
             &                                                                xmlString                                      , &
             &                                                                allowedParameterNames                          , &
-            &                                                                allowedParametersFile                          , &
             &                                                                outputParametersGroup                          , &
             &                                                                noOutput                                         &
             &                                                               )
@@ -401,28 +406,26 @@ contains
     return
   end function inputParametersConstructorVarStr
 
-  function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
+  function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorFileVarStr
     type     (varying_string    )              , intent(in   )           :: fileName
     character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    character(len=*             )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput
 
     inputParametersConstructorFileVarStr=inputParametersConstructorFileChar(                       &
          &                                                                  char(fileName)       , &
          &                                                                  allowedParameterNames, &
-         &                                                                  allowedParametersFile, &
          &                                                                  outputParametersGroup, &
          &                                                                  noOutput               &
          &                                                                 )
     return
   end function inputParametersConstructorFileVarStr
   
-  function inputParametersConstructorFileChar(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
+  function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a character variable.
     use Galacticus_Error
@@ -432,7 +435,6 @@ contains
     type     (inputParameters)                                        :: inputParametersConstructorFileChar
     character(len=*          )              , intent(in   )           :: fileName
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    character(len=*          )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput
     type     (node           ), pointer                               :: parameterNode
@@ -455,7 +457,6 @@ contains
          &                                                                                              'parameters'   &
          &                                                                                             )             , &
          &                                                            allowedParameterNames                          , &
-         &                                                            allowedParametersFile                          , &
          &                                                            outputParametersGroup                          , &
          &                                                            noOutput                                         &
          &                                                           )
@@ -475,7 +476,7 @@ contains
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput,noBuild)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     use Galacticus_Error
     use Galacticus_Display
@@ -485,7 +486,6 @@ contains
     type     (inputParameters)                                        :: inputParametersConstructorNode
     type     (node           ), pointer     , intent(in   )           :: parametersNode
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    character(len=*          )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                      , noBuild
     type     (node           ), pointer                               :: thisNode                      , allowedParameterDoc    , &
@@ -524,31 +524,9 @@ contains
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.true.
     end if
-    ! Parse allowed parameters file if available.
-    allowedParameterFromFileCount=0
-    allowedParameterCount        =0
-    if (present(allowedParametersFile)) then
-       ! Check if the file exists.
-       if (File_Exists(char(galacticusPath(pathTypeExec))//BUILDPATH//'/'//allowedParametersFile)) then
-          !$omp critical (FoX_DOM_Access)
-          ! Parse the file.
-          allowedParameterDoc => parseFile(char(galacticusPath(pathTypeExec))//BUILDPATH//'/'//allowedParametersFile,iostat=errorStatus)
-          if (errorStatus /= 0) call Galacticus_Error_Report('Unable to parse allowed parameters file'//{introspection:location})
-          ! Extract allowed parameter names to array.
-          allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
-          allowedParameterFromFileCount=getLength(allowedParameterList)
-          allocate(allowedParameterNamesCombined(allowedParameterFromFileCount))
-          do i=0,allowedParameterFromFileCount-1
-             thisNode => item(allowedParameterList,i)
-             allowedParameterNamesCombined(i+1)=getTextContent(thisNode)
-          end do
-          ! Destroy the allowed parameter names document.
-          call destroy(allowedParameterDoc)
-          !$omp end critical (FoX_DOM_Access)
-       else
-          call Galacticus_Display_Message("Allowed parameter file '"//allowedParametersFile//"' is missing - incorrect parameters will not be detected",verbosityWarn)
-       end if
-    end if
+    ! Get allowed parameter names.
+    call knownParameterNames(allowedParameterNamesCombined)
+    allowedParameterFromFileCount=size(allowedParameterNamesCombined)
     ! Add in parameter names explicitly listed.
     if (present(allowedParameterNames)) then
        allowedParameterCount=size(allowedParameterNames)
