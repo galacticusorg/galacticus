@@ -470,7 +470,6 @@ contains
     call hdf5Access%set()
     ! Read the file.
     call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
-    call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     call coolingFunctionFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)
