@@ -23,7 +23,7 @@ program Test_Dark_Matter_Profiles
   !% Tests dark matter profiles.
   use ISO_Varying_String
   use Input_Parameters
-  use Galacticus_Nodes       , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
+  use Galacticus_Nodes       , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
   use Node_Components
   use Unit_Tests
   use Cosmology_Functions
@@ -57,7 +57,9 @@ program Test_Dark_Matter_Profiles
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   ! Initialize node components.
-  call Node_Components_Initialize(parameters)
+  call nodeClassHierarchyInitialize     (parameters)
+  call Node_Components_Initialize       (parameters)
+  call Node_Components_Thread_Initialize(parameters)
   ! Create a node.
   node                      => treeNode                                    (                                )
   ! Create components.
@@ -128,5 +130,7 @@ program Test_Dark_Matter_Profiles
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()
   ! Uninitialize node components.
-  call Node_Components_Uninitialize()
+  call nodeClassHierarchyFinalize         ()
+  call Node_Components_Thread_Uninitialize()
+  call Node_Components_Uninitialize       ()
 end program Test_Dark_Matter_Profiles
