@@ -26,13 +26,13 @@ program Tests_Halo_Mass_Function_Tinker
   use Unit_Tests
   use Input_Parameters
   use ISO_Varying_String
-  use Memory_Management
   use Halo_Mass_Functions
   use Cosmology_Functions
   use Cosmology_Parameters
   use File_Utilities
   use Cosmological_Density_Field
   use Galacticus_Display
+  use Memory_Management
   implicit none
   type            (varying_string          )                                     :: parameterFile
   integer                                                                        :: fUnit                    , i           , &
@@ -49,10 +49,6 @@ program Tests_Halo_Mass_Function_Tinker
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.halo_mass_function.Tinker.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Halo mass function: Tinker et al. (2008)")
 

@@ -25,7 +25,6 @@ program Test_Stellar_Populations_Luminosities
   use ISO_Varying_String
   use Unit_Tests
   use File_Utilities
-  use Memory_Management
   use Galacticus_Display
   use Galacticus_Paths
   use Numerical_Constants_Astronomical
@@ -75,9 +74,8 @@ program Test_Stellar_Populations_Luminosities
   
   parameters=inputParameters()
   call parameters%markGlobal()
-  call Galacticus_Verbosity_Level_Set(verbosityWorking                             )
-  call Code_Memory_Usage             ('tests.stellar_populations.luminosities.size')
-  call Galacticus_Output_Open_File   (                                             )
+  call Galacticus_Verbosity_Level_Set(verbosityWorking)
+  call Galacticus_Output_Open_File   (                )
   ! Ensure that we have the required stellar population spectra file.
   if (File_Exists(char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5')) then
      ! Begin parsing the Bruzual & Charlot model file.

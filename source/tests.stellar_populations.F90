@@ -24,7 +24,6 @@ program Test_Stellar_Populations
   use Input_Parameters
   use ISO_Varying_String
   use Unit_Tests
-  use Memory_Management
   use Galacticus_Display
   use Galacticus_Paths
   use Numerical_Constants_Astronomical
@@ -53,8 +52,7 @@ program Test_Stellar_Populations
   type            (stellarPopulationSpectraFSPS           )            :: stellarPopulationSpectra_
   double precision                                                     :: recycledMass                   , yieldMetals
 
-  call Galacticus_Verbosity_Level_Set(verbosityWorking                )
-  call Code_Memory_Usage             ('tests.stellar_populations.size')
+  call Galacticus_Verbosity_Level_Set(verbosityWorking)
   parameters=inputParameters()
   call parameters %markGlobal    (                )
   call abundances_%metallicitySet(metallicitySolar)

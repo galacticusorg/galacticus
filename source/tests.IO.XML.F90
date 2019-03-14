@@ -25,7 +25,6 @@ program Tests_IO_XML
   use IO_XML
   use Unit_Tests
   use Galacticus_Error  
-  use Memory_Management
   use System_Command
   use Galacticus_Display
   implicit none
@@ -39,10 +38,6 @@ program Tests_IO_XML
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.IO.XML.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("XML I/O")
 

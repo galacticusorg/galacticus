@@ -24,7 +24,6 @@ program Tests_Power_Spectrum
   use Unit_Tests
   use Input_Parameters
   use ISO_Varying_String
-  use Memory_Management
   use Cosmological_Density_Field
   use Power_Spectra
   use Power_Spectra_Primordial
@@ -69,9 +68,6 @@ program Tests_Power_Spectrum
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.power_spectrum.size')
   ! Read parameters.
   parameterFile='testSuite/parameters/powerSpectrum.xml'
   parameters=inputParameters(parameterFile,allowedParametersFile='tests.power_spectrum.parameters.xml')

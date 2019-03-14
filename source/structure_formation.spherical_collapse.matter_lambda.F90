@@ -210,7 +210,7 @@ contains
                   &                  )
              ! Check for non-monotonic decline.
              if (iTime > 1) then
-                if (deltaTable%y(iTime) >= deltaTable%y(iTime-1)) call Galacticus_Error_Report('accuracy lost in tablulation of critical overdensity (usually results for computing critical overdensity for very large cosmic times)'//{introspection:location})
+                if (deltaTable%y(iTime) >= deltaTable%y(iTime-1)) call Galacticus_Error_Report('accuracy lost in tabulation of critical overdensity (usually results for computing critical overdensity for very large cosmic times)'//{introspection:location})
              end if
          case (calculationDeltaVirial)
              ! Compute the maximum radius of the perturbation.

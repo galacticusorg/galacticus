@@ -23,7 +23,6 @@ program Test_Hashes_Cryptographic
   !% Contains a program to test features of cryptographic hashes.
   use Unit_Tests
   use ISO_Varying_String
-  use Memory_Management
   use Hashes_Cryptographic
   use Galacticus_Display
   implicit none
@@ -31,10 +30,6 @@ program Test_Hashes_Cryptographic
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.hashes.cryptographic.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Cryptographic hashes")
 

@@ -51,7 +51,6 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    print $outputFile fill_in_string(<<'MAKE', PACKAGE => 'make');
 {$fileNameRoot}.exe: {$workDirectoryName.$fileNameRoot}.o {$workDirectoryName.$fileNameRoot}.d $(MAKE_DEPS)
 	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` -o {$fileNameRoot}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.pl {$fileNameRoot}.exe $(FCFLAGS)`
-	./scripts/build/executableSize.pl {$fileNameRoot}.exe$(SUFFIX) {$workDirectoryName.$fileNameRoot}.size
 	./scripts/build/parameterDependencies.pl `pwd` {$fileNameRoot}.exe
 
 MAKE

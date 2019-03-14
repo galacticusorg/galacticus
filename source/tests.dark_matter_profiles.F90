@@ -22,7 +22,6 @@
 program Test_Dark_Matter_Profiles
   !% Tests dark matter profiles.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Galacticus_Nodes       , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile
   use Node_Components
@@ -51,9 +50,6 @@ program Test_Dark_Matter_Profiles
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage         ('tests.dark_matter_profiles.size')
   ! Begin unit tests.
   call Unit_Tests_Begin_Group    ('Dark matter profiles'           )
   ! Read in controlling parameters.

@@ -40,10 +40,6 @@ program Tests_Linear_Growth_Cosmological_Constant
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.linear_growth.cosmological_constant.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Linear growth: cosmological constant cosmology")
 

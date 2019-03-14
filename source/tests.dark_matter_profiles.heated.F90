@@ -29,7 +29,6 @@ program Test_Dark_Matter_Profiles_Heated
   !% enclosed mass in the final profile is simply $M(r) = M_\mathrm{v} r_\mathrm{i}(r)/r_\mathrm{v}$, from which the density of
   !% the final profile is found as $\rho(r) = (4 \pi r^2)^{-1} \mathrm{d} M(r) / \mathrm{d} r$.
   use Unit_Tests
-  use Memory_Management
   use Galacticus_Nodes                , only : nodeComponentBasic        , nodeComponentSatellite, treeNode, nodeClassHierarchyInitialize, &
        &                                       nodeClassHierarchyFinalize
   use Input_Parameters
@@ -63,7 +62,6 @@ program Test_Dark_Matter_Profiles_Heated
 
   ! Initialize.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  call Code_Memory_Usage('tests.dark_matter_profiles.heated.size')
   parameterFile='testSuite/parameters/darkMatterProfileHeated.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
