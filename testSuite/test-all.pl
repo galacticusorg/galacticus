@@ -453,6 +453,18 @@ my @executablesToRun = (
 	name     => "tests.stellar_populations.luminosities.exe",                         # Tests of stellar population luminosities.
 	valgrind => 0,
 	mpi      => 0
+    },
+    {
+	name     => "tests.crash.exe",                                                    # Tests that crashes are detected.
+	valgrind => 0,
+	mpi      => 0,
+	expect   => "crash"
+    },
+    {
+	name     => "tests.fail.exe",                                                     # Tests that failures are detected.
+	valgrind => 0,
+	mpi      => 0,
+	expect   => "fail"
     }
     );
 
@@ -492,6 +504,8 @@ foreach my $executable ( @executablesToRun ) {
 	my $ppn = exists($executable->{'ppn'}) ? $executable->{'ppn'} : 1;
 	my $launchFile = "testSuite/".$label.".pbs";
 	push(@launchFiles,$launchFile);
+	$executable->{'expect'} = "success"
+	    unless ( exists($executable->{'expect'}) );
 	my %job =
 	    (
 	     launchFile   => $launchFile               ,
@@ -502,7 +516,7 @@ foreach my $executable ( @executablesToRun ) {
 	     onCompletion => 
 	     {
 		 function  => \&testFailure,
-		 arguments => [ "testSuite/".$label.".log", "Test code: ".$executable->{'name'} ]
+		 arguments => [ "testSuite/".$label.".log", "Test code: ".$executable->{'name'}, $executable->{'expect'} ]
 	     }
 	    );
 	if ( $executable->{'valgrind'} == 1 ) {	    
@@ -663,7 +677,7 @@ sub runTestScript {
 			onCompletion => 
 			{
 			    function  => \&testFailure,
-			    arguments => [ "testSuite/".$label.".log", "Test script '".$label."'" ]
+			    arguments => [ "testSuite/".$label.".log", "Test script '".$label."'", "success" ]
 			}
 		    }
 		    );
@@ -691,24 +705,54 @@ sub getPassword {
 
 sub testFailure {
     # Callback function which checks for failure of jobs run in PBS.
-    my $logFile     = shift();
-    my $jobMessage  = shift();
-    my $jobID       = shift();
-    my $errorStatus = shift();
-    # Check for failure message in log file.
-    if ( $errorStatus == 0 ) {
+    my $logFile    = shift();
+    my $jobMessage = shift();
+    my $expect     = shift();
+    my $jobID      = shift();
+    my $exitStatus = shift();
+    my $result;
+    # Branch on expected behavior.
+    if ( $expect eq "crash" ) {
+	if ( $exitStatus == 0 ) {
+	    # We expected a crash, but didn't get one. This is a failure.
+	    $result = "FAILED: ".$jobMessage." (crash expected)\n";
+	} else {
+	    # We expected a crash and we got one. This is a success.
+	    $result = "SUCCESS: ".$jobMessage."\n";
+	}
+    } else {
+	# Check for failure message in log file.
 	system("grep -q FAIL ".$logFile);
-	$errorStatus = 1
-	    if ( $? == 0 );
+	if ( $? == 0 ) {
+	    # Failure detected.
+	    if ( $expect eq "fail" ) {
+		# We expected failure, and we did fail. This is a success.
+		$result = "SUCCESS: ".$jobMessage."\n";
+	    } elsif ( $expect eq "success" ) {
+		# We expected failure, but we did not fail. This is a failure.
+		$result = "FAILED: ".$jobMessage."\n";
+	    } else {
+		# Unknown expectation.
+		$result = "FAILED: ".$jobMessage." (unknown expectation)\n";
+	    }
+	} else {
+	    # No failure detected.
+	    if ( $expect eq "fail" ) {
+		# We expected failure, but we did not fail. This is a failure.
+		$result = "FAILED: ".$jobMessage." (failure expected)\n";
+	    } else {
+		# We expected failure, but we did not fail. This is a failure.
+		$result = "SUCCESS: ".$jobMessage."\n";
+	    } else {
+		# Unknown expectation.
+		$result = "FAILED: ".$jobMessage." (unknown expectation)\n";
+	    }
+	}
     }
     # Report success or failure.
-    if ( $errorStatus == 0 ) {
-	# Job succeeded.
-	print lHndl "SUCCESS: ".$jobMessage."\n";
-	unlink($logFile);
-    } else {
+    print lHndl $result;
+    if ( $result =~ m/^FAILED:/ ) {
 	# Job failed.
-	print lHndl "FAILED: ".$jobMessage."\n";
 	print lHndl "Job output follows:\n";
 	print lHndl slurp($logFile);
     }
