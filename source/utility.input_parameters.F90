@@ -488,9 +488,9 @@ contains
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                      , noBuild
-    type     (node           ), pointer                               :: thisNode                      , versionElement
-    type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined, allowedParameterNamesTmp
-    integer                                                           :: allowedParameterFromFileCount, allowedParameterCount
+    type     (node           ), pointer                               :: versionElement
+    type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined , allowedParameterNamesTmp
+    integer                                                           :: allowedParameterFromFileCount , allowedParameterCount
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
     !# <optionalArgument name="noOutput" defaultsTo=".false." />
