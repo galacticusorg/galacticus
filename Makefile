@@ -420,8 +420,8 @@ $(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCritical
 
 # Rules for version routines.
 $(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .hg/branch)
-	@if [ -f .hg/branch ] ; then hg parent | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "parent") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash=""\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
-	@if [ -f .hg/branch ] ; then hg branch | awk '{print "character(len=128), parameter :: hgBranch=\""$$1"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: hgBranch=""\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg parent | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "parent") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash="(unknown)"\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg branch | awk '{print "character(len=128), parameter :: hgBranch=\""$$1"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: hgBranch="(unknown)"\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
 	@date --utc | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc
 
 # Rules for build information routines.
