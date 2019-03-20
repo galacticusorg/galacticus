@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,8 +27,8 @@
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierCriticalOverdensity
      !% A critical overdensity excursion set barrier class.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::                    criticalOverdensityDestructor
      procedure :: barrier         => criticalOverdensityBarrier
@@ -56,6 +57,8 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=excursionSetBarrierCriticalOverdensity(criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="criticalOverdensity_"     />
+   !# <objectDestructor name="cosmologicalMassVariance_"/>
    return
   end function criticalOverdensityConstructorParameters
 

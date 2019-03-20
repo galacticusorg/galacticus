@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use               Merger_Trees_Builders
   use               Cosmology_Functions
 
-  !# <mergerTreeOperator name="mergerTreeOperatorAugment" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorAugment">
   !#  <description>Provides a merger tree operator which augments tree resolution by inserting high-resolution branches.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAugment
@@ -36,8 +37,8 @@
           &                                                                     attemptsMaximum             , massCutOffAttemptsMaximum, &
           &                                                                     massOvershootAttemptsMaximum
      logical                                                                 :: performChecks               , useOneNodeTrees
-     class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_
-     class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_
+     class           (mergerTreeBuilderClass ), pointer                      :: mergerTreeBuilder_ => null()
+     class           (cosmologyFunctionsClass), pointer                      :: cosmologyFunctions_ => null()
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeOperatorAugment</object>
@@ -242,6 +243,8 @@ contains
     !#  <argument name="timeSnapshots" value="timeSnapshots" condition="parameters%isPresent('snapshotRedshifts')"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerTreeBuilder_" />
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function augmentConstructorParameters
   
@@ -295,7 +298,7 @@ contains
   subroutine augmentOperate(self,tree)
     !% Augment the resolution of a merger tree by inserting high resolution branches.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes               , only : treeNode, nodeComponentBasic, treeNodeList
     use               Galacticus_Display
     use               String_Handling
     use               Merger_Trees_Pruning_Utilities
@@ -476,7 +479,7 @@ contains
   recursive integer function augmentBuildTreeFromNode(self,node,extendingEndNode,tolerance,timeEarliestIn,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newRescale)
     use, intrinsic :: ISO_C_Binding
     use               Arrays_Search
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes    , only : treeNode, nodeComponentBasic
     use               Galacticus_Error
     use               String_Handling
     use               Numerical_Comparison
@@ -736,7 +739,7 @@ contains
 
   recursive integer function augmentAcceptTree(self,node,tree,nodeChildCount,extendingEndNode,tolerance,treeBest,treeBestWorstFit,treeBestOverride,massCutoffScale,massOvershootScale,treeNewHasNodeAboveResolution,treeBestHasNodeAboveResolution,newTreeBest,primaryProgenitorNode,primaryProgenitorIsClone)
     !% Determine whether a trial tree is an acceptable match to the original tree structure.
-    use Galacticus_Nodes
+    use Galacticus_Nodes     , only : treeNode, nodeComponentBasic, treeNodeList
     use Galacticus_Display
     use Merger_Trees_Builders
     use Merger_Tree_Walkers
@@ -1032,6 +1035,7 @@ contains
 
   subroutine augmentSimpleInsert(self,node,tree,endNodes,nodeChildCount,nodeNonOverlapFirst)
     !% Insert a newly constructed tree into the original tree.
+    use Galacticus_Nodes, only : treeNode, treeNodeList
     implicit none
     class  (mergerTreeOperatorAugment), intent(inout)                            :: self
     type   (treeNode                 ), intent(inout), pointer                   :: node
@@ -1081,7 +1085,7 @@ contains
     !% nodeTop} replaces {\normalfont \ttfamily nodeBottom}, otherwise, {\normalfont \ttfamily nodeBottom} replaces {\normalfont
     !% \ttfamily nodeTop}. If {\normalfont \ttfamily exchangeProperties} is {\normalfont \ttfamily true}, the mass and time
     !% information of the deleted node overwrites the mass and time of the retained node.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     type   (treeNode          ), intent(inout), pointer :: nodeBottom  , nodeTop 
     logical                    , intent(in   )          :: keepTop     , exchangeProperties
@@ -1130,6 +1134,7 @@ contains
 
   integer function augmentChildCount(node)
     !% Return a count of the number of child nodes.
+    use Galacticus_Nodes, only : treeNode
     type(treeNode), intent(in   ) :: node
     type(treeNode), pointer       :: childNode
     
@@ -1145,6 +1150,7 @@ contains
   subroutine augmentSortChildren(self,node)
     !% Sort the children of the given {\normalfont \ttfamily node} such that they are in descending mass order.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     class           (mergerTreeOperatorAugment), intent(in   )          :: self
     type            (treeNode                 ), intent(inout), target  :: node
@@ -1196,6 +1202,7 @@ contains
 
   subroutine augmentNonOverlapListAdd(node, listFirstElement)
     !% Add the given node to a linked list of non-overlap nodes in the current trial tree.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(in   ), pointer :: node
     type(treeNode), intent(inout), pointer :: listFirstElement
@@ -1229,6 +1236,7 @@ contains
 
   subroutine augmentNonOverlapReinsert(self,listFirstElement)
     !% Reinsert non-overlap nodes into their tree.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     class(mergerTreeOperatorAugment), intent(in   )          :: self
     type (treeNode                 ), intent(in   ), pointer :: listFirstElement
@@ -1254,7 +1262,7 @@ contains
   subroutine augmentExtendNonOverlapNodes(self,nodeNonOverlapFirst,tolerance,treeBest,massCutoffScale,massOvershootScale)
     !% Extend any non-overlap nodes in an accepted tree by growing a new tree from each such node.
     use Galacticus_Error
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     class           (mergerTreeOperatorAugment), intent(inout)          :: self
     type            (mergerTree               ), intent(inout), target  :: treeBest
@@ -1296,6 +1304,7 @@ contains
   logical function augmentNodeComparison(nodeNew,nodeOriginal,tolerance,treeCurrentWorstFit)
     !% Compare the masses of an overlap node and the corresponding node in the original tree, testing if they agree to withing
     !% tolerance.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none   
     type            (treeNode          ), intent(in   ), pointer :: nodeNew            , nodeOriginal
     double precision                    , intent(in   )          :: tolerance
@@ -1316,7 +1325,7 @@ contains
   integer function augmentTreeStatistics(tree,desiredOutput)
     !% Walks through tree and quietly collects information specified by {\normalfont \ttfamily desiredOutput} input enumeration and
     !% returns that information.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Galacticus_Error
     use Merger_Tree_Walkers
     implicit none

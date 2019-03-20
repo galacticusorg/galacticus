@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(supernovaeTypeIaClass) :: supernovaeTypeIaNagashima2005
      !% A supernovae type Ia class based on \cite{nagashima_metal_2005}.
      private
-     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_
+     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
      double precision                                                      :: totalYield
      double precision                          , allocatable, dimension(:) :: elementYield
    contains
@@ -54,6 +55,7 @@ contains
     !# <objectBuilder class="stellarAstrophysics" name="stellarAstrophysics_" source="parameters"/>
     self=supernovaeTypeIaNagashima2005(stellarAstrophysics_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarAstrophysics_"/>
     return
   end function nagashima2005ConstructorParameters
   

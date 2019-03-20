@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +30,7 @@
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorSequence
      !% A sequence stellar population spectra postprocessor class.
      private
-     type(postprocessorList), pointer :: postprocessors
+     type(postprocessorList), pointer :: postprocessors => null()
    contains
      final     ::                sequenceDestructor
      procedure :: multiplier  => sequenceMultiplier
@@ -63,7 +64,7 @@ contains
           allocate(self%postprocessors)
           postprocessor_ => self%postprocessors
        end if
-       postprocessor_%postprocessor_ => stellarPopulationSpectraPostprocessor(parameters,i)
+       !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessor_%postprocessor_" source="parameters" copy="i" />
     end do
     return
   end function sequenceConstructorParameters
@@ -73,12 +74,18 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorSequence)                        :: self
     type(postprocessorList                            ), target, intent(in   ) :: postprocessors
+    type(postprocessorList                            ), pointer               :: postprocessor_
 
-    self%postprocessors => postprocessors
+    self          %postprocessors => postprocessors
+    postprocessor_                => postprocessors
+    do while (associated(postprocessor_))
+       !# <referenceCountIncrement owner="postprocessor_" object="postprocessor_"/>
+       postprocessor_ => postprocessor_%next
+    end do
     return
   end function sequenceConstructorInternal
 
-  elemental subroutine sequenceDestructor(self)
+  subroutine sequenceDestructor(self)
     !% Destructor for the sequence stellar population spectra postprocessor class.
     implicit none
     type(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
@@ -88,8 +95,8 @@ contains
        postprocessor_ => self%postprocessors
        do while (associated(postprocessor_))
           postprocessorNext => postprocessor_%next
-          deallocate(postprocessor_%postprocessor_)
-          deallocate(postprocessor_               )
+          !# <objectDestructor name="postprocessor_%postprocessor_"/>
+          deallocate(postprocessor_)
           postprocessor_ => postprocessorNext
        end do
     end if
@@ -119,7 +126,7 @@ contains
     use Galacticus_Error
     implicit none
     class(stellarPopulationSpectraPostprocessorSequence), intent(inout) :: self
-    class(stellarPopulationSpectraPostprocessorClass   ), intent(  out) :: destination
+    class(stellarPopulationSpectraPostprocessorClass   ), intent(inout) :: destination
     type (postprocessorList                            ), pointer       :: postprocessor_   , postprocessorDestination_, &
          &                                                                 postprocessorNew_
 
@@ -139,7 +146,7 @@ contains
              postprocessorDestination_            => postprocessorNew_
           end if
           allocate(postprocessorNew_%postprocessor_,mold=postprocessor_%postprocessor_)
-          call postprocessor_%postprocessor_%deepCopy(postprocessorNew_%postprocessor_)
+          !# <deepCopy source="postprocessor_%postprocessor_" destination="postprocessorNew_%postprocessor_"/>
           postprocessor_ => postprocessor_%next
        end do       
     class default

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,12 +25,11 @@ program Test_NFW96_Concentration_Dark_Energy
   !% Tests the \cite{navarro_structure_1996} halo concentration algorithm in a dark energy Universe. Comparisons are made to the
   !% \href{http://www.astro.uvic.ca/~jfn/charden/charden.tar.gz}{``{\normalfont \ttfamily charden}''} code written by Julio Navarro.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
   use Cosmology_Parameters
-  use Galacticus_Nodes
+  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic
   use String_Handling
   use Unit_Tests
   use Galacticus_Display
@@ -48,10 +48,6 @@ program Test_NFW96_Concentration_Dark_Energy
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.NFW96_concentration.dark_energy.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("NFW96 halo concentration algorithm: dark energy cosmology")
 

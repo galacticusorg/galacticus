@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,13 @@
 
 module Dark_Matter_Particles
   !% Provides a class that implements dark matter parrticle physics.
-  use FGSL
-  
+  private
+
   !# <functionClass>
   !#  <name>darkMatterParticle</name>
   !#  <descriptiveName>Dark Matter Particle</descriptiveName>
   !#  <description>Class providing dark matter particle physics.</description>
   !#  <default>CDM</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !# </functionClass>
 
 end module Dark_Matter_Particles

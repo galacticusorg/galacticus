@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
 use Cwd;
-use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
-use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
+use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}.'/perl';
 use strict;
 use warnings;
 use PDL;
@@ -356,7 +355,7 @@ foreach my $fileRoot ( @fileRoots ) {
     my $excludedFraction = 1.0-$confidence;
     (my $levels, my $error) = interpolate($excludedFraction,$pCumulant,$pSorted);
 
-    # Find span of confident regions.
+    # Find span of confidence regions.
     my @spanLowerX;
     my @spanLowerY;
     my @spanUpperX;

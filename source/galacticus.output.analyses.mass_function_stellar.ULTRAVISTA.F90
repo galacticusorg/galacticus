@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Gravitational_Lensing
   
-  !# <outputAnalysis name="outputAnalysisMassFunctionStellarULTRAVISTA" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMassFunctionStellarULTRAVISTA">
   !#  <description>An ULTRAVISTA stellar mass function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMassFunctionStellar) :: outputAnalysisMassFunctionStellarULTRAVISTA
@@ -148,6 +149,9 @@ contains
     ! Build the object.
     self=outputAnalysisMassFunctionStellarULTRAVISTA(cosmologyFunctions_,gravitationalLensing_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"  />
+    !# <objectDestructor name="outputTimes_"         />
+    !# <objectDestructor name="gravitationalLensing_"/>
     return
   end function massFunctionStellarULTRAVISTAConstructorParameters
 

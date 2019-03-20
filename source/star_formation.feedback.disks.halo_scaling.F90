@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
   
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksHaloScaling" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksHaloScaling">
   !#  <description>An outflow rate due to star formation feedback in galactic disks which scales with halo velocity.</description>
   !# </starFormationFeedbackDisks>
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksHaloScaling
@@ -31,8 +32,8 @@
           &                                                 exponentVelocity       , normalization        , &
           &                                                 velocityPrevious       , velocityFactor       , &
           &                                                 expansionFactorPrevious, expansionFactorFactor
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                haloScalingDestructor
      procedure :: outflowRate => haloScalingOutflowRate
@@ -85,6 +86,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=starFormationFeedbackDisksHaloScaling(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function haloScalingConstructorParameters
 
@@ -124,6 +127,7 @@ contains
   
   double precision function haloScalingOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationFeedbackDisksHaloScaling), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node

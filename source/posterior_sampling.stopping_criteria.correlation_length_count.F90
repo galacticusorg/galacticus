@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Posterior_Sampling_Convergence
   
-  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength" defaultThreadPrivate="yes">
+  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionCorrelationLength">
   !#  <description>A posterior sampling stopping class which stops after a given number of correlation lengths.</description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionCorrelationLength
      !% Implementation of a posterior sampling convergence class which stops after a given number of correlation lengths.
      private
-     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_
+     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_ => null()
      integer                                           :: stopAfterCount
    contains
      final     ::         correlationLengthDestructor
@@ -60,6 +61,7 @@ contains
     !# <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
     self=posteriorSampleStoppingCriterionCorrelationLength(stopAfterCount,posteriorSampleConvergence_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="posteriorSampleConvergence_"/>
    return
   end function correlationLengthConstructorParameters
 

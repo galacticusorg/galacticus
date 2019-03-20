@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,13 +24,16 @@
 
   !# <virialOrbit name="virialOrbitBenson2005">
   !#  <description>Virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </deepCopy>
   !# </virialOrbit>
   type, extends(virialOrbitClass) :: virialOrbitBenson2005
      !% A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
      private
      class(darkMatterHaloScaleClass                          ), pointer :: darkMatterHaloScale_   => null()
      class(cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_    => null()
-     class(virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrast_
+     type (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrast_ => null()
    contains
      final     ::                              benson2005Destructor
      procedure :: orbit                     => benson2005Orbit
@@ -57,6 +61,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"  source="parameters"/>
     self=virialOrbitBenson2005(darkMatterHaloScale_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function benson2005ConstructorParameters
 
@@ -69,10 +75,7 @@ contains
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     allocate(self%virialDensityContrast_)
-    select type (virialDensityContrast_ => self%virialDensityContrast_)
-    type is (virialDensityContrastSphericalCollapseMatterLambda)
-       virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)
-    end select
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)"/>
     return
   end function benson2005ConstructorInternal
 
@@ -81,15 +84,15 @@ contains
     implicit none
     type(virialOrbitBenson2005), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
-    if     (associated(self%virialDensityContrast_)) &
-         &  deallocate(self%virialDensityContrast_)
+    !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine benson2005Destructor
 
   function benson2005Orbit(self,node,host,acceptUnboundOrbits)
     !% Return benson2005 orbital parameters for a satellite.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
     use Galacticus_Error
     implicit none

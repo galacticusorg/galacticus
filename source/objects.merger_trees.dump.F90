@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,7 +39,7 @@ contains
     !% are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
     !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
     !% specified.
-    use Galacticus_Nodes
+    use Galacticus_Nodes   , only : mergerTree, treeNode, nodeComponentBasic
     use ISO_Varying_String
     use Merger_Tree_Walkers
     implicit none

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +26,7 @@
   !#  <description>A triaxiality modifier for power spectra in the halo model of clustering based on the results of \cite{smith_triaxial_2005}.</description>
   !# </haloModelPowerSpectrumModifier>
   type, extends(haloModelPowerSpectrumModifierClass) :: haloModelPowerSpectrumModifierTriaxiality
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      type (table1DLogarithmicLinear)          :: triaxialityTable
    contains
      final     ::           triaxialityDestructor
@@ -87,6 +88,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=haloModelPowerSpectrumModifierTriaxiality(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>  
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function triaxialityConstructorParameters
 

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,9 +21,9 @@
 
 module Universe_Operators
   !% Provides a class that implements operators on universes.
-
   use Galacticus_Nodes, only : universe
-  
+  private
+
   !# <functionClass>
   !#  <name>universeOperator</name>
   !#  <descriptiveName>Universe Operators</descriptiveName>

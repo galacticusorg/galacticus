@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Contains a module which implements a model of the tidal field acting on a satellite assuming spherical symmetry in the host.
 
-  !# <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry" defaultThreadPrivate="yes">
+  !# <satelliteTidalField name="satelliteTidalFieldSphericalSymmetry">
   !#  <description>A satellite tidal field class which computes the tidal field assuming spherical symmetry.</description>
   !# </satelliteTidalField>
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldSphericalSymmetry
@@ -70,6 +71,7 @@ contains
 
   double precision function sphericalSymmetryTidalTensorRadial(self,node)
     !% Return the radial part of the tidal tensor for satellite halos assuming spherical symmetry of the host.
+    use Galacticus_Nodes                  , only : nodeComponentSatellite
     use Kepler_Orbits
     use Satellite_Orbits
     use Galactic_Structure_Enclosed_Masses

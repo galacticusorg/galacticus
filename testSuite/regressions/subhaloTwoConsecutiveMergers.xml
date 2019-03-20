@@ -17,6 +17,7 @@
     <sigma_8 value="0.9"/>
   </cosmologicalMassVarianceMethod>
   <darkMatterProfileMethod value="isothermal"/>
+  <darkMatterProfileScaleRadiusMethod value="zero"/>
   <cosmologyParametersMethod value="simple">
     <OmegaBaryon value="0.0455"/>
     <OmegaDarkEnergy value="0.75"/>
@@ -82,7 +83,12 @@
     <timescale value="1.0"/>
   </coolingRateMethod>
   <hotHaloMassDistributionMethod value="betaProfile"/>
-  <allTreesExistAtFinalTime value="false"/>
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+    <timestepHostRelative value="0.1"/>
+    <timestepHostAbsolute value="1.0"/>
+  </mergerTreeEvolverMethod>
+
   <hotHaloTemperatureProfileMethod value="virial"/>
   <virialDensityContrastMethod value="kitayamaSuto1996"/>
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -113,9 +119,9 @@
   </accretionHaloMethod>
   <hdf5CompressionLevel value="-1"/>
   <stellarPopulationSelectorMethod value="fixed"/>
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/subhaloTwoConsecutiveMergers.hdf5"/>
   <coolingSpecificAngularMomentumMethod>
@@ -125,7 +131,6 @@
   
   <initialMassFunctionMethod value="chabrier2001"/>
   <treeNodeMethodHotHalo value="verySimple"/>
-  <timestepHostRelative value="0.1"/>
   <randomSeed value="828"/>
   <starFormationFeedbackDisksMethod value="haloScaling">
     <fraction value="1.0"/>
@@ -134,9 +139,11 @@
   </starFormationFeedbackDisksMethod>
   <treeNodeMethodSpin value="null"/>
   <treeNodeMethodPosition value="preset"/>
-  <outputRedshifts value="0.0700"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0.0700"/>
+  </outputTimesMethod>
+
   <coolingRadiusMethod value="isothermal"/>
-  <timestepHostAbsolute value="1.0"/>
   <galacticStructureRadiusSolverMethod value="fixed"/>
   <mergerTreeConstructorMethod value="read">
   <beginAt value="244004942000000"/>

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   use Cosmology_Functions
   use Dark_Matter_Particles
 
-  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterLambda" defaultThreadPrivate="yes">
+  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseMatterLambda">
   !#  <description>Critical overdensity for collapse based on the spherical collapse in a matter plus cosmological constant universe (see, for example, \citealt{percival_cosmological_2005}).</description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseMatterLambda
@@ -66,32 +67,33 @@ contains
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} critical overdensity class
     !% which takes a parameter set as input.
     use Input_Parameters
-    use Galacticus_Error
     implicit none
-    type (criticalOverdensitySphericalCollapseMatterLambda)                :: self
-    type (inputParameters                                 ), intent(inout) :: parameters
+    type            (criticalOverdensitySphericalCollapseMatterLambda)                :: self
+    type            (inputParameters                                 ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass                         ), pointer       :: cosmologyFunctions_    
+    class           (linearGrowthClass                               ), pointer       :: linearGrowth_    
+    class           (cosmologicalMassVarianceClass                   ), pointer       :: cosmologicalMassVariance_
+    class           (darkMatterParticleClass                         ), pointer       :: darkMatterParticle_
+    double precision                                                                  :: normalization
 
     !# <inputParameter>
     !#   <name>normalization</name>
     !#   <source>parameters</source>
-    !#   <variable>self%normalization</variable>
     !#   <defaultValue>1.0d0</defaultValue>
     !#   <description>A normalizing factor to be applied to the critical overdensity.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="linearGrowth"             name="self%linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="self%cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"       name="self%darkMatterParticle_"       source="parameters"/>
-    self%tableInitialized=.false.
-    select type (darkMatterParticle_ => self%darkMatterParticle_)
-    class is (darkMatterParticleCDM)
-       ! Cold dark matter particle - this is as expected.
-    class default
-       call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
-    end select
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
+    self=criticalOverdensitySphericalCollapseMatterLambda(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,normalization)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="darkMatterParticle_"      />
     return
   end function sphericalCollapseMatterLambdaConstructorParameters
 
@@ -107,13 +109,9 @@ contains
     class           (darkMatterParticleClass                         ), target  , intent(in   ) :: darkMatterParticle_
     double precision                                                  , optional, intent(in   ) :: normalization
     !# <optionalArgument name="normalization" defaultsTo="1.0d0" />
-
-    self%tableInitialized          =  .false.
-    self%cosmologyFunctions_       => cosmologyFunctions_
-    self%linearGrowth_             => linearGrowth_
-    self%cosmologicalMassVariance_ => cosmologicalMassVariance_
-    self%darkMatterParticle_       => darkMatterParticle_
-    self%normalization             =  normalization_
+    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, normalization"/>
+    
+    self%tableInitialized=.false.
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -129,9 +127,10 @@ contains
     implicit none
     type(criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
 
-    !# <objectDestructor name="self%linearGrowth_"      />
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%darkMatterParticle_"/>
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%darkMatterParticle_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     if (self%tableInitialized) then
        call self%overdensityCritical%destroy()
        deallocate(self%overdensityCritical)

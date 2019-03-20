@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,7 @@
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesInstantaneous
      !% A stellar population properties class based on the instantaneous recycling approximation.
      private
-     class           (stellarPopulationSelectorClass), pointer      :: stellarPopulationSelector_
+     class           (stellarPopulationSelectorClass), pointer      :: stellarPopulationSelector_ => null()
      type            (stellarLuminosities           ), dimension(2) :: rateLuminosityStellarPrevious
      double precision                                , dimension(2) :: rateStarFormationPrevious    , fuelMetallicityPrevious, &
           &                                                            timePrevious
@@ -62,6 +63,7 @@ contains
     !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
     self=stellarPopulationPropertiesInstantaneous(stellarPopulationSelector_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarPopulationSelector_"/>
     return
   end function instantaneousConstructorParameters
 
@@ -78,6 +80,8 @@ contains
     self%fuelMetallicityPrevious  =-huge(0.0d0)
     self%timePrevious             =-huge(0.0d0)
     self%populationIDPrevious     =-1_c_size_t
+    call self%rateLuminosityStellarPrevious(1)%reset()
+    call self%rateLuminosityStellarPrevious(2)%reset()
     return
   end function instantaneousConstructorInternal
 
@@ -96,6 +100,7 @@ contains
     use Stellar_Feedback
     use Stellar_Populations
     use Galactic_Structure_Options
+    use Galacticus_Nodes          , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (stellarPopulationPropertiesInstantaneous), intent(inout) :: self
     double precision                                          , intent(  out) :: rateEnergyInput              , rateMassFuel              , &

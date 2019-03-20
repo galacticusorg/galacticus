@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
 
   use Cosmology_Functions
@@ -24,28 +25,28 @@
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profiles
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for halo mass functions.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodHaloMassFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
      private
-     double precision                               , dimension(:  ), allocatable :: mass                     , massFunction                          , &
-          &                                                                          massMinimum              , massMaximum
+     double precision                               , dimension(:  ), allocatable :: mass                               , massFunction                                    , &
+          &                                                                          massMinimum                        , massMaximum
      double precision                               , dimension(:,:), allocatable :: covarianceMatrix
-     class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
-     class           (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_
-     class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_, cosmologicalMassVarianceUnconditioned_
-     class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_     , criticalOverdensityUnconditioned_
-     class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_
-     class           (darkMatterProfileClass       ), pointer                     :: darkMatterProfile_
-     class           (haloEnvironmentClass         ), pointer                     :: haloEnvironment_
-     double precision                                                             :: time                     , massParticle                           , &
-          &                                                                          massRangeMinimum         , redshift     
+     class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_       => null()
+     class           (cosmologyParametersClass     ), pointer                     :: cosmologyParameters_      => null()
+     class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_ => null(), cosmologicalMassVarianceUnconditioned_ => null()
+     class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_      => null(), criticalOverdensityUnconditioned_      => null()
+     class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_      => null()
+     class           (darkMatterProfileClass       ), pointer                     :: darkMatterProfile_        => null()
+     class           (haloEnvironmentClass         ), pointer                     :: haloEnvironment_          => null()
+     double precision                                                             :: time                               , massParticle                                    , &
+          &                                                                          massRangeMinimum                   , redshift     
      type            (vector                       )                              :: means
-     type            (matrix                       )                              :: covariance               , inverseCovariance
+     type            (matrix                       )                              :: covariance                         , inverseCovariance
      integer                                                                      :: errorModel
-     type            (varying_string               )                              :: fileName                 , massFunctionType
+     type            (varying_string               )                              :: fileName                           , massFunctionType
      logical                                                                      :: environmentAveraged
    contains
      final     ::                    haloMassFunctionDestructor
@@ -164,6 +165,15 @@ contains
     !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"                       source="parameters"             />
     self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfile_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"                   />
+    !# <objectDestructor name="cosmologyParameters_"                  />
+    !# <objectDestructor name="cosmologicalMassVariance_"             />
+    !# <objectDestructor name="cosmologicalMassVarianceUnconditioned_"/>
+    !# <objectDestructor name="criticalOverdensity_"                  />
+    !# <objectDestructor name="criticalOverdensityUnconditioned_"     />
+    !# <objectDestructor name="darkMatterHaloScale_"                  />
+    !# <objectDestructor name="darkMatterProfile_"                    />
+    !# <objectDestructor name="haloEnvironment_"                      />
     return
   end function haloMassFunctionConstructorParameters
 

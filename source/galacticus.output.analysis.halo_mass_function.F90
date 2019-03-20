@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,6 @@ module Galacticus_Output_Analyses_Halo_Mass_Function
   !% Performs analysis to compute halo mass functions.
   use, intrinsic :: ISO_C_Binding
   use ISO_Varying_String
-  use Galacticus_Nodes
   implicit none
   private
   public :: Galacticus_Output_Analysis_Halo_Mass_Functions, Galacticus_Output_Analysis_Halo_Mass_Functions_Output
@@ -86,7 +86,8 @@ contains
   subroutine Galacticus_Output_Analysis_Halo_Mass_Functions(tree,node,nodeStatus,iOutput,mergerTreeAnalyses)
     !% Construct halo mass functions.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
+    use            :: Galacticus_Nodes, only : mergerTree                       , treeNode, nodeComponentBasic, nodeComponentMergingStatistics, &
+         &                                     defaultMergingStatisticsComponent
     use Memory_Management
     use Input_Parameters
     use Output_Times

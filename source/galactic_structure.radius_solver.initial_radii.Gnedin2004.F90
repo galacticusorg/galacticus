@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,9 +36,9 @@
   type, extends(galacticStructureRadiiInitialClass) :: galacticStructureRadiiInitialGnedin2004
      !% A galactic structure initial radius class using the adiabatic contraction algorithm of \cite{gnedin_response_2004}.
      private
-     class           (cosmologyParametersClass), pointer                         :: cosmologyParameters_
-     class           (darkMatterHaloScaleClass), pointer                         :: darkMatterHaloScale_
-     class           (darkMatterProfileClass  ), pointer                         :: darkMatterProfile_
+     class           (cosmologyParametersClass), pointer                         :: cosmologyParameters_ => null()
+     class           (darkMatterHaloScaleClass), pointer                         :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass  ), pointer                         :: darkMatterProfile_ => null()
      ! Parameters of the adiabatic contraction algorithm.
      double precision                                                            :: A                              , omega
      ! Stored solutions for reuse.
@@ -135,6 +136,9 @@ contains
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
     self=galacticStructureRadiiInitialGnedin2004(A,omega,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
     return
   end function gnedin2004ConstructorParameters
 
@@ -169,15 +173,15 @@ contains
     !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of
     !% \cite{gnedin_response_2004}.
     use Root_Finder
-    use FGSL
     implicit none
     class           (galacticStructureRadiiInitialGnedin2004), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node
     double precision                                         , intent(in   ) :: radius
-    double precision                                         , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
+    double precision                                         , parameter     :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-2
     type            (rootFinder                             ), save          :: finder
     !$omp threadprivate(finder)
-    integer                                                                  :: i                      , j
+    integer                                                                  :: i                      , j                       , &
+         &                                                                      iMod
     double precision                                                         :: radiusUpperBound
     
     ! Reset stored solutions if the node has changed.
@@ -216,8 +220,9 @@ contains
     if (self%radiusPreviousIndexMaximum > 0) then
        ! No exact match exists, look for approximate matches.
        do i=1,self%radiusPreviousIndexMaximum
-          if (abs(radius-self%radiusPrevious(i))/self%radiusPrevious(i) < toleranceRelative) then
-             j=i
+          iMod=modulo(self%radiusPreviousIndex-i,gnedin2004StoreCount)+1
+          if (abs(radius-self%radiusPrevious(iMod))/self%radiusPrevious(iMod) < toleranceRelative) then
+             j=iMod
              exit
           end if
        end do
@@ -269,8 +274,8 @@ contains
             &                      )
     end if
     ! Store this solution.       
-    self%radiusPreviousIndex                                 =mod(self%radiusPreviousIndex         ,gnedin2004StoreCount)+1
-    self%radiusPreviousIndexMaximum                          =min(self%radiusPreviousIndexMaximum+1,gnedin2004StoreCount)
+    self%radiusPreviousIndex                                 =modulo(self%radiusPreviousIndex         ,gnedin2004StoreCount)+1
+    self%radiusPreviousIndexMaximum                          =min   (self%radiusPreviousIndexMaximum+1,gnedin2004StoreCount)
     self%radiusPrevious            (self%radiusPreviousIndex)=radius
     self%radiusInitialPrevious     (self%radiusPreviousIndex)=gnedin2004Radius
     return
@@ -324,6 +329,8 @@ contains
     !% Compute various factors needed when solving for the initial radius in the dark matter halo using the adiabatic contraction
     !% algorithm of \cite{gnedin_response_2004}.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : treeNode          , nodeComponentBasic               , optimizeForRotationCurveGradientSummation, optimizeForEnclosedMassSummation, &
+         &                                   reductionSummation, optimizeForRotationCurveSummation
     !# <include directive="rotationCurveTask" name="radiusSolverRotationCurveTask" type="moduleUse">
     !# <exclude>Dark_Matter_Profile_Structure_Tasks</exclude>
     include 'galactic_structure.radius_solver.initial_radii.adiabatic.rotation_curve.tasks.modules.inc'
@@ -429,8 +436,8 @@ contains
   double precision function gnedin2004Solver(radiusInitial)
     !% Root function used in finding the initial radius in the dark matter halo when solving for adiabatic contraction.
     implicit none
-    double precision                        , intent(in   ) :: radiusInitial
-    double precision                                        :: massDarkMatterInitial, radiusInitialMean
+    double precision, intent(in   ) :: radiusInitial
+    double precision                :: massDarkMatterInitial, radiusInitialMean
 
     ! Find the initial mean orbital radius.
     radiusInitialMean    =gnedin2004Self                   %radiusOrbitalMean(               radiusInitial    )
@@ -451,9 +458,9 @@ contains
     !% contraction.
     use Numerical_Constants_Math
     implicit none
-    double precision                        , intent(in   ) :: radiusInitialDerivative
-    double precision                                        :: densityDarkMatterInitial, massDarkMatterInitial, &
-         &                                                     radiusInitialMean
+    double precision, intent(in   ) :: radiusInitialDerivative
+    double precision                :: densityDarkMatterInitial, massDarkMatterInitial, &
+         &                             radiusInitialMean
 
     ! Find the initial mean orbital radius.
     radiusInitialMean       =gnedin2004Self                   %radiusOrbitalMean(               gnedin2004Self%radiusInitial    )
@@ -517,6 +524,7 @@ contains
   double precision function gnedin2004MassEnclosed(component)
     !% Unary function returning the enclosed mass in a component. Suitable for mapping over components. Ignores the dark matter
     !% profile.
+    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -531,6 +539,7 @@ contains
 
   double precision function gnedin2004VelocityCircularSquared(component)
     !% Unary function returning the squared rotation curve in a component. Suitable for mapping over components.
+    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -545,6 +554,7 @@ contains
 
   double precision function gnedin2004VelocityCircularSquaredGradient(component)
     !% Unary function returning the squared rotation curve gradient in a component. Suitable for mapping over components.
+    use Galacticus_Nodes, only : nodeComponent, nodeComponentDarkMatterProfile
     implicit none
     class(nodeComponent), intent(inout) :: component
 
@@ -559,6 +569,7 @@ contains
 
   subroutine gnedin2004CalculationReset(self,node)
     !% Remove memory of stored computed values as we're about to begin computing derivatives anew.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     class(galacticStructureRadiiInitialGnedin2004), intent(inout) :: self
     type (treeNode                               ), intent(inout) :: node

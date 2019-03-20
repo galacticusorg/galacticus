@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   use Power_Spectra
   use Cosmological_Density_Field
 
-  !# <task name="taskExcursionSets" defaultThreadPrivate="yes">
+  !# <task name="taskExcursionSets">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
   !# </task>
   type, extends(taskClass) :: taskExcursionSets
@@ -34,13 +35,13 @@
      integer                                                   :: massesPerDecade           , timesPerDecade
      double precision                                          :: massMaximum               , massMinimum   , &
           &                                                       timeMinimum               , timeMaximum
-     class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_
-     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_
-     class           (haloMassFunctionClass         ), pointer :: haloMassFunction_
-     class           (excursionSetBarrierClass      ), pointer :: excursionSetBarrier_
-     class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_
-     class           (powerSpectrumClass            ), pointer :: powerSpectrum_
+     class           (cosmologyParametersClass      ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_ => null()
+     class           (haloMassFunctionClass         ), pointer :: haloMassFunction_ => null()
+     class           (excursionSetBarrierClass      ), pointer :: excursionSetBarrier_ => null()
+     class           (excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
+     class           (powerSpectrumClass            ), pointer :: powerSpectrum_ => null()
    contains
      final     ::            excursionSetsDestructor
      procedure :: perform => excursionSetsPerform
@@ -57,9 +58,9 @@ contains
   function excursionSetsConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
     use Galacticus_HDF5
-    use Galacticus_Nodes
     use Node_Components
     use Input_Parameters
+    use Galacticus_Nodes, only : nodeClassHierarchyInitialize
     implicit none
     type            (taskExcursionSets             )                :: self
     type            (inputParameters               ), intent(inout) :: parameters
@@ -161,6 +162,13 @@ contains
          &                 powerSpectrum_              &
          &                )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"      />
+    !# <objectDestructor name="cosmologyFunctions_"       />
+    !# <objectDestructor name="cosmologicalMassVariance_" />
+    !# <objectDestructor name="haloMassFunction_"         />
+    !# <objectDestructor name="excursionSetBarrier_"      />
+    !# <objectDestructor name="excursionSetFirstCrossing_"/>
+    !# <objectDestructor name="powerSpectrum_"            />
     return
   end function excursionSetsConstructorParameters
 
@@ -201,6 +209,7 @@ contains
   
   subroutine excursionSetsDestructor(self)
     !% Destructor for the {\normalfont \ttfamily excursionSets} task class.
+    use Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskExcursionSets), intent(inout) :: self
 
@@ -211,10 +220,11 @@ contains
     !# <objectDestructor name="self%excursionSetBarrier_"      />
     !# <objectDestructor name="self%excursionSetFirstCrossing_"/>
     !# <objectDestructor name="self%powerSpectrum_"            />
+    call Node_Components_Uninitialize()
     return
   end subroutine excursionSetsDestructor
 
-  subroutine excursionSetsPerform(self)
+  subroutine excursionSetsPerform(self,status)
     !% Compute and output the halo mass function.
     use Numerical_Constants_Math
     use Memory_Management
@@ -222,8 +232,11 @@ contains
     use Numerical_Ranges
     use IO_HDF5
     use Galacticus_HDF5
+    use Galacticus_Error        , only : errorStatusSuccess
+    use Galacticus_Nodes        , only : treeNode
     implicit none
     class           (taskExcursionSets), intent(inout)                   :: self
+    integer                            , intent(  out), optional         :: status
     double precision                   , allocatable  , dimension(:    ) :: mass                    , time                    , &
          &                                                                  powerSpectrumValue      , variance                , &
          &                                                                  wavenumber
@@ -309,6 +322,7 @@ contains
     call deallocateArray(wavenumber              )
     call deallocateArray(powerSpectrumValue      )
     call deallocateArray(firstCrossingRate       )
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: excursion sets' )
     return
   end subroutine excursionSetsPerform

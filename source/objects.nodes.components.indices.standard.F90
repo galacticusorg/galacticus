@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Node_Component_Indices_Standard
   !% Implements the standard indices component.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Indices_Standard_Merger_Tree_Init
@@ -47,6 +47,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Indices_Standard_Merger_Tree_Init(thisNode)
     !% Initialize the indices component by creating components in nodes and storing indices.
+    use Galacticus_Nodes, only : treeNode, nodeComponentIndices, defaultIndicesComponent, nodeComponentIndicesStandard
     implicit none
     type (treeNode            ), intent(inout), pointer :: thisNode
     class(nodeComponentIndices)               , pointer :: thisIndices

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Node_Component_Dynamics_Statistics_Bars
   !% Implements tracking of dynamics statistics related to bars.
-  use Galacticus_Nodes
   use Dark_Matter_Halo_Scales
   use Galactic_Dynamics_Bar_Instabilities
   implicit none
   private
-  public :: Node_Component_Dynamics_Statistics_Bars_Rate_Compute     , Node_Component_Dynamics_Statistics_Bars_Output    , &
-       &    Node_Component_Dynamics_Statistics_Bars_Thread_Initialize, Node_Component_Dynamics_Statistics_Bars_Initialize
+  public :: Node_Component_Dynamics_Statistics_Bars_Rate_Compute       , Node_Component_Dynamics_Statistics_Bars_Output    , &
+       &    Node_Component_Dynamics_Statistics_Bars_Thread_Initialize  , Node_Component_Dynamics_Statistics_Bars_Initialize, &
+       &    Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize
 
   !# <component>
   !#  <class>dynamicsStatistics</class>
@@ -76,6 +77,7 @@ contains
   subroutine Node_Component_Dynamics_Statistics_Bars_Initialize(parameters)
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
     
@@ -93,12 +95,13 @@ contains
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(parameters)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -109,12 +112,29 @@ contains
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize
 
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    use Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
+    implicit none
+
+    if (defaultDynamicsStatisticsComponent%barsIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"           />
+       !# <objectDestructor name="galacticDynamicsBarInstability_"/>
+    end if
+    return
+  end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize
+
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Rate_Compute</unitName>
   !# </rateComputeTask>
   subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the standard disk node mass rate of change.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode                           , nodeComponentBasic                , nodeComponentDynamicsStatistics, interruptTask, &
+         &                       nodeComponentDynamicsStatisticsBars, defaultDynamicsStatisticsComponent
     implicit none
     type            (treeNode                       ), intent(inout), pointer      :: node
     logical                                          , intent(in   )               :: odeConverged
@@ -129,7 +149,7 @@ contains
     !GCC$ attributes unused :: odeConverged, propertyType
 
     ! Do not compute rates if this component is not active.
-    if (.not.defaultDynamicsStatisticsComponent%barsIsActive()) return
+    if (.not.defaultDynamicsStatisticsComponent%barsIsActive().or..not.node%isSatellite()) return
     ! Determine the allowed timestep.
     dynamicsStatistics => node%dynamicsStatistics()
     select type (dynamicsStatistics)
@@ -163,6 +183,8 @@ contains
     use Numerical_Constants_Math
     use Satellite_Orbits
     use Kepler_Orbits
+    use Galacticus_Nodes        , only : treeNode                       , nodeComponentBasic                 , nodeComponentDisk, nodeComponentSatellite, &
+         &                               nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars
     implicit none
     type            (treeNode                       ), intent(inout), pointer :: node
     class           (nodeComponentBasic             )               , pointer :: basic
@@ -203,12 +225,12 @@ contains
   subroutine Node_Component_Dynamics_Statistics_Bars_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the dynamical histories of galaxies to \glc\ output file.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_HDF5
-    use Galacticus_Nodes
-    use Numerical_Constants_Astronomical
-    use String_Handling
-    use ISO_Varying_String
-    use IO_HDF5
+    use            :: Galacticus_HDF5
+    use            :: Galacticus_Nodes                , only : treeNode, nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars
+    use            :: Numerical_Constants_Astronomical
+    use            :: String_Handling
+    use            :: ISO_Varying_String
+    use            :: IO_HDF5
     implicit none
     type            (treeNode                       ), intent(inout), pointer      :: node
     integer         (kind=c_size_t                  ), intent(in   )               :: iOutput

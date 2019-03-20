@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,7 @@
   type, extends(taskClass) :: taskMulti
      !% Implementation of a task which performs multiple other tasks.
      private
-     type(multiTaskList), pointer :: tasks
+     type(multiTaskList), pointer :: tasks => null()
    contains
      final     ::                       multiDestructor
      procedure :: perform            => multiPerform
@@ -62,7 +63,7 @@ contains
           allocate(self%tasks)
           task_ => self%tasks
        end if
-       task_%task_ => task(parameters,i)
+       !# <objectBuilder class="task" name="task_%task_" source="parameters" copy="i" />
     end do
     return
   end function multiConstructorParameters
@@ -72,12 +73,18 @@ contains
     implicit none
     type(taskMulti    )                        :: self
     type(multiTaskList), target, intent(in   ) :: tasks
-    !# <constructorAssign variables="*tasks"/>
+    type(multiTaskList), pointer               :: task_
 
+    self %tasks => tasks
+    task_       => tasks
+    do while (associated(task_))
+       !# <referenceCountIncrement owner="task_" object="task_"/>
+       task_ => task_%next
+    end do
     return
   end function multiConstructorInternal
   
-  elemental subroutine multiDestructor(self)
+  subroutine multiDestructor(self)
     !% Destructor for the {\normalfont \ttfamily multi} task class.
     implicit none
     type(taskMulti    ), intent(inout) :: self
@@ -87,25 +94,29 @@ contains
        task_ => self%tasks
        do while (associated(task_))
           taskNext => task_%next
-          deallocate(task_%task_)
-          deallocate(task_      )
+          !# <objectDestructor name="task_%task_"/>
+          deallocate(task_)
           task_ => taskNext
        end do
     end if
     return
   end subroutine multiDestructor
 
-  subroutine multiPerform(self)
+  subroutine multiPerform(self,status)
     !% Perform all tasks.
     use Galacticus_Display
+    use Galacticus_Error  , only : errorStatusSuccess
     implicit none
-    class(taskMulti    ), intent(inout) :: self
-    type (multiTaskList), pointer       :: task_
+    class  (taskMulti    ), intent(inout)           :: self
+    integer               , intent(  out), optional :: status 
+    type   (multiTaskList), pointer                 :: task_
 
     call Galacticus_Display_Indent('Begin multiple tasks')
+    if (present(status)) status=errorStatusSuccess
     task_ => self%tasks
     do while (associated(task_))
        call task_%task_%perform()
+       if (present(status) .and. status /= errorStatusSuccess) return
        task_ => task_%next
     end do
     call Galacticus_Display_Unindent('Done multiple tasks')
@@ -132,7 +143,7 @@ contains
     use Galacticus_Error
     implicit none
     class(taskMulti    ), intent(inout) :: self
-    class(taskClass    ), intent(  out) :: destination
+    class(taskClass    ), intent(inout) :: destination
     type (multiTaskList), pointer       :: task_      , taskDestination_, &
          &                                 taskNew_
 
@@ -152,7 +163,7 @@ contains
              taskDestination_            => taskNew_
           end if
           allocate(taskNew_%task_,mold=task_%task_)
-          call task_%task_%deepCopy(taskNew_%task_)
+          !# <deepCopy source="task_%task_" destination="taskNew_%task_"/>
           task_ => task_%next
        end do       
     class default

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
   
   use Cosmology_Functions
 
-  !# <outputAnalysis name="outputAnalysisGalaxySizesSDSS" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisGalaxySizesSDSS">
   !#  <description>A stellar mass function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisGalaxySizesSDSS
@@ -28,7 +29,7 @@
      private
      integer                                            :: distributionNumber
      double precision                                   :: massStellarRatio
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
      final :: galaxySizesSDSSDestructor
   end type outputAnalysisGalaxySizesSDSS
@@ -71,6 +72,8 @@ contains
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     self=outputAnalysisGalaxySizesSDSS(distributionNumber,massStellarRatio,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
     return
   end function galaxySizesSDSSConstructorParameters
 
@@ -87,6 +90,7 @@ contains
     use Numerical_Comparison
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
+    use Cosmology_Parameters            , only : cosmologyParametersSimple
     implicit none
     type            (outputAnalysisGalaxySizesSDSS                  )                              :: self
     integer                                                                       , intent(in   )  :: distributionNumber

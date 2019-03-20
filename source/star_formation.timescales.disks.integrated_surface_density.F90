@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +22,14 @@
 
   use Star_Formation_Rate_Surface_Density_Disks
 
-  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksIntgrtdSurfaceDensity" defaultThreadPrivate="yes">
+  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksIntgrtdSurfaceDensity">
   !#  <description>A timescale for star formation in galactic disks which computes the timescale by integrating a star formation rate over the disk.</description>
   !# </starFormationTimescaleDisks>
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksIntgrtdSurfaceDensity
      !% Implementation of a timescale for star formation in galactic disks which computes the timescale by integrating a
      !% star formation rate over the disk.
      private
-     class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_
+     class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
      double precision                                                     :: tolerance                            , starFormationRatePrevious
    contains
      final     ::                     intgrtdSurfaceDensityDestructor
@@ -69,6 +70,7 @@ contains
     !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     self=starFormationTimescaleDisksIntgrtdSurfaceDensity(tolerance,starFormationRateSurfaceDensityDisks_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
     return
   end function intgrtdSurfaceDensityConstructorParameters
 
@@ -95,6 +97,8 @@ contains
   double precision function intgrtdSurfaceDensityTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node}, by integrating
     !% over the surface density of star formation rate.
+    use FGSL                    , only : FGSL_Integ_Gauss15, fgsl_function, fgsl_integration_workspace
+    use Galacticus_Nodes        , only : nodeComponentDisk
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none

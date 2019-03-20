@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Spherical_Collapse_Matter_Dark_Energy
   !% Implements calculations of spherical top hat collapse in cosmologies containing matter and dark energy.
-  use FGSL
+  use FGSL               , only : FGSL_Success
   use ISO_Varying_String
   use Cosmology_Functions
   implicit none
@@ -189,10 +190,10 @@ contains
             &                         )
        !$omp parallel private(aExpansionNow,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,maximumExpansionExpansionFactor,q,y,timeEnergyFixed,a,b,x,linearGrowth__)       
        allocate(cosmologyFunctions__,mold=cosmologyFunctions_)
-       call cosmologyFunctions_%deepCopy(cosmologyFunctions__)
+       !# <deepCopy source="cosmologyFunctions_" destination="cosmologyFunctions__"/>
        if (calculationType == calculationDeltaCrit) then
           allocate(linearGrowth__,mold=linearGrowth_)
-          call linearGrowth_%deepCopy(linearGrowth__)
+          !# <deepCopy source="linearGrowth_" destination="linearGrowth__"/>
        end if
        !$omp do schedule(dynamic)
        do iTime=1,deltaTableNumberPoints

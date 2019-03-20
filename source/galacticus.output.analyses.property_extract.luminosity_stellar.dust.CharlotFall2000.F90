@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use ISO_Varying_String
   use Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyStllrCF2000" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyStllrCF2000">
   !#  <description>A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyStllrCF2000
@@ -32,7 +33,7 @@
           &                                                           depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
           &                                                           wavelengthExponent
      integer                           , allocatable, dimension(:) :: luminosityIndex           , luminosityRecentIndex
-     class           (outputTimesClass), pointer                   :: outputTimes_
+     class           (outputTimesClass), pointer                   :: outputTimes_ => null()
    contains
      final     ::             lmnstyStllrChrltFll2000Destructor
      procedure :: extract  => lmnstyStllrChrltFll2000Extract
@@ -115,6 +116,7 @@ contains
        self=outputAnalysisPropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_                          )
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputTimes_"/>
     return
   end function lmnstyStllrChrltFll2000ConstructorParameters
 
@@ -162,7 +164,7 @@ contains
   double precision function lmnstyStllrChrltFll2000Extract(self,node)
     !% Implement a stellar luminosity output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use               Abundances_Structure
     use               Stellar_Luminosities_Structure
     use               Numerical_Constants_Atomic
@@ -209,7 +211,7 @@ contains
     basic                          =>                         node               %basic              (                             )
     disk                           =>                         node               %disk               (                             )
     spheroid                       =>                         node               %spheroid           (                             )
-    i                              =  self%outputTimes_%index(basic              %time               (                             ))
+    i                              =  self%outputTimes_%index(basic              %time               (                             ),findClosest=.true.)
     luminositiesStellar            =                          disk               %luminositiesStellar(                             )
     abundancesGas                  =                          disk               %abundancesGas      (                             )
     call abundancesGas%massToMassFraction(disk    %massGas())

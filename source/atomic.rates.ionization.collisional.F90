@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Atomic_Rates_Ionization_Collisional
   !% Provides a class implenting radiative recombiantion rates.
+  private
 
   !# <functionClass>
   !#  <name>atomicIonizationRateCollisional</name>
   !#  <descriptiveName>Atomic Collisional Ionization</descriptiveName>
   !#  <description>Class providing atomic collisional ionization rates.</description>
   !#  <default>verner1996</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="rate" >
   !#   <description>Returns the radiative recombination rate.</description>
   !#   <type>double precision</type>

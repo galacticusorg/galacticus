@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 module fodeiv2
-  use FGSL
+  use FGSL, only : fgsl_int, fgsl_long, fgsl_char, fgsl_double, fgsl_size_t, fgsl_strmax, fgsl_name
   use, intrinsic :: iso_c_binding
   implicit none
   private

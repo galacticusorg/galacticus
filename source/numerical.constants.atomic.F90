@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@ module Numerical_Constants_Atomic
   !% Contains various useful atomic constants.
   use Numerical_Constants_Physical
   use Numerical_Constants_Units
-  use FGSL
+  use FGSL                        , only : FGSL_CONST_MKSA_UNIFIED_ATOMIC_MASS, FGSL_CONST_MKSA_RYDBERG
   implicit none
   public
 

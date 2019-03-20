@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,8 +29,8 @@
   type, extends(transferFunctionClass) :: transferFunctionBBKS
      !% A bbks transfer function class.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
      double precision                                    :: Gamma
    contains
      final     ::                          bbksDestructor
@@ -49,58 +50,58 @@
 
 contains
 
-  function bbksConstructorParameters(parameters)
+  function bbksConstructorParameters(parameters) result(self)
     !% Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (transferFunctionBBKS    )                :: bbksConstructorParameters
+    type (transferFunctionBBKS    )                :: self
     type (inputParameters         ), intent(inout) :: parameters
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_
     class(darkMatterParticleClass ), pointer       :: darkMatterParticle_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    bbksConstructorParameters=bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_)
+    self=bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterParticle_" />
     return
   end function bbksConstructorParameters
 
-  function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_)
+  function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_) result(self)
     !% Internal constructor for the ``BBKS'' transfer function class.
     use Galacticus_Error    
     implicit none
-    type (transferFunctionBBKS    )                        :: bbksConstructorInternal
+    type (transferFunctionBBKS    )                        :: self
     class(darkMatterParticleClass ), intent(in   ), target :: darkMatterParticle_
     class(cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
+    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_"/>
 
     ! Require that the dark matter be cold dark matter.
-    bbksConstructorInternal%darkMatterParticle_ => darkMatterParticle_
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
        ! Cold dark matter particle - this is as expected.
     class default
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
-    ! Store cosmological parameters.
-    bbksConstructorInternal%cosmologyParameters_ => cosmologyParameters_
     ! Compute the Gamma parameter.
-    bbksConstructorInternal%Gamma=+             bbksConstructorInternal%cosmologyParameters_%OmegaMatter   (                  ) &
-         &                        *             bbksConstructorInternal%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
-         &                        *exp(                                                                                         &
-         &                             -        bbksConstructorInternal%cosmologyParameters_%OmegaBaryon   (                  ) &
-         &                             *(                                                                                       &
-         &                               +1.0d0                                                                                 &
-         &                               +sqrt(                                                                                 &
-         &                                     +2.0d0                                                                           &
-         &                                     *bbksConstructorInternal%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH) &
-         &                                    )                                                                                 &
-         &                               /      bbksConstructorInternal%cosmologyParameters_%OmegaMatter   (                  ) &
-         &                              )                                                                                       &
-         &                            )                                                                                         &
-         &                        /(                                                                                            &
-         &                          +           bbksConstructorInternal%cosmologyParameters_%temperatureCMB(                  ) &
-         &                          /2.7d0                                                                                      &
-         &                         )**2
+    self%Gamma=+             self%cosmologyParameters_%OmegaMatter   (                  ) &
+         &     *             self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+         &     *exp(                                                                      &
+         &          -        self%cosmologyParameters_%OmegaBaryon   (                  ) &
+         &          *(                                                                    &
+         &            +1.0d0                                                              &
+         &            +sqrt(                                                              &
+         &                  +2.0d0                                                        &
+         &                  *self%cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH) &
+         &                 )                                                              &
+         &            /      self%cosmologyParameters_%OmegaMatter   (                  ) &
+         &           )                                                                    &
+         &         )                                                                      &
+         &     /(                                                                         &
+         &       +           self%cosmologyParameters_%temperatureCMB(                  ) &
+         &       /2.7d0                                                                   &
+         &      )**2
     return
   end function bbksConstructorInternal
 

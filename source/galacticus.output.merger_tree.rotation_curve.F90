@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -61,7 +62,7 @@ contains
     use Input_Parameters
     use Galacticus_Error
     use String_Handling
-    use Galacticus_Nodes
+    use Galacticus_Nodes              , only : treeNode, defaultDarkMatterProfileComponent, defaultDiskComponent, defaultSpheroidComponent
     use Galactic_Structure_Options
     use Stellar_Luminosities_Structure
     implicit none
@@ -239,7 +240,7 @@ contains
   subroutine Galacticus_Output_Tree_Rotation_Curve_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of rotation curve properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                , only : treeNode
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout) :: thisNode
@@ -272,7 +273,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Rotation_Curve_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of rotation curve properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: thisNode
     double precision          , intent(in   ) :: time
@@ -294,7 +295,7 @@ contains
   subroutine Galacticus_Output_Tree_Rotation_Curve(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store rotation curve properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk, nodeComponentSpheroid, nodeComponentDarkMatterProfile
     use Kind_Numbers
     use Galactic_Structure_Rotation_Curves
     use Dark_Matter_Halo_Scales

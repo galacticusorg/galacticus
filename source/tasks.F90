@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,6 +21,7 @@
 
 module Tasks
   !% Provides a class that implements general tasks to be performed by \glc.
+  private
   
   !# <functionClass>
   !#  <name>task</name>
@@ -27,10 +29,12 @@ module Tasks
   !#  <description>Class providing generak tasks to be performed by \glc.</description>
   !#  <default>evolveForests</default>
   !#  <stateful>no</stateful>
+  !#  <functionClassDestroy>no</functionClassDestroy>
   !#  <method name="perform" >
   !#   <description>Perform the task.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
+  !#   <argument>integer, intent(  out), optional :: status</argument>
   !#  </method>
   !#  <method name="requiresOutputFile" >
   !#   <description>Should return true if the task requires the main output file to be open.</description>

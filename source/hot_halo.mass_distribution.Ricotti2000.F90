@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +28,8 @@
   type, extends(hotHaloMassDistributionBetaProfile) :: hotHaloMassDistributionRicotti2000
      !% An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
      private
-     class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::               ricotti2000Destructor
      procedure :: initialize => ricotti2000Initialize
@@ -55,6 +56,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloMassDistributionRicotti2000(darkMatterProfile_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function ricotti2000ConstructorParameters
 
@@ -62,6 +65,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
     use Galacticus_Error
     use Array_Utilities
+    use Galacticus_Nodes, only : defaultHotHaloComponent, defaultDarkMatterProfileComponent
     implicit none
     type   (hotHaloMassDistributionRicotti2000)                        :: self
     class  (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
@@ -127,6 +131,7 @@ contains
   subroutine ricotti2000Initialize(self,node)
     !% Initialize the {\normalfont \ttfamily ricotti2000} hot halo density profile for the given {\normalfont \ttfamily
     !% node}. Parameterizations of $\beta$ and core radius are taken from section 2.1 of \cite{ricotti_feedback_2000}.
+    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
     implicit none
     class           (hotHaloMassDistributionRicotti2000    ), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Geometry_Surveys
   use Cosmology_Functions
 
-  !# <outputAnalysis name="outputAnalysisMassFunctionHI" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMassFunctionHI">
   !#  <description>An HI mass function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisMassFunctionHI
@@ -123,6 +124,14 @@ contains
     !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
     self=outputAnalysisMassFunctionHI(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputAnalysisMolecularRatio_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"                    />
+    !# <objectDestructor name="outputTimes_"                       />
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="cosmologyFunctionsData"             />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"    />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"/>
+    !# <objectDestructor name="outputAnalysisMolecularRatio_"      />
+    !# <objectDestructor name="surveyGeometry_"                    />
     return
   end function massFunctionHIConstructorParameters
 
@@ -303,6 +312,8 @@ contains
     !% Destructor for  the ``massFunctionHI'' output analysis class.
     type(outputAnalysisMassFunctionHI), intent(inout) :: self
     
-    !# <objectDestructor name="self%surveyGeometry_"/>
+    !# <objectDestructor name="self%surveyGeometry_"       />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%cosmologyFunctionsData"/>
     return
   end subroutine massFunctionHIDestructor

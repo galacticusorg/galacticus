@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
   
   !% An implementation of cosmological density field mass variance computed using a filtered power spectrum.
 
-  !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower" defaultThreadPrivate="yes">
+  !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower">
   !#  <description>
   !#   Mass variance of cosmological density fields computed from a filtered power spectrum. The
   !#   normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma\_8]}
@@ -43,6 +44,9 @@
   !#   [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline
   !#   interpolator to be used instead which gaurantees monotonicity.
   !#  </description>
+  !#  <deepCopy>
+  !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
+  !#  </deepCopy>
   !# </cosmologicalMassVariance>
   use Tables
   use Cosmology_Parameters
@@ -52,10 +56,10 @@
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     class           (cosmologyParametersClass               ), pointer     :: cosmologyParameters_
-     class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_
-     class           (powerSpectrumWindowFunctionClass       ), pointer     :: powerSpectrumWindowFunction_
-     type            (powerSpectrumWindowFunctionTopHat      )              :: powerSpectrumWindowFunctionTopHat_
+     class           (cosmologyParametersClass               ), pointer     :: cosmologyParameters_ => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_ => null()
+     class           (powerSpectrumWindowFunctionClass       ), pointer     :: powerSpectrumWindowFunction_ => null()
+     type            (powerSpectrumWindowFunctionTopHat      ), pointer     :: powerSpectrumWindowFunctionTopHat_ => null()
      logical                                                                :: initialized
      double precision                                                       :: tolerance                          , toleranceTopHat   , &
           &                                                                    sigma8Value                        , sigmaNormalization, &
@@ -147,6 +151,9 @@ contains
     ! Construct the instance.
     self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"               />
+    !# <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
+    !# <objectDestructor name="powerSpectrumWindowFunction_"       />
     return
   end function filteredPowerConstructorParameters
 
@@ -160,18 +167,14 @@ contains
     class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
+    !# <constructorAssign variables="tolerance, toleranceTopHat, monotonicInterpolation, *cosmologyParameters_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_"/>
 
-    self%sigma8Value                         =  sigma8
-    self%tolerance                           =  tolerance
-    self%toleranceTopHat                     =  toleranceTopHat
-    self%monotonicInterpolation              =  monotonicInterpolation
-    self%cosmologyParameters_                => cosmologyParameters_
-    self%powerSpectrumPrimordialTransferred_ => powerSpectrumPrimordialTransferred_
-    self%powerSpectrumWindowFunction_        => powerSpectrumWindowFunction_
-    self%powerSpectrumWindowFunctionTopHat_  =  powerSpectrumWindowFunctionTopHat  (cosmologyParameters_)
-    self%initialized                         =  .false.
-    self%massMinimum                         =  1.0d06
-    self%massMaximum                         =  1.0d15
+    allocate(self%powerSpectrumWindowFunctionTopHat_)
+    !# <referenceConstruct isResult="yes" owner="self" object="powerSpectrumWindowFunctionTopHat_" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>
+    self%sigma8Value=sigma8
+    self%initialized=.false.
+    self%massMinimum=1.0d06
+    self%massMaximum=1.0d15
     return
   end function filteredPowerConstructorInternal
 
@@ -183,6 +186,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"               />
     !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
     !# <objectDestructor name="self%powerSpectrumWindowFunction_"       />
+    !# <objectDestructor name="self%powerSpectrumWindowFunctionTopHat_" />
     if (self%initialized) call self%rootVarianceTable%destroy()
     return
   end subroutine filteredPowerDestructor
@@ -411,8 +415,9 @@ contains
     double precision function rootVariance(useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       use, intrinsic :: ISO_C_Binding
-      use               Numerical_Constants_Math
-      use               Numerical_Integration
+      use            :: Numerical_Constants_Math
+      use            :: Numerical_Integration
+      use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
       implicit none
       logical                                     , intent(in   ) :: useTopHat
       double precision                                            :: topHatRadius        , wavenumberMaximum, &

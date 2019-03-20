@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,7 @@
   use Cosmology_Functions
   use Cosmological_Density_Field
 
-  !# <mergerTreeOperator name="mergerTreeOperatorExport" defaultThreadPrivate="true">
+  !# <mergerTreeOperator name="mergerTreeOperatorExport">
   !#  <description>
   !#   A merger tree operator which exports merger trees to file.
   !# </description>
@@ -31,9 +32,9 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorExport
      !% A merger tree operator class which exports merger trees to file.
      private
-     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_ => null()
+     class  (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_ => null()
+     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      type   (varying_string               )          :: outputFileName
      integer                                         :: exportFormat
      logical                                         :: snapshotsRequired
@@ -87,6 +88,9 @@ contains
     exportFormat=enumerationMergerTreeFormatEncode(char(exportFormatText),includesPrefix=.false.)
     self=exportConstructorInternal(char(outputFileName),exportFormat,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function exportConstructorParameters
 
@@ -129,7 +133,8 @@ contains
     use Numerical_Interpolation
     use Merger_Tree_Data_Structure
     use Merger_Tree_Walkers
-    use Galacticus_Nodes
+    use Galacticus_Nodes                , only : treeNode         , nodeComponentBasic, nodeComponentPosition, defaultPositionComponent
+    use FGSL                            , only : fgsl_interp_accel
     use Input_Parameters
     use Memory_Management
     use Sort

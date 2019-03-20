@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +28,8 @@
   type, extends(virialDensityContrastClass) :: virialDensityContrastBryanNorman1998
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
      private
-     class (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
      integer                                   :: fitType
    contains
      final     ::                                bryanNorman1998Destructor
@@ -66,6 +67,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     self=virialDensityContrastBryanNorman1998(cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function bryanNorman1998ConstructorParameters
   

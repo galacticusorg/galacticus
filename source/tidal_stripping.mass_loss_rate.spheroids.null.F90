@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implementation of a null tidal stripping of spheroids class.
 
-  !# <tidalStrippingSpheroids name="tidalStrippingSpheroidsNull" defaultThreadPrivate="yes">
+  !# <tidalStrippingSpheroids name="tidalStrippingSpheroidsNull">
   !#  <description>A null model of tidal stripping in galactic spheroids.</description>
   !# </tidalStrippingSpheroids>
   type, extends(tidalStrippingSpheroidsClass) :: tidalStrippingSpheroidsNull

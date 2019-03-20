@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -106,7 +107,7 @@ contains
   subroutine Galacticus_Output_Halo_Model_Names(node,integerProperty,integerPropertyNames,integerPropertyComments&
        &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of halo model properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode)              , intent(inout) :: node
     double precision                        , intent(in   ) :: time
@@ -139,7 +140,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Halo_Model_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of halo model properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
@@ -164,7 +165,7 @@ contains
   subroutine Galacticus_Output_Halo_Model(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store halo model properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Dark_Matter_Halo_Biases
     use Kind_Numbers
     use Multi_Counters
@@ -298,7 +299,7 @@ contains
   subroutine Galacticus_Extra_Output_Halo_Fourier_Profile(node,iOutput,treeIndex,nodePassesFilter)
     !% Store Fourier-space halo profiles to the output file.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     use Galacticus_HDF5
     use ISO_Varying_String
     use String_Handling

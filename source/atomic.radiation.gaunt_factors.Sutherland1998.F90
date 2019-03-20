@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(gauntFactorClass) :: gauntFactorSutherland1998
      !% A gaunt factor class implementing the fitting function of \cite{sutherland_accurate_1998}.
      private
-     class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_
+     class(atomicIonizationPotentialClass), pointer :: atomicIonizationPotential_ => null()
    contains
      final     ::          sutherland1998Destructor
      procedure :: total => sutherland1998Total
@@ -119,6 +120,7 @@ contains
     !# <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
     self=gauntFactorSutherland1998(atomicIonizationPotential_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="atomicIonizationPotential_"/>
     return
   end function sutherland1998ConstructorParameters
 

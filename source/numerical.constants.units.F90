@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Numerical_Constants_Units
   !% Contains various useful unit conversions.
-  use FGSL
+  use FGSL                        , only : FGSL_CONST_MKSA_RYDBERG, FGSL_CONST_MKSA_ELECTRON_VOLT
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Math
   implicit none

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,8 +23,7 @@ program Tests_Bug745815
   use Unit_Tests
   use Input_Parameters
   use ISO_Varying_String
-  use Memory_Management
-  use Galacticus_Nodes
+  use Galacticus_Nodes   , only : treeNode, treeNodeList, mergerTree, treeNode
   use Kind_Numbers
   use Merger_Tree_Walkers
   use Galacticus_Display
@@ -38,11 +38,7 @@ program Tests_Bug745815
   type   (mergerTreeWalkerAllNodes)          :: treeWalker
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.bug745815.size')
-
+  call Galacticus_Verbosity_Level_Set(verbosityStandard)  
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Bug #745815: Node skip during tree-walk")
 

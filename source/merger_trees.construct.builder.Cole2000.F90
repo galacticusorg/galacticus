@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,10 +32,10 @@
   type, extends(mergerTreeBuilderClass) :: mergerTreeBuilderCole2000
      !% A merger tree builder class using the algorithm of \cite{cole_hierarchical_2000}.
      private
-     class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_
-     class           (mergerTreeMassResolutionClass            ), pointer :: mergerTreeMassResolution_
-     class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_
-     class           (mergerTreeBranchingProbabilityClass      ), pointer :: mergerTreeBranchingProbability_
+     class           (cosmologyFunctionsClass                  ), pointer :: cosmologyFunctions_ => null()
+     class           (mergerTreeMassResolutionClass            ), pointer :: mergerTreeMassResolution_ => null()
+     class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_ => null()
+     class           (mergerTreeBranchingProbabilityClass      ), pointer :: mergerTreeBranchingProbability_ => null()
      logical                                                              :: criticalOverdensityIsMassDependent
      ! Variables controlling merger tree accuracy.
      double precision                                                     :: accretionLimit                          , timeEarliest             , &
@@ -171,6 +172,10 @@ contains
          &                                                                                                           criticalOverdensity_               &
          &                           )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerTreeBranchingProbability_"/>
+    !# <objectDestructor name="mergerTreeMassResolution_"      />
+    !# <objectDestructor name="cosmologyFunctions_"            />
+    !# <objectDestructor name="criticalOverdensity_"           />
     return
   end function cole2000ConstructorParameters
 
@@ -211,7 +216,7 @@ contains
 
   subroutine cole2000Build(self,tree)
     !% Build a merger tree.
-    use Galacticus_Nodes
+    use Galacticus_Nodes     , only : treeNode, nodeComponentBasic
     use Galacticus_Error
     use Merger_Tree_Walkers
     use Pseudo_Random
@@ -612,6 +617,7 @@ contains
   logical function cole2000ShouldFollowBranch(self,tree,node)
     !% Return {\normalfont \ttfamily true} if tree construction should continue to follow the current branch. In the {\normalfont
     !% \ttfamily cole2000} tree builder we always continue.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     class(mergerTreeBuilderCole2000), intent(inout)          :: self
     type (mergerTree               ), intent(in   )          :: tree
@@ -634,17 +640,21 @@ contains
 
   subroutine cole2000CriticalOverdensitySet(self,criticalOverdensity_)
     !% Set the critical overdensity object for this tree builder.
+    implicit none
     class(mergerTreeBuilderCole2000), intent(inout)         :: self
     class(criticalOverdensityClass ), intent(in   ), target :: criticalOverdensity_
 
     !# <objectDestructor name="self%criticalOverdensity_"/>
     self%criticalOverdensity_               =>      criticalOverdensity_
+    !# <referenceCountIncrement owner="self" object="criticalOverdensity_"/>
     self%criticalOverdensityIsMassDependent =  self%criticalOverdensity_%isMassDependent()
     return
   end subroutine cole2000CriticalOverdensitySet
   
   double precision function cole2000CriticalOverdensityUpdate(self,deltaCritical,massCurrent,massNew,nodeNew)
     !% Update the critical overdensity for a new node, given that of the parent,
+    use Galacticus_Nodes, only : treeNode
+    implicit none
     class           (mergerTreeBuilderCole2000), intent(inout) :: self
     double precision                           , intent(in   ) :: massCurrent  , massNew, &
          &                                                        deltaCritical

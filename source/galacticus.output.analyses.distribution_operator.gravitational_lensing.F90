@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,14 +28,14 @@
      double precision, allocatable, dimension(:,:) :: matrix
   end type grvtnlLnsngTransferMatrix
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng" defaultThreadPrivate="yes">
+  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng">
   !#  <description>A gravitational lensing output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorGrvtnlLnsng
      !% A gravitational lensing output distribution operator class.
      private
-     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_
-     class           (outputTimesClass         ), pointer                   :: outputTimes_
+     class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_ => null()
+     class           (outputTimesClass         ), pointer                   :: outputTimes_ => null()
      type            (grvtnlLnsngTransferMatrix), allocatable, dimension(:) :: transfer_
      double precision                                                       :: sizeSource
      !$ type         (ompReadWriteLock         ), allocatable, dimension(:) :: tabulateLock
@@ -81,6 +82,8 @@ contains
     ! Construct the object.
     self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,outputTimes_,sizeSource)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="gravitationalLensing_"/>
+    !# <objectDestructor name="outputTimes_"         />
     return
   end function grvtnlLnsngConstructorParameters
 
@@ -135,7 +138,7 @@ contains
   function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
     !% Implement a gravitational lensing output analysis distribution operator.
     use Memory_Management
-    use FGSL
+    use FGSL                   , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Output_Analyses_Options
     implicit none
@@ -162,7 +165,7 @@ contains
           call allocateArray(self%transfer_(outputIndex)%matrix,[size(propertyValueMinimum),size(propertyValueMinimum)])
           !$omp parallel private (i,j,k,l,integrationReset,integrandFunction,integrationWorkspace)
           allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
-          call self%gravitationalLensing_%deepCopy(grvtnlLnsngGravitationalLensing_)
+          !# <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
           !$omp do schedule(dynamic)
           do l=1,size(propertyValueMinimum)
              do i=1,2

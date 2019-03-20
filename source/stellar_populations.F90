@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +32,6 @@ module Stellar_Populations
   !#  <descriptiveName>Stellar Populations</descriptiveName>
   !#  <description>Class providing stellar populations.</description>
   !#  <default>standard</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <data>integer(c_size_t) :: uniqueID_=-1_c_size_t</data>
   !#  <method name="rateRecycling" >
   !#   <description>Return the rate of recycling from this population.</description>

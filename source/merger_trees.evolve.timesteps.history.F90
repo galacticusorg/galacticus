@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,13 +22,13 @@
   use FGSL               , only : fgsl_interp_accel
   use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory" defaultThreadPrivate="yes" autoHook="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory" autoHook="yes">
   !#  <description>A merger tree evolution timestepping class which limits the step the next epoch at which to store global history.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHistory
      !% Implementation of a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
      logical                                                              :: diskActive               , spheroidActive
      integer                                                              :: historyCount
      double precision                                                     :: timeBegin                , timeEnd
@@ -94,12 +95,14 @@ contains
     !# </inputParameter>
     self=mergerTreeEvolveTimestepHistory(historyCount,timeBegin,timeEnd,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function historyConstructorParameters
 
   function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_) result(self)
     !% Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
     use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
     use            :: Memory_Management
     use            :: Numerical_Ranges
     implicit none
@@ -163,6 +166,7 @@ contains
 
   double precision function historyTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the history method.
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic
     use, intrinsic :: ISO_C_Binding
     use            :: Numerical_Interpolation
     use            :: Evolve_To_Time_Reports
@@ -200,6 +204,7 @@ contains
 
   subroutine historyStore(self,tree,node,deadlockStatus)
     !% Store various properties in global arrays.
+    use            :: Galacticus_Nodes                  , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use, intrinsic :: ISO_C_Binding
     use            :: Numerical_Interpolation
     use            :: Galactic_Structure_Options

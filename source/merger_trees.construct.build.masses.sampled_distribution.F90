@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Merger_Trees_Build_Masses_Distributions
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" defaultThreadPrivate="yes" abstract="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistribution" abstract="yes">
   !#  <description>A merger tree masses class which samples masses from a distribution.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesSampledDistribution
      !% Implementation of a merger tree masses class which samples masses from a distribution.
      private
-     class           (mergerTreeBuildMassDistributionClass), pointer :: mergerTreeBuildMassDistribution_
+     class           (mergerTreeBuildMassDistributionClass), pointer :: mergerTreeBuildMassDistribution_ => null()
      double precision                                                :: massTreeMinimum                 , massTreeMaximum, &
           &                                                             treesPerDecade
    contains
@@ -45,6 +46,7 @@
      !@     <description>Return a set of values {\normalfont \ttfamily sampleCount} in the interval 0--1, corresponding to values of the cumulative mass distribution.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::              sampledDistributionDestructor
      procedure :: construct => sampledDistributionConstruct
      procedure :: sampleCMF => sampledDistributionCMF
   end type mergerTreeBuildMassesSampledDistribution
@@ -109,11 +111,20 @@ contains
     return
   end function sampledDistributionConstructorParameters
 
+  subroutine sampledDistributionDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily sampledDistribution} merger tree masses class.
+    implicit none
+    type(mergerTreeBuildMassesSampledDistribution), intent(inout) :: self
+
+    !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    return
+  end subroutine sampledDistributionDestructor
+  
   subroutine sampledDistributionConstruct(self,time,mass,massMinimum,massMaximum,weight)
     !% Construct a set of merger tree masses by sampling from a distribution.
     use, intrinsic :: ISO_C_Binding
     use            :: Memory_Management
-    use            :: FGSL
+    use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, fgsl_interp, fgsl_interp_accel
     use            :: Numerical_Integration
     use            :: Numerical_Interpolation
     use            :: Numerical_Ranges
@@ -166,6 +177,7 @@ contains
                &                toleranceRelative=toleranceRelative                     , &
                &                reset            =integrandReset                          &
                &               )
+          call Integrate_Done(integrandFunction,integrationWorkspace)
        else
           probability=0.0d0
        end if
@@ -189,12 +201,11 @@ contains
        end if
        massFunctionSampleLogPrevious=massFunctionSampleLogMass(iSample)
     end do
-    call Integrate_Done(integrandFunction,integrationWorkspace)
     massFunctionSampleCount=jSample
     if (massFunctionSampleCount < 2) call Galacticus_Error_Report('tabulated mass function sampling density has fewer than 2 non-zero points'//{introspection:location})
     ! Normalize the cumulative probability distribution.
-    massFunctionSampleProbability=+massFunctionSampleProbability                          &
-         &                        /massFunctionSampleProbability(massFunctionSampleCount)
+    massFunctionSampleProbability(1:massFunctionSampleCount)=+massFunctionSampleProbability(1:massFunctionSampleCount) &
+         &                                                   /massFunctionSampleProbability(  massFunctionSampleCount)
     ! Generate a set of points in the cumulative distribution, sort them, and find the mass ranges which they occupy.
     call self%sampleCMF(mass)
     call Sort_Do(mass)

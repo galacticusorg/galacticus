@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use ISO_Varying_String
   use Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLuminosityStellar" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLuminosityStellar">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLuminosityStellar
@@ -31,7 +32,7 @@
           &                                                           postprocessChain
      double precision                                              :: redshiftBand
      integer                           , allocatable, dimension(:) :: luminosityIndex
-     class           (outputTimesClass), pointer                   :: outputTimes_
+     class           (outputTimesClass), pointer                   :: outputTimes_ => null()
    contains
      final     ::             luminosityStellarDestructor
      procedure :: extract  => luminosityStellarExtract
@@ -108,6 +109,7 @@ contains
        end if
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputTimes_"/>
     return
   end function luminosityStellarConstructorParameters
   
@@ -152,7 +154,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use               Galactic_Structure_Enclosed_Masses
     use               Galactic_Structure_Options
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
     class  (outputAnalysisPropertyExtractorLuminosityStellar), intent(inout) :: self
     type   (treeNode                                        ), intent(inout) :: node
@@ -160,8 +162,8 @@ contains
     integer(c_size_t                                        )                :: i
     
     basic                    =>                                  node %basic()
-    i                        =  self%outputTimes_%index         (basic%time ()                                                                                                     )
-    luminosityStellarExtract =  Galactic_Structure_Enclosed_Mass(node         ,radiusLarge,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
+    i                        =  self%outputTimes_%index         (basic%time (),findClosest=.true.                                                                                              )
+    luminosityStellarExtract =  Galactic_Structure_Enclosed_Mass(node         ,            radiusLarge,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))
     return
   end function luminosityStellarExtract
   

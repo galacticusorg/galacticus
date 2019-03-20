@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,10 +19,10 @@
 
   !% Implementation of a simple freefall radius class.
 
-  use Dark_Matter_Profiles
-  use Cooling_Freefall_Times_Available
+  use Dark_Matter_Profiles            , only : darkMatterProfileClass    , darkMatterProfile
+  use Cooling_Freefall_Times_Available, only : freefallTimeAvailableClass, freefallTimeAvailable
 
-  !# <freefallRadius name="freefallRadiusDarkMatterHalo" defaultThreadPrivate="yes">
+  !# <freefallRadius name="freefallRadiusDarkMatterHalo">
   !#  <description>
   !#   A freefall radius class which computes the freefall radius based on the freefall time in the dark matter halo.
   !#  </description>
@@ -29,8 +30,8 @@
   type, extends(freefallRadiusClass) :: freefallRadiusDarkMatterHalo
      !% Implementation of freefall radius class in which the freefall radius is based on the freefall time in the dark matter halo.
      private
-     class(darkMatterProfileClass    ), pointer :: darkMatterProfile_
-     class(freefallTimeAvailableClass), pointer :: freefallTimeAvailable_
+     class(darkMatterProfileClass    ), pointer :: darkMatterProfile_ => null()
+     class(freefallTimeAvailableClass), pointer :: freefallTimeAvailable_ => null()
    contains
      final     ::                     darkMatterHaloDestructor
      procedure :: radius           => darkMatterHaloRadius
@@ -58,6 +59,8 @@ contains
     !# <objectBuilder class="freefallTimeAvailable" name="freefallTimeAvailable_" source="parameters"/>
     self=freefallRadiusDarkMatterHalo(darkMatterProfile_,freefallTimeAvailable_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"    />
+    !# <objectDestructor name="freefallTimeAvailable_"/>
     return
   end function darkMatterHaloConstructorParameters
 

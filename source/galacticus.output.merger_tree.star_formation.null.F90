@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,7 +54,7 @@ contains
   subroutine Star_Formation_History_Create_Null(thisNode,thisHistory,timeBegin)
     !% Create the history required for storing star formation history.
     use Histories
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     type            (history ), intent(inout)          :: thisHistory
@@ -67,7 +68,7 @@ contains
   subroutine Star_Formation_History_Record_Null(thisNode,thisHistory,fuelAbundances,starFormationRate)
     !% Record the star formation history for {\normalfont \ttfamily thisNode}.
     use Histories
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Abundances_Structure
     implicit none
     type            (treeNode  ), intent(inout), pointer :: thisNode
@@ -85,7 +86,7 @@ contains
     !% Output the star formation history for {\normalfont \ttfamily thisNode}.
     use, intrinsic :: ISO_C_Binding
     use Histories
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Kind_Numbers
     implicit none
     type     (treeNode      ), intent(inout), pointer :: thisNode

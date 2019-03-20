@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -63,6 +64,7 @@ contains
     use Merger_Trees_Pruning_Utilities
     use Numerical_Comparison
     use Merger_Tree_Walkers
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     implicit none
     class(mergerTreeOperatorPruneClones), intent(inout), target :: self
     type (mergerTree                   ), intent(inout), target :: tree

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +36,7 @@ contains
   double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
-    use Galacticus_Nodes
+    use Galacticus_Nodes          , only : treeNode, optimizeForDensitySummation, reductionSummation
     use Galactic_Structure_Options
     use Galacticus_Error
     use Coordinate_Systems
@@ -112,7 +113,7 @@ contains
 
   double precision function Component_Density(component)
     !% Unary function returning the density in a component. Suitable for mapping over components.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
 

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 program Test_Random
   !% Tests that random number functions work.
-  use Memory_Management 
   use Unit_Tests
   use Pseudo_Random
   use Input_Parameters
@@ -37,9 +37,6 @@ program Test_Random
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.random.size')
   ! Initialize parameters.
   parameters=inputParameters()
   call parameters%markGlobal()

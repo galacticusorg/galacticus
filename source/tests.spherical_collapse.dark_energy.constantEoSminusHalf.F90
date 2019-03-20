@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,6 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
   use Input_Parameters
   use ISO_Varying_String
   use Cosmology_Functions
-  use Memory_Management
   use Numerical_Constants_Math
   use Cosmological_Density_Field
   use Linear_Growth
@@ -47,9 +47,6 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Half
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.spherical_collapse.dark_energy.constantEoSminusHalf.size')
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (ω=-½ cosmology)")

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,7 @@
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationVolonteri2003
      !% A black hole binary initial separation class based on the model of \cite{volonteri_assembly_2003}.
      private
-     class(darkMatterHaloScaleClass), pointer:: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer:: darkMatterHaloScale_ => null()
    contains
      final     ::                      volonteri2003Destructor
      procedure :: separationInitial => volonteri2003SeparationInitial
@@ -54,6 +55,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=blackHoleBinaryInitialSeparationVolonteri2003(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function volonteri2003ConstructorParameters
 
@@ -82,6 +84,7 @@ contains
     !% Returns an initial separation for binary black holes using the method of \cite{volonteri_assembly_2003}, with the
     !% assumption that the local velocity dispersion is approximately the dark matter halo virial velocity.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : nodeComponentBlackHole
     implicit none
     class(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout)         :: self
     type (treeNode                                     ), intent(inout), target :: nodeHost     , node

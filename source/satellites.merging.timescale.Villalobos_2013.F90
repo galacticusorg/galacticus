@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,8 +29,8 @@
      !% A class implementing calculations of satellite merging times by applying the \cite{villalobos_improved_2013} modifier to
      !% another selected satellite merging time method.
      private
-     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_
-     class           (satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_ => null()
+     class           (satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
      double precision                                           :: exponent
    contains
      final     ::                     villalobos2013Destructor
@@ -68,6 +69,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
     self=satelliteMergingTimescalesVillalobos2013(exponent,satelliteMergingTimescales_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="satelliteMergingTimescales_"/>
+    !# <objectDestructor name="cosmologyFunctions_"        />
     return
   end function villalobos2013ConstructorParameters
 
@@ -95,7 +98,7 @@ contains
 
   double precision function villalobos2013TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{villalobos_improved_2013} method.
-    use Galacticus_Nodes
+    use Galacticus_Nodes   , only : nodeComponentBasic
     use Cosmology_Functions
     use Kepler_Orbits
     implicit none

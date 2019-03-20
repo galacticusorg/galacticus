@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 program Tests_Spherical_Collapse_NonLinear
   !% Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
-  use Memory_Management
   use Tables
   use Unit_Tests
   use Input_Parameters
@@ -43,9 +43,6 @@ program Tests_Spherical_Collapse_NonLinear
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.spherical_collapse.nonlinear.size')
   ! Initialize cosmology.
   cosmologyParameters_=cosmologyParametersSimple     (                                      &
        &                                              OmegaMatter    = 1.00d0             , &

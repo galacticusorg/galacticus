@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -16,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite" defaultThreadPrivate="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSatellite">
   !#  <description>A merger tree evolution timestepping class which limits the step to the next satellite merger.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSatellite
@@ -69,7 +70,7 @@ contains
 
   function satelliteConstructorInternal(timeOffsetMaximumAbsolute,timeOffsetMaximumRelative) result(self)
     !% Constructor for the {\normalfont \ttfamily satellite} merger tree evolution timestep class which takes a parameter set as input.
-
+    use Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type            (mergerTreeEvolveTimestepSatellite)                :: self
     double precision                                   , intent(in   ) :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
@@ -81,6 +82,7 @@ contains
 
   double precision function satelliteTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} such that it does not exceed the time of the next satellite merger.
+    use Galacticus_Nodes      , only : nodeComponentBasic, nodeComponentSatellite
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none

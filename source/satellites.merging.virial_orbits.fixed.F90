@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -65,7 +66,7 @@ contains
     !#   <name>velocityTangential</name>
     !#   <defaultValue>0.75d0</defaultValue>
     !#   <source>parameters</source>
-    !#   <description>The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
+    !#   <description>The tangential velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
     !#   <type>real</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -73,6 +74,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale"    name="darkMatterHaloScale_"    source="parameters"/>
     self=virialOrbitFixed(velocityRadial,velocityTangential,virialDensityContrast_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="virialDensityContrast_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"  />
     return
   end function fixedConstructorParameters
 
@@ -101,6 +104,7 @@ contains
 
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
     !% Return fixed orbital parameters for a satellite.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Galacticus_Error
     use Galacticus_Display
     use Dark_Matter_Profile_Mass_Definitions

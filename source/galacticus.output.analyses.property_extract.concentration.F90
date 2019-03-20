@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Virial_Density_Contrast
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorConcentration" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorConcentration">
   !#  <description>A concentration output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorConcentration
@@ -30,7 +31,7 @@
      !% presently exists, \emph{not} at the time at which is was last isolated (as is used for standard definition of
      !% concentration).
      private
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
      final     ::             concentrationDestructor
      procedure :: extract  => concentrationExtract
@@ -56,6 +57,7 @@ contains
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     self=outputAnalysisPropertyExtractorConcentration(virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="virialDensityContrast_"/>
     return
   end function concentrationConstructorParameters
 
@@ -82,6 +84,7 @@ contains
   double precision function concentrationExtract(self,node)
     !% Implement a concentration output analysis.
     use Dark_Matter_Profile_Mass_Definitions
+    use Galacticus_Nodes                    , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (outputAnalysisPropertyExtractorConcentration), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node

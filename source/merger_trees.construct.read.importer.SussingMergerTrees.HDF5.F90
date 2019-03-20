@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,7 @@
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingHDF5
      !% A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).
      private
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      type (hdf5Object                   )          :: file                     , snapshots
    contains
      final     ::         sussingHDF5Destructor
@@ -53,6 +54,7 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
     !# <inputParametersValidate source="parameters"/>    
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end function sussingHDF5ConstructorParameters
 

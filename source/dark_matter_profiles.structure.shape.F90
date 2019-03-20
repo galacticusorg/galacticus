@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,14 @@
 
 module Dark_Matter_Profiles_Shape
   !% Provides a class that implements shape parameters of dark matter halo profiles.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
+  private
 
   !# <functionClass>
   !#  <name>darkMatterProfileShape</name>
   !#  <descriptiveName>Dark Matter Profile Shapes</descriptiveName>
   !#  <description>Object providing dark matter profile shape parameters.</description>
   !#  <default>gao2008</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="shape" >
   !#   <description>Returns the shape parameter for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

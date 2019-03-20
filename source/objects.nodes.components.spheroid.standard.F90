@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,6 @@
 module Node_Component_Spheroid_Standard
   !% Implements the standard spheroid component.
   use ISO_Varying_String
-  use Galacticus_Nodes
   use Histories
   use Stellar_Population_Properties
   use Star_Formation_Feedback_Spheroids
@@ -34,13 +34,14 @@ module Node_Component_Spheroid_Standard
   use Star_Formation_Timescales_Spheroids
   implicit none
   private
-  public :: Node_Component_Spheroid_Standard_Rate_Compute     , Node_Component_Spheroid_Standard_Scale_Set                    , &
-       &    Node_Component_Spheroid_Standard_Radius_Solver    , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
-       &    Node_Component_Spheroid_Standard_Initialize       , Node_Component_Spheroid_Standard_Post_Evolve                  , &
-       &    Node_Component_Spheroid_Standard_Pre_Evolve       , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
-       &    Node_Component_Spheroid_Standard_Satellite_Merging, Node_Component_Spheroid_Standard_Thread_Initialize            , &
-       &    Node_Component_Spheroid_Standard_State_Store      , Node_Component_Spheroid_Standard_State_Retrieve               , &
-       &    Node_Component_Spheroid_Standard_Inactive         , Node_Component_Spheroid_Standard_Post_Step
+  public :: Node_Component_Spheroid_Standard_Rate_Compute       , Node_Component_Spheroid_Standard_Scale_Set                    , &
+       &    Node_Component_Spheroid_Standard_Radius_Solver      , Node_Component_Spheroid_Standard_Star_Formation_History_Output, &
+       &    Node_Component_Spheroid_Standard_Initialize         , Node_Component_Spheroid_Standard_Post_Evolve                  , &
+       &    Node_Component_Spheroid_Standard_Pre_Evolve         , Node_Component_Spheroid_Standard_Radius_Solver_Plausibility   , &
+       &    Node_Component_Spheroid_Standard_Satellite_Merging  , Node_Component_Spheroid_Standard_Thread_Initialize            , &
+       &    Node_Component_Spheroid_Standard_State_Store        , Node_Component_Spheroid_Standard_State_Retrieve               , &
+       &    Node_Component_Spheroid_Standard_Inactive           , Node_Component_Spheroid_Standard_Post_Step                    , &
+       &    Node_Component_Spheroid_Standard_Thread_Uninitialize
 
   !# <component>
   !#  <class>spheroid</class>
@@ -184,6 +185,11 @@ module Node_Component_Spheroid_Standard
   ! Spheroid structural parameters.
   double precision                            :: spheroidAngularMomentumAtScaleRadius
   
+  ! Minimum absolute scales for physically plausible spheroids.
+  double precision, parameter                 :: radiusMinimum                       =1.0d-12
+  double precision, parameter                 :: massMinimum                         =1.0d-06
+  double precision, parameter                 :: angularMomentumMinimum              =1.0d-20
+
 contains
 
   !# <nodeComponentInitializationTask>
@@ -194,6 +200,7 @@ contains
     use Input_Parameters
     use Abundances_Structure
     use Galacticus_Error
+    use Galacticus_Nodes    , only : nodeComponentSpheroidStandard, defaultSpheroidComponent
     implicit none
     type(inputParameters              ), intent(inout) :: parameters
     type(nodeComponentSpheroidStandard)                :: spheroidStandardComponent
@@ -257,13 +264,14 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Standard_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spheroid_Standard_Thread_Initialize(parameters)
     !% Initializes the standard spheroid module for each thread.
     use Input_Parameters
     use Galacticus_Error
+    use Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none
     type            (inputParameters), intent(inout) :: parameters
     logical                                          :: densityMoment2IsInfinite                   , densityMoment3IsInfinite
@@ -320,11 +328,34 @@ contains
     return
   end subroutine Node_Component_Spheroid_Standard_Thread_Initialize
 
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Spheroid_Standard_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize()
+    !% Uninitializes the standard spheroid module for each thread.
+    use Galacticus_Nodes, only : defaultSpheroidComponent
+    implicit none
+
+    if (defaultSpheroidComponent%standardIsActive()) then
+       !# <objectDestructor name="stellarPopulationProperties_"            />
+       !# <objectDestructor name="starFormationFeedbackSpheroids_"         />
+       !# <objectDestructor name="starFormationExpulsiveFeedbackSpheroids_"/>
+       !# <objectDestructor name="starFormationTimescaleSpheroids_"        />
+       !# <objectDestructor name="ramPressureStrippingSpheroids_"          />
+       !# <objectDestructor name="tidalStrippingSpheroids_"                />
+       !# <objectDestructor name="darkMatterHaloScale_"                    />
+       !# <objectDestructor name="satelliteTidalField_"                    />
+       !# <objectDestructor name="spheroidMassDistribution"                />
+    end if
+    return
+  end subroutine Node_Component_Spheroid_Standard_Thread_Uninitialize
+
   !# <preEvolveTask>
   !# <unitName>Node_Component_Spheroid_Standard_Pre_Evolve</unitName>
   !# </preEvolveTask>
   subroutine Node_Component_Spheroid_Standard_Pre_Evolve(node)
     !% Ensure the spheroid has been initialized.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
@@ -347,6 +378,7 @@ contains
     !% Trim histories attached to the spheroid.
     use Stellar_Luminosities_Structure
     use Histories
+    use Galacticus_Nodes              , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentBasic
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
     class(nodeComponentSpheroid )               , pointer :: spheroid
@@ -372,7 +404,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
     !% Trim histories attached to the spheroid.
-    use FGSL
+    use FGSL                           , only : FGSL_Failure
+    use Galacticus_Nodes               , only : treeNode    , nodeComponentSpheroid, nodeComponentSpheroidStandard
     use Galacticus_Display
     use String_Handling
     use ISO_Varying_String
@@ -496,12 +529,13 @@ contains
     !% Account for a sink of gaseous material in the standard spheroid.
     use Galacticus_Error
     use Abundances_Structure
+    use Galacticus_Nodes    , only : nodeComponentSpheroid, interruptTask
     implicit none
-    class           (nodeComponentSpheroid       ), intent(inout)                    :: self
-    logical                                       , intent(inout), optional          :: interrupt
-    procedure       (interruptTask), intent(inout), optional, pointer :: interruptProcedure
-    double precision                              , intent(in   )                    :: rate
-    double precision                                                                 :: gasMass           , stellarMass
+    class           (nodeComponentSpheroid), intent(inout)                    :: self
+    logical                                , intent(inout), optional          :: interrupt
+    procedure       (interruptTask        ), intent(inout), optional, pointer :: interruptProcedure
+    double precision                       , intent(in   )                    :: rate
+    double precision                                                          :: gasMass           , stellarMass
     !GCC$ attributes unused :: interrupt, interruptProcedure
     
     ! Trap cases where an attempt is made to add gas via this sink function.
@@ -529,6 +563,7 @@ contains
     !% units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.
     use Galacticus_Error
     use Abundances_Structure
+    use Galacticus_Nodes    , only : treeNode, nodeComponentSpheroid, nodeComponentHotHalo, interruptTask
     implicit none
     class           (nodeComponentSpheroid        ), intent(inout)                    :: self
     logical                                        , intent(inout), optional          :: interrupt
@@ -586,6 +621,8 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes                          , only : treeNode                , nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentHotHalo, &
+         &                                                 defaultSpheroidComponent, propertyTypeActive   , propertyTypeAll              , propertyTypeInactive
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(in   )          :: odeConverged
@@ -594,22 +631,19 @@ contains
     integer                                , intent(in   )          :: propertyType
     class           (nodeComponentSpheroid)               , pointer :: spheroid
     class           (nodeComponentHotHalo )               , pointer :: hotHalo
-    double precision                       , parameter              :: radiusMinimum             =1.0d-12
-    double precision                       , parameter              :: massMinimum               =1.0d-06
-    double precision                       , parameter              :: angularMomentumMinimum    =1.0d-20
-    type            (abundances           ), save                   :: fuelAbundances                    , fuelAbundancesRates     , &
+    type            (abundances           ), save                   :: fuelAbundances             , fuelAbundancesRates     , &
          &                                                             stellarAbundancesRates
     !$omp threadprivate(fuelAbundances,stellarAbundancesRates,fuelAbundancesRates)
-    double precision                                                :: angularMomentumOutflowRate        , energyInputRate         , &
-         &                                                             fractionGas                       , fractionStellar         , &
-         &                                                             fuelMass                          , fuelMassRate            , &
-         &                                                             gasMass                           , massLossRate            , &
-         &                                                             massOutflowRate                   , massOutflowRateFromHalo , &
-         &                                                             massOutflowRateToHotHalo          , outflowToHotHaloFraction, &
-         &                                                             spheroidDynamicalTime             , spheroidMass            , &
-         &                                                             starFormationRate                 , stellarMassRate         , &
-         &                                                             tidalField                        , tidalTorque
-    type            (history              )                         :: historyTransferRate               , stellarHistoryRate
+    double precision                                                :: angularMomentumOutflowRate , energyInputRate         , &
+         &                                                             fractionGas                , fractionStellar         , &
+         &                                                             fuelMass                   , fuelMassRate            , &
+         &                                                             gasMass                    , massLossRate            , &
+         &                                                             massOutflowRate            , massOutflowRateFromHalo , &
+         &                                                             massOutflowRateToHotHalo   , outflowToHotHaloFraction, &
+         &                                                             spheroidDynamicalTime      , spheroidMass            , &
+         &                                                             starFormationRate          , stellarMassRate         , &
+         &                                                             tidalField                 , tidalTorque
+    type            (history              )                         :: historyTransferRate        , stellarHistoryRate
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates
     logical                                                         :: luminositiesCompute
     !$omp threadprivate(luminositiesStellarRates)
@@ -759,12 +793,13 @@ contains
     !% Adjust the rates for the star formation history.
     use Memory_Management
     use Galacticus_Error
+    use Galacticus_Nodes , only : nodeComponentSpheroid, nodeComponentSpheroidStandard, interruptTask
     implicit none
-    class    (nodeComponentSpheroid        ), intent(inout)                    :: self
-    type     (history                      ), intent(in   )                    :: rate
-    logical                                 , intent(inout), optional          :: interrupt
-    procedure(interruptTask                ), intent(inout), optional, pointer :: interruptProcedure
-    type     (history                      )                                   :: starFormationHistory
+    class    (nodeComponentSpheroid), intent(inout)                    :: self
+    type     (history              ), intent(in   )                    :: rate
+    logical                         , intent(inout), optional          :: interrupt
+    procedure(interruptTask        ), intent(inout), optional, pointer :: interruptProcedure
+    type     (history              )                                   :: starFormationHistory
 
     ! Get the star formation history in the spheroid.
     starFormationHistory=self%starFormationHistory()
@@ -799,12 +834,13 @@ contains
     !% Adjust the rates for the stellar properties history.
     use Memory_Management
     use Galacticus_Error
+    use Galacticus_Nodes , only : nodeComponentSpheroid, nodeComponentSpheroidStandard, interruptTask
     implicit none
-    class    (nodeComponentSpheroid        ), intent(inout)                    :: self
-    type     (history                      ), intent(in   )                    :: rate
-    logical                                 , intent(inout), optional          :: interrupt
-    procedure(interruptTask                ), intent(inout), optional, pointer :: interruptProcedure
-    type     (history                      )                                   :: stellarPropertiesHistory
+    class    (nodeComponentSpheroid), intent(inout)                    :: self
+    type     (history              ), intent(in   )                    :: rate
+    logical                         , intent(inout), optional          :: interrupt
+    procedure(interruptTask        ), intent(inout), optional, pointer :: interruptProcedure
+    type     (history              )                                   :: stellarPropertiesHistory
 
     ! Get the star formation history in the spheroid.
     stellarPropertiesHistory=self%stellarPropertiesHistory()
@@ -844,6 +880,7 @@ contains
     use Abundances_Structure
     use Galacticus_Output_Star_Formation_Histories
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes                          , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentDisk
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
@@ -927,6 +964,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Inactive(node)
     !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
@@ -953,6 +991,7 @@ contains
     use Galacticus_Error
     use Abundances_Structure
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes                    , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentDisk, defaultSpheroidComponent
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     type            (treeNode             )               , pointer :: nodeHost
@@ -1277,6 +1316,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Radius_Solver_Plausibility(node)
     !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass and angular momentum.
     use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes       , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard, defaultSpheroidComponent
     implicit none
     type            (treeNode                ), intent(inout) :: node
     class           (nodeComponentSpheroid   ), pointer       :: spheroid
@@ -1335,6 +1375,7 @@ contains
 
   double precision function Node_Component_Spheroid_Standard_Radius_Solve(node)
     !% Return the circular radius of the standard spheroid.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid
     implicit none
     type (treeNode             ), intent(inout) :: node
     class(nodeComponentSpheroid), pointer       :: spheroid
@@ -1346,6 +1387,7 @@ contains
 
   double precision function Node_Component_Spheroid_Standard_Velocity_Solve(node)
     !% Return the circular velocity of the standard spheroid.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid
     implicit none
     type (treeNode             ), intent(inout) :: node
     class(nodeComponentSpheroid), pointer       :: spheroid
@@ -1357,6 +1399,7 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Radius_Solve_Set(node,radius)
     !% Set the scale radius of the standard spheroid.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid
     implicit none
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: radius
@@ -1369,6 +1412,7 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Velocity_Solve_Set(node,velocity)
     !% Set the scale velocity of the standard spheroid.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid
     implicit none
     type            (treeNode             ), intent(inout) :: node
     double precision                       , intent(in   ) :: velocity
@@ -1385,6 +1429,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get&
        &,Velocity_Set)
     !% Interface for the size solver algorithm.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard
     implicit none
     type            (treeNode                                         ), intent(inout)          :: node
     logical                                                            , intent(  out)          :: componentActive
@@ -1432,6 +1477,7 @@ contains
   subroutine Node_Component_Spheroid_Standard_Initializor(self)
     !% Initializes a standard spheroid component.
     use Galacticus_Output_Star_Formation_Histories
+    use Galacticus_Nodes                          , only : treeNode, nodeComponentSpheroidStandard, nodeComponentDisk, nodeComponentBasic
     implicit none
     type            (nodeComponentSpheroidStandard)          :: self
     type            (treeNode                     ), pointer :: selfNode
@@ -1478,28 +1524,38 @@ contains
 
   double precision function Node_Component_Spheroid_Standard_Star_Formation_Rate(self)
     !% Return the star formation rate of the standard spheroid.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroidStandard
     implicit none
     class           (nodeComponentSpheroidStandard), intent(inout) :: self
     type            (treeNode                     ), pointer       :: node
     double precision                                               :: gasMass, starFormationTimescale
 
-    ! Get the associated node.
-    node => self%host()
-    ! Get the star formation timescale.
-    starFormationTimescale=starFormationTimescaleSpheroids_%timescale(node)
-    ! Get the gas mass.
-    gasMass=self%massGas()
-    ! If timescale is finite and gas mass is positive, then compute star formation rate.
-    if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.node%isSatellite())) then
-       Node_Component_Spheroid_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
-    else
+    ! Check for a realistic spheroid, return zero if spheroid is unphysical.
+    if     (    self%angularMomentum() < angularMomentumMinimum &
+         & .or. self%radius         () <          radiusMinimum &
+         & .or. self%massGas        () <            massMinimum &
+         & ) then
        Node_Component_Spheroid_Standard_Star_Formation_Rate=0.0d0
+    else
+       ! Get the associated node.
+       node => self%host()
+       ! Get the star formation timescale.
+       starFormationTimescale=starFormationTimescaleSpheroids_%timescale(node)
+       ! Get the gas mass.
+       gasMass=self%massGas()
+       ! If timescale is finite and gas mass is positive, then compute star formation rate.
+       if (starFormationTimescale > 0.0d0 .and. gasMass > 0.0d0 .and. (spheroidStarFormationInSatellites .or. .not.node%isSatellite())) then
+          Node_Component_Spheroid_Standard_Star_Formation_Rate=gasMass/starFormationTimescale
+       else
+          Node_Component_Spheroid_Standard_Star_Formation_Rate=0.0d0
+       end if
     end if
     return
   end function Node_Component_Spheroid_Standard_Star_Formation_Rate
 
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend(node)
     !% Extend the range of a star formation history in a standard spheroid component for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
@@ -1516,6 +1572,7 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Stellar_Prprts_History_Extend(node)
     !% Extend the range of a stellar properties history in a standard spheroid component for {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroid
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
@@ -1536,8 +1593,9 @@ contains
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use, intrinsic :: ISO_C_Binding
-    use Kind_Numbers
-    use Galacticus_Output_Star_Formation_Histories
+    use            :: Galacticus_Nodes                          , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard
+    use            :: Kind_Numbers
+    use            :: Galacticus_Output_Star_Formation_Histories
     implicit none
     type   (treeNode             ), intent(inout), pointer :: node
     integer(c_size_t             ), intent(in   )          :: iOutput
@@ -1563,8 +1621,8 @@ contains
   subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,fgslStateFile,stateOperatorID)
     !% Write the tablulation state to file.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Display
-    use               FGSL
+    use            :: Galacticus_Display
+    use            :: FGSL              , only : fgsl_file
     implicit none
     integer           , intent(in   ) :: stateFile
     integer(c_size_t ), intent(in   ) :: stateOperatorID
@@ -1584,7 +1642,7 @@ contains
     !% Retrieve the tabulation state from the file.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Display
-    use            :: FGSL
+    use            :: FGSL              , only : fgsl_file
     use            :: Galacticus_Error
     implicit none
     integer           , intent(in   ) :: stateFile

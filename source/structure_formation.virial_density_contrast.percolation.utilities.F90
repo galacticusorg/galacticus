@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,17 +21,22 @@
 
 module Virial_Density_Contrast_Percolation_Utilities
   !% Provides utilities needed by the {\normalfont \ttfamily percolation} virial density contrast class.
-  use Galacticus_Nodes
+  use Galacticus_Nodes          , only : treeNode                                 , nodeComponentDarkMatterProfile
+  use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius             , darkMatterProfileScaleRadiusClass, &
+       &                                 darkMatterProfileScaleRadiusConcentration
+  use Dark_Matter_Profiles      , only : darkMatterProfile                        , darkMatterProfileClass
   private
   public :: Virial_Density_Contrast_Percolation_Solver
 
   ! Module-scope variables used in root finding.
-  type            (treeNode                           ), pointer :: workNode
-  class           (nodeComponentDarkMatterProfile     ), pointer :: workDarkMatterProfile
-  double precision                                               :: boundingDensity      , densityMatterMean, &
-       &                                                            massHalo
-  double precision                                     , pointer :: densityContrast
-  !$omp threadprivate(workNode,workDarkMatterProfile,boundingDensity,densityMatterMean,massHalo,densityContrast)
+  type            (treeNode                                 ), pointer :: workNode
+  class           (nodeComponentDarkMatterProfile           ), pointer :: workDarkMatterProfile
+  class           (darkMatterProfileClass                   ), pointer :: darkMatterProfile_
+  type            (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
+  double precision                                                     :: boundingDensity              , densityMatterMean, &
+       &                                                                  massHalo
+  double precision                                           , pointer :: densityContrast
+  !$omp threadprivate(workNode,workDarkMatterProfile,boundingDensity,densityMatterMean,massHalo,densityContrast,darkMatterProfileScaleRadius_,darkMatterProfile_)
 
 contains
 
@@ -48,24 +54,50 @@ contains
     use Galacticus_Error
     use Numerical_Constants_Math
     use Galacticus_Calculations_Resets
+    use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale           , darkMatterHaloScaleClass
+    use Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration, darkMatterProfileConcentrationClass
+    use Virial_Density_Contrast           , only : virialDensityContrast         , virialDensityContrastClass
+    use Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
-    double precision                          , intent(in   )         :: mass                             , time, &
-         &                                                               linkingLength
-    double precision                          , intent(in   ), target :: densityContrastCurrent
-    double precision                          , parameter             :: percolationThreshold  =0.652960d0
-    class           (cosmologyParametersClass), pointer               :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), pointer               :: cosmologyFunctions_
-    class           (nodeComponentBasic      ), pointer               :: workBasic
-    type            (rootFinder              ), save                  :: finder
-    !$omp threadprivate(finder)
-    double precision                                                  :: radiusHalo
+    double precision                                     , intent(in   )         :: mass                                      , time, &
+         &                                                                          linkingLength
+    double precision                                     , intent(in   ), target :: densityContrastCurrent
+    double precision                                     , parameter             :: percolationThreshold           =0.652960d0
+    class           (cosmologyParametersClass           ), pointer               :: cosmologyParameters_
+    class           (cosmologyFunctionsClass            ), pointer               :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass           ), pointer               :: darkMatterHaloScale_
+    class           (darkMatterProfileConcentrationClass), pointer               :: darkMatterProfileConcentration_
+    class           (virialDensityContrastClass         ), pointer               :: virialDensityContrast_
+    class           (nodeComponentBasic                 ), pointer               :: workBasic
+    type            (rootFinder                         )                        :: finder
+    double precision                                                             :: radiusHalo
 
     ! Initialize module-scope variables.
     massHalo        =  mass
     densityContrast => densityContrastCurrent
     ! Get required objects.
-    cosmologyFunctions_  => cosmologyFunctions ()
-    cosmologyParameters_ => cosmologyParameters()
+    cosmologyFunctions_             => cosmologyFunctions            ()
+    cosmologyParameters_            => cosmologyParameters           ()
+    darkMatterProfile_              => darkMatterProfile             ()
+    darkMatterHaloScale_            => darkMatterHaloScale           ()
+    darkMatterProfileConcentration_ => darkMatterProfileConcentration()
+    virialDensityContrast_          => virialDensityContrast         ()
+    ! Build a scale radius object.
+    allocate(darkMatterProfileScaleRadius_)
+    !# <referenceConstruct object="darkMatterProfileScaleRadius_">
+    !#  <constructor>
+    !#   darkMatterProfileScaleRadiusConcentration(                                                                   &amp;
+    !#    &amp;                                    correctForConcentrationDefinition=.true.                         , &amp;
+    !#    &amp;                                    useMeanConcentration             =.true.                         , &amp;
+    !#    &amp;                                    cosmologyParameters_             =cosmologyParameters_           , &amp;
+    !#    &amp;                                    cosmologyFunctions_              =cosmologyFunctions_            , &amp;
+    !#    &amp;                                    darkMatterHaloScale_             =darkMatterHaloScale_           , &amp;
+    !#    &amp;                                    darkMatterProfile_               =darkMatterProfile_             , &amp;
+    !#    &amp;                                    virialDensityContrast_           =virialDensityContrast_         , &amp;
+    !#    &amp;                                    darkMatterProfileConcentration_  =darkMatterProfileConcentration_  &amp;
+    !#    &amp;                                   )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Compute the bounding density, based on percolation theory (eq. 5 of More et al.).
     densityMatterMean=cosmologyFunctions_%matterDensityEpochal(time)
     boundingDensity=+densityMatterMean       &
@@ -82,22 +114,21 @@ contains
     ! Make an initial guess at the halo radius.
     radiusHalo=(mass/4.0d0/Pi/boundingDensity)**(1.0d0/3.0d0)
     ! Find the corresponding halo radius.
-    if (.not.finder%isInitialized()) then
-       call finder   %tolerance          (                                               &
-            &                             toleranceRelative  =1.0d-3                     &
-            &                            )
-       call finder   %rangeExpand        (                                               &
-            &                             rangeExpandUpward  =2.0d0                    , &
-            &                             rangeExpandDownward=0.5d0                    , &
-            &                             rangeExpandType    =rangeExpandMultiplicative  &
-            &                            )
-       call finder   %rootFunction       (                                               &
-            &                                                 haloRadiusRootFunction     &
-            &                            )
-    end if
+    call finder   %tolerance          (                                               &
+         &                             toleranceRelative  =1.0d-3                     &
+         &                            )
+    call finder   %rangeExpand        (                                               &
+         &                             rangeExpandUpward  =2.0d0                    , &
+         &                             rangeExpandDownward=0.5d0                    , &
+         &                             rangeExpandType    =rangeExpandMultiplicative  &
+         &                            )
+    call finder   %rootFunction       (                                               &
+         &                                                 haloRadiusRootFunction     &
+         &                            )
     radiusHalo=finder%find(rootGuess=radiusHalo)
     call workNode%destroy()
     deallocate(workNode)
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     ! Compute the corresponding density contrast.    
     Virial_Density_Contrast_Percolation_Solver=+3.0d0                &
          &                                     *mass                 &
@@ -110,22 +141,14 @@ contains
 
   double precision function haloRadiusRootFunction(haloRadiusTrial)
     !% Root function used to find the radius of a halo giving the correct bounding density.
-    use Dark_Matter_Profile_Scales
     use Dark_Matter_Profiles_Shape
-    use Dark_Matter_Profiles
-    use Dark_Matter_Profiles_Concentration
     use Numerical_Constants_Math
     use Galacticus_Calculations_Resets
     implicit none
-    double precision                                     , intent(in   ) :: haloRadiusTrial
-    double precision                                                     :: scaleRadius                    , densityHaloRadius
-    class           (darkMatterProfileShapeClass        ), pointer       :: darkMatterProfileShape_
-    class           (darkMatterProfileClass             ), pointer       :: darkMatterProfile_
-    class           (darkMatterProfileConcentrationClass), pointer       :: darkMatterProfileConcentration_
+    double precision                             , intent(in   ) :: haloRadiusTrial
+    double precision                                             :: scaleRadius            , densityHaloRadius
+    class           (darkMatterProfileShapeClass), pointer       :: darkMatterProfileShape_
 
-    ! Get required objects.
-    darkMatterProfile_              => darkMatterProfile             ()
-    darkMatterProfileConcentration_ => darkMatterProfileConcentration()
     ! Construct the current density contrast.
     densityContrast=+3.0d0                &
          &          *massHalo             &
@@ -134,11 +157,7 @@ contains
          &          /haloRadiusTrial  **3 &
          &          /densityMatterMean
     ! Find scale radius of the halo.
-    scaleRadius=Dark_Matter_Profile_Scale(                                                     &
-         &                                workNode                                           , &
-         &                                meanConcentration  =.true.                         , &
-         &                                concentrationMethod=darkMatterProfileConcentration_  &           
-         &                               )
+    scaleRadius=darkMatterProfileScaleRadius_%radius(workNode)
     call workDarkMatterProfile%scaleSet(scaleRadius)
     if (workDarkMatterProfile%shapeIsSettable()) then
        darkMatterProfileShape_ => darkMatterProfileShape()

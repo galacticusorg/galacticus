@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +30,6 @@ module Power_Spectrum_Window_Functions
   !#  <descriptiveName>Power Spectrum Window Functions</descriptiveName>
   !#  <description>Class providing window functions for filtering of power spectra.</description>
   !#  <default>topHat</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <defaultThreadprivate>no</defaultThreadprivate>
   !#  <method name="value" >
   !#   <description> Returns the window function for power spectrum variance computation at the specified {\normalfont \ttfamily wavenumber} (in Mpc$^{-1}$) for a given {\normalfont \ttfamily smoothingMass} (in $M_\odot$).</description>

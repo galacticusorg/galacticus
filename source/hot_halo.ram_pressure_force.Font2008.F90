@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Hot_Halo_Mass_Distributions
 
-  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008">
   !#  <description>A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.</description>
   !# </hotHaloRamPressureForce>
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceFont2008
      !% Implementation of a hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.
      private
-     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
    contains
      final     ::          font2008Destructor
      procedure :: force => font2008Force
@@ -51,6 +52,7 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=hotHaloRamPressureForceFont2008(hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function font2008ConstructorParameters
 
@@ -78,6 +80,7 @@ contains
     !% Return a ram pressure force due to the hot halo using the model of \cite{font_colours_2008}.
     use Kepler_Orbits
     use Satellite_Orbits
+    use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (hotHaloRamPressureForceFont2008), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node

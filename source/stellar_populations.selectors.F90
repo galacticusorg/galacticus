@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,9 +21,9 @@
 
 module Stellar_Population_Selectors
   !% Implements a class for selecting stellar populations.
-  use Galacticus_Nodes
-  use Abundances_Structure
-  use Stellar_Populations
+  use Galacticus_Nodes    , only : nodeComponent
+  use Abundances_Structure, only : abundances
+  use Stellar_Populations , only : stellarPopulationClass
   implicit none
   private
   
@@ -31,7 +32,6 @@ module Stellar_Population_Selectors
   !#  <descriptiveName>Stellar Population Selectors</descriptiveName>
   !#  <description>Class providing selectors for stellar populations.</description>
   !#  <default>fixed</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="select" >
   !#   <description>Return a stellar population.</description>
   !#   <type>class(stellarPopulationClass)</type>

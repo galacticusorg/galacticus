@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +20,8 @@
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
 
-  use FGSL
+  use FGSL                , only : fgsl_odeiv_step, fgsl_odeiv_control, fgsl_odeiv_evolve, fgsl_odeiv_system, &
+       &                           FGSL_Success
   use Cosmology_Parameters
 
   integer         , parameter :: matterDarkEnergyAgeTableNPointsPerDecade     =300
@@ -118,6 +120,7 @@ contains
          &                                  darkEnergyEquationOfStateW1  &
          &                                 )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function matterDarkEnergyConstructorParameters
 
@@ -128,12 +131,8 @@ contains
     type            (cosmologyFunctionsMatterDarkEnergy)                        :: self
     class           (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
     double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0        , darkEnergyEquationOfStateW1
+    !# <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
 
-    ! Store a pointer to the cosmological parameters object.
-    self%cosmologyParameters_ => cosmologyParameters_
-    ! Store equation of state.
-    self%darkEnergyEquationOfStateW0=darkEnergyEquationOfStateW0
-    self%darkEnergyEquationOfStateW1=darkEnergyEquationOfStateW1
     ! Initialize locks.
     !$ call OMP_Init_Lock(self%expansionFactorTableLock)
     !$ call OMP_Init_Lock(self%distanceTableLock       )
@@ -495,7 +494,6 @@ contains
     use Numerical_Interpolation
     use Numerical_Ranges
     use Memory_Management
-    use, intrinsic :: ISO_C_Binding
     use Cosmology_Parameters
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy)             , intent(inout), target   :: self

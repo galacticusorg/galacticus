@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implements a cooling function class which sums over other cooling functions.
 
-  !# <coolingFunction name="coolingFunctionSummation" defaultThreadPrivate="yes">
+  !# <coolingFunction name="coolingFunctionSummation">
   !#  <description>Class providing a cooling function which sums over other cooling functions.</description>
   !# </coolingFunction>
 
@@ -30,7 +31,7 @@
   type, extends(coolingFunctionClass) :: coolingFunctionSummation
      !% A cooling function class which sums over other cooling functions.
      private
-     type(coolantList), pointer :: coolants
+     type(coolantList), pointer :: coolants => null()
    contains
      final     ::                                       summationDestructor
      procedure :: coolingFunction                    => summationCoolingFunction
@@ -48,38 +49,42 @@
 
 contains
 
-  function summationConstructorParameters(parameters)
+  function summationConstructorParameters(parameters) result(self)
     !% Constructor for the ``summation'' cooling function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (coolingFunctionSummation)                :: summationConstructorParameters
+    type   (coolingFunctionSummation)                :: self
     type   (inputParameters         ), intent(inout) :: parameters
     type   (coolantList             ), pointer       :: coolant
     integer                                          :: i
 
-    !$omp critical(coolingFunctionSummationInitialize)
     coolant => null()
     do i=1,parameters%copiesCount('coolingFunctionMethod',zeroIfNotPresent=.true.)
        if (associated(coolant)) then
           allocate(coolant                       %next    )
           coolant => coolant                       %next
        else
-          allocate(summationConstructorParameters%coolants)
-          coolant => summationConstructorParameters%coolants
+          allocate(self%coolants)
+          coolant => self%coolants
        end if
-       coolant%coolingFunction => coolingFunction(parameters,i)
+       !# <objectBuilder class="coolingFunction" name="coolant%coolingFunction" source="parameters" copy="i" />
     end do
-    !$omp end critical(coolingFunctionSummationInitialize)
     return
   end function summationConstructorParameters
   
-  function summationConstructorInternal(coolants)
+  function summationConstructorInternal(coolants) result(self)
     !% Internal constructor for the ``summation'' cooling function class.
     implicit none
-    type(coolingFunctionSummation)                        :: summationConstructorInternal
+    type(coolingFunctionSummation)                        :: self
     type(coolantList             ), target, intent(in   ) :: coolants
+    type(coolantList             ), pointer               :: coolant_
 
-    summationConstructorInternal%coolants => coolants
+    self    %coolants => coolants
+    coolant_          => coolants
+    do while (associated(coolant_))
+       !# <referenceCountIncrement owner="coolant_" object="coolingFunction"/>
+       coolant_ => coolant_%next
+    end do
     return
   end function summationConstructorInternal
   
@@ -87,14 +92,22 @@ contains
     !% Destructor for the ``summation'' cooling function class.
     implicit none
     type(coolingFunctionSummation), intent(inout) :: self
-    !GCC$ attributes unused :: self
-    
-    ! Nothing to do.
+    type(coolantList             ), pointer       :: coolant_, coolantNext
+
+    if (associated(self%coolants)) then
+       coolant_ => self%coolants
+       do while (associated(coolant_))
+          coolantNext => coolant_%next
+          !# <objectDestructor name="coolant_%coolingFunction"/>
+          deallocate(coolant_)
+          coolant_ => coolantNext
+       end do
+    end if
     return
   end subroutine summationDestructor
 
   double precision function summationCoolingFunction(self,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function due to Compton scattering off of \gls{cmb} photons.
+    !% Return the cooling function summed over other cooling functions.
     use Chemical_States
     use Abundances_Structure
     use Chemical_Abundances_Structure
@@ -257,7 +270,7 @@ contains
     use Galacticus_Error
     implicit none
     class(coolingFunctionSummation), intent(inout) :: self
-    class(coolingFunctionClass    ), intent(  out) :: destination
+    class(coolingFunctionClass    ), intent(inout) :: destination
     type (coolantList             ), pointer       :: coolant_   , coolantDestination_, &
          &                                            coolantNew_
 
@@ -277,7 +290,7 @@ contains
              coolantDestination_            => coolantNew_
           end if
           allocate(coolantNew_%coolingFunction,mold=coolant_%coolingFunction)
-          call coolant_%coolingFunction%deepCopy(coolantNew_%coolingFunction)
+          !# <deepCopy source="coolant_%coolingFunction" destination="coolantNew_%coolingFunction"/>
           coolant_ => coolant_%next
        end do       
     class default

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,13 +24,13 @@
      type (distributionOperatorList               ), pointer :: next     => null()
   end type distributionOperatorList
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence" defaultThreadPrivate="yes">
+  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence">
   !#  <description>A sequence output analysis distribution operator class.</description>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSequence
      !% A sequence output distribution operator class.
      private
-     type(distributionOperatorList), pointer :: operators
+     type(distributionOperatorList), pointer :: operators => null()
    contains
      !@ <objectMethods>
      !@   <object>outputAnalysisDistributionOperatorSequence</object>
@@ -74,7 +75,7 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       operator_%operator_ => outputAnalysisDistributionOperator(parameters,i)
+       !# <objectBuilder class="outputAnalysisDistributionOperator" name="operator_%operator_" source="parameters" copy="i" />
     end do
     return
   end function sequenceConstructorParameters
@@ -84,12 +85,18 @@ contains
     implicit none
     type(outputAnalysisDistributionOperatorSequence)                        :: self
     type(distributionOperatorList                  ), target, intent(in   ) :: operators
+    type(distributionOperatorList                  ), pointer               :: operator_
 
-    self%operators => operators
+    self     %operators => operators
+    operator_           => operators
+    do while (associated(operator_))
+       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       operator_ => operator_%next
+    end do
     return
   end function sequenceConstructorInternal
 
-  elemental subroutine sequenceDestructor(self)
+  subroutine sequenceDestructor(self)
     !% Destructor for the sequence distribution operator class.
     implicit none
     type(outputAnalysisDistributionOperatorSequence), intent(inout) :: self
@@ -99,8 +106,8 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          deallocate(operator_%operator_)
-          deallocate(operator_          )
+          !# <objectDestructor name="operator_%operator_"/>
+          deallocate(operator_)
           operator_ => operatorNext
        end do
     end if
@@ -173,7 +180,7 @@ contains
     use Galacticus_Error
     implicit none
     class(outputAnalysisDistributionOperatorSequence), intent(inout) :: self
-    class(outputAnalysisDistributionOperatorClass   ), intent(  out) :: destination
+    class(outputAnalysisDistributionOperatorClass   ), intent(inout) :: destination
     type (distributionOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
          &                                                              operatorNew_
 
@@ -193,7 +200,7 @@ contains
              operatorDestination_            => operatorNew_
           end if
           allocate(operatorNew_%operator_,mold=operator_%operator_)
-          call operator_%operator_%deepCopy(operatorNew_%operator_)
+          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
        end do       
     class default

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,8 +26,10 @@
      !% A null output analysis class.
      private
    contains
-     procedure :: analyze  => nullAnalyze
-     procedure :: finalize => nullFinalize
+     procedure :: analyze       => nullAnalyze
+     procedure :: finalize      => nullFinalize
+     procedure :: reduce        => nullReduce
+     procedure :: logLikelihood => nullLogLikelihood
   end type outputAnalysisNull
 
   interface outputAnalysisNull
@@ -67,3 +70,23 @@ contains
     
     return
   end subroutine nullFinalize
+
+  subroutine nullReduce(self,reduced)
+    !% Implement a null output analysis reduction.
+    implicit none
+    class(outputAnalysisNull ), intent(inout) :: self
+    class(outputAnalysisClass), intent(inout) :: reduced
+    !GCC$ attributes unused :: self, reduced
+
+    return
+  end subroutine nullReduce
+
+  double precision function nullLogLikelihood(self)
+    !% Return the log-likelihood of a null output analysis.
+    implicit none
+    class(outputAnalysisNull), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    nullLogLikelihood=0.0d0
+    return
+  end function nullLogLikelihood

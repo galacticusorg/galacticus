@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,8 +31,8 @@
      !% A dark matter halo profile concentration class implementing the modifier of
      !% \cite{schneider_non-linear_2012}.
      private
-     class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration
-     class(transferFunctionClass              ), pointer :: transferFunction_
+     class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration => null()
+     class(transferFunctionClass              ), pointer :: transferFunction_ => null()
    contains
      final     ::                                wdmDestructor
      procedure :: concentration               => wdmConcentration
@@ -61,6 +62,8 @@ contains
     !# <objectBuilder class="transferFunction"               name="transferFunction_" source="parameters"/>
     self=darkMatterProfileConcentrationWDM(cdmConcentration,transferFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cdmConcentration" />
+    !# <objectDestructor name="transferFunction_"/>
     return
   end function wdmConstructorParameters
 
@@ -88,9 +91,10 @@ contains
   double precision function wdmConcentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
     !% using the warm dark matter modifier of \cite{schneider_non-linear_2012}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationWDM), intent(inout), target  :: self
-    type            (treeNode                         ), intent(inout), pointer :: node
+    type            (treeNode                         ), intent(inout), target  :: node
     class           (nodeComponentBasic               )               , pointer :: basic
     ! Parameters of Schneider et al. (2012)'s fitting formula.
     double precision                                   , parameter              :: gamma1=15.0d0, gamma2=0.3d0

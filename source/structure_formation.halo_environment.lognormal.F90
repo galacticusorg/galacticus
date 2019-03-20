@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,11 +30,11 @@
   type, extends(haloEnvironmentClass) :: haloEnvironmentLogNormal
      !% A logNormal halo environment class.
      private
-     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_
-     class           (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_
-     class           (linearGrowthClass              ), pointer :: linearGrowth_
-     class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_
+     class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_ => null()
+     class           (cosmologicalMassVarianceClass  ), pointer :: cosmologicalMassVariance_ => null()
+     class           (linearGrowthClass              ), pointer :: linearGrowth_ => null()
+     class           (criticalOverdensityClass       ), pointer :: criticalOverdensity_ => null()
      type            (distributionFunction1DLogNormal)          :: distributionDensityContrast
      double precision                                           :: radiusEnvironment          , variance
    contains
@@ -85,6 +86,11 @@ contains
     !# </inputParameter>
     self=haloEnvironmentLogNormal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="criticalOverdensity_"     />
     return
   end function logNormalConstructorParameters
 
@@ -131,12 +137,15 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_" />
     !# <objectDestructor name="self%linearGrowth_"             />
+    !# <objectDestructor name="self%criticalOverdensity_"      />
+    !# <objectDestructor name="self%cosmologyFunctions_"       />
     return
   end subroutine logNormalDestructor
 
   double precision function logNormalOverdensityLinear(self,node,presentDay)
     !% Return the environment of the given {\normalfont \ttfamily node}.
     use Kind_Numbers
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (haloEnvironmentLogNormal       ), intent(inout)           :: self
     type            (treeNode                       ), intent(inout)           :: node

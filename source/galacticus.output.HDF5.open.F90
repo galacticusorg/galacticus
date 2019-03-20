@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -37,12 +38,14 @@ contains
     use               Input_Parameters
     use               MPI_Utilities
     use               String_Handling
+    use               HDF5
     !# <include directive="outputFileOpenTask" type="moduleUse">
     include 'galacticus.output.open.modules.inc'
     !# </include>
     implicit none
-    integer         :: chunkSize         , sieveBufferSize
-    integer(size_t) :: cacheElementsCount, cacheSizeBytes
+    integer(hsize_t) :: chunkSize
+    integer          :: sieveBufferSize
+    integer(size_t ) :: cacheElementsCount, cacheSizeBytes
 
     if (.not.galacticusOutputFileIsOpen) then
        !# <inputParameter>
@@ -136,7 +139,7 @@ contains
        !# <inputParameter>
        !#   <name>hdf5ChunkSize</name>
        !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1024</defaultValue>
+       !#   <defaultValue>1024_hsize_t</defaultValue>
        !#   <description>The chunk size used for outputting HDF5 datasets.</description>
        !#   <group>output</group>
        !#   <source>globalParameters</source>
@@ -171,7 +174,6 @@ contains
   subroutine Galacticus_Output_Close_File
     !% Close the \glc\ output file.
     use System_Command
-    use Input_Parameters
     use Events_Hooks
     !# <include directive="hdfPreCloseTask" type="moduleUse">
     include 'galacticus.output.HDF5.pre_close_tasks.moduleUse.inc'
@@ -186,17 +188,13 @@ contains
           include 'galacticus.output.HDF5.pre_close_tasks.inc'
           !# </include>
           !# <eventHook name="hdf5PreClose"/>
-          ! Close parameters.
-          call globalParameters%destroy()          
           ! Close the file.
           !$ call hdf5Access%set()
           call galacticusOutputFile%writeAttribute(1,"galacticusCompleted")
           call galacticusOutputFile%close()
           !$ call hdf5Access%unset()
-          
           ! Move the scratch file to the final file if necessary.
           if (galacticusOutputFileName /= galacticusOutputScratchFileName) call System_Command_Do("mv "//galacticusOutputScratchFileName//" "//galacticusOutputFileName)
-          
           ! Record that the file is now closed.
           galacticusOutputFileIsOpen=.false.
        end if

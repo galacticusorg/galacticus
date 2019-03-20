@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,8 +27,9 @@
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorHIMass
      !% A conversion of ISM mass to HI mass property operator class.
      private
-     class(outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_
+     class(outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_ => null()
    contains
+     final     ::            hiMassDestructor
      procedure :: operate => hiMassOperate
   end type outputAnalysisPropertyOperatorHIMass
 
@@ -51,6 +53,7 @@ contains
     !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters" />
     self=outputAnalysisPropertyOperatorHIMass(outputAnalysisMolecularRatio_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisMolecularRatio_"/>
     return
   end function hiMassConstructorParameters
 
@@ -64,6 +67,16 @@ contains
 
     return
   end function hiMassConstructorInternal
+
+  subroutine hiMassDestructor(self)
+    !% Destructor for the ``hiMass'' output analysis distribution operator class.
+    use Input_Parameters
+    implicit none
+    type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self
+
+    !# <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+  return
+  end subroutine hiMassDestructor
 
   double precision function hiMassOperate(self,propertyValue,node,propertyType,outputIndex)
     !% Implement an hiMass output analysis property operator.

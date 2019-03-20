@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   use Cosmology_Parameters
   use Cosmology_Functions
   use Cosmological_Density_Field
@@ -25,20 +26,20 @@
   use Linear_Growth
   use Output_Times
 
-  !# <task name="taskPowerSpectra" defaultThreadPrivate="yes">
+  !# <task name="taskPowerSpectra">
   !#  <description>A task which computes and outputs the power spectrum and related quantities.</description>
   !# </task>
   type, extends(taskClass) :: taskPowerSpectra
      !% Implementation of a task which computes and outputs the power spectrum and related quantities.
      private
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_
-     class           (linearGrowthClass                ), pointer :: linearGrowth_
-     class           (powerSpectrumClass               ), pointer :: powerSpectrum_
-     class           (powerSpectrumNonlinearClass      ), pointer :: powerSpectrumNonlinear_
-     class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_
-     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_
-     class           (outputTimesClass                 ), pointer :: outputTimes_
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_ => null()
+     class           (linearGrowthClass                ), pointer :: linearGrowth_ => null()
+     class           (powerSpectrumClass               ), pointer :: powerSpectrum_ => null()
+     class           (powerSpectrumNonlinearClass      ), pointer :: powerSpectrumNonlinear_ => null()
+     class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_ => null()
+     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_ => null()
+     class           (outputTimesClass                 ), pointer :: outputTimes_ => null()
      double precision                                             :: wavenumberMinimum           , wavenumberMaximum
      integer                                                      :: pointsPerDecade
      logical                                                      :: includeNonLinear
@@ -139,6 +140,14 @@ contains
          &                 outputTimes_                  &
          &                )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"        />
+    !# <objectDestructor name="cosmologyFunctions_"         />
+    !# <objectDestructor name="linearGrowth_"               />
+    !# <objectDestructor name="powerSpectrum_"              />
+    !# <objectDestructor name="powerSpectrumNonlinear_"     />
+    !# <objectDestructor name="powerSpectrumWindowFunction_"/>
+    !# <objectDestructor name="cosmologicalMassVariance_"   />
+    !# <objectDestructor name="outputTimes_"                />
     return
   end function powerSpectraConstructorParameters
 
@@ -193,33 +202,35 @@ contains
     return
   end subroutine powerSpectraDestructor
 
-  subroutine powerSpectraPerform(self)
+  subroutine powerSpectraPerform(self,status)
     !% Compute and output the halo mass function.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_HDF5
     use            :: Galacticus_Display
     use            :: Numerical_Ranges
-    use            :: FGSL
+    use            :: Galacticus_Error                , only : errorStatusSuccess
+    use            :: FGSL                            , only : fgsl_function     , fgsl_integration_workspace, FGSL_Integ_Gauss15
     use            :: Memory_Management
     use            :: Numerical_Constants_Astronomical
     use            :: IO_HDF5
     use            :: String_Handling
     use            :: Numerical_Integration
     implicit none
-    class           (taskPowerSpectra          ), intent(inout)               :: self
-    integer         (c_size_t                  )                              :: outputCount           , wavenumberCount    , &
-         &                                                                       iOutput               , iWavenumber
-    double precision                            , allocatable, dimension(:  ) :: wavenumber            , powerSpectrumLinear, &
-         &                                                                       massScale             , sigma              , &
-         &                                                                       sigmaGradient         , growthFactor       , &
-         &                                                                       epochTime             , epochRedshift
-    double precision                            , allocatable, dimension(:,:) :: powerSpectrumNonLinear, sigmaNonLinear
-    double precision                                                          :: wavenumberMinimum     , wavenumberMaximum
-    type            (fgsl_function             )                              :: integrandFunction
-    type            (fgsl_integration_workspace)                              :: integrationWorkspace
-    type            (hdf5Object                )                              :: outputsGroup          , outputGroup        , &
-         &                                                                       containerGroup        , dataset
-    type            (varying_string            )                              :: groupName             , commentText
+    class           (taskPowerSpectra          ), intent(inout)                 :: self
+    integer                                     , intent(  out), optional       :: status
+    integer         (c_size_t                  )                                :: outputCount           , wavenumberCount    , &
+         &                                                                         iOutput               , iWavenumber
+    double precision                            , allocatable  , dimension(:  ) :: wavenumber            , powerSpectrumLinear, &
+         &                                                                         massScale             , sigma              , &
+         &                                                                         sigmaGradient         , growthFactor       , &
+         &                                                                         epochTime             , epochRedshift
+    double precision                            , allocatable  , dimension(:,:) :: powerSpectrumNonLinear, sigmaNonLinear
+    double precision                                                            :: wavenumberMinimum     , wavenumberMaximum
+    type            (fgsl_function             )                                :: integrandFunction
+    type            (fgsl_integration_workspace)                                :: integrationWorkspace
+    type            (hdf5Object                )                                :: outputsGroup          , outputGroup        , &
+         &                                                                         containerGroup        , dataset
+    type            (varying_string            )                                :: groupName             , commentText
 
     call Galacticus_Display_Indent('Begin task: power spectrum')
     ! Get the requested output redshifts.
@@ -243,7 +254,7 @@ contains
     wavenumber(:)=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLogarithmic)
     ! Iterate over all wavenumbers computing power spectrum and related quantities.
     do iWavenumber=1,wavenumberCount
-       ! Compute power spectrum.
+      ! Compute power spectrum.
        powerSpectrumLinear(iWavenumber)=+self%powerSpectrum_%power(wavenumber(iWavenumber))
        ! Compute corresponding mass scale.
        massScale          (iWavenumber)=+4.0d0                                       &
@@ -335,6 +346,7 @@ contains
     call containerGroup%writeDataset  (sigmaGradient      ,'alpha'        ,'Logarithmic deriative of the mass flucation with respect to mass.'                        )
     ! Close the datasets group.
     call containerGroup%close         (                                                                                                                               )
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: power spectrum' )
     return
 

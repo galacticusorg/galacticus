@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,9 +29,9 @@
   !#  <description>Implements the gravitational lensing distributions of \cite{takahashi_probability_2011}.</description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingTakahashi2011     
-     class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_
-     class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_
+     class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_ => null()
+     class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_ => null()
      logical                                                :: tableInitialized        , cdfInitialized
      !$ type         (ompReadWriteLock           )          :: lock
      type            (table1DGeneric             )          :: convergencePDF
@@ -96,6 +97,9 @@ contains
     !# <objectBuilder class="powerSpectrumNonlinear" name="powerSpectrumNonlinear_" source="parameters"/>
     self=gravitationalLensingTakahashi2011(cosmologyParameters_,cosmologyFunctions_,powerSpectrumNonlinear_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"   />
+    !# <objectDestructor name="cosmologyFunctions_"    />
+    !# <objectDestructor name="powerSpectrumNonlinear_"/>
     return
   end function takahashi2011ConstructorParameters
   
@@ -310,16 +314,17 @@ contains
   subroutine takahashi2011LensingDistributionConstruct(self,redshift,scaleSource)
     !% Construct the lensing distribution function for the \cite{takahashi_probability_2011} formalism.
     use, intrinsic :: ISO_C_Binding
-    use FGSL
-    use Numerical_Integration
-    use Numerical_Ranges
-    use Numerical_Comparison
-    use Root_Finder
-    use Galacticus_Error
-    use Galacticus_Paths
-    use IO_HDF5
-    use File_Utilities
-    use Table_Labels
+    use            :: FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use            :: Numerical_Integration
+    use            :: Numerical_Ranges
+    use            :: Numerical_Comparison
+    use            :: Root_Finder
+    use            :: Galacticus_Error
+    use            :: Galacticus_Paths
+    use            :: IO_HDF5
+    use            :: File_Utilities
+    use            :: Table_Labels
+    use            :: System_Command
     implicit none
     class           (gravitationalLensingTakahashi2011), intent(inout)               :: self
     double precision                                   , intent(in   )               :: redshift                                 , scaleSource
@@ -447,6 +452,7 @@ contains
                      & call Galacticus_Error_Report('convergence PDF does not satisfy consistency criterion'//{introspection:location})
              end do
              ! Store the results to file.
+             call System_Command_Do('mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'largeScaleStructure')
              !$ call hdf5Access%set()
              call parametersFile%openFile(char(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/gravitationalLensingConvergenceTakahashi2011.hdf5"))
              call parametersFile%writeDataset(tableConvergenceVariance,"convergenceVariance","Dimensionless variance of lensing convergence"     )

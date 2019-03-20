@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implementation of a null ram pressure stripping of spheroids class.
 
-  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsNull" defaultThreadPrivate="yes">
+  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsNull">
   !#  <description>A null model of ram pressure stripping in galactic spheroids.</description>
   !# </ramPressureStrippingSpheroids>
   type, extends(ramPressureStrippingSpheroidsClass) :: ramPressureStrippingSpheroidsNull

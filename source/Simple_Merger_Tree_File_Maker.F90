@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,6 @@ program Simple_Merger_Tree_File_Maker
   use Merger_Tree_Data_Structure
   use Merger_Trees_Simple
   use Command_Arguments
-  use Memory_Management
   use ISO_Varying_String
   use Input_Parameters
   use HDF5
@@ -33,9 +33,6 @@ program Simple_Merger_Tree_File_Maker
   type     (mergerTreeData ) :: mergerTrees
   type     (varying_string ) :: parameterFile
   type     (inputParameters) :: parameters
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('Simple_Merger_Tree_File_Maker.size')
 
   ! Get the name of the input and output files.
   if (Command_Argument_Count() < 4 .or. Command_Argument_Count() > 6) stop "Usage: Simple_Tree_File_Maker.exe <nodesFile> <outputFile> <outputFormat> <parameterFile> [<hdfChunkSize> [hdfCompressionLevel]]"
@@ -47,7 +44,7 @@ program Simple_Merger_Tree_File_Maker
   if (Command_Argument_Count() == 6) call Get_Argument(6,hdfCompressionLevel)
 
   ! Open the parameter file.
-  parameters=inputParameters(parameterFile,allowedParametersFile='Simple_Merger_Tree_File_Maker.parameters.xml')
+  parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
 
   ! Process file.

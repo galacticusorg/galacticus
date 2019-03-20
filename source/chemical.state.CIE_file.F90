@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,9 +19,9 @@
 
   !% Implements a chemical state class which reads and interpolates a collisional ionization equilibrium chemical state from a file.
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
   
-  !# <chemicalState name="chemicalStateCIEFile" defaultThreadPrivate="yes">
+  !# <chemicalState name="chemicalStateCIEFile">
   !#  <description>
   !#   Class providing chemical state via interpolation of tabulated values read from file. The HDF5 file containing the table
   !#   should have the following form:

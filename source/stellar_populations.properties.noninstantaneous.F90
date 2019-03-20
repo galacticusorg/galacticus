@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +28,8 @@
   type, extends(stellarPopulationPropertiesClass) :: stellarPopulationPropertiesNoninstantaneous
      !% A stellar population properties class based on the noninstantaneous recycling approximation.
      private
-     class (stellarPopulationSelectorClass), pointer :: stellarPopulationSelector_
-     class (outputTimesClass              ), pointer :: outputTimes_
+     class (stellarPopulationSelectorClass), pointer :: stellarPopulationSelector_ => null()
+     class (outputTimesClass              ), pointer :: outputTimes_ => null()
      ! Count of number of elements (plus total metals) that are to be tracked.
      integer                                         :: elementsCount
      ! Count of the number of histories required by this implementation.
@@ -78,6 +79,8 @@ contains
     !# <objectBuilder class="stellarPopulationSelector" name="stellarPopulationSelector_" source="parameters"/>
     self=stellarPopulationPropertiesNoninstantaneous(countHistoryTimes,stellarPopulationSelector_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputTimes_"              />
+    !# <objectDestructor name="stellarPopulationSelector_"/>
     return
   end function noninstantaneousConstructorParameters
 
@@ -131,7 +134,8 @@ contains
     use            :: Stellar_Luminosities_Structure
     use            :: Stellar_Populations
     use            :: Numerical_Interpolation
-    use            :: FGSL
+    use            :: FGSL                          , only : fgsl_interp_accel
+    use            :: Galacticus_Nodes              , only : nodeComponentBasic
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout)                 :: self
     double precision                                             , intent(  out)                 :: rateEnergyInput              , rateMassFuel          , &
@@ -251,6 +255,7 @@ contains
   subroutine noninstantaneousHistoryCreate(self,node,history_)
     !% Create any history required for storing stellar population properties.
     use Numerical_Ranges
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (stellarPopulationPropertiesNoninstantaneous), intent(inout) :: self
     type            (treeNode                                   ), intent(inout) :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module Merger_Tree_Construction
   !% Constructs/destructs merger trees.
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes, only : mergerTree
   private
 
   !# <functionClass>
@@ -29,7 +30,6 @@ module Merger_Tree_Construction
   !#  <descriptiveName>Merger Tree Constructors</descriptiveName>
   !#  <description>Class providing merger tree constructors.</description>
   !#  <default>build</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <stateful value="no"/>
   !#  <method name="construct" >
   !#   <description>Construct the merger tree corresponding to the given {\normalfont \ttfamily treeNumber}.</description>

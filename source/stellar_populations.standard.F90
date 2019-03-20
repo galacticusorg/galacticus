@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implements a standard stellar population class.
   
-  use FGSL
+  use FGSL                                      , only : fgsl_interp_accel            , fgsl_interp
   use Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionClass     , initialMassFunction
   use Stellar_Astrophysics                      , only : stellarAstrophysicsClass     , stellarAstrophysics
   use Stellar_Feedback                          , only : stellarFeedbackClass         , stellarFeedback
@@ -61,11 +62,11 @@
      double precision                                                           :: massLongLived                      , ageEffective         , &
           &                                                                        recycledFraction_                  , metalYield_          , &
           &                                                                        recycledFraction                   , metalYield
-     class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_
-     class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_
-     class           (stellarFeedbackClass         ), pointer                   :: stellarFeedback_
-     class           (supernovaeTypeIaClass        ), pointer                   :: supernovaeTypeIa_
-     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_
+     class           (stellarAstrophysicsClass     ), pointer                   :: stellarAstrophysics_ => null()
+     class           (initialMassFunctionClass     ), pointer                   :: initialMassFunction_ => null()
+     class           (stellarFeedbackClass         ), pointer                   :: stellarFeedback_ => null()
+     class           (supernovaeTypeIaClass        ), pointer                   :: supernovaeTypeIa_ => null()
+     class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_ => null()
      type            (populationTable              )                            :: recycleFraction
      type            (populationTable              )                            :: energyOutput
      type            (populationTable              ), allocatable, dimension(:) :: yield
@@ -218,6 +219,11 @@ contains
     !#  <argument name="metalYield"       value="metalYield"       parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="initialMassFunction_"     />
+    !# <objectDestructor name="stellarAstrophysics_"     />
+    !# <objectDestructor name="stellarFeedback_"         />
+    !# <objectDestructor name="supernovaeTypeIa_"        />
+    !# <objectDestructor name="stellarPopulationSpectra_"/>
     return
   end function standardConstructorParameters
 
@@ -267,10 +273,11 @@ contains
     implicit none
     type(stellarPopulationStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%initialMassFunction_"/>
-    !# <objectDestructor name="self%stellarAstrophysics_"/>
-    !# <objectDestructor name="self%stellarFeedback_"    />
-    !# <objectDestructor name="self%supernovaeTypeIa_"   />
+    !# <objectDestructor name="self%initialMassFunction_"     />
+    !# <objectDestructor name="self%stellarAstrophysics_"     />
+    !# <objectDestructor name="self%stellarFeedback_"         />
+    !# <objectDestructor name="self%supernovaeTypeIa_"        />
+    !# <objectDestructor name="self%stellarPopulationSpectra_"/>
     return
   end subroutine standardDestructor
 
@@ -430,8 +437,8 @@ contains
           allocate(standardInitialMassFunction_,mold=self%initialMassFunction_)
           allocate(standardStellarFeedback_    ,mold=self%stellarFeedback_    )
           allocate(standardSupernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
-          call self%stellarAstrophysics_%deepCopy(standardStellarAstrophysics_)
-          call self%initialMassFunction_%deepCopy(standardInitialMassFunction_)
+          !# <deepCopy source="self%stellarAstrophysics_" destination="standardStellarAstrophysics_"/>
+          !# <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
           call self%stellarFeedback_    %deepCopy(standardStellarFeedback_    )
           call self%supernovaeTypeIa_   %deepCopy(standardSupernovaeTypeIa_   )
           call integrator_%initialize  (24                        ,61                        )

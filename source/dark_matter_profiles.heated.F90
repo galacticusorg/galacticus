@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,14 +24,14 @@
   !# </darkMatterProfile>
 
   use Kind_Numbers
-  use Dark_Matter_Halo_Scales
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
 
   type, extends(darkMatterProfileClass) :: darkMatterProfileHeated
      !% A dark matter halo profile class implementing heated dark matter halos.
      private
-     class           (darkMatterProfileClass       ), pointer :: unheatedProfile
-     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_
+     class           (darkMatterProfileClass       ), pointer :: darkMatterProfile_        => null()
+     class           (darkMatterHaloScaleClass     ), pointer :: darkMatterHaloScale_      => null()
+     class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_ => null()
      logical                                                  :: unimplementedIsFatal
      integer         (kind=kind_int8               )          :: lastUniqueID
      double precision                                         :: radiusFinalPrevious      , radiusInitialPrevious
@@ -115,18 +116,21 @@ contains
     self=darkMatterProfileHeated(unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_,darkMatterProfileHeating_)
     !# <inputParametersValidate source="parameters"/>
 
+    !# <objectDestructor name="darkMatterProfile_"       />
+    !# <objectDestructor name="darkMatterHaloScale_"     />
+    !# <objectDestructor name="darkMatterProfileHeating_"/>
     return
   end function heatedConstructorParameters
 
-  function heatedConstructorInternal(unimplementedIsFatal,unheatedProfile,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
+  function heatedConstructorInternal(unimplementedIsFatal,darkMatterProfile_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
     !% Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
     implicit none
     type   (darkMatterProfileHeated       )                        :: self
-    class  (darkMatterProfileClass        ), intent(in   ), target :: unheatedProfile
+    class  (darkMatterProfileClass        ), intent(in   ), target :: darkMatterProfile_
     class  (darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileHeatingClass ), intent(in   ), target :: darkMatterProfileHeating_
     logical                                , intent(in   )         :: unimplementedIsFatal
-    !# <constructorAssign variables="unimplementedIsFatal,*unheatedProfile,*darkMatterHaloScale_,*darkMatterProfileHeating_"/>
+    !# <constructorAssign variables="unimplementedIsFatal,*darkMatterProfile_,*darkMatterHaloScale_,*darkMatterProfileHeating_"/>
 
     ! Construct the object.
     self%lastUniqueID       =-1_kind_int8
@@ -139,7 +143,7 @@ contains
     implicit none
     type(darkMatterProfileHeated), intent(inout) :: self
 
-    !# <objectDestructor name="self%unheatedProfile"           />
+    !# <objectDestructor name="self%darkMatterProfile_"           />
     !# <objectDestructor name="self%darkMatterHaloScale_"      />
     !# <objectDestructor name="self%darkMatterProfileHeating_" />
     return
@@ -152,7 +156,7 @@ contains
     type (treeNode               ), intent(inout) :: node
 
     ! Reset the unheated profile.
-    call self%unheatedProfile%calculationReset(node)
+    call self%darkMatterProfile_%calculationReset(node)
     ! Reset calculations for this profile.
     self%lastUniqueID       =node%uniqueID()
     self%radiusFinalPrevious=-huge(0.0d0)
@@ -182,8 +186,8 @@ contains
          &                                                      densityInitial, jacobian
 
     radiusInitial      =self                %radiusInitial(node,radius       )
-    massEnclosed       =self%unheatedProfile%enclosedMass (node,radiusInitial)
-    densityInitial     =self%unheatedProfile%density      (node,radiusInitial)
+    massEnclosed       =self%darkMatterProfile_%enclosedMass (node,radiusInitial)
+    densityInitial     =self%darkMatterProfile_%density      (node,radiusInitial)
     jacobian           =+1.0d0                                                                                                 &
          &              /(                                                                                                     &
          &                +(                                                                                                   &
@@ -195,12 +199,12 @@ contains
          &                /gravitationalConstantGalacticus                                                                     &
          &                /massEnclosed                                                                                        &
          &                *(                                                                                                   &
-         &                  +self%darkMatterProfileHeating_%specificEnergyGradient(node,self%unheatedProfile,radiusInitial)    &
+         &                  +self%darkMatterProfileHeating_%specificEnergyGradient(node,self%darkMatterProfile_,radiusInitial)    &
          &                  -4.0d0                                                                                             &
          &                  *Pi                                                                                                &
          &                  *radiusInitial                                                                                 **2 &
          &                  *densityInitial                                                                                    &
-         &                  *self%darkMatterProfileHeating_%specificEnergy        (node,self%unheatedProfile,radiusInitial)    &
+         &                  *self%darkMatterProfileHeating_%specificEnergy        (node,self%darkMatterProfile_,radiusInitial)    &
          &                  /massEnclosed                                                                                      &
          &                 )                                                                                                   &
          &               )
@@ -237,7 +241,7 @@ contains
           !$omp end critical(heatedDarkMatterProfileDensityLogSlopeWarn)
        end if
     end if
-    heatedDensityLogSlope=self%unheatedProfile%densityLogSlope(node,radius)
+    heatedDensityLogSlope=self%darkMatterProfile_%densityLogSlope(node,radius)
     return
   end function heatedDensityLogSlope
 
@@ -247,9 +251,9 @@ contains
     use Galacticus_Error
     use Galacticus_Display
     implicit none
-    class           (darkMatterProfileHeated), intent(inout) :: self
-    type            (treeNode               ), intent(inout) :: node
-    double precision                         , intent(in   ) :: density
+    class           (darkMatterProfileHeated), intent(inout), target :: self
+    type            (treeNode               ), intent(inout), target :: node
+    double precision                         , intent(in   )         :: density
 
     ! Check if unimplemented features are fatal.
     if (self%unimplementedIsFatal) then
@@ -265,7 +269,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileRadiusEnclosingDensityWarn)
        end if
-       heatedRadiusEnclosingDensity=self%unheatedProfile%radiusEnclosingDensity(node,density)
+       heatedRadiusEnclosingDensity=self%darkMatterProfile_%radiusEnclosingDensity(node,density)
     end if
     return
   end function heatedRadiusEnclosingDensity
@@ -295,7 +299,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileRadialMomentWarn)
        end if
-       heatedRadialMoment=self%unheatedProfile%radialMoment(node,moment,radiusMinimum,radiusMaximum)
+       heatedRadialMoment=self%darkMatterProfile_%radialMoment(node,moment,radiusMinimum,radiusMaximum)
     end if
     return 
   end function heatedRadialMoment
@@ -309,7 +313,7 @@ contains
     type            (treeNode               ), intent(inout) :: node
     double precision                         , intent(in   ) :: radius
 
-    heatedEnclosedMass=self%unheatedProfile%enclosedMass(node,self%radiusInitial(node,radius))
+    heatedEnclosedMass=self%darkMatterProfile_%enclosedMass(node,self%radiusInitial(node,radius))
     return
   end function heatedEnclosedMass
 
@@ -327,7 +331,7 @@ contains
     !$omp threadprivate(finder)
 
     ! If profile is unheated, the initial radius equals the final radius.
-    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%unheatedProfile)) then
+    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfile_)) then
        heatedRadiusInitial=radiusFinal
        return
     end if
@@ -385,8 +389,8 @@ contains
     double precision, intent(in   ) :: radiusInitial
     double precision                :: massEnclosed
     
-    massEnclosed           =+heatedSelf%unheatedProfile          %enclosedMass  (heatedNode,                           radiusInitial)
-    heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,heatedSelf%unheatedProfile,radiusInitial) &
+    massEnclosed           =+heatedSelf%darkMatterProfile_       %enclosedMass  (heatedNode,                              radiusInitial)
+    heatedRadiusInitialRoot=+heatedSelf%darkMatterProfileHeating_%specificEnergy(heatedNode,heatedSelf%darkMatterProfile_,radiusInitial) &
          &                  +0.5d0                                                                                                    &
          &                  *gravitationalConstantGalacticus                                                                          &
          &                  *massEnclosed                                                                                             &
@@ -402,7 +406,6 @@ contains
     !% \ttfamily radius} (given in units of Mpc).
     use FGSL                        , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     use Galactic_Structure_Options
     implicit none
@@ -489,7 +492,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileCircularVelocityMaximumWarn)
        end if
-       heatedCircularVelocityMaximum=self%unheatedProfile%circularVelocityMaximum(node)
+       heatedCircularVelocityMaximum=self%darkMatterProfile_%circularVelocityMaximum(node)
     end if
     return
   end function heatedCircularVelocityMaximum
@@ -511,7 +514,7 @@ contains
        heatedRadiusFromSpecificAngularMomentum=0.0d0
     else
        ! Compute radius in unheated profile.
-       heatedRadiusFromSpecificAngularMomentum=self%unheatedProfile%radiusFromSpecificAngularMomentum(node,specificAngularMomentum)
+       heatedRadiusFromSpecificAngularMomentum=self%darkMatterProfile_%radiusFromSpecificAngularMomentum(node,specificAngularMomentum)
        ! Find radius in the heated profile.
        ! Set global pointers.
        call heatedSetGlobalSelf(self)
@@ -565,7 +568,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileRotationNormalizationWarn)
        end if
-       heatedRotationNormalization=self%unheatedProfile%rotationNormalization(node)
+       heatedRotationNormalization=self%darkMatterProfile_%rotationNormalization(node)
     end if
     return
   end function heatedRotationNormalization
@@ -592,7 +595,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileEnergyWarn)
        end if
-       heatedEnergy=self%unheatedProfile%energy(node)
+       heatedEnergy=self%darkMatterProfile_%energy(node)
     end if
     return
   end function heatedEnergy
@@ -619,7 +622,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileEnergyGrowthRateWarn)
        end if
-       heatedEnergyGrowthRate=self%unheatedProfile%energyGrowthRate(node)
+       heatedEnergyGrowthRate=self%darkMatterProfile_%energyGrowthRate(node)
     end if
     return
   end function heatedEnergyGrowthRate
@@ -648,7 +651,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileKSpaceWarn)
        end if
-       heatedKSpace=self%unheatedProfile%kSpace(node,waveNumber)
+       heatedKSpace=self%darkMatterProfile_%kSpace(node,waveNumber)
     end if
     return
   end function heatedKSpace
@@ -677,7 +680,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileFreefallRadiusWarn)
        end if
-       heatedFreefallRadius=self%unheatedProfile%freefallRadius(node,time)
+       heatedFreefallRadius=self%darkMatterProfile_%freefallRadius(node,time)
     end if
     return
   end function heatedFreefallRadius
@@ -706,7 +709,7 @@ contains
           end if
           !$omp end critical(heatedDarkMatterProfileFreefallRadiusIncreaseRateWarn)
        end if
-       heatedFreefallRadiusIncreaseRate=self%unheatedProfile%freefallRadiusIncreaseRate(node,time)
+       heatedFreefallRadiusIncreaseRate=self%darkMatterProfile_%freefallRadiusIncreaseRate(node,time)
     end if
     return
   end function heatedFreefallRadiusIncreaseRate

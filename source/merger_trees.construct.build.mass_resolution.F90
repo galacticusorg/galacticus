@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Merger_Trees_Build_Mass_Resolution
   !% Provides a class of merger tree mass resolutions.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : mergerTree
   private
 
   !# <functionClass>
@@ -28,7 +29,6 @@ module Merger_Trees_Build_Mass_Resolution
   !#  <descriptiveName>Merger Tree Building Mass Resolutions</descriptiveName>
   !#  <description>Class providing mass resolutions to use when building merger trees.</description>
   !#  <default>fixed</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="resolution" >
   !#   <description>Gives the mass resolution to use for the given tree.</description>
   !#   <type>double precision</type>

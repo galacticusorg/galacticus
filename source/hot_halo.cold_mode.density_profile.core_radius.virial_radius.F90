@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,7 @@
   type, extends(hotHaloColdModeCoreRadiiClass) :: hotHaloColdModeCoreRadiiVirialFraction
      !% An implementation of the cold mode hot halo mass distribution core radius class which sets the core radius to a fraction of the virial radius.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: coreRadiusOverVirialRadius
    contains
      final     ::           virialRadiusFractionDestructor
@@ -63,6 +64,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloColdModeCoreRadiiVirialFraction(coreRadiusOverVirialRadius,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function virialRadiusFractionConstructorParameters
 

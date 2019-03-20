@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,8 @@
 
 module Quasi_Random
   !% Implements quasi-random sequences.
-  use FGSL
+  use FGSL, only : fgsl_qrng      , fgsl_qrng_type, FGSL_qRng_Sobol, FGSL_Well_Defined, &
+       &           FGSL_qRng_Alloc, FGSL_qRng_Get , FGSL_qRng_Free
   implicit none
   private
   public :: Quasi_Random_Get, Quasi_Random_Free

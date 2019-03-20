@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -76,6 +77,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=cosmologyFunctionsStaticUniverse(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function staticUniverseConstructorParameters
 
@@ -84,9 +86,8 @@ contains
     implicit none
     type (cosmologyFunctionsStaticUniverse)               , target :: self
     class(cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
-   
-    ! Store a pointer to the cosmological parameters object.
-    self%cosmologyParameters_ => cosmologyParameters_  
+    !# <constructorAssign variables="*cosmologyParameters_"/>
+
     return
   end function staticUniverseConstructorInternal
 

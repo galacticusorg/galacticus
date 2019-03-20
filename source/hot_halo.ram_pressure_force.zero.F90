@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implements a model of ram pressure stripping of hot halos which always returns zero force.
 
-  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceZero" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceZero">
   !#  <description>A hot halo ram pressure force class which follows the model of \cite{font_colours_2008}.</description>
   !# </hotHaloRamPressureForce>
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceZero

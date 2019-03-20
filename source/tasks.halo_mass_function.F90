@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,8 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
+  use Dark_Matter_Profile_Scales      , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use Halo_Mass_Functions
   use Unevolved_Subhalo_Mass_Functions
   use Dark_Matter_Halo_Biases
@@ -29,26 +31,27 @@
   use Cosmological_Density_Field
   use Output_Times
 
-  !# <task name="taskHaloMassFunction" defaultThreadPrivate="yes">
+  !# <task name="taskHaloMassFunction">
   !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
   !# </task>
   type, extends(taskClass) :: taskHaloMassFunction
      !% Implementation of a task which computes and outputs the halo mass function and related quantities.
      private
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_
-     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_
-     class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_
-     class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_
-     class           (linearGrowthClass                ), pointer :: linearGrowth_
-     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_
-     class           (haloEnvironmentClass             ), pointer :: haloEnvironment_
-     class           (unevolvedSubhaloMassFunctionClass), pointer :: unevolvedSubhaloMassFunction_
-     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
-     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_
-     class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_
-     class           (transferFunctionClass            ), pointer :: transferFunction_
-     class           (outputTimesClass                 ), pointer :: outputTimes_
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_ => null()
+     class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_ => null()
+     class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_ => null()
+     class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_ => null()
+     class           (linearGrowthClass                ), pointer :: linearGrowth_ => null()
+     class           (haloMassFunctionClass            ), pointer :: haloMassFunction_ => null()
+     class           (haloEnvironmentClass             ), pointer :: haloEnvironment_ => null()
+     class           (unevolvedSubhaloMassFunctionClass), pointer :: unevolvedSubhaloMassFunction_ => null()
+     class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_ => null()
+     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_ => null()
+     class           (darkMatterHaloBiasClass          ), pointer :: darkMatterHaloBias_ => null()
+     class           (transferFunctionClass            ), pointer :: transferFunction_ => null()
+     class           (outputTimesClass                 ), pointer :: outputTimes_ => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
      double precision                                             :: haloMassMinimum              , haloMassMaximum
      integer                                                      :: pointsPerDecade
      type            (varying_string                   )          :: outputGroup
@@ -67,7 +70,7 @@ contains
 
   function haloMassFunctionConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily haloMassFunction} task class which takes a parameter set as input.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeClassHierarchyInitialize
     use Node_Components
     use Input_Parameters
     implicit none
@@ -87,6 +90,7 @@ contains
     class           (darkMatterHaloBiasClass          ), pointer       :: darkMatterHaloBias_
     class           (transferFunctionClass            ), pointer       :: transferFunction_
     class           (outputTimesClass                 ), pointer       :: outputTimes_
+    class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
     type            (varying_string                   )                :: outputGroup
     double precision                                                   :: haloMassMinimum              , haloMassMaximum
     integer                                                            :: pointsPerDecade
@@ -140,6 +144,7 @@ contains
     !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
     !# <objectBuilder class="transferFunction"             name="transferFunction_"             source="parameters"/>
     !# <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     self=taskHaloMassFunction(                               &
          &                    haloMassMinimum              , &
          &                    haloMassMaximum              , &
@@ -155,12 +160,28 @@ contains
          &                    haloEnvironment_             , &
          &                    unevolvedSubhaloMassFunction_, &
          &                    darkMatterHaloScale_         , &
+         &                    darkMatterProfileScaleRadius_, &
          &                    cosmologicalMassVariance_    , &
          &                    darkMatterHaloBias_          , &
          &                    transferFunction_            , &
          &                    outputTimes_                   &
          &                   )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"         />
+    !# <objectDestructor name="cosmologyFunctions_"          />
+    !# <objectDestructor name="virialDensityContrast_"       />
+    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="criticalOverdensity_"         />
+    !# <objectDestructor name="linearGrowth_"                />
+    !# <objectDestructor name="haloMassFunction_"            />
+    !# <objectDestructor name="haloEnvironment_"             />
+    !# <objectDestructor name="unevolvedSubhaloMassFunction_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"         />
+    !# <objectDestructor name="cosmologicalMassVariance_"    />
+    !# <objectDestructor name="darkMatterHaloBias_"          />
+    !# <objectDestructor name="transferFunction_"            />
+    !# <objectDestructor name="outputTimes_"                 />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function haloMassFunctionConstructorParameters
 
@@ -179,6 +200,7 @@ contains
        &                                       haloEnvironment_             , &
        &                                       unevolvedSubhaloMassFunction_, &
        &                                       darkMatterHaloScale_         , &
+       &                                       darkMatterProfileScaleRadius_, &
        &                                       cosmologicalMassVariance_    , &
        &                                       darkMatterHaloBias_          , &
        &                                       transferFunction_            , &
@@ -197,6 +219,7 @@ contains
     class           (haloEnvironmentClass             ), intent(in   ), target :: haloEnvironment_
     class           (unevolvedSubhaloMassFunctionClass), intent(in   ), target :: unevolvedSubhaloMassFunction_
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (cosmologicalMassVarianceClass    ), intent(in   ), target :: cosmologicalMassVariance_
     class           (darkMatterHaloBiasClass          ), intent(in   ), target :: darkMatterHaloBias_
     class           (transferFunctionClass            ), intent(in   ), target :: transferFunction_
@@ -204,13 +227,14 @@ contains
     type            (varying_string                   ), intent(in   )         :: outputGroup
     double precision                                   , intent(in   )         :: haloMassMinimum              , haloMassMaximum
     integer                                            , intent(in   )         :: pointsPerDecade
-    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfile_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_,*cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
+    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfile_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
     
     return
   end function haloMassFunctionConstructorInternal
   
   subroutine haloMassFunctionDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloMassFunction} task class.
+    use Node_Components, only : Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
     implicit none
     type(taskHaloMassFunction), intent(inout) :: self
 
@@ -224,19 +248,22 @@ contains
     !# <objectDestructor name="self%haloEnvironment_"             />
     !# <objectDestructor name="self%unevolvedSubhaloMassFunction_"/>
     !# <objectDestructor name="self%darkMatterHaloScale_"         />
+    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     !# <objectDestructor name="self%cosmologicalMassVariance_"    />
     !# <objectDestructor name="self%darkMatterHaloBias_"          />
     !# <objectDestructor name="self%transferFunction_"            />
     !# <objectDestructor name="self%outputTimes_"                 />
+    call Node_Components_Uninitialize       ()
+    call Node_Components_Thread_Uninitialize()
     return
   end subroutine haloMassFunctionDestructor
 
-  subroutine haloMassFunctionPerform(self)
+  subroutine haloMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Error
     use               Galacticus_Display    
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                , only : mergerTree   , nodeComponentBasic        , nodeComponentDarkMatterProfile
     use               Galacticus_Calculations_Resets
     use               Galacticus_HDF5
     use               Numerical_Constants_Astronomical
@@ -246,8 +273,10 @@ contains
     use               Dark_Matter_Profile_Scales
     use               IO_HDF5
     use               String_Handling
+    use               FGSL                            , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (taskHaloMassFunction          ), intent(inout)                 :: self
+    integer                                         , intent(  out), optional       :: status
     double precision                                , allocatable  , dimension(:,:) :: massFunctionDifferentialLogarithmicBinAveraged       , biasHalo                     , &
          &                                                                             massFunctionCumulative                               , massFunctionDifferential     , &
          &                                                                             massFunctionDifferentialLogarithmic                  , massFunctionMassFraction     , &
@@ -276,7 +305,7 @@ contains
     type            (hdf5Object                    )                                :: outputsGroup                                         , outputGroup                  , &
          &                                                                             containerGroup                                       , powerSpectrumGroup           , &
          &                                                                             cosmologyGroup                                       , dataset
-    integer                                                                         :: status
+    integer                                                                         :: statusHalfModeMass
     type            (varying_string                )                                :: groupName                                            , commentText
    
     call Galacticus_Display_Indent('Begin task: halo mass function')
@@ -342,9 +371,9 @@ contains
           ! Reset calculations.
           call Galacticus_Calculations_Reset(tree%baseNode)
           ! Set the mass in the node.
-          call basic                %massSet (massHalo                 (iMass        ))
+          call basic                %massSet (massHalo                                 (iMass        ))
           ! Set the node scale radius.
-          call darkMatterProfileHalo%scaleSet(Dark_Matter_Profile_Scale(tree%baseNode))
+          call darkMatterProfileHalo%scaleSet(self%darkMatterProfileScaleRadius_%radius(tree%baseNode))
           ! Compute bin interval.
           massHaloBinMinimum=massHalo(iMass)*exp(-0.5*massHaloLogarithmicInterval)
           massHaloBinMaximum=massHalo(iMass)*exp(+0.5*massHaloLogarithmicInterval)
@@ -397,8 +426,8 @@ contains
        outputsGroup  =containerGroup      %openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
     end if
     ! Store half-mode mass if possible.
-    massHalfMode=self%transferFunction_%halfModeMass(status)
-    if (status == errorStatusSuccess) then
+    massHalfMode=self%transferFunction_%halfModeMass(statusHalfModeMass)
+    if (statusHalfModeMass == errorStatusSuccess) then
        if (self%outputGroup == ".") then
           powerSpectrumGroup=galacticusOutputFile%openGroup('powerSpectrum','Group containing data relating to the power spectrum.')
        else
@@ -472,6 +501,7 @@ contains
     end do
     call outputsGroup%close()
     if (containerGroup%isOpen()) call containerGroup%close()
+    if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: halo mass function' )
     return
 

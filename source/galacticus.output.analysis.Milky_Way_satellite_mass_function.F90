@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -86,7 +87,7 @@ contains
     use Numerical_Comparison
     use Numerical_Ranges
     use Galacticus_Error
-    use Galacticus_Nodes
+    use Galacticus_Nodes                  , only : mergerTree, treeNode, nodeComponentBasic
     use Galactic_Structure_Options
     use Galacticus_Output_Merger_Tree_Data
     use Memory_Management

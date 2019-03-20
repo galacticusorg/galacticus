@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Node_Component_Position_Preset
   !% Implements a preset position component.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Position_Preset_Node_Promotion, Node_Component_Position_Preset_Initialize       , &
@@ -69,6 +69,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Position_Preset_Initialize(parameters)
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultPositionComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -93,6 +94,7 @@ contains
   subroutine Node_Component_Position_Preset_Node_Promotion(thisNode)
     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
     !% thisNode} to that of the parent.
+    use Galacticus_Nodes, only : treeNode, nodeComponentPosition, nodeComponentPositionPreset
     implicit none
     type (treeNode             ), intent(inout), pointer :: thisNode
     class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent, &
@@ -130,6 +132,7 @@ contains
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Position_Preset_Move(node)
     !% Optinally move a satellite to coincide with the postion of its host.
+    use Galacticus_Nodes, only : treeNode, nodeComponentPosition, defaultPositionComponent
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     type (treeNode             )               , pointer :: nodeHost
@@ -154,6 +157,7 @@ contains
     !% A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
     !% assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
     use Histories
+    use Galacticus_Nodes, only : treeNode, nodeComponentPosition, nodeComponentBasic, defaultPositionComponent
     implicit none
     type (treeNode             ), intent(inout), pointer :: node               , replaceNode
     class(nodeComponentPosition)               , pointer :: position           , replacePosition

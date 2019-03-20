@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Dark_Matter_Halo_Scales
   
-  !# <coldModeInfallRate name="coldModeInfallRateDynamicalTime" defaultThreadPrivate="yes">
+  !# <coldModeInfallRate name="coldModeInfallRateDynamicalTime">
   !#  <description>A dynamicalTime cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
   !# </coldModeInfallRate>
   type, extends(coldModeInfallRateClass) :: coldModeInfallRateDynamicalTime
      !% Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: dynamicalRateFraction
    contains
      final     ::               dynamicalTimeDestructor
@@ -61,11 +62,13 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=coldModeInfallRateDynamicalTime(dynamicalRateFraction,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function dynamicalTimeConstructorParameters
 
   function dynamicalTimeConstructorInternal(dynamicalRateFraction,darkMatterHaloScale_) result(self)
     !% Internal constructor for the dynamical time cooling time class.
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     use Galacticus_Error
     implicit none
     type            (coldModeInfallRateDynamicalTime)                        :: self
@@ -93,6 +96,8 @@ contains
 
   double precision function dynamicalTimeInfallRate(self,node)
     !% Computes the cold mode infall rate as a fraction of the halo dynamical time.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
+    implicit none
     class(coldModeInfallRateDynamicalTime), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
     class(nodeComponentHotHalo           ), pointer       :: hotHalo

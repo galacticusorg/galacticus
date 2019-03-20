@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +22,14 @@
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
 
-  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksHaloScaling" defaultThreadPrivate="yes">
+  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksHaloScaling">
   !#  <description>A haloScaling timescale for star formation feedback in galactic disks.</description>
   !# </starFormationTimescaleDisks>
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksHaloScaling
      !% Implementation of a haloScaling timescale for star formation feedback in galactic disks.
      private
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: expansionFactorFactorPrevious, exponentVelocityVirial , &
           &                                                 exponentRedshift             , timescaleNormalization , &
           &                                                 timescaleStored              , velocityPrevious       , &
@@ -94,6 +95,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=starFormationTimescaleDisksHaloScaling(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function haloScalingConstructorParameters
 
@@ -142,6 +145,7 @@ contains
 
   double precision function haloScalingTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationTimescaleDisksHaloScaling), intent(inout), target :: self
     type            (treeNode                              ), intent(inout), target :: node

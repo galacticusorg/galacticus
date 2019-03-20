@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,6 @@ module Stellar_Population_Spectra_Postprocess
   !#  <descriptiveName>Postprocessors for stellar population spectra</descriptiveName>
   !#  <description>Class providing postprocessors for stellar population spectra.</description>
   !#  <default>inoue2014</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="multiplier" >
   !#   <description>Return the multiplicative modification to the spectrum.</description>
   !#   <type>double precision</type>
@@ -42,7 +42,6 @@ module Stellar_Population_Spectra_Postprocess
   !#  <descriptiveName>Builder for postprocessors for stellar population spectra</descriptiveName>
   !#  <description>Class providing builders for postprocessors for stellar population spectra.</description>
   !#  <default>lookup</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="build" >
   !#   <description>Build and return a postprocessor.</description>
   !#   <type>class(stellarPopulationSpectraPostprocessorClass)</type>
@@ -58,4 +57,15 @@ module Stellar_Population_Spectra_Postprocess
      final :: stellarPopulationSpectraPostprocessorListDestructor
   end type stellarPopulationSpectraPostprocessorList
 
+contains
+
+  subroutine stellarPopulationSpectraPostprocessorListDestructor(self)
+    !% Destructor for elements of stellar population spectra postprocessor lists.
+    implicit none
+    type(stellarPopulationSpectraPostprocessorList), intent(inout) :: self
+    
+    !# <objectDestructor name="self%stellarPopulationSpectraPostprocessor_"/>
+    return
+  end subroutine stellarPopulationSpectraPostprocessorListDestructor
+  
 end module Stellar_Population_Spectra_Postprocess

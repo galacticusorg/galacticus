@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -8,27 +9,27 @@
 !!    the Free Software Foundation, either version 3 of the License, or
 !!    (at your option) any later version.
 !!
-  !!    Galacticus is distributed in the hope that it will be useful,
-  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  !!    GNU General Public License for more details.
-  !!
-  !!    You should have received a copy of the GNU General Public License
-  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
   !% Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
   !% over the parameters in the form of a set of MCMC chains.
 
   use Nearest_Neighbors
   
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPosteriorAsPrior">
   !#  <description>A posterior sampling likelihood class which implements a likelihood using a given posterior distribution over the parameters in the form of a set of MCMC chains.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPosteriorAsPrior
      !% Implementation of a posterior sampling likelihood class which implements a likelihood using a given posterior distribution
      !% over the parameters in the form of a set of MCMC chains.
      private
-     class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_
+     class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
      integer                                         , allocatable, dimension(:  ) :: neighborIndices           , exclusions
      logical                                         , allocatable, dimension(:  ) :: included
      double precision                                , allocatable, dimension(:  ) :: neighborDistances         , rootVariance
@@ -107,6 +108,7 @@ contains
     !# <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
     self=posteriorSampleLikelihoodPosteriorAsPrior(char(chainBaseName),neighborCount,tolerance,exclusions,posteriorSampleLikelihood_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="posteriorSampleLikelihood_"/>
     return
   end function posteriorAsPriorConstructorParameters
 

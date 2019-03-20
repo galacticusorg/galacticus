@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -35,7 +36,7 @@ contains
   double precision function Node_Component_Black_Hole_Standard_Rotation_Curve(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve for the central black hole. Assumes a point mass black hole with a Keplerian rotation curve,
     !% \emph{except} that the rotation speed is limited to never exceed the speed of light.
-    use Galacticus_Nodes
+    use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Black_Hole_Fundamentals
@@ -73,7 +74,7 @@ contains
   !# </potentialTask>
   double precision function Node_Component_Black_Hole_Standard_Potential(thisNode,radius,componentType,massType,haloLoaded,status)
     !% Compute the gravitational potential due to a black hole.
-    use Galacticus_Nodes
+    use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
     use Numerical_Constants_Physical
     use Galactic_Structure_Options
     use Black_Hole_Fundamentals
@@ -111,7 +112,7 @@ contains
        &,massType,haloLoaded)
     !% Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
     !% rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
-    use Galacticus_Nodes
+    use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Black_Hole_Fundamentals

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,17 +19,17 @@
 
   !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
   
-  use Cooling_Radii
-  use Freefall_Radii
+  use Cooling_Radii , only : coolingRadiusClass , coolingRadius
+  use Freefall_Radii, only : freefallRadiusClass, freefallRadius
 
-  !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall" defaultThreadPrivate="yes">
+  !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall">
   !#  <description>An infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.</description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall
      !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
      private
-     class(coolingRadiusClass ), pointer :: coolingRadius_
-     class(freefallRadiusClass), pointer :: freefallRadius_
+     class(coolingRadiusClass ), pointer :: coolingRadius_ => null()
+     class(freefallRadiusClass), pointer :: freefallRadius_ => null()
    contains
      final     ::                       coolingFreefallDestructor
      procedure :: radius             => coolingFreefallRadius
@@ -56,6 +57,8 @@ contains
     !# <objectBuilder class="freefallRadius" name="freefallRadius_" source="parameters"/>
     self=coolingInfallRadiusCoolingFreefall(coolingRadius_,freefallRadius_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingRadius_" />
+    !# <objectDestructor name="freefallRadius_"/>
     return
   end function coolingFreefallConstructorParameters
 

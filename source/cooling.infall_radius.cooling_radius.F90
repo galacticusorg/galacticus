@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,15 +19,15 @@
 
   !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
 
-  use Cooling_Radii
+  use Cooling_Radii, only : coolingRadiusClass, coolingRadius
   
-  !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius" defaultThreadPrivate="yes">
+  !# <coolingInfallRadius name="coolingInfallRadiusCoolingRadius">
   !#  <description>A simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.</description>
   !# </coolingInfallRadius>
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingRadius
      !% Implementation of a simple infall radius calculation, simply assuming that the infall radius equals the cooling radius.
      private
-     class(coolingRadiusClass), pointer :: coolingRadius_
+     class(coolingRadiusClass), pointer :: coolingRadius_ => null()
    contains
      final     ::                       coolingRadiusDestructor
      procedure :: radius             => coolingRadiusRadius
@@ -52,6 +53,7 @@ contains
     !# <objectBuilder class="coolingRadius" name="coolingRadius_" source="parameters"/>
     self=coolingInfallRadiusCoolingRadius(coolingRadius_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingRadius_"/>
     return
   end function coolingRadiusConstructorParameters
 

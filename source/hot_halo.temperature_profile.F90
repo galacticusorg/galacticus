@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,14 @@
 
 module Hot_Halo_Temperature_Profiles
   !% Provides a hot halo temperature profile class.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
+  private
 
   !# <functionClass>
   !#  <name>hotHaloTemperatureProfile</name>
   !#  <descriptiveName>Hot halo temperature profiles</descriptiveName>
   !#  <description>Class implementing hot halo temperarture profiles.</description>
   !#  <default>virial</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="temperature" >
   !#   <description>Return the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
   !#   <type>double precision</type>

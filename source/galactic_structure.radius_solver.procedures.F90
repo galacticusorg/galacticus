@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Galactic_Structure_Radius_Solver_Procedures
   !% Holds procedure pointers used by the galactic structure radii solver subsystem.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   public
 

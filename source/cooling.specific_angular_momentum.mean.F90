@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +20,7 @@
   !% Implementation of a specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of
   !% the hot gas halo.
 
-  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean" defaultThreadPrivate="yes">
+  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean">
   !#  <description>
   !#   A specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of the hot gas halo.
   !#  </description>
@@ -52,6 +53,7 @@ contains
 
   double precision function meanAngularMomentumSpecific(self,node,radius)
     !% Return the specific angular momentum of cooling gas in the mean model.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class           (coolingSpecificAngularMomentumMean ), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,14 +24,14 @@
   use Cosmology_Functions
   use Dark_Matter_Profiles
 
-  !# <starFormationTimescaleSpheroids name="starFormationTimescaleSpheroidsVelocityMaxScaling" defaultThreadPrivate="yes">
+  !# <starFormationTimescaleSpheroids name="starFormationTimescaleSpheroidsVelocityMaxScaling">
   !#  <description>A velocityMaxScaling timescale for star formation in galactic spheroids.</description>
   !# </starFormationTimescaleSpheroids>
   type, extends(starFormationTimescaleSpheroidsClass) :: starFormationTimescaleSpheroidsVelocityMaxScaling
      !% Implementation of a velocityMaxScaling timescale for star formation in galactic spheroids.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
      double precision                                   :: expansionFactorFactorPrevious, exponentVelocity            , &
           &                                                exponentRedshift             , timescaleNormalization      , &
           &                                                timescaleStored              , velocityMaximumPrevious     , &
@@ -98,6 +99,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=starFormationTimescaleSpheroidsVelocityMaxScaling(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function velocityMaxScalingConstructorParameters
 
@@ -149,6 +152,7 @@ contains
 
   double precision function velocityMaxScalingTimescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic spheroid of {\normalfont \ttfamily node} in the halo scaling timescale model.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationTimescaleSpheroidsVelocityMaxScaling), intent(inout)         :: self
     type            (treeNode                                         ), intent(inout), target :: node

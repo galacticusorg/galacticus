@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,7 @@ program Test_Integration2
   use, intrinsic :: ISO_C_Binding
   use Kind_Numbers
   use Numerical_Integration
-  use FGSL
+  use FGSL                       , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15, FGSL_Integ_Gauss61
   use Numerical_Integration2
   use Test_Integration2_Functions
   use Galacticus_Error

@@ -364,10 +364,8 @@ sub Sample_Matrix {
     # Generate a matrix of parameters sampled from the posterior distribution.
     my $config    =   shift() ;
     my %arguments = %{shift()};
-    # Find the work directory.
-    my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
     # Determine number of chains.
-    my $logFileRoot = $config->{'simulation'}->{'logFileRoot'};    
+    my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};    
     my $chainCount  = &Chains_Count($config,\%arguments);
     # Build a list of outlier chains.
     my @outlierChains = exists($arguments{'outliers'}) ? split(/,/,$arguments{'outliers'}) : ();
@@ -424,7 +422,9 @@ sub Sample_Matrix {
     }
     $sampleIndex .= $sampleIndex->qsort();
     # Build the matrix.
-    my $sampleMatrix = pdl zeroes($parameterCount,nelem($sampleIndex));
+    my $sampleMatrix     = pdl zeroes($parameterCount,nelem($sampleIndex));
+    my $sampleLikelihood = pdl zeroes(                nelem($sampleIndex));
+    my $sampleChain      = pdl zeroes(                nelem($sampleIndex));
     $iSample    = -1;
     my $jSample =  0;
     for(my $i=0;$i<$chainCount;++$i) {
@@ -457,7 +457,9 @@ sub Sample_Matrix {
 		    $accept = 0
 			if ( exists($arguments{'sampleFrom'}) && $columns[0] < $arguments{'sampleFrom'} );
 		    if ( $accept && $iSample == $viable->($sampleIndex)->(($jSample)) ) {
-			$sampleMatrix->(:,($jSample)) .= pdl @columns[6..$#columns];
+			$sampleMatrix    ->(:,($jSample)) .= pdl @columns[6..$#columns];
+			$sampleLikelihood->(  ($jSample)) .= pdl $columns[5           ];
+			$sampleChain     ->(  ($jSample)) .= $i                        ;
 			++$jSample;			
 		    }
 		}
@@ -478,7 +480,7 @@ sub Sample_Matrix {
 	}
     }
     # Return the matrix.
-    return $sampleMatrix;
+    return ($sampleMatrix,$sampleLikelihood,$sampleChain);
 }
 
 sub Sample_Models {
@@ -661,7 +663,7 @@ sub Apply_Parameters {
 	    $newParameterName = $1;
 	    $valueIndex = $2;
 	}
-	foreach ( split(/\-\>/,$newParameterName) ) {
+	foreach ( split(/::/,$newParameterName) ) {
 	    # Check if the parameter name contains an array reference.
 	    if ( $_ =~ m/^(.*)\[(\d+)\]$/ ) {
 		# Parameter name contains array reference. Step through to the relevant parameter in the list. If the parameter is

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +30,6 @@ module Gravitational_Lensing
   !#  <descriptiveName>Gravitational Lensing</descriptiveName>
   !#  <description>Object providing gravitational lensing probabilities due to large scale structure.</description>
   !#  <default>takahashi2011</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="magnificationPDF" >
   !#   <description>Returns the differential probability function for magnification.</description>
   !#   <type>double precision</type>

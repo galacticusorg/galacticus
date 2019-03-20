@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,30 +22,26 @@
 program Test_Correa2015_Concentration
   !% Tests the \cite{correa_accretion_2015} concentration-mass relation.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
   use Unit_Tests
   use Galacticus_Paths
-  use Galacticus_Nodes
+  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic
   use Galacticus_Display
   implicit none
-  type            (treeNode                               ), pointer      :: node
-  class           (nodeComponentBasic                     ), pointer      :: basic
-  class           (cosmologyFunctionsClass                ), pointer      :: cosmologyFunctions_
-  class           (darkMatterProfileConcentrationClass    ), pointer      :: darkMatterProfileConcentration_
-  type            (varying_string                         )               :: parameterFile
-  type            (inputParameters                        )               :: parameters
-  double precision                                         , dimension(3) :: concentrationTarget                , mass         , &
-       &                                                                     redshift                           , concentration
-  integer                                                                 :: i
+  type            (treeNode                           ), pointer      :: node
+  class           (nodeComponentBasic                 ), pointer      :: basic
+  class           (cosmologyFunctionsClass            ), pointer      :: cosmologyFunctions_
+  class           (darkMatterProfileConcentrationClass), pointer      :: darkMatterProfileConcentration_
+  type            (varying_string                     )               :: parameterFile
+  type            (inputParameters                    )               :: parameters
+  double precision                                     , dimension(3) :: concentrationTarget            , mass         , &
+       &                                                                 redshift                       , concentration
+  integer                                                             :: i
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.concentration.Correa2015.size')
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Correa et al. 2015 concentration-mass relation")
   ! Test Correa et al. 2015 algorithm.

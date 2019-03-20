@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,14 +23,14 @@
   use Cosmology_Functions , only : cosmologyFunctionsClass, cosmologyFunctions
   use Dark_Matter_Profiles
 
-  !# <coolingRate name="coolingRateVelocityMaximumScaling" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateVelocityMaximumScaling">
   !#  <description>A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateVelocityMaximumScaling
      !% Implementation of cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
      ! Parameters controlling the cooling rate.
      double precision                                   :: timescale                         , exponentRedshift              , &
           &                                                widthCutOff                       , velocityCutOff                , &
@@ -136,11 +137,14 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=coolingRateVelocityMaximumScaling(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function velocityMaximumScalingConstructorParameters
 
   function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfile_) result(self)
     !% Internal constructor for the velocity maximum scaling cooling rate class.
+    use Galacticus_Nodes, only : defaultHotHaloComponent, defaultBasicComponent
     use Galacticus_Error
     use Array_Utilities
     implicit none
@@ -207,6 +211,7 @@ contains
 
   double precision function velocityMaximumScalingRate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate scales with the maximum circular velocity of the halo.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (coolingRateVelocityMaximumScaling), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node

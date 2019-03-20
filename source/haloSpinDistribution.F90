@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,15 +22,16 @@
 program haloSpinDistributions
   !% Computes dark matter halo spin distributions.
   use Galacticus_Error
-  use Galacticus_Nodes
+  use Galacticus_Nodes          , only : treeNode                    , nodeComponentBasic, nodeComponentSpin, nodeComponentDarkMatterProfile, &
+       &                                 nodeClassHierarchyInitialize
   use Input_Parameters
-  use Memory_Management
   use Functions_Global_Utilities
   use IO_HDF5
   use ISO_Varying_String
   use Cosmology_Functions
   use Halo_Spin_Distributions
   use Node_Components
+  use Memory_Management
   implicit none
   integer                                         , parameter                   :: fileNameLengthMaximum=1024
   class           (cosmologyFunctionsClass       ), pointer                     :: cosmologyFunctions_
@@ -49,8 +51,6 @@ program haloSpinDistributions
   double precision                                                              :: spinMinimum               , spinMaximum        , &
        &                                                                           spinPointsPerDecade       , haloMassMinimum
   
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('haloSpinDistribution.size')
   ! Get the name of the parameter file from the first command line argument.
   if (Command_Argument_Count() /= 2) call Galacticus_Error_Report(message="Usage: haloSpinDistribution.exe <parameterFile> <outputFile>")
   call Get_Command_Argument(1,fileCharacter)
@@ -163,4 +163,6 @@ program haloSpinDistributions
   ! Close the output file.
   call parameters%destroy()
   call outputFile%close  ()
+  ! Uninitialize node components
+  call Node_Components_Uninitialize()
 end program haloSpinDistributions

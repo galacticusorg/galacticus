@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Virial_Density_Contrast
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMassHalo" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMassHalo">
   !#  <description>A halo mass output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorMassHalo
@@ -29,7 +30,7 @@
      !% object. Note that the density contrast is defined here at the time at which the halo presently exists, \emph{not} at the
      !% time at which is was last isolated (as is used for standard definition of halo mass).
      private
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
      final     ::             massHaloDestructor
      procedure :: extract  => massHaloExtract
@@ -55,6 +56,7 @@ contains
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     self=outputAnalysisPropertyExtractorMassHalo(virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="virialDensityContrast_"/>
     return
   end function massHaloConstructorParameters
 
@@ -81,6 +83,7 @@ contains
   double precision function massHaloExtract(self,node)
     !% Implement a massHalo output analysis.
     use Dark_Matter_Profile_Mass_Definitions
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
     class(outputAnalysisPropertyExtractorMassHalo), intent(inout) :: self
     type (treeNode                               ), intent(inout) :: node

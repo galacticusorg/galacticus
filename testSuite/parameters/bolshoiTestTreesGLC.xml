@@ -75,8 +75,13 @@
     <allowSubhaloPromotions value="true"/>
     <presetNamedReals value="velocityMaximum velocityDispersion"/>
   </mergerTreeConstructorMethod>
-  <allTreesExistAtFinalTime value="false"/>
-   <!-- Use merger tree node positions -->
+  <mergerTreeEvolverMethod value="standard">
+    <allTreesExistAtFinalTime value="false"/>
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolverMethod>
+
+  <!-- Use merger tree node positions -->
   <treeNodeMethodPosition value="preset"/>
   <!-- Use merger tree velocities to compute orbits at the virial radius -->
   <!-- Use merger tree spins -->
@@ -114,7 +119,10 @@
     <sourceAngularMomentumSpecificMean value="hotGas"/>
     <sourceNormalizationRotation value="hotGas"/>
   </coolingSpecificAngularMomentumMethod>
-  <hotHaloOutflowReturnRate value="1.26"/>
+  <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="1.26"/>
+  </hotHaloOutflowReincorporationMethod>
+
   <coolingFunctionMethod value="atomicCIECloudy"/>
   <coolingRadiusMethod value="simple"/>
   <coolingRateMethod value="whiteFrenk1991">
@@ -248,16 +256,15 @@
   <odeToleranceRelative value="0.01"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.1"/>
-
   <!-- Output options -->
-  <mergerTreeOutput value="">
-    <outputMergerTrees value="true"/>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <galacticusOutputFileName value="testSuite/outputs/bolshoiTestTreesGLC_out.hdf5"/>
-  <outputRedshifts value="0 0.1 2 4"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0 0.1 2 4"/>
+  </outputTimesMethod>
+
   <luminosityFilter value="SDSS_g SDSS_u SDSS_r bJ UKIRT_K RGO_I 2MASS_Ks SDSS_z SDSS_i"/>
   <luminosityRedshift value="0.1 0.1 0.1 0.0 0.0 0.0 0.0 0.1 0.1"/>
   <luminosityType value="observed observed observed observed rest observed observed observed observed"/>

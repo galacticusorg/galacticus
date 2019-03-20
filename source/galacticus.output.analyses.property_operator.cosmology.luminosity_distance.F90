@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,14 +23,14 @@
   use            :: Cosmology_Functions
   use            :: Output_Times
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc">
   !#  <description>A cosmological luminosity distance corrector analysis property operator class.</description>
   !# </outputAnalysisPropertyOperator>
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc
      !% A cosmological luminosity distance corrector analysis property operator class.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel, cosmologyFunctionsData
-     class           (outputTimesClass       ), pointer                   :: outputTimes_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_            => null()
      double precision                         , allocatable, dimension(:) :: correctionFactor
    contains
      final     ::            csmlgyLuminosityDistanceDestructor
@@ -62,6 +63,9 @@ contains
     ! Construct the object.
     self=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctionsModel,cosmologyFunctionsData,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputTimes_"           />
+    !# <objectDestructor name="cosmologyFunctionsModel"/>
+    !# <objectDestructor name="cosmologyFunctionsData" />
     return
   end function csmlgyLuminosityDistanceConstructorParameters
 
@@ -124,7 +128,7 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), intent(inout) :: self
 
-    call deallocateArray(self%correctionFactor)
+    if (allocated(self%correctionFactor)) call deallocateArray(self%correctionFactor)
     !# <objectDestructor name="self%cosmologyFunctionsModel"/>
     !# <objectDestructor name="self%cosmologyFunctionsData" />
     !# <objectDestructor name="self%outputTimes_"           />

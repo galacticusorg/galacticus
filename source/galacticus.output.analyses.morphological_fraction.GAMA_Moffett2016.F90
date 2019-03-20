@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Contains a module which implements a stellar vs halo mass relation analysis class.
   
-  !# <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAMoffett2016" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMorphologicalFractionGAMAMoffett2016">
   !#  <description>A morphological fraction output analysis class for the analysis of \cite{moffett_galaxy_2016}.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMorphologicalFractionGAMAMoffett2016
@@ -104,10 +105,12 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
     ! Build the object.
     self=outputAnalysisMorphologicalFractionGAMAMoffett2016(ratioEarlyType,ratioEarlyTypeError,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
     return
   end function morphologicalFractionGAMAMoffett2016ConstructorParameters
 

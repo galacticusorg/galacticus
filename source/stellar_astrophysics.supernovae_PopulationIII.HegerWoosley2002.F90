@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,7 @@
   type, extends(supernovaePopulationIIIClass) :: supernovaePopulationIIIHegerWoosley2002
      !% A Population III supernovae class based on \cite{heger_nucleosynthetic_2002}
      private
-     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_
+     class           (stellarAstrophysicsClass), pointer                   :: stellarAstrophysics_ => null()
      integer                                                               :: countTable
      double precision                          , allocatable, dimension(:) :: energy                  , massHeliumCore
      type            (fgsl_interp             )                            :: interpolationObject
@@ -57,6 +58,7 @@ contains
     !# <objectBuilder class="stellarAstrophysics" name="stellarAstrophysics_" source="parameters"/>
     self=supernovaePopulationIIIHegerWoosley2002(stellarAstrophysics_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarAstrophysics_"/>
     return
   end function hegerWoosley2002ConstructorParameters
   

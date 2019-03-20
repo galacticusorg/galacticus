@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 
 module Excursion_Sets_First_Crossings
   !% Provides a class for first crossing distributions for excursion set calculations.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>
@@ -29,7 +30,6 @@ module Excursion_Sets_First_Crossings
   !#  <descriptiveName>Excursion Set First Crossing Statistics</descriptiveName>
   !#  <description>Class providing first crossing statistics for the excursion set problem.</description>
   !#  <default>linearBarrier</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <data>logical :: coordinatedMPI_=.false. </data>
   !#  <method name="probability" >
   !#   <description>Return the probability for a trajectory to make its first crossing of the barrier at the given {\normalfont \ttfamily variance} and {\normalfont \ttfamily time}.</description>

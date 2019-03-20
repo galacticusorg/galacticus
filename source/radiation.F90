@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Radiation_Fields
   !% Implements a class to describe radiation fields.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -29,7 +30,6 @@ module Radiation_Fields
   !#  <descriptiveName>Radiation Fields</descriptiveName>
   !#  <description>Class providing radiation fields.</description>
   !#  <default>null</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="flux">
   !#   <description>Return the flux (in units of ergs cm$^2$ s$^{-1}$ Hz$^{-1}$ ster$^{-1}$) of the given radiation field.</description>
   !#   <type>double precision</type>
@@ -68,6 +68,7 @@ contains
     use Numerical_Integration
     use Numerical_Constants_Units
     use Numerical_Constants_Physical
+    use FGSL                        , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
     class           (radiationFieldClass       ), target      , intent(inout) :: self
     double precision                            , dimension(2), intent(in   ) :: wavelengthRange

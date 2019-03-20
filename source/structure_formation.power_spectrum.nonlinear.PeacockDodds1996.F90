@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +20,6 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
 !% algorithm of \cite{peacock_non-linear_1996}.
 
-  use FGSL
   use Cosmology_Functions
   use Linear_Growth
   use Power_Spectra
@@ -32,9 +32,9 @@
      private
      double precision                         , dimension(2) :: waveNumberPrevious , fNLPrevious        
      double precision                                        :: timePrevious      
-     class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctions_
-     class           (linearGrowthClass      ), pointer      :: linearGrowth_
-     class           (powerSpectrumClass     ), pointer      :: powerSpectrum_
+     class           (cosmologyFunctionsClass), pointer      :: cosmologyFunctions_ => null()
+     class           (linearGrowthClass      ), pointer      :: linearGrowth_ => null()
+     class           (powerSpectrumClass     ), pointer      :: powerSpectrum_ => null()
   contains
      final     ::               peacockDodds1996Destructor
      procedure :: value      => peacockDodds1996Value
@@ -48,11 +48,11 @@
 
 contains
 
-  function peacockDodds1996ConstructorParameters(parameters)
+  function peacockDodds1996ConstructorParameters(parameters) result(self)
     !% Constructor for the peacockDodds1996 nonlinear power spectrum class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (powerSpectrumNonlinearPeacockDodds1996)                        :: peacockDodds1996ConstructorParameters
+    type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
     type (inputParameters                       ), target, intent(inout) :: parameters
     class(cosmologyFunctionsClass               ), pointer               :: cosmologyFunctions_
     class(linearGrowthClass                     ), pointer               :: linearGrowth_
@@ -64,26 +64,26 @@ contains
     !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
     !# <objectBuilder class="powerSpectrum"      name="powerSpectrum_"      source="parameters"/>
     ! Call the internal constructor.
-    peacockDodds1996ConstructorParameters=peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_,powerSpectrum_)
+    self=peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_,powerSpectrum_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="linearGrowth_"      />
+    !# <objectDestructor name="powerSpectrum_"     />
     return
   end function peacockDodds1996ConstructorParameters
 
-  function peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_,powerSpectrum_)
+  function peacockDodds1996ConstructorInternal(cosmologyFunctions_,linearGrowth_,powerSpectrum_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily PeacockDodds1996} nonlinear power spectrum class.
     implicit none
-    type (powerSpectrumNonlinearPeacockDodds1996)                        :: peacockDodds1996ConstructorInternal
+    type (powerSpectrumNonlinearPeacockDodds1996)                        :: self
     class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class(linearGrowthClass                     ), intent(in   ), target :: linearGrowth_
     class(powerSpectrumClass                    ), intent(in   ), target :: powerSpectrum_
+    !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, *powerSpectrum_"/>
 
     ! Initialize state.
-    peacockDodds1996ConstructorInternal%waveNumberPrevious=-1.0d0
-    peacockDodds1996ConstructorInternal%timePrevious      =-1.0d0
-    ! Store objects.
-    peacockDodds1996ConstructorInternal%cosmologyFunctions_ => cosmologyFunctions_
-    peacockDodds1996ConstructorInternal%linearGrowth_       => linearGrowth_
-    peacockDodds1996ConstructorInternal%powerSpectrum_      => powerSpectrum_
+    self%waveNumberPrevious=-1.0d0
+    self%timePrevious      =-1.0d0
     return
   end function peacockDodds1996ConstructorInternal
 

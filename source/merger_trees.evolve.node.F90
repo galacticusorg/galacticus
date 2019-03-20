@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Merger_Trees_Evolve_Node
   !% Implements evolution of a single node in a merger tree.
-  use Galacticus_Nodes
+  use Galacticus_Nodes  , only : treeNode, interruptTask
   use Kind_Numbers
   use ISO_Varying_String
   use FODEIV2
@@ -102,6 +103,9 @@ module Merger_Trees_Evolve_Node
   double precision                            :: timePrevious          =-1.0d0
   double precision, allocatable, dimension(:) :: propertyValuesPrevious       , propertyRatesPrevious
   !$omp threadprivate(timePrevious,propertyValuesPrevious,propertyRatesPrevious)
+
+  ! Limit on system clock to not be exceeded.
+  integer(kind_int8), public :: systemClockMaximum=-1_kind_int8
   
 contains
 
@@ -167,7 +171,7 @@ contains
           case ('multistepAdams')
              Galacticus_ODE_Algorithm=Fodeiv2_Step_msAdams
           case ('Bulirsch-Stoer')
-             Galacticus_ODE_Algorithm=Fodeiv2_step_BSImp
+             Galacticus_ODE_Algorithm=Fodeiv2_step_BSimp
              useJacobian             =.true.
           case ('BDF')
              Galacticus_ODE_Algorithm=Fodeiv2_step_MSBDFActive
@@ -247,8 +251,10 @@ contains
     return
   end subroutine Tree_Node_Evolve_Initialize
 
-  subroutine Tree_Node_Evolve(thisTree,node,timeEnd,interrupted,functionInterrupt)
+  subroutine Tree_Node_Evolve(thisTree,node,timeEnd,interrupted,functionInterrupt,status)
     !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
+    use Galacticus_Nodes               , only : nodeComponentBasic  , mergerTree      , propertyTypeAll , propertyTypeActive, &
+         &                                      propertyTypeInactive, rateComputeState, propertyTypeNone
     use ODEIV2_Solver
     use Memory_Management
     use Galacticus_Calculations_Resets
@@ -273,25 +279,29 @@ contains
     include 'objects.tree_node.analytic_solver_task.modules.inc'
     !# </include>
     implicit none
-    class           (mergerTree                  )      , intent(inout)          :: thisTree
-    type            (treeNode                    )      , intent(inout), pointer :: node
-    double precision                                    , intent(in   )          :: timeEnd
-    logical                                             , intent(  out)          :: interrupted
-    procedure       (interruptTask               )      , intent(  out), pointer :: functionInterrupt
-    class           (nodeComponentBasic          )                     , pointer :: basicComponent
-    integer                                       , save                         :: propertyCountPrevious=-1
+    class           (mergerTree                  )             , intent(inout)          :: thisTree
+    type            (treeNode                    )             , intent(inout), pointer :: node
+    double precision                                           , intent(in   )          :: timeEnd
+    logical                                                    , intent(  out)          :: interrupted
+    procedure       (interruptTask               )             , intent(  out), pointer :: functionInterrupt
+    integer                                       , optional   , intent(  out)          :: status
+    class           (nodeComponentBasic          )                            , pointer :: basicComponent
+    integer                                       , save                                :: propertyCountPrevious=-1
     !$omp threadprivate(propertyCountPrevious)
-    class          (integratorMultiVectorized1D  ), allocatable                  :: integrator_
-    logical                                                                      :: solvedAnalytically      , solvedNumerically, &
-         &                                                                          jacobianSolver
-    double precision                                                             :: timeStart               , stepSize         , &
-         &                                                                          timeStartSaved
-    integer                                                                      :: lengthMaximum           , i                , &
-         &                                                                          odeStatus
-    type            (varying_string              )                               :: message                 , line
-    character       (len =12                     )                               :: label
-    type            (c_funptr                    )                               :: Error_Analyzer          , postStep
-    
+    class          (integratorMultiVectorized1D  ), allocatable                         :: integrator_
+    logical                                                                             :: solvedAnalytically      , solvedNumerically, &
+         &                                                                                 jacobianSolver
+    double precision                                                                    :: timeStart               , stepSize         , &
+         &                                                                                 timeStartSaved
+    integer                                                                             :: lengthMaximum           , i                , &
+         &                                                                                 odeStatus
+    integer         (kind_int8                   )                                      :: systemClockCount
+    type            (varying_string              )                                      :: message                 , line
+    character       (len =12                     )                                      :: label
+    type            (c_funptr                    )                                      :: Error_Analyzer          , postStep
+
+    ! Set status to success.
+    if (present(status)) status=errorStatusSuccess
     ! Initialize.
     call Tree_Node_Evolve_Initialize()
 
@@ -546,6 +556,19 @@ contains
                    propertyValuesActive  (1:propertyCountActive  )=propertyValuesActiveSaved  (1:propertyCountActive  )
                    propertyValuesInactive(1:propertyCountInactive)=propertyValuesInactiveSaved(1:propertyCountInactive)
                 end if
+                ! Check for exceeding wall time.
+                if (systemClockMaximum > 0_kind_int8) then
+                   call System_Clock(systemClockCount)
+                   if (systemClockCount > systemClockMaximum) then
+                      if (present(status)) then
+                         call Galacticus_Display_Message('maximum wall time exceeded'                          )
+                         status=errorStatusXCPU
+                         return
+                      else
+                         call Galacticus_Error_Report   ('maximum wall time exceeded'//{introspection:location})
+                      end if
+                   end if
+                end if
              end do
              if (.not.(odeStatus == errorStatusSuccess .or. odeStatus == odeSolverInterrupt)) then
                 if (jacobianSolver) then
@@ -554,8 +577,12 @@ contains
                    jacobianSolver   =.false.
                    propertyValuesActive  (1:propertyCountActive  )=propertyValuesActiveSaved  (1:propertyCountActive  )
                    propertyValuesInactive(1:propertyCountInactive)=propertyValuesInactiveSaved(1:propertyCountInactive)
+                else if (present(status)) then
+                   call Galacticus_Display_Message('ODE integration failed '//{introspection:location})
+                   status=errorStatusFail
+                   return
                 else
-                   call Galacticus_Error_Report('ODE integration failed '//{introspection:location})
+                   call Galacticus_Error_Report   ('ODE integration failed '//{introspection:location})
                 end if
              end if
           end if
@@ -604,6 +631,8 @@ contains
 
   subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,evaluate,integrands)
     !% A set of integrands for unit tests.
+    use Galacticus_Nodes        , only : rateComputeState
+    use Galactic_Structure_Radii, only : Galactic_Structure_Radii_Revert
     implicit none
     integer                        , intent(in   )                                              :: propertyCountActive       , propertyCountInactive
     double precision               , intent(in   ), dimension(                              : ) :: time
@@ -633,7 +662,8 @@ contains
           ! Set derivatives to zero initially.
           call activeNode%odeStepRatesInitialize()
           ! Compute derivatives.
-          call Tree_Node_Compute_Derivatives(activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeIntegrator)      
+          call Galactic_Structure_Radii_Revert(activeNode                                                                )
+          call Tree_Node_Compute_Derivatives  (activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeIntegrator)      
           ! Serialize rates into integrand array.
           call activeNode%serializeRates(integrands(:,iTime),propertyTypeIntegrator)
        end if
@@ -646,6 +676,9 @@ contains
   integer function Tree_Node_ODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
+    use Galacticus_Nodes      , only : nodeComponentBasic
+    use FGSL                  , only : FGSL_Success
+    use Galacticus_Error      , only : errorStatusXCPU
     implicit none
     double precision                     , intent(in   )               :: time
     double precision                     , intent(in   ), dimension(:) :: y
@@ -653,8 +686,16 @@ contains
     logical                                                            :: interrupt         , odeConverged
     procedure       (interruptTask     ), pointer                      :: functionInterrupt
     class           (nodeComponentBasic), pointer                      :: basic
+    integer         (kind_int8         )                               :: systemClockCount
 
-    
+    ! Check for exceeding wall time.
+    if (systemClockMaximum > 0_kind_int8) then
+       call System_Clock(systemClockCount)
+       if (systemClockCount > systemClockMaximum) then
+          Tree_Node_ODEs=errorStatusXCPU
+          return
+       end if
+    end if
     ! Return success by default.
     Tree_Node_ODEs=FGSL_Success
     ! Check if we can reuse the previous derivatives.
@@ -721,6 +762,7 @@ contains
     use Galactic_Structure_Radii
     use Numerical_Comparison
     use Galacticus_Error
+    use FGSL                    , only : FGSL_Success
     implicit none
     double precision                                                                   , intent(in   ) :: time
     double precision               , dimension(:                                      ), intent(in   ) :: propertyValues0
@@ -834,10 +876,11 @@ contains
     integer         (kind=c_int    ), intent(in   )                                 :: status
     real            (kind=c_double ), intent(in   )                                 :: time
     real            (kind=c_double ), intent(in   ), dimension(propertyCountActive) :: y
-    real            (kind=c_double )               , dimension(propertyCountActive) :: dydt      , yError       , &
+    real            (kind=c_double )               , dimension(propertyCountActive) :: dydt          , yError       , &
          &                                                                             yTolerance
-    type            (varying_string)                                                :: message   , line
-    integer                                                                         :: i         , lengthMaximum
+    type            (varying_string)                                                :: message       , line
+    integer                                                                         :: i             , lengthMaximum, &
+         &                                                                             verbosityLevel
     character       (len =12       )                                                :: label
     integer         (kind=c_int    )                                                :: odeStatus
     double precision                                                                :: stepFactor
@@ -848,7 +891,8 @@ contains
        call FODEIV2_Driver_Errors(ode2Driver,yError)
        yTolerance=treeNodeODEStepTolerances(y)
        ! Report the failure message.
-       if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
+       verbosityLevel=Galacticus_Verbosity_Level()
+       if (verbosityLevel < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
        message="ODE solver failed with error code "
        message=message//status//" in tree #"//activeTreeIndex
        call Galacticus_Display_Message(message)
@@ -883,6 +927,7 @@ contains
        end do
        call Galacticus_Display_Message(line)
        call Galacticus_Display_Unindent('done')
+       call Galacticus_Verbosity_Level_Set(verbosityLevel)
     end if
     return
   end subroutine Tree_Node_ODEs_Error_Handler
@@ -906,7 +951,7 @@ contains
   subroutine Tree_Node_Post_Step(y,status) bind(c)
     !% Perform any post-step actions on the node.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL         , only : FGSL_Success
     !# <include directive="postStepTask" type="moduleUse">
     include 'objects.tree_node.post_step.modules.inc'
     !# </include>
@@ -926,7 +971,7 @@ contains
   subroutine Tree_Node_Evolve_Error_Analyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
     !% Profiles ODE solver step sizes and errors.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL                            , only : FGSL_Success
     use               Galacticus_Meta_Evolver_Profiler
     implicit none
     real            (kind=c_double ), dimension(propertyCountActive), intent(in   )        :: currentPropertyValue

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,10 +22,10 @@
 !% Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.
 
   use, intrinsic :: ISO_C_Binding
-  use               FGSL
-  use               Excursion_Sets_Barriers
-  use               File_Utilities
-  use               Cosmology_Functions
+  use            :: FGSL                   , only : fgsl_interp_accel
+  use            :: Excursion_Sets_Barriers
+  use            :: File_Utilities
+  use            :: Cosmology_Functions
 
   !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahi">
   !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}.</description>
@@ -154,6 +155,8 @@ contains
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="excursionSetBarrier_"/>
     return
   end function farahiConstructorParameters
 
@@ -328,7 +331,7 @@ contains
 #endif
        !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_) if (.not.mpiSelf%isActive())
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
+       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
 #ifdef USEMPI
@@ -635,7 +638,7 @@ contains
        ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of sqrt[10])
        ! than the effective barrier height at zero variance for the minimum and maximum times that we must consider.
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
+       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        varianceMinimumRate            =min(                                                                                                                      &
             &                              +varianceMinimumRate                                                                                                , &
             &                              +1.0d-2                                                                                                               &
@@ -701,7 +704,7 @@ contains
 #endif
        !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_) if (.not.mpiSelf%isActive())
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
+       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCountRate
           if (.not.allocated(firstCrossingTableRateQuad)) allocate(firstCrossingTableRateQuad(0:self%varianceTableCountRate))
@@ -1002,7 +1005,7 @@ contains
     if (.not.(self%tableInitialized.or.self%tableInitializedRate)) return
     ! Open the data file.
     !$ call hdf5Access%set()
-    call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_size_t,compressionLevel=9)
+    call dataFile%openFile(char(self%fileName),overWrite=.true.,chunkSize=100_hsize_t,compressionLevel=9)
     ! Check if the standard table is populated.
     if (self%tableInitialized) then
        dataGroup=dataFile%openGroup("probability")

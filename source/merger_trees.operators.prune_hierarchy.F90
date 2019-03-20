@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -98,8 +99,7 @@ contains
     class  (mergerTreeOperatorPruneHierarchy), intent(inout), target  :: self
     type   (mergerTree                      ), intent(inout), target  :: tree
     type   (mergerTree                      )               , pointer :: treeCurrent
-    type   (treeNode                        )               , pointer :: node          , nodePrevious, &
-         &                                                               nodeWork
+    type   (treeNode                        )               , pointer :: node          , nodeWork
     type   (mergerTreeWalkerIsolatedNodes   )                         :: treeWalker
     logical                                                           :: didPruning
     integer                                                           :: hierarchyDepth
@@ -132,8 +132,9 @@ contains
                    if (.not.nodeWork%isPrimaryProgenitor().and.associated(nodeWork%parent)) hierarchyDepth=hierarchyDepth+1
                    nodeWork => nodeWork%parent
                 end do
-                ! Return to previous node.
-                call treeWalker%previous(nodePrevious)
+                ! Set the tree walker back to the base node so that it exits - we've changed the tree structure so need to
+                ! begin the walk again.
+                call treeWalker%setNode(treeCurrent%baseNode)
                 ! Unlink the node.
                 call Merger_Tree_Prune_Unlink_Parent(node,node%parent,hierarchyDepth >= self%hierarchyDepth,.true.)
                 ! Clean the branch.

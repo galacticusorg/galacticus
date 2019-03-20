@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implements a class for intergalactic background light which computes the background internally.
 
-  use FGSL
+  use FGSL                                  , only : fgsl_interp_accel
   use Cosmology_Functions
   use Cosmology_Parameters
   use Intergalactic_Medium_State
@@ -33,27 +34,27 @@
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal
      !% A radiation field class for intergalactic background light with properties computed internally
      private
-     class           (cosmologyParametersClass              ), pointer                     :: cosmologyParameters_
-     class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_
-     class           (intergalacticMediumStateClass         ), pointer                     :: intergalacticMediumState_
-     class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_
-     class           (accretionDiskSpectraClass             ), pointer                     :: accretionDiskSpectra_
-     class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_
-     class           (outputTimesClass                      ), pointer                     :: outputTimes_
-     integer                                                                               :: wavelengthCountPerDecade          , wavelengthCount
-     double precision                                                                      :: wavelengthMinimum                 , wavelengthMaximum
-     integer                                                                               :: timeCountPerDecade                , timeCount
-     double precision                                                                      :: redshiftMinimum                   , redshiftMaximum
-     double precision                                                                      :: timeMinimum                       , timeMaximum
-     double precision                                        , allocatable, dimension(:  ) :: wavelength                        , redshift                       , &
-          &                                                                                   time                              , crossSectionNeutralHydrogen    , &
-          &                                                                                   crossSectionNeutralHelium         , crossSectionSinglyIonizedHelium, &
+     class           (cosmologyParametersClass              ), pointer                     :: cosmologyParameters_               => null()
+     class           (cosmologyFunctionsClass               ), pointer                     :: cosmologyFunctions_                => null()
+     class           (intergalacticMediumStateClass         ), pointer                     :: intergalacticMediumState_          => null()
+     class           (atomicCrossSectionIonizationPhotoClass), pointer                     :: atomicCrossSectionIonizationPhoto_ => null()
+     class           (accretionDiskSpectraClass             ), pointer                     :: accretionDiskSpectra_              => null()
+     class           (stellarPopulationSelectorClass        ), pointer                     :: stellarPopulationSelector_         => null()
+     class           (outputTimesClass                      ), pointer                     :: outputTimes_                       => null()
+     integer                                                                               :: wavelengthCountPerDecade                    , wavelengthCount
+     double precision                                                                      :: wavelengthMinimum                           , wavelengthMaximum
+     integer                                                                               :: timeCountPerDecade                          , timeCount
+     double precision                                                                      :: redshiftMinimum                             , redshiftMaximum
+     double precision                                                                      :: timeMinimum                                 , timeMaximum
+     double precision                                        , allocatable, dimension(:  ) :: wavelength                                  , redshift                       , &
+          &                                                                                   time                                        , crossSectionNeutralHydrogen    , &
+          &                                                                                   crossSectionNeutralHelium                   , crossSectionSinglyIonizedHelium, &
           &                                                                                   spectrum
-     double precision                                        , allocatable, dimension(:,:) :: emissivityODE                     , emissivity
+     double precision                                        , allocatable, dimension(:,:) :: emissivityODE                               , emissivity
      double precision                                                     , dimension(0:1) :: timeODE
      double precision                                                                      :: timeCurrent
-     logical                                                                               :: interpolationReset                , interpolationResetTime
-     type            (fgsl_interp_accel                     )                              :: interpolationAccelerator          , interpolationAcceleratorTime
+     logical                                                                               :: interpolationReset                          , interpolationResetTime
+     type            (fgsl_interp_accel                     )                              :: interpolationAccelerator                    , interpolationAcceleratorTime
    contains
      final     ::             intergalacticBackgroundInternalDestructor
      procedure :: flux     => intergalacticBackgroundInternalFlux
@@ -154,6 +155,13 @@ contains
     !# <objectBuilder class="outputTimes"                       name="outputTimes_"                       source="parameters"/>
     self=radiationFieldIntergalacticBackgroundInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,redshiftMinimum,redshiftMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_,atomicCrossSectionIonizationPhoto_,accretionDiskSpectra_,stellarPopulationSelector_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"              />
+    !# <objectDestructor name="cosmologyFunctions_"               />
+    !# <objectDestructor name="intergalacticMediumState_"         />
+    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
+    !# <objectDestructor name="accretionDiskSpectra_"             />
+    !# <objectDestructor name="stellarPopulationSelector_"        />
+    !# <objectDestructor name="outputTimes_"                      />
     return
   end function intergalacticBackgroundInternalConstructorParameters
 
@@ -272,6 +280,7 @@ contains
     !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
     !# <objectDestructor name="self%accretionDiskSpectra_"             />
     !# <objectDestructor name="self%stellarPopulationSelector_"        />
+    !# <objectDestructor name="self%outputTimes_"                      />
     return
   end subroutine intergalacticBackgroundInternalDestructor
 
@@ -338,7 +347,7 @@ contains
   
   subroutine intergalacticBackgroundInternalUniversePreEvolve(self,universe_)
     !% Attach an initial event to the universe to cause the background radiation update function to be called.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : universe, universeEvent
     use Galacticus_Error
     implicit none
     class(*                                   ), intent(inout), target :: self
@@ -374,7 +383,6 @@ contains
     !% Update the radiation background for a given universe.
     use, intrinsic :: ISO_C_Binding
     use            :: Kind_Numbers
-    use            :: Galacticus_Nodes
     use            :: Galacticus_Display
     use            :: Galactic_Structure_Options
     use            :: Galacticus_Error
@@ -392,6 +400,11 @@ contains
     use            :: ISO_Varying_String
     use            :: Galacticus_HDF5
     use            :: IO_HDF5
+    use            :: FGSL                       , only : fgsl_function           , fgsl_integration_workspace, FGSL_Success
+    use            :: Galacticus_Nodes           , only : universeEvent           , universe                  , mergerTreeList, nodeComponentBasic  , &
+         &                                                nodeComponentDisk       , nodeComponentSpheroid     , treeNode      , defaultDiskComponent, &
+         &                                                defaultSpheroidComponent
+    use            :: Abundances_Structure       , only : abundances
     implicit none
     class           (universeEvent                       ), intent(in   ) :: event
     type            (universe                            ), intent(inout) :: universe_
@@ -652,6 +665,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Units
     use Numerical_Constants_Atomic
+    use FGSL                            , only : FGSL_Success
     implicit none
     double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: spectrum            

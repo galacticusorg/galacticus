@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,15 +22,15 @@
   use Cooling_Infall_Radii
   use Hot_Halo_Mass_Distributions
 
-  !# <coolingRate name="coolingRateCole2000" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateCole2000">
   !#  <description>Computes the mass cooling rate in a hot gas halo utilizing the \cite{cole_hierarchical_2000} method. This is based on the
   !# properties of the halo at formation time, and gives a zero cooling rate when the cooling radius exceeds the virial radius.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateCole2000
      !% Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
      private
-     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_
-     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_ => null()
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
    contains
      final     ::         cole2000Destructor
      procedure :: rate => cole2000Rate
@@ -56,6 +57,8 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=coolingRateCole2000(coolingInfallRadius_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingInfallRadius_"    />
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function cole2000ConstructorParameters
 
@@ -83,6 +86,7 @@ contains
   double precision function cole2000Rate(self,node)
     !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
     !% model.
+    use Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentHotHalo
     use Numerical_Constants_Math
     implicit none
     class           (coolingRateCole2000 ), intent(inout) :: self

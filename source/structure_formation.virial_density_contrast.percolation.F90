@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,9 +19,9 @@
 
   !% An implementation of dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.
   
-  use FGSL
-  use Tables
-  use Cosmology_Functions
+  use    Tables
+  use    Cosmology_Functions
+  !$ use OMP_Lib            , only : omp_lock_kind, OMP_Init_Lock, OMP_Destroy_Lock, OMP_Set_Lock, OMP_Unset_Lock
 
   !# <virialDensityContrast name="virialDensityContrastPercolation">
   !#  <description>Dark matter halo virial density contrasts based on the percolation analysis of \cite{more_overdensity_2011}.</description>
@@ -29,7 +30,7 @@
      !% A dark matter halo virial density contrast class based on the percolation analysis of \cite{more_overdensity_2011}.
      private
      double precision                                   :: linkingLength
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      ! Tabulation of density contrast vs. time and mass.
      double precision                                   :: densityContrastTableTimeMinimum, densityContrastTableTimeMaximum                    
      double precision                                   :: densityContrastTableMassMinimum, densityContrastTableMassMaximum                     
@@ -97,6 +98,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastPercolation(linkingLength,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function percolationConstructorParameters
 
@@ -133,7 +135,7 @@ contains
 
   subroutine percolationTabulate(self,mass,time)
     !% Tabulate virial density contrast as a function of mass and time for the {\normalfont \ttfamily percolation} density contrast class.
-    use Functions_Global, only : Virial_Density_Contrast_Percolation_Solver_
+    use Functions_Global       , only : Virial_Density_Contrast_Percolation_Solver_
     use Numerical_Interpolation
     use Numerical_Ranges
     use Memory_Management
@@ -246,29 +248,29 @@ contains
           ! Solving phase is finished.
           percolationSolving=.false.         
           ! Check if we should copy our table to the global table.
-          !$omp critical(virialDensityContrastPercolationGlobal)
-          globalIsSufficient= self%isDefault                      ()                                                      &
-               &             .and.                                                                                        &
-               &                                                        percolation_%densityContrastTable%isInitialized() &
-               &             .and.                                                                                        &
-               &              self%densityContrastTableTimeMinimum   >= percolation_%densityContrastTableTimeMinimum      &
-               &             .and.                                                                                        &
-               &              self%densityContrastTableTimeMaximum   <= percolation_%densityContrastTableTimeMaximum      &
-               &             .and.                                                                                        &
-               &              self%densityContrastTableMassMinimum   >= percolation_%densityContrastTableMassMinimum      &
-               &             .and.                                                                                        &
-               &              self%densityContrastTableMassMaximum   <= percolation_%densityContrastTableMassMaximum
-          if (.not.globalIsSufficient) then
-             ! Copy to global.
-             percolation_%densityContrastTableMassMinimum=self%densityContrastTableMassMinimum
-             percolation_%densityContrastTableMassMaximum=self%densityContrastTableMassMaximum
-             percolation_%densityContrastTableTimeMinimum=self%densityContrastTableTimeMinimum
-             percolation_%densityContrastTableTimeMaximum=self%densityContrastTableTimeMaximum
-             percolation_%densityContrastTableMassCount  =self%densityContrastTableMassCount
-             percolation_%densityContrastTableTimeCount  =self%densityContrastTableTimeCount
-             percolation_%densityContrastTable           =self%densityContrastTable             
+          if (self%isDefault()) then
+             !$omp critical(virialDensityContrastPercolationGlobal)
+             globalIsSufficient=                                           percolation_%densityContrastTable           %isInitialized() &
+                  &             .and.                                                                                                   &
+                  &              self%densityContrastTableTimeMinimum   >= percolation_%densityContrastTableTimeMinimum                 &
+                  &             .and.                                                                                                   &
+                  &              self%densityContrastTableTimeMaximum   <= percolation_%densityContrastTableTimeMaximum                 &
+                  &             .and.                                                                                                   &
+                  &              self%densityContrastTableMassMinimum   >= percolation_%densityContrastTableMassMinimum                 &
+                  &             .and.                                                                                                   &
+                  &              self%densityContrastTableMassMaximum   <= percolation_%densityContrastTableMassMaximum
+             if (.not.globalIsSufficient) then
+                ! Copy to global.
+                percolation_%densityContrastTableMassMinimum=self%densityContrastTableMassMinimum
+                percolation_%densityContrastTableMassMaximum=self%densityContrastTableMassMaximum
+                percolation_%densityContrastTableTimeMinimum=self%densityContrastTableTimeMinimum
+                percolation_%densityContrastTableTimeMaximum=self%densityContrastTableTimeMaximum
+                percolation_%densityContrastTableMassCount  =self%densityContrastTableMassCount
+                percolation_%densityContrastTableTimeCount  =self%densityContrastTableTimeCount
+                percolation_%densityContrastTable           =self%densityContrastTable             
+             end if
+             !$omp end critical(virialDensityContrastPercolationGlobal)
           end if
-          !$omp end critical(virialDensityContrastPercolationGlobal)
        end if
     end do
     return

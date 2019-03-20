@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@
   use Cosmology_Functions
   use Stellar_Spectra_Dust_Attenuations
 
-  !# <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha">
   !#  <description>A luminosity function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunctionHalpha
@@ -138,6 +139,14 @@ contains
     !# <objectBuilder class="stellarSpectraDustAttenuation"      name="stellarSpectraDustAttenuation_"      source="parameters"            />
     self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"                    />
+    !# <objectDestructor name="outputTimes_"                       />
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="cosmologyFunctionsData"             />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"    />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"/>
+    !# <objectDestructor name="surveyGeometry_"                    />
+    !# <objectDestructor name="stellarSpectraDustAttenuation_"     />
     return
   end function luminosityFunctionHalphaConstructorParameters
 
@@ -218,7 +227,7 @@ contains
     self%binCount=size(luminosities,kind=c_size_t)
     call allocateArray(outputWeight,[self%binCount,self%outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctionsData,self%outputTimes_,luminosity=luminosities(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,luminosity=luminosities(iBin))
     end do
     ! Create a luminosity property extractor.
     allocate(outputAnalysisPropertyExtractor_)
@@ -324,6 +333,8 @@ contains
     
     !# <objectDestructor name="self%surveyGeometry_"               />
     !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"           />
+    !# <objectDestructor name="self%cosmologyFunctionsData"        />
     return
   end subroutine luminosityFunctionHalphaDestructor
   

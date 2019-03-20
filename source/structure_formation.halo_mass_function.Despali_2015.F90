@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,13 +25,16 @@
 
   !# <haloMassFunction name="haloMassFunctionDespali2015">
   !#  <description>The halo mass function is computed from the function given by \cite{despali_universality_2015}.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="referenceDensityContrast"/>
+  !#  </deepCopy>
   !# </haloMassFunction>
   type, extends(haloMassFunctionShethTormen) :: haloMassFunctionDespali2015
      !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.
      private
      class(cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_      => null()
      class(virialDensityContrastClass                        ), pointer :: virialDensityContrast_   => null()
-     type (virialDensityContrastSphericalCollapseMatterLambda)          :: referenceDensityContrast
+     type (virialDensityContrastSphericalCollapseMatterLambda), pointer :: referenceDensityContrast => null()
     contains
      !@ <objectMethods>
      !@   <object>haloMassFunctionDespali2015</object>
@@ -76,6 +80,11 @@ contains
     !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
     self=haloMassFunctionDespali2015(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="virialDensityContrast_"   />
     return
   end function despali2015ConstructorParameters
 
@@ -90,7 +99,8 @@ contains
     class(virialDensityContrastClass   ), target, intent(in   ) :: virialDensityContrast_
     !# <constructorAssign variables="*cosmologyParameters_,*cosmologyFunctions_,*cosmologicalMassVariance_,*criticalOverdensity_,*virialDensityContrast_"/>
 
-    self%referenceDensityContrast=virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)
+    allocate(self%referenceDensityContrast)
+    !# <referenceConstruct isResult="yes" owner="self" object="referenceDensityContrast" constructor="virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)"/>
     return
   end function despali2015ConstructorInternal
 
@@ -99,8 +109,9 @@ contains
     implicit none
     type(haloMassFunctionDespali2015), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%virialDensityContrast_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"     />
+    !# <objectDestructor name="self%virialDensityContrast_"  />
+    !# <objectDestructor name="self%referenceDensityContrast"/>
     return
   end subroutine despali2015Destructor
 

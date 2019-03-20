@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,6 +21,8 @@
 
 module Merger_Trees_Evolve_Deadlock_Status
   !% Provides an enumeration for tree deadlock statuses.  
+  public
+
   !# <enumeration>
   !#  <name>deadlockStatus</name>
   !#  <description>Specifies deadlock status during merger tree evolution.</description>

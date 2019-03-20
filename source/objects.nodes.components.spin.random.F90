@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,12 +21,12 @@
 
 module Node_Component_Spin_Random
   !% Implement random spin tree node method.
-  use Galacticus_Nodes
   use Halo_Spin_Distributions
   implicit none
   private
-  public :: Node_Component_Spin_Random_Initialize, Node_Component_Spin_Random_Initialize_Spins , &
-       &    Node_Component_Spin_Random_Promote   , Node_Component_Spin_Random_Thread_Initialize
+  public :: Node_Component_Spin_Random_Initialize         , Node_Component_Spin_Random_Initialize_Spins , &
+       &    Node_Component_Spin_Random_Promote            , Node_Component_Spin_Random_Thread_Initialize, &
+       &    Node_Component_Spin_Random_Thread_Uninitialize
 
   !# <component>
   !#  <class>spin</class>
@@ -75,12 +76,13 @@ contains
     return
   end subroutine Node_Component_Spin_Random_Initialize
   
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spin_Random_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Spin_Random_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultSpinComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -90,12 +92,27 @@ contains
     return
   end subroutine Node_Component_Spin_Random_Thread_Initialize
 
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Spin_Random_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Spin_Random_Thread_Uninitialize()
+    !% Uninitializes the tree node random spin module.
+    use Galacticus_Nodes, only : defaultSpinComponent
+    implicit none
+
+    if (defaultSpinComponent%randomIsActive()) then
+       !# <objectDestructor name="haloSpinDistribution_"/>
+    end if
+    return
+  end subroutine Node_Component_Spin_Random_Thread_Uninitialize
+
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Spin_Random_Initialize_Spins</unitName>
   !#  <sortName>spin</sortName>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Random_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentBasic, defaultSpinComponent
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: nodeRelated
@@ -147,6 +164,7 @@ contains
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinRandom, nodeComponentBasic
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent

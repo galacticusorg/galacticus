@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSpinNBodyErrors
      !% An output distribution operator class to account for errors on N-body measurements of halo spin.
      private
-     class(haloSpinDistributionClass), pointer :: haloSpinDistribution_
+     class(haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
    contains
      final     ::                        spinNBodyErrorsDestructor
      procedure :: operateScalar       => spinNBodyErrorsOperateScalar
@@ -53,6 +54,7 @@ contains
     !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
     self=outputAnalysisDistributionOperatorSpinNBodyErrors(haloSpinDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloSpinDistribution_"/>
     return
   end function spinNBodyErrorsConstructorParameters
 
@@ -87,7 +89,7 @@ contains
   function spinNBodyErrorsOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
     !% Implement an output analysis distribution operator which accounts for errors in N-body measurements of halo spin.
     use Output_Analyses_Options
-    use FGSL
+    use FGSL                   , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Galacticus_Error
     implicit none
@@ -98,7 +100,7 @@ contains
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: spinNBodyErrorsOperateScalar
-    class           (haloSpinDistributionClass                        ), allocatable                                          :: haloSpinDistribution_
+    class           (haloSpinDistributionClass                        ), pointer                                              :: haloSpinDistribution_
     integer         (c_size_t                                         )                                                       :: i
     double precision                                                                                                          :: spinMeasuredMinimum         , spinMeasuredMaximum
     type            (fgsl_function                                    )                                                       :: integrandFunction
@@ -107,7 +109,7 @@ contains
 
     ! Make a private copy of the halo spin distribution object to avoid thread conflicts.
     allocate(haloSpinDistribution_,mold=self%haloSpinDistribution_)
-    call self%haloSpinDistribution_%deepCopy(haloSpinDistribution_)
+    !# <deepCopy source="self%haloSpinDistribution_" destination="haloSpinDistribution_"/>
     !$omp critical(spinNBodyErrorsOperateScalar)
     do i=1,size(propertyValueMinimum)
        select case (propertyType)
@@ -136,6 +138,7 @@ contains
        call Integrate_Done(integrandFunction,integrationWorkspace)
     end do
     !$omp end critical(spinNBodyErrorsOperateScalar)
+    !# <objectDestructor name="haloSpinDistribution_" />
     return
     
   contains

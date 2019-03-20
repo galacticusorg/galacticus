@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Satellites_Tidal_Fields, only : satelliteTidalFieldClass, satelliteTidalField
   
-  !# <tidalStrippingDisks name="tidalStrippingDisksSimple" defaultThreadPrivate="yes">
+  !# <tidalStrippingDisks name="tidalStrippingDisksSimple">
   !#  <description>A simple model of tidal stripping in galactic disks.</description>
   !# </tidalStrippingDisks>
   type, extends(tidalStrippingDisksClass) :: tidalStrippingDisksSimple
      !% Implementation of a simple model of tidal stripping of galactic disks.
      private
-     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_
+     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
      double precision                                    :: rateFractionalMaximum
    contains
      final     ::                 simpleDestructor
@@ -62,6 +63,7 @@ contains
     !# <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
     self=tidalStrippingDisksSimple(rateFractionalMaximum,satelliteTidalField_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="satelliteTidalField_"/>
     return
   end function simpleConstructorParameters
 
@@ -100,7 +102,7 @@ contains
     !% F_\mathrm{gravity} = V_{1/2}^2(r_{1/2})/r_{1/2}
     !% \end{equation}
     !% is the gravitational restoring force in the disk at the half-mass radius, $r_\mathrm{1/2}$.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                  , only : nodeComponentDisk
     use Galactic_Structure_Options
     use Galactic_Structure_Rotation_Curves
     use Numerical_Constants_Math

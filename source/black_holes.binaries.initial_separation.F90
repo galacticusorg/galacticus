@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Black_Hole_Binary_Initial_Separation
   !% Implements a class for black hole binary initial separations.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -29,7 +30,6 @@ module Black_Hole_Binary_Initial_Separation
   !#  <descriptiveName>Black Hole Binaries Initial Separation</descriptiveName>
   !#  <description>Class providing models of black hole binary initial separations.</description>
   !#  <default>spheroidRadiusFraction</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="separationInitial" >
   !#   <description>Computes the initial separation of a newly formed black hole binary black holes.</description>
   !#   <type>double precision</type>

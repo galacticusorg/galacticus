@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,8 +31,8 @@
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationVelocityMaximumScaling
      !% An implementation of the hot halo outflow reincorporation class which uses simple scalings based on the halo maximum circular velocity.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
      double precision                                   :: timeScaleNormalization , velocityExponent            , &
           &                                                redshiftExponent       , velocityMaximumFactor       , &
           &                                                expansionFactorFactor  , rateStored                  , &
@@ -106,12 +107,15 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=hotHaloOutflowReincorporationVelocityMaximumScaling(timeScale,timescaleMinimum,velocityExponent,redshiftExponent,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>  
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function velocityMaximumScalingConstructorParameters
 
   function velocityMaximumScalingConstructorInternal(timeScale,timeScaleMinimum,velocityExponent,redshiftExponent,cosmologyFunctions_,darkMatterProfile_) result(self)
     !% Default constructor for the velocityMaximumScaling hot halo outflow reincorporation class.
     use Galacticus_Error
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (hotHaloOutflowReincorporationVelocityMaximumScaling)                        :: self
     double precision                                                     , intent(in   )         :: timeScale          , velocityExponent, &
@@ -171,6 +175,7 @@ contains
 
   double precision function velocityMaximumScalingRate(self,node)
     !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
     type            (treeNode                                           ), intent(inout) :: node

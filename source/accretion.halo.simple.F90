@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,6 +30,9 @@
 
   !# <accretionHalo name="accretionHaloSimple">
   !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="radiation"/>
+  !#  </deepCopy>
   !# </accretionHalo>
   type, extends(accretionHaloClass) :: accretionHaloSimple
      !% A halo accretion class using simple truncation to mimic the effects of reionization.
@@ -42,7 +46,7 @@
      double precision                                                   :: timeReionization                   , velocitySuppressionReionization, &
           &                                                                opticalDepthReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
-     type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
      integer                                                            :: countChemicals
    contains
      !@ <objectMethods>
@@ -153,11 +157,18 @@ contains
     !# </inputParameter>
     self=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="intergalacticMediumState_"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="accretionHaloTotal_"      />
+    !# <objectDestructor name="darkMatterHaloScale_"     />
+    !# <objectDestructor name="chemicalState_"           />
     return
   end function simpleConstructorParameters
        
   function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
+    use Galacticus_Nodes, only : defaultBasicComponent
     use Galacticus_Error
     use Atomic_Data
     implicit none
@@ -171,8 +182,9 @@ contains
     class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
     !# <constructorAssign variables="timeReionization, velocitySuppressionReionization, accretionNegativeAllowed, accretionNewGrowthOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *accretionHaloTotal_, *chemicalState_, *intergalacticMediumState_"/>
-   
-    self%radiation=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+
+    allocate(self%radiation)
+    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     ! Check that required properties have required attributes.       
     if     (                                                                                                       &
          &   accretionNewGrowthOnly                                                                                &
@@ -203,6 +215,7 @@ contains
     !# <objectDestructor name="self%accretionHaloTotal_"      />
     !# <objectDestructor name="self%chemicalState_"           />
     !# <objectDestructor name="self%intergalacticMediumState_"/>
+    !# <objectDestructor name="self%radiation"                />
     return
   end subroutine simpleDestructor
 
@@ -228,6 +241,7 @@ contains
 
   double precision function simpleAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (accretionHaloSimple     ), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -265,6 +279,7 @@ contains
 
   double precision function simpleAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionHaloSimple), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node
@@ -284,6 +299,7 @@ contains
 
   double precision function simpleFailedAccretionRate(self,node,accretionMode)
     !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (accretionHaloSimple ), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
@@ -318,6 +334,7 @@ contains
 
   double precision function simpleFailedAccretedMass(self,node,accretionMode)
     !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionHaloSimple), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node
@@ -410,6 +427,7 @@ contains
 
   function simpleChemicalMasses(self,node,massAccreted)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    use Galacticus_Nodes                  , only : nodeComponentBasic
     use Numerical_Constants_Astronomical
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
@@ -453,6 +471,7 @@ contains
 
   double precision function simpleFailedFraction(self,node)
     !% Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(accretionHaloSimple), intent(inout) :: self
     type (treeNode           ), intent(inout) :: node

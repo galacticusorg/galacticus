@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,8 +21,7 @@
 
 module Merger_Trees_Builders
   !% Provides a class of merger tree builders.
-  use Galacticus_Nodes
-  use FGSL
+  use Galacticus_Nodes, only : mergerTree
   private
 
   !# <functionClass>
@@ -29,7 +29,6 @@ module Merger_Trees_Builders
   !#  <descriptiveName>Merger Tree Builders</descriptiveName>
   !#  <description>Class providing merger tree builders.</description>
   !#  <default>cole2000</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="build" >
   !#   <description>Builds and returns a merger tree given the root {\normalfont \ttfamily node}.</description>
   !#   <type>void</type>

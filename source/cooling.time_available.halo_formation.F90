@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,6 +39,7 @@ contains
 
   function formationTimeConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{cole_hierarchical_2000} time available for cooling class which builds the object from a parameter set.
+    use Galacticus_Nodes, only : defaultFormationTimeComponent
     use Galacticus_Error
     use Input_Parameters
     implicit none
@@ -63,6 +65,7 @@ contains
 
   double precision function formationTimeTimeAvailable(self,node)
     !% Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{cole_hierarchical_2000} model.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime
     implicit none
     class(coolingTimeAvailableFormationTime), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node

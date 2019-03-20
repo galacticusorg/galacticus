@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,9 +25,19 @@
   type, extends(starFormationFeedbackSpheroidsClass) :: starFormationFeedbackSpheroidsPowerLaw
      !% Implementation of a power-law outflow rate due to star formation feedback in galactic spheroids.
      private
-     double precision :: velocityCharacteristic, exponent
+     double precision :: velocityCharacteristic_, exponent
    contains
-     procedure :: outflowRate => powerLawOutflowRate
+     !@ <objectMethods>
+     !@   <object>starFormationFeedbackSpheroidsPowerLaw</object>
+     !@   <objectMethod>
+     !@     <method>velocityCharacteristic</method>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout</arguments>
+     !@     <type>\doublezero</type>
+     !@     <description>Return the characteristic velocity for power law spheroid feedback models.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     procedure :: outflowRate            => powerLawOutflowRate
+     procedure :: velocityCharacteristic => powerLawVelocityCharacteristic
   end type starFormationFeedbackSpheroidsPowerLaw
 
   interface starFormationFeedbackSpheroidsPowerLaw
@@ -66,13 +77,19 @@ contains
     return
   end function powerLawConstructorParameters
 
-  function powerLawConstructorInternal(velocityCharacteristic,exponent) result(self)
+  function powerLawConstructorInternal(velocityCharacteristic_,exponent) result(self)
     !% Internal constructor for the power-law star formation feedback from spheroids class.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationFeedbackSpheroidsPowerLaw)                :: self
-    double precision                                        , intent(in   ) :: velocityCharacteristic, exponent
+    double precision                                        , intent(in   ) :: velocityCharacteristic_, exponent
+    character       (len=13                                )                :: label
+    !# <constructorAssign variables="velocityCharacteristic_, exponent"/>    
 
-    !# <constructorAssign variables="velocityCharacteristic, exponent"/>    
+    if (velocityCharacteristic_ < 0.0d0) then
+       write (label,'(e13.6)') velocityCharacteristic_
+       call Galacticus_Error_Report('characteristic velocity must be non-negative ['//trim(adjustl(label))//' < 0]'//{introspection:location})
+    end if
     return
   end function powerLawConstructorInternal
 
@@ -85,6 +102,7 @@ contains
     !% $V_\mathrm{spheroid}$ is whatever characteristic value returned by the spheroid method. This scaling is functionally similar to
     !% that adopted by \cite{cole_hierarchical_2000}, but that they specifically used the circular velocity at half-mass radius.
     use Stellar_Feedback
+    use Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
     class           (starFormationFeedbackSpheroidsPowerLaw), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -102,7 +120,7 @@ contains
        powerLawOutflowRate=+0.0d0
     else
        powerLawOutflowRate=+(                                      &
-            &                +self%velocityCharacteristic          &
+            &                +self%velocityCharacteristic(node)    &
             &                /     velocitySpheroid                &
             &               )**self%exponent                       &
             &              *rateEnergyInput                        &
@@ -110,3 +128,15 @@ contains
     end if
     return
   end function powerLawOutflowRate
+
+  double precision function powerLawVelocityCharacteristic(self,node)
+    !% Return the characteristic velocity for power-law feedback models in spheroids. In this case the characteristic velocity is a
+    !% constant.
+    implicit none
+    class(starFormationFeedbackSpheroidsPowerLaw), intent(inout) :: self
+    type (treeNode                              ), intent(inout) :: node
+    !GCC$ attributes unused :: node
+
+    powerLawVelocityCharacteristic=self%velocityCharacteristic_
+    return
+  end function powerLawVelocityCharacteristic

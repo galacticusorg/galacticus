@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Contains a module which implements a mass-metallicity relation analysis class.
   
-  !# <outputAnalysis name="outputAnalysisMassMetallicityBlanc2017" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMassMetallicityBlanc2017">
   !#  <description>A mass-metallicity relation output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMassMetallicityBlanc2017
@@ -102,6 +103,8 @@ contains
     ! Build the object.
     self=outputAnalysisMassMetallicityBlanc2017(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
     return
   end function massMetallicityBlanc2017ConstructorParameters
 
@@ -121,6 +124,7 @@ contains
     use Numerical_Constants_Astronomical
     use Abundances_Structure
     use Atomic_Data
+    use Galacticus_Error
     implicit none
     type            (outputAnalysisMassMetallicityBlanc2017             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum
@@ -156,7 +160,8 @@ contains
     integer         (c_size_t                                           )                                :: iBin                                                    , binCount
     type            (surveyGeometryLiWhite2009SDSS                      )                                :: surveyGeometry_
     type            (hdf5Object                                         )                                :: dataFile
-
+    integer                                                                                              :: indexOxygen
+    
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
     call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2017.hdf5",readOnly=.true.)
@@ -253,8 +258,18 @@ contains
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisPropertyExtractor_                      )
     outputAnalysisPropertyExtractor_                      =  outputAnalysisPropertyExtractorMassStellar             (                                                             )
+    ! Find the index for the oxygen abundance.
+    indexOxygen=Abundances_Index_From_Name("O")
+    if (indexOxygen < 0)                                                                                           &
+         & call Galacticus_Error_Report(                                                                           &
+         &                              'oxygen abundance is required for this analysis'    //char(10)//           &
+         &                              'HELP: you can track oxygen abundance by including:'//char(10)//char(10)// &
+         &                              '         <elementsToTrack value="O"/>'             //char(10)//char(10)// &
+         &                              '      in your parameter file'                      //                     &
+         &                              {introspection:location}                                                   &
+         &                             )
     ! Create an ISM metallicity weight property extractor.
-    allocate(outputAnalysisWeightPropertyExtractor_                )
+    allocate(outputAnalysisWeightPropertyExtractor_                )    
     outputAnalysisWeightPropertyExtractor_                =  outputAnalysisPropertyExtractorMetallicityISM          (Abundances_Index_From_Name("O")                              )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                &

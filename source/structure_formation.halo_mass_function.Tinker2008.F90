@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,7 +41,7 @@
   type, extends(haloMassFunctionTinker2008Form) :: haloMassFunctionTinker2008
      !% A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}, and using their fits for the parameter values.
      private
-     class           (virialDensityContrastClass), pointer                                                  :: virialDensityContrast_
+     class           (virialDensityContrastClass), pointer                                                  :: virialDensityContrast_ => null()
      type            (table1DGeneric            )                                                           :: densityContrast
      double precision                            , dimension(tinker2008ParameterMin:tinker2008ParameterMax) :: parameters
      double precision                                                                                       :: alphaDensityContrast  , timeParameters, &
@@ -97,6 +98,11 @@ contains
          &                          virialDensityContrast_     &
          &                         )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="virialDensityContrast_"   />
     return
   end function tinker2008ConstructorParameters
 
@@ -154,6 +160,7 @@ contains
     implicit none
     type(haloMassFunctionTinker2008), intent(inout) :: self
 
+    call self%densityContrast%destroy()
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     !# <objectDestructor name="self%linearGrowth_"            />

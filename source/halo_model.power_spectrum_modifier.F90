@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Halo_Model_Power_Spectrum_Modifiers
   !% Implements a class of modifiers of the power spectrum for the halo model.
+  private
 
   !# <functionClass>
   !#  <name>haloModelPowerSpectrumModifier</name>
   !#  <descriptiveName>Halo Model Power Spectrum Modifier</descriptiveName>
   !#  <description>Class providing modifiers to the power spectra in the halo model.</description>
   !#  <default>identity</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="modify" >
   !#   <description>Modify the power spectra in the halo model of clustering.</description>
   !#   <type>void</type>

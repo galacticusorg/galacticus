@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,20 +16,20 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of an active model parameter class.
 
   use Statistics_Distributions
   use Math_Operators_Unary
   
-  !# <modelParameter name="modelParameterActive" defaultThreadPrivate="yes">
+  !# <modelParameter name="modelParameterActive">
   !#  <description>An active model parameter class.</description>
   !# </modelParameter>
   type, extends(modelParameterClass) :: modelParameterActive
      !% Implementation of an active model parameter class.
      private
-     class(distributionFunction1DClass), pointer :: prior , perturber
-     class(operatorUnaryClass         ), pointer :: mapper
+     class(distributionFunction1DClass), pointer :: prior  => null(), perturber => null()
+     class(operatorUnaryClass         ), pointer :: mapper => null()
      type (varying_string             )          :: name_
    contains
      final     ::                       activeDestructor
@@ -74,6 +75,9 @@ contains
     !# <objectBuilder class="operatorUnary"          parameterName="operatorUnaryMapper"             name="mapper"    source="parameters"/>
     self=modelParameterActive(name,prior,perturber,mapper)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="prior"    />
+    !# <objectDestructor name="perturber"/>
+    !# <objectDestructor name="mapper"   />
     return
   end function activeConstructorParameters
 

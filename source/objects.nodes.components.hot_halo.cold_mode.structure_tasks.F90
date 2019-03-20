@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,7 +40,7 @@ contains
   double precision function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the mass within a given radius for the cold mode hot halo component.
     use Galactic_Structure_Options
-    use Galacticus_Nodes
+    use Galacticus_Nodes          , only : treeNode, nodeComponentHotHalo, defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout)           :: thisNode
     integer                               , intent(in   )           :: componentType, massType   , &
@@ -68,8 +69,7 @@ contains
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
     ! Find the scale length of the cold mode halo.
-    hotHaloColdModeCoreRadii_ => hotHaloColdModeCoreRadii        (        )
-    radiusCore                =  hotHaloColdModeCoreRadii_%radius(thisNode)
+    radiusCore=hotHaloColdModeCoreRadii_%radius(thisNode)
     ! Initialize the mass profile
     coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
     ! Compute the enclosed mass.
@@ -84,7 +84,7 @@ contains
     !% Computes the rotation curve at a given radius for the hot halo density profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout)           :: thisNode
     integer                   , intent(in   )           :: componentType, massType
@@ -107,7 +107,7 @@ contains
   !# </rotationCurveGradientTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task(thisNode,radius,componentType,massType,haloLoaded)
     !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
@@ -137,7 +137,7 @@ contains
   !# </densityTask>
   double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Task(thisNode,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
     !% Computes the density at a given position for a dark matter profile.
-    use Galacticus_Nodes
+    use Galacticus_Nodes          , only : treeNode, nodeComponentHotHalo, defaultHotHaloComponent
     use Galactic_Structure_Options
     use Coordinates
     implicit none
@@ -163,8 +163,7 @@ contains
     if (radiusOuter <= 0.0d0) return
     ! Compute the enclosed mass.
     ! Find the scale length of the cold mode halo.
-    hotHaloColdModeCoreRadii_ => hotHaloColdModeCoreRadii        (        )
-    radiusCore                =  hotHaloColdModeCoreRadii_%radius(thisNode)
+    radiusCore=hotHaloColdModeCoreRadii_%radius(thisNode)
     ! Initialize the mass profile
     coldModeMassDistribution=massDistributionBetaProfile(beta=2.0d0/3.0d0,coreRadius=radiusCore,mass=thisHotHalo%massCold(),outerRadius=thisHotHalo%outerRadius())
     ! Compute the density.

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   !% An implementation of the intergalactic medium state class for an internal model of instantaneous and full reionization.
 
-  !# <intergalacticMediumState name="intergalacticMediumStateInternal" defaultThreadPrivate="no">
+  !# <intergalacticMediumState name="intergalacticMediumStateInternal" autoHook="yes">
   !#  <description>The state of the intergalactic medium is solved for internally.</description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInternal
@@ -30,63 +31,6 @@
           &                                           densityHydrogen2, densityHelium1  , &
           &                                           densityHelium2  , densityHelium3
    contains
-     !@ <objectMethods>
-     !@   <object>intergalacticMediumStateInternal</object>
-     !@   <objectMethod>
-     !@     <method>densityH1Set</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ densityHydrogen1\argin</arguments>
-     !@     <description>Set the density of neutral hydrogen time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityH2Set</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ densityHydrogen2\argin</arguments>
-     !@     <description>Set the density of ionized hydrogen time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityHe1Set</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ densityHelium1\argin</arguments>
-     !@     <description>Set the density of neutral helium time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityHe2Set</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ densityHelium2\argin</arguments>
-     !@     <description>Set the density of singly-ionized helium time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>densityHe3Set</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ densityHelium3\argin</arguments>
-     !@     <description>Set the density of doubly-ionized helium time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>timeSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ times\argin</arguments>
-     !@     <description>Set the times to use for all time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>temperatureSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ temperature\argin</arguments>
-     !@     <description>Set the temperature time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>massFilteringSet</method>
-     !@     <type>\void</type>
-     !@     <arguments>\doubleone\ massFiltering\argin</arguments>
-     !@     <description>Set the filtering mass time series.</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
-     !@     <method>filteringMass</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
-     !@     <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
-     !@   </objectMethod>
-     !@ </objectMethods>
      final     ::                                internalDestructor
      procedure :: electronFraction            => internalElectronFraction
      procedure :: temperature                 => internalTemperature
@@ -94,14 +38,7 @@
      procedure :: neutralHeliumFraction       => internalNeutralHeliumFraction
      procedure :: singlyIonizedHeliumFraction => internalSinglyIonizedHeliumFraction
      procedure :: filteringMass               => internalFilteringMass
-     procedure :: timeSet                     => internalTimeSet
-     procedure :: temperatureSet              => internalTemperatureSet
-     procedure :: densityH1Set                => internalDensityHydrogen1Set
-     procedure :: densityH2Set                => internalDensityHydrogen2Set
-     procedure :: densityHe1Set               => internalDensityHelium1Set
-     procedure :: densityHe2Set               => internalDensityHelium2Set
-     procedure :: densityHe3Set               => internalDensityHelium3Set
-     procedure :: massFilteringSet            => internalMassFilteringSet
+     procedure :: autoHook                    => internalAutoHook
   end type intergalacticMediumStateInternal
 
   interface intergalacticMediumStateInternal
@@ -127,6 +64,9 @@ contains
     !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
     self=intergalacticMediumStateInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="linearGrowth_"       />
     return
   end function internalConstructorParameters
 
@@ -157,6 +97,16 @@ contains
     deallocate(self%massFiltering      )
     return
   end function internalConstructorInternal
+
+  subroutine internalAutoHook(self)
+    !% Hook into the internal intergalactic medium state evolver to receive updates.
+    use Events_Hooks
+    implicit none
+    class(intergalacticMediumStateInternal), intent(inout) :: self
+    
+    call intergalacticMediumStateEvolveUpdateEvent%attach(self,internalStateSet)
+    return
+  end subroutine internalAutoHook
 
   subroutine internalDestructor(self)
     !% Destructor for the internal \gls{igm} state class.
@@ -402,106 +352,45 @@ contains
     return
   end function internalTemperature
 
-  subroutine internalTimeSet(self,times)
-    !% Set times in the internal intergalatic medium state class.
+  subroutine internalStateSet(self,time,densityHydrogen1,densityHydrogen2,densityHelium1,densityHelium2,densityHelium3,temperature,massFiltering)
+    !% Set state in the internal intergalatic medium state class.
     use Memory_Management
+    use Galacticus_Error
     implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)               :: self
-    double precision                                  , intent(in   ), dimension(:) :: times
+    class           (*), intent(inout)               :: self
+    double precision   , intent(in   ), dimension(:) :: time            , densityHydrogen1, &
+         &                                              densityHydrogen2, densityHelium1  , &
+         &                                              densityHelium2  , densityHelium3  , &
+         &                                              temperature     , massFiltering
 
-    if (allocated(self%time)) call deallocateArray(self%time)
-    call allocateArray(self%time,shape(times))
-    self%time=times
+    select type (self)
+    class is (intergalacticMediumStateInternal)
+       if (allocated(self%time            )) call deallocateArray(self%time            )
+       if (allocated(self%temperatureIGM  )) call deallocateArray(self%temperatureIGM  )
+       if (allocated(self%densityHydrogen1)) call deallocateArray(self%densityHydrogen1)
+       if (allocated(self%densityHydrogen2)) call deallocateArray(self%densityHydrogen2)
+       if (allocated(self%densityHelium1  )) call deallocateArray(self%densityHelium1  )
+       if (allocated(self%densityHelium2  )) call deallocateArray(self%densityHelium2  )
+       if (allocated(self%densityHelium3  )) call deallocateArray(self%densityHelium3  )
+       if (allocated(self%massFiltering   )) call deallocateArray(self%massFiltering   )
+       call allocateArray(self%time            ,shape(time            ))
+       call allocateArray(self%temperatureIGM  ,shape(temperature     ))
+       call allocateArray(self%densityHydrogen1,shape(densityHydrogen1))
+       call allocateArray(self%densityHydrogen2,shape(densityHydrogen2))
+       call allocateArray(self%densityHelium1  ,shape(densityHelium1  ))
+       call allocateArray(self%densityHelium2  ,shape(densityHelium2  ))
+       call allocateArray(self%densityHelium3  ,shape(densityHelium3  ))
+       call allocateArray(self%massFiltering   ,shape(massFiltering   ))
+       self%time            =time
+       self%temperatureIGM  =temperature
+       self%densityHydrogen1=densityHydrogen1
+       self%densityHydrogen2=densityHydrogen2
+       self%densityHelium1  =densityHelium1
+       self%densityHelium2  =densityHelium2
+       self%densityHelium3  =densityHelium3
+       self%massFiltering   =massFiltering
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
     return
-  end subroutine internalTimeSet
-
-  subroutine internalTemperatureSet(self,temperatures)
-    !% Set temperatures in the internal intergalatic medium state class.
-    use Memory_Management
-    implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)               :: self
-    double precision                                  , intent(in   ), dimension(:) :: temperatures
-
-    if (allocated(self%temperatureIGM)) call deallocateArray(self%temperatureIGM)
-    call allocateArray(self%temperatureIGM,shape(temperatures))
-    self%temperatureIGM=temperatures
-    return
-  end subroutine internalTemperatureSet
-
-  subroutine internalDensityHydrogen1Set(self, densityHydrogen1)
-    !% Set H1 densities in the internal intergalatic medium state class.
-    use Memory_Management
-    implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)               :: self
-    double precision                                  , intent(in   ), dimension(:) :: densityHydrogen1
-
-    if (allocated(self%densityHydrogen1)) call deallocateArray(self%densityHydrogen1)
-    call allocateArray(self%densityHydrogen1,shape(densityHydrogen1))
-    self%densityHydrogen1=densityHydrogen1
-    return
-  end subroutine internalDensityHydrogen1Set
-
-  subroutine internalDensityHydrogen2Set(self, densityHydrogen2)
-    !% Set H2 densities in the internal intergalatic medium state class.
-    use Memory_Management
-    implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)               :: self
-    double precision                                  , intent(in   ), dimension(:) :: densityHydrogen2
-
-    if (allocated(self%densityHydrogen2)) call deallocateArray(self%densityHydrogen2)
-    call allocateArray(self%densityHydrogen2,shape(densityHydrogen2))
-    self%densityHydrogen2=densityHydrogen2
-    return
-  end subroutine internalDensityHydrogen2Set
-
-  subroutine internalDensityHelium1Set(self,densityHelium1)
-    !% Set He1 densities in the internal intergalatic medium state class.
-    use Memory_Management
-    implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)               :: self
-    double precision                                  , intent(in   ), dimension(:) :: densityHelium1
-
-    if (allocated(self%densityHelium1)) call deallocateArray(self%densityHelium1)
-    call allocateArray(self%densityHelium1,shape(densityHelium1))
-    self%densityHelium1=densityHelium1
-    return
-  end subroutine internalDensityHelium1Set
-
-  subroutine internalDensityHelium2Set(self,densityHelium2)
-    !% Set He2 densities in the internal intergalatic medium state class.
-    use Memory_Management
-    implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)               :: self
-    double precision                                  , intent(in   ), dimension(:) :: densityHelium2
-
-    if (allocated(self%densityHelium2)) call deallocateArray(self%densityHelium2)
-    call allocateArray(self%densityHelium2,shape(densityHelium2))
-    self%densityHelium2=densityHelium2
-    return
-  end subroutine internalDensityHelium2Set
-
-  subroutine internalDensityHelium3Set(self, densityHelium3)
-    !% Set He3 densities in the internal intergalatic medium state class.
-    use Memory_Management
-    implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)               :: self
-    double precision                                  , intent(in   ), dimension(:) :: densityHelium3
-
-    if (allocated(self%densityHelium3)) call deallocateArray(self%densityHelium3)
-    call allocateArray(self%densityHelium3,shape(densityHelium3))
-    self%densityHelium3=densityHelium3
-    return
-  end subroutine internalDensityHelium3Set
-
-  subroutine internalMassFilteringSet(self,massFiltering)
-    !% Set filtering masses in the internal intergalatic medium state class.
-    use Memory_Management
-    implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)               :: self
-    double precision                                  , intent(in   ), dimension(:) :: massFiltering
-
-    if (allocated(self%massFiltering)) call deallocateArray(self%massFiltering)
-    call allocateArray(self%massFiltering,shape(massFiltering))
-    self%massFiltering=massFiltering
-    return
-  end subroutine internalMassFilteringSet
+  end subroutine internalStateSet

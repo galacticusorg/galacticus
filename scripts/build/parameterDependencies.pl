@@ -121,18 +121,18 @@ close($sourceDirectory);
 # Remove duplicated parameters.
 @{$output->{'parameter'}} = uniq({sort => 1}, @{$output->{'parameter'}});
 
-# Serialize to XML.
-my $xmlOutput        = new XML::Simple (NoAttr=>1, RootName=>"parameters");
-my $outputSerialized = $xmlOutput->XMLout($output);
-
-# Escape square brackets in the output to that they get correctly parsed by FoX.
-$outputSerialized =~ s/\[/&#x005B;/g;
-$outputSerialized =~ s/\]/&#x005D;/g;
-
 # Output the results.
-(my $outputFileName = $executableName) =~ s/\.exe/.parameters.xml/;
-open(oHndl,">".$ENV{'BUILDPATH'}."/".$outputFileName);
-print oHndl $outputSerialized;
-close(oHndl);
+(my $outputFileName = $executableName) =~ s/\.exe/.parameters.F90/;
+open(my $outputFile,">".$ENV{'BUILDPATH'}."/".$outputFileName);
+print $outputFile "subroutine knownParameterNames(names)\n";
+print $outputFile "  use ISO_Varying_String\n";
+print $outputFile "  implicit none\n";
+print $outputFile "  type(varying_string), dimension(:), allocatable, intent(inout) :: names \n";
+print $outputFile "  allocate(names(".scalar(@{$output->{'parameter'}})."))\n";
+for(my $i=0;$i<scalar(@{$output->{'parameter'}});++$i) {
+    print $outputFile "  names(".($i+1).")='".$output->{'parameter'}->[$i]."'\n";
+}
+print $outputFile "end subroutine knownParameterNames\n";
+close($outputFile);
 
 exit;

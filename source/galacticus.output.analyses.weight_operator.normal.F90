@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +22,14 @@
   use Output_Analysis_Property_Extractions
   use Output_Analysis_Property_Operators
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal">
   !#  <description>A weight operator class in which the weight is multiplied by an integral over a normal distribution.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorNormal
      !% A high-pass filter weight operator class.
      private
-     class           (outputAnalysisPropertyExtractorClass), pointer :: outputAnalysisPropertyExtractor_
-     class           (outputAnalysisPropertyOperatorClass ), pointer :: outputAnalysisPropertyOperator_
+     class           (outputAnalysisPropertyExtractorClass), pointer :: outputAnalysisPropertyExtractor_ => null()
+     class           (outputAnalysisPropertyOperatorClass ), pointer :: outputAnalysisPropertyOperator_ => null()
      double precision                                                :: rangeLower                      , rangeUpper, &
           &                                                             rootVariance_
    contains
@@ -92,6 +93,8 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
     self=outputAnalysisWeightOperatorNormal(rangeLower,rangeUpper,rootVariance_,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperator_" />
     return
   end function normalConstructorParameters
 

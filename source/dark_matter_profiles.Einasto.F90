@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,8 @@
 
   !% An implementation of ``Einasto'' dark matter halo profiles.
 
-  use Dark_Matter_Halo_Scales
+  use FGSL                   , only : fgsl_interp             , fgsl_interp_accel  , fgsl_function, fgsl_integration_workspace
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
   use Tables
   use Kind_Numbers
 
@@ -88,7 +90,7 @@
      logical                                                            :: fourierProfileTableAlphaInterpolationReset           , fourierProfileTableConcentrationInterpolationReset      , &
           &                                                                fourierProfileTableWavenumberInterpolationReset      
      ! Pointer to object setting halo scales.
-     class           (darkMatterHaloScaleClass), pointer                :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer                :: darkMatterHaloScale_ => null()
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileEinasto</object>
@@ -192,6 +194,12 @@
   integer, parameter :: einastoFourierProfileTableWavenumberPointsPerDecade   = 10
   integer, parameter :: einastoFourierProfileTableAlphaPointsPerUnit          =100
 
+  ! Module-scope variables used in root finding.
+  class           (darkMatterProfileEinasto), pointer :: einastoSelf
+  type            (treeNode                ), pointer :: einastoNode
+  double precision                                    :: einastoDensityEnclosed
+  !$omp threadprivate(einastoSelf,einastoNode,einastoDensityEnclosed)
+  
 contains
 
   function einastoConstructorParameters(parameters) result(self)
@@ -205,6 +213,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=darkMatterProfileEinasto(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function einastoConstructorParameters
 
@@ -212,6 +221,7 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
     use Galacticus_Error
     use Array_Utilities
+    use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type (darkMatterProfileEinasto)                              :: self
     class(darkMatterHaloScaleClass), intent(in   ), target       :: darkMatterHaloScale_
@@ -343,7 +353,7 @@ contains
   double precision function einastoDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -368,7 +378,7 @@ contains
   double precision function einastoDensityLogSlope(self,node,radius)
     !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -393,8 +403,7 @@ contains
   double precision function einastoRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).
-    use Galacticus_Nodes
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     use Numerical_Constants_Math
     use Numerical_Comparison
     use Gamma_Functions
@@ -458,7 +467,7 @@ contains
   double precision function einastoEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -500,6 +509,7 @@ contains
 
   double precision function einastoCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     use Numerical_Constants_Physical
     use Root_Finder
     implicit none
@@ -567,8 +577,8 @@ contains
   double precision function einastoPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
+    use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     use Galactic_Structure_Options
-    use Dark_Matter_Halo_Scales
     use Numerical_Constants_Physical
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)           :: self
@@ -599,6 +609,7 @@ contains
   double precision function einastoRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     use Numerical_Constants_Physical
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)          :: self
@@ -749,9 +760,9 @@ contains
 
   double precision function einastoRotationNormalization(self,node)
     !% Return the rotation normalization of an Einasto halo density profile.
+    use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile
     use Numerical_Constants_Math
     use Gamma_Functions
-    use Dark_Matter_Halo_Scales
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -782,8 +793,8 @@ contains
   double precision function einastoEnergy(self,node)
     !% Return the energy of an Einasto halo density profile.
     use, intrinsic :: ISO_C_Binding
-    use Dark_Matter_Halo_Scales
-    use Numerical_Interpolation
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use            :: Numerical_Interpolation
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
@@ -830,8 +841,8 @@ contains
   double precision function einastoEnergyGrowthRate(self,node)
     !% Return the energy of an Einasto halo density profile.
     use, intrinsic :: ISO_C_Binding
-    use Dark_Matter_Halo_Scales
-    use Numerical_Interpolation
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use            :: Numerical_Interpolation
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout) , target  :: node
@@ -1099,8 +1110,8 @@ contains
   double precision function einastoKSpace(self,node,wavenumber)
     !% Returns the Fourier transform of the Einasto density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)).
     use, intrinsic :: ISO_C_Binding
-    use Dark_Matter_Halo_Scales
-    use Numerical_Interpolation
+    use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile
+    use            :: Numerical_Interpolation
     implicit none
     class           (darkMatterProfileEinasto      )                , intent(inout)          :: self
     type            (treeNode                      )                , intent(inout), pointer :: node
@@ -1305,9 +1316,10 @@ contains
   double precision function einastoFreefallRadius(self,node,time)
     !% Returns the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Interpolation
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
+    use            :: Numerical_Interpolation
+    use            :: Numerical_Constants_Astronomical
+    use            :: Numerical_Constants_Physical
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
@@ -1371,9 +1383,10 @@ contains
     !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
     use, intrinsic :: ISO_C_Binding
-    use Numerical_Interpolation
-    use Numerical_Constants_Astronomical
-    use Numerical_Constants_Physical
+    use            :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use            :: Numerical_Interpolation
+    use            :: Numerical_Constants_Astronomical
+    use            :: Numerical_Constants_Physical
     implicit none
     class           (darkMatterProfileEinasto      ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
@@ -1562,17 +1575,47 @@ contains
   end function einastoFreefallTimeScaleFree
 
   double precision function einastoRadiusEnclosingDensity(self,node,density)
-    !% Null implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles.
-     use Galacticus_Nodes
-   use Galacticus_Error
+    !% Implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles. This
+    !% function uses a numerical root finder to find the enclosing radius---this is likely not the most efficient solution\ldots
+    use Root_Finder
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    double precision                          , intent(in   ) :: density
-    !GCC$ attributes unused :: self, node, density
-
-    einastoRadiusEnclosingDensity=0.0d0
-    call Galacticus_Error_Report('function is not implemented'//{introspection:location})
+    class           (darkMatterProfileEinasto), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , intent(in   )         :: density
+    type            (rootFinder              ), save                  :: finder
+    double precision                          , parameter             :: toleranceAbsolute=0.0d0
+    double precision                          , parameter             :: toleranceRelative=1.0d-3
+    !$omp threadprivate(finder)
+    
+    if (.not.finder%isInitialized()) then
+       call finder%rootFunction(einastoRadiusEnclosingDensityRoot  )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandType              =rangeExpandMultiplicative    , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+            &                  )
+    end if
+    einastoDensityEnclosed        =  density
+    einastoNode                   => node
+    einastoSelf                   => self
+    einastoRadiusEnclosingDensity =  finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
     return
   end function einastoRadiusEnclosingDensity
   
+  double precision function einastoRadiusEnclosingDensityRoot(radius)
+    !% Root function used in finding the radius enclosing a given density in Einasto profiles.
+    use Numerical_Constants_Math
+    implicit none
+    double precision, intent(in   ) :: radius
+
+    einastoRadiusEnclosingDensityRoot=+einastoDensityEnclosed                       &
+         &                            -einastoSelf%enclosedMass(einastoNode,radius) &
+         &                            *3.0d0                                        &
+         &                            /4.0d0                                        &
+         &                            /Pi                                           &
+         &                            /radius**3
+    return
+  end function einastoRadiusEnclosingDensityRoot

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module ODE_Solver_Error_Codes
   !% Defines internal error codes for the \glc\ ODE solver.
-  use FGSL
+  use FGSL, only : FGSL_EBADFUNC
   implicit none
   public
 

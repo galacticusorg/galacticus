@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(virialDensityContrastClass) :: virialDensityContrastKitayamaSuto1996
      !% A dark matter halo virial density contrast class using the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
-     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
    contains
      final     ::                                kitayamaSuto1996Destructor
      procedure :: densityContrast             => kitayamaSuto1996DensityContrast
@@ -52,6 +53,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastKitayamaSuto1996(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function kitayamaSuto1996ConstructorParameters
   

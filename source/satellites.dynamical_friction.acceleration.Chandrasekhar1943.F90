@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,13 +23,13 @@
   
   use Dark_Matter_Halo_Scales
   
-  !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943" defaultThreadPrivate="yes">
+  !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionChandrasekhar1943">
   !#  <description>A satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.</description>
   !# </satelliteDynamicalFriction>
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionChandrasekhar1943
      !% Implementation of a satellite dynamical friction class which uses the model of \cite{chandrasekhar_dynamical_1943}.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: logarithmCoulomb
    contains
      final     ::                 chandrasekhar1943Destructor
@@ -63,6 +64,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteDynamicalFrictionChandrasekhar1943(logarithmCoulomb,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function chandrasekhar1943ConstructorParameters
 
@@ -88,6 +90,7 @@ contains
 
   function chandrasekhar1943Acceleration(self,node)
     !% Return an acceleration for satellites due to dynamical friction using the formulation of \cite{chandrasekhar_dynamical_1943}.
+    use Galacticus_Nodes                , only : nodeComponentSatellite
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical

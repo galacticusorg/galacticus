@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@ module Sort
   !% Implements sorting.
   use, intrinsic :: ISO_C_Binding
   use            :: ISO_Varying_String
-  use            :: FGSL
+  use            :: FGSL              , only : FGSL_HeapSort, FGSL_HeapSort_Index, FGSL_SizeOf
   implicit none
   private
   public :: Sort_Do, Sort_Index_Do, sortByIndex

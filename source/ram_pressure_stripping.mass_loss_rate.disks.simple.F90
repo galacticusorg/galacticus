@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Hot_Halo_Ram_Pressure_Forces
 
-  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksSimple" defaultThreadPrivate="yes">
+  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksSimple">
   !#  <description>A simple model of ram pressure stripping in galactic disks.</description>
   !# </ramPressureStrippingDisks>
   type, extends(ramPressureStrippingDisksClass) :: ramPressureStrippingDisksSimple
      !% Implementation of a simple model of ram pressure stripping of galactic disks.
      private
-     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
      double precision                                        :: rateFractionalMaximum
    contains
      final     ::                 simpleDestructor
@@ -62,6 +63,7 @@ contains
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     self=ramPressureStrippingDisksSimple(rateFractionalMaximum,hotHaloRamPressureForce_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="hotHaloRamPressureForce_"/>
     return
   end function simpleConstructorParameters
 
@@ -100,7 +102,7 @@ contains
     !% F_\mathrm{gravity} = 2 \pi \mathrm{G} \Sigma_\mathrm{gas}(r_{1/2}) \Sigma_\mathrm{total}(r_{1/2})
     !% \end{equation}
     !% is the gravitational restoring force in the disk at the half-mass radius, $r_\mathrm{1/2}$.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                    , only : nodeComponentDisk
     use Galactic_Structure_Options
     use Galactic_Structure_Surface_Densities
     use Numerical_Constants_Physical

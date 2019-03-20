@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,26 +41,28 @@
 
 contains
 
-  function topHatConstructorParameters(parameters)
+  function topHatConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily topHat} power spectrum window function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(powerSpectrumWindowFunctionTopHat)                :: topHatConstructorParameters
-    type(inputParameters                  ), intent(inout) :: parameters
-    
-    ! Check parameters.
-    !# <objectBuilder class="cosmologyParameters" name="topHatConstructorParameters%cosmologyParameters_" source="parameters"/>
+    type (powerSpectrumWindowFunctionTopHat)                :: self
+    type (inputParameters                  ), intent(inout) :: parameters
+    class(cosmologyParametersClass         ), pointer       :: cosmologyParameters_    
+ 
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    self=powerSpectrumWindowFunctionTopHat(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function topHatConstructorParameters
 
-  function topHatConstructorInternal(cosmologyParameters_)
+  function topHatConstructorInternal(cosmologyParameters_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily topHat} power spectrum window function class.
     implicit none
-    type (powerSpectrumWindowFunctionTopHat)                        :: topHatConstructorInternal
+    type (powerSpectrumWindowFunctionTopHat)                        :: self
     class(cosmologyParametersClass         ), target, intent(in   ) :: cosmologyParameters_    
+    !# <constructorAssign variables="*cosmologyParameters_"/>
 
-    topHatConstructorInternal%cosmologyParameters_ => cosmologyParameters_
     return
   end function topHatConstructorInternal
 

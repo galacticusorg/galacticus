@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,13 +24,13 @@
      type (multiMergerTreeEvolveTimestepList), pointer :: next                      => null()
   end type multiMergerTreeEvolveTimestepList
   
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti" defaultThreadPrivate="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
   !#  <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepMulti
      !% Implementation of a merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.
      private
-     type(multiMergerTreeEvolveTimestepList), pointer :: mergerTreeEvolveTimesteps
+     type(multiMergerTreeEvolveTimestepList), pointer :: mergerTreeEvolveTimesteps => null()
    contains
      final     ::                       multiDestructor
      procedure :: timeEvolveTo       => multiTimeEvolveTo
@@ -48,10 +49,10 @@ contains
     !% Constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (mergerTreeEvolveTimestepMulti      )                :: self
-    type   (inputParameters                    ), intent(inout) :: parameters
-    type   (multiMergerTreeEvolveTimestepList  ), pointer       :: mergerTreeEvolveTimestep_
-    integer                                                     :: i
+    type   (mergerTreeEvolveTimestepMulti    )                :: self
+    type   (inputParameters                  ), intent(inout) :: parameters
+    type   (multiMergerTreeEvolveTimestepList), pointer       :: mergerTreeEvolveTimestep_
+    integer                                                   :: i
 
     self %mergerTreeEvolveTimesteps => null()
     mergerTreeEvolveTimestep_       => null()
@@ -73,8 +74,14 @@ contains
     implicit none
     type(mergerTreeEvolveTimestepMulti    )                        :: self
     type(multiMergerTreeEvolveTimestepList), target, intent(in   ) :: mergerTreeEvolveTimesteps
-    !# <constructorAssign variables="*mergerTreeEvolveTimesteps"/>
+    type(multiMergerTreeEvolveTimestepList), pointer               :: mergerTreeEvolveTimestep_
 
+    self                     %mergerTreeEvolveTimesteps => mergerTreeEvolveTimesteps
+    mergerTreeEvolveTimestep_                           => mergerTreeEvolveTimesteps
+    do while (associated(mergerTreeEvolveTimestep_))
+       !# <referenceCountIncrement owner="mergerTreeEvolveTimestep_" object="mergerTreeEvolveTimestep_"/>
+       mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
+    end do
     return
   end function multiConstructorInternal
   
@@ -89,7 +96,7 @@ contains
        do while (associated(mergerTreeEvolveTimestep_))
           mergerTreeEvolveTimestepNext => mergerTreeEvolveTimestep_%next
           !# <objectDestructor name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_"/>
-          deallocate(mergerTreeEvolveTimestep_      )
+          deallocate(mergerTreeEvolveTimestep_)
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestepNext
        end do
     end if
@@ -138,7 +145,7 @@ contains
     use Galacticus_Error
     implicit none
     class(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self
-    class(mergerTreeEvolveTimestepClass    ), intent(  out) :: destination
+    class(mergerTreeEvolveTimestepClass    ), intent(inout) :: destination
     type (multiMergerTreeEvolveTimestepList), pointer       :: mergerTreeEvolveTimestep_   , mergerTreeEvolveTimestepDestination_, &
          &                                                     mergerTreeEvolveTimestepNew_
 
@@ -158,7 +165,7 @@ contains
              mergerTreeEvolveTimestepDestination_            => mergerTreeEvolveTimestepNew_
           end if
           allocate(mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_,mold=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_)
-          call mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%deepCopy(mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_)
+          !# <deepCopy source="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" destination="mergerTreeEvolveTimestepNew_%mergerTreeEvolveTimestep_"/>
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
        end do       
     class default

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@
   use Cosmology_Functions
   use Dark_Matter_Profiles
 
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksVlctyMxSclng" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksVlctyMxSclng">
   !#  <description>An outflow rate due to star formation feedback in galactic disks which scales with peak halo velocity.</description>
   !# </starFormationFeedbackDisks>
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksVlctyMxSclng
@@ -33,8 +34,8 @@
           &                                                velocityPrevious       , velocityFactor              , &
           &                                                expansionFactorPrevious, expansionFactorFactor
      type            (fastExponentiator      )          :: velocityExponentiator  , expansionFactorExponentiator
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
    contains
      final     ::                vlctyMxSclngDestructor
      procedure :: outflowRate => vlctyMxSclngOutflowRate
@@ -88,6 +89,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
     self=starFormationFeedbackDisksVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="darkMatterProfile_" />
     return
   end function vlctyMxSclngConstructorParameters
 
@@ -130,6 +133,7 @@ contains
   
   double precision function vlctyMxSclngOutflowRate(self,node,rateEnergyInput,rateStarFormation)
     !% Returns the outflow rate (in $M_\odot$ Gyr$^{-1}$) for star formation in the galactic disk of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationFeedbackDisksVlctyMxSclng), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node

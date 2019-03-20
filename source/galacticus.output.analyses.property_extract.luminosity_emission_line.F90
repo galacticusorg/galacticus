@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,18 +21,18 @@
 
   !$ use OMP_Lib
   use    ISO_Varying_String
-  use    FGSL
+  use    FGSL                             , only : fgsl_interp_accel
   use    Stellar_Spectra_Dust_Attenuations
   use    Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyEmssnLine" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyEmssnLine">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyEmssnLine
      !% A stellar luminosity output analysis property extractor class.
      private
-     class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_
-     class           (outputTimesClass                  ), pointer                             :: outputTimes_
+     class           (stellarSpectraDustAttenuationClass), pointer                             :: stellarSpectraDustAttenuation_ => null()
+     class           (outputTimesClass                  ), pointer                             :: outputTimes_ => null()
      type            (varying_string                    ), allocatable, dimension(:          ) :: lineNames
      double precision                                    , allocatable, dimension(:          ) :: metallicity                   , densityHydrogen             , &
           &                                                                                       ionizingFluxHydrogen          , ionizingFluxHeliumToHydrogen, &
@@ -116,6 +117,8 @@ contains
     !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
     self=outputAnalysisPropertyExtractorLmnstyEmssnLine(stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
+    !# <objectDestructor name="outputTimes_"                  />
     return
   end function lmnstyEmssnLineConstructorParameters
 
@@ -229,7 +232,7 @@ contains
   double precision function lmnstyEmssnLineExtract(self,node)
     !% Implement an emission line output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     use               Stellar_Luminosities_Structure
     use               Numerical_Constants_Physical
     use               Numerical_Constants_Astronomical
@@ -250,7 +253,7 @@ contains
     double precision                                                , parameter        :: massHIIRegion                 =7.5d+03                     ! Mass of gas in HII region; M☉.
     double precision                                                , parameter        :: massGMC                       =3.7d+07                     ! Mass of a giant molecular cloud at critical surface density; M☉.
     double precision                                                , parameter        :: lifetimeHIIRegion             =1.0d-03                     ! Lifetime of HII region; Gyr.
-    double precision                                                , parameter        :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻³
+    double precision                                                , parameter        :: densitySurfaceCritical        =8.5d+13                     ! Critical surface density for molecular clouds; M☉ Mpc⁻².
     double precision                                                , parameter        :: metallicityISMLocal           =+2.00d-02                   ! Metallicity in the local ISM.
     double precision                                                , parameter        :: AVToEBV                       =+3.10d+00                   ! (A_V/E(B-V); Savage & Mathis 1979)
     double precision                                                , parameter        :: NHToEBV                       =+5.80d+21                   ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
@@ -296,7 +299,7 @@ contains
     disk     => node%disk    ()
     spheroid => node%spheroid()
     ! Determine output index.
-    output   =  self%outputTimes_%index(basic%time())
+    output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
     luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar()
     luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar()
@@ -341,7 +344,10 @@ contains
           metallicityGas(component)=0.0d0
        end if
     end do
-    ! Compute the (logarithm of) hydrogen density, based on the model of Krumholz, McKee, & Tumlinson (2009) for molecular cloud properties.
+    ! Compute the (logarithm of) hydrogen density, based on the model of Krumholz, McKee, & Tumlinson (2009) for molecular cloud
+    ! properties. The assumption is that clouds have a mean surface density, Σ, which is the larger of the gas surface density and
+    ! the critical density. Assuming spherical clouds, with a mass, M, that scales with the gas density, then we can determine
+    ! their radius, r, from that fact that Σ=M/πr², and from this determine their volume density ρ=3M/4πr³.
     densitySurfaceGas=+0.0d0
     where (isPhysical)
        densitySurfaceGas              =+massGas                            &

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Power_Spectra_Nonlinear
   !% Implements the nonlinear power spectrum.
+  private
 
   !# <functionClass>
   !#  <name>powerSpectrumNonlinear</name>
   !#  <descriptiveName>Nonlinear Power Spectrum</descriptiveName>
   !#  <description>Class providing non-linear power spectra.</description>
   !#  <default>cosmicEmu</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="value" >
   !#   <description>Return the nonlinear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$] at cosmic time $t=${\normalfont \ttfamily time} [Gyr].</description>
   !#   <type>double precision</type>

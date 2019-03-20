@@ -28,14 +28,17 @@ sub Process_FunctionClass {
     my $directiveLocations;
     # Initialize state storables database.
     my $stateStorables;
+    # Determine if debugging output is required.
+    my $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "functionClass" ) {
-	    # Assert that our parent is a module (for now).
+	    # Assert that our parent is a module.
 	    die("Process_FunctionClass: parent node must be a module")
 		unless ( $node->{'parent'}->{'type'} eq "module" );
+	    my $lineNumber = $node->{'line'};
 	    # Extract the directive.
 	    my $directive = $node->{'directive'};
 	    # Get code directive locations if we do not have them.
@@ -47,8 +50,6 @@ sub Process_FunctionClass {
 	    # Set defaults.
 	    $directive->{'stateful'            } = "yes"
 		unless ( exists($directive->{'stateful'            }) );
-	    $directive->{'defaultThreadPrivate'} = "no"
-		unless ( exists($directive->{'defaultThreadPrivate'}) );
 	    # Find methods.
 	    my %methods;
 	    if ( exists($directive->{'method'}) ) {
@@ -109,10 +110,8 @@ sub Process_FunctionClass {
 		# Store tree.
 		$class->{'tree'} = $classTree;
 		# Set defaults.
-		$class->{'abstract'            } = "no"
-		    unless ( exists($class->{'abstract'}            ) );
-		$class->{'defaultThreadPrivate'} = "default"
-		    unless ( exists($class->{'defaultThreadPrivate'}) );
+		$class->{'abstract'} = "no"
+		    unless ( exists($class->{'abstract'}) );
 	        # Store to set of all classes.
 		die('Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass: class is undefined in file "'.$classLocation.'"')
 		    unless ( defined($class->{'type'}) );
@@ -172,30 +171,6 @@ sub Process_FunctionClass {
 		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self','node') )
 		};
 	    }
-	    # Add "isDefault" method.
-	    $methods{'isDefault'} = 
-	    {
-		description => "Return true if this is the default object of this class.",
-		type        => "logical",
-		pass        => "yes",
-		code        => $directive->{'name'}."isDefault=self%isDefaultOfClass\n"
-	    };
-	    # Add "isFinalizable" method.
-	    $methods{'isFinalizable'} = 
-	    {
-		description => "Return true if this object can be finalized.",
-		type        => "logical",
-		pass        => "yes",
-		code        => $directive->{'name'}."isFinalizable=.not.self%isIndestructible\n"
-	    };
-	    # Add "makeIndestructible" method.
-	    $methods{'makeIndestructible'} = 
-	    {
-		description => "Make this object non-finalizable.",
-		type        => "void",
-		pass        => "yes",
-		code        => "self%isIndestructible=.true.\n"
-	    };
 	    # Add auto-hook function if required.
 	    $methods{'autoHook'} = 
 	    {
@@ -528,8 +503,11 @@ sub Process_FunctionClass {
 type(inputParameters) :: descriptor
 type(varying_string ) :: descriptorString
 descriptor=inputParameters()
+! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
+call setLiveNodeLists(descriptor%document,.false.)
 call self%descriptor(descriptor)
 descriptorString=descriptor%serializeToString()
+call descriptor%destroy()
 if (present(includeSourceDigest).and.includeSourceDigest) then
 select type (self)
 CODE
@@ -559,7 +537,7 @@ CODE
 		description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
 		type        => "type(varying_string)",
 		pass        => "yes",
-		modules     => "ISO_Varying_String Input_Parameters Hashes_Cryptographic",
+		modules     => "ISO_Varying_String Input_Parameters Hashes_Cryptographic FoX_DOM",
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
 		code        => $hashedDescriptorCode
 	    };
@@ -703,7 +681,11 @@ CODE
 				$allowedParametersCode .= "    else\n";
 				$allowedParametersCode .= "      allocate(allowedParameters(".$parameterCount."))\n";
 				$allowedParametersCode .= "    end if\n";
-				$allowedParametersCode .= "    allowedParameters(size(allowedParameters)-".$parameterCount."+1:size(allowedParameters))=[".join(",",map {"var_str('".$_."')"} @{$allowedParameters->{$source}->{'all'}})."]\n";
+				# The following is done as a sequence of scalar assignments, instead of assigning a single array
+				# using an array constructor, as that approach lead to a memory leak.
+				for(my $i=0;$i<$parameterCount;++$i) {
+				    $allowedParametersCode .= "    allowedParameters(size(allowedParameters)-".($parameterCount-1-$i).")='".$allowedParameters->{$source}->{'all'}->[$i]."'\n";
+				}
 				$allowedParametersCode .= "  end if\n";
 			    }
 			    # Call the allowedParameters() method of any stored obejcts.
@@ -731,13 +713,20 @@ CODE
 	    {
 		description => "Return a list of parameter names allowed for this object.",
 		type        => "void",
+		recursive   => "yes",
 		pass        => "yes",
 		modules     => "ISO_Varying_String",
 		argument    => [ "type(varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters", "character(len=*), intent(in   ) :: sourceName" ],
 		code        => $allowedParametersCode
 	    };
 	    # Add "deepCopy" method.
-	    my %deepCopyModules;
+            my %deepCopyModules;
+            if ( $debugging ) {
+		$deepCopyModules{'MPI_Utilities'     } = 1;
+		$deepCopyModules{'ISO_Varying_String'} = 1;
+		$deepCopyModules{'String_Handling'   } = 1;
+		$deepCopyModules{'Galacticus_Display'} = 1;
+            }
             my $rankMaximum = 0;
 	    my $deepCopyCode;
 	    $deepCopyCode .= "select type (self)\n";
@@ -756,7 +745,7 @@ CODE
 		    while ( $node ) {
 			if ( $node->{'type'} eq "declaration" ) {
 			    foreach my $declaration ( @{$node->{'declarations'}} ) {
-				# Deep copy of function objects.
+				# Deep copy of functionClass objects.
 				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
 				    if ( $declaration->{'intrinsic'} eq "class" );
 				if
@@ -765,14 +754,49 @@ CODE
 				     &&
 				     (grep {$_ eq $type    } (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}}))
 				     &&
-				      grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
+				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
+				    ) 
+				{
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					$assignments .= "nullify(destination%".$name.")\n";
+					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+					    if ( $debugging );
+				    }
+				};
+				# Deep copy of HDF5 objects.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
 				    ) {
-					foreach my $object ( @{$declaration->{'variables'}} ) {
-					    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
-					    $assignments .= "nullify(destination%".$name.")\n";
-					    $assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+					$deepCopyModules{'IO_HDF5'} = 1;
+					$assignments .= "!\$ call hdf5Access%set  ()\n";
+					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
+					    foreach ( @{$declaration->{'variables'}} );
+					$assignments .= "!\$ call hdf5Access%unset()\n";
+				}
+				# Deep copy of non-(class,pointer) functionClass objects.
+				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+						$assignments .= "nullify(destination%".$name.")\n";
+						$assignments .= "if (associated(self%".$name.")) then\n";
+						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+					    }
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+					    if ( $debugging );
+					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+						$assignments .= "end if\n";
+					    }
 					}
+				    }
 				}
 				# Deallocate FGSL interpolators.
 				if
@@ -875,7 +899,38 @@ CODE
 				$assignments .= "nullify(destination%".$name.")\n";
 				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+				$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+				    if ( $debugging );
 			    }
+		    }
+		    # Deep copy of HDF5 objects.
+		    if
+			(
+			 $declaration->{'intrinsic'} eq "type"
+			 &&
+			 $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
+			) {
+			    $deepCopyModules{'IO_HDF5'} = 1;
+			    $assignments .= "!\$ call hdf5Access%set  ()\n";
+			    $assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
+				foreach ( @{$declaration->{'variables'}} );
+			    $assignments .= "!\$ call hdf5Access%unset()\n";
+		    }
+		    # Deep copy of non-(class,pointer) functionClass objects.
+		    if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+			foreach my $name ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+				$assignments .= "nullify(destination%".$name.")\n";
+				$assignments .= "if (associated(self%".$name.")) then\n";
+				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+			    }
+			    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+			    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+				if ( $debugging );
+			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+				$assignments .= "end if\n";
+			    }
+			}
 		    }
 		    # Deallocate FGSL interpolators.
 		    if
@@ -897,7 +952,7 @@ CODE
 				foreach ( @{$declaration->{'variables'}} );
 		    }
 		}
-		# Check that the type of the destination matches, and perform the copy.
+		# Check that the type of the destination matches, and perform the copy. Reset the reference count to the copy.
 		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$deepCopyCode .= "select type (destination)\n";
 		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
@@ -907,15 +962,15 @@ CODE
 		$deepCopyCode .= "class default\n";
 		$deepCopyCode .= "call Galacticus_Error_Report('destination and source types do not match'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($nonAbstractClass->{'node'},$nonAbstractClass->{'node'}->{'line'}).")\n";
 		$deepCopyCode .= "end select\n";
-		# Make the copied object destructible.
-		$deepCopyCode .= "destination%isIndestructible=.false.\n";
-		# Reset the state operation ID if necessary.
-		$deepCopyCode .= "destination%stateOperationID=0_c_size_t\n"
-		    if ( $directive->{'stateful'} eq "yes" );
 		# Specify required modules.
 		$deepCopyModules{'Galacticus_Error'} = 1;
 	    }
             $deepCopyCode .= "end select\n";
+            # Reset the reference count to this newly created object.
+            $deepCopyCode .= "call destination%referenceCountReset()\n";
+            # Reset the state operation ID if necessary.
+	    $deepCopyCode .= "destination%stateOperationID=0_c_size_t\n"
+                if ( $directive->{'stateful'} eq "yes" );
             # Insert any iterator variables needed.
             $deepCopyCode = "!\$ integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
                 if ( $rankMaximum > 0 );
@@ -923,9 +978,10 @@ CODE
 	    {
 		description => "Perform a deep copy of the object.",
 		type        => "void",
+		recursive   => "yes",
 		pass        => "yes",
 		modules     => join(" ",keys(%deepCopyModules)),
-		argument    => [ "class(".$directive->{'name'}."Class), intent(  out) :: destination" ],
+		argument    => [ "class(".$directive->{'name'}."Class), intent(inout) :: destination" ],
 		code        => $deepCopyCode
 	    };
 	    # Add "stateStore" and "stateRestore" method.
@@ -947,41 +1003,19 @@ CODE
 		$stateStoreCode   .= "select type (self)\n";
 		$stateRestoreCode .= "select type (self)\n";
 		foreach my $nonAbstractClass ( @nonAbstractClasses ) {
-		    # Determine privacy of default object of this class.
-		    my $defaultThreadPrivate = $nonAbstractClass->{'defaultThreadPrivate'} eq "default" ? $directive->{'defaultThreadPrivate'} : $nonAbstractClass->{'defaultThreadPrivate'};
 		    # Build the code.
 		    $stateStoreCode   .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		    $stateRestoreCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
-		    if ( $defaultThreadPrivate eq "no" ) {
-			$stateStoreCode   .= " !\$ if (self%isDefault()) then\n";
-			$stateStoreCode   .= " !\$  if (".$directive->{'name'}."DefaultStateOperationID(OMP_Get_Ancestor_Thread_Num(1)+1) == stateOperationID) then\n"; # If this object was already stored, don't do it again.
-			$stateStoreCode   .= " !\$   call Galacticus_Display_Unindent('skipping - already stored',verbosity=verbosityWorking)\n";
-			$stateStoreCode   .= " !\$   return\n";
-			$stateStoreCode   .= " !\$  end if\n";
-			$stateStoreCode   .= " !\$  ".$directive->{'name'}."DefaultStateOperationID(OMP_Get_Ancestor_Thread_Num(1)+1)=stateOperationID\n";
-			$stateStoreCode   .= " !\$ else\n";
-			$stateRestoreCode .= " !\$ if (self%isDefault()) then\n";
-			$stateRestoreCode .= " !\$  if (".$directive->{'name'}."DefaultStateOperationID(OMP_Get_Ancestor_Thread_Num(1)+1) == stateOperationID) then\n"; # If this object was already stored, don't do it again.
-			$stateRestoreCode .= " !\$   call Galacticus_Display_Unindent('skipping - already restored',verbosity=verbosityWorking)\n";
-			$stateRestoreCode .= " !\$   return\n";
-			$stateRestoreCode .= " !\$  end if\n";
-			$stateRestoreCode .= " !\$  ".$directive->{'name'}."DefaultStateOperationID(OMP_Get_Ancestor_Thread_Num(1)+1)=stateOperationID\n";
-			$stateRestoreCode .= " !\$ else\n";
-		    }
-		    $stateStoreCode       .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already stored, don't do it again.
-		    $stateStoreCode       .= " call Galacticus_Display_Unindent('skipping - already stored',verbosity=verbosityWorking)\n";
-		    $stateStoreCode       .= " return\n";
-		    $stateStoreCode       .= "end if\n";
-		    $stateStoreCode       .= "self%stateOperationID=stateOperationID\n";
-		    $stateRestoreCode     .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already restored, don't do it again.
-		    $stateRestoreCode     .= " call Galacticus_Display_Unindent('skipping - already restored',verbosity=verbosityWorking)\n";
-		    $stateRestoreCode     .= " return\n";
-		    $stateRestoreCode     .= "end if\n";
-		    $stateRestoreCode     .= "self%stateOperationID=stateOperationID\n";
-		    if ( $defaultThreadPrivate eq "no" ) {
-			$stateStoreCode   .= " !\$ end if\n";
-			$stateRestoreCode .= " !\$ end if\n";
-		    }
+		    $stateStoreCode   .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already stored, don't do it again.
+		    $stateStoreCode   .= " call Galacticus_Display_Unindent('skipping - already stored',verbosity=verbosityWorking)\n";
+		    $stateStoreCode   .= " return\n";
+		    $stateStoreCode   .= "end if\n";
+		    $stateStoreCode   .= "self%stateOperationID=stateOperationID\n";
+		    $stateRestoreCode .= "if (self%stateOperationID == stateOperationID) then\n"; # If this object was already restored, don't do it again.
+		    $stateRestoreCode .= " call Galacticus_Display_Unindent('skipping - already restored',verbosity=verbosityWorking)\n";
+		    $stateRestoreCode .= " return\n";
+		    $stateRestoreCode .= "end if\n";
+		    $stateRestoreCode .= "self%stateOperationID=stateOperationID\n";
 		    $stateStoreCode   .= " call Galacticus_Display_Message('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityWorking)\n";
 		    $stateRestoreCode .= " call Galacticus_Display_Message('object type \"".$nonAbstractClass->{'name'}."\"',verbosity=verbosityWorking)\n";
 		    (my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
@@ -1509,25 +1543,31 @@ CODE
 	    # Generate the base class.
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."Class","public");
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}        ,"public");
-	    $preContains->[0]->{'content'} .= "   type :: ".$directive->{'name'}."Class\n";
+	    $preContains->[0]->{'content'} .= "   type, extends(functionClass) :: ".$directive->{'name'}."Class\n";
 	    $preContains->[0]->{'content'} .= "    private\n";
-	    $preContains->[0]->{'content'} .= "    logical :: isIndestructible=.false., isDefaultOfClass=.false.\n";
+	    my $usesNode =
+	    {
+		type      => "moduleUse",
+		moduleUse =>
+		{
+		    Function_Classes =>
+		    {
+			intrinsic => 0,
+			all       => 1
+		    }
+		}
+	    };
+            $usesNode->{'moduleUse'}->{'ISO_C_Binding'} = {intrinsic => 1, all => 1}
+               if ( $debugging );
             if ( $directive->{'stateful'} eq "yes" ) {
 		$preContains->[0]->{'content'} .= "    integer(c_size_t) :: stateOperationID=0\n";
-		my $usesNode =
+		$usesNode->{'moduleUse'}->{'ISO_C_Binding'} =
 		{
-		    type      => "moduleUse",
-		    moduleUse =>
-		    {
-			ISO_C_Binding =>
-			{
-			    intrinsic => 1,
-			    all       => 1
-			}
-		    }
+		    intrinsic => 1,
+		    all       => 1
 		};
-		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
             }
+            &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    foreach ( &List::ExtraUtils::as_array($directive->{'data'}) ) {
 		if ( reftype($_) ) {
 		    $_->{'scope'} = "self"
@@ -1683,7 +1723,7 @@ CODE
 	    # Add method name parameter.
 	    $preContains->[0]->{'content'} .= "   ! Method name parameter.\n";
 	    $preContains->[0]->{'content'} .= "   type(varying_string) :: ".$directive->{'name'}."Method\n\n";
-	    my $usesNode =
+	    my $nameUsesNode =
 	    {
 		type      => "moduleUse",
 		moduleUse =>
@@ -1695,7 +1735,7 @@ CODE
 		    }
 		}
 	    };
-	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$nameUsesNode);
 	    if ( $tree->{'type'} eq "file" ) {
 		(my $fileName = $tree->{'name'}) =~ s/\.F90$/.p/;
 		open(my $parametersFile,">>".$ENV{'BUILDPATH'}."/".$fileName);
@@ -1703,51 +1743,15 @@ CODE
 		close($parametersFile);
 	    }
 	    # Add default implementation.
-	    my $requireThreadPublicDefault  = 0;    
-	    foreach my $className ( keys(%classes) ) {
-		my $class = $classes{$className};
-		$class->{'defaultThreadPrivate'} = $directive->{'defaultThreadPrivate'}
-		    if ( $class->{'defaultThreadPrivate'} eq "default" );
-		$requireThreadPublicDefault  = 1
-		    if ( $class->{'defaultThreadPrivate'} eq "no"      );
-	    }
 	    $preContains->[0]->{'content'} .= "   ! Default ".$directive->{'name'}." object.\n";
-	    $preContains->[0]->{'content'} .= "   class      (".$directive->{'name'}."Class), private , pointer                   :: ".$directive->{'name'}."Default       => null()\n";
+	    $preContains->[0]->{'content'} .= "   class(".$directive->{'name'}."Class), private , pointer :: ".$directive->{'name'}."Default => null()\n";
 	    $preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."Default)\n";
-	    $preContains->[0]->{'content'} .= "   class      (".$directive->{'name'}."Class), private , pointer                   :: ".$directive->{'name'}."PublicDefault => null()\n"
-		if ( $requireThreadPublicDefault  == 1 );
-	    $preContains->[0]->{'content'} .= "   !\$ integer(c_size_t                     ), private , allocatable, dimension(:) :: ".$directive->{'name'}."DefaultStateOperationID\n"
-		if ( $requireThreadPublicDefault  == 1 );
 	    $preContains->[0]->{'content'} .= "\n";
 	    # Create default constructor.
 	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."CnstrctrDflt()\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
 	    $postContains->[0]->{'content'} .= "      class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."CnstrctrDflt\n\n";
-            if ( $requireThreadPublicDefault  == 1 ) {
-		$postContains->[0]->{'content'} .= "      !\$ if (.not.allocated(".$directive->{'name'}."DefaultStateOperationID)) then\n";
-		$postContains->[0]->{'content'} .= "      !\$omp critical(".$directive->{'name'}."StateOpInit)\n";
-		$postContains->[0]->{'content'} .= "      !\$  if (.not.allocated(".$directive->{'name'}."DefaultStateOperationID)) then\n";
-		$postContains->[0]->{'content'} .= "      !\$   allocate(".$directive->{'name'}."DefaultStateOperationID(OMP_Get_Max_Threads()))\n";
-		$postContains->[0]->{'content'} .= "      !\$   ".$directive->{'name'}."DefaultStateOperationID=0_c_size_t\n";
-		$postContains->[0]->{'content'} .= "      !\$  end if\n";
-		$postContains->[0]->{'content'} .= "      !\$omp end critical(".$directive->{'name'}."StateOpInit)\n";
-		$postContains->[0]->{'content'} .= "      !\$ end if\n";
-		my $usesNode =
-		{
-		    type      => "moduleUse",
-		    moduleUse =>
-		    {
-			OMP_Lib =>
-			{
-			    intrinsic => 0,
-			    all       => 1,
-			    openMP    => 1
-			}
-		    }
-		};
-		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
-            }
 	    $postContains->[0]->{'content'} .= "      if (.not.associated(".$directive->{'name'}."Default)) call ".$directive->{'name'}."Initialize()\n";
 	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."CnstrctrDflt => ".$directive->{'name'}."Default\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
@@ -1763,12 +1767,31 @@ CODE
 	    $postContains->[0]->{'content'} .= "      integer                   , intent(in   ), optional :: copyInstance\n";
 	    $postContains->[0]->{'content'} .= "      character(len=*          ), intent(in   ), optional :: parameterName\n";
 	    $postContains->[0]->{'content'} .= "      type     (inputParameters)                          :: subParameters\n";
+	    $postContains->[0]->{'content'} .= "      type     (inputParameter ), pointer                 :: parameterNode\n"
+                if ( exists($directive->{'default'}) );
 	    $postContains->[0]->{'content'} .= "      type     (varying_string )                          :: message      , instanceName, parameterName_\n\n";
 	    $postContains->[0]->{'content'} .= "      if (present(parameterName)) then\n";
 	    $postContains->[0]->{'content'} .= "        parameterName_=parameterName\n";
 	    $postContains->[0]->{'content'} .= "      else\n";
 	    $postContains->[0]->{'content'} .= "        parameterName_='".$directive->{'name'}."Method'\n";
 	    $postContains->[0]->{'content'} .= "      end if\n";
+	    if ( exists($directive->{'default'}) ) {
+	        $postContains->[0]->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."Method' .and. (.not.present(copyInstance) .or. copyInstance == 1) .and. .not.parameters%isPresent(char(parameterName_))) then\n";
+	        $postContains->[0]->{'content'} .= "        call parameters%addParameter('".$directive->{'name'}."Method','".$directive->{'default'}."')\n";
+	        $postContains->[0]->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
+		$postContains->[0]->{'content'} .= "        subParameters=parameters%subParameters(char(parameterName_))\n";
+    		$postContains->[0]->{'content'} .= "        allocate(".$directive->{'name'}.ucfirst($directive->{'default'})." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
+		$postContains->[0]->{'content'} .= "          type is (".$directive->{'name'}.ucfirst($directive->{'default'}).")\n";
+		$postContains->[0]->{'content'} .= "            call debugStackPush(loc(".$directive->{'name'}."CnstrctrPrmtrs))\n"
+		    if ( $debugging );
+		$postContains->[0]->{'content'} .= "            ".$directive->{'name'}."CnstrctrPrmtrs=".$directive->{'name'}.ucfirst($directive->{'default'})."(subParameters)\n";
+		$postContains->[0]->{'content'} .= "            call debugStackPop()\n"
+		    if ( $debugging );
+		$postContains->[0]->{'content'} .= "         end select\n";
+                $postContains->[0]->{'content'} .= "         call parameterNode%objectSet(".$directive->{'name'}."CnstrctrPrmtrs)\n";
+                $postContains->[0]->{'content'} .= "      else\n";
+            }
 	    $postContains->[0]->{'content'} .= "      call parameters%value(char(parameterName_),instanceName,copyInstance=copyInstance)\n";
 	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters(char(parameterName_),copyInstance=copyInstance)\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(instanceName))\n";
@@ -1780,7 +1803,11 @@ CODE
 		$postContains->[0]->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive->{'name'}."CnstrctrPrmtrs)\n";
 		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."CnstrctrPrmtrs)\n";
 		$postContains->[0]->{'content'} .= "          type is (".$class->{'name'}.")\n";
+		$postContains->[0]->{'content'} .= "            call debugStackPush(loc(".$directive->{'name'}."CnstrctrPrmtrs))\n"
+		    if ( $debugging );
 		$postContains->[0]->{'content'} .= "            ".$directive->{'name'}."CnstrctrPrmtrs=".$class->{'name'}."(subParameters)\n";
+		$postContains->[0]->{'content'} .= "            call debugStackPop()\n"
+		    if ( $debugging );
 		$postContains->[0]->{'content'} .= "         end select\n";
 	    }
 	    $postContains->[0]->{'content'} .= "      case default\n";
@@ -1796,6 +1823,8 @@ CODE
 	    }
 	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
             $postContains->[0]->{'content'} .= "      end select\n";
+            $postContains->[0]->{'content'} .= "      end if\n"
+                if ( exists($directive->{'default'}) );
  	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrPrmtrs\n\n";
 	    
@@ -1806,21 +1835,6 @@ CODE
 		my $classNode = $classTree->{'firstChild'};
 		my $contained = 0;
 		while ( $classNode ) {
-		    # Check for composition in nonprivate instances.
-		    if ( $class->{'defaultThreadPrivate'} eq "no" ) {
-			my $subNode = $classNode;
-			while ( $subNode ) {
-			    if ( $subNode->{'type'} eq "objectBuilder" ) {
-				print 
-				    "Note: instance '"                                                                                    .
-				    $class    ->{'type'}                                                                                  .
-				    "' of function class '"                                                                               .
-				    $directive->{'name'}                                                                                  .
-				    "' is not default thread private, but composites other objects which may be default thread private.\n";
-			    }
-			    $subNode = &Galacticus::Build::SourceTree::Walk_Tree($subNode);
-			}
-		    }		    
 		    if ( $classNode->{'type'} eq "contains" ) {
 			$classNode = $classNode->{'firstChild'};
 			$contained = 1;
@@ -1846,8 +1860,8 @@ CODE
 	    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
 	    $postContains->[0]->{'content'} .= "      use IO_HDF5\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
-	    $postContains->[0]->{'content'} .= "      type(inputParameters) :: subParameters\n";
-	    $postContains->[0]->{'content'} .= "      type(varying_string ) :: message\n\n";
+	    $postContains->[0]->{'content'} .= "      type   (inputParameters) :: subParameters\n";
+	    $postContains->[0]->{'content'} .= "      type   (varying_string ) :: message\n";
 	    $postContains->[0]->{'content'} .= "      !\$omp critical (".$directive->{'name'}."Initialization)\n";
 	    $postContains->[0]->{'content'} .= "      if (.not.".$directive->{'name'}."Initialized) then\n";
 	    $postContains->[0]->{'content'} .= "         !@ <inputParameter>\n";
@@ -1874,28 +1888,14 @@ CODE
 		$name = lcfirst($name)
 		    unless ( $name =~ m/^[A-Z]{2,}/ );
 		$postContains->[0]->{'content'} .= "     case ('".$name."')\n";
-		if ( $class->{'defaultThreadPrivate'} eq "yes" ) {
-		    $postContains->[0]->{'content'} .= "        parametersObjectBuildIsPrivate=.true.\n";
-		    $postContains->[0]->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive->{'name'}."Default)\n";
-		    $postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."Default)\n";
-		    $postContains->[0]->{'content'} .= "          type is (".$class->{'name'}.")\n";
-		    $postContains->[0]->{'content'} .= "            ".$directive->{'name'}."Default=".$class->{'name'}."(subParameters)\n";
-		    $postContains->[0]->{'content'} .= "         end select\n";
-		    $postContains->[0]->{'content'} .= "      call ".$directive->{'name'}."Default%autoHook()\n"
-			if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );
-		} else {
-		    $postContains->[0]->{'content'} .= "        parametersObjectBuildIsPrivate=.false.\n";
-		    $postContains->[0]->{'content'} .= "        if (.not.associated(".$directive->{'name'}."PublicDefault)) then\n";
-		    $postContains->[0]->{'content'} .= "           allocate(".$class->{'name'}." :: ".$directive->{'name'}."PublicDefault)\n";
-		    $postContains->[0]->{'content'} .= "           select type (".$directive->{'name'}."PublicDefault)\n";
-		    $postContains->[0]->{'content'} .= "           type is (".$class->{'name'}.")\n";
-		    $postContains->[0]->{'content'} .= "             ".$directive->{'name'}."PublicDefault=".$class->{'name'}."(subParameters)\n";
-		    $postContains->[0]->{'content'} .= "           end select\n";
-		    $postContains->[0]->{'content'} .= "           call ".$directive->{'name'}."PublicDefault%autoHook()\n"
-			if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );
-		    $postContains->[0]->{'content'} .= "        end if\n";
-		    $postContains->[0]->{'content'} .= "         ".$directive->{'name'}."Default => ".$directive->{'name'}."PublicDefault\n";
-		}
+		$postContains->[0]->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive->{'name'}."Default)\n";
+		$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."Default)\n";
+		$postContains->[0]->{'content'} .= "        type is (".$class->{'name'}.")\n";
+
+		$postContains->[0]->{'content'} .= "        !# <referenceConstruct ownerLoc=\"module:".$node->{'parent'}->{'name'}."\" object=\"".$directive->{'name'}."Default\" constructor=\"".$class->{'name'}."(subParameters)\" />\n";
+		$postContains->[0]->{'content'} .= "        end select\n";
+		$postContains->[0]->{'content'} .= "        call ".$directive->{'name'}."Default%autoHook()\n"
+		    if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );
 	    }
 	    $postContains->[0]->{'content'} .= "      case default\n";
 	    $postContains->[0]->{'content'} .= "         message='Unrecognized option for [".$directive->{'name'}."Method](='//".$directive->{'name'}."Method//'). Available options are:'\n";
@@ -1907,8 +1907,7 @@ CODE
 	    }
 	    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 	    $postContains->[0]->{'content'} .= "      end select\n";
-	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isIndestructible=.true.\n";
-	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isDefaultOfClass=.true.\n";
+            $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."Default%isDefaultOfClass=.true.\n";
 	    $postContains->[0]->{'content'} .= "      !\$omp end critical (".$directive->{'name'}."Initialization)\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end subroutine ".$directive->{'name'}."Initialize\n\n";
@@ -1986,7 +1985,19 @@ CODE
 		$postContains->[0]->{'content'} .= "    end if\n";
 		$postContains->[0]->{'content'} .= "    return\n";
 		$postContains->[0]->{'content'} .= "  end subroutine ".$directive->{'name'}."DoCalculationReset\n\n";
-	    }
+            }
+
+	    # Create global destroy function.
+	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."DoDestroy","public");
+	    $postContains->[0]->{'content'} .= "  !# <functionClassDestroyTask>\n";
+	    $postContains->[0]->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoDestroy</unitName>\n";
+	    $postContains->[0]->{'content'} .= "  !# </functionClassDestroyTask>\n";
+	    $postContains->[0]->{'content'} .= "  subroutine ".$directive->{'name'}."DoDestroy()\n";
+	    $postContains->[0]->{'content'} .= "    !% Destroy the default object.\n";
+	    $postContains->[0]->{'content'} .= "    implicit none\n";
+	    $postContains->[0]->{'content'} .= "    !# <objectDestructor owner=\"module:".$node->{'parent'}->{'name'}."\" name=\"".$directive->{'name'}."Default\"/>\n";
+	    $postContains->[0]->{'content'} .= "    return\n";
+	    $postContains->[0]->{'content'} .= "  end subroutine ".$directive->{'name'}."DoDestroy\n\n";
 
 	    # Create functions.
 	    foreach my $methodName ( keys(%methods) ) {
@@ -2027,9 +2038,10 @@ CODE
 		my $type;
 		my $category;
 		my $self;
-		my $extension = "Null";
+		my $extension = "Null";	       
 		$extension = ""
 		    if ( exists($method->{'code'}) );
+		my $recursive = exists($method->{'recursive'}) && $method->{'recursive'} eq "yes" ? "recursive " : "";
 		if ( $method->{'type'} eq "void" ) {
 		    $category = "subroutine";
 		    $type     = "";
@@ -2047,7 +2059,7 @@ CODE
 		    $type     = $method->{'type'}." ";
 		    $self     = "";
 		}
-		$postContains->[0]->{'content'} .= "   ".$type.$category." ".$directive->{'name'}.ucfirst($methodName).$extension."(self";
+		$postContains->[0]->{'content'} .= "   ".$recursive.$type.$category." ".$directive->{'name'}.ucfirst($methodName).$extension."(self";
 		$postContains->[0]->{'content'} .= ",".$argumentList
 		    unless ( $argumentList eq "" );
 		$postContains->[0]->{'content'} .= ")\n";
@@ -2107,7 +2119,7 @@ CODE
 		}
 		$postContains->[0]->{'content'} .= "   end ".$category." ".$directive->{'name'}.ucfirst($methodName).$extension."\n\n";
 	    }
- 	    	    
+ 	    
 	    # Generate documentation.
 	    my $documentation = "\\subsubsection{".$directive->{'descriptiveName'}."}\\label{sec:methods".ucfirst($directive->{'name'})."}\n\n";
 	    $documentation   .= "Additional implementations for ".lc($directive->{'descriptiveName'})." are added using the {\\normalfont \\ttfamily ".$directive->{'name'}."} class.\n";

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -67,6 +68,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastSphericalCollapseMatterDE(enumerationDarkEnergySphericalCollapseEnergyFixedAtEncode(char(energyFixedAt),includesPrefix=.false.),cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function sphericalCollapseMatterDEConstructorParameters
 
@@ -88,6 +90,7 @@ contains
     implicit none
     type (virialDensityContrastSphericalCollapseMatterDE), intent(inout) :: self
 
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
     if (self%turnaroundInitialized) then
        call self%turnaround%destroy()
        deallocate(self%turnaround)

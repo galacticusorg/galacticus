@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Output_Analysis_Property_Operators
   !% Provides a class that implements operators on properties for on-the-fly analyses.
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding
   private
   
@@ -29,7 +30,6 @@ module Output_Analysis_Property_Operators
   !#  <descriptiveName>Output Analysis Property Operator</descriptiveName>
   !#  <description>Class providing operators on properties for on-the-fly analysis of outputs.</description>
   !#  <default>identity</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="operate" >
   !#   <description>Operate on the given property.</description>
   !#   <type>double precision</type>

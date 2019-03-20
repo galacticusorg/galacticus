@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,6 @@
 program Test_Gaunt_Factors
   !% Tests Gaunt factor functions.
   use ISO_Varying_String
-  use Memory_Management
   use Unit_Tests
   use Atomic_Ionization_Potentials
   use Atomic_Radiation_Gaunt_Factors
@@ -39,9 +39,6 @@ program Test_Gaunt_Factors
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.gaunt_factors.size')
   ! Initialize parameters.
   parameters=inputParameters()
   call parameters%markGlobal()

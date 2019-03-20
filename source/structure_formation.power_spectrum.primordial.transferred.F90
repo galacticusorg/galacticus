@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Power_Spectra_Primordial_Transferred
   !% Provides a class that implements the transferred primordial power spectrum.
+  private
 
   !# <functionClass>
   !#  <name>powerSpectrumPrimordialTransferred</name>
   !#  <descriptiveName>Transferred Primordial Power Spectrum</descriptiveName>
   !#  <description>Class providing the transferred primordial power spectrum.</description>
   !#  <default>simple</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="power" >
   !#   <description>Return the (unnormalized) power in the transferred primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
   !#   <type>double precision</type>

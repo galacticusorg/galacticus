@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@
   !#  <description>Implements the gravitational lensing distribution by modifying another distribution for the effects of baryons.</description>
   !# </gravitationalLensing>
   type, extends(gravitationalLensingClass) :: gravitationalLensingBaryonicModifier
-     class           (gravitationalLensingClass), pointer :: gravitationalLensing_
+     class           (gravitationalLensingClass), pointer :: gravitationalLensing_ => null()
      double precision                                     :: alpha                  , beta               , &
           &                                                  transitionMagnification, renormalization    , &
           &                                                  redshiftPrevious       , scaleSourcePrevious
@@ -80,6 +81,7 @@ contains
     ! Build the object.
     self=gravitationalLensingBaryonicModifier(gravitationalLensing_,alpha,beta)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="gravitationalLensing_"/>
     return
   end function baryonicModifierConstructorParameters
 

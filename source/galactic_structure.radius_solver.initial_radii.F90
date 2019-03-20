@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@
 module Galactic_Structure_Initial_Radii
   !% Implements a class for calculations of the initial radius in the dark matter halo for use when solving for galactic
   !% structure.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -31,7 +32,6 @@ module Galactic_Structure_Initial_Radii
   !#  <descriptiveName>Initial Mass Functions</descriptiveName>
   !#  <description>Class providing stellar initial mass functions.</description>
   !#  <default>gnedin2004</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="radius" >
   !#   <description>Find the initial radius in the dark matter halo of {\normalfont \ttfamily node} corresponding to the given final {\normalfont \ttfamily radius}.</description>

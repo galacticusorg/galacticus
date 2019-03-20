@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Satellite_Merging_Timescales
   !% Provides and object that implements satellite merging timescales.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   use Kepler_Orbits
   private
 
@@ -33,7 +34,6 @@ module Satellite_Merging_Timescales
   !#  <descriptiveName>Satellite Merging Timescales</descriptiveName>
   !#  <description>Object providing merging timescales for satellites.</description>
   !#  <default>jiang2008</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="timeUntilMerging" >
   !#   <description>Return the time (in Gyr) until the satellite will merge with its host given the current orbit.</description>
   !#   <type>double precision</type>

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,6 @@ program Test_Mass_Distributions
   !% Tests mass distributions.
   use Galacticus_Error
   use Unit_Tests
-  use Memory_Management
   use Mass_Distributions
   use Coordinates
   use Numerical_Constants_Math
@@ -45,10 +45,6 @@ program Test_Mass_Distributions
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.mass_distributions.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Mass distributions")
   

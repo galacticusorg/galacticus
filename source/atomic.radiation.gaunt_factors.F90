@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Atomic_Radiation_Gaunt_Factors
   !% Provides a class implenting Gaunt factors.
+  private
 
   !# <functionClass>
   !#  <name>gauntFactor</name>
   !#  <descriptiveName>Gaunt Factors</descriptiveName>
   !#  <description>Class providing Gaunt factors.</description>
   !#  <default>sutherland1998</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="total" >
   !#   <description>Returns the thermally averaged, total Gaunt factor.</description>
   !#   <type>double precision</type>

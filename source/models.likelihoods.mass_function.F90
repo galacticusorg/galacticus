@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,22 +16,22 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a posterior sampling likelihood class which implements a likelihood for mass functions.
 
   use Cosmology_Functions
   use Halo_Mass_Functions
   use Geometry_Surveys
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMassFunction" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodMassFunction">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for mass functions.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodMassFunction
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for mass functions.
      private
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_
-     class           (haloMassFunctionClass  ), pointer                     :: haloMassFunction_
-     class           (surveyGeometryClass    ), pointer                     :: surveyGeometry_
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
+     class           (haloMassFunctionClass  ), pointer                     :: haloMassFunction_ => null()
+     class           (surveyGeometryClass    ), pointer                     :: surveyGeometry_ => null()
      logical                                                                :: useSurveyLimits       , modelSurfaceBrightness
      double precision                                                       :: haloMassMinimum       , haloMassMaximum       , &
           &                                                                    redshiftMinimum       , redshiftMaximum       , &
@@ -134,6 +135,9 @@ contains
     !# <objectBuilder class="surveyGeometry"     name="surveyGeometry_"     source="parameters"/>
     self=posteriorSampleLikelihoodMassFunction(haloMassMinimum,haloMassMaximum,redshiftMinimum,redshiftMaximum,useSurveyLimits,char(massFunctionFileName),modelSurfaceBrightness,surfaceBrightnessLimit,cosmologyFunctions_,haloMassFunction_,surveyGeometry_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="haloMassFunction_"  />
+    !# <objectDestructor name="surveyGeometry_"    />
     return
   end function massFunctionConstructorParameters
 
@@ -246,6 +250,7 @@ contains
     use Numerical_Integration
     use Galacticus_Error
     use Mass_Function_Incompletenesses
+    use FGSL                          , only : fgsl_function, fgsl_integration_workspace
     implicit none
     class           (posteriorSampleLikelihoodMassFunction      ), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState

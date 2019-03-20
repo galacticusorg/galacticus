@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,8 +21,8 @@
 
 module Output_Analysis_Distribution_Operators
   !% Provides a class that operators on distributions used in on-the-fly output analyses.
-  use, intrinsic :: ISO_C_Binding
-  use            :: Galacticus_Nodes
+  use, intrinsic :: ISO_C_Binding   , only : c_size_t
+  use            :: Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>
@@ -29,7 +30,6 @@ module Output_Analysis_Distribution_Operators
   !#  <descriptiveName>Output Analysis Distribution Operator</descriptiveName>
   !#  <description>Class providing operators on distributions for on-the-fly analysis of outputs.</description>
   !#  <default>identity</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="operateScalar" >
   !#   <description>Operate on a scalar to produce a distribution.</description>
   !#   <type>double precision, dimension(size(propertyValueMinimum))</type>

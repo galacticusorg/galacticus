@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,7 @@
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbdyCnc
      !% A random error output distribution operator class providing errors in $\log_{10}$ of N-body halo mass.
      private
-     class           (outputAnalysisPropertyExtractorClass), pointer                   :: outputAnalysisPropertyExtractor_
+     class           (outputAnalysisPropertyExtractorClass), pointer                   :: outputAnalysisPropertyExtractor_ => null()
      double precision                                      , allocatable, dimension(:) :: a
      double precision                                                                  :: b                               , massParticle
    contains
@@ -78,6 +79,7 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyExtractor" name="outputAnalysisPropertyExtractor_" source="parameters"/>
     self=outputAnalysisDistributionOperatorRndmErrNbdyCnc(a,b,massParticle,outputAnalysisPropertyExtractor_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"/>
     return
   end function randomErrorNbdyCncConstructorParameters
 

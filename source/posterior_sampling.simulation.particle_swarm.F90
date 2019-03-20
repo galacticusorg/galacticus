@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a posterior sampling simulation class which implements the differential evolution algorithm.
 
   use Models_Likelihoods
@@ -25,24 +26,24 @@
   use Posterior_Sampling_State_Initialize
   use Model_Parameters
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm" defaultThreadPrivate="yes">
+  !# <posteriorSampleSimulation name="posteriorSampleSimulationParticleSwarm">
   !#  <description>A posterior sampling simulation class which implements the particle swarm algorithm.</description>
   !# </posteriorSampleSimulation>
   type, extends(posteriorSampleSimulationClass) :: posteriorSampleSimulationParticleSwarm
      !% Implementation of a posterior sampling simulation class which implements the particle swarm algorithm.
      private
-     type            (modelParameterList                   ), pointer, dimension(:) :: modelParametersActive_           , modelParametersInactive_
-     class           (posteriorSampleLikelihoodClass       ), pointer               :: posteriorSampleLikelihood_
-     class           (posteriorSampleConvergenceClass      ), pointer               :: posteriorSampleConvergence_
-     class           (posteriorSampleStoppingCriterionClass), pointer               :: posteriorSampleStoppingCriterion_
-     class           (posteriorSampleStateClass            ), pointer               :: posteriorSampleState_
-     class           (posteriorSampleStateInitializeClass  ), pointer               :: posteriorSampleStateInitialize_
-     integer                                                                        :: parameterCount                   , stepsMaximum                 , &
-          &                                                                            reportCount                      , logFlushCount
-     double precision                                                               :: accelerationCoefficientPersonal  , accelerationCoefficientGlobal, &
-          &                                                                            inertiaWeight                    , velocityCoefficient
-     logical                                                                        :: isInteractive                    , resume
-     type            (varying_string                       )                        :: logFileRoot                      , interactionRoot              , &
+     type            (modelParameterList                   ), pointer, dimension(:) :: modelParametersActive_            => null(), modelParametersInactive_     => null()
+     class           (posteriorSampleLikelihoodClass       ), pointer               :: posteriorSampleLikelihood_        => null()
+     class           (posteriorSampleConvergenceClass      ), pointer               :: posteriorSampleConvergence_       => null()
+     class           (posteriorSampleStoppingCriterionClass), pointer               :: posteriorSampleStoppingCriterion_ => null()
+     class           (posteriorSampleStateClass            ), pointer               :: posteriorSampleState_             => null()
+     class           (posteriorSampleStateInitializeClass  ), pointer               :: posteriorSampleStateInitialize_   => null()
+     integer                                                                        :: parameterCount                             , stepsMaximum                          , &
+          &                                                                            reportCount                                , logFlushCount
+     double precision                                                               :: accelerationCoefficientPersonal            , accelerationCoefficientGlobal         , &
+          &                                                                            inertiaWeight                              , velocityCoefficient
+     logical                                                                        :: isInteractive                              , resume
+     type            (varying_string                       )                        :: logFileRoot                                , interactionRoot                       , &
           &                                                                            logFilePreviousRoot
    contains
      !@ <objectMethods>
@@ -90,7 +91,7 @@ contains
     integer                                                                                       :: stepsMaximum                     , reportCount                    , &
          &                                                                                           logFlushCount                    , inactiveParameterCount         , &
          &                                                                                           activeParameterCount             , iActive                        , &
-         &                                                                                           iInactive
+         &                                                                                           iInactive                        , i
     double precision                                                                              :: inertiaWeight                    , accelerationCoefficientPersonal, &
          &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
     logical                                                                                       :: resume
@@ -198,6 +199,7 @@ contains
        class is (modelParameterInactive)
           inactiveParameterCount=inactiveParameterCount+1
        end select
+       !# <objectDestructor name="modelParameter_"/>
     end do
     if (activeParameterCount < 1) call Galacticus_Error_Report('at least one active parameter must be specified in config file'//{introspection:location})
     if (mpiSelf%isMaster() .and. Galacticus_Verbosity_Level() >= verbosityInfo) then
@@ -216,15 +218,29 @@ contains
        class is (modelParameterInactive)
           iInactive=iInactive+1
           modelParametersInactive_(iInactive)%modelParameter_ => modelParameter_
+          !# <referenceCountIncrement owner="modelParametersInactive_(iInactive)" object="modelParameter_"/>
        class is (modelParameterActive  )
           iActive  =iActive  +1
           modelParametersActive_  (  iActive)%modelParameter_ => modelParameter_
+          !# <referenceCountIncrement owner="modelParametersActive_  (iActive  )" object="modelParameter_"/>
        end select
+       !# <objectDestructor name="modelParameter_"/>
     end do
     self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,char(interactionRoot),resume,char(logFilePreviousRoot))
     !# <inputParametersValidate source="parameters"/>
-    nullify(modelParametersActive_  )
-    nullify(modelParametersInactive_)
+    !# <objectDestructor name="posteriorSampleLikelihood_"       />
+    !# <objectDestructor name="posteriorSampleConvergence_"      />
+    !# <objectDestructor name="posteriorSampleStoppingCriterion_"/>
+    !# <objectDestructor name="posteriorSampleState_"            />
+    !# <objectDestructor name="posteriorSampleStateInitialize_"  />
+    do i=1,  activeParameterCount
+       !# <objectDestructor name="modelParametersActive_  (i)%modelParameter_"/>
+    end do
+    do i=1,inactiveParameterCount
+       !# <objectDestructor name="modelParametersInactive_(i)%modelParameter_"/>
+    end do
+    deallocate(modelParametersActive_  )
+    deallocate(modelParametersInactive_)
     return
   end function particleSwarmConstructorParameters
 
@@ -245,8 +261,19 @@ contains
     double precision                                        , intent(in   )                       :: inertiaWeight                    , accelerationCoefficientPersonal, &
          &                                                                                           accelerationCoefficientGlobal    , velocityCoefficient
     logical                                                                                       :: resume
-    !# <constructorAssign variables="*modelParametersActive_, *modelParametersInactive_, *posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, interactionRoot, resume, logFilePreviousRoot"/>
+    integer                                                                                       :: i
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, stepsMaximum, logFileRoot, logFlushCount, reportCount, inertiaWeight, accelerationCoefficientPersonal, accelerationCoefficientGlobal, velocityCoefficient, interactionRoot, resume, logFilePreviousRoot"/>
 
+    allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
+    allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
+    self%modelParametersActive_  =modelParametersActive_
+    self%modelParametersInactive_=modelParametersInactive_
+    do i=1,size(modelParametersActive_  )
+       !# <referenceCountIncrement owner="self%modelParametersActive_  (i)" object="modelParameter_"/>
+    end do
+    do i=1,size(modelParametersInactive_)
+       !# <referenceCountIncrement owner="self%modelParametersInactive_(i)" object="modelParameter_"/>
+    end do
     self%parameterCount=size(modelParametersActive_)
     self%isInteractive =trim(interactionRoot ) /= "none"
     call self%posteriorSampleState_%parameterCountSet(self%parameterCount)
@@ -256,13 +283,20 @@ contains
   subroutine particleSwarmDestructor(self)
     !% Destroy a differential evolution simulation object.
     implicit none
-    type(posteriorSampleSimulationParticleSwarm), intent(inout) :: self
+    type   (posteriorSampleSimulationParticleSwarm), intent(inout) :: self
+    integer                                                        :: i
 
-    !# <objectDestructor name="self%posteriorSampleLikelihood_"              />
-    !# <objectDestructor name="self%posteriorSampleConvergence_"             />
-    !# <objectDestructor name="self%posteriorSampleStoppingCriterion_"       />
-    !# <objectDestructor name="self%posteriorSampleState_"                   />
-    !# <objectDestructor name="self%posteriorSampleStateInitialize_"         />
+    !# <objectDestructor name="self%posteriorSampleLikelihood_"       />
+    !# <objectDestructor name="self%posteriorSampleConvergence_"      />
+    !# <objectDestructor name="self%posteriorSampleStoppingCriterion_"/>
+    !# <objectDestructor name="self%posteriorSampleState_"            />
+    !# <objectDestructor name="self%posteriorSampleStateInitialize_"  />
+    do i=1,size(self%modelParametersActive_  )
+       !# <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+    end do
+    do i=1,size(self%modelParametersInactive_)
+       !# <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+    end do
     return
   end subroutine particleSwarmDestructor
 

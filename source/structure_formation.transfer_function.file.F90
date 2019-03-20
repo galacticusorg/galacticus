@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Tables
   use Cosmology_Parameters
 
-  !# <transferFunction name="transferFunctionFile" defaultThreadPrivate="yes">
+  !# <transferFunction name="transferFunctionFile">
   !#  <description>
   !# Provides a transfer function from a tabulation given in an XML or HDF5 file. The XML file format for transfer functions looks like:
   !# \begin{verbatim}
@@ -228,6 +229,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=transferFunctionFile(char(fileName),cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function fileConstructorParameters
 
@@ -255,6 +257,7 @@ contains
     use Galacticus_Display
     use Table_Labels
     use File_Utilities
+    use FGSL                , only : FGSL_Interp_cSpline
     implicit none
     class           (transferFunctionFile    ), intent(inout)             :: self
     character       (len=*                   ), intent(in   )             :: fileName

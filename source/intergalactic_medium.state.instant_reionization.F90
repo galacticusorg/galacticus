@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +26,7 @@
      !% An \gls{igm} state class for a model in which the \gls{igm} is assumed to be instantaneously and fully reionized at a
      !% fixed redshift, and heated to a fixed temperature. Prior to that, the reionization state is provided by some other class.
      private
-     class           (intergalacticMediumStateClass), pointer :: preReionizationState
+     class           (intergalacticMediumStateClass), pointer :: preReionizationState => null()
      double precision                                         :: reionizationTime     , reionizationTemperature       , &
           &                                                      presentDayTemperature, expansionFactorReionizationLog
    contains
@@ -114,6 +115,10 @@ contains
        self=intergalacticMediumStateInstantReionization(cosmologyFunctions_,cosmologyParameters_,linearGrowth_,preReionizationState,reionizationTemperature,presentDayTemperature,electronScatteringOpticalDepth=electronScatteringOpticalDepth)
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="preReionizationState"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="linearGrowth_"       />
     return
   end function instantReionizationIGMConstructorParameters
 

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -605,7 +606,10 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('reversed table would not be monotonic'//{introspection:location})
-    if (allocated(reversedSelf)) deallocate(reversedSelf)
+    if (allocated(reversedSelf)) then
+       call reversedSelf%destroy()
+       deallocate(reversedSelf)
+    end if
     allocate(table1DGeneric :: reversedSelf)
     select type (reversedSelf)
     type is (table1DGeneric)
@@ -1146,7 +1150,10 @@ contains
     tableActual=1
     if (present(table)) tableActual=table
     if (.not.Array_Is_Monotonic(self%yv(:,tableActual))) call Galacticus_Error_Report('reversed table would not be monotonic'//{introspection:location})
-    if (allocated(reversedSelf)) deallocate(reversedSelf)
+    if (allocated(reversedSelf)) then
+       call reversedSelf%destroy()
+       deallocate(reversedSelf)
+    end if
     allocate(table1DNonUniformLinearLogarithmic :: reversedSelf)
     select type (reversedSelf)
     type is (table1DNonUniformLinearLogarithmic)

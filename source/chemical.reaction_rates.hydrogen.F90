@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,9 +30,9 @@
   type, extends(chemicalReactionRateClass) :: chemicalReactionRateHydrogenNetwork
      !% A chemical reaction rates for hydrogen using the fits from \cite{abel_modeling_1997} and \cite{tegmark_small_1997}.
      private
-     class           (atomicIonizationRateCollisionalClass  ), pointer :: atomicIonizationRateCollisional_
-     class           (atomicRecombinationRateRadiativeClass ), pointer :: atomicRecombinationRateRadiative_
-     class           (atomicCrossSectionIonizationPhotoClass), pointer :: atomicCrossSectionIonizationPhoto_
+     class           (atomicIonizationRateCollisionalClass  ), pointer :: atomicIonizationRateCollisional_ => null()
+     class           (atomicRecombinationRateRadiativeClass ), pointer :: atomicRecombinationRateRadiative_ => null()
+     class           (atomicCrossSectionIonizationPhotoClass), pointer :: atomicCrossSectionIonizationPhoto_ => null()
      logical                                                           :: fast
      integer                                                           :: atomicHydrogenAnionIndex          , atomicHydrogenCationIndex, &
           &                                                               atomicHydrogenIndex               , electronIndex
@@ -237,6 +238,9 @@ contains
     !# <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
     self=chemicalReactionRateHydrogenNetwork(fast,atomicIonizationRateCollisional_,atomicRecombinationRateRadiative_,atomicCrossSectionIonizationPhoto_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="atomicIonizationRateCollisional_"  />
+    !# <objectDestructor name="atomicRecombinationRateRadiative_" />
+    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
     return
   end function hydrogenNetworkConstructorParameters
 

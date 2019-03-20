@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -88,7 +89,7 @@ contains
   subroutine Galacticus_Output_Tree_Lightcone_Names(node,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of link properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout) :: node
@@ -144,7 +145,7 @@ contains
   subroutine Galacticus_Output_Tree_Lightcone_Instances(node,output,instance)
     !% Set the number of instances for the given {\normalfont \ttfamily node} to be output in the lightcone.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes, only : treeNode
     use               Multi_Counters
     use               Geometry_Lightcones
     use               Galacticus_Error
@@ -185,7 +186,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Lightcone_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of link properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: time
@@ -204,7 +205,7 @@ contains
   subroutine Galacticus_Output_Tree_Lightcone(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store link properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     use Kind_Numbers
     use Geometry_Lightcones
     use Cosmology_Functions

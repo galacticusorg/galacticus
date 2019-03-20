@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +32,6 @@ module Intergalactic_Medium_State
   !#  <descriptiveName>Intergalactic Medium State</descriptiveName>
   !#  <description>Class providing intergalactic medium state.</description>
   !#  <default>recFast</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="electronFraction" >
   !#   <description>Return the electron fraction (relative to hydrogen) in the \gls{igm} at the given time.</description>
   !#   <type>double precision</type>
@@ -171,7 +171,7 @@ contains
   subroutine intergalacticMediumStateElectronScatteringTabulate(self,time)
     !% Construct a table of electron scattering optical depth as a function of cosmological time.
     use Numerical_Integration
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     implicit none
     class           (intergalacticMediumStateClass), intent(inout), target :: self
     double precision                               , intent(in   )         :: time
@@ -349,6 +349,7 @@ contains
       use Numerical_Constants_Astronomical
       use Numerical_Constants_Atomic
       use Intergalactic_Medium_Filtering_Masses
+      use FGSL                                 , only : FGSL_Success
       implicit none
       double precision, intent(in  )                :: time
       double precision, intent(in   ), dimension(:) :: properties

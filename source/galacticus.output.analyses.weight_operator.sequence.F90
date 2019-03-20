@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,17 +20,17 @@
 !% Contains a module which implements a sequence output analysis weight operator class.
 
   type, public :: weightOperatorList
-     class(outputAnalysisWeightOperatorClass), pointer :: operator_
+     class(outputAnalysisWeightOperatorClass), pointer :: operator_ => null()
      type (weightOperatorList               ), pointer :: next      => null()
   end type weightOperatorList
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence">
   !#  <description>A sequence output analysis weight operator class.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence
      !% A sequence output weight operator class.
      private
-     type(weightOperatorList), pointer :: operators
+     type(weightOperatorList), pointer :: operators => null()
    contains
      !@ <objectMethods>
      !@   <object>outputAnalysisWeightOperatorSequence</object>
@@ -73,22 +74,28 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       operator_%operator_ => outputAnalysisWeightOperator(parameters,i)
+       !# <objectBuilder class="outputAnalysisWeightOperator" name="operator_%operator_" source="parameters" copy="i" />
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !% Internal constructor for the sequence merger tree normalizer class.
+    !% Internal constructor for the sequence output analysis weight operator class.
     implicit none
     type(outputAnalysisWeightOperatorSequence)                        :: self
     type(weightOperatorList                  ), target, intent(in   ) :: operators
+    type(weightOperatorList                  ), pointer               :: operator_
 
-    self%operators => operators
+    self     %operators => operators
+    operator_           => operators
+    do while (associated(operator_))
+       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       operator_ => operator_%next
+    end do
     return
   end function sequenceConstructorInternal
 
-  elemental subroutine sequenceDestructor(self)
+  subroutine sequenceDestructor(self)
     !% Destructor for the sequence weight operator class.
     implicit none
     type(outputAnalysisWeightOperatorSequence), intent(inout) :: self
@@ -98,8 +105,8 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          deallocate(operator_%operator_)
-          deallocate(operator_          )
+          !# <objectDestructor name="operator_%operator_"/>
+          deallocate(operator_)
           operator_ => operatorNext
        end do
     end if
@@ -145,7 +152,7 @@ contains
     use Galacticus_Error
     implicit none
     class(outputAnalysisWeightOperatorSequence), intent(inout) :: self
-    class(outputAnalysisWeightOperatorClass   ), intent(  out) :: destination
+    class(outputAnalysisWeightOperatorClass   ), intent(inout) :: destination
     type (weightOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
          &                                                        operatorNew_
 
@@ -165,7 +172,7 @@ contains
              operatorDestination_            => operatorNew_
           end if
           allocate(operatorNew_%operator_,mold=operator_%operator_)
-          call operator_%operator_%deepCopy(operatorNew_%operator_)
+          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
        end do       
     class default

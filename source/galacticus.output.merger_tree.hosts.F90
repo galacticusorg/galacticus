@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Galacticus_Output_Trees_Hosts
   !% Handles outputting of tree host data to the \glc\ output file.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
   public :: Galacticus_Output_Tree_Hosts, Galacticus_Output_Tree_Hosts_Property_Count, Galacticus_Output_Tree_Hosts_Names

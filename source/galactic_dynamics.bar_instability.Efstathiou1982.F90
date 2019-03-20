@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
 
-  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982" defaultThreadPrivate="yes">
+  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982">
   !#  <description>The \cite{efstathiou_stability_1982} model for galactic disk bar instability.</description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityClass) :: galacticDynamicsBarInstabilityEfstathiou1982
@@ -106,6 +107,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Prefixes
+    use Galacticus_Nodes                , only : nodeComponentDisk
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node
@@ -158,6 +160,7 @@ contains
   double precision function efstathiou1982Estimator(self,node)
     !% Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDisk
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Satellite_Merging_Progenitor_Properties
   !% Implements a class for calculations for progenitor properties for mergers.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -29,7 +30,6 @@ module Satellite_Merging_Progenitor_Properties
   !#  <descriptiveName>Merger Progenitor Properties</descriptiveName>
   !#  <description>Class providing models of the properties of merger progenitors.</description>
   !#  <default>standard</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="get" >
   !#   <description>alculates progenitor properties for merger calculations.</description>
   !#   <type>void</type>

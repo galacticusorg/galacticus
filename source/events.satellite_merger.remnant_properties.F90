@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,7 +42,7 @@ contains
     !% Compute properties for satellite merger remnants.
     use Satellite_Merging_Mass_Movements
     use Satellite_Merging_Remnant_Sizes
-    use Galacticus_Nodes
+    use Galacticus_Nodes                , only : treeNode
     implicit none
     type (treeNode                ), intent(inout), pointer :: node
     class(mergerMassMovementsClass)               , pointer :: mergerMassMovements_

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,14 @@
 
   use Posterior_Sampling_Convergence
   
-  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount" defaultThreadPrivate="yes">
+  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionStepCount">
   !#  <description>A posterior sampling stopping class which stepCount converges.</description>
   !# </posteriorSampleStoppingCriterion>
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionStepCount
      !% Implementation of a posterior sampling convergence class which stepCount converges.
      private
      integer                                           :: stopAfterCount
-     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_
+     class  (posteriorSampleConvergenceClass), pointer :: posteriorSampleConvergence_ => null()
    contains
      final     ::         stepCountDestructor
      procedure :: stop => stepCountStop
@@ -60,6 +61,7 @@ contains
     !# <objectBuilder class="posteriorSampleConvergence" name="posteriorSampleConvergence_" source="parameters"/>
     self=posteriorSampleStoppingCriterionStepCount(stopAfterCount,posteriorSampleConvergence_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="posteriorSampleConvergence_"/>
    return
   end function stepCountConstructorParameters
 

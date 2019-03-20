@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,25 +22,27 @@
   use Math_Exponentiation
   use Abundances_Structure
   use Kind_Numbers
+  use Tables              , only : table1DLinearLinear
 
-  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009" defaultThreadPrivate="yes">
+  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKrumholz2009">
   !#  <description>The \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.</description>
   !# </starFormationRateSurfaceDensityDisks>
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKrumholz2009
      !% Implementation of the \cite{krumholz_star_2009} star formation rate surface density law for galactic disks.
      private
-     integer         (kind_int8        )                  :: lastUniqueID                       
-     logical                                              :: factorsComputed                    
-     double precision                                     :: massGasPrevious                   , radiusPrevious
-     type            (abundances       )                  :: abundancesFuelPrevious
-     double precision                                     :: chi                               , radiusDisk                    , &
-          &                                                  massGas                           , hydrogenMassFraction          , &
-          &                                                  metallicityRelativeToSolar        , sNormalization                , &
-          &                                                  sigmaMolecularComplexNormalization, clumpingFactorMolecularComplex, &
-          &                                                  frequencyStarFormation
-     logical                                              :: assumeMonotonicSurfaceDensity     , molecularFractionFast
-     type            (fastExponentiator)                  :: surfaceDensityExponentiator
-     procedure       (double precision ), nopass, pointer :: molecularFraction
+     integer         (kind_int8          )                  :: lastUniqueID                       
+     logical                                                :: factorsComputed                    
+     double precision                                       :: massGasPrevious                   , radiusPrevious
+     type            (abundances         )                  :: abundancesFuelPrevious
+     double precision                                       :: chi                               , radiusDisk                    , &
+          &                                                    massGas                           , hydrogenMassFraction          , &
+          &                                                    metallicityRelativeToSolar        , sNormalization                , &
+          &                                                    sigmaMolecularComplexNormalization, clumpingFactorMolecularComplex, &
+          &                                                    frequencyStarFormation
+     logical                                                :: assumeMonotonicSurfaceDensity     , molecularFractionFast
+     type            (fastExponentiator  )                  :: surfaceDensityExponentiator
+     type            (table1DLinearLinear)                  :: molecularFraction
+     procedure       (double precision   ), nopass, pointer :: molecularFraction_
    contains
      !@ <objectMethods>
      !@   <object>starFormationRateSurfaceDensityDisksKrumholz2009</object>
@@ -56,6 +59,7 @@
      !@     <description>Compute surface density factors required.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                          krumholz2009Destructor
      procedure :: computeFactors        => krumholz2009ComputeFactors
      procedure :: surfaceDensityFactors => krumholz2009SurfaceDensityFactors
      procedure :: calculationReset      => krumholz2009CalculationReset
@@ -133,10 +137,14 @@ contains
 
   function krumholz2009ConstructorInternal(frequencyStarFormation,clumpingFactorMolecularComplex,molecularFractionFast,assumeMonotonicSurfaceDensity) result(self)
     !% Internal constructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
+    use Table_Labels, only : extrapolationTypeFix
     implicit none
     type            (starFormationRateSurfaceDensityDisksKrumholz2009)                :: self
-    double precision                                                  , intent(in   ) :: frequencyStarFormation, clumpingFactorMolecularComplex
-    logical                                                           , intent(in   ) :: molecularFractionFast , assumeMonotonicSurfaceDensity
+    double precision                                                  , intent(in   ) :: frequencyStarFormation      , clumpingFactorMolecularComplex
+    logical                                                           , intent(in   ) :: molecularFractionFast       , assumeMonotonicSurfaceDensity
+    double precision                                                  , parameter     :: sMinimum              =0.0d0, sMaximum                      =8.0d0
+    integer                                                           , parameter     :: sCount                =1000
+    integer                                                                           :: i
     !# <constructorAssign variables="frequencyStarFormation, clumpingFactorMolecularComplex, molecularFractionFast, assumeMonotonicSurfaceDensity"/>
 
     self%lastUniqueID          =-1_kind_int8
@@ -147,14 +155,28 @@ contains
     ! Set a pointer to the molecular hydrogen fraction fitting function to be used.
     select case (molecularFractionFast)
     case (.true.)
-       self%molecularFraction => krumholz2009MolecularFractionFast
+       self%molecularFraction_ => krumholz2009MolecularFractionFast
     case(.false.)
-       self%molecularFraction => krumholz2009MolecularFractionSlow
+       self%molecularFraction_ => krumholz2009MolecularFractionSlow
     end select
+    ! Build a table of molecular fraction for fast look-up.
+    call self%molecularFraction%create(sMinimum,sMaximum,sCount,extrapolationType=[extrapolationTypeFix,extrapolationTypeFix])
+    do i=1,sCount
+       call self%molecularFraction%populate(self%molecularFraction_(self%molecularFraction%x(i)),i)
+    end do
     ! Initialize exponentiator.
     self%surfaceDensityExponentiator=fastExponentiator(1.0d0,100.0d0,0.33d0,100.0d0,.false.)
     return
   end function krumholz2009ConstructorInternal
+
+  subroutine krumholz2009Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
+    implicit none
+    type(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
+
+    call self%molecularFraction%destroy()
+    return
+  end subroutine krumholz2009Destructor
 
   subroutine krumholz2009CalculationReset(self,node)
     !% Reset the Kennicutt-Schmidt relation calculation.
@@ -170,6 +192,7 @@ contains
   subroutine krumholz2009ComputeFactors(self,node)
     !% Compute constant factors needed in the \cite{krumholz_star_2009} star formation rule.
     use Numerical_Constants_Prefixes
+    use Galacticus_Nodes            , only : nodeComponentDisk
     implicit none
     class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type (treeNode                                        ), intent(inout) :: node
@@ -231,7 +254,7 @@ contains
           if (self%metallicityRelativeToSolar > 0.0d0) then
              sigmaMolecularComplex=self%sigmaMolecularComplexNormalization*surfaceDensityGas
              s                    =self%sNormalization/sigmaMolecularComplex
-             molecularFraction    =self%molecularFraction(s)
+             molecularFraction    =self%molecularFraction%interpolate(s)
           else
              molecularFraction    =krumholz2009MolecularFractionMinimum
           end if
@@ -387,6 +410,7 @@ contains
   
   logical function krumholz2009Unchanged(self,node)
     !% Determine if the surface rate density of star formation is unchanged.
+    use Galacticus_Nodes, only : nodeComponentDisk
     implicit none
     class           (starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
     type            (treeNode                                        ), intent(inout) :: node
@@ -400,16 +424,16 @@ contains
        radius        =disk%radius       ()
        abundancesFuel=disk%abundancesGas()
        call abundancesFuel%massToMassFraction(massGas)
-       if     (                                                                                                                                                        &
+       if     (                                                                                                                                                             &
             &   massGas        == self%massGasPrevious                                                                                                                      &
-            &  .and.                                                                                                                                                   &
+            &  .and.                                                                                                                                                        &
             &   radius         == self%radiusPrevious                                                                                                                       &
-            &  .and.                                                                                                                                                   &
+            &  .and.                                                                                                                                                        &
             &   abundancesFuel%metallicity         (metallicityTypeLinearByMassSolar) == self%abundancesFuelPrevious%metallicity         (metallicityTypeLinearByMassSolar) &
-            &  .and.                                                                                                                                                   &
+            &  .and.                                                                                                                                                        &
             &   abundancesFuel%hydrogenMassFraction(                                ) == self%abundancesFuelPrevious%hydrogenMassFraction(                                ) &
             & ) then
-          krumholz2009Unchanged=.true.
+          krumholz2009Unchanged      =.true.
        else
           krumholz2009Unchanged      =.false.
           self%massGasPrevious       =massGas

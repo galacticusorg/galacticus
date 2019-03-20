@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{martin_arecibo_2010}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryMartin2010ALFALFA
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_
+     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
    contains
      final     ::                      martin2010ALFALFADestructor
      procedure :: distanceMaximum   => martin2010ALFALFADistanceMaximum
@@ -56,6 +57,7 @@ contains
     ! Build the object.
     self=surveyGeometryMartin2010ALFALFA(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function martin2010ALFALFAConstructorParameters
     
@@ -140,7 +142,6 @@ contains
     !% Initialize random points for the survey.
     use Vectors
     use File_Utilities
-    use FGSL
     use Meshes
     use, intrinsic :: ISO_C_Binding
     use Numerical_Constants_Math

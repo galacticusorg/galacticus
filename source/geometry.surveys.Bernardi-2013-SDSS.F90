@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -130,15 +131,28 @@ contains
   
   subroutine bernardi2013SDSSMangleFiles(self,mangleFiles)
     !% Return a list of \gls{mangle} files.
+    use File_Utilities  , only : File_Lock_Initialize   , File_Lock, File_Unlock, File_Exists, lockDescriptor
+    use System_Command  , only : System_Command_Do
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class(surveyGeometryBernardi2013SDSS)                           , intent(inout) :: self
-    type (varying_string                ), allocatable, dimension(:), intent(inout) :: mangleFiles
+    class  (surveyGeometryBernardi2013SDSS)                           , intent(inout) :: self
+    type   (varying_string                ), allocatable, dimension(:), intent(inout) :: mangleFiles
+    type   (lockDescriptor                )                                           :: lock
+    integer                                                                           :: status
 
     allocate(mangleFiles(1))
     mangleFiles=                                                    &
          &      [                                                   &
          &       self%mangleDirectory()//"sdss_dr72safe0_res6d.pol" &
          &      ]
+    call File_Lock_Initialize(                     lock                     )
+    call File_Lock           (char(mangleFiles(1)),lock,lockIsShared=.false.)
+    if (.not.File_Exists(mangleFiles(1))) then
+       call System_Command_Do("wget http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz -O - | gunzip -c > "//mangleFiles(1),status)
+       if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
+            & call Galacticus_Error_Report('failed to download mangle polygon file'//{introspection:location})
+    end if
+    call File_Unlock         (                     lock                     )
     return
   end subroutine bernardi2013SDSSMangleFiles
 

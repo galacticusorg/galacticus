@@ -74,14 +74,16 @@
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
-  <timestepHostAbsolute value="1.00"/>
-  <timestepHostRelative value="0.10"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.00"/>
+    <timestepHostRelative value="0.10"/>
+  </mergerTreeEvolverMethod>
 
   <!-- Output options -->
   <outputRedshifts>0.00 0.0001</outputRedshifts>
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
   <outputRotationCurveData value="true"/>
   <outputRotationCurveRadii value="spheroidRadius:all:all:loaded:1.0 spheroidRadius:darkHalo:dark:loaded:1.0 spheroidRadius:spheroid:baryonic:loaded:1.0"/>
   <outputVirialData value="true"/>

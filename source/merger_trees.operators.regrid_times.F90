@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +22,14 @@
   use Cosmology_Functions
   use Cosmological_Density_Field
 
-  !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
   !#  <description>Provides a merger tree operator which restructures the tree onto a fixed grid of timesteps.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
      !% A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
      private
-     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_
-     class           (criticalOverdensityClass), pointer                   :: criticalOverdensity_
+     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_ => null()
+     class           (criticalOverdensityClass), pointer                   :: criticalOverdensity_ => null()
      logical                                                               :: dumpTrees
      double precision                                                      :: snapTolerance
      double precision                          , allocatable, dimension(:) :: timeGrid
@@ -145,6 +146,8 @@ contains
     ! Build the instance.
     self=mergerTreeOperatorRegridTimes(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="criticalOverdensity_"/>
     return
   end function regridTimesConstructorParameters
 
@@ -239,9 +242,10 @@ contains
   subroutine regridTimesOperate(self,tree)
     !% Perform a regrid times operation on a merger tree.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes       , only : treeNode              , treeNodeList, nodeComponentBasic, nodeEvent, &
+         &                                            nodeComponentSatellite
     use               Galacticus_Error
-    use               FGSL
+    use               FGSL                   , only : fgsl_interp_accel
     use               Numerical_Interpolation
     use               Numerical_Comparison
     use               Kind_Numbers

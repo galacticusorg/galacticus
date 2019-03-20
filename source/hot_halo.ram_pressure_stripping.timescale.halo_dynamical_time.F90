@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,13 +22,13 @@
 
   use Dark_Matter_Halo_Scales
 
-  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleHaloDynamicalTime">
   !#  <description>A hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.</description>
   !# </hotHaloRamPressureTimescale>
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleHaloDynamicalTime
      !% Implementation of a hot halo ram pressure timescale class in which the timescale is equal to the halo dynamical time.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::              haloDynamicalTimeDestructor
      procedure :: timescale => haloDynamicalTimeTimescale
@@ -53,6 +54,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloRamPressureTimescaleHaloDynamicalTime(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function haloDynamicalTimeConstructorParameters
 

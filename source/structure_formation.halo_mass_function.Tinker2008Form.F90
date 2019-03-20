@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -80,7 +81,6 @@ contains
 
   double precision function tinker2008FormDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
-    use FGSL
     use Numerical_Interpolation
     use Table_Labels
     implicit none

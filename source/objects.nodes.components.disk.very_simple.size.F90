@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +22,12 @@
 module Node_Component_Disk_Very_Simple_Size
   !% Implements a very simple disk component.
   use ISO_Varying_String
-  use Galacticus_Nodes
+  use Dark_Matter_Profiles
   implicit none
   private
-  public :: Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility, Node_Component_Disk_Very_Simple_Size_Radius_Solver, &
-       &    Node_Component_Disk_Very_Simple_Size_Initialize
+  public :: Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility, Node_Component_Disk_Very_Simple_Size_Radius_Solver    , &
+       &    Node_Component_Disk_Very_Simple_Size_Initialize                , Node_Component_Disk_Very_Simple_Size_Thread_Initialize, &
+       &    Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
 
   !# <component>
   !#  <class>disk</class>
@@ -61,8 +63,12 @@ module Node_Component_Disk_Very_Simple_Size
   !#  <functions>objects.nodes.components.disk.very_simple.size.bound_functions.inc</functions>
   !# </component>
 
+  ! Classes used.
+  class           (darkMatterProfileClass), pointer :: darkMatterProfile_
+  !$omp threadprivate(darkMatterProfile_)
+  
   ! Parameters controlling the physical implementation.
-  double precision :: diskMassToleranceAbsolute
+  double precision                                  :: diskMassToleranceAbsolute
 
 contains
 
@@ -72,6 +78,7 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Size_Initialize()
     !% Initializes the tree node exponential disk methods module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultDiskComponent
     implicit none
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
@@ -88,12 +95,42 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Initialize
   
+  !# <nodeComponentThreadInitializationTask>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Initialize</unitName>
+  !# </nodeComponentThreadInitializationTask>
+  subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters)
+    !% Initializes the tree node standard merging statistics module.
+    use Galacticus_Nodes, only : defaultDiskComponent
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+
+    if (defaultDiskComponent%verySimpleSizeIsActive()) then
+       !# <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters"/>
+    end if
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize
+
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize()
+    !% Uninitializes the tree node standard merging statistics module.
+    use Galacticus_Nodes, only : defaultDiskComponent
+    implicit none
+
+    if (defaultDiskComponent%verySimpleSizeIsActive()) then
+       !# <objectDestructor name="darkMatterProfile_"/>
+    end if
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
+
   !# <radiusSolverPlausibility>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility</unitName>
   !# </radiusSolverPlausibility>
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(node)
     !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass.
-    use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDiskVerySimpleSize, treeNode, nodeComponentDisk
     implicit none
     type (treeNode         ), intent(inout) :: node
     class(nodeComponentDisk), pointer       :: disk
@@ -116,8 +153,8 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
     !% Interface for the size solver algorithm.
+    use Galacticus_Nodes      , only : treeNode, nodeComponentDisk, nodeComponentBasic, nodeComponentDiskVerySimpleSize
     use Dark_Matter_Halo_Spins
-    use Dark_Matter_Profiles
     implicit none
     type            (treeNode                                       ), intent(inout)          :: node
     logical                                                          , intent(  out)          :: componentActive
@@ -127,7 +164,6 @@ contains
     procedure       (Node_Component_Disk_Very_Simple_Size_Radius_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
     class           (nodeComponentDisk                              )               , pointer :: disk
     class           (nodeComponentBasic                             )               , pointer :: basic
-    class           (darkMatterProfileClass                         )               , pointer :: darkMatterProfile_
 
     ! Determine if node has an active disk component supported by this module.
     componentActive =  .false.
@@ -136,7 +172,6 @@ contains
     class is (nodeComponentDiskVerySimpleSize)
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
-          darkMatterProfile_     => darkMatterProfile      ()
           basic                  => node             %basic()
           specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
        end if
@@ -151,6 +186,7 @@ contains
 
   double precision function Node_Component_Disk_Very_Simple_Size_Radius(node)
     !% Return the radius of the disk used in structure solvers.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type (treeNode         ), intent(inout) :: node
     class(nodeComponentDisk), pointer       :: disk
@@ -162,6 +198,7 @@ contains
 
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set(node,radius)
     !% Set the radius of the disk used in structure solvers.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: radius
@@ -174,6 +211,7 @@ contains
 
   double precision function Node_Component_Disk_Very_Simple_Size_Velocity(node)
     !% Return the circular velocity of the disk.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type (treeNode         ), intent(inout) :: node
     class(nodeComponentDisk), pointer       :: disk
@@ -185,6 +223,7 @@ contains
 
   subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set(node,velocity)
     !% Set the circular velocity of the disk.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type            (treeNode         ), intent(inout) :: node
     double precision                   , intent(in   ) :: velocity

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -48,6 +49,8 @@ subroutine Merger_Tree_Destroy(tree)
         deallocate(event)
         event => eventNext
      end do
+     ! Destroy the property hash.
+     call tree%properties%destroy()
   end select
   return
 end subroutine Merger_Tree_Destroy
