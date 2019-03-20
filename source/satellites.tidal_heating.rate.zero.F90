@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   !% Contains a class which implements a tidal heating rate model in which the heating rate is always zero.
 
-  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateZero" defaultThreadPrivate="yes">
+  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateZero">
   !#  <description>A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.</description>
   !# </satelliteTidalHeatingRate>
   type, extends(satelliteTidalHeatingRateClass) :: satelliteTidalHeatingRateZero

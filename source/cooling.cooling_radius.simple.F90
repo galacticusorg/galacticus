@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,29 +29,32 @@
   use Abundances_Structure
   use Chemical_Abundances_Structure
 
-  !# <coolingRadius name="coolingRadiusSimple" defaultThreadPrivate="yes">
+  !# <coolingRadius name="coolingRadiusSimple">
   !#  <description>
   !#   A cooling radius class computes the cooling radius by seeking the radius at which the time available for cooling equals the
   !#   cooling time. The growth rate is determined consistently based on the slope of the density profile, the density dependence
   !#   of the cooling function and the rate at which the time available for cooling is increasing. This method assumes that the
   !#   cooling time is a monotonic function of radius.
   !#  </description>
+  !#  <deepCopy>
+  !#   <functionClass variables="radiation"/>
+  !#  </deepCopy>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusSimple
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
      !% for cooling equals the cooling time.
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
-     class           (coolingTimeClass                       ), pointer :: coolingTime_
-     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_
-     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_
-     class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_
-     type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
-     integer         (kind=kind_int8                         )          :: lastUniqueID              =-1
-     integer                                                            :: abundancesCount              , chemicalsCount
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
+     class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
+     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_      => null()
+     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_   => null()
+     class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
+     integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
+     integer                                                            :: abundancesCount                     , chemicalsCount
      ! Stored values of cooling radius.
-     logical                                                            :: radiusComputed               , radiusGrowthRateComputed
-     double precision                                                   :: radiusGrowthRateStored       , radiusStored
+     logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
+     double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      final     ::                     simpleDestructor
      procedure :: radius           => simpleRadius
@@ -93,11 +97,17 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
     self=coolingRadiusSimple(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"       />
+    !# <objectDestructor name="coolingTimeAvailable_"     />
+    !# <objectDestructor name="coolingTime_"              />
+    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
+    !# <objectDestructor name="hotHaloMassDistribution_"  />
     return
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(cosmologyFunctions_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the simple cooling radius class.
+    use Galacticus_Nodes              , only : defaultHotHaloComponent
     use ISO_Varying_String
     use Galacticus_Error
     use Array_Utilities
@@ -120,7 +130,8 @@ contains
     self%abundancesCount=Abundances_Property_Count()
     self%chemicalsCount =Chemicals_Property_Count ()
     ! Initialize radiation field.
-    self%radiation=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+    allocate(self%radiation)
+    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     ! Check that required components are gettable.
     if     (                                                                                                                        &
          &  .not.(                                                                                                                  &
@@ -158,6 +169,7 @@ contains
     !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
     !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%radiation"                 />
     return
   end subroutine simpleDestructor
 
@@ -175,6 +187,7 @@ contains
 
   double precision function simpleRadiusGrowthRate(self,node)
     !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    use Galacticus_Nodes             , only : nodeComponentBasic, nodeComponentHotHalo
     use Abundances_Structure
     use Chemical_Abundances_Structure
     implicit none
@@ -241,6 +254,7 @@ contains
     !% Return the cooling radius in the simple model.
     use Chemical_Reaction_Rates_Utilities
     use Root_Finder
+    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (coolingRadiusSimple ), intent(inout), target :: self
     type            (treeNode            ), intent(inout), target :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Cosmological_Density_Field
   
-  !# <darkMatterHaloBias name="darkMatterHaloBiasSheth2001" defaultThreadPrivate="yes">
+  !# <darkMatterHaloBias name="darkMatterHaloBiasSheth2001">
   !#  <description>
   !#   A dark matter halo mass bias class utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
   !#  </description>
@@ -28,8 +29,8 @@
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasSheth2001
      !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{sheth_ellipsoidal_2001}.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::               sheth2001Destructor
      procedure :: biasByMass => sheth2001BiasByMass
@@ -56,6 +57,8 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterHaloBiasSheth2001(criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function sheth2001ConstructorParameters
 

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,13 @@
 
 module Transfer_Functions
   !% Provides an object that implements transfer functions.
-  use FGSL
+  private
   
   !# <functionClass>
   !#  <name>transferFunction</name>
   !#  <descriptiveName>Transfer Function</descriptiveName>
   !#  <description>Object providing transfer functions.</description>
   !#  <default>eisensteinHu1999</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="value" >
   !#   <description>Return the transfer function for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
   !#   <type>double precision</type>

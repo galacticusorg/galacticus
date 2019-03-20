@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,13 +19,13 @@
 
 !% Contains a module which implements a ratio output analysis property extractor class.
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorRatio" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorRatio">
   !#  <description>A ratio output analysis property extractor class.</description>
   !# </outputAnalysisPropertyExtractor>
   type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorRatio
      !% A ratio extractor output analysis class. This extractor extracts two other properties and takes their ratio.
      private
-     class(outputAnalysisPropertyExtractorClass), pointer :: propertyNumerator_, propertyDenominator_
+     class(outputAnalysisPropertyExtractorClass), pointer :: propertyNumerator_ => null(), propertyDenominator_ => null()
    contains
      final     ::             ratioDestructor
      procedure :: extract  => ratioExtract
@@ -52,6 +53,8 @@ contains
     !# <objectBuilder class="outputAnalysisPropertyExtractor" name="propertyDenominator_" parameterName="outputAnalysisPropertyExtractorDenominator" source="parameters"/>
     self=outputAnalysisPropertyExtractorRatio(propertyNumerator_,propertyDenominator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="propertyNumerator_"  />
+    !# <objectDestructor name="propertyDenominator_"/>
     return
   end function ratioConstructorParameters
 

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +20,7 @@
   !% Implements a cooling function class which utilizes the {\normalfont \scshape Cloudy} code to
   !% compute cooling in collisional ionization equilibrium.
   
-  !# <coolingFunction name="coolingFunctionAtomicCIECloudy" defaultThreadPrivate="yes">
+  !# <coolingFunction name="coolingFunctionAtomicCIECloudy">
   !#  <description>
   !#   Class providing cooling function by utilizing the {\normalfont \scshape Cloudy} code to
   !#   compute cooling in collisional ionization equilibrium. {\normalfont \scshape Cloudy} will

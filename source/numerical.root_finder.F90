@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,14 @@
 module Root_Finder
   !% Implements root finding.
   use, intrinsic :: ISO_C_Binding
-  use               FGSL
+  use               FGSL         , only : fgsl_function            , fgsl_function_fdf        , fgsl_root_fsolver        , fgsl_root_fdfsolver           , &
+       &                                  fgsl_root_fsolver_type   , fgsl_root_fdfsolver_type , FGSL_Root_fSolver_Brent  , FGSL_Root_fdfSolver_Steffenson, &
+       &                                  FGSL_Root_FdFSolver_Free , FGSL_Function_FdF_Free   , FGSL_Root_FSolver_Free   , FGSL_Function_Free            , &
+       &                                  fgsl_error_handler_t     , FGSL_Well_Defined        , FGSL_Function_fdf_Init   , FGSL_Root_fdfSolver_Alloc     , &
+       &                                  FGSL_Function_Init       , FGSL_Root_fSolver_Alloc  , FGSL_Root_fdfSolver_Set  , FGSL_Root_fSolver_Set         , &
+       &                                  FGSL_Error_Handler_Init  , FGSL_Set_Error_Handler   , FGSL_Success             , FGSL_Root_fdfSolver_Iterate   , &
+       &                                  FGSL_Root_fdfSolver_Root , FGSL_Root_Test_Delta     , FGSL_Root_fSolver_Iterate, FGSL_Root_fSolver_Root        , &
+       &                                  FGSL_Root_fSolver_x_Lower, FGSL_Root_fSolver_x_Upper, FGSL_Root_Test_Interval
   implicit none
   private
   public :: rootFinder
@@ -247,6 +255,7 @@ contains
     ! Initialize the root finder variables if necessary.
     if (self%useDerivative) then
        if (.not.FGSL_Well_Defined(self%solverDerivative).or.self%resetRequired) then
+          if (FGSL_Well_Defined(self%solverDerivative)) call FGSL_Root_fdfSolver_Free(self%solverDerivative)
           self%fgslFunctionDerivative=FGSL_Function_fdf_Init   (                                         &
                &                                                Root_Finder_Wrapper_Function           , &
                &                                                Root_Finder_Wrapper_Function_Derivative, &
@@ -258,6 +267,7 @@ contains
        end if
     else
        if (.not.FGSL_Well_Defined(self%solver).or.self%resetRequired) then
+          if (FGSL_Well_Defined(self%solver)) call FGSL_Root_fSolver_Free(self%solver)
           self%fgslFunction          =FGSL_Function_Init       (Root_Finder_Wrapper_Function,parameterPointer)
           self%solver                =FGSL_Root_fSolver_Alloc  (self%solverType                              )
           self%resetRequired         =.false.

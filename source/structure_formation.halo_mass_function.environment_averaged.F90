@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,9 +30,9 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionEnvironmentAveraged
      !% A halo mass function class which averages another (presumably environment-dependent) mass function over environment.
      private
-     class           (haloMassFunctionClass), pointer :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
-     class           (haloEnvironmentClass ), pointer :: haloEnvironment_
-     double precision                                 :: factorMatching              , timeMatching
+     class           (haloMassFunctionClass), pointer :: haloMassFunctionConditioned_ => null(), haloMassFunctionUnconditioned_ => null()
+     class           (haloEnvironmentClass ), pointer :: haloEnvironment_             => null()
+     double precision                                 :: factorMatching                        , timeMatching
    contains
      final     ::                 environmentAveragedDestructor
      procedure :: differential => environmentAveragedDifferential
@@ -62,6 +63,10 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"           source="parameters"                                              />
     self=haloMassFunctionEnvironmentAveraged(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloMassFunctionConditioned_"  />
+    !# <objectDestructor name="haloMassFunctionUnconditioned_"/>
+    !# <objectDestructor name="haloEnvironment_"              />
+    !# <objectDestructor name="cosmologyParameters_"          />
     return
   end function environmentAveragedConstructorParameters
 
@@ -86,6 +91,7 @@ contains
     !# <objectDestructor name="self%haloMassFunctionConditioned_"  />
     !# <objectDestructor name="self%haloMassFunctionUnconditioned_"/>
     !# <objectDestructor name="self%haloEnvironment_"              />
+    !# <objectDestructor name="self%cosmologyParameters_"          />
     return
   end subroutine environmentAveragedDestructor
 
@@ -93,7 +99,7 @@ contains
     !% Return the differential halo mass function at the given time and mass.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes     , only : treeNode, nodeComponentBasic, mergerTree
     use               Root_Finder
     implicit none
     class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self
@@ -108,8 +114,7 @@ contains
          &                                                                            cdfTarget                         , massBackground
     type            (fgsl_function                      )                          :: integrandFunction
     type            (fgsl_integration_workspace         )                          :: integrationWorkspace
-    type            (rootFinder                         ), save                    :: finder
-    !$omp threadprivate(finder)
+    type            (rootFinder                         )                          :: finder
 
     massBackground=self%haloEnvironment_%environmentMass()
     if (mass >= massBackground) then

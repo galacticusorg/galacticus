@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Node_Component_NBody_Generic
   !% An implementation of the N-body component which supports generic properties.
-  use Galacticus_Nodes
   use ISO_Varying_String
   implicit none
   private
@@ -92,6 +92,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_NBody_Generic_Initialize(parameters)
     !% Initializes the generic N-body component module.
+    use Galacticus_Nodes, only : nodeComponentNBodyGeneric, defaultNBodyComponent
     use Input_Parameters
     implicit none
     type(inputParameters             ), intent(inout) :: parameters
@@ -114,6 +115,7 @@ contains
    subroutine Node_Component_NBody_Generic_Promote(node)
      !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the
      !% properties of {\normalfont \ttfamily node} to be those of its parent.
+     use Galacticus_Nodes, only : treeNode, nodeComponentNBody, nodeComponentNBodyGeneric
      implicit none
      type (treeNode          ), intent(inout), pointer :: node
      type (treeNode          )               , pointer :: nodeParent
@@ -136,6 +138,7 @@ contains
 
    function Node_Component_NBody_Generic_Add_Real_Property(self,propertyName) result(propertyIndex)
      !% Add a new real-valued property to this component, and return the index of the property.
+     use Galacticus_Nodes, only : nodeComponentNBodyGeneric
      integer                                                         :: propertyIndex
      class    (nodeComponentNBodyGeneric), intent(inout)             :: self
      character(len=*                    ), intent(in   )             :: propertyName
@@ -175,6 +178,8 @@ contains
    
    function Node_Component_NBody_Generic_Add_Integer_Property(self,propertyName) result(propertyIndex)
      !% Add a new real-valued property to this component, and return the index of the property.
+     use Galacticus_Nodes, only : nodeComponentNBodyGeneric
+     implicit none
      integer                                                         :: propertyIndex
      class    (nodeComponentNBodyGeneric), intent(inout)             :: self
      character(len=*                    ), intent(in   )             :: propertyName
@@ -214,6 +219,7 @@ contains
 
    subroutine Node_Component_NBody_Generic_Set_Real_Property(self,propertyIndex,propertyValue)
      !% Set the value of the indexed real property.
+     use Galacticus_Nodes, only : nodeComponentNBodyGeneric
      use Galacticus_Error
      implicit none
      class           (nodeComponentNBodyGeneric), intent(inout)               :: self
@@ -232,6 +238,7 @@ contains
 
    subroutine Node_Component_NBody_Generic_Set_Integer_Property(self,propertyIndex,propertyValue)
      !% Set the value of the indexed real property.
+     use Galacticus_Nodes, only : nodeComponentNBodyGeneric
      use Kind_Numbers
      use Galacticus_Error
      implicit none
@@ -258,6 +265,7 @@ contains
         &,doublePropertyUnitsSI,time)
      !% Set names of black hole properties to be written to the \glc\ output file.
      use String_Handling
+     use Galacticus_Nodes, only : treeNode
      implicit none
      type            (treeNode)              , intent(inout), pointer :: node
      double precision                        , intent(in   )          :: time
@@ -296,6 +304,7 @@ contains
    !# </mergerTreeOutputPropertyCount>
    subroutine Node_Component_NBody_Generic_Output_Count(node,integerPropertyCount,doublePropertyCount,time)
      !% Account for the number of black hole properties to be written to the the \glc\ output file.
+     use Galacticus_Nodes, only : treeNode
      implicit none
      type            (treeNode), intent(inout), pointer :: node
      double precision          , intent(in   )          :: time
@@ -315,49 +324,50 @@ contains
    !# </mergerTreeOutputTask>
    subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
         &,doubleBufferCount,doubleBuffer,time,instance)
-    !% Store black hole properties in the \glc\ output file buffers.
-    use Kind_Numbers
-    use Multi_Counters
-    implicit none
-    double precision                    , intent(in   )               :: time
-    type            (treeNode          ), intent(inout), pointer      :: node
-    integer                             , intent(inout)               :: doubleBufferCount          , doubleProperty, integerBufferCount, &
-         &                                                               integerProperty
-    integer         (kind=kind_int8    ), intent(inout)               :: integerBuffer         (:,:)
-    double precision                    , intent(inout)               :: doubleBuffer          (:,:)
-    type            (multiCounter      ), intent(inout )              :: instance
-    class           (nodeComponentNBody)               , pointer      :: nBody
-    integer         (kind=kind_int8    ), allocatable  , dimension(:) :: propertyValuesInteger
-    double precision                    , allocatable  , dimension(:) :: propertyValuesReal
-    integer                                                           :: i
-    !GCC$ attributes unused :: time, instance
+     !% Store black hole properties in the \glc\ output file buffers.
+     use Galacticus_Nodes, only : treeNode, nodeComponentNBody
+     use Kind_Numbers
+     use Multi_Counters
+     implicit none
+     double precision                    , intent(in   )               :: time
+     type            (treeNode          ), intent(inout), pointer      :: node
+     integer                             , intent(inout)               :: doubleBufferCount          , doubleProperty, integerBufferCount, &
+          &                                                               integerProperty
+     integer         (kind=kind_int8    ), intent(inout)               :: integerBuffer         (:,:)
+     double precision                    , intent(inout)               :: doubleBuffer          (:,:)
+     type            (multiCounter      ), intent(inout )              :: instance
+     class           (nodeComponentNBody)               , pointer      :: nBody
+     integer         (kind=kind_int8    ), allocatable  , dimension(:) :: propertyValuesInteger
+     double precision                    , allocatable  , dimension(:) :: propertyValuesReal
+     integer                                                           :: i
+     !GCC$ attributes unused :: time, instance
 
-    nBody => node%nBody()
-    !$omp critical(nbodyGenericAccess)
-    if (allocated(propertyNamesInteger)) then
-       propertyValuesInteger=nBody%integers()
-       do i=1,size(propertyNamesInteger)
-          integerProperty=integerProperty+1
-          if (i > size(propertyValuesInteger)) then
-             integerBuffer(integerBufferCount,integerProperty)=0_kind_int8
-          else
-             integerBuffer(integerBufferCount,integerProperty)=propertyValuesInteger(i)
-          end if
-       end do
-    end if
-    if (allocated(propertyNamesReal)) then
-       propertyValuesReal=nBody%reals()
-       do i=1,size(propertyNamesReal)
-          doubleProperty=doubleProperty+1
-          if (i > size(propertyValuesReal)) then
-             doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
-          else
-             doubleBuffer(doubleBufferCount,doubleProperty)=propertyValuesReal(i)
-          end if
-       end do
-    end if
-    !$omp end critical(nbodyGenericAccess)
-    return
+     nBody => node%nBody()
+     !$omp critical(nbodyGenericAccess)
+     if (allocated(propertyNamesInteger)) then
+        propertyValuesInteger=nBody%integers()
+        do i=1,size(propertyNamesInteger)
+           integerProperty=integerProperty+1
+           if (i > size(propertyValuesInteger)) then
+              integerBuffer(integerBufferCount,integerProperty)=0_kind_int8
+           else
+              integerBuffer(integerBufferCount,integerProperty)=propertyValuesInteger(i)
+           end if
+        end do
+     end if
+     if (allocated(propertyNamesReal)) then
+        propertyValuesReal=nBody%reals()
+        do i=1,size(propertyNamesReal)
+           doubleProperty=doubleProperty+1
+           if (i > size(propertyValuesReal)) then
+              doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
+           else
+              doubleBuffer(doubleBufferCount,doubleProperty)=propertyValuesReal(i)
+           end if
+        end do
+     end if
+     !$omp end critical(nbodyGenericAccess)
+     return
   end subroutine Node_Component_NBody_Generic_Output
 
 end module Node_Component_NBody_Generic

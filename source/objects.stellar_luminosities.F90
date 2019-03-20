@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -221,7 +222,6 @@ module Stellar_Luminosities_Structure
      !@     <description>Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final             ::                          Stellar_Luminosities_Destructor
      procedure         :: add                   => Stellar_Luminosities_Add
      procedure         :: subtract              => Stellar_Luminosities_Subtract
      procedure         :: multiply              => Stellar_Luminosities_Multiply
@@ -501,23 +501,12 @@ contains
     return
   end subroutine Stellar_Luminosities_Initialize
 
-  subroutine Stellar_Luminosities_Destructor(self)
-    !% Destructor for a {\normalfont \ttfamily stellarLuminosities} object.
-    use Memory_Management
-    implicit none
-    type(stellarLuminosities), intent(inout) :: self
-
-    if (allocated(self%luminosityValue)) call deallocateArray(self%luminosityValue)
-    return
-  end subroutine Stellar_Luminosities_Destructor
-
   subroutine Stellar_Luminosities_Destroy(self)
     !% Destroy an stellarLuminosities object.
-    use Memory_Management
     implicit none
     class(stellarLuminosities), intent(inout) :: self
 
-    if (allocated(self%luminosityValue)) call deallocateArray(self%luminosityValue)
+    if (allocated(self%luminosityValue)) deallocate(self%luminosityValue)
     return
   end subroutine Stellar_Luminosities_Destroy
 
@@ -599,8 +588,8 @@ contains
     if (luminosityCount > 0) then
        call Stellar_Luminosities_Create(self)
        read (fileHandle) luminosityActiveCount
-       call deallocateArray(self%luminosityValue                        )
-       call allocateArray  (self%luminosityValue,[luminosityActiveCount])
+       deallocate(self%luminosityValue                       )
+       allocate  (self%luminosityValue(luminosityActiveCount))
        read (fileHandle) self%luminosityValue
     end if
     return
@@ -892,7 +881,7 @@ contains
     implicit none
     type(stellarLuminosities), intent(inout) :: self
 
-    if (.not.allocated(self%luminosityValue)) call allocateArray(self%luminosityValue,[luminosityCount])
+    if (.not.allocated(self%luminosityValue)) allocate(self%luminosityValue(luminosityCount))
     return
   end subroutine Stellar_Luminosities_Create
 
@@ -972,9 +961,9 @@ contains
                 if (Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionPresent)) &
                      & luminosityRemainingCount=luminosityRemainingCount-1
              end do
-             call allocateArray(self%luminosityValue,[luminosityRemainingCount])
+             allocate(self%luminosityValue(luminosityRemainingCount))
              self%luminosityValue=luminosityTmp(1:luminosityRemainingCount)
-             call deallocateArray(luminosityTmp)
+             deallocate(luminosityTmp)
           end select
        end if
     end if
@@ -1709,7 +1698,7 @@ contains
     !% Write the luminosities state to file.
     use, intrinsic :: ISO_C_Binding
     use            :: Galacticus_Display
-    use            :: FGSL
+    use            :: FGSL              , only : fgsl_file
     use            :: String_Handling
     use            :: ISO_Varying_String
     implicit none
@@ -1747,7 +1736,7 @@ contains
     use            :: Galacticus_Display
     use            :: Instruments_Filters
     use            :: Stellar_Population_Spectra_Postprocess
-    use            :: FGSL
+    use            :: FGSL                                  , only : fgsl_file
     use            :: String_Handling
     use            :: ISO_Varying_String
     implicit none

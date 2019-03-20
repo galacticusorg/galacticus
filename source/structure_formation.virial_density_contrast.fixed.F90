@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(virialDensityContrastClass) :: virialDensityContrastFixed
      !% A dark matter halo virial density contrast class assuming fixed contrast.
      private
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
      double precision                                    :: densityContrastValue
      integer                                             :: densityType
    contains
@@ -84,6 +85,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=virialDensityContrastFixed(densityContrastValue,enumerationFixedDensityTypeEncode(char(densityType),includesPrefix=.false.),cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function fixedConstructorParameters
 

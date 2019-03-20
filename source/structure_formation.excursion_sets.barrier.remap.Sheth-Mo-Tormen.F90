@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierRemapShethMoTormen
      !% An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
      private
-     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_
+     class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
      double precision                                    :: a                   , b, &
           &                                                 c
      integer                                             :: applyTo
@@ -93,6 +94,7 @@ contains
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="excursionSetBarrier_"/>
     return
   end function remapShethMoTormenConstructorParameters
 

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,9 +21,8 @@
 
 module Cosmological_Density_Field
   !% Provides an object that implements critical overdensities and halo environments.
-  use FGSL
   use Cosmology_Functions
-  use Galacticus_Nodes
+  use Galacticus_Nodes   , only : treeNode
   private
   
   !# <functionClass>
@@ -30,7 +30,6 @@ module Cosmological_Density_Field
   !#  <descriptiveName>Critical Overdensity</descriptiveName>
   !#  <description>Object providing critical overdensities.</description>
   !#  <default>sphericalCollapseMatterLambda</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <data>double precision                                         :: criticalOverdensityTarget          , mass       , time</data>
   !#  <data>type            (treeNode                     ), pointer :: node                                                  </data>
   !#  <data>logical                                                  :: massPresent                        , nodePresent      </data>
@@ -60,14 +59,11 @@ module Cosmological_Density_Field
   !#   <argument>type            (treeNode), intent(inout), optional, target :: node               </argument>
   !#   <modules>Root_Finder</modules>
   !#   <code>
-  !#    double precision            , parameter :: toleranceRelative    =1.0d-12, toleranceAbsolute=0.0d0
+  !#    double precision            , parameter :: toleranceRelative=1.0d-12, toleranceAbsolute=0.0d0
   !#    double precision                        :: timeBigCrunch
-  !#    type            (rootFinder), save      :: finder
-  !#    !$omp threadprivate(finder)
-  !#    if (.not.finder%isInitialized()) then
-  !#       call finder%rootFunction(collapseTimeRoot                   )
-  !#       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-  !#    end if
+  !#    type            (rootFinder)            :: finder
+  !#    call finder%rootFunction(collapseTimeRoot                   )
+  !#    call finder%tolerance   (toleranceAbsolute,toleranceRelative)
   !#    timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
   !#    if (timeBigCrunch &lt; 0.0d0) then
   !#       timeBigCrunch=huge(0.0d0)
@@ -166,7 +162,6 @@ module Cosmological_Density_Field
   !#  <descriptiveName>Halo Environment</descriptiveName>
   !#  <description>Class providing halo environment.</description>
   !#  <default>uniform</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="overdensityLinear" >
   !#   <description>Return the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
@@ -234,7 +229,6 @@ module Cosmological_Density_Field
   !#  <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
   !#  <description>Object providing mass variance of the cosmological density field.</description>
   !#  <default>filteredPower</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="powerNormalization" >
   !#   <description>Return the normalization of the power spectrum.</description>
   !#   <type>double precision</type>

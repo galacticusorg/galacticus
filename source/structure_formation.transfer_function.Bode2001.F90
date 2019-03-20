@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,9 +30,9 @@
      private
      double precision                                    :: epsilon             , eta        , &
           &                                                 nu                  , scaleCutOff
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
+     class           (transferFunctionClass   ), pointer :: transferFunctionCDM => null()
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
    contains
      final     ::                          bode2001Destructor
      procedure :: value                 => bode2001Value
@@ -95,6 +96,9 @@ contains
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     self=transferFunctionBode2001(transferFunctionCDM,epsilon,eta,nu,cosmologyParameters_,darkMatterParticle_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterParticle_" />
+    !# <objectDestructor name="transferFunctionCDM" />
     return
   end function bode2001ConstructorParameters
 

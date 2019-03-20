@@ -12,44 +12,43 @@ sub Extract_Directive {
 	if ( scalar(@_) > 1 );
     my $directive;
     my $xmlText;
-    my $matchedDirectiveName;
-    my $commentRegEx = exists($options{'comment'}) ? $options{'comment'} : qr/^\s*\!#/;
-    my $xmlTagRegEx  = $directiveName eq "*" ? qr/^\s*<([a-zA-Z0-9]+).*>/ : qr/^\s*<($directiveName)(>|\s.*>)/;    
+    my $commentRegEx       = exists($options{'comment'}) ? $options{'comment'} : qr/^\s*\!#/;
+    my $xmlTagRegEx        = $directiveName eq "*" ? qr/^\s*<([a-zA-Z0-9]+).*>/ : qr/^\s*<($directiveName)(>|\s.*>)/; 
+    my $depth              = 0;
     while ( my $line = <$fileHandle> ) {
-	if ( $line =~ s/$commentRegEx// ) {
+	if ( $line =~ s/$commentRegEx// || $depth > 0 ) {
 	    $xmlText .= $line;
-	    if ( ! defined($matchedDirectiveName) && $line =~ $xmlTagRegEx ) {
-		$matchedDirectiveName = $1;
-		$xmlText              = $line;
-	    }
-	    if ( defined($matchedDirectiveName) && ( $line =~ m/^\s*<\/$matchedDirectiveName[\s>]/ || $line =~ m/^\s*<$matchedDirectiveName\s.*\/>/ ) ) {
+	    $depth += () = ( $line =~ /<([a-zA-Z0-9]+)[^\/>]*>/g ); # Increment depth by count of any opening elements.
+	    $depth -= () = ( $line =~ /<\/([a-zA-Z0-9]+)>/g      ); # Decrement depth by count of any closing elements.
+	    if ( defined($xmlText) && $depth == 0 ) {
 		# Parse the XML.
-		my $xml    = new XML::Simple();
+		my $xml    = new XML::Simple(KeepRoot => 1);
 		$directive = $xml->XMLin($xmlText);
-		if ( %options && exists($options{'conditions'}) ) {
-		    my $matched = 1;
-		    foreach ( keys(%{$options{'conditions'}}) ) {
-			unless ( exists($directive->{$_}) && $directive->{$_} eq ${options{'conditions'}}{$_} ) {
-			    $matched = 0;
-			    last;
+		if ( $directiveName eq "*" || exists($directive->{$directiveName}) ) {
+		    my $matchedDirectiveName = (keys(%{$directive}))[0];
+		    $directive = $directive->{$matchedDirectiveName};
+		    # Include the root element name if requested.
+		    $directive->{'rootElementType'} = $matchedDirectiveName
+			if ( exists($options{'setRootElementType'}) && $options{'setRootElementType'} == 1 );
+		    # Check any conditions.
+		    if ( %options && exists($options{'conditions'}) ) {
+			my $matched = 1;
+			foreach ( keys(%{$options{'conditions'}}) ) {
+			    unless ( exists($directive->{$_}) && $directive->{$_} eq ${options{'conditions'}}{$_} ) {
+				$matched = 0;
+				last;
+			    }
 			}
+			next
+			    unless ( $matched );
 		    }
-		    unless ( $matched ) {
-			undef($directive           );
-			undef($xmlText             );
-			undef($matchedDirectiveName);
-			next;
-		    }
+		    last;
 		}
-		last;
+		undef($directive);
+		undef($xmlText  );
 	    }
-	} elsif ( defined($matchedDirectiveName) ) {
-	    $xmlText .= $line
 	}
     }
-    # Include the root element name if requested.
-    $directive->{'rootElementType'} = $matchedDirectiveName
-	if ( defined($matchedDirectiveName) && exists($options{'setRootElementType'}) && $options{'setRootElementType'} == 1 );
     # Return the directive.
     return $directive;
 }

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Cosmology_Functions
 
-  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksBaugh2005" defaultThreadPrivate="yes">
+  !# <starFormationTimescaleDisks name="starFormationTimescaleDisksBaugh2005">
   !#  <description>The \cite{baugh_can_2005} timescale for star formation in galactic disks.</description>
   !# </starFormationTimescaleDisks>
   type, extends(starFormationTimescaleDisksClass) :: starFormationTimescaleDisksBaugh2005
      !% Implementation of the \cite{baugh_can_2005} timescale for star formation in galactic disks.
      private
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
      double precision                                    :: timescaleValue         , exponentVelocity, &
           &                                                 exponentExpansionFactor
    contains
@@ -85,6 +86,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=starFormationTimescaleDisksBaugh2005(timescale,exponentVelocity,exponentExpansionFactor,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function baugh2005ConstructorParameters
 
@@ -112,6 +114,7 @@ contains
 
   double precision function baugh2005Timescale(self,node)
     !% Returns the timescale (in Gyr) for star formation in the galactic disk of {\normalfont \ttfamily node} in the halo scaling timescale model.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk
     implicit none
     class           (starFormationTimescaleDisksBaugh2005), intent(inout), target :: self
     type            (treeNode                            ), intent(inout), target :: node 

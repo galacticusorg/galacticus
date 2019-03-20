@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +22,14 @@
   use Halo_Mass_Functions
   use Conditional_Mass_Functions
 
-  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn">
   !#  <description>A merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.</description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionStllrMssFnctn
      !% Implementation of merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
      private
-     class           (haloMassFunctionClass       ), pointer :: haloMassFunction_
-     class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_
+     class           (haloMassFunctionClass       ), pointer :: haloMassFunction_ => null()
+     class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_ => null()
      double precision                                        :: alpha                   , beta               , &
           &                                                     constant                , binWidthLogarithmic, &
           &                                                     massMinimum             , massMaximum        , &
@@ -119,6 +120,8 @@ contains
     !# <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
     self=mergerTreeBuildMassDistributionStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloMassFunction_"       />
+    !# <objectDestructor name="conditionalMassFunction_"/>
     return
   end function stellarMassFunctionConstructorParameters
 
@@ -149,7 +152,7 @@ contains
 
   double precision function stellarMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate optimized to minimize errors in the stellar mass function.
-    use FGSL
+    use FGSL                         , only : fgsl_function, fgsl_integration_workspace
     use Galacticus_Meta_Compute_Times
     use Numerical_Integration
     implicit none

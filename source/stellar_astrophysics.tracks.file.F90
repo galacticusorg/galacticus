@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implements a stellar tracks class in which the tracks are read from file and interpolated.
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
   
   !# <stellarTracks name="stellarTracksFile">
   !#  <description>A stellar tracks class in which the tracks are read from file and interpolated.</description>

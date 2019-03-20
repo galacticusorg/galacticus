@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Tables
  
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn" defaultThreadPrivate="yes">
+  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorDiskSizeInclntn">
   !#  <description>An output analysis distribution operator class which implements the effects of inclination on disk size.</description>
   !# </outputAnalysisDistributionOperator>
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorDiskSizeInclntn
@@ -137,7 +138,7 @@ contains
   
   double precision function diskSizeInclntnRoot(xHalf)
     !% Function used in solving for the half-light radii of inclined disks.
-    use FGSL
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Numerical_Constants_Math
     implicit none
@@ -157,7 +158,7 @@ contains
     !% Integral for half-light radius.
     use Numerical_Integration
     use Numerical_Constants_Math
-    use FGSL
+    use FGSL                    , only : fgsl_function, fgsl_integration_workspace
     implicit none
     double precision                            , intent(in   ) :: x
     type            (fgsl_function             )                :: integrandFunction

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,7 @@
   type, extends(stellarWindsClass) :: stellarWindsLeitherer1992
      !% A stellar winds class based on \cite{leitherer_deposition_1992}.
      private
-     class(stellarTracksClass), pointer :: stellarTracks_
+     class(stellarTracksClass), pointer :: stellarTracks_ => null()
    contains
      final     ::                     leitherer1992Destructor
      procedure :: rateMassLoss     => leitherer1992RateMassLoss
@@ -56,6 +57,7 @@ contains
     !# <objectBuilder class="stellarTracks" name="stellarTracks_" source="parameters"/>
     self=stellarWindsLeitherer1992(stellarTracks_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarTracks_"/>
     return
   end function leitherer1992ConstructorParameters
 

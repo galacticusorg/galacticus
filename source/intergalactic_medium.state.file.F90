@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   !% An implementation of the intergalactic medium state class in which state is read from file.
 
-  use FGSL
+  use FGSL, only : fgsl_interp_accel, fgsl_interp
 
   ! Current file format version for intergalactic medium state files.
   integer, parameter :: fileFormatVersionCurrent=1
@@ -88,6 +89,9 @@ contains
     !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
     self=intergalacticMediumStateFile(fileName,cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="linearGrowth_"       />
     return
   end function fileConstructorParameters
 

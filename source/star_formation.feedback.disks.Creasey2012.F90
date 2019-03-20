@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Star_Formation_Rate_Surface_Density_Disks
  
-  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012" defaultThreadPrivate="yes">
+  !# <starFormationFeedbackDisks name="starFormationFeedbackDisksCreasey2012">
   !#  <description>The \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.</description>
   !# </starFormationFeedbackDisks>
   type, extends(starFormationFeedbackDisksClass) :: starFormationFeedbackDisksCreasey2012
      !% Implementation of the \cite{creasey_how_2012} outflow rate due to star formation feedback in galactic disks.
      private
-    class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_
+    class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
      double precision                                                    :: nu                                   , mu, &
           &                                                                 beta0
    contains
@@ -82,6 +83,7 @@ contains
     !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
     self=starFormationFeedbackDisksCreasey2012(mu,nu,beta0,starFormationRateSurfaceDensityDisks_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
     return
   end function creasey2012ConstructorParameters
 
@@ -118,7 +120,8 @@ contains
     use Numerical_Constants_Math
     use Stellar_Feedback
     use Numerical_Integration
-    use FGSL
+    use FGSL                    , only : fgsl_function    , fgsl_integration_workspace
+    use Galacticus_Nodes        , only : nodeComponentDisk
     implicit none
     class           (starFormationFeedbackDisksCreasey2012), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node

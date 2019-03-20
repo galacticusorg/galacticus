@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +32,7 @@
      !% terms for dynamical friction, hardening due to scattering of stars and emission of gravitational waves.
      private
      logical                                    :: stellarDensityChangeBinaryMotion, computeVelocityDispersion
-     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::               standardDestructor
      procedure :: growthRate => standardGrowthRate
@@ -76,6 +77,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=blackHoleBinarySeparationGrowthRateStandard(stellarDensityChangeBinaryMotion,computeVelocityDispersion,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function standardConstructorParameters
 
@@ -102,7 +104,7 @@ contains
   double precision function standardGrowthRate(self,blackHole)
     !% Returns an initial separation growth rate for a binary black holes that follows a modified version of
     !% \cite{volonteri_assembly_2003}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                           , only : treeNode, nodeComponentSpheroid
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
     use Galactic_Structure_Densities

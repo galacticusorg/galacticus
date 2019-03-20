@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,15 +24,15 @@
   use Cosmology_Functions
   use Dark_Matter_Particles
 
-  !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996" defaultThreadPrivate="yes">
+  !# <criticalOverdensity name="criticalOverdensityKitayamaSuto1996">
   !#  <description>Provides a critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}, and is therefore valid only for flat cosmological models.</description>
   !# </criticalOverdensity>
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
      double precision                                   :: timePrevious       , valuePrevious
-     class           (linearGrowthClass      ), pointer :: linearGrowth_
-     class           (darkMatterParticleClass), pointer :: darkMatterParticle_
+     class           (linearGrowthClass      ), pointer :: linearGrowth_ => null()
+     class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
     contains
      final     ::                    kitayamaSuto1996Destructor
      procedure :: value           => kitayamaSuto1996Value
@@ -56,19 +57,21 @@ contains
     implicit none
     type (criticalOverdensityKitayamaSuto1996)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
-    
-    !# <objectBuilder class="linearGrowth"             name="self%linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="self%cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"       name="self%darkMatterParticle_"       source="parameters"/>
-    self%timePrevious=-1.0d0
-    select type (darkMatterParticle_ => self%darkMatterParticle_)
-    class is (darkMatterParticleCDM)
-       ! Cold dark matter particle - this is as expected.
-    class default
-       call Galacticus_Error_Report('critical overdensity expects a cold dark matter particle'//{introspection:location})
-    end select
+    class(cosmologyFunctionsClass            ), pointer       :: cosmologyFunctions_
+    class(linearGrowthClass                  ), pointer       :: linearGrowth_
+    class(cosmologicalMassVarianceClass      ), pointer       :: cosmologicalMassVariance_
+    class(darkMatterParticleClass            ), pointer       :: darkMatterParticle_
+
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !# <objectBuilder class="darkMatterParticle"       name="darkMatterParticle_"       source="parameters"/>
+    self=criticalOverdensityKitayamaSuto1996(linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="darkMatterParticle_"      />
     return
   end function kitayamaSuto1996ConstructorParameters
 
@@ -82,12 +85,9 @@ contains
     class(linearGrowthClass                  ), target, intent(in   ) :: linearGrowth_
     class(cosmologicalMassVarianceClass      ), target, intent(in   ) :: cosmologicalMassVariance_
     class(darkMatterParticleClass            ), target, intent(in   ) :: darkMatterParticle_
-
-    self%timePrevious              =  -1.0d0
-    self%cosmologyFunctions_       => cosmologyFunctions_
-    self%linearGrowth_             => linearGrowth_
-    self%cosmologicalMassVariance_ => cosmologicalMassVariance_
-    self%darkMatterParticle_       => darkMatterParticle_
+    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_"/>
+    
+    self%timePrevious=-1.0d0
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -103,9 +103,10 @@ contains
     implicit none
     type(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%linearGrowth_"      />
-    !# <objectDestructor name="self%darkMatterParticle_"/>
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%darkMatterParticle_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine kitayamaSuto1996Destructor
 

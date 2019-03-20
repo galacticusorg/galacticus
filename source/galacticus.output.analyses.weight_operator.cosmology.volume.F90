@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,14 +22,14 @@
   use Cosmology_Functions
   use Geometry_Surveys
   
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume">
   !#  <description>A cosmological volume corrector analysis weight operator class.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCsmlgyVolume
      !% A cosmological volume corrector analysis weight operator class.
      private
-     class(cosmologyFunctionsClass), pointer :: cosmologyFunctionsModel, cosmologyFunctionsData
-     class(surveyGeometryClass    ), pointer :: surveyGeometry_
+     class(cosmologyFunctionsClass), pointer :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
+     class(surveyGeometryClass    ), pointer :: surveyGeometry_         => null()
    contains
      final     ::            csmlgyVolumeDestructor
      procedure :: operate => csmlgyVolumeOperate
@@ -60,6 +61,9 @@ contains
     ! Construct the object.
     self=outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctionsModel"/>
+    !# <objectDestructor name="cosmologyFunctionsData" />
+    !# <objectDestructor name="surveyGeometry_"        />
     return
   end function csmlgyVolumeConstructorParameters
 

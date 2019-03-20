@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,18 +16,23 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
   !% another likelihood.
   
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression" defaultThreadPrivate="yes">
+  use FGSL, only : FGSL_Size_T           , fgsl_matrix      , fgsl_permutation     , FGSL_Matrix_Free     , &
+       &           FGSL_Permutation_Free , FGSL_Int         , FGSL_Well_Defined    , FGSL_Matrix_Init     , &
+       &           FGSL_Permutation_Alloc, FGSL_Matrix_Align, FGSL_LinAlg_LU_Decomp, FGSL_Linalg_LU_SgnDet, &
+       &           FGSL_Double
+
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGaussianRegression">
   !#  <description>A posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate another likelihood.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGaussianRegression
      !% Implementation of a posterior sampling likelihood class which implements a likelihood using Gaussian regression to emulate
      !% another likelihood.
      private
-     class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_
+     class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
      integer                                                                       :: accumulatedStateCount     , emulatorRebuildCount       , &
           &                                                                           polynomialOrder           , polynomialCoefficientCount , &
           &                                                                           reportCount               , simulationCount            , &
@@ -217,6 +223,7 @@ contains
      !# <objectBuilder class="posteriorSampleLikelihood" name="posteriorSampleLikelihood_" source="parameters"/>
     self=posteriorSampleLikelihoodGaussianRegression(emulatorRebuildCount,polynomialOrder,sigmaBuffer,logLikelihoodBuffer,logLikelihoodErrorTolerance,reportCount,emulateOutliers,char(dumpEmulatorFileRoot),dummyEmulator,posteriorSampleLikelihood_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="posteriorSampleLikelihood_"/>
     return
   end function gaussianRegressionConstructorParameters
   
@@ -650,9 +657,13 @@ contains
   subroutine gaussianRegressionFitVariogram(self,separations,semiVariances)
     !% Compute best fit coefficients for the variogram model.
     use, intrinsic :: ISO_C_Binding
-    use Galacticus_Error
-    use FGSL
-    use Sort
+    use            :: Galacticus_Error
+    use            :: FGSL            , only : fgsl_multimin_function_fdf        , fgsl_multimin_fdfminimizer               , fgsl_vector                 , FGSL_MultiMin_Function_FDF_Init    , &
+         &                                     FGSL_MultiMin_FDFMinimizer_Alloc  , FGSL_MultiMin_FDFMinimizer_Conjugate_PR  , FGSL_Vector_Init            , FGSL_Vector_Align                  , &
+         &                                     FGSL_MultiMin_FDFMinimizer_Set    , FGSL_Success, FGSL_MultiMin_Test_Gradient, FGSL_Continue               , FGSL_MultiMin_FDFMinimizer_Gradient, &
+         &                                     FGSL_MultiMin_FDFMinimizer_Iterate, FGSL_MultiMin_FDFMinimizer_Minimum       , FGSL_ENoProg                , FGSL_MultiMin_FDFMinimizer_Free    , &
+         &                                     FGSL_MultiMin_Function_FDF_Free   , FGSL_MultiMin_Test_Gradient              , FGSL_Multimin_FDFMinimizer_x, FGSL_Vector_Free
+    use            :: Sort
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout), target       :: self
     double precision                                             , intent(in   ), dimension(:) :: separations                , semiVariances
@@ -759,6 +770,7 @@ contains
   function gaussianRegressionVariogramModelF(x,parameters) bind(c)
     !% Function to be minimized when fitting the variogram.
     use, intrinsic :: ISO_C_Binding
+    use            :: FGSL         , only : FGSL_Vector, FGSL_obj_c_ptr, FGSL_vector_align
     implicit none
     real   (c_double   )                        :: gaussianRegressionVariogramModelF
     type   (c_ptr      ), value                 :: x                                , parameters
@@ -781,6 +793,7 @@ contains
   subroutine gaussianRegressionVariogramModelD(x,parameters,df) bind(c)
     !% Derivatives of the function to be minimized when fitting the variogram.
     use, intrinsic :: ISO_C_Binding
+    use            :: FGSL         , only : FGSL_vector, FGSL_obj_c_ptr, FGSL_vector_align
     implicit none
     type   (c_ptr      ), value                 :: x     , parameters, &
          &                                         df
@@ -1007,6 +1020,8 @@ contains
 
   subroutine gaussianRegressionEmulate(self,simulationState,likelihoodEmulated,likelihoodEmulatedError)
     !% Evaluate the model emulator.
+    use FGSL, only : fgsl_vector         , FGSL_Int        , FGSL_Vector_Init, FGSL_Vector_Align, &
+         &           FGSL_LinAlg_LU_Solve, FGSL_Vector_Free
     implicit none
     class           (posteriorSampleLikelihoodGaussianRegression), intent(inout)               :: self
     class           (posteriorSampleStateClass                  ), intent(inout)               :: simulationState

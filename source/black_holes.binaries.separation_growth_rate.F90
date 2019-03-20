@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@
 
 module Black_Hole_Binary_Separations
   !% Implements a class for calculations of black hole binary separation growth rate.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : nodeComponentBlackHole
   implicit none
   private
 
@@ -31,7 +32,6 @@ module Black_Hole_Binary_Separations
   !#  <descriptiveName>Black Hole Binaries Separation Growth Rate</descriptiveName>
   !#  <description>Class providing models of black hole binary separation growth rates.</description>
   !#  <default>zero</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="growthRate" >
   !#   <description>Computes the rate of growth of the separation of the given black hole and its binary companion in units of Mpc/Gyr.</description>
   !#   <type>double precision</type>

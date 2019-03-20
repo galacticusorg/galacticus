@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Dark_Matter_Halo_Scales
   
-  !# <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991" defaultThreadPrivate="yes">
+  !# <coolingTimeAvailable name="coolingTimeAvailableWhiteFrenk1991">
   !#  <description>A time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}. The time available is set to a value between the age of the Universe and the dynamical time of the halo, depending on the interpolating parameter {\normalfont \ttfamily [ageFactor]}.</description>
   !# </coolingTimeAvailable>
   type, extends(coolingTimeAvailableClass) :: coolingTimeAvailableWhiteFrenk1991
      !% Implementation of a time available for cooling class which implements the algorithm of \cite{white_galaxy_1991}.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: ageFactor
    contains
      final     ::                              whiteFrenk1991Destructor
@@ -62,6 +63,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=coolingTimeAvailableWhiteFrenk1991(ageFactor,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function whiteFrenk1991ConstructorParameters
 
@@ -93,6 +95,7 @@ contains
 
   double precision function whiteFrenk1991TimeAvailable(self,node)
     !% Returns the time available for cooling (in units of Gyr) in the hot atmosphere for the \cite{white_galaxy_1991} model.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(coolingTimeAvailableWhiteFrenk1991), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node

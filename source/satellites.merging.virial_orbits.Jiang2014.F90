@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,15 +26,19 @@
 
   !# <virialOrbit name="virialOrbitJiang2014">
   !#  <description>Virial orbits using the \cite{jiang_orbital_2014} orbital parameter distribution.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </deepCopy>
   !# </virialOrbit>
   type, extends(virialOrbitClass) :: virialOrbitJiang2014
      !% A virial orbit class using the \cite{jiang_orbital_2014} orbital parameter distribution.
      private
-     class           (darkMatterHaloScaleClass), pointer        :: darkMatterHaloScale_ => null()
-     class           (cosmologyFunctionsClass ), pointer        :: cosmologyFunctions_  => null()
-     double precision                          , dimension(3,3) :: B                             , gamma, &
-          &                                                        sigma                         , mu
-     type            (table1DLinearLinear     ), dimension(3,3) :: voightDistributions
+     class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_   => null()
+     class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_    => null()
+     type            (virialDensityContrastFixed), pointer        :: virialDensityContrast_ => null()
+     double precision                            , dimension(3,3) :: B                               , gamma, &
+          &                                                          sigma                           , mu
+     type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
    contains
      final     ::                              jiang2014Destructor
      procedure :: orbit                     => jiang2014Orbit
@@ -168,6 +173,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     self=virialOrbitJiang2014(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function jiang2014ConstructorParameters
 
@@ -175,20 +182,22 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
     implicit none
     type            (virialOrbitJiang2014        )                         :: self
-    double precision                              , dimension(3)           :: bRatioLow                          , bRatioIntermediate    , bRatioHigh    , &
-         &                                                                    gammaRatioLow                      , gammaRatioIntermediate, gammaRatioHigh, &
-         &                                                                    sigmaRatioLow                      , sigmaRatioIntermediate, sigmaRatioHigh, &
-         &                                                                    muRatioLow                         , muRatioIntermediate   , muRatioHigh
+    double precision                              , dimension(3)           :: bRatioLow                          , bRatioIntermediate          , bRatioHigh          , &
+         &                                                                    gammaRatioLow                      , gammaRatioIntermediate      , gammaRatioHigh      , &
+         &                                                                    sigmaRatioLow                      , sigmaRatioIntermediate      , sigmaRatioHigh      , &
+         &                                                                    muRatioLow                         , muRatioIntermediate         , muRatioHigh
     class           (darkMatterHaloScaleClass    ), intent(in   ) , target :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass     ), intent(in   ) , target :: cosmologyFunctions_
     integer                                       , parameter              :: tableCount                 =1000
-    integer                                                                :: i                                  , j                     , k
+    integer                                                                :: i                                  , j                           , k
     type            (distributionFunction1DVoight)                         :: voightDistribution
     logical                                       , dimension(3,3), save   :: previousInitialized        =.false.
-    double precision                              , dimension(3,3), save   :: previousB                          , previousGamma         , previousSigma , &
+    double precision                              , dimension(3,3), save   :: previousB                          , previousGamma               , previousSigma       , &
          &                                                                    previousMu
     type            (table1DLinearLinear         ), dimension(3,3), save   :: previousVoightDistributions
-    logical                                                            :: reUse
+    double precision                                                       :: limitLower                         , limitUpper                  , halfWidthHalfMaximum, &
+         &                                                                    fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
+    logical                                                                :: reUse                              , limitFound
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     ! Assign parameters of the distribution.
@@ -224,20 +233,54 @@ contains
           !$omp end critical(virialOrbitJiang2014ReUse)
           ! Build the distribution.
           if (.not.reuse) then
-             voightDistribution=distributionFunction1DVoight(                       &
-                  &                                          self%gamma(i,j)      , &
-                  &                                          self%mu   (i,j)      , &
-                  &                                          self%sigma(i,j)      , &
-                  &                                          limitLower     =0.0d0, &
-                  &                                          limitUpper     =2.0d0  &
+             ! Set the lower and upper limit of the distribution to +/-5 times the half-width at half-maximum below/above the mean
+             ! (limited also to 0). This avoids attempting to evaluate the distribution far from the mean (where it is small, but
+             ! the numerical evaluation of the hypergeometric function used in the CDF is unstable). The half-width at
+             ! half-maximum is estimated using the approximation of Olivero (1977; Journal of Quantitative Spectroscopy and
+             ! Radiative Transfer; 17; 233; http://adsabs.harvard.edu/abs/1977JQSRT..17..233O).
+             fullWidthHalfMaximumLorentzian=+2.0d0*self%gamma(i,j)
+             fullWidthHalfMaximumGaussian  =+2.0d0*self%sigma(i,j)*sqrt(2.0d0*log(2.0d0))
+             halfWidthHalfMaximum          =+0.5d0                                     &
+                  &                         *(                                         &
+                  &                           +      0.5346d0                          &
+                  &                           *      fullWidthHalfMaximumLorentzian    &
+                  &                           +sqrt(                                   &
+                  &                                 +0.2166d0                          & 
+                  &                                 *fullWidthHalfMaximumLorentzian**2 &
+                  &                                 +fullWidthHalfMaximumGaussian  **2 &
+                  &                                )                                   &
+                  &                          )
+             limitLower                    =max(self%mu(i,j)-5.0d0*halfWidthHalfMaximum,0.0d0)
+             limitUpper                    =    self%mu(i,j)+5.0d0*halfWidthHalfMaximum
+             voightDistribution=distributionFunction1DVoight(                 &
+                  &                                          self%gamma(i,j), &
+                  &                                          self%mu   (i,j), &
+                  &                                          self%sigma(i,j), &
+                  &                                          limitLower     , &
+                  &                                          limitUpper       &
                   &                                         )
              ! Tabulate the cumulative distribution.
-             call self%voightDistributions(i,j)%create(0.0d0,2.0d0,tableCount)
+             call self%voightDistributions(i,j)%create(limitLower,limitUpper,tableCount)
              !$omp parallel do
-             do k=1,tableCount
-                call self%voightDistributions(i,j)%populate(voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)),k)
+             do k=2,tableCount-1
+                call self%voightDistributions(i,j)%populate(min(1.0d0,max(0.0d0,voightDistribution%cumulative(self%voightDistributions(i,j)%x(k)))),k)
              end do
              !$omp end parallel do
+             ! Ensure tabulation starts at 0 and reaches 1.
+             call self%voightDistributions(i,j)%populate(0.0d0,         1)
+             call self%voightDistributions(i,j)%populate(1.0d0,tableCount)
+             ! Ensure that 0 and 1 are unique within the table, by making any duplicated table entries slightly beyond these
+             ! values. This ensures that when seeking values in this table we do not exceed the plausible range.
+             limitFound=.false.
+             do k=1,tableCount
+                if (limitFound)  call self%voightDistributions(i,j)%populate(1.0d0+1.0d-6,k)
+                if (self%voightDistributions(i,j)%y(k) >= 1.0d0) limitFound=.true.
+             end do
+             limitFound=.false.
+             do k=tableCount,1,-1
+                if (limitFound) call self%voightDistributions(i,j)%populate(0.0d0-1.0d-6,k)
+                if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
+             end do
              ! Store this table for later reuse.
              !$omp critical(virialOrbitJiang2014ReUse)
              previousInitialized(i,j)=.true.
@@ -250,6 +293,9 @@ contains
           end if
        end do
     end do
+    ! Create virial density contrast definition.
+    allocate(self%virialDensityContrast_)
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)"/>
     return
   end function jiang2014ConstructorInternal
 
@@ -258,13 +304,15 @@ contains
     implicit none
     type(virialOrbitJiang2014), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%virialDensityContrast_"/>
     return
   end subroutine jiang2014Destructor
 
   function jiang2014Orbit(self,node,host,acceptUnboundOrbits)
     !% Return jiang2014 orbital parameters for a satellite.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
     use Dark_Matter_Profile_Mass_Definitions
     use Galacticus_Error
     use Root_Finder
@@ -291,11 +339,11 @@ contains
     basic     => node%basic()
     hostBasic => host%basic()
     ! Find virial density contrast under Jiang et al. (2014) definition.
-    virialDensityContrast_ => self %densityContrastDefinition()
+    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
     ! Find mass, radius, and velocity in the host and satellite corresponding to the Jiang et al. (2014) virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
-    deallocate(virialDensityContrast_)
+    !# <objectDestructor name="virialDensityContrast_"/>
     ! Select parameters appropriate for this host-satellite pair.
     if      (massHost < 10.0d0**12.5d0) then
        jiang2014I=1
@@ -423,11 +471,7 @@ contains
     class(virialDensityContrastClass), pointer       :: jiang2014DensityContrastDefinition
     class(virialOrbitJiang2014      ), intent(inout) :: self
 
-    allocate(virialDensityContrastFixed :: jiang2014DensityContrastDefinition)
-    select type (jiang2014DensityContrastDefinition)
-    type is (virialDensityContrastFixed)
-      jiang2014DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
-    end select
+    jiang2014DensityContrastDefinition => self%virialDensityContrast_
     return
   end function jiang2014DensityContrastDefinition
   

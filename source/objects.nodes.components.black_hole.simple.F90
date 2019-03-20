@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,16 +21,16 @@
 
 module Node_Component_Black_Hole_Simple
   !% Implements the simple black hole node component.
-  use Galacticus_Nodes
   use Dark_Matter_Halo_Scales
   use Cooling_Radii
   use Black_Hole_Binary_Mergers
   implicit none
   private
-  public :: Node_Component_Black_Hole_Simple_Initialize       , Node_Component_Black_Hole_Simple_Scale_Set        , &
-       &    Node_Component_Black_Hole_Simple_Satellite_Merging, Node_Component_Black_Hole_Simple_Output_Names     , &
-       &    Node_Component_Black_Hole_Simple_Output_Count     , Node_Component_Black_Hole_Simple_Output           , &
-       &    Node_Component_Black_Hole_Simple_Rate_Compute     , Node_Component_Black_Hole_Simple_Thread_Initialize
+  public :: Node_Component_Black_Hole_Simple_Initialize         , Node_Component_Black_Hole_Simple_Scale_Set        , &
+       &    Node_Component_Black_Hole_Simple_Satellite_Merging  , Node_Component_Black_Hole_Simple_Output_Names     , &
+       &    Node_Component_Black_Hole_Simple_Output_Count       , Node_Component_Black_Hole_Simple_Output           , &
+       &    Node_Component_Black_Hole_Simple_Rate_Compute       , Node_Component_Black_Hole_Simple_Thread_Initialize, &
+       &    Node_Component_Black_Hole_Simple_Thread_Uninitialize
 
   !# <component>
   !#  <class>blackHole</class>
@@ -82,6 +83,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Black_Hole_Simple_Initialize(parameters)
     !% Initializes the simple black hole node component module.
+    use Galacticus_Nodes, only : nodeComponentBlackHoleSimple
     use Input_Parameters
     implicit none
     type(inputParameters             ), intent(inout) :: parameters
@@ -144,11 +146,12 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Simple_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Black_Hole_Simple_Thread_Initialize(parameters)
     !% Initializes the tree node random spin module.
+    use Galacticus_Nodes, only : defaultBlackHoleComponent
     use Input_Parameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
@@ -161,11 +164,28 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Initialize
 
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Black_Hole_Simple_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize()
+    !% Uninitializes the tree node random spin module.
+    use Galacticus_Nodes,only : defaultBlackHoleComponent
+    implicit none
+
+    if (defaultBlackHoleComponent%simpleIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"  />
+       !# <objectDestructor name="coolingRadius_"        />
+       !# <objectDestructor name="blackHoleBinaryMerger_"/>
+    end if
+    return
+  end subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize
+
   !# <scaleSetTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Scale_Set</unitName>
   !# </scaleSetTask>
   subroutine Node_Component_Black_Hole_Simple_Scale_Set(thisNode)
     !% Set scales for properties of {\normalfont \ttfamily thisNode}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleSimple, nodeComponentSpheroid
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
@@ -195,6 +215,8 @@ contains
   subroutine Node_Component_Black_Hole_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the black hole mass rate of change.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : treeNode                    , nodeComponentBlackHole, nodeComponentSpheroid, nodeComponentHotHalo     , &
+         &                                   nodeComponentBlackHoleSimple, interruptTask         , propertyTypeInactive , defaultBlackHoleComponent
     implicit none
     type            (treeNode                ), intent(inout), pointer :: thisNode
     logical                                   , intent(in   )          :: odeConverged
@@ -281,6 +303,7 @@ contains
   !# </satelliteMergerTask>
   subroutine Node_Component_Black_Hole_Simple_Satellite_Merging(thisNode)
     !% Merge (instantaneously) any simple black hole associated with {\normalfont \ttfamily thisNode} before it merges with its host halo.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole, defaultBlackHoleComponent
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     type            (treeNode              )               , pointer :: hostNode
@@ -311,6 +334,7 @@ contains
 
   subroutine Node_Component_Black_Hole_Simple_Create(thisNode)
     !% Creates a simple black hole component for {\normalfont \ttfamily thisNode}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent
@@ -330,6 +354,7 @@ contains
        &,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set names of black hole properties to be written to the \glc\ output file.
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : treeNode
     implicit none
     type            (treeNode)              , intent(inout), pointer :: thisNode
     double precision                        , intent(in   )          :: time
@@ -357,6 +382,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Node_Component_Black_Hole_Simple_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of black hole properties to be written to the the \glc\ output file.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout), pointer :: thisNode
     double precision          , intent(in   )          :: time
@@ -378,6 +404,7 @@ contains
   subroutine Node_Component_Black_Hole_Simple_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store black hole properties in the \glc\ output file buffers.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole, nodeComponentSpheroid
     use Kind_Numbers
     use Multi_Counters
     implicit none
@@ -411,6 +438,7 @@ contains
 
   logical function Node_Component_Black_Hole_Simple_Matches(thisNode)
     !% Return true if the black hole component of {\normalfont \ttfamily thisNode} is a match to the simple implementation.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleSimple, defaultBlackHoleComponent
     implicit none
     type (treeNode              ), intent(inout), pointer :: thisNode
     class(nodeComponentBlackHole)               , pointer :: thisBlackHoleComponent

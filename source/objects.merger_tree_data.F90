@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -1539,7 +1540,7 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    integer  (kind=size_t   ), intent(in   )           :: hdfChunkSize
+    integer  (kind=hsize_t  ), intent(in   )           :: hdfChunkSize
     integer                  , intent(in   )           :: hdfCompressionLevel, outputFormat
     class    (mergerTreeData), intent(inout)           :: mergerTrees
     character(len=*         ), intent(in   )           :: outputFileName
@@ -1572,7 +1573,7 @@ contains
     use File_Utilities
     use Galacticus_Error
     implicit none
-    integer  (kind=size_t  )                            , intent(in   ) :: hdfChunkSize
+    integer  (kind=hsize_t )                            , intent(in   ) :: hdfChunkSize
     integer                                             , intent(in   ) :: hdfCompressionLevel
     class    (mergerTreeData)                           , intent(inout) :: mergerTrees
     character(len=*         )                           , intent(in   ) :: outputFileName
@@ -1849,7 +1850,7 @@ contains
     use Array_Utilities
     use File_Utilities
     implicit none
-    integer         (kind=size_t   )                           , intent(in   ) ::        hdfChunkSize
+    integer         (kind=hsize_t  )                           , intent(in   ) ::        hdfChunkSize
     integer                                                    , intent(in   ) ::        hdfCompressionLevel
     class           (mergerTreeData)                           , intent(inout) ::        mergerTrees
     character       (len=*         )                           , intent(in   ) ::        outputFileName

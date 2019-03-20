@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,17 +29,19 @@
   use Kind_Numbers
   use Tables
   use Input_Parameters
+  use HDF5                   , only : hsize_t
+  use Galacticus_Nodes       , only : treeNode
 
-  !# <mergerTreeOperator name="mergerTreeOperatorParticulate" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorParticulate">
   !#  <description>Provides a merger tree operator which create particle representations of \glc\ halos.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorParticulate
      !% A merger tree operator which create particle representations of \glc\ halos.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
      type            (varying_string          )          :: outputFileName
      double precision                                    :: massParticle        , radiusTruncateOverRadiusVirial   , &
           &                                                 timeSnapshot        , energyDistributionPointsPerDecade, & 
@@ -47,8 +50,8 @@
           &                                                 positionOffset      , addHubbleFlow                    , &
           &                                                 haloIdToParticleType, sampleParticleNumber             , &
           &                                                 subtractRandomOffset
-     integer                                             :: selection           , kernelSoftening                  , &
-          &                                                 chunkSize
+     integer                                             :: selection           , kernelSoftening
+     integer         (hsize_t                 )          :: chunkSize
      integer         (kind_int8               )          :: idMultiplier
      ! Pointer to the parameters for this task.
      type            (inputParameters         )          :: parameters
@@ -280,6 +283,10 @@ contains
        self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
     return
   end function particulateConstructorParameters
 
@@ -340,6 +347,7 @@ contains
     use Galacticus_Display
     use Merger_Tree_Walkers
     use Node_Components
+    use Galacticus_Nodes                  , only : nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite
     implicit none
     class           (mergerTreeOperatorParticulate), intent(inout) , target      :: self
     type            (mergerTree                   ), intent(inout) , target      :: tree
@@ -480,7 +488,7 @@ contains
           !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates)
           call Node_Components_Thread_Initialize(self%parameters)
           allocate(particulateSelf,mold=self)
-          call self%deepCopy(particulateSelf)
+          !# <deepCopy source="self" destination="particulateSelf"/>
           !$omp do reduction(+: positionRandomOffset, velocityRandomOffset)
           do i=1,particleCountActual
              if (OMP_Get_Thread_Num() == 0) then
@@ -645,6 +653,7 @@ contains
              particleIDs     (  i)=i-1
           end do
           !$omp end do
+          call Node_Components_Thread_Uninitialize()
           deallocate(particulateSelf)
           !$omp end parallel
           call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
@@ -712,7 +721,7 @@ contains
     !%  F(E) = \int_E^0 {\mathrm{d}\Phi \over \sqrt{\Phi-E}} {\mathrm{d}\rho \over \mathrm{d} \Phi},
     !% \end{equation}
     !% which we can then take the derivative of numerically to obtain the distribution function.
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     use Table_Labels
     use Galacticus_Error
@@ -983,7 +992,7 @@ contains
   double precision function particulateSmoothingIntegrandZ(height)
     !% The integrand over cylindrical coordinate $z$ used in finding the smoothed density profile defined by
     !% \cite{barnes_gravitational_2012} to account for gravitational softening.
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: height

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,8 +25,8 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityPeakBackgroundSplit
      !% A peak-background split critical overdensity class.
      private
-     class(criticalOverdensityClass), pointer :: criticalOverdensity_
-     class(haloEnvironmentClass    ), pointer :: haloEnvironment_
+     class(criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
+     class(haloEnvironmentClass    ), pointer :: haloEnvironment_ => null()
     contains
      final     ::                    peakBackgroundSplitDestructor
      procedure :: value           => peakBackgroundSplitValue
@@ -51,24 +52,31 @@ contains
     class(criticalOverdensityClass              ), pointer       :: criticalOverdensity_
     class(haloEnvironmentClass                  ), pointer       :: haloEnvironment_
     class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    class(cosmologicalMassVarianceClass         ), pointer       :: cosmologicalMassVariance_
 
     ! Check and read parameters.
-    !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
-    !# <objectBuilder class="haloEnvironment"     name="haloEnvironment_"     source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=criticalOverdensityPeakBackgroundSplit(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_)
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    self=criticalOverdensityPeakBackgroundSplit(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="haloEnvironment_"         />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function peakBackgroundSplitConstructorParameters
 
-  function peakBackgroundSplitConstructorInternal(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_) result(self)
+  function peakBackgroundSplitConstructorInternal(criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily peakBackgroundSplit} critical overdensity class.
     implicit none
     type (criticalOverdensityPeakBackgroundSplit)                        :: self
     class(criticalOverdensityClass              ), target, intent(in   ) :: criticalOverdensity_    
     class(haloEnvironmentClass                  ), target, intent(in   ) :: haloEnvironment_    
     class(cosmologyFunctionsClass               ), target, intent(in   ) :: cosmologyFunctions_    
-    !# <constructorAssign variables="*criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_"/>
+    class(cosmologicalMassVarianceClass         ), target, intent(in   ) :: cosmologicalMassVariance_
+    !# <constructorAssign variables="*criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
     
     return
   end function peakBackgroundSplitConstructorInternal
@@ -78,9 +86,10 @@ contains
     implicit none
     type(criticalOverdensityPeakBackgroundSplit), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"/>
-    !# <objectDestructor name="self%haloEnvironment_"    />
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%haloEnvironment_"         />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine peakBackgroundSplitDestructor
 

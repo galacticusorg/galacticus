@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,13 +20,13 @@
   !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
 
   
-  !# <coolingRate name="coolingRateMultiplier" defaultThreadPrivate="yes">
+  !# <coolingRate name="coolingRateMultiplier">
   !#  <description>A cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.</description>
   !# </coolingRate>
   type, extends(coolingRateClass) :: coolingRateMultiplier
      !% Implementation of cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.
      private
-     class           (coolingRateClass), pointer :: coolingRate_
+     class           (coolingRateClass), pointer :: coolingRate_ => null()
      double precision                            :: multiplier
    contains
      final     ::         multiplierDestructor
@@ -60,6 +61,7 @@ contains
     !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
     self=coolingRateMultiplier(multiplier,coolingRate_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingRate_"/>
     return
   end function multiplierConstructorParameters
 

@@ -12,6 +12,7 @@ use List::ExtraUtils;
 use Fortran::Utils;
 use Galacticus::Build::Directives;
 use Text::Template 'fill_in_string';
+use Digest::MD5 qw(md5_hex);
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'eventHooks'} = \&Process_EventHooks;
@@ -34,8 +35,93 @@ sub Process_EventHooks {
 	    my @hooks = map {&Galacticus::Build::Directives::Extract_Directives($_,'eventHook')} &List::ExtraUtils::as_array($directiveLocations->{'eventHook'}->{'file'});
 	    # Create an object for each event hook.
 	    foreach my $hook ( @hooks ) {
-		my $hookObject = "type(eventHook), public :: ".$hook->{'name'}."Event\n";
-		my $newNode =
+		# Determine the interface type for this hook.
+		$code::interfaceType = &interfaceTypeGet($hook);
+		my $hookObject;
+		unless ( $code::interfaceType eq "Unspecified" ) {
+		    # Parse the interface definition.
+		    $code::declarations = $hook->{'interface'};
+		    @code::arguments    = ();
+		    open(my $declarations,"<",\$hook->{'interface'});
+		    while ( ! eof($declarations) ) {
+			&Fortran::Utils::Get_Fortran_Line($declarations,my $rawLine, my $processedLine, my $bufferedComments);
+			foreach my $declarator ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+			    if ( my @matches = ( $processedLine =~ $Fortran::Utils::intrinsicDeclarations{$declarator}->{'regEx'} ) ) {
+				push(@code::arguments,&Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$declarator}->{'variables'}],keepQualifiers => 0));
+			    }
+			}
+		    }
+		    close($declarations);
+		    # Build the required types and functions.
+		    $hookObject = fill_in_string(<<'CODE', PACKAGE => 'code');
+
+type, extends(hook) :: hook{$interfaceType}
+   procedure(interface{$interfaceType}), pointer, nopass :: function_ => null()
+end type hook{$interfaceType}
+ 
+type, extends(eventHook) :: eventHook{$interfaceType}
+  private
+ contains
+  !@ <objectMethods>
+  !@   <object>eventHook{$interfaceType}</object>
+  !@   <objectMethod>
+  !@     <method>attach</method>
+  !@     <type>\void</type>
+  !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
+  !@     <description>Attach a hook to the event.</description>
+  !@   </objectMethod>
+  !@ </objectMethods>
+  procedure :: attach => eventHook{$interfaceType}Attach
+end type eventHook{$interfaceType}
+
+abstract interface
+ subroutine interface{$interfaceType}(self{scalar(@arguments) > 0 ? ",".join(",",@arguments) : ""})
+  class(*), intent(inout) :: self
+{$declarations}
+ end subroutine interface{$interfaceType}
+end interface
+CODE
+		    my $attacher = fill_in_string(<<'CODE', PACKAGE => 'code');
+subroutine eventHook{$interfaceType}Attach(self,object_,function_)
+  implicit none
+  class    (eventHook{$interfaceType}), intent(inout)          :: self
+  class    (*                        ), intent(in   ), target  :: object_
+  procedure(interface{$interfaceType})                         :: function_
+  class    (hook                     )               , pointer :: hook_
+
+  if (associated(self%first_)) then
+     hook_ => self%first_
+     do while (associated(hook_%next))
+        hook_ => hook_%next
+     end do
+     allocate(hook{$interfaceType} :: hook_%next )
+     hook_ => hook_%next
+  else
+     allocate(hook{$interfaceType} :: self%first_)
+     hook_ => self%first_
+  end if
+  select type (hook_)
+  type is (hook{$interfaceType})
+     hook_%object_   => object_
+     hook_%function_ => function_
+  end select
+  self%count_=self%count_+1
+  return
+end subroutine eventHook{$interfaceType}Attach
+CODE
+		    my $newNode   =
+		    {
+			type       => "code",
+			content    => $attacher,
+			firstChild => undef(),
+			source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
+			line       => 1
+		    };
+		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
+		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
+		}
+		 $hookObject .= "type(eventHook".$code::interfaceType."), public :: ".$hook->{'name'}."Event\n";
+		my $newNode   =
 		{
 		    type       => "code",
 		    content    => $hookObject,
@@ -67,7 +153,7 @@ sub Process_EventHooks {
 	    my @declarations =
 		(
 		 {
-		     intrinsic  => "type"       ,
+		     intrinsic  => "class"       ,
 		     type       => "hook"       ,
 		     variables  => [ "hook_"   ],
 		     attributes => [ "pointer" ]
@@ -75,12 +161,16 @@ sub Process_EventHooks {
 		);
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
 	    # Create the code.
-	    $code::callWith  = exists($node->{'directive'}->{'callWith'}) ? ",".$node->{'directive'}->{'callWith'} : "";
-	    $code::eventName = $node->{'directive'}->{'name'    };
-	    my $eventHookCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+	    $code::interfaceType = &interfaceTypeGet($node->{'directive'});
+	    $code::callWith      = exists($node->{'directive'}->{'callWith'}) ? ",".$node->{'directive'}->{'callWith'} : "";
+	    $code::eventName     = $node->{'directive'}->{'name'    };
+	    my $eventHookCode    = fill_in_string(<<'CODE', PACKAGE => 'code');
 hook_ => {$eventName}Event%first()
 do while (associated(hook_))
-   call hook_%function_(hook_%object_{$callWith})
+   select type (hook_)
+   type is (hook{$interfaceType})
+     call hook_%function_(hook_%object_{$callWith})
+   end select
    hook_ => hook_%next
 end do
 CODE
@@ -97,6 +187,17 @@ CODE
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
+}
+
+sub interfaceTypeGet {
+    my $hook = shift();
+    my $interfaceType;
+    if ( exists($hook->{'interface'}) ) {
+	$interfaceType = md5_hex($hook->{'name'});
+   } else {
+	$interfaceType = "Unspecified";
+    }
+    return $interfaceType;
 }
 
 1;

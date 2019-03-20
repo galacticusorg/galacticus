@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,13 +23,12 @@
 module Node_Component_Hot_Halo_VS_Delayed
   !% Implements an extension to the very simple hot halo node component by including an outflowed reservoir
   !% with delayed reincorporation.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Hot_Halo_VS_Delayed_Node_Merger      , Node_Component_Hot_Halo_VS_Delayed_Rate_Compute   , &
        &    Node_Component_Hot_Halo_VS_Delayed_Scale_Set        , Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize, &
        &    Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging, Node_Component_Hot_Halo_VS_Delayed_Promote        , &
-       &    Node_Component_Hot_Halo_VS_Delayed_Post_Evolve
+       &    Node_Component_Hot_Halo_VS_Delayed_Post_Evolve      , Node_Component_Hot_Halo_VS_Delayed_Initialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -61,29 +61,39 @@ module Node_Component_Hot_Halo_VS_Delayed
 
 contains
 
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize()
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(parameters)
     !% Initializes the very simple hot halo component module.
+    use Galacticus_Nodes, only : nodeComponentHotHaloVerySimpleDelayed, defaultHotHaloComponent
     use Input_Parameters
     implicit none
-    type(nodeComponentHotHaloVerySimpleDelayed) :: hotHaloComponent
+    type(inputParameters                      ), intent(inout) :: parameters
+    type(nodeComponentHotHaloVerySimpleDelayed)                :: hotHaloComponent
 
-    ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
-    call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
-    call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
-    ! Read parameters controlling the physical implementation.
-    !# <inputParameter>
-    !#   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
-    !#   <cardinality>1</cardinality>
-    !#   <defaultValue>1.0d-2</defaultValue>
-    !#   <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
-    !#   <source>globalParameters</source>
-    !#   <type>double</type>
-    !# </inputParameter>
+    !$omp critical (Node_Component_Hot_Halo_Very_Simple_Delayed_Initialize)
+    if (defaultHotHaloComponent%verySimpleDelayedIsActive()) then
+       ! Bind outflowing material pipes to the functions that will handle input of outflowing material to the hot halo.
+       call hotHaloComponent%      outflowingMassRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate      )
+       call hotHaloComponent%outflowingAbundancesRateFunction(Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate)
+       ! Read parameters controlling the physical implementation.
+       !# <inputParameter>
+       !#   <name>hotHaloVerySimpleDelayedMassScaleRelative</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d-2</defaultValue>
+       !#   <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
+       !#   <source>parameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+    end if
+    !$omp end critical (Node_Component_Hot_Halo_Very_Simple_Delayed_Initialize)
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize
 
   subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Mass_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas from a galaxy and deposit it into very simple hot halo.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class           (nodeComponentHotHalo), intent(inout)                    :: self
     double precision                      , intent(in   )                    :: rate
@@ -98,6 +108,7 @@ contains
   
   subroutine Node_Component_Hot_Halo_VS_Delayed_Outflowing_Abundances_Rate(self,rate,interrupt,interruptProcedure)
     !% Accept outflowing gas abundances from a galaxy and deposit them into very simple hot halo.
+    use Galacticus_Nodes    , only : nodeComponentHotHalo
     use Abundances_Structure
     implicit none
     class    (nodeComponentHotHalo), intent(inout)                    :: self
@@ -116,6 +127,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the very simple hot halo component mass rate of change.
+    use Galacticus_Nodes                  , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive
     use Hot_Halo_Outflows_Reincorporations
     use Abundances_Structure
     implicit none
@@ -162,6 +174,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed
     use Abundances_Structure
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
@@ -192,6 +205,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize(node)
     !% Initialize the contents of the very simple hot halo component.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed, defaultHotHaloComponent
     use Cosmology_Parameters
     use Abundances_Structure
     implicit none
@@ -201,8 +215,6 @@ contains
     ! If the very simple hot halo is not active, then return immediately.
     if (.not.defaultHotHaloComponent%verySimpleDelayedIsActive()) return
 
-    ! Ensure that this module has been initialized.
-    call Node_Component_Hot_Halo_VS_Delayed_Initialize()
     ! Get the hot halo component.
     hotHalo => node%hotHalo()
     ! Ensure that it is of our class.
@@ -219,6 +231,7 @@ contains
   !# </satelliteMergerTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Satellite_Merging(node)
     !% Remove any hot halo associated with {\normalfont \ttfamily node} before it merges with its host halo.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed
     use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
@@ -258,6 +271,7 @@ contains
   subroutine Node_Component_Hot_Halo_VS_Delayed_Promote(node)
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the hot halo mass of {\normalfont \ttfamily
     !% node} to account for any hot halo already in the parent.
+    use Galacticus_Nodes, only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
     type (treeNode            )               , pointer :: parentNode
@@ -293,6 +307,7 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Post_Evolve(node)
     !% Do processing of the node required after evolution.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed
     use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: node
@@ -325,6 +340,7 @@ contains
   !# </nodeMergerTask>
   subroutine Node_Component_Hot_Halo_VS_Delayed_Node_Merger(node)
     !% Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloVerySimpleDelayed
     use Abundances_Structure
     implicit none
     type (treeNode            ), intent(inout), pointer :: node

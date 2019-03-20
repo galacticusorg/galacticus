@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,9 @@
 
 module Halo_Mass_Functions
   use, intrinsic :: ISO_C_Binding
-  use            :: Galacticus_Nodes
+  use            :: FGSL                , only : fgsl_function           , fgsl_integration_workspace, FGSL_Integ_Gauss15
+  use            :: Galacticus_Nodes    , only : treeNode
+  use            :: Cosmology_Parameters, only : cosmologyParametersClass, cosmologyParameters
   implicit none
   private
 
@@ -29,7 +32,6 @@ module Halo_Mass_Functions
   !#  <descriptiveName>Halo Mass Function</descriptiveName>
   !#  <description>Class providing halo mass functions.</description>
   !#  <default>tinker2008</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <data>double precision                                    :: time_                         </data>
   !#  <data>class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
   !#  <data>type            (treeNode                ), pointer :: node                 => null()</data>

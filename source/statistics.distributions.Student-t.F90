@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a 1D Student-t distribution function.
   
   !# <distributionFunction1D name="distributionFunction1DStudentT">
@@ -71,7 +72,7 @@ contains
 
   double precision function studentTDensity(self,x)
     !% Return the density of a Student-t distribution.
-    use FGSL
+    use FGSL, only : FGSL_Ran_tDist_PDF
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: x
@@ -82,7 +83,7 @@ contains
 
   double precision function studentTCumulative(self,x)
     !% Return the cumulative probability of a Student-t distribution.
-    use FGSL
+    use FGSL, only : FGSL_CDF_tDist_P
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: x
@@ -94,7 +95,7 @@ contains
   double precision function studentTInverse(self,p)
     !% Return the cumulative probability of a Student-t distribution.
     use Galacticus_Error
-    use FGSL
+    use FGSL            , only : FGSL_CDF_tDist_Pinv
     implicit none
     class           (distributionFunction1DStudentT), intent(inout) :: self
     double precision                                , intent(in   ) :: p

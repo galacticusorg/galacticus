@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,6 +23,7 @@ module Task_Evolve_Forests_Work_Shares
   !% Provides a class that implements general tasks to be performed by \glc.
   use, intrinsic :: ISO_C_Binding
   !$ use         :: OMP_Lib
+  private
 
   !# <functionClass>
   !#  <name>evolveForestsWorkShare</name>

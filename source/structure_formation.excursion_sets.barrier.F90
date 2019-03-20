@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Excursion_Sets_Barriers
   !% Provides a class that implements barriers for the excursion set problem.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>
@@ -28,7 +29,6 @@ module Excursion_Sets_Barriers
   !#  <descriptiveName>Excursion Set Barrier</descriptiveName>
   !#  <description>Class providing barriers for the excursion set problem.</description>
   !#  <default>criticalOverdensity</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="barrier" >
   !#   <description>Return the barrier height at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
   !#   <type>double precision</type>

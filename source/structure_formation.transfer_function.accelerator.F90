@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,14 @@
   
   use Tables
   
-  !# <transferFunction name="transferFunctionAccelerator" defaultThreadPrivate="yes">
+  !# <transferFunction name="transferFunctionAccelerator">
   !#  <description>A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.</description>
   !# </transferFunction>
   type, extends(transferFunctionClass) :: transferFunctionAccelerator
      !% A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.
      private
      type            (table1DLinearLinear  )          :: transferTable
-     class           (transferFunctionClass), pointer :: transferFunction_
+     class           (transferFunctionClass), pointer :: transferFunction_ => null()
      double precision                                 :: wavenumberLogarithmicMinimum, wavenumberLogarithmicMaximum
      integer                                          :: tablePointsPerDecade
      logical                                          :: tableInitialized
@@ -66,6 +67,7 @@ contains
     !# <objectBuilder class="transferFunction" name="transferFunction_" source="parameters"/>
     self=transferFunctionAccelerator(transferFunction_,tablePointsPerDecade)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="transferFunction_"/>
     return
   end function acceleratorConstructorParameters
   
@@ -88,6 +90,7 @@ contains
     implicit none
     type(transferFunctionAccelerator), intent(inout) :: self
 
+    !# <objectDestructor name="self%transferFunction_"/>
     if (self%tableInitialized) call self%transferTable%destroy()
     return
   end subroutine acceleratorDestructor

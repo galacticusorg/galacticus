@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -179,7 +180,7 @@ contains
 #endif
        !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_) if (.not.mpiSelf%isActive())
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       call self%excursionSetBarrier_%deepCopy(excursionSetBarrier_)
+       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
 #ifdef USEMPI

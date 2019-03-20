@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,16 +24,17 @@
   use Cosmology_Parameters
   use Dark_Matter_Halo_Scales
 
-  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999" defaultThreadPrivate="yes">
+  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999">
   !#  <description>A satellite tidal heating rate class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.</description>
   !# </satelliteTidalHeatingRate>
   type, extends(satelliteTidalHeatingRateClass) :: satelliteTidalHeatingRateGnedin1999
      !% A satellite tidal heating rate class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: epsilon             , gamma
    contains
+     final     ::                gnedin1999Destructor
      procedure :: heatingRate => gnedin1999HeatingRate
   end type satelliteTidalHeatingRateGnedin1999
 
@@ -76,6 +78,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteTidalHeatingRateGnedin1999(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function gnedin1999ConstructorParameters
 
@@ -103,6 +107,7 @@ contains
 
   double precision function gnedin1999HeatingRate(self,node)
     !% Return the tidal heating rate for satellite halos assuming the model of \cite{gnedin_tidal_1999}.
+    use Galacticus_Nodes                  , only : nodeComponentBasic, nodeComponentSatellite
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
     use Numerical_Constants_Physical

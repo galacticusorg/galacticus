@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{hearin_dark_2013}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryHearin2014SDSS
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: distanceMinimumLimit, distanceMaximumLimit   , &
           &                                                massPrevious        , distanceMaximumPrevious
    contains
@@ -58,6 +59,7 @@ contains
     ! Build the object. 
     self=surveyGeometryHearin2014SDSS(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function hearin2014SDSSConstructorParameters
   

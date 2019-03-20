@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,24 +30,24 @@ program Galacticus
   use Galacticus_HDF5
   use Tasks
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Functions_Global_Utilities
   use Galacticus_Error_Wait
   use System_Limits
+  use Galacticus_Function_Classes_Destroys
 #ifdef USEMPI
   use MPI
   use MPI_Utilities
 #endif
   implicit none
+#ifdef USEMPI
+  integer                                         :: status
+#endif
   integer                             , parameter :: fileNameLengthMaximum =1024
   class    (taskClass                ), pointer   :: task_
   character(len=fileNameLengthMaximum)            :: parameterFileCharacter
   type     (varying_string           )            :: parameterFile
   type     (inputParameters          )            :: parameters
-#ifdef USEMPI
-  integer                                         :: parentCommunicator         , status
-#endif
   
   ! Initialize MPI.
 #ifdef USEMPI
@@ -55,24 +56,15 @@ program Galacticus
   !$ else
       call mpiInitialize(MPI_Thread_Single  )
   !$ end if
-  ! If we have been spawned by another MPI process, immediately disconnect.
-  call MPI_Comm_Get_Parent(parentCommunicator,status)
-  if (status /= 0) call Galacticus_Error_Report('failed to get MPI parent communicator'//{introspection:location})
-  if (parentCommunicator /= MPI_Comm_Null) then
-     call MPI_Comm_Disconnect(parentCommunicator,status)
-     if (status /= 0) call Galacticus_Error_Report('failed to disconnect from MPI parent process'//{introspection:location})
-  end if
 #endif
   ! Register error handlers.
   call Galacticus_Error_Handler_Register()
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('Galacticus.size')
   ! Get the name of the parameter file from the first command line argument.
   call Get_Command_Argument(1,parameterFileCharacter)
   if (len_trim(parameterFileCharacter) == 0) call Galacticus_Error_Report(message="Usage: Galacticus.exe <parameterFile>")
   parameterFile=parameterFileCharacter
   ! Open the parameter file.
-  parameters=inputParameters(parameterFile,allowedParametersFile='Galacticus.parameters.xml')
+  parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   ! Tell OpenMP that nested parallelism is allowed.
   !$ call OMP_Set_Nested(.true.)
@@ -87,10 +79,14 @@ program Galacticus
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show()
   ! Perform task.
-  task_ => task()
+  !# <objectBuilder class="task" name="task_" source="parameters"/>
   if (task_%requiresOutputFile()) call Galacticus_Output_Open_File ()
-  call task_%perform()
+  call task_     %perform()
+  call parameters%destroy()
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File()
+  !# <objectDestructor name="task_"/>
+  call taskDoDestroy()
+  call Galacticus_Function_Classes_Destroy()
   ! Finalize MPI.
 #ifdef USEMPI
   call MPI_Barrier(MPI_Comm_World,status)

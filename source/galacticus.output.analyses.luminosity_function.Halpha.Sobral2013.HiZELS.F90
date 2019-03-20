@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Gravitational_Lensing
   
-  !# <outputAnalysis name="outputAnalysisLuminosityFunctionSobral2013HiZELS" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisLuminosityFunctionSobral2013HiZELS">
   !#  <description>An SDSS H$\alpha$ luminosity function output analysis class for the \cite{sobral_large_2013} analysis.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisLuminosityFunctionHalpha) :: outputAnalysisLuminosityFunctionSobral2013HiZELS
@@ -158,6 +159,10 @@ contains
     ! Build the object.
     self=outputAnalysisLuminosityFunctionSobral2013HiZELS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,redshiftInterval,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"           />
+    !# <objectDestructor name="outputTimes_"                  />
+    !# <objectDestructor name="gravitationalLensing_"         />
+    !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
     return
   end function luminosityFunctionSobral2013HiZELSConstructorParameters
 

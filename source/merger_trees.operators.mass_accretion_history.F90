@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@
   use IO_HDF5
   use Cosmology_Functions
   
-  !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorMassAccretionHistory">
   !#  <description>  
   !#   A merger tree operator which outputs mass accretion histories. Histories are written into the \glc\ output file in a group
   !#   with name given by {\normalfont \ttfamily [outputGroupName]}. Within that group, each merger tree has its own group named
@@ -39,7 +40,7 @@
      private
      type   (hdf5Object             )          :: outputGroup
      type   (varying_string         )          :: outputGroupName
-     class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class  (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      logical                                   :: includeSpin        , includeSpinVector
    contains
      final     ::             massAccretionHistoryDestructor
@@ -95,11 +96,13 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeOperatorMassAccretionHistory(char(outputGroupName),includeSpin,includeSpinVector,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function massAccretionHistoryConstructorParameters
 
   function massAccretionHistoryConstructorInternal(outputGroupName,includeSpin,includeSpinVector,cosmologyFunctions_) result(self)
     !% Internal constructor for the mass accretion history merger tree operator class.
+    use Galacticus_Nodes, only : defaultSpinComponent
     use Galacticus_Error
     implicit none
     type     (mergerTreeOperatorMassAccretionHistory)                        :: self
@@ -143,7 +146,7 @@ contains
   subroutine massAccretionHistoryOperate(self,tree)
     !% Output the mass accretion history for a merger tree.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                 , only : treeNode, nodeComponentBasic, nodeComponentSpin
     use               Input_Parameters
     use               Memory_Management
     use               ISO_Varying_String

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesLaceyCole1993
      !% A class implementing the \cite{lacey_merger_1993} method for satellite merging timescales.
      private
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: timescaleMultiplier
    contains
      !@ <objectMethods>
@@ -71,6 +72,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteMergingTimescalesLaceyCole1993(timescaleMultiplier,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function laceyCole1993ConstructorParameters
 
@@ -124,6 +126,7 @@ contains
 
   double precision function laceyCole1993TimeUntilMergingMassDependence(self,node)
     !% Return the mass-dependent part of the timescale for merging satellites using the \cite{lacey_merger_1993} method.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (satelliteMergingTimescalesLaceyCole1993), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node

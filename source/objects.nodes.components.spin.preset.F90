@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Node_Component_Spin_Preset
   !% Implements the preset spin component.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Spin_Preset_Initialize  , Node_Component_Spin_Preset_Promote     , &
@@ -55,6 +55,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Spin_Preset_Initialize(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentBasic, nodeComponentSpinPreset
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     class           (nodeComponentSpin )               , pointer :: spinParent , spin
@@ -90,6 +91,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spin_Preset_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the preset implementation of the spin component.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinPreset, defaultSpinComponent, propertyTypeInactive
     implicit none
     type     (treeNode         ), intent(inout), pointer :: node
     logical                     , intent(in   )          :: odeConverged
@@ -119,6 +121,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Spin_Preset_Scale_Set(node)
     !% Set scales for properties in the preset implementation of the spin component.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinPreset
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentSpin)               , pointer :: spin
@@ -141,6 +144,7 @@ contains
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentSpinPreset, nodeComponentBasic
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent

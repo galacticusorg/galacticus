@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,6 @@ program Tests_Comoving_Distance
   use Cosmology_Functions_Options
   use Cosmology_Functions
   use Cosmology_Parameters
-  use Memory_Management
   use Galacticus_Display
   implicit none
   double precision                                , dimension(8), parameter         :: redshift                               =[0.1000000d0,1.0000000d0,3.0000000d0,9.0000000d0,30.0000000d0,100.0000000d0,300.0000000d0,1000.0000000d0]
@@ -46,9 +46,6 @@ program Tests_Comoving_Distance
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.comoving_distance.size')
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Comoving distance")
   ! Cosmology functions for in an Einstein-de Sitter universe. For this case, we use the default settings.

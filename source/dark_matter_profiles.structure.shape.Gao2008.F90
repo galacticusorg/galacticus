@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,8 +27,8 @@
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeGao2008
      !% A dark matter halo profile shape parameter class implementing the algorithm of \cite{gao_redshift_2008}.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::          gao2008Destructor
      procedure :: shape => gao2008Shape
@@ -55,6 +56,8 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterProfileShapeGao2008(criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function gao2008ConstructorParameters
 
@@ -87,7 +90,7 @@ contains
     !% \alpha = \left\{ \begin{array}{ll} 0.155 + 0.0095\nu^2 & \hbox{ if } \nu < 3.907 \\ 0.3 & \hbox{ if } \nu \ge 3.907, \end{array} \right.
     !% \end{equation}
     !% where $\nu=\delta_\mathrm{c}(t)/\sigma(M)$ is the peak height of the halo.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileShapeGao2008), intent(inout)          :: self
     type            (treeNode                     ), intent(inout), pointer :: node

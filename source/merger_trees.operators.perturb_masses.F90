@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Statistics_NBody_Halo_Mass_Errors
   use Statistics_Distributions
   
-  !# <mergerTreeOperator name="mergerTreeOperatorPerturbMasses" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorPerturbMasses">
   !#  <description>
   !#   A merger tree operator which perturbs halo masses by some error model.
   !# </description>
@@ -29,7 +30,7 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPerturbMasses
      !% A merger tree operator class perturbs halo masses by some error model.
      private
-     class(nbodyHaloMassErrorClass     ), pointer :: nbodyHaloMassError_
+     class(nbodyHaloMassErrorClass     ), pointer :: nbodyHaloMassError_ => null()
      type (distributionFunction1DNormal)          :: standardNormal
    contains
      final     ::             perturbMassesDestructor
@@ -56,6 +57,7 @@ contains
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     self=mergerTreeOperatorPerturbMasses(nbodyHaloMassError_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="nbodyHaloMassError_"/>
     return
   end function perturbMassesConstructorParameters
 
@@ -89,6 +91,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use            :: Linear_Algebra
     use            :: Merger_Tree_Walkers
+    use            :: Galacticus_Nodes   , only : treeNode, nodeComponentBasic
     implicit none
     class           (mergerTreeOperatorPerturbMasses), intent(inout), target         :: self
     type            (mergerTree                     ), intent(inout), target         :: tree

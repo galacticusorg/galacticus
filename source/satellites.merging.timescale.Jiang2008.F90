@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +28,8 @@
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesJiang2008
      !% A class implementing the \cite{jiang_fitting_2008} method for satellite merging timescales.
      private
-     class          (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-     class          (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     class          (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class          (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
      double precision                                   :: timescaleMultiplier
      ! Scatter (in log(T_merge)) to add to the merger times.
      double precision                                   :: scatter
@@ -47,6 +48,7 @@ contains
 
   function jiang2008ConstructorParameters(parameters) result(self)
     !% Constructor for the \cite{jiang_fitting_2008} merging timescale class which builds the object from a parameter set.
+    use Galacticus_Nodes  , only : defaultBasicComponent
     use Galacticus_Display
     use Input_Parameters
     use Galacticus_Error
@@ -79,6 +81,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
     self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
     return
   end function jiang2008ConstructorParameters
 
@@ -106,6 +110,7 @@ contains
 
   double precision function jiang2008TimeUntilMerging(self,node,orbit)
     !% Return the timescale for merging satellites using the \cite{jiang_fitting_2008} method.
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Satellite_Orbits
     use Galacticus_Error
     implicit none

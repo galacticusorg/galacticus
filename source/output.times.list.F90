@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,13 +19,13 @@
 
   use Cosmology_Functions
   
-  !# <outputTimes name="outputTimesList" defaultThreadPrivate="yes">
+  !# <outputTimes name="outputTimesList">
   !#  <description>An output times class which simply reads a list of output times from a parameter.</description>
   !# </outputTimes>
   type, extends(outputTimesClass) :: outputTimesList
      !% Implementation of an output times class which reads a list of output times from a parameter.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
      double precision                         , allocatable, dimension(:) :: times              , redshifts
    contains
      final     ::                 listDestructor
@@ -95,6 +96,7 @@ contains
     end if
     self=outputTimesList(times,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function listConstructorParameters
 

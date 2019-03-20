@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Stellar_Population_Properties
   !% Implements a class for computing properties of stellar populations.
-  use Galacticus_Nodes
+  use Galacticus_Nodes    , only : treeNode, nodeComponent
   use Abundances_Structure
   use Histories
   implicit none
@@ -31,7 +32,6 @@ module Stellar_Population_Properties
   !#  <descriptiveName>Stellar Population Properties</descriptiveName>
   !#  <description>Class providing stellar population properties.</description>
   !#  <default>instantaneous</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="rates" >
   !#   <description>Returns rates of change of stellar population properties.</description>
   !#   <type>void</type>

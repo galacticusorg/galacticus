@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Power_Spectra
   !% Implements linear-theory power spectra.
- 
+  private
+
   !# <functionClass>
   !#  <name>powerSpectrum</name>
   !#  <descriptiveName>Linear Theory Power Spectrum</descriptiveName>
   !#  <description>Class providing linear theory power spectra.</description>
   !#  <default>standard</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="power" >
   !#   <description>Return the linear power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].</description>
   !#   <type>double precision</type>

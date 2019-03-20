@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Dark_Matter_Profile_Structure_Tasks
   !% Implements structure tasks related to the dark matter halo density profile.
-  use Galacticus_Nodes
   use Dark_Matter_Profiles
   private
   public :: Dark_Matter_Profile_Enclosed_Mass_Task,Dark_Matter_Profile_Density_Task&
@@ -37,6 +37,7 @@ contains
     use Galactic_Structure_Options
     use Cosmology_Parameters
     use Galactic_Structure_Initial_Radii
+    use Galacticus_Nodes                , only : treeNode, nodeComponentBasic
     implicit none
     type            (treeNode                          ), intent(inout)           :: node
     integer                                             , intent(in   )           :: componentType                 , massType     , &
@@ -96,6 +97,7 @@ contains
     !% Computes the rotation curve at a given radius for a dark matter profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : treeNode
     implicit none
     type            (treeNode), intent(inout)           :: node
     integer                   , intent(in   )           :: componentType, massType
@@ -124,6 +126,7 @@ contains
     use Galactic_Structure_Options
     use Galactic_Structure_Initial_Radii
     use Cosmology_Parameters
+    use Galacticus_Nodes                , only : treeNode
     implicit none
     type            (treeNode                          ), intent(inout)           :: node
     integer                                             , intent(in   )           :: componentType          , massType     , &
@@ -179,6 +182,7 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
+    use Galacticus_Nodes            , only : treeNode
     implicit none
     type            (treeNode), intent(inout)           :: node
     integer                   , intent(in   )           :: componentType   , massType
@@ -212,6 +216,7 @@ contains
     use Galactic_Structure_Options
     use Galacticus_Error
     use Cosmology_Parameters
+    use Galacticus_Nodes          , only : treeNode
     implicit none
     type            (treeNode                ), intent(inout), pointer  :: node
     integer                                   , intent(in   )           :: componentType, massType

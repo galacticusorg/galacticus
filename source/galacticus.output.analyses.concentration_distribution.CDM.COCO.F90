@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Contains a module which implements a concentration distribution output analysis class for COCO CDM data.
 
-  !# <outputAnalysis name="outputAnalysisConcentrationDistributionCDMCOCO" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisConcentrationDistributionCDMCOCO">
   !#  <description>A concentration distribution function output analysis class for COCO CDM data.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisConcentrationDistributionCDMCOCO
@@ -72,6 +73,9 @@ contains
     nullify(cosmologyFunctions_)
     nullify(nbodyHaloMassError_)
     nullify(outputTimes_       )
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
+    !# <objectDestructor name="nbodyHaloMassError_"/>
     return
   end function concentrationDistributionCDMCOCOConstructorParameters
 

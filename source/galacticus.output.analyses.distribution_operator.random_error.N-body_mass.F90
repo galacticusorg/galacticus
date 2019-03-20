@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,7 @@
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRndmErrNbodyMass
      !% A random error output distribution operator class providing errors in $\log_{10}$ of N-body halo mass.
      private
-     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_
+     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
    contains
      final     ::                 randomErrorNbodyMassDestructor
      procedure :: rootVariance => randomErrorNbodyMassRootVariance
@@ -52,6 +53,7 @@ contains
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     self=outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="nbodyHaloMassError_"/>
     return
   end function randomErrorNbodyMassConstructorParameters
 

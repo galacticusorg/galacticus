@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implements a merger tree constructor class which builds merger trees after drawing masses at random from a mass distribution.
   
   use Cosmology_Functions
@@ -31,12 +32,12 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorBuild
      !% A class implementing merger tree construction by building trees.
      private
-     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_
-     class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_
-     class           (mergerTreeBuildMassesClass), pointer                   :: mergerTreeBuildMasses_
-     class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_
-     class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_
-     class           (outputTimesClass          ), pointer                   :: outputTimes_
+     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_ => null()
+     class           (mergerTreeBuildMassesClass), pointer                   :: mergerTreeBuildMasses_ => null()
+     class           (mergerTreeBuilderClass    ), pointer                   :: mergerTreeBuilder_ => null()
+     class           (haloMassFunctionClass     ), pointer                   :: haloMassFunction_ => null()
+     class           (outputTimesClass          ), pointer                   :: outputTimes_ => null()
      ! Variables giving the mass range and sampling frequency for mass function sampling.
      double precision                                                        :: timeBase               , timeSnapTolerance
      integer                                                                 :: treeBeginAt
@@ -140,6 +141,12 @@ contains
          &                          outputTimes_                                                                                            &
          &                         )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"  />
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="mergerTreeBuilder_"    />
+    !# <objectDestructor name="haloMassFunction_"     />
+    !# <objectDestructor name="mergerTreeBuildMasses_"/>
+    !# <objectDestructor name="outputTimes_"          />
     return
   end function buildConstructorParameters
 
@@ -192,6 +199,7 @@ contains
   
   function buildConstruct(self,treeNumber) result(tree)
     !% Build a merger tree.
+    use    Galacticus_Nodes        , only : nodeComponentBasic
     use    Galacticus_State
     use    Kind_Numbers
     use    String_Handling

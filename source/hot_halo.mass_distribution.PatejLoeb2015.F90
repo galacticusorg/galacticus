@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +28,8 @@
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionPatejLoeb2015
      !% An implementation of the hot halo mass distribution class which uses the model of \cite{patej_simple_2015}.
      private
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: gamma               , shockRadius
    contains
      final     ::                          patejLoeb2015Destructor
@@ -77,6 +78,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloMassDistributionPatejLoeb2015(gamma,radiusShock,darkMatterProfile_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function patejLoeb2015ConstructorParameters
 
@@ -84,6 +87,7 @@ contains
     !% Generic constructor for the {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution class.
     use Galacticus_Error
     use Array_Utilities
+    use Galacticus_Nodes, only : defaultHotHaloComponent, defaultDarkMatterProfileComponent
     implicit none
     type            (hotHaloMassDistributionPatejLoeb2015)                        :: self
     double precision                                      , intent(in   )         :: gamma                       , shockRadius
@@ -145,6 +149,7 @@ contains
 
   double precision function patejLoeb2015Density(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
+    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -186,6 +191,7 @@ contains
 
   double precision function patejLoeb2015DensityLogSlope(self,node,radius)
     !% Return the density in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -215,6 +221,7 @@ contains
   
   double precision function patejLoeb2015EnclosedMass(self,node,radius)
     !% Return the enclosed mass in a {\normalfont \ttfamily patejLoeb2015} hot halo mass distribution.
+    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout)          :: self
     type            (treeNode                            ), intent(inout), target  :: node
@@ -265,6 +272,7 @@ contains
     !% \mathcal{R}_\mathrm{g}(r;m) = f s^{(m-2)(\Gamma-1)/\Gamma} \mathcal{R}_\mathrm{DM}(r;(2\Gamma-2+m)/\Gamma),
     !% \end{equation}
     !% where $\mathcal{R}(r;m)$ is the $m^\mathrm{th}$ radial moment of the density profile.
+    use Galacticus_Nodes, only : nodeComponentHotHalo, nodeComponentDarkMatterProfile
     implicit none
     class           (hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -308,6 +316,7 @@ contains
     !% Returns the relation between specific angular momentum and rotation velocity (assuming a
     !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
     !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
+    use Galacticus_Nodes, only : nodeComponentHotHalo
     implicit none
     class(hotHaloMassDistributionPatejLoeb2015), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node

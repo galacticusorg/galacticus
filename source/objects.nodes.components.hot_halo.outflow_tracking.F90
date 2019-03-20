@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,12 +23,11 @@
 module Node_Component_Hot_Halo_Outflow_Tracking
   !% Implements an extension of the standard hot halo node component which tracks the metals arriving from               
   !% outflows.
-  use Galacticus_Nodes
   use Dark_Matter_Halo_Scales
   implicit none
   private
-  public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute     , Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set, &
-       &    Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize
+  public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute     , Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set          , &
+       &    Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize, Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize
 
   !# <component>
   !#  <class>hotHalo</class>
@@ -65,12 +65,13 @@ module Node_Component_Hot_Halo_Outflow_Tracking
 
 contains
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(parameters)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -80,6 +81,20 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize
 
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    use Galacticus_Nodes, only : defaultHotHaloComponent
+    implicit none
+
+    if (defaultHotHaloComponent%outflowTrackingIsActive()) then
+       !# <objectDestructor name="darkMatterHaloScale_"/>
+    end if
+    return
+  end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize
+
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute</unitName>
   !# </rateComputeTask>
@@ -87,6 +102,7 @@ contains
     !% Compute the hot halo node mass rate of change.
     use Abundances_Structure
     use Node_Component_Hot_Halo_Standard_Data
+    use Galacticus_Nodes                     , only : treeNode, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, propertyTypeInactive, defaultHotHaloComponent, interruptTask
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
     logical                                       , intent(in   )          :: odeConverged
@@ -125,6 +141,7 @@ contains
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Dark_Matter_Halo_Scales
+    use Galacticus_Nodes             , only : treeNode, nodeComponentHotHalo, nodeComponentBasic, nodeComponentHotHaloOutflowTracking
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo

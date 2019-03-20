@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,7 +16,7 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implements a stellar population spectra postprocessor builder which simply looks up postprocessors by name.
   
   !# <stellarPopulationSpectraPostprocessorBuilder name="stellarPopulationSpectraPostprocessorBuilderLookup">
@@ -27,6 +28,7 @@
      type(varying_string                           ), allocatable, dimension(:) :: names
      type(stellarPopulationSpectraPostprocessorList), allocatable, dimension(:) :: postprocessors
    contains
+     final     ::          lookupDestructor
      procedure :: build => lookupBuild
   end type stellarPopulationSpectraPostprocessorBuilderLookup
 
@@ -38,15 +40,6 @@
   
 contains
 
-  subroutine stellarPopulationSpectraPostprocessorListDestructor(self)
-    !% Destructor for elements of stellar population spectra postprocessor lists.
-    implicit none
-    type(stellarPopulationSpectraPostprocessorList), intent(inout) :: self
-
-     !# <objectDestructor name="self%stellarPopulationSpectraPostprocessor_"/>
-    return
-  end subroutine stellarPopulationSpectraPostprocessorListDestructor
-  
   function lookupConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder class which takes a
     !% parameter list as input.
@@ -76,6 +69,9 @@ contains
     !# <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessors(i)%stellarPopulationSpectraPostprocessor_" source="parameters" copy="i=1,countPostprocessors"/>
     self=stellarPopulationSpectraPostprocessorBuilderLookup(names,postprocessors)
     !# <inputParametersValidate source="parameters"/>
+    do i=1,countPostprocessors
+       !# <objectDestructor name="postprocessors(i)%stellarPopulationSpectraPostprocessor_"/>
+    end do
     return
   end function lookupConstructorParameters
   
@@ -83,14 +79,30 @@ contains
     !% Internal constructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder.
     use Galacticus_Error
     implicit none
-    type(stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
-    type(varying_string                                    ), intent(in   ), dimension(:) :: names
-    type(stellarPopulationSpectraPostprocessorList         ), intent(in   ), dimension(:) :: postprocessors
+    type   (stellarPopulationSpectraPostprocessorBuilderLookup)                              :: self
+    type   (varying_string                                    ), intent(in   ), dimension(:) :: names
+    type   (stellarPopulationSpectraPostprocessorList         ), intent(in   ), dimension(:) :: postprocessors
+    integer                                                                                  :: i
     !# <constructorAssign variables="names, postprocessors"/>
 
     if (size(names) /= size(postprocessors)) call Galacticus_Error_Report('number of names must match number of postprocessors'//{introspection:location})
+    do i=1,size(postprocessors)
+       !# <referenceCountIncrement owner="self%postprocessors(i)" object="stellarPopulationSpectraPostprocessor_"/>  
+    end do
     return
   end function lookupConstructorInternal
+
+  subroutine lookupDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily lookup} stellar population spectra postprocessor builder.
+    implicit none
+    type   (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self
+    integer                                                                    :: i
+
+    do i=1,size(self%postprocessors)
+       !# <objectDestructor name="self%postprocessors(i)%stellarPopulationSpectraPostprocessor_"/>
+    end do
+    return
+  end subroutine lookupDestructor
 
   function lookupBuild(self,descriptor)
     !% Return a stellar population spectra postprocessor by lookup via name.

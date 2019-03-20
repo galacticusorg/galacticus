@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,10 @@
 
 module Pseudo_Random
   !% Implements pseudo-random numbers.
-  use FGSL
+  use FGSL, only : fgsl_rng        , fgsl_long       , FGSL_Well_Defined, FGSL_RNG_Alloc, &
+       &           FGSL_RNG_Default, FGSL_RNG_Set    , FGSL_RNG_Free    , FGSL_Obj_C_Ptr, &
+       &           FGSL_RNG_Uniform, FGSL_Ran_Poisson, FGSL_Ran_Gaussian, FGSL_Rng_FRead, &
+       &           FGSL_Rng_Clone  , fgsl_file       , FGSL_Rng_FWrite
   implicit none
   private
 

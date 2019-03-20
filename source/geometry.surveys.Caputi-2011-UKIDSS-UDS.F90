@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{caputi_stellar_2011}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryCaputi2011UKIDSSUDS
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: binDistanceMinimum , binDistanceMaximum
    contains
      final     ::                      caputi2011UKIDSSUDSDestructor
@@ -63,6 +64,7 @@ contains
     !# </inputParameter>
     self=surveyGeometryCaputi2011UKIDSSUDS(redshiftBin,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function caputi2011UKIDSSUDSConstructorParameters
 

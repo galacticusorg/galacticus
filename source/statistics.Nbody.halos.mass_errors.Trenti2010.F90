@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
 !% Contains a module which implements an N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.
 
-  use Cosmology_Functions
+  use Cosmology_Functions, only : cosmologyFunctionsClass, cosmologyFunctions
   
   !# <nbodyHaloMassError name="nbodyHaloMassErrorTrenti2010">
   !#  <description>An N-body dark matter halo mass error class using the model of \cite{trenti_how_2010}.</description>
@@ -27,8 +28,8 @@
      !% An N-body halo mass error class using the model of \cite{trenti_how_2010}.
      private
      ! Parameters of the correlation model.
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
-     double precision                                   :: correlationNormalization   , correlationMassExponent, &
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
+     double precision                                   :: correlationNormalization             , correlationMassExponent, &
           &                                                correlationRedshiftExponent
    contains
      final     ::                trenti2010Destructor
@@ -92,6 +93,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=nbodyHaloMassErrorTrenti2010(massParticle,correlationNormalization,correlationMassExponent,correlationRedshiftExponent,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function nbodyHaloMassErrorTrenti2010Parameters
 
@@ -124,6 +126,7 @@ contains
        self%correlationMassExponent     =  correlationMassExponent
        self%correlationRedshiftExponent =  correlationRedshiftExponent
        self%cosmologyFunctions_         => cosmologyFunctions_
+       !# <referenceCountIncrement owner="self" isResult="yes" object="cosmologyFunctions_"/>
     else
        self%correlationNormalization    =  0.0d0
        self%correlationMassExponent     =  0.0d0       
@@ -146,6 +149,7 @@ contains
   
   double precision function trenti2010Correlation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (nbodyHaloMassErrorTrenti2010), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node1    , node2

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,8 +20,8 @@
 !% Contains a module which implements an N-body dark matter halo mass error class which
 !% implements a model for errors in spherical overdensity halo finders.
 
-  use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
+  use Dark_Matter_Profiles   , only : darkMatterProfileClass  , darkMatterProfile
   
   !# <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
   !#  <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
@@ -30,8 +31,8 @@
      !% overdensity halo finders.
      private
      double precision                                    :: massParticle
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
    contains
      final     ::                    soHaloFinderDestructor
      procedure :: errorFractional => soHaloFinderErrorFractional
@@ -68,6 +69,8 @@ contains
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
     self=nbodyHaloMassErrorSOHaloFinder(darkMatterHaloScale_,darkMatterProfile_,massParticle)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfile_"  />
     return
   end function soHaloFinderParameters
 
@@ -95,7 +98,8 @@ contains
   
   double precision function soHaloFinderErrorFractional(self,node)
     !% Return the fractional error on the mass of an N-body halo in the power-law error model.
-    use Numerical_Constants_Math
+    use Numerical_Constants_Math, only : Pi
+    use Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
     class           (nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
@@ -143,6 +147,7 @@ contains
   
   double precision function soHaloFinderCorrelation(self,node1,node2)
     !% Return the correlation of the masses of a pair of N-body halos.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node1 , node2

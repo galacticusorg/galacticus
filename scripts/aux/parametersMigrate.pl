@@ -601,7 +601,14 @@ my @translations =
 	     "timestepRecordEvolutionSteps"                              => "mergerTreeEvolveTimestepMethod.recordEvolution.--countSteps"                           ,
 	     "igmPropertiesTimeCountPerDecade"                           => "universeOperatorMethod.intergalacticMediumStateEvolve.--timeCountPerDecade"            ,
 	     "igmPropertiesRedshiftMinimum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMinimum"               ,
-	     "igmPropertiesRedshiftMaximum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMaximum"
+	     "igmPropertiesRedshiftMaximum"                              => "universeOperatorMethod.intergalacticMediumStateEvolve.--redshiftMaximum"               ,
+	     "darkMatterProfileScaleCorrectForConcentrationDefinition"   => "darkMatterProfileScaleRadiusMethod.concentration.--correctForConcentrationDefinition"  ,
+	     "allTreesExistAtFinalTime"                                  => "mergerTreeEvolverMethod.standard.--allTreesExistAtFinalTime"                           ,
+	     "mergerTreesDumpStructure"                                  => "mergerTreeEvolverMethod.standard.--dumpTreeStructure"                                  ,
+	     "timestepHostRelative"                                      => "mergerTreeEvolverMethod.standard.--timestepHostRelative"                               ,
+	     "timestepHostAbsolute"                                      => "mergerTreeEvolverMethod.standard.--timestepHostAbsolute"                               ,
+	     "mergerTreeOutput"                                          => "mergerTreeOutputterMethod"	                                                            ,
+	     "hotHaloOutflowReturnRate"                                  => "hotHaloOutflowReincorporationMethod.haloDynamicalTime.--multiplier"
 	 },
 	 values        =>
 	 {
@@ -624,6 +631,10 @@ my @translations =
 	     blackHoleBinaryMergersMethod                     =>
 	     {
 		 "Rezzolla2008"      => "rezzolla2008"
+	     },
+	     mergerTreeOutput =>
+	     {
+		 ""                  => "standard"
 	     },
 	     stellarSpectraDustAttenuationMethod              =>
 	     {

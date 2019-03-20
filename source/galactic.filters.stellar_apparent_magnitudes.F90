@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Cosmology_Functions
   
-  !# <galacticFilter name="galacticFilterStellarApparentMagnitudes" defaultThreadPrivate="yes">
+  !# <galacticFilter name="galacticFilterStellarApparentMagnitudes">
   !#  <description>
   !#  A galactic low-pass (i.e. bright-pass) filter for stellar apparent magnitudes. Galaxies with apparent magnitude in each
   !#  band, $i$, less than or equal to a fixed threshold, $m_{0,i}=${\normalfont \ttfamily [apparentMagnitudeThreshold]}.
@@ -29,9 +30,10 @@
   type, extends(galacticFilterClass) :: galacticFilterStellarApparentMagnitudes
      !% A galactic low-pass (i.e. bright pass) filter class for stellar apparent magnitudes.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
      double precision                         , allocatable, dimension(:) :: apparentMagnitudeThreshold
    contains
+     final     ::           stellarApparentMagnitudesDestructor
      procedure :: passes => stellarApparentMagnitudesPasses
   end type galacticFilterStellarApparentMagnitudes
 
@@ -43,14 +45,14 @@
 
 contains
 
-  function stellarApparentMagnitudesConstructorParameters(parameters)
+  function stellarApparentMagnitudesConstructorParameters(parameters) result(self)
     !% Constructor for the ``stellarApparentMagnitudes'' galactic filter class which takes a parameter set as input.
     use Input_Parameters
     use Stellar_Luminosities_Structure
     use Memory_Management
     use Galacticus_Error
     implicit none
-    type            (galacticFilterStellarApparentMagnitudes)                              :: stellarApparentMagnitudesConstructorParameters
+    type            (galacticFilterStellarApparentMagnitudes)                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
     double precision                                         , allocatable  , dimension(:) :: apparentMagnitudeThreshold
     class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_
@@ -70,17 +72,18 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>          
-    stellarApparentMagnitudesConstructorParameters=galacticFilterStellarApparentMagnitudes(apparentMagnitudeThreshold,cosmologyFunctions_)
+    self=galacticFilterStellarApparentMagnitudes(apparentMagnitudeThreshold,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyFunctions_"/>
    return
   end function stellarApparentMagnitudesConstructorParameters
 
-  function stellarApparentMagnitudesConstructorInternal(apparentMagnitudeThreshold,cosmologyFunctions_)
+  function stellarApparentMagnitudesConstructorInternal(apparentMagnitudeThreshold,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``stellarApparentMagnitudes'' galactic filter class.
     use Stellar_Luminosities_Structure
     use Galacticus_Error
     implicit none
-    type            (galacticFilterStellarApparentMagnitudes)                              :: stellarApparentMagnitudesConstructorInternal
+    type            (galacticFilterStellarApparentMagnitudes)                              :: self
     double precision                                         , intent(in   ), dimension(:) :: apparentMagnitudeThreshold
     class           (cosmologyFunctionsClass                ), intent(in   ), target       :: cosmologyFunctions_
     !# <constructorAssign variables="apparentMagnitudeThreshold, *cosmologyFunctions_"/>
@@ -91,15 +94,25 @@ contains
          &                               {introspection:location}                                                                         &
          &                              )    
     ! Map magnitude limits onto the expanded filter set.
-    call Stellar_Luminosities_Parameter_Map(stellarApparentMagnitudesConstructorInternal%apparentMagnitudeThreshold)
+    call Stellar_Luminosities_Parameter_Map(self%apparentMagnitudeThreshold)
     return
   end function stellarApparentMagnitudesConstructorInternal
+
+  subroutine stellarApparentMagnitudesDestructor(self)
+    !% Destructor for the ``stellarApparentMagnitudes'' galactic filter class.
+    implicit none
+    type(galacticFilterStellarApparentMagnitudes), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_" />
+    return
+  end subroutine stellarApparentMagnitudesDestructor
 
   logical function stellarApparentMagnitudesPasses(self,node)
     !% Implement a stellar apparent magnitude low-pass galactic filter.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
     class           (galacticFilterStellarApparentMagnitudes), intent(inout) :: self
     type            (treeNode                               ), intent(inout) :: node

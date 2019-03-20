@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,16 +19,20 @@
 
   use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepStandard" defaultThreadPrivate="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepStandard">
   !#  <description>A merger tree evolution timestepping class which limits the step to the minimum of that given by the {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="simple, satellite"/>
+  !#  </deepCopy>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepStandard
      !% Implementation of a merger tree evolution timestepping class which limits the step to the minimum of that given by the
      !% {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.
      private
-     type(mergerTreeEvolveTimestepSimple   ) :: simple
-     type(mergerTreeEvolveTimestepSatellite) :: satellite
+     type(mergerTreeEvolveTimestepSimple   ), pointer :: simple => null()
+     type(mergerTreeEvolveTimestepSatellite), pointer :: satellite => null()
    contains
+     final     ::                 standardDestructor
      procedure :: timeEvolveTo => standardTimeEvolveTo
   end type mergerTreeEvolveTimestepStandard
 
@@ -51,19 +56,32 @@ contains
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     self=mergerTreeEvolveTimestepStandard(cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function standardConstructorParameters
 
   function standardConstructorInternal(cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree evolution timestep class.
     implicit none
-    type(mergerTreeEvolveTimestepStandard):: self
-    class           (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_    
+    type(mergerTreeEvolveTimestepStandard)                        :: self
+    class(cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_    
 
-    self%simple   =mergerTreeEvolveTimestepSimple   (timeStepAbsolute         =1.0d+0,timeStepRelative         =1.0d-1,cosmologyFunctions_=cosmologyFunctions_)
-    self%satellite=mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute=1.0d-2,timeOffsetMaximumRelative=1.0d-3                                        )
+    allocate(self%simple   )
+    allocate(self%satellite)
+    !# <referenceConstruct isResult="yes" owner="self" object="simple"    constructor="mergerTreeEvolveTimestepSimple   (timeStepAbsolute         =1.0d+0,timeStepRelative         =1.0d-1,cosmologyFunctions_=cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="satellite" constructor="mergerTreeEvolveTimestepSatellite(timeOffsetMaximumAbsolute=1.0d-2,timeOffsetMaximumRelative=1.0d-3                                        )"/>
     return
   end function standardConstructorInternal
+
+  subroutine standardDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily standard} merger tree evolution timestep class.
+    implicit none
+    type(mergerTreeEvolveTimestepStandard), intent(inout) :: self
+
+    !# <objectDestructor name="self%simple"   />
+    !# <objectDestructor name="self%satellite"/>
+    return
+  end subroutine standardDestructor
 
   double precision function standardTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} by combining the {\normalfont \ttfamily simple} and

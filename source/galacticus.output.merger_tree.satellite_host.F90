@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,8 +23,8 @@ module Galacticus_Output_Trees_Satellite_Host
   !% Handles outputting of satellite host data to the \glc\ output file.
   implicit none
   private
-  public :: Galacticus_Output_Tree_Satellite_Host, Galacticus_Output_Tree_Satellite_Host_Property_Count,&
-       & Galacticus_Output_Tree_Satellite_Host_Names
+  public :: Galacticus_Output_Tree_Satellite_Host      , Galacticus_Output_Tree_Satellite_Host_Property_Count,&
+       &    Galacticus_Output_Tree_Satellite_Host_Names
 
   ! Number of host properties.
   integer :: satelliteHostPropertyCount
@@ -71,7 +72,7 @@ contains
   subroutine Galacticus_Output_Tree_Satellite_Host_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty&
        &,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
     !% Set the names of satellite orbital extremum properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                , only : treeNode
     use Numerical_Constants_Astronomical
     implicit none
     type            (treeNode)              , intent(inout) :: thisNode
@@ -101,7 +102,7 @@ contains
   !# </mergerTreeOutputPropertyCount>
   subroutine Galacticus_Output_Tree_Satellite_Host_Property_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
     !% Account for the number of satellite host properties to be written to the \glc\ output file.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: thisNode
     double precision          , intent(in   ) :: time
@@ -123,7 +124,7 @@ contains
   subroutine Galacticus_Output_Tree_Satellite_Host(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store satellite host halo properties in the \glc\ output file buffers.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic
     use Kind_Numbers
     use Kepler_Orbits
     use Satellite_Orbits

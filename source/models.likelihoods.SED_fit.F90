@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,22 +16,22 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
   
   use Cosmology_Functions
   use Stellar_Population_Selectors
   use Stellar_Population_Spectra_Postprocess
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit" defaultThreadPrivate="yes">
+  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
   !# </posteriorSampleLikelihood>
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
      !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
      private
-     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_
-     class           (stellarPopulationSelectorClass                   ), pointer                   :: stellarPopulationSelector_
-     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_
+     class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_ => null()
+     class           (stellarPopulationSelectorClass                   ), pointer                   :: stellarPopulationSelector_ => null()
+     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                   :: stellarPopulationSpectraPostprocessorBuilder_ => null()
      integer                                                                                        :: photometryCount                              , dustType           , &
           &                                                                                            burstCount                                   , startTimeType
      integer                                                            , allocatable, dimension(:) :: filterIndex                                  , luminosityIndex
@@ -160,6 +161,9 @@ contains
          &                                                                     stellarPopulationSpectraPostprocessorBuilder_                           &
          &                              )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"                          />
+    !# <objectDestructor name="stellarPopulationSelector_"                   />
+    !# <objectDestructor name="stellarPopulationSpectraPostprocessorBuilder_"/>
     return
   end function sedFitConstructorParameters
 
@@ -228,7 +232,7 @@ contains
     !% Return the log-likelihood for the SED fitting likelihood function.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Error
-    use               FGSL
+    use               FGSL                             , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
     use               Models_Likelihoods_Constants
     use               Posterior_Sampling_State
     use               Posterior_Sampling_Convergence
@@ -238,7 +242,7 @@ contains
     use               Cosmology_Functions
     use               Stellar_Spectra_Dust_Attenuations
     use               Stellar_Population_Luminosities
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes                 , only : nodeComponentDisk
     use               Stellar_Populations
     implicit none
     class           (posteriorSampleLikelihoodSEDFit   ), intent(inout)                 :: self

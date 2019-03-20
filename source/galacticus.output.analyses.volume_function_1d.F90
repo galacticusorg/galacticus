@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,7 +32,7 @@
   use               Galactic_Filters
   use               Output_Times
 
-  !# <outputAnalysis name="outputAnalysisVolumeFunction1D" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisVolumeFunction1D">
   !#  <description>A generic 1D volume function (i.e. number density of objects binned by some property, e.g. a mass function) output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisVolumeFunction1D
@@ -41,7 +42,9 @@
      type            (varying_string                           )                              :: label                                          , comment                                          , &
           &                                                                                      propertyLabel                                  , propertyComment                                  , &
           &                                                                                      distributionLabel                              , distributionComment                              , &
-          &                                                                                      propertyUnits                                  , distributionUnits
+          &                                                                                      propertyUnits                                  , distributionUnits                                , &
+          &                                                                                      xAxisLabel                                     , yAxisLabel                                       , &
+          &                                                                                      targetLabel
      double precision                                                                         :: propertyUnitsInSI                              , distributionUnitsInSI
      class           (outputAnalysisPropertyExtractorClass     ), pointer                     :: outputAnalysisPropertyExtractor_      => null()
      class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_       => null()                                                   , &
@@ -52,15 +55,18 @@
      class           (galacticFilterClass                      ), pointer                     :: galacticFilter_                       => null()
      class           (outputTimesClass                         ), pointer                     :: outputTimes_                          => null()
      double precision                                           , dimension(:,:), allocatable :: outputWeight                                   , functionCovariance                               , &
-          &                                                                                      weightMainBranch                               , weightSquaredMainBranch
-     double precision                                           , dimension(:  ), allocatable :: binCenter                                      , functionValue
+          &                                                                                      weightMainBranch                               , weightSquaredMainBranch                          , &
+          &                                                                                      functionCovarianceTarget
+     double precision                                           , dimension(:  ), allocatable :: binCenter                                      , functionValue                                    , &
+          &                                                                                      functionValueTarget
      double precision                                           , dimension(:  ), allocatable :: binMinimum                                     , binMaximum
      integer         (c_size_t                                 )                              :: binCount                                       , bufferCount                                      , &
           &                                                                                      binCountTotal                                  , covarianceModelBinomialBinCount
      integer                                                                                  :: covarianceModel                                , covarianceBinomialBinsPerDecade
      double precision                                                                         :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                , &
           &                                                                                      covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse
-     logical                                                                                  :: finalized
+     logical                                                                                  :: finalized                                      , xAxisIsLog                                       , &
+          &                                                                                      yAxisIsLog
      !$ integer      (omp_lock_kind                            )                              :: accumulateLock
    contains
      !@ <objectMethods>
@@ -72,10 +78,12 @@
      !@     <description>Return the results of the volume function operator.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::             volumeFunction1DDestructor
-     procedure :: analyze  => volumeFunction1DAnalyze
-     procedure :: finalize => volumeFunction1DFinalize
-     procedure :: results  => volumeFunction1DResults
+     final     ::                  volumeFunction1DDestructor
+     procedure :: analyze       => volumeFunction1DAnalyze
+     procedure :: finalize      => volumeFunction1DFinalize
+     procedure :: results       => volumeFunction1DResults
+     procedure :: reduce        => volumeFunction1DReduce
+     procedure :: logLikelihood => volumeFunction1DLogLikelihood
   end type outputAnalysisVolumeFunction1D
 
   interface outputAnalysisVolumeFunction1D
@@ -101,21 +109,33 @@ contains
     class           (outputAnalysisDistributionNormalizerClass), pointer                     :: outputAnalysisDistributionNormalizer_
     class           (galacticFilterClass                      ), pointer                     :: galacticFilter_
     class           (outputTimesClass                         ), pointer                     :: outputTimes_
-    double precision                                           , dimension(:  ), allocatable :: binCenter                            , outputWeight
+    double precision                                           , dimension(:  ), allocatable :: binCenter                            , outputWeight                     , &
+         &                                                                                      functionValueTarget                  , functionCovarianceTarget1D
+    double precision                                           , dimension(:,:), allocatable :: functionCovarianceTarget
     integer         (c_size_t                                 )                              :: bufferCount
     type            (varying_string                           )                              :: label                                , comment                          , &
          &                                                                                      propertyLabel                        , propertyComment                  , &
          &                                                                                      distributionLabel                    , distributionComment              , &
          &                                                                                      propertyUnits                        , distributionUnits                , &
-         &                                                                                      covarianceModel
+         &                                                                                      covarianceModel                      , targetLabel                      , &
+         &                                                                                      xAxisLabel                           , yAxisLabel
     integer                                                                                  :: covarianceBinomialBinsPerDecade
     type            (inputParameters                          )                              :: unoperatorParameters
     double precision                                                                         :: propertyUnitsInSI                    , distributionUnitsInSI            , &
          &                                                                                      covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+    logical                                                                                  :: xAxisIsLog                           , yAxisIsLog
     
     ! Check and read parameters.
+    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"      source="parameters"          />
+    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
+    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"     source="unoperatorParameters"/>
+    !# <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"         source="parameters"          />
+    !# <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"   source="parameters"          />
+    !# <objectBuilder class="outputAnalysisDistributionNormalizer" name="outputAnalysisDistributionNormalizer_" source="parameters"          />
+    !# <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
+    !# <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
     unoperatorParameters=parameters%subParameters('unoperatorParameters',requireValue=.false.)
-    call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                               ])
+    call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                          ])
     call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*self%outputTimes_%count()])
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*self%outputTimes_%count()) &
          & call Galacticus_Error_Report('incorrect number of output weights provided'//{introspection:location})
@@ -125,6 +145,34 @@ contains
     !#   <variable>label</variable>
     !#   <description>A label for the analysis.</description>
     !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>xAxisLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the $x$-axis in a plot of this analysis.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>yAxisLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the $y$-axis in a plot of this analysis.</description>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>xAxisIsLog</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>yAxisIsLog</name>
+    !#   <source>parameters</source>
+    !#   <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+    !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -255,71 +303,125 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"      source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"     source="unoperatorParameters"/>
-    !# <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"         source="parameters"          />
-    !# <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"   source="parameters"          />
-    !# <objectBuilder class="outputAnalysisDistributionNormalizer" name="outputAnalysisDistributionNormalizer_" source="parameters"          />
-    !# <objectBuilder class="galacticFilter"                       name="galacticFilter_"                       source="parameters"          />
-    !# <objectBuilder class="outputTimes"                          name="outputTimes_"                          source="parameters"          />
+    if (parameters%isPresent('functionValueTarget')) then
+       if (parameters%isPresent('functionCovarianceTarget')) then
+          !# <inputParameter>
+          !#   <name>functionValueTarget</name>
+          !#   <source>parameters</source>
+          !#   <description>The target function for likelihood calculations.</description>
+          !#   <type>real</type>
+          !#   <cardinality>0..1</cardinality>
+          !# </inputParameter> 
+          !# <inputParameter>
+          !#   <name>functionCovarianceTarget</name>
+          !#   <source>parameters</source>
+          !#   <variable>functionCovarianceTarget1D</variable>
+          !#   <description>The target function covariance for likelihood calculations.</description>
+          !#   <type>real</type>
+          !#   <cardinality>0..1</cardinality>
+          !# </inputParameter>
+          if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
+             allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
+             functionCovarianceTarget=reshape(functionCovarianceTarget1D,shape(functionCovarianceTarget))
+          else
+             call Galacticus_Error_Report('functionCovariance has wrong size'//{introspection:location})
+          end if
+       else
+          call Galacticus_Error_Report('functionCovariance must be specified if functionTarget is present'//{introspection:location})
+       end if
+    else
+       if (parameters%isPresent('functionCovariance')) call Galacticus_Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
+    end if
+    !# <inputParameter>
+    !#   <name>targetLabel</name>
+    !#   <source>parameters</source>
+    !#   <description>A label for the target dataset in a plot of this analysis.</description>
+    !#   <defaultValue>var_str('')</defaultValue>
+    !#   <type>string</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     ! Build the object.
-    self=outputAnalysisVolumeFunction1D(                                                                                                    &
-         &                              label                                                                                             , &
-         &                              comment                                                                                           , &
-         &                              propertyLabel                                                                                     , &
-         &                              propertyComment                                                                                   , &
-         &                              propertyUnits                                                                                     , &
-         &                              propertyUnitsInSI                                                                                 , &
-         &                              distributionLabel                                                                                 , &
-         &                              distributionComment                                                                               , &
-         &                              distributionUnits                                                                                 , &
-         &                              distributionUnitsInSI                                                                             , &
-         &                              binCenter                                                                                         , &
-         &                              bufferCount                                                                                       , &
-         &                              reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),self%outputTimes_%count()]), &
-         &                              outputAnalysisPropertyExtractor_                                                                  , &
-         &                              outputAnalysisPropertyOperator_                                                                   , &
-         &                              outputAnalysisPropertyUnoperator_                                                                 , &
-         &                              outputAnalysisWeightOperator_                                                                     , &
-         &                              outputAnalysisDistributionOperator_                                                               , &
-         &                              outputAnalysisDistributionNormalizer_                                                             , &
-         &                              galacticFilter_                                                                                   , &
-         &                              outputTimes_                                                                                      , &
-         &                              enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.)      , &
-         &                              covarianceBinomialBinsPerDecade                                                                   , &
-         &                              covarianceBinomialMassHaloMinimum                                                                 , &
-         &                              covarianceBinomialMassHaloMaximum                                                                   &                      
-         &                             )
+    !# <conditionalCall>
+    !#  <call>
+    !#   self=outputAnalysisVolumeFunction1D(                                                                                                    &amp;
+    !#        &amp;                          label                                                                                             , &amp;
+    !#        &amp;                          comment                                                                                           , &amp;
+    !#        &amp;                          propertyLabel                                                                                     , &amp;
+    !#        &amp;                          propertyComment                                                                                   , &amp;
+    !#        &amp;                          propertyUnits                                                                                     , &amp;
+    !#        &amp;                          propertyUnitsInSI                                                                                 , &amp;
+    !#        &amp;                          distributionLabel                                                                                 , &amp;
+    !#        &amp;                          distributionComment                                                                               , &amp;
+    !#        &amp;                          distributionUnits                                                                                 , &amp;
+    !#        &amp;                          distributionUnitsInSI                                                                             , &amp;
+    !#        &amp;                          binCenter                                                                                         , &amp;
+    !#        &amp;                          bufferCount                                                                                       , &amp;
+    !#        &amp;                          reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),self%outputTimes_%count()]), &amp;
+    !#        &amp;                          outputAnalysisPropertyExtractor_                                                                  , &amp;
+    !#        &amp;                          outputAnalysisPropertyOperator_                                                                   , &amp;
+    !#        &amp;                          outputAnalysisPropertyUnoperator_                                                                 , &amp;
+    !#        &amp;                          outputAnalysisWeightOperator_                                                                     , &amp;
+    !#        &amp;                          outputAnalysisDistributionOperator_                                                               , &amp;
+    !#        &amp;                          outputAnalysisDistributionNormalizer_                                                             , &amp;
+    !#        &amp;                          galacticFilter_                                                                                   , &amp;
+    !#        &amp;                          outputTimes_                                                                                      , &amp;
+    !#        &amp;                          enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.)      , &amp;
+    !#        &amp;                          covarianceBinomialBinsPerDecade                                                                   , &amp;
+    !#        &amp;                          covarianceBinomialMassHaloMinimum                                                                 , &amp;
+    !#        &amp;                          covarianceBinomialMassHaloMaximum                                                                 , &amp;
+    !#        &amp;                          xAxisLabel                                                                                        , &amp;
+    !#        &amp;                          yAxisLabel                                                                                        , &amp;
+    !#        &amp;                          xAxisIsLog                                                                                        , &amp;
+    !#        &amp;                          yAxisIsLog                                                                                        , &amp;
+    !#        &amp;                          targetLabel                                                                                         &amp;
+    !#        &amp;                          {conditions}                                                                                        &amp;
+    !#        &amp;                         )
+    !#  </call>
+    !#  <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
+    !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+    !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"     />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"      />
+    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"        />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"  />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"/>
+    !# <objectDestructor name="galacticFilter_"                      />
+    !# <objectDestructor name="outputTimes_"                         />
     return
   end function volumeFunction1DConstructorParameters
 
-  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
+  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
     !% Constructor for the ``volumeFunction1D'' output analysis class for internal use.
     use Memory_Management
     implicit none
-    type            (outputAnalysisVolumeFunction1D           )                                :: self
-    type            (varying_string                           ), intent(in   )                 :: label                                , comment                          , &
-         &                                                                                        propertyLabel                        , propertyComment                  , &
-         &                                                                                        distributionLabel                    , distributionComment              , &
-         &                                                                                        propertyUnits                        , distributionUnits
-    double precision                                                                           :: propertyUnitsInSI                    , distributionUnitsInSI
-    double precision                                           , intent(in   ), dimension(:  ) :: binCenter
-    integer         (c_size_t                                 ), intent(in   )                 :: bufferCount
-    double precision                                           , intent(in   ), dimension(:,:) :: outputWeight
-    class           (outputAnalysisPropertyExtractorClass     ), intent(in   ), target         :: outputAnalysisPropertyExtractor_
-    class           (outputAnalysisPropertyOperatorClass      ), intent(in   ), target         :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_
-    class           (outputAnalysisWeightOperatorClass        ), intent(in   ), target         :: outputAnalysisWeightOperator_
-    class           (outputAnalysisDistributionOperatorClass  ), intent(in   ), target         :: outputAnalysisDistributionOperator_
-    class           (outputAnalysisDistributionNormalizerClass), intent(in   ), target         :: outputAnalysisDistributionNormalizer_
-    class           (galacticFilterClass                      ), intent(in   ), target         :: galacticFilter_
-    class           (outputTimesClass                         ), intent(in   ), target         :: outputTimes_
-    integer                                                    , intent(in   )                 :: covarianceModel
-    integer                                                    , intent(in   ), optional       :: covarianceBinomialBinsPerDecade
-    double precision                                           , intent(in   ), optional       :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
-    integer         (c_size_t                                 )                                :: i
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum"/>
+    type            (outputAnalysisVolumeFunction1D           )                                          :: self
+    type            (varying_string                           ), intent(in   )                           :: label                                , comment                          , &
+         &                                                                                                  propertyLabel                        , propertyComment                  , &
+         &                                                                                                  distributionLabel                    , distributionComment              , &
+         &                                                                                                  propertyUnits                        , distributionUnits
+    type            (varying_string                           ), intent(in   ), optional                 :: xAxisLabel                           , yAxisLabel                       , &
+         &                                                                                                  targetLabel
+    logical                                                    , intent(in   ), optional                 :: xAxisIsLog                           , yAxisIsLog
+    double precision                                                                                     :: propertyUnitsInSI                    , distributionUnitsInSI
+    double precision                                           , intent(in   )          , dimension(:  ) :: binCenter
+    integer         (c_size_t                                 ), intent(in   )                           :: bufferCount
+    double precision                                           , intent(in   )          , dimension(:,:) :: outputWeight
+    class           (outputAnalysisPropertyExtractorClass     ), intent(in   ), target                   :: outputAnalysisPropertyExtractor_
+    class           (outputAnalysisPropertyOperatorClass      ), intent(in   ), target                   :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_
+    class           (outputAnalysisWeightOperatorClass        ), intent(in   ), target                   :: outputAnalysisWeightOperator_
+    class           (outputAnalysisDistributionOperatorClass  ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
+    class           (outputAnalysisDistributionNormalizerClass), intent(in   ), target                   :: outputAnalysisDistributionNormalizer_
+    class           (galacticFilterClass                      ), intent(in   ), target                   :: galacticFilter_
+    class           (outputTimesClass                         ), intent(in   ), target                   :: outputTimes_
+    integer                                                    , intent(in   )                           :: covarianceModel
+    integer                                                    , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
+    double precision                                           , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+    double precision                                           , intent(in   ), optional, dimension(:  ) :: functionValueTarget
+    double precision                                           , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
+    integer         (c_size_t                                 )                                          :: i
+    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget"/>
 
     ! Count bins.
     self%binCount     =size(binCenter,kind=c_size_t)
@@ -386,6 +488,7 @@ contains
   
   subroutine volumeFunction1DAnalyze(self,node,iOutput)
     !% Implement a volumeFunction1D output analysis.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
     type            (treeNode                      ), intent(inout)                 :: node
@@ -464,6 +567,29 @@ contains
     return
   end subroutine volumeFunction1DAnalyze
 
+  subroutine volumeFunction1DReduce(self,reduced)
+    !% Implement a volumeFunction1D output analysis reduction.
+    use Galacticus_Error
+    implicit none
+    class(outputAnalysisVolumeFunction1D), intent(inout) :: self
+    class(outputAnalysisClass           ), intent(inout) :: reduced
+
+    select type (reduced)
+    class is (outputAnalysisVolumeFunction1D)
+       !$ call OMP_Set_Lock(reduced%accumulateLock)
+       if (self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
+          reduced%weightMainBranch       =reduced%weightMainBranch       +self%weightMainBranch
+          reduced%weightSquaredMainBranch=reduced%weightSquaredMainBranch+self%weightSquaredMainBranch
+       end if
+       reduced%functionCovariance        =reduced%functionCovariance     +self%functionCovariance
+       reduced%functionValue             =reduced%functionValue          +self%functionValue
+       !$ call OMP_Unset_Lock(reduced%accumulateLock)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine volumeFunction1DReduce
+
   subroutine volumeFunction1DFinalize(self)
     !% Implement a volumeFunction1D output analysis finalization.
     use IO_HDF5
@@ -479,20 +605,46 @@ contains
     !$ call hdf5Access%set()
     analysesGroup=galacticusOutputFile%openGroup('analyses'                         )
     analysisGroup=analysesGroup       %openGroup(char(self%label),char(self%comment))
-    call analysisGroup%writeDataset  (self%binCenter    (1:self%binCount                     ),char(self%    propertyLabel)              ,char(self%    propertyComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%    propertyUnits    )      ,'units'                                                                                                                        )
-    call dataset      %writeAttribute(          self%    propertyUnitsInSI       ,'unitsInSI'                                                                                                                    )
-    call dataset      %close()
-    call analysisGroup%writeDataset  (self%functionValue(1:self%binCount                     ),char(self%distributionLabel)              ,char(self%distributionComment)                 ,datasetReturned=dataset)
-    call dataset      %writeAttribute(     char(self%distributionUnits    )      ,'units'                                                                                                                        )
-    call dataset      %writeAttribute(          self%distributionUnitsInSI       ,'unitsInSI'                                                                                                                    )
-    call dataset      %close()
-    call analysisGroup%writeDataset  (self%functionCovariance(1:self%binCount,1:self%binCount),char(self%distributionLabel)//"Covariance",char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
-    call dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²",'units'                                                                                                                        )
-    call dataset      %writeAttribute(          self%distributionUnitsInSI   **2 ,'unitsInSI'                                                                                                                    )
-    call dataset      %close()
-    call analysisGroup%close()
-    call analysesGroup%close()
+    ! Write metadata describing this analysis.
+    call    analysisGroup%writeAttribute(     char(self%       comment   )                       ,'description'                                                                                                          )
+    call    analysisGroup%writeAttribute("function1D"                                            ,'type'                                                                                                                 )
+    call    analysisGroup%writeAttribute(     char(self%       xAxisLabel)                       ,'xAxisLabel'                                                                                                           )
+    call    analysisGroup%writeAttribute(     char(self%       yAxisLabel)                       ,'yAxisLabel'                                                                                                           )
+    call    analysisGroup%writeAttribute(          self%       xAxisIsLog                        ,'xAxisIsLog'                                                                                                           )
+    call    analysisGroup%writeAttribute(          self%       yAxisIsLog                        ,'yAxisIsLog'                                                                                                           )
+    call    analysisGroup%writeAttribute(     char(self%    propertyLabel)                       ,'xDataset'                                                                                                             )
+    call    analysisGroup%writeAttribute(     char(self%distributionLabel)                       ,'yDataset'                                                                                                             )
+    call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"Target"             ,'yDatasetTarget'                                                                                                       )
+    call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"Covariance"         ,'yCovariance'                                                                                                          )
+    call    analysisGroup%writeAttribute(     char(self%distributionLabel)//"CovarianceTarget"   ,'yCovarianceTarget'                                                                                                    )
+    ! Write computed datasets.
+    call    analysisGroup%writeDataset  (self%binCenter    (1:self%binCount                     ),char(self%    propertyLabel)                   ,char(self%   propertyComment)                  ,datasetReturned=dataset)
+    call    dataset      %writeAttribute(     char(self%    propertyUnits    )                   ,'units'                                                                                                                )
+    call    dataset      %writeAttribute(          self%    propertyUnitsInSI                    ,'unitsInSI'                                                                                                            )
+    call    dataset      %close         (                                                                                                                                                                                )
+    call    analysisGroup%writeDataset  (self%functionValue(1:self%binCount                     ),char(self%distributionLabel)                   ,char(self%distributionComment)                 ,datasetReturned=dataset)
+    call    dataset      %writeAttribute(     char(self%distributionUnits    )                   ,'units'                                                                                                                )
+    call    dataset      %writeAttribute(          self%distributionUnitsInSI                    ,'unitsInSI'                                                                                                            )
+    call    dataset      %close         (                                                                                                                                                                                )
+    call    analysisGroup%writeDataset  (self%functionCovariance(1:self%binCount,1:self%binCount),char(self%distributionLabel)//"Covariance"     ,char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
+    call    dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²"             ,'units'                                                                                                                )
+    call    dataset      %writeAttribute(          self%distributionUnitsInSI   **2              ,'unitsInSI'                                                                                                            )
+    call    dataset      %close         (                                                                                                                                                                                )
+    ! If available, include the log-likelihood and target dataset.
+    if (allocated(self%functionValueTarget)) then
+       call analysisGroup%writeAttribute(          self%logLikelihood()                         ,'logLikelihood'                                                                                                         )
+       call analysisGroup%writeAttribute(     char(self%targetLabel          )                  ,'targetLabel'                                                                                                           )
+       call analysisGroup%writeDataset  (          self%functionValueTarget                     ,char(self%distributionLabel)//"Target"          ,char(self%distributionComment)                 ,datasetReturned=dataset)
+       call dataset      %writeAttribute(     char(self%distributionUnits    )                  ,'units'                                                                                                                 )
+       call dataset      %writeAttribute(          self%distributionUnitsInSI                   ,'unitsInSI'                                                                                                             )
+       call dataset      %close         (                                                                                                                                                                                )
+       call analysisGroup%writeDataset  (          self%functionCovarianceTarget                ,char(self%distributionLabel)//"CovarianceTarget",char(self%distributionComment)//" [covariance]",datasetReturned=dataset)
+       call dataset      %writeAttribute("["//char(self%distributionUnits    )//"]²"            ,'units'                                                                                                                 )
+       call dataset      %writeAttribute(          self%distributionUnitsInSI   **2             ,'unitsInSI'                                                                                                             )
+       call dataset      %close         (                                                                                                                                                                                )
+    end if
+    call    analysisGroup%close         (                                                                                                                                                                                )
+    call    analysesGroup%close         (                                                                                                                                                                                )
     !$ call hdf5Access%unset()    
     return
   end subroutine volumeFunction1DFinalize
@@ -588,3 +740,42 @@ contains
     end if
     return
   end subroutine volumeFunction1DResults
+
+  double precision function volumeFunction1DLogLikelihood(self)
+    !% Return the log-likelihood of a volumeFunction1D output analysis.
+    use Linear_Algebra          , only : vector, matrix, assignment(=), operator(*)
+    use Numerical_Constants_Math, only : Pi
+    use Galacticus_Error        , only : Galacticus_Error_Report
+    implicit none
+    class           (outputAnalysisVolumeFunction1D), intent(inout)                 :: self
+    double precision                                , allocatable  , dimension(:,:) :: functionCovarianceCombined
+    double precision                                , allocatable  , dimension(:  ) :: functionValueDifference
+    type            (vector                        )                                :: residual
+    type            (matrix                        )                                :: covariance                , covarianceInverse
+    
+    ! Check for existance of a target distribution.
+    if (allocated(self%functionValueTarget)) then
+       ! Finalize analysis.
+       call volumeFunction1DFinalizeAnalysis(self)
+       ! Allocate workspaces.
+       allocate(functionCovarianceCombined(self%binCount,self%binCount))
+       allocate(functionValueDifference   (self%binCount              ))
+       ! Find combined covariance and difference between model and target.
+       functionValueDifference   =+self%functionValue            &
+            &                     -self%functionValueTarget
+       functionCovarianceCombined=+self%functionCovariance       &
+            &                     +self%functionCovarianceTarget
+       residual                  = functionValueDifference
+       covariance                = functionCovarianceCombined
+       ! Find the inverse covariance matrix of the combined model and target covariances.
+       covarianceInverse=covariance%invert()
+       ! Compute the log-likelihood.
+       volumeFunction1DLogLikelihood=-0.5d0*(residual*(covarianceInverse*residual)) &
+            &                        -0.5d0*covariance%determinant()                &
+            &                        -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
+    else
+       volumeFunction1DLogLikelihood=0.0d0
+       call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})
+    end if
+    return
+  end function volumeFunction1DLogLikelihood

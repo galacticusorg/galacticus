@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,13 +22,13 @@
 
   use Satellites_Tidal_Fields
 
-  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982Tidal" defaultThreadPrivate="yes">
+  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982Tidal">
   !#  <description>The \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.</description>
   !# </galacticDynamicsBarInstability>
   type, extends(galacticDynamicsBarInstabilityEfstathiou1982) :: galacticDynamicsBarInstabilityEfstathiou1982Tidal
      !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.
      private
-     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_
+     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
      double precision                                    :: massThresholdHarrassment
    contains
      !@ <objectMethods>
@@ -39,6 +40,7 @@
      !@     <description>Compute the radial term of the tidal tensor.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                      efstathiou1982Destructor
      procedure :: tidalTensorRadial => efstathiou1982TidalTidalTensorRadial
      procedure :: timescale         => efstathiou1982TidalTimescale
      procedure :: estimator         => efstathiou1982TidalEstimator
@@ -82,7 +84,7 @@ contains
     double precision                                                   , intent(in   )         :: stabilityThresholdStellar, stabilityThresholdGaseous, &
          &                                                                                        timescaleMinimum         , massThresholdHarrassment
     class           (satelliteTidalFieldClass                         ), intent(in   ), target :: satelliteTidalField_
-   !# <constructorAssign variables="massThresholdHarrassment, *satelliteTidalField_"/>
+    !# <constructorAssign variables="massThresholdHarrassment, *satelliteTidalField_"/>
     
     self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum)
     return
@@ -100,6 +102,7 @@ contains
   subroutine efstathiou1982TidalTimescale(self,node,timescale,externalDrivingSpecificTorque)
     !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
     !% \cite{efstathiou_stability_1982}.
+    use Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type            (treeNode                                         ), intent(inout) :: node
@@ -119,6 +122,7 @@ contains
   double precision function efstathiou1982TidalEstimator(self,node)
     !% Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentDisk
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type            (treeNode                                         ), intent(inout) :: node
@@ -158,6 +162,7 @@ contains
 
   double precision function efstathiou1982TidalTidalTensorRadial(self,node)
     !% Compute the radial part of the tidal tensor.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type (treeNode                                         ), intent(inout) :: node

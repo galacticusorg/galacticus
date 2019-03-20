@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -104,6 +105,7 @@ contains
     use Numerical_Constants_Physical
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
     type            (treeNode                                 ), intent(inout) :: node
@@ -155,6 +157,7 @@ contains
   double precision function twoBodyRelaxationSpecificEnergyGradient(self,node,darkMatterProfile_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     use Numerical_Constants_Physical
+    use Galacticus_Nodes            , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
     type            (treeNode                                 ), intent(inout) :: node
@@ -226,6 +229,7 @@ contains
 
   logical function twoBodyRelaxationSpecificEnergyIsEverywhereZero(self,node,darkMatterProfile_)
     !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
     type (treeNode                                 ), intent(inout) :: node

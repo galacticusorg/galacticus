@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Contains a module which implements a mass-metallicity relation analysis class.
   
-  !# <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation">
   !#  <description>A mass-metallicity relation output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisBlackHoleBulgeRelation
@@ -91,6 +92,8 @@ contains
     ! Build the object.
     self=outputAnalysisBlackHoleBulgeRelation(systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
     return
   end function blackHoleBulgeRelationConstructorParameters
 

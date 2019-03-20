@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,8 +30,9 @@ module Input_Parameters
   use FoX_dom
   use IO_XML
   use IO_HDF5
+  use Function_Classes
   private
-  public :: inputParameters, inputParameter, inputParameterList, globalParameters  
+  public :: inputParameters, inputParameter, inputParameterList, globalParameters
 
   !# <generic identifier="Type">
   !#  <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -56,7 +58,7 @@ module Input_Parameters
   type :: genericObjectList
      !% A list-type for unlimited polymorphic pointers.
      private
-     class(*), pointer :: object => null()
+     class(functionClass), pointer :: object => null()
   end type genericObjectList
 
   type :: inputParameter
@@ -83,15 +85,39 @@ module Input_Parameters
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>objectGet</method>
-     !@     <type>\textcolor{red}{\textless *class(*)\textgreater}</type>
+     !@     <type>\textcolor{red}{\textless *class(functionClass)\textgreater}</type>
      !@     <arguments></arguments>
      !@     <description>Return a pointer to the object corresponding to this parameter.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>objectSet</method>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless *class(*)\textgreater} object\argin, \logicalzero\ isShared\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless *class(functionClass)\textgreater} object\argin, \logicalzero\ isShared\argin</arguments>
      !@     <description>Set a pointer to the object corresponding to this parameter.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset all objects in this parameter and any sub-parameters.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>set</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ value\argin</arguments>
+     !@     <description>Set the value of this parameter.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>get</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Return the value of this parameter in a simple textual context.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>destroy</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Destroy this parameter and all subparameters.</description>
      !@   </objectMethod>
      !@ </objectMethods>
      procedure :: isParameter   => inputParameterIsParameter
@@ -99,6 +125,12 @@ module Input_Parameters
      procedure :: objectGet     => inputParameterObjectGet
      procedure :: objectSet     => inputParameterObjectSet
      procedure :: destroy       => inputParameterDestroy
+     procedure :: reset         => inputParameterReset
+     procedure ::                  inputParameterSetDouble
+     procedure ::                  inputParameterSetVarStr
+     generic   :: set           => inputParameterSetDouble
+     generic   :: set           => inputParameterSetVarStr
+     procedure :: get           => inputParameterGet
   end type inputParameter
 
   type :: inputParameters
@@ -216,6 +248,12 @@ module Input_Parameters
      !@     <description>Add a parameter.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>reset</method>
+     !@     <type>\void</type>
+     !@     <arguments></arguments>
+     !@     <description>Reset all objects in this parameter set.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>destroy</method>
      !@     <type>\void</type>
      !@     <arguments></arguments>
@@ -244,6 +282,7 @@ module Input_Parameters
      procedure :: serializeToString   => inputParametersSerializeToString
      procedure :: serializeToXML      => inputParametersSerializeToXML
      procedure :: addParameter        => inputParametersAddParameter
+     procedure :: reset               => inputParametersReset
   end type inputParameters
 
   interface inputParameters
@@ -297,14 +336,18 @@ module Input_Parameters
   !# </enumeration>
 
   ! Pointer to the global input parameters.
-  type   (inputParameters), pointer   :: globalParameters               => null()
-
-  ! Thread-global state recording whether objects being built are threadprivate or public.
-  logical                 , public    :: parametersObjectBuildIsPrivate  
-  !$omp threadprivate(parametersObjectBuildIsPrivate)
+  type   (inputParameters), pointer   :: globalParameters       => null()
   
   ! Maximum length allowed for parameter entries.
-  integer                 , parameter :: parameterLengthMaximum         =  1024
+  integer                 , parameter :: parameterLengthMaximum =  1024
+
+  ! Interface to the (auto-generated) knownParameterNames() function.
+  interface
+     subroutine knownParameterNames(names)
+       import varying_string
+       type(varying_string), dimension(:), allocatable, intent(inout) :: names
+     end subroutine knownParameterNames
+  end interface
   
 contains
 
@@ -322,18 +365,17 @@ contains
     inputParametersConstructorNull%parameters => null()
     inputParametersConstructorNull%global     = .false.
     inputParametersConstructorNull%isNull     = .true.
-    call setLiveNodeLists(inputParametersConstructorNull%document,.true.)
+    call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
     return
   end function inputParametersConstructorNull
   
-  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
+  function inputParametersConstructorVarStr(xmlString,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorVarStr
     type     (varying_string    )              , intent(in   )           :: xmlString
     character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    character(len=*             )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput
     type     (node              ), pointer                               :: parameterNode
@@ -350,7 +392,6 @@ contains
             &                                                                                                  'parameters'   &
             &                                                                                                 )             , &
             &                                                                allowedParameterNames                          , &
-            &                                                                allowedParametersFile                          , &
             &                                                                outputParametersGroup                          , &
             &                                                                noOutput                                         &
             &                                                               )
@@ -358,7 +399,6 @@ contains
        inputParametersConstructorVarStr=inputParametersConstructorFileVarStr(                                                 &
             &                                                                xmlString                                      , &
             &                                                                allowedParameterNames                          , &
-            &                                                                allowedParametersFile                          , &
             &                                                                outputParametersGroup                          , &
             &                                                                noOutput                                         &
             &                                                               )
@@ -366,37 +406,35 @@ contains
     return
   end function inputParametersConstructorVarStr
 
-  function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
+  function inputParametersConstructorFileVarStr(fileName,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a variable length string.
     implicit none
     type     (inputParameters)                                           :: inputParametersConstructorFileVarStr
     type     (varying_string    )              , intent(in   )           :: fileName
     character(len=*             ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    character(len=*             )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object        ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                    , intent(in   ), optional :: noOutput
 
     inputParametersConstructorFileVarStr=inputParametersConstructorFileChar(                       &
          &                                                                  char(fileName)       , &
          &                                                                  allowedParameterNames, &
-         &                                                                  allowedParametersFile, &
          &                                                                  outputParametersGroup, &
          &                                                                  noOutput               &
          &                                                                 )
     return
   end function inputParametersConstructorFileVarStr
   
-  function inputParametersConstructorFileChar(fileName,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput)
+  function inputParametersConstructorFileChar(fileName,allowedParameterNames,outputParametersGroup,noOutput)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an XML file
     !% specified as a character variable.
     use Galacticus_Error
     use File_Utilities
+    use IO_XML
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorFileChar
     character(len=*          )              , intent(in   )           :: fileName
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    character(len=*          )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput
     type     (node           ), pointer                               :: parameterNode
@@ -404,7 +442,7 @@ contains
     
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
-    parameterNode => parseFile(fileName,iostat=errorStatus)
+    parameterNode => XML_Parse(fileName,iostat=errorStatus)
     if (errorStatus /= 0) then
        if (File_Exists(fileName)) then
           call Galacticus_Error_Report('Unable to parse parameter file: "'//trim(fileName)//'"'//{introspection:location})
@@ -419,7 +457,6 @@ contains
          &                                                                                              'parameters'   &
          &                                                                                             )             , &
          &                                                            allowedParameterNames                          , &
-         &                                                            allowedParametersFile                          , &
          &                                                            outputParametersGroup                          , &
          &                                                            noOutput                                         &
          &                                                           )
@@ -439,7 +476,7 @@ contains
     return
   end function inputParametersConstructorCopy
 
-  function inputParametersConstructorNode(parametersNode,allowedParameterNames,allowedParametersFile,outputParametersGroup,noOutput,noBuild)
+  function inputParametersConstructorNode(parametersNode,allowedParameterNames,outputParametersGroup,noOutput,noBuild)
     !% Constructor for the {\normalfont \ttfamily inputParameters} class from an FoX node.
     use Galacticus_Error
     use Galacticus_Display
@@ -449,32 +486,29 @@ contains
     type     (inputParameters)                                        :: inputParametersConstructorNode
     type     (node           ), pointer     , intent(in   )           :: parametersNode
     character(len=*          ), dimension(:), intent(in   ), optional :: allowedParameterNames
-    character(len=*          )              , intent(in   ), optional :: allowedParametersFile
     type     (hdf5Object     ), target      , intent(in   ), optional :: outputParametersGroup
     logical                                 , intent(in   ), optional :: noOutput                      , noBuild
-    type     (node           ), pointer                               :: thisNode                      , allowedParameterDoc    , &
-         &                                                               versionElement
-    type     (nodeList       ), pointer                               :: allowedParameterList
-    type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined, allowedParameterNamesTmp
-    integer                                                           :: allowedParameterFromFileCount, allowedParameterCount   , &
-         &                                                               errorStatus                  , i
+    type     (node           ), pointer                               :: versionElement
+    type     (varying_string ), dimension(:), allocatable             :: allowedParameterNamesCombined , allowedParameterNamesTmp
+    integer                                                           :: allowedParameterFromFileCount , allowedParameterCount
     character(len=  10       )                                        :: versionLabel
     type     (varying_string )                                        :: message
     !# <optionalArgument name="noOutput" defaultsTo=".false." />
     !# <optionalArgument name="noBuild"  defaultsTo=".false." />
-    
+
     inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)    
     inputParametersConstructorNode%rootNode =>                  parametersNode
     inputParametersConstructorNode%parent   => null            (              )
+    call setLiveNodeLists(inputParametersConstructorNode%document,.false.)
     !$omp critical (FoX_DOM_Access)
     if (.not.noBuild_) then
-    allocate(inputParametersConstructorNode%parameters)
-    inputParametersConstructorNode%parameters%firstChild => null()
-    call inputParametersConstructorNode%buildTree        (inputParametersConstructorNode%parameters,parametersNode)    
-    call inputParametersConstructorNode%resolveReferences(                                                        )
- end if
+       allocate(inputParametersConstructorNode%parameters)
+       inputParametersConstructorNode%parameters%firstChild => null()
+       call inputParametersConstructorNode%buildTree        (inputParametersConstructorNode%parameters,parametersNode)    
+       call inputParametersConstructorNode%resolveReferences(                                                        )
+    end if
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
     if (present(outputParametersGroup)) then
@@ -487,31 +521,9 @@ contains
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.true.
     end if
-    ! Parse allowed parameters file if available.
-    allowedParameterFromFileCount=0
-    allowedParameterCount        =0
-    if (present(allowedParametersFile)) then
-       ! Check if the file exists.
-       if (File_Exists(char(galacticusPath(pathTypeExec))//BUILDPATH//'/'//allowedParametersFile)) then
-          !$omp critical (FoX_DOM_Access)
-          ! Parse the file.
-          allowedParameterDoc => parseFile(char(galacticusPath(pathTypeExec))//BUILDPATH//'/'//allowedParametersFile,iostat=errorStatus)
-          if (errorStatus /= 0) call Galacticus_Error_Report('Unable to parse allowed parameters file'//{introspection:location})
-          ! Extract allowed parameter names to array.
-          allowedParameterList => getElementsByTagname(allowedParameterDoc,"parameter")
-          allowedParameterFromFileCount=getLength(allowedParameterList)
-          allocate(allowedParameterNamesCombined(allowedParameterFromFileCount))
-          do i=0,allowedParameterFromFileCount-1
-             thisNode => item(allowedParameterList,i)
-             allowedParameterNamesCombined(i+1)=getTextContent(thisNode)
-          end do
-          ! Destroy the allowed parameter names document.
-          call destroy(allowedParameterDoc)
-          !$omp end critical (FoX_DOM_Access)
-       else
-          call Galacticus_Display_Message("Allowed parameter file '"//allowedParametersFile//"' is missing - incorrect parameters will not be detected",verbosityWarn)
-       end if
-    end if
+    ! Get allowed parameter names.
+    call knownParameterNames(allowedParameterNamesCombined)
+    allowedParameterFromFileCount=size(allowedParameterNamesCombined)
     ! Add in parameter names explicitly listed.
     if (present(allowedParameterNames)) then
        allowedParameterCount=size(allowedParameterNames)
@@ -607,12 +619,12 @@ contains
           referencedParameter => inputParametersWalkTree(self%parameters)
           do while (associated(referencedParameter))
              ! If found, set a pointer to this other parameter which will be later dereferenced for parameter extraction.
-             if     (                                                                   &
-                  &   getNodeType (referencedParameter%content        ) == ELEMENT_NODE &
-                  &  .and.                                                              &
-                  &   hasAttribute(referencedParameter%content,'id')                 &
-                  &.and.&
-                  & getNodeName(referencedParameter%content) == getNodeName(currentParameter%content)&
+             if     (                                                                                 &
+                  &   getNodeType (referencedParameter%content        ) == ELEMENT_NODE               &
+                  &  .and.                                                                            &
+                  &   hasAttribute(referencedParameter%content,'id')                                  &
+                  &.and.                                                                              &
+                  & getNodeName(referencedParameter%content) == getNodeName(currentParameter%content) &
                   & ) currentParameter%referenced => referencedParameter
              ! Walk to next node.
              referencedParameter => inputParametersWalkTree(referencedParameter)
@@ -714,6 +726,7 @@ contains
        child => childNext
     end do
     nullify(self%firstChild)
+    call self%reset(children=.false.)
     return
   end subroutine inputParameterDestroy
   
@@ -750,7 +763,7 @@ contains
     
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
-       !$ if (parametersObjectBuildIsPrivate) then
+       !$ if (OMP_In_Parallel()) then
        !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
        !$ else
              instance=                               0
@@ -768,13 +781,13 @@ contains
     !$ use OMP_Lib
     use Galacticus_Error
     implicit none
-    class  (*             ), pointer       :: inputParameterObjectGet
+    class  (functionClass ), pointer       :: inputParameterObjectGet
     class  (inputParameter), intent(in   ) :: self
     integer                                :: instance
     
     !$omp critical (inputParameterObjects)
     if (allocated(self%objects)) then
-       !$ if (parametersObjectBuildIsPrivate) then
+       !$ if (OMP_In_Parallel()) then
        !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
        !$ else
              instance=                               0
@@ -792,11 +805,11 @@ contains
     !$ use OMP_Lib
     implicit none
     class  (inputParameter), intent(inout)         :: self
-    class  (*             ), intent(in   ), target :: object
+    class  (functionClass ), intent(in   ), target :: object
     integer                                        :: instance
     
     !$omp critical (inputParameterObjects)
-    !$ if (parametersObjectBuildIsPrivate) then
+    !$ if (OMP_In_Parallel()) then
     !$    instance=OMP_Get_Ancestor_Thread_Num(1)+1
     !$ else
           instance=                               0 
@@ -807,10 +820,89 @@ contains
        !$ allocate(self%objects(0:OMP_Get_Max_Threads()))
     end if
     self%objects(instance)%object => object
+    !# <referenceCountIncrement owner="self%objects(instance)" object="object"/>
     !$omp end critical (inputParameterObjects)
     return
   end subroutine inputParameterObjectSet
   
+  recursive subroutine inputParameterReset(self,children)
+    !% Reset objects associated with this parameter and any sub-parameters.
+    !$ use OMP_Lib
+    implicit none
+    class  (inputParameter), intent(inout)           :: self
+    logical                , intent(in   ), optional :: children
+    type   (inputParameter), pointer                 :: child
+    integer                                          :: i
+    !# <optionalArgument name="children" defaultsTo=".true."/>
+    
+    if (allocated(self%objects)) then
+       do i=lbound(self%objects,dim=1),ubound(self%objects,dim=1)
+          if (associated(self%objects(i)%object)) then
+             !# <objectDestructor name="self%objects(i)%object"/>
+          end if
+       end do
+    end if
+    ! Reset children if requested.
+    if (children_) then
+       child => self%firstChild
+       do while (associated(child))
+          call child%reset()
+          child => child%sibling
+       end do
+    end if
+    return
+  end subroutine inputParameterReset
+
+ subroutine inputParameterSetDouble(self,value)
+   !% Set the value of a parameter.   
+    implicit none
+    class           (inputParameter), intent(inout) :: self
+    double precision                , intent(in   ) :: value
+    character       (len=24        )                :: valueText
+
+    write (valueText,'(e24.16)') value
+    call setAttribute(self%content,"value",trim(valueText))
+    return
+  end subroutine inputParameterSetDouble
+
+ subroutine inputParameterSetVarStr(self,value)
+   !% Set the value of a parameter.   
+    implicit none
+    class    (inputParameter), intent(inout) :: self
+    type     (varying_string), intent(in   ) :: value
+
+    call setAttribute(self%content,"value",char(value))
+    return
+  end subroutine inputParameterSetVarStr
+
+  function inputParameterGet(self)
+    !% Get the value of a parameter.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    type   (varying_string)                :: inputParameterGet
+    class  (inputParameter), intent(inout) :: self
+    type   (node          ), pointer       :: valueElement
+    type   (DOMException  )                :: exception
+    logical                                :: hasValueAttribute
+
+    !$omp critical (FoX_DOM_Access)
+    hasValueAttribute=hasAttribute(self%content,'value')
+    if (hasValueAttribute) then
+       valueElement      => getAttributeNode(self%content,"value"     )
+       inputParameterGet =  getTextContent  (valueElement,ex=exception)
+       if (inException(exception)) call Galacticus_Error_Report(                                 &
+            &                                                   'unable to parse parameter [' // &
+            &                                                    getNodeName   (self%content) // &
+            &                                                   ']'                           // &
+            &                                                    {introspection:location}        &
+            &                                                  )            
+    else
+       call Galacticus_Error_Report('no parameter value present'//{introspection:location})
+    end if
+    !$omp end critical (FoX_DOM_Access)
+    return
+  end function inputParameterGet
+
   subroutine inputParametersCheckParameters(self,allowedParameterNames)
     !$ use OMP_Lib
     use Regular_Expressions
@@ -1445,5 +1537,14 @@ contains
     currentParameter%sibling    => null()
     return
   end subroutine inputParametersAddParameter
+    
+  subroutine inputParametersReset(self)
+    !% Reset all objects in a parameter set.
+    implicit none
+    class(inputParameters), intent(inout) :: self
+
+    call self%parameters%reset()
+    return
+  end subroutine inputParametersReset
   
 end module Input_Parameters

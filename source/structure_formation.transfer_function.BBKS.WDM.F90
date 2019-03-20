@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,9 +28,9 @@
   type, extends(transferFunctionClass) :: transferFunctionBBKSWDM
      !% A transfer function class which modifies another transfer function using the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
      private
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_
+     class           (transferFunctionClass   ), pointer :: transferFunctionCDM => null()
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
      double precision                                    :: lengthFreeStreaming
    contains
      final     ::                          bbksWDMDestructor
@@ -61,6 +62,9 @@ contains
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
     self=transferFunctionBBKSWDM(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterParticle_" />
+    !# <objectDestructor name="transferFunctionCDM" />
     return
   end function bbksWDMConstructorParameters
 

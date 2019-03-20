@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCole2000
      !% A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
      private
-     class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_
+     class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_ => null()
      double precision                                           :: energyOrbital
    contains
      final     ::        cole2000Destructor
@@ -61,6 +62,7 @@ contains
     !# <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
     self=mergerRemnantSizeCole2000(energyOrbital,mergerProgenitorProperties_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerProgenitorProperties_"/>
     return
   end function cole2000ConstructorParameters
 

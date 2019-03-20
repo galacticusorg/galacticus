@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,9 +22,8 @@
 program Test_Dark_Matter_Profiles
   !% Tests dark matter profiles.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
-  use Galacticus_Nodes
+  use Galacticus_Nodes       , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
   use Node_Components
   use Unit_Tests
   use Cosmology_Functions
@@ -50,9 +50,6 @@ program Test_Dark_Matter_Profiles
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage         ('tests.dark_matter_profiles.size')
   ! Begin unit tests.
   call Unit_Tests_Begin_Group    ('Dark matter profiles'           )
   ! Read in controlling parameters.
@@ -60,7 +57,9 @@ program Test_Dark_Matter_Profiles
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   ! Initialize node components.
-  call Node_Components_Initialize(parameters)
+  call nodeClassHierarchyInitialize     (parameters)
+  call Node_Components_Initialize       (parameters)
+  call Node_Components_Thread_Initialize(parameters)
   ! Create a node.
   node                      => treeNode                                    (                                )
   ! Create components.
@@ -130,4 +129,8 @@ program Test_Dark_Matter_Profiles
   ! End unit tests.
   call Unit_Tests_End_Group       ()
   call Unit_Tests_Finish          ()
+  ! Uninitialize node components.
+  call nodeClassHierarchyFinalize         ()
+  call Node_Components_Thread_Uninitialize()
+  call Node_Components_Uninitialize       ()
 end program Test_Dark_Matter_Profiles

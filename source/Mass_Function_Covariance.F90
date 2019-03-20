@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,6 @@ program Mass_Function_Covariance
   !% Compute covariance matrices for mass function estimates.
   use IO_HDF5
   use ISO_Varying_String
-  use Memory_Management
   use Galacticus_Error
   use Input_Parameters
   use Statistics_Mass_Function_Covariance
@@ -41,16 +41,13 @@ program Mass_Function_Covariance
   double precision                                                  :: massFunctionCovarianceRedshiftMinimum,massFunctionCovarianceRedshiftMaximum,&
        &massFunctionCovarianceMassMinimum ,massFunctionCovarianceMassMaximum, completenessErrorObserved
 
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('Mass_Function_Covariance.size')
-
   ! Get the name of the parameter file from the first command line argument.
   call Get_Command_Argument(1,parameterFileCharacter)
   if (len_trim(parameterFileCharacter) == 0) call Galacticus_Error_Report(message="Usage: Mass_Function_Covariance.exe <parameterFile>")
   parameterFile=parameterFileCharacter
 
   ! Open the parameter file.
-  parameters=inputParameters(parameterFile,outputParametersGroup=outputFile,allowedParametersFile='Mass_Function_Covariance.parameters.xml')
+  parameters=inputParameters(parameterFile,outputParametersGroup=outputFile)
   call parameters%markGlobal()
 
   ! Get the name of the output file.

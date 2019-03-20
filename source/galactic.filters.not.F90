@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,13 +19,13 @@
 
 !% Contains a module which implements an inverting filter.
 
-  !# <galacticFilter name="galacticFilterNot" defaultThreadPrivate="yes">
+  !# <galacticFilter name="galacticFilterNot">
   !#  <description>A filter which simply inverts the result of another filter.</description>
   !# </galacticFilter>
   type, extends(galacticFilterClass) :: galacticFilterNot
      !% A galactic filter which simply inverts the result of another filter.
      private
-     class(galacticFilterClass), pointer :: galacticFilter_
+     class(galacticFilterClass), pointer :: galacticFilter_ => null()
    contains
      final     ::           notDestructor
      procedure :: passes => notPasses
@@ -38,26 +39,28 @@
 
 contains
 
-  function notConstructorParameters(parameters)
+  function notConstructorParameters(parameters) result(self)
     !% Constructor for the ``not'' galactic filter class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(galacticFilterNot)                :: notConstructorParameters
-    type(inputParameters  ), intent(inout) :: parameters
+    type (galacticFilterNot  )                :: self
+    type (inputParameters    ), intent(inout) :: parameters
+    class(galacticFilterClass), pointer       :: galacticFilter_
 
-    ! Check and read parameters.
-    !# <objectBuilder class="galacticFilter" name="notConstructorParameters%galacticFilter_" source="parameters"/>
+    !# <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
+    self=galacticFilterNot(galacticFilter_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"/>
     return
   end function notConstructorParameters
 
-  function notConstructorInternal(galacticFilter_)
+  function notConstructorInternal(galacticFilter_) result(self)
     !% Internal constructor for the ``not'' galactic filter class.
     implicit none
-    type (galacticFilterNot  )                        :: notConstructorInternal
+    type (galacticFilterNot  )                        :: self
     class(galacticFilterClass), intent(in   ), target :: galacticFilter_
-
-    notConstructorInternal%galacticFilter_ => galacticFilter_
+    !# <constructorAssign variables="*galacticFilter_"/>
+    
     return
   end function notConstructorInternal
 

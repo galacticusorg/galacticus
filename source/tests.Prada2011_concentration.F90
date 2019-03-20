@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,12 +22,11 @@
 program Test_Prada2011_Concentration
   !% Tests the \cite{prada_halo_2011} halo concentration algorithm. Values of concentration were read from their Figure~12.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
   use Cosmology_Parameters
-  use Galacticus_Nodes
+  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic
   use Unit_Tests
   use Galacticus_Display
   implicit none
@@ -45,10 +45,6 @@ program Test_Prada2011_Concentration
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.Prada2011_concentration.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Prada2011 halo concentration algorithm")
 

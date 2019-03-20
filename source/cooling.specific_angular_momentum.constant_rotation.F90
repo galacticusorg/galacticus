@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,7 @@
   use Dark_Matter_Profiles
   use Hot_Halo_Mass_Distributions
 
-  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumConstantRotation" defaultThreadPrivate="yes">
+  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumConstantRotation">
   !#  <description>
   !#   A specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
   !#  </description>
@@ -31,8 +32,8 @@
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumConstantRotation
      !% Implementation of the specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
      private 
-     class           (darkMatterProfileClass      ), pointer :: darkMatterProfile_
-     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class           (darkMatterProfileClass      ), pointer :: darkMatterProfile_ => null()
+     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
      integer         (kind=kind_int8              )          :: lastUniqueID
      logical                                                 :: angularMomentumSpecificComputed
      double precision                                        :: angularMomentumSpecificPrevious
@@ -112,6 +113,8 @@ contains
          &                                              useInteriorMean                                                                                         &
          &                                             )
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"      />
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function constantRotationConstructorParameters
 
@@ -142,8 +145,8 @@ contains
   
   double precision function constantRotationAngularMomentumSpecific(self,node,radius)
     !% Return the specific angular momentum of cooling gas in the constantRotation model.
+    use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentSpin, nodeComponentHotHalo
     use Galacticus_Error
-    use Galacticus_Nodes
     use Numerical_Constants_Physical
     implicit none
     class           (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self

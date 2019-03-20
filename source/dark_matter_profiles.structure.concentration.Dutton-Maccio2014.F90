@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,12 +28,14 @@
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDuttonMaccio2014
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{dutton_cold_2014}.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-     double precision                                    :: a1                   , a2                  , &
-          &                                                 a3                   , a4                  , &
-          &                                                 b1                   , b2
-     integer                                             :: densityContrastMethod, densityProfileMethod
+     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrastDefinition_ => null()
+     class           (darkMatterProfileClass    ), pointer :: darkMatterProfileDefinition_     => null()
+     double precision                                      :: a1                                        , a2                  , &
+          &                                                   a3                                        , a4                  , &
+          &                                                   b1                                        , b2
+     integer                                               :: densityContrastMethod                     , densityProfileMethod
    contains
      final     ::                                duttonMaccio2014Destructor
      procedure :: concentration               => duttonMaccio2014Concentration
@@ -138,6 +141,8 @@ contains
        self=darkMatterProfileConcentrationDuttonMaccio2014(char(fitType),cosmologyParameters_,cosmologyFunctions_)
     end if
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function duttonMaccio2014ConstructorParameters
 
@@ -206,17 +211,20 @@ contains
     implicit none
     type(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !# <objectDestructor name="self%cosmologyParameters_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"             />
+    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
     return
   end subroutine duttonMaccio2014Destructor
   
   double precision function duttonMaccio2014Concentration(self,node)
     !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the \cite{dutton_cold_2014}
     !% algorithm.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationDuttonMaccio2014), intent(inout), target  :: self
-    type            (treeNode                                      ), intent(inout), pointer :: node
+    type            (treeNode                                      ), intent(inout), target  :: node
     class           (nodeComponentBasic                            )               , pointer :: basic
     double precision                                                , parameter              :: littleHubbleConstantDuttonMaccio2014= 0.671d0
     double precision                                                , parameter              :: massNormalization                   =12.000d0
@@ -251,20 +259,23 @@ contains
     class(virialDensityContrastClass                    ), pointer       :: duttonMaccio2014DensityContrastDefinition
     class(darkMatterProfileConcentrationDuttonMaccio2014), intent(inout) :: self
     
-    select case (self%densityContrastMethod)
-    case (duttonMaccio2014DensityContrastMethodMean200   )
-       allocate(virialDensityContrastFixed                         :: duttonMaccio2014DensityContrastDefinition)
-       select type (duttonMaccio2014DensityContrastDefinition)
-       type is (virialDensityContrastFixed)
-          duttonMaccio2014DensityContrastDefinition=virialDensityContrastFixed                        (200.0d0,fixedDensityTypeMean,self%cosmologyFunctions_)
+    if (.not.associated(self%virialDensityContrastDefinition_)) then
+       select case (self%densityContrastMethod)
+       case (duttonMaccio2014DensityContrastMethodMean200   )
+          allocate(virialDensityContrastFixed                         :: self%virialDensityContrastDefinition_)
+          select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
+          type is (virialDensityContrastFixed)
+             !# <referenceConstruct isResult="yes" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeMean,self%cosmologyFunctions_)"/>
+          end select
+       case (duttonMaccio2014DensityContrastMethodVirial)
+          allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%virialDensityContrastDefinition_)
+          select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
+          type is (virialDensityContrastSphericalCollapseMatterLambda)
+             !# <referenceConstruct isResult="yes" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(                             self%cosmologyFunctions_)"/>
+          end select
        end select
-    case (duttonMaccio2014DensityContrastMethodVirial)
-       allocate(virialDensityContrastSphericalCollapseMatterLambda :: duttonMaccio2014DensityContrastDefinition)
-       select type (duttonMaccio2014DensityContrastDefinition)
-       type is (virialDensityContrastSphericalCollapseMatterLambda)
-          duttonMaccio2014DensityContrastDefinition=virialDensityContrastSphericalCollapseMatterLambda(                             self%cosmologyFunctions_)
-       end select
-    end select
+    end if
+    duttonMaccio2014DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function duttonMaccio2014DensityContrastDefinition
 
@@ -273,37 +284,33 @@ contains
     !% \cite{diemer_universal_2014} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class  (darkMatterProfileClass                            ), pointer                     :: duttonMaccio2014DarkMatterProfileDefinition
-    class  (darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout)               :: self
-    class  (darkMatterHaloScaleVirialDensityContrastDefinition), pointer                     :: darkMatterHaloScaleDefinition
-    class  (darkMatterProfileClass                            ), allocatable  , target, save :: densityProfileDefinition
-    logical                                                                           , save :: densityProfileDefinitionInitialized=.false.
-    !$omp threadprivate(densityProfileDefinition,densityProfileDefinitionInitialized)
+    class(darkMatterProfileClass                            ), pointer       :: duttonMaccio2014DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout) :: self
+    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
+    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.densityProfileDefinitionInitialized) then
-       allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition)
-       select type (darkMatterHaloScaleDefinition)
-       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          select case (self%densityProfileMethod)
-          case (duttonMaccio2014DensityProfileMethodNFW    )
-             allocate(darkMatterProfileNFW     :: densityProfileDefinition)
-             select type (densityProfileDefinition)
-             type is (darkMatterProfileNFW    )
-                darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
-                densityProfileDefinition     =darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
-             end select
-          case (duttonMaccio2014DensityProfileMethodEinasto)
-             allocate(darkMatterProfileEinasto :: densityProfileDefinition)
-             select type (densityProfileDefinition)
-             type is (darkMatterProfileEinasto)
-                darkMatterHaloScaleDefinition=darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
-                densityProfileDefinition     =darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition                                                      )
-             end select
+    if (.not.associated(self%darkMatterProfileDefinition_)) then
+       allocate(self%darkMatterProfileDefinition_  )
+       allocate(     darkMatterHaloScaleDefinition_)
+       !# <referenceAcquire   target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
+       !# <referenceConstruct object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
+       select case (self%densityProfileMethod)
+       case (duttonMaccio2014DensityProfileMethodNFW    )
+          allocate(darkMatterProfileNFW     :: self%darkMatterProfileDefinition_)
+          select type (darkMatterProfileDefinition_ => self%darkMatterProfileDefinition_)
+          type is (darkMatterProfileNFW    )
+             !# <referenceConstruct isResult="yes" object="darkMatterProfileDefinition_" constructor="darkMatterProfileNFW   (darkMatterHaloScaleDefinition_)"/>
           end select
-          call densityProfileDefinition%makeIndestructible()
+       case (duttonMaccio2014DensityProfileMethodEinasto)
+          allocate(darkMatterProfileEinasto :: self%darkMatterProfileDefinition_)
+          select type (darkMatterProfileDefinition_ => self%darkMatterProfileDefinition_)
+          type is (darkMatterProfileEinasto)
+             !# <referenceConstruct isResult="yes" object="darkMatterProfileDefinition_" constructor="darkMatterProfileEinasto(darkMatterHaloScaleDefinition_)"/>
+          end select
        end select
-       densityProfileDefinitionInitialized=.true.       
+       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
+       !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    duttonMaccio2014DarkMatterProfileDefinition => densityProfileDefinition
+    duttonMaccio2014DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
     return
   end function duttonMaccio2014DarkMatterProfileDefinition

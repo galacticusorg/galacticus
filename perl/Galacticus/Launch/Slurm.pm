@@ -302,7 +302,9 @@ sub SubmitJobs {
 		print $scriptFile "#SBATCH --job-name=\"".$newJob->{'label'}."\"\n";
 		print $scriptFile "#SBATCH --time=".$newJob->{'walltime'}."\n"
 		    if ( exists($newJob->{'walltime'}) );
-		if ( exists($arguments{'queue'}) ) {
+		if ( exists($newJob->{'queue'}) ) {
+		    print $scriptFile "#SBATCH --partition=".$newJob->{'queue'}."\n";
+		} elsif ( exists($arguments{'queue'}) ) {
 		    print $scriptFile "#SBATCH --partition=".$arguments{'queue'}."\n";
 		} elsif ( exists($slurmConfig->{'queue'}) ) {
 		    print $scriptFile "#SBATCH --partition=".$slurmConfig->{'queue'}."\n";

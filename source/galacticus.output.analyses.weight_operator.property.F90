@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,14 @@
   use Output_Analysis_Property_Extractions
   use Output_Analysis_Property_Operators
   
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty">
   !#  <description>An analysis weight operator class which weights by a property value.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorProperty
      !% An weight operator class which weights by a property value.
      private
-     class(outputAnalysisPropertyExtractorClass), pointer :: extractor_
-     class(outputAnalysisPropertyOperatorClass ), pointer :: operator_
+     class(outputAnalysisPropertyExtractorClass), pointer :: extractor_ => null()
+     class(outputAnalysisPropertyOperatorClass ), pointer :: operator_ => null()
    contains
      final     ::            propertyDestructor
      procedure :: operate => propertyOperate
@@ -56,6 +57,8 @@ contains
     ! Construct the object.
     self=outputAnalysisWeightOperatorProperty(extractor_,operator_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="extractor_"/>
+    !# <objectDestructor name="operator_" />
     return
   end function propertyConstructorParameters
 

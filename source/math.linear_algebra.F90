@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,12 @@
 
 module Linear_Algebra
   !% Implements linear algebra calculations.
-  use FGSL
+  use FGSL, only : fgsl_size_t          , fgsl_int             , fgsl_matrix                , fgsl_permutation      , &
+       &           fgsl_matrix_init     , FGSL_Matrix_Align    , FGSL_Permutation_Alloc     , FGSL_LinAlg_LU_Decomp , &
+       &           FGSL_LinAlg_LU_Invert, fgsl_double          , FGSL_Matrix_Free           , FGSL_LinAlg_LU_lnDet  , &
+       &           FGSL_Permutation_Free, FGSL_LinAlg_LU_Det   , FGSL_Vector_Init           , FGSL_Vector_Align     , &
+       &           FGSL_LinAlg_LU_Solve , FGSL_Vector_Free     , fgsl_eigen_symmv_workspace , FGSL_Eigen_SymmV_Alloc, &
+       &           FGSL_Eigen_SymmV     , FGSL_Eigen_Symmv_Free, FGSL_LinAlg_Cholesky_Decomp, fgsl_vector
   implicit none
   private
   public :: assignment(=), operator(*)
@@ -290,7 +296,9 @@ contains
     status        =FGSL_LinAlg_LU_Decomp (selfMatrix    ,permutations,decompositionSign)
     status        =FGSL_LinAlg_LU_Invert (selfMatrix    ,permutations,selfInverse      )
     matrixInvert%elements=inverse    
-    call FGSL_Matrix_Free(selfMatrix)
+    call FGSL_Matrix_Free     (selfMatrix  )
+    call FGSL_Matrix_Free     (selfInverse )
+    call FGSL_Permutation_Free(permutations)
     ! Restore the original matrix.
     self%elements=selfArray
     return

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,14 +16,14 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
   !% matter plus a cosmological constant.
   
-  use FGSL                , only : fgsl_interp        , fgsl_interp_accel          , &
-       &                           fgsl_odeiv_step    , fgsl_odeiv_control         , &
-       &                           fgsl_odeiv_evolve  , fgsl_odeiv_system          , &
-       &                           fgsl_function      , fgls_integeration_workspace, &
+  use FGSL                , only : fgsl_interp        , fgsl_interp_accel         , &
+       &                           fgsl_odeiv_step    , fgsl_odeiv_control        , &
+       &                           fgsl_odeiv_evolve  , fgsl_odeiv_system         , &
+       &                           fgsl_function      , fgsl_integration_workspace, &
        &                           FGSL_Success
   use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
   !$ use OMP_Lib
@@ -139,6 +140,7 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     self=cosmologyFunctionsMatterLambda(cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function matterLambdaConstructorParameters
 
@@ -165,9 +167,8 @@ contains
     integer                                                                 :: i
     double complex                                                          :: omegaMatter                            , omegaDarkEnergy                , &
          &                                                                     omegaCurvature                         , rootTerm
-    
-    ! Store a pointer to the cosmological parameters object.
-    self%cosmologyParameters_ => cosmologyParameters_
+    !# <constructorAssign variables="*cosmologyParameters_"/>
+
     ! Determine if this universe will collapse. We take the Friedmann equation, which gives H²(a) as a function of expansion
     ! factor, a, and solve for where H²(a)=0. If this has a real solution, then we have a collapsing universe.
     self%collapsingUniverse    =.false.
@@ -343,7 +344,11 @@ contains
     if     ( allocated (self%distanceTableLuminosityDistanceNegated          )) deallocate(self%distanceTableLuminosityDistanceNegated          )
     if     ( allocated (self%distanceTableLuminosityDistanceKCorrectedNegated)) deallocate(self%distanceTableLuminosityDistanceKCorrectedNegated)
     if     ( allocated (self%distanceTableTime                               )) deallocate(self%distanceTableTime                               )
-    call Interpolate_Done(self%interpolationObject,self%interpolationAccelerator,self%resetInterpolation)
+    call Interpolate_Done(self%interpolationObject                            ,self%interpolationAccelerator                            ,self%resetInterpolation                            )
+    call Interpolate_Done(self%interpolationObjectDistance                    ,self%interpolationAcceleratorDistance                    ,self%resetInterpolationDistance                    )
+    call Interpolate_Done(self%interpolationObjectDistanceInverse             ,self%interpolationAcceleratorDistanceInverse             ,self%resetInterpolationDistanceInverse             )
+    call Interpolate_Done(self%interpolationObjectLuminosityDistance          ,self%interpolationAcceleratorLuminosityDistance          ,self%resetInterpolationLuminosityDistance          )
+    call Interpolate_Done(self%interpolationObjectLuminosityDistanceKCorrected,self%interpolationAcceleratorLuminosityDistanceKCorrected,self%resetInterpolationLuminosityDistanceKCorrected)
     return
   end subroutine matterLambdaDestructor
 

@@ -19,6 +19,10 @@ sub Process_Constructors {
     my $tree  = shift();
     # Get an XML parser.
     my $xml   = new XML::Simple();
+    # Initialize state storables database.
+    my $stateStorables;
+    # Determine if debugging output is required.
+    my $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Walk the tree, looking for code blocks.
     my $node  = $tree;
     my $depth = 0;
@@ -27,6 +31,9 @@ sub Process_Constructors {
 	    # Assert that our parent is a function.
 	    die("Process_Constructors: parent node must be a function")
 		unless ( $node->{'parent'}->{'type'} eq "function" );
+	    # Get state storables database if we do not have it.
+	    $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
+		unless ( $stateStorables );
 	    # Determine if automatic allocation of variables should be performed.
 	    my $allocate = exists($node->{'directive'}->{'allocate'}) ? $node->{'directive'}->{'allocate'} : "yes";
 	    # Determine function return value name.
@@ -41,12 +48,14 @@ sub Process_Constructors {
 	    my $assignmentSource = "  ! Auto-generated constructor assignment\n";
 	    (my $variables = $node->{'directive'}->{'variables'}) =~ s/^\s*(.*?)\s*$/$1/;
 	    foreach ( grep {$_ ne ""} split(/\s*,\s*/,$variables) ) {
-		my $assigner     = "=";
-		my $argumentName = $_;
-		if ( $_ =~ m/^\*(.*)/ ) {
-		    $assigner     = " => ";
-		    $argumentName = $1;
-		} 
+		my $matches      = $_ =~ m/^(\*??)([a-zA-Z0-9_]+)/;
+		my $isPointer    = $1 eq "*";
+		my $argumentName = $2;
+		my $assigner     = $isPointer ? " => " : "=";
+		my $hasDefault   = $_ =~ m/=\s*(.+)/;
+		my $default      = $hasDefault ? $1 : undef();
+		die("Galacticus::Build::SourceTree::Process::Constructor::Process_Constructors(): syntax error")
+		    unless ( $matches );
 		# Get the variable declaration.
 		my $declaration = &Galacticus::Build::SourceTree::Parse::Declarations::GetDeclaration($node->{'parent'},$argumentName);
 		# Detect optional arguments.
@@ -55,10 +64,33 @@ sub Process_Constructors {
 		if ( $allocate eq "yes" && grep {$_ =~ m/dimension\s*\([:,]+\)/} @{$declaration->{'attributes'}} ) {
 		    # Determine the rank of the variable.
 		    my $rank = join("",map {$_ =~ m/dimension\s*\(([:,]+)\)/ ? $1 : ""} @{$declaration->{'attributes'}}) =~ tr/://;
-		    $assignmentSource .= "   allocate(".$returnValueLabel."%".$argumentName."(".join(",",map {"size(".$argumentName.",dim=".$_.")"} 1..$rank)."))\n";
+		    $assignmentSource .= "   ".$optional."allocate(".$returnValueLabel."%".$argumentName."(".join(",",map {"size(".$argumentName.",dim=".$_.")"} 1..$rank)."))\n";
 		}
 		# Build the assignment.
-		$assignmentSource   .= "   ".$optional.$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
+		if ( $optional eq "" ) {
+		    $assignmentSource   .= "   "                    .$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
+		} elsif ( $hasDefault ) {
+		    $assignmentSource   .= "   ".$optional." then\n".$returnValueLabel."%".$argumentName.$assigner.$argumentName."\nelse\n".$returnValueLabel."%".$argumentName.$assigner.$default."\nend if\n";
+		} else {
+		    $assignmentSource   .= "   ".$optional          .$returnValueLabel."%".$argumentName.$assigner.$argumentName."\n";
+		}
+		# Detect functionClass objects and increment their reference count.
+		if ( 
+		    ( $declaration->{'intrinsic'} eq "type" || $declaration->{'intrinsic'} eq "class" )
+		    &&
+		    $isPointer
+		    ) {
+		    my $type = lc($declaration->{'type'});
+		    $type =~ s/\s//g;
+		    if ( grep {lc($_) eq $type} (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}})) {
+			$assignmentSource .= "   ".$optional." call ".$returnValueLabel."%".$argumentName."%referenceCountIncrement()\n";
+			if ( $debugging ) {
+			    $assignmentSource .= "   if (mpiSelf\%isMaster()) then\n";
+			    $assignmentSource .= "   ".$optional." call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$argumentName."] : ".$returnValueLabel." : ')//debugStackGet()//' : '//loc(".$returnValueLabel."%".$argumentName.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).")\n";
+			    $assignmentSource .= "   end if\n";
+			}
+		    }
+		}
 	    }
 	    $assignmentSource   .= "  ! End auto-generated constructor assignment.\n\n";
 	    # Create a new node.
@@ -72,6 +104,37 @@ sub Process_Constructors {
 	    };
 	    # Insert the node.
 	    &Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
+	    # Add modules for debugging.
+	    if ( $debugging ) {
+		my $usesNode =
+		{
+		    type      => "moduleUse",
+		    moduleUse =>
+		    {
+			MPI_Utilities =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			},
+			Galacticus_Display =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			},
+			String_Handling    =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			},
+			ISO_Varying_String =>
+			{
+			    intrinsic => 0,
+			    all       => 1
+			},
+		    }
+		};
+		&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
+	    }
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }

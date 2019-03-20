@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingLinearBarrier
      !% A linearBarrier excursion set barrier class.
      private
-     class(excursionSetBarrierClass), pointer :: excursionSetBarrier_
+     class(excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
    contains
      final     ::                    linearBarrierDestructor
      procedure :: probability     => linearBarrierProbability
@@ -53,6 +54,7 @@ contains
     !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     self=excursionSetFirstCrossingLinearBarrier(excursionSetBarrier_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="excursionSetBarrier_"/>
     return
   end function linearBarrierConstructorParameters
 

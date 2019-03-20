@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Gravitational_Lensing
   
-  !# <outputAnalysis name="outputAnalysisMassFunctionHIALFALFAMartin2010" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisMassFunctionHIALFALFAMartin2010">
   !#  <description>An ALFALFA HI mass function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisMassFunctionHI) :: outputAnalysisMassFunctionHIALFALFAMartin2010
@@ -40,6 +41,7 @@ contains
     !% Constructor for the ``massFunctionHIALFALFAMartin2010'' output analysis class which takes a parameter set as input.
     use Input_Parameters
     use Output_Analysis_Molecular_Ratios
+    use Cosmology_Parameters            , only : cosmologyParametersClass, cosmologyParameters
     implicit none
     type            (outputAnalysisMassFunctionHIALFALFAMartin2010)                              :: self
     type            (inputParameters                              ), intent(inout)               :: parameters
@@ -114,6 +116,12 @@ contains
     ! Build the object.
     self=outputAnalysisMassFunctionHIALFALFAMartin2010(cosmologyFunctions_,cosmologyParameters_,outputAnalysisDistributionOperatorRandomError_,outputAnalysisMolecularRatio_,gravitationalLensing_,outputTimes_,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"                           />
+    !# <objectDestructor name="outputTimes_"                                  />
+    !# <objectDestructor name="cosmologyParameters_"                          />
+    !# <objectDestructor name="gravitationalLensing_"                         />
+    !# <objectDestructor name="outputAnalysisDistributionOperatorRandomError_"/>
+    !# <objectDestructor name="outputAnalysisMolecularRatio_"                 />
     return
   end function massFunctionHIALFALFAMartin2010ConstructorParameters
 

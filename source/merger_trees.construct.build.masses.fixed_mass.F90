@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -15,20 +16,20 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+
   !% Implementation of a merger tree masses class which uses a fixed mass for trees.
   use Cosmology_Parameters
   use Dark_Matter_Halo_Scales
   
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
   !#  <description>A merger tree masses class which uses a fixed mass for trees.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesFixedMass
      !% Implementation of a merger tree masses class which samples masses from a distribution.
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_
-     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     double precision                          , allocatable, dimension(:) :: massTree              , radiusTree
+     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_   => null()
+     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_   => null()
+     double precision                          , allocatable, dimension(:) :: massTree                        , radiusTree
      integer                                   , allocatable, dimension(:) :: treeCount
      double precision                                                      :: massIntervalFractional
    contains
@@ -52,7 +53,7 @@ contains
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                            :: self
     type            (inputParameters               ), intent(inout)             :: parameters
-    double precision                                , allocatable, dimension(:) :: massTree            , radiusTree
+    double precision                                , allocatable, dimension(:) :: massTree              , radiusTree
     integer                                         , allocatable, dimension(:) :: treeCount
     class           (cosmologyParametersClass      ), pointer                   :: cosmologyParameters_
     class           (darkMatterHaloScaleClass      ), pointer                   :: darkMatterHaloScale_
@@ -104,7 +105,7 @@ contains
     !#   <name>massTree</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(1.0d12,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the masses of halos to insert into the halo mass sample when building halos.</description>
+    !#   <description>Specifies the masses of halos to use when building halos.</description>
     !#   <source>parameters</source>
     !#   <type>float</type>
     !# </inputParameter>
@@ -112,7 +113,7 @@ contains
     !#   <name>treeCount</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(1,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the number of halos to insert into the halo mass sample when building halos.</description>
+    !#   <description>Specifies the number of halos to use when building halos.</description>
     !#   <source>parameters</source>
     !#   <type>float</type>
     !# </inputParameter>
@@ -120,7 +121,7 @@ contains
     !#   <name>radiusTree</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>spread(-1.0d0,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the radii within which halo masses are specified when inserting fixed mass halos into the mass sample when building halos.</description>
+    !#   <description>Specifies the radii within which halo masses are specified when building halos.</description>
     !#   <source>parameters</source>
     !#   <type>float</type>
     !# </inputParameter>
@@ -136,6 +137,8 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_)
     !# <inputParametersValidate target="self" source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function fixedMassConstructorParameters
 
@@ -167,7 +170,7 @@ contains
     !% Construct a set of merger tree masses by sampling from a distribution.
     use Root_Finder
     use Galacticus_Calculations_Resets
-    use Galacticus_Nodes
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Memory_Management
     use Sort
     implicit none
@@ -190,13 +193,23 @@ contains
           ! Set the halo mass.
           call Galacticus_Calculations_Reset(node)
           ! Convert masses to virial masses.
-          call finder%tolerance(1.0d-6,1.0d-6)
-          call finder%rangeExpand(rangeExpandUpward=2.0d0,rangeExpandDownward=0.5d0,rangeExpandType=rangeExpandMultiplicative)
-          call finder%rootFunction(massEnclosed)
+          call finder%tolerance   (                                               &
+               &                   toleranceAbsolute  =1.0d-6                   , &
+               &                   toleranceRelative  =1.0d-6                     &
+               &                  )
+          call finder%rangeExpand (                                               &
+               &                   rangeExpandUpward  =2.0d+0                   , &
+               &                   rangeExpandDownward=0.5d+0                   , &
+               &                   rangeExpandType    =rangeExpandMultiplicative  &
+               &                  )
+          call finder%rootFunction(                                               &
+               &                                       massEnclosed               &
+               &                  )
           self%massTree(i)=finder%find(rootGuess=self%massTree(i))
        end if
     end do
     call node%destroy()
+    deallocate(node)
     call allocateArray(mass       ,[sum(self%treeCount)])
     call allocateArray(massMinimum,[sum(self%treeCount)])
     call allocateArray(massMaximum,[sum(self%treeCount)])
@@ -236,14 +249,17 @@ contains
 
       call basic%massSet(massTree)
       call Galacticus_Calculations_Reset(node)
-      massEnclosed=                                                                           &
-           & +Galactic_Structure_Enclosed_Mass(node,self%radiusTree(i),massType=massTypeDark) &
-           & *  self%cosmologyParameters_%OmegaMatter()                                       &
-           & /(                                                                               &
-           &   +self%cosmologyParameters_%OmegaMatter()                                       &
-           &   -self%cosmologyParameters_%OmegaBaryon()                                       &
-           &  )                                                                               &
-           & -self%massTree(i)
+      massEnclosed=+Galactic_Structure_Enclosed_Mass(                              &
+           &                                                   node              , &
+           &                                                   self%radiusTree(i), &
+           &                                          massType=massTypeDark        &
+           &                                         )                             &
+           &       *  self%cosmologyParameters_%OmegaMatter()                      &
+           &       /(                                                              &
+           &         +self%cosmologyParameters_%OmegaMatter()                      &
+           &         -self%cosmologyParameters_%OmegaBaryon()                      &
+           &        )                                                              &
+           &       -self%massTree(i)
       return
     end function massEnclosed
 

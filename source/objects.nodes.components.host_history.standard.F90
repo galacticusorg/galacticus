@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Node_Component_Host_History_Standard
   !% Implements a component class that tracks the maximum host mass seen by each halo.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Host_History_Standard_Merger_Tree_Init, Node_Component_Host_History_Standard_Update_History
@@ -49,6 +49,7 @@ contains
   subroutine Node_Component_Host_History_Standard_Merger_Tree_Init(thisNode)
     !% Initialize the standard host history component by creating components in nodes and assigning
     !% host mass for satellites.
+    use Galacticus_Nodes, only : treeNode, nodeComponentHostHistory, nodeComponentHostHistoryStandard, nodeComponentBasic, defaultHostHistoryComponent
     implicit none
     type (treeNode                ), pointer, intent(inout) :: thisNode
     class(nodeComponentHostHistory), pointer                :: thisHostHistory
@@ -80,6 +81,7 @@ contains
   !# </postEvolveTask>
   subroutine Node_Component_Host_History_Standard_Update_History(thisNode)
     !% Record any major merger of {\normalfont \ttfamily thisNode}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentHostHistory, nodeComponentBasic, defaultHostHistoryComponent
     implicit none
     type (treeNode                ), pointer, intent(inout) :: thisNode
     class(nodeComponentHostHistory), pointer                :: thisHostHistory

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Geometry_Lightcones
   
-  !# <galacticFilter name="galacticFilterLightcone" defaultThreadPrivate="yes">
+  !# <galacticFilter name="galacticFilterLightcone">
   !#  <description>
   !#  A galactic filter on lightcone geometry.
   !#  </description>
@@ -28,7 +29,7 @@
   type, extends(galacticFilterClass) :: galacticFilterLightcone
      !% A galactic filter class on lightcone geometry.
      private
-     class(geometryLightconeClass), pointer :: geometryLightcone_
+     class(geometryLightconeClass), pointer :: geometryLightcone_ => null()
    contains
      final     ::           lightconeDestructor
      procedure :: passes => lightconePasses
@@ -42,23 +43,25 @@
 
 contains
 
-  function lightconeConstructorParameters(parameters)
+  function lightconeConstructorParameters(parameters) result(self)
     !% Constructor for the ``lightcone'' galactic filter class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(galacticFilterLightcone)                :: lightconeConstructorParameters
-    type(inputParameters        ), intent(inout) :: parameters
+    type (galacticFilterLightcone)                :: self
+    type (inputParameters        ), intent(inout) :: parameters
+    class(geometryLightconeClass ), pointer       :: geometryLightcone_
 
-    ! Check and read parameters.
-    !# <objectBuilder class="geometryLightcone" name="lightconeConstructorParameters%geometryLightcone_" source="parameters"/>
+    !# <objectBuilder class="geometryLightcone" name="geometryLightcone_" source="parameters"/>
+    self=galacticFilterLightcone(geometryLightcone_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="geometryLightcone_"/>
     return
   end function lightconeConstructorParameters
 
-  function lightconeConstructorInternal(geometryLightcone_)
+  function lightconeConstructorInternal(geometryLightcone_) result(self)
     !% Internal constructor for the ``lightcone'' galactic filter class.
     implicit none
-    type (galacticFilterLightcone)                        :: lightconeConstructorInternal
+    type (galacticFilterLightcone)                        :: self
     class(geometryLightconeClass ), intent(in   ), target :: geometryLightcone_
     !# <constructorAssign variables="*geometryLightcone_"/>
 

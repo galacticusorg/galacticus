@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,19 +22,19 @@
 
 program Optimal_Sampling_SMF
   !% Compute the optimal number of trees to run of each mass.
-  use Memory_Management
   use Numerical_Ranges
   use Numerical_Constants_Astronomical
   use Input_Parameters
   use Galacticus_Error
   use ISO_Varying_String
-  use FGSL
+  use FGSL                                    , only : fgsl_function, fgsl_integration_workspace
   use Numerical_Integration
   use Halo_Mass_Functions
   use Galacticus_Meta_Compute_Times
   use Cosmology_Functions
   use Merger_Trees_Build_Masses_Distributions
   use IO_HDF5
+  use Memory_Management
   implicit none
   integer                                                  , parameter                 :: fileNameLengthMaximum=1024
   character       (len=fileNameLengthMaximum              )                            :: parameterFileCharacter
@@ -54,9 +55,6 @@ program Optimal_Sampling_SMF
   logical                                                                              :: integrationReset=.true.
   type            (hdf5Object                             )                            :: outputFile,thisDataset
   type            (inputParameters                        )                            :: parameters
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('optimal_sampling.stellar_mass_function.size')
 
   ! Get the name of the parameter file from the first command line argument.
   call Get_Command_Argument(1,parameterFileCharacter)

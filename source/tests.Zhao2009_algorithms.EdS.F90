@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,12 +26,11 @@ program Test_Zhao2009_Flat
   !% comparison tolerances are relatively large since we have not attempted to match details (such as critical density
   !% calculation) with ``{\normalfont \ttfamily mandc}''.
   use ISO_Varying_String
-  use Memory_Management
   use Input_Parameters
   use Dark_Matter_Profiles_Concentration
   use Dark_Matter_Halo_Mass_Accretion_Histories
   use Cosmology_Functions
-  use Galacticus_Nodes
+  use Galacticus_Nodes                         , only : treeNode, nodeComponentBasic
   use Unit_Tests
   use String_Handling
   use Galacticus_Paths
@@ -57,10 +57,6 @@ program Test_Zhao2009_Flat
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.Zhao2009_algorithms.EdS.size')
-
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Zhao et al. 2009 algorithms: Einstein-de Sitter cosmology")
 

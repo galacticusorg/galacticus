@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesCole2000
      !% A merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
      private
-     class(mergerMassMovementsClass), pointer :: mergerMassMovements_
+     class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
    contains
      final     ::        cole2000Destructor
      procedure :: get => cole2000Get
@@ -48,6 +49,7 @@ contains
 
   function cole2000ConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class which takes a parameter list as input.
+    use Galacticus_Nodes , only : defaultDiskComponent, defaultSpheroidComponent
     use Galacticus_Error
     use Array_Utilities
     use Input_Parameters
@@ -100,6 +102,7 @@ contains
     !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
     self=mergerProgenitorPropertiesCole2000(mergerMassMovements_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="mergerMassMovements_"/>
     return
   end function cole2000ConstructorParameters
   
@@ -124,6 +127,7 @@ contains
   
   subroutine cole2000Get(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
     !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
+    use Galacticus_Nodes                  , only : nodeComponentDisk, nodeComponentSpheroid
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Numerical_Constants_Physical

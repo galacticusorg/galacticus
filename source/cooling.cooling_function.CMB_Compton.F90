@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Chemical_States, only : chemicalStateClass, chemicalState
 
-  !# <coolingFunction name="coolingFunctionCMBCompton" defaultThreadPrivate="yes">
+  !# <coolingFunction name="coolingFunctionCMBCompton">
   !#  <description>Class providing a cooling function due to Compton scattering off of \gls{cmb} photons.</description>
   !# </coolingFunction>
   type, extends(coolingFunctionClass) :: coolingFunctionCMBCompton
      !% A cooling function class which implements cooling due to Compton scattering off of \gls{cmb} photons.
      private
-     class(chemicalStateClass), pointer :: chemicalState_
+     class(chemicalStateClass), pointer :: chemicalState_ => null()
    contains
      final     ::                                       cmbComptonDestructor
      procedure :: coolingFunction                    => cmbComptonCoolingFunction
@@ -53,6 +54,7 @@ contains
     !# <objectBuilder class="chemicalState" name="chemicalState_" source="parameters"/>
     self=coolingFunctionCMBCompton(chemicalState_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="chemicalState_"/>
     return
   end function cmbComptonConstructorParameters
 

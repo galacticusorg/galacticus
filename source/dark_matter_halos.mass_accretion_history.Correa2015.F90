@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,9 +29,9 @@
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryCorrea2015
      !% A dark matter halo mass accretion historiy class using the \cite{correa_accretion_2015} algorithm.
      private
-     class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class(linearGrowthClass            ), pointer :: linearGrowth_
-     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_ => null()
+     class(linearGrowthClass            ), pointer :: linearGrowth_ => null()
+     class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::         correa2015Destructor
      procedure :: time => correa2015Time
@@ -60,6 +61,9 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterHaloMassAccretionHistoryCorrea2015(cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function correa2015ConstructorParameters
 
@@ -91,6 +95,7 @@ contains
     !% thisNode} using the algorithm of \cite{correa_accretion_2015}.
     use Root_Finder
     use Dark_Matter_Halos_Correa2015
+    use Galacticus_Nodes            , only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloMassAccretionHistoryCorrea2015), intent(inout) :: self
     type            (treeNode                                    ), intent(inout) :: node

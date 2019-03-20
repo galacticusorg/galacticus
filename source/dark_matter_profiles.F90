@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,8 +21,7 @@
 
 module Dark_Matter_Profiles
   !% Provides an object that implements dark matter halo profiles.
-  use Galacticus_Nodes
-  use FGSL
+  use Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>
@@ -29,7 +29,6 @@ module Dark_Matter_Profiles
   !#  <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
   !#  <description>Object providing dark matter halo profiles.</description>
   !#  <default>NFW</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="density" >
   !#   <description>Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
@@ -110,8 +109,9 @@ module Dark_Matter_Profiles
   !#   <description>Returns the radius (in Mpc) enclosing a given density threshold (in $M_\odot \hbox{Mpc}^{-3}$) in the dark matter profile of {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: density</argument>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision          , intent(in   )         :: density</argument>
   !#  </method>
   !#  <method name="kSpace" >
   !#   <description>Returns the normalized Fourier space density profile of the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily waveNumber} (given in units of Mpc$^{-1}$).</description>
@@ -141,7 +141,6 @@ module Dark_Matter_Profiles
   !#  <descriptiveName>Dark Matter Profile Heating</descriptiveName>
   !#  <description>Class providing models of heating of dark matter profiles.</description>
   !#  <default>null</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="specificEnergy" >
   !#   <description>The specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>

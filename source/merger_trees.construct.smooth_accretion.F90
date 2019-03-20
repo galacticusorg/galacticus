@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +28,8 @@
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorSmoothAccretion
      !% A class implementing merger tree construction by building trees assuming smooth accretion.
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_ => null()
+     class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
      double precision                                                   :: redshiftBase                       , massHalo          , &
           &                                                                massHaloDeclineFactor              , massHaloResolution
    contains
@@ -91,6 +92,8 @@ contains
     !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     self=mergerTreeConstructorSmoothAccretion(redshiftBase,massHalo,massHaloDeclineFactor,massHaloResolution,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
     return
   end function smoothAccretionConstructorParameters
 
@@ -120,7 +123,7 @@ contains
   function smoothAccretionConstruct(self,treeNumber) result(tree)
     !% Build a merger tree with a smooth mass accretion history using the fitting function of \cite{wechsler_concentrations_2002}.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_Nodes
+    use               Galacticus_Nodes, only : treeNode, nodeComponentBasic
     use               Kind_Numbers
     use               Pseudo_Random
     implicit none

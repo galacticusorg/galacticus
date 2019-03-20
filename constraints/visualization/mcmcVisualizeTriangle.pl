@@ -1,12 +1,17 @@
 #!/usr/bin/env perl
 use Cwd;
-use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
+use lib $ENV{'GALACTICUS_EXEC_PATH'}.'/perl';
 use strict;
 use warnings;
 use Data::Dumper;
 use XML::Simple;
 use POSIX;
+use Galacticus::Options;
+use Galacticus::Launch::Hooks;
+use Galacticus::Launch::Local;
 use Galacticus::Launch::PBS;
+use Galacticus::Launch::MonolithicPBS;
+use Galacticus::Launch::Slurm;
 
 # Visualize the posterior distribution from MCMC chains using a triangle arrangement.
 # Andrew Benson (12-June-2012)
@@ -34,7 +39,7 @@ while ( $iArg < $#ARGV ) {
 	   $value =~ s/^\"(.*)\"$/$1/;
 	}
 	if ( $argument eq "property" ) {
-	    my @propertySpecifiers = split(/:/,$value);
+	    my @propertySpecifiers = split(/(?<!:):(?!:)/,$value);
 	    my %propertyData = 
 		(
 		 name    => $propertySpecifiers[0],
@@ -152,7 +157,8 @@ foreach my $parameter ( @{$parameters->{'posteriorSampleSimulationMethod'}->{'mo
 }
 
 # Loop over parameters.
-my @pbsStack;
+my $queueManager = &Galacticus::Options::Config('queueManager');
+my @jobStack;
 my $standardWidth;
 my $standardHeight;
 for(my $i=0;$i<scalar(@properties);++$i) {
@@ -170,11 +176,11 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 	    $command .= " --range \"".$range."\"";
 	}
     }
-    # Create PBS job.
+    # Create job.
     unless ( -e $outputFileName."_".$i.".pdf" ) {
 	my %job =
 	    (
-	     launchFile => $outputFileName."_".$i.".pbs",
+	     launchFile => $outputFileName."_".$i.".sh",
 	     label      => "triangle",
 	     logFile    => $outputFileName."_".$i.".log",
 	     command    => $command,
@@ -184,7 +190,7 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 	    $job{$_} = $arguments{$_}
 	    if ( exists($arguments{$_}) );
 	}
-	push(@pbsStack,\%job);
+	push(@jobStack,\%job);
     }
     if ( $i < scalar(@properties)-1 ) { 
 	for(my $j=$i+1;$j<scalar(@properties);++$j) {
@@ -207,11 +213,11 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 		    $command .= " --range \"".$range."\"";
 		}
 	    }
-	    # Create PBS job.
+	    # Create job.
 	    unless ( -e $outputFileName."_".$i."_".$j.".pdf" ) {
 	    	my %job =
 		    (
-		     launchFile => $outputFileName."_".$i."_".$j.".pbs",
+		     launchFile => $outputFileName."_".$i."_".$j.".sh",
 		     label      => "triangle",
 		     logFile    => $outputFileName."_".$i."_".$j.".log",
 		     command    => $command,
@@ -221,13 +227,15 @@ for(my $i=0;$i<scalar(@properties);++$i) {
 		    $job{$_} = $arguments{$_}
 		    if ( exists($arguments{$_}) );
 		}
-		push(@pbsStack,\%job);
+		push(@jobStack,\%job);
 	    }
 	}
     }
 }
-# Send jobs to PBS.
-&Galacticus::Launch::PBS::SubmitJobs(\%arguments,@pbsStack);
+# Submit jobs.
+die("queue manager does not support submitting job arrays")
+    unless ( exists($Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}) );
+&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%arguments,@jobStack);
 
 # Get output size.
 open(iHndl,"pdfinfo ".$outputFileName."_0_1.pdf|");
@@ -390,10 +398,12 @@ sub latexFormatErrors {
 	# Determine order.
 	$order = floor(log10($value));
     }
-    # Scale value.
+    # Scale value.   
     $value       /= 10.0**$order;
     $lowerOffset /= 10.0**$order;
     $upperOffset /= 10.0**$order;
+    $lowerOffset  = $lowerOffset < 0.0 ? 0.0 : $lowerOffset;
+    $upperOffset  = $upperOffset < 0.0 ? 0.0 : $upperOffset;
     my $lowerOrder = $lowerOffset == 0.0 ? 0 : floor(log10($lowerOffset));
     my $upperOrder = $upperOffset == 0.0 ? 0 : floor(log10($upperOffset));
     # Format value.

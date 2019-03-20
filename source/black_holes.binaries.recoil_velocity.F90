@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,7 @@
 
 module Black_Hole_Binary_Recoil_Velocities
   !% Implements a class for black hole binary recoil velocities.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : nodeComponentBlackHole
   implicit none
   private
 
@@ -31,7 +32,6 @@ module Black_Hole_Binary_Recoil_Velocities
   !#  <descriptiveName>Black Hole Binaries Recoil</descriptiveName>
   !#  <description>Class providing models of black hole binary recoild.</description>
   !#  <default>zero</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="velocity" >
   !#   <description>Computes the recoil velocity of the given pair of merging black holes.</description>
   !#   <type>double precision</type>

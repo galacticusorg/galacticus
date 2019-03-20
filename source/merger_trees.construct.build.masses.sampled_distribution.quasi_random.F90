@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implementation of a merger tree masses class which samples masses from a distribution using quasi-random sampling.
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionQuasiRandom" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionQuasiRandom">
   !#  <description>A merger tree masses class which samples masses from a distribution using quasi-random sampling.</description>
   !# </mergerTreeBuildMasses>
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionQuasiRandom
@@ -72,7 +73,7 @@ contains
   subroutine sampledDistributionQuasiRandomSampleCMF(self,x)
     !% Generate a quasiRandom sample of points from the merger tree mass distribution.
     use, intrinsic :: ISO_C_Binding
-    use               FGSL
+    use               FGSL         , only : fgsl_qrng
     use               Quasi_Random
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout)               :: self

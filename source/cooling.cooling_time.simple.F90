@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,17 +19,17 @@
 
   !% Implementation of a simple cooling time class.
 
-  use Cooling_Functions
-  use Chemical_States
+  use Cooling_Functions, only : coolingFunctionClass, coolingFunction
+  use Chemical_States  , only : chemicalStateClass  , chemicalState
   
-  !# <coolingTime name="coolingTimeSimple" defaultThreadPrivate="yes">
+  !# <coolingTime name="coolingTimeSimple">
   !#  <description>A simple cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).</description>
   !# </coolingTime>
   type, extends(coolingTimeClass) :: coolingTimeSimple
      !% Implementation of cooling time calculation (based on the ratio of the thermal energy density to the volume cooling rate).
      private
-     class           (coolingFunctionClass), pointer :: coolingFunction_
-     class           (chemicalStateClass  ), pointer :: chemicalState_
+     class           (coolingFunctionClass), pointer :: coolingFunction_ => null()
+     class           (chemicalStateClass  ), pointer :: chemicalState_ => null()
      double precision                                :: degreesOfFreedom
    contains
      final     ::                                   simpleDestructor
@@ -67,6 +68,8 @@ contains
     !# <objectBuilder class="chemicalState"   name="chemicalState_"   source="parameters"/>
     self=coolingTimeSimple(degreesOfFreedom,coolingFunction_,chemicalState_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="coolingFunction_"/>
+    !# <objectDestructor name="chemicalState_"  />
     return
   end function simpleConstructorParameters
 

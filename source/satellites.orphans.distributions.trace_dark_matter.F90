@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,7 @@
   type, extends(satelliteOrphanDistributionRandomIsotropic) :: satelliteOrphanDistributionTraceDarkMatter
      !% An orphan satellite distribution which assumes an isotropic, random distribution with orphans tracing the radial distribution of dark matter.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                                        traceDarkMatterDestructor
      procedure :: extent                              => traceDarkMatterExtent
@@ -56,6 +57,7 @@ contains
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function traceDarkMatterConstructorParameters
 

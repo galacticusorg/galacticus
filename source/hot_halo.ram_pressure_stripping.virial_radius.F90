@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Dark_Matter_Halo_Scales
 
-  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingVirialRadius" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingVirialRadius">
   !#  <description>A hot halo ram pressure stripping class which simply returns the virial radius.</description>
   !# </hotHaloRamPressureStripping>
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingVirialRadius
      !% Implementation of a hot halo ram pressure stripping class which simply returns the virial radius.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                   virialRadiusDestructor
      procedure :: radiusStripped => virialRadiusRadiusStripped
@@ -48,10 +49,10 @@ contains
     type (inputParameters                        ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
 
-    !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=hotHaloRamPressureStrippingVirialRadius(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function virialRadiusConstructorParameters
 

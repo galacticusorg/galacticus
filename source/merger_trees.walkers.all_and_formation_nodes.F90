@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   type, extends(mergerTreeWalkerAllNodes) :: mergerTreeWalkerAllAndFormationNodes
      !% A merger tree walker which iterates depth-first over all nodes including formation nodes.
      private
-     type(treeNode), pointer :: nodeNonFormation
+     type(treeNode), pointer :: nodeNonFormation => null()
    contains
      procedure :: next     => allAndFormationNodesNext
      procedure :: previous => allAndFormationNodesPrevious

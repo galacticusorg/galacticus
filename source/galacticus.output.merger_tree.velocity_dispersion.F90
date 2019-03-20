@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module Galacticus_Output_Trees_Velocity_Dispersion
   !% Handles outputting of velocity dispersion data to the \glc\ output file.
   use ISO_Varying_String
-    use Galacticus_Nodes
+  use Galacticus_Nodes  , only : treeNode
   implicit none
   private
   public :: Galacticus_Output_Tree_Velocity_Dispersion, Galacticus_Output_Tree_Velocity_Dispersion_Property_Count,&
@@ -68,6 +69,7 @@ module Galacticus_Output_Trees_Velocity_Dispersion
        &                                                                     weightBy                             , weightIndex
   double precision                                                        :: radiusImpact                         , radiusOuter
   !$omp threadprivate(activeNode,radiusOuter,haloLoaded,massType,componentType,weightBy,weightIndex,radiusImpact)
+  
 contains
 
   subroutine Galacticus_Output_Tree_Velocity_Dispersion_Initialize
@@ -77,6 +79,7 @@ contains
     use String_Handling
     use Galactic_Structure_Options
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type     (varying_string), dimension(6) :: radiusDefinition
     type     (varying_string), dimension(3) :: fractionDefinition
@@ -344,11 +347,12 @@ contains
     use Kind_Numbers
     use Galactic_Structure_Velocity_Dispersions
     use Dark_Matter_Halo_Scales
-    use FGSL
+    use FGSL                                   , only : fgsl_function    , fgsl_integration_workspace
     use Numerical_Integration
     use Galactic_Structure_Options
     use Galactic_Structure_Enclosed_Masses
     use Multi_Counters
+    use Galacticus_Nodes                       , only : nodeComponentDisk, nodeComponentSpheroid     , nodeComponentDarkMatterProfile
     implicit none
     double precision                                , intent(in   )         :: time
     type            (treeNode                      ), intent(inout), target :: thisNode
@@ -573,7 +577,7 @@ contains
     use Galactic_Structure_Surface_Densities
     use Numerical_Constants_Math
     use Numerical_Integration
-    use FGSL
+    use FGSL                                   , only : fgsl_function, fgsl_integration_workspace
     implicit none
     double precision                            , intent(in   ) :: radius
     double precision                            , parameter     :: fractionSmall=1.0d-3
@@ -683,7 +687,6 @@ contains
     use Galactic_Structure_Surface_Densities
     use Numerical_Integration
     use Numerical_Constants_Math
-    use FGSL
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: densityDisk, velocityDisk
@@ -791,7 +794,7 @@ contains
 
   double precision function Galacticus_Output_Trees_Line_of_Sight_Velocity_Dispersion(radius)
     !% Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
-    use FGSL
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
     implicit none
     double precision                            , intent(in   ) :: radius

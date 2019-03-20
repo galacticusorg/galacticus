@@ -10,7 +10,7 @@ In the remainder of this section we list all criteria used to select $\Delta t$ 
 
 \subsection{Tree Criteria}
 
-The following \hyperlink{merger_trees.evolve.F90:merger_trees_evolve:evolve_to_time}{timestep criteria} ensure that tree evolution occurs in a way which correctly preserves tree structure and ordering of interactions between \glspl{node}.
+The following timestep criteria ensure that tree evolution occurs in a way which correctly preserves tree structure and ordering of interactions between \glspl{node}.
 
 \subsubsection{``Branch Segment'' Criteria}
 
@@ -55,18 +55,18 @@ where $t$ is the time of the host \gls{node} and $t_\mathrm{merge}$ are the time
 
 \subsection{General Criteria}
 
-\subsubsection{``Simple'' Criteria}
+\subsubsection{``Simple'' Criteria}\label{phys:mergerTreeEvolveTimestep:mergerTreeEvolveTimestepSimple}
 
-The \hyperlink{merger_trees.evolve.timesteps.simple.F90:merger_tree_timesteps_simple:merger_tree_timestep_simple}{``simple''} timestep criteria assert that
+The {\normalfont \ttfamily simple} timestep criteria assert that
 \begin{eqnarray}
 \Delta t &\le& t_\mathrm{simple}, \\
 \Delta t &\le& \epsilon_\mathrm{simple} (a/\dot{a}),
 \end{eqnarray}
 where $t_\mathrm{simple}=${\normalfont \ttfamily [timestepSimpleAbsolute]}, $\epsilon_\mathrm{simple}=${\normalfont \ttfamily [timestepSimpleRelative]}, and $a$ is expansion factor. These criteria are intended to prevent any one node evolving over an excessively large time in one step. In general, these criteria are not necessary, as nodes should be free to evolve as far as possible unless prevented by some physical requirement. These criteria are therefore present to provide a simple example of how timestep criteria work.
 
-\subsubsection{``Satellite'' Criteria}
+\subsubsection{``Satellite'' Criteria}\label{phys:mergerTreeEvolveTimestep:mergerTreeEvolveTimestepSatellite}
 
-The \hyperlink{merger_trees.evolve.timesteps.satellite.F90:merger_tree_timesteps_satellite:merger_tree_timestep_satellite}{``satellite''} timestep criteria asserts the following for satellite \glspl{node}. If the satellite's merge target has been advanced to at least a time of $t_\mathrm{required} = t_\mathrm{satellite} + \Delta t_\mathrm{merge} - \delta t_\mathrm{merge,maximum}$ then 
+The {\normalfont \ttfamily satellite} timestep criteria asserts the following for satellite \glspl{node}. If the satellite's merge target has been advanced to at least a time of $t_\mathrm{required} = t_\mathrm{satellite} + \Delta t_\mathrm{merge} - \delta t_\mathrm{merge,maximum}$ then 
 \begin{equation}
 \Delta t \le \Delta t_\mathrm{merge},
 \end{equation}
@@ -80,17 +80,17 @@ is asserted to ensure that the satellite does not reach the time of merging unti
 
 \subsection{Output Criteria}
 
-\subsubsection{``History'' Criteria}
+\subsubsection{``History'' Criteria}\label{phys:mergerTreeEvolveTimestep:mergerTreeEvolveTimestepHistory}
 
-The \hyperlink{merger_trees.evolve.timesteps.history.F90:merger_tree_timesteps_history:merger_tree_timestep_history}{``history''} timestep criterion asserts that
+The {\normalfont \ttfamily history} timestep criterion asserts that
 \begin{equation}
  \Delta t \le t_{\mathrm{history},i} - t
 \end{equation}
 where $t$ is the current time, $t_{\mathrm{history},i}$ is the $i^\mathrm{th}$ time at which the global history (see \S\ref{sec:globalHistory}) of galaxies is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{history},i} > t$. If there is no $i$ for which $t_{\mathrm{history},i} > t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
 
-\subsubsection{``Main Branch Evolution'' Criteria}
+\subsubsection{``Record Main Branch Evolution'' Criteria}\label{phys:mergerTreeEvolveTimestep:mergerTreeEvolveTimestepRecordEvolution}
 
-If {\normalfont \ttfamily timestepRecordEvolution}$=${\normalfont \ttfamily true}, then the \hyperlink{merger_trees.evolve.timesteps.record_evolution.F90:merger_tree_timesteps_record_evolution:merger_tree_timestep_record_evolution}{``main branch evolution''} timestep criterion asserts that
+If selected, the {\normalfont \ttfamily recordEvolution} timestep criterion asserts that
 \begin{equation}
  \Delta t \le t_{\mathrm{record},i} - t
 \end{equation}

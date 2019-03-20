@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,7 +53,6 @@ contains
 
   double precision function zeroGrowthRate(self,blackHole)
     !% Returns a separation growth rate for a binary black hole that is always zero.
-    use Galacticus_Nodes
     implicit none
     class(blackHoleBinarySeparationGrowthRateZero), intent(inout) :: self
     class(nodeComponentBlackHole                 ), intent(inout) :: blackHole

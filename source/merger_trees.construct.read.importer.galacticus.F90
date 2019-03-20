@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -36,10 +37,10 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_
-     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_
-     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_
-     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_
+     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_ => null()
+     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_ => null()
+     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_ => null()
+     class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_ => null()
      type            (hdf5Object                   )                            :: file                     , forestHalos
      type            (statefulInteger              )                            :: hasSubhalos              , areSelfContained              , &
           &                                                                        includesHubbleFlow       , periodicPositions             , &
@@ -143,6 +144,10 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=mergerTreeImporterGalacticus(fatalMismatches,reweightTrees,cosmologyFunctions_,haloMassFunction_,cosmologyParameters_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>  
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="haloMassFunction_"        />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function galacticusConstructorParameters
 

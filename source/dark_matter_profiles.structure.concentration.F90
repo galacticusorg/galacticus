@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,10 +21,9 @@
 
 module Dark_Matter_Profiles_Concentration
   !% Provides a class that implements concentrations of dark matter halo profiles.
-  use Galacticus_Nodes
+  use Galacticus_Nodes       , only : treeNode
   use Virial_Density_Contrast
   use Dark_Matter_Profiles
-  use FGSL
   implicit none
   private
 
@@ -32,19 +32,18 @@ module Dark_Matter_Profiles_Concentration
   !#  <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
   !#  <description>Object providing dark matter profile concentrations.</description>
   !#  <default>gao2008</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="concentration" >
   !#   <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#  </method>
   !#  <method name="concentrationMean" >
   !#   <description>Returns the mean concentration parameter for a {\normalfont \ttfamily node} of the given mass.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
   !#   <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
   !#  </method>
   !#  <method name="densityContrastDefinition" >

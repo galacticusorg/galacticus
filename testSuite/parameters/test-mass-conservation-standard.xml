@@ -112,9 +112,11 @@
     <hotHaloAngularMomentumAlwaysGrows value="true"/>
     
     <!-- Outputs and analyses -->
-    <outputRedshifts value="0.0000"/>
+    <outputTimesMethod value="list">
+    <redshifts value="0.0000"/>
+  </outputTimesMethod>
 
-    <!-- Dark matter halo structure options -->
+  <!-- Dark matter halo structure options -->
     <darkMatterProfileMethod value="NFW"/>
     <darkMatterProfileConcentrationMethod value="diemerKravtsov2014">
       <alpha value="1.12"/>
@@ -153,8 +155,11 @@
       <sourceAngularMomentumSpecificMean value="hotGas"/>
       <sourceNormalizationRotation value="hotGas"/>
     </coolingSpecificAngularMomentumMethod>
-    <hotHaloOutflowReturnRate value="5.0"/>
-    <coolingFunctionMethod value="atomicCIECloudy"/>
+    <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="5.0"/>
+  </hotHaloOutflowReincorporationMethod>
+
+  <coolingFunctionMethod value="atomicCIECloudy"/>
     <coolingRadiusMethod value="simple"/>
     <coolingRateMethod value="whiteFrenk1991">
       <velocityCutOff value="10000"/>
@@ -288,13 +293,15 @@
     <odeToleranceRelative value="1.0e-5"/>
     <diskMassToleranceAbsolute value="1.0e-6"/>
     <spheroidMassToleranceAbsolute value="1.0e-6"/>
-    <timestepHostAbsolute value="1.0"/>
-    <timestepHostRelative value="0.1"/>
-
+    <mergerTreeEvolverMethod value="standard">
+      <timeStepHostAbsolute value="1.0"/>
+      <timeStepHostRelative value="0.1"/>
+    </mergerTreeEvolverMethod>
+    
     <!-- Output options -->
-    <mergerTreeOutput>
+    <mergerTreeOutputterMethod value="standard">
       <outputReferences value="false"/>
-    </mergerTreeOutput>
+    </mergerTreeOutputterMethod>
 
   </parameters>
 

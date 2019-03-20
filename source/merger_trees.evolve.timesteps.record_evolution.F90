@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,15 +24,15 @@
   use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   use Output_Times       , only : outputTimes       , outputTimesClass
 
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution" defaultThreadPrivate="yes" autoHook="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution" autoHook="yes">
   !#  <description>A merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepRecordEvolution
      !% Implementation of a merger tree evolution timestepping class which limits the step to the next epoch at which to record
      !% evolution of the main branch galaxy.
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
-     class           (outputTimesClass       ), pointer                   :: outputTimes_
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
+     class           (outputTimesClass       ), pointer                   :: outputTimes_ => null()
      logical                                                              :: oneTimeDatasetsWritten
      integer                                                              :: countSteps
      double precision                                                     :: timeBegin               , timeEnd
@@ -103,6 +104,8 @@ contains
     !# </inputParameter>
     self=mergerTreeEvolveTimestepRecordEvolution(timeBegin,timeEnd,countSteps,cosmologyFunctions_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="outputTimes_"       />
     return
   end function recordEvolutionConstructorParameters
 
@@ -156,6 +159,7 @@ contains
   double precision function recordEvolutionTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determines the timestep to go to the next tabulation point for galaxy evolution storage.
     use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic
     use            :: Numerical_Interpolation
     use            :: Evolve_To_Time_Reports
     use            :: ISO_Varying_String
@@ -195,6 +199,7 @@ contains
   subroutine recordEvolutionStore(self,tree,node,deadlockStatus)
     !% Store properties of the main progenitor galaxy.
     use, intrinsic :: ISO_C_Binding
+    use            :: Galacticus_Nodes                  , only : nodeComponentBasic
     use            :: Numerical_Interpolation
     use            :: Galactic_Structure_Options
     use            :: Galactic_Structure_Enclosed_Masses

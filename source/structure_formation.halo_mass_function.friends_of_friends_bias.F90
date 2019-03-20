@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,10 +39,10 @@
      double precision                                    :: massParticle           , massInfiniteToMassSharpEdge, &
           &                                                 linkingLength
      logical                                             :: linkingLengthIsComoving
-     class           (haloMassFunctionClass   ), pointer :: massFunctionIntrinsic
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
+     class           (haloMassFunctionClass   ), pointer :: massFunctionIntrinsic => null()
+     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
     contains
      final     ::                 fofBiasDestructor
      procedure :: differential => fofBiasDifferential
@@ -107,6 +108,11 @@ contains
     !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"    source="parameters"/>
     self=haloMassFunctionFofBias(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyParameters_" />
+   !# <objectDestructor name="cosmologyFunctions_"  />
+   !# <objectDestructor name="massFunctionIntrinsic"/>
+   !# <objectDestructor name="darkMatterHaloScale_" />
+   !# <objectDestructor name="darkMatterProfile_"   />
    return
   end function fofBiasConstructorParameters
 
@@ -143,7 +149,7 @@ contains
   double precision function fofBiasDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     use Galacticus_Error
-    use Galacticus_Nodes
+    use Galacticus_Nodes        , only : treeNode, nodeComponentBasic
     use Numerical_Constants_Math
     implicit none
     class           (haloMassFunctionFofBias), intent(inout)           :: self

@@ -57,7 +57,7 @@ MODULETYPE ?= GCC-f95-on-LINUX
 # Fortran compiler flags:
 FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
 # Fortran77 compiler flags:
-F77FLAGS = -DBUILDPATH=\'$(BUILDPATH)\'
+F77FLAGS = ${GALACTICUS_F77FLAGS} -DBUILDPATH=\'$(BUILDPATH)\'
 # Error checking flags
 FCFLAGS += -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core
 # Add bounds checking.
@@ -90,10 +90,10 @@ endif
 
 # Detect ODE profiling compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
-FCFLAGS  += -DPROFILE
+FCFLAGS       += -DPROFILE
 FCFLAGS_NOOPT += -DPROFILE
-CFLAGS   += -DPROFILE
-CPPFLAGS += -DPROFILE
+CFLAGS        += -DPROFILE
+CPPFLAGS      += -DPROFILE
 endif
 
 # Detect MPI compile.
@@ -117,6 +117,12 @@ CPPFLAGS += -DOFDLOCKS
 else
 CFLAGS   += -DNOOFDLOCKS
 CPPFLAGS += -DNOOFDLOCKS 
+endif
+
+# Object debugging.
+GALACTICUS_OBJECTS_DEBUG ?= no
+ifeq '$(GALACTICUS_OBJECTS_DEBUG)' 'yes'
+FCFLAGS += -DOBJECTDEBUG
 endif
 
 # List of additional Makefiles which contain dependency information
@@ -202,13 +208,26 @@ $(BUILDPATH)/Makefile_Config_FFTW3: source/fftw3_config.F90
 -include $(BUILDPATH)/Makefile_Config_ANN
 $(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
 	@mkdir -p $(BUILDPATH)
-	$(CPPCOMPILER) -c source/ann_config.cpp -o $(BUILDPATH)/fftw3_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	$(CPPCOMPILER) -c source/ann_config.cpp -o $(BUILDPATH)/ann_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS  += -DANNAVAIL"   >  $(BUILDPATH)/Makefile_Config_ANN ; \
 	 echo "CPPFLAGS += -DANNAVAIL"   >> $(BUILDPATH)/Makefile_Config_ANN ; \
 	else \
 	 echo "FCFLAGS  += -DANNUNAVAIL" >  $(BUILDPATH)/Makefile_Config_ANN ; \
 	 echo "CPPFLAGS += -DANNUNAVAIL" >> $(BUILDPATH)/Makefile_Config_ANN ; \
+	fi
+
+# Configuration for availability of libmatheval.
+-include $(BUILDPATH)/Makefile_Config_MathEval
+$(BUILDPATH)/Makefile_Config_MathEval: source/libmatheval_config.cpp
+	@mkdir -p $(BUILDPATH)
+	$(CPPCOMPILER) -c source/libmatheval_config.cpp -o $(BUILDPATH)/libmatheval_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS  += -DMATHEVALAVAIL"   >  $(BUILDPATH)/Makefile_Config_MathEval ; \
+	 echo "CPPFLAGS += -DMATHEVALAVAIL"   >> $(BUILDPATH)/Makefile_Config_MathEval ; \
+	else \
+	 echo "FCFLAGS  += -DMATHEVALUNAVAIL" >  $(BUILDPATH)/Makefile_Config_MathEval ; \
+	 echo "CPPFLAGS += -DMATHEVALUNAVAIL" >> $(BUILDPATH)/Makefile_Config_MathEval ; \
 	fi
 
 # Object (*.o) files are built by compiling C (*.c) source files.
@@ -361,9 +380,9 @@ $(BUILDPATH)/%.m : ./source/%.F90
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
 %.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
-	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
-	 ./scripts/build/executableSize.pl $*.exe$(SUFFIX) $*.size
-	 ./scripts/build/parameterDependencies.pl `pwd` $*.exe
+	./scripts/build/parameterDependencies.pl `pwd` $*.exe
+	$(FCCOMPILER) -c $(BUILDPATH)/$*.parameters.F90 -o $(BUILDPATH)/$*.parameters.o $(FCFLAGS)
+	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
 
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: %.o %.d %.dd %.m %.make %.Inc $(BUILDPATH)/%.p.F90
@@ -401,7 +420,9 @@ $(BUILDPATH)/openMPCriticalSections.xml: ./scripts/build/enumerateOpenMPCritical
 
 # Rules for version routines.
 $(BUILDPATH)/galacticus.output.version.revision.inc: $(wildcard .hg/branch)
-	@if [ -f .hg/branch ] ; then hg tip | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "parent") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash=""\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg parent | awk 'BEGIN {FS=":";r=-1;h=""} {if ((NR == 1 && NF == 3 ) || $$1 == "parent") {r=$$2;h=$$3}} END {print "integer, parameter :: hgRevision="r"\ncharacter(len=12), parameter :: hgHash=\""h"\""}' > $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'integer, parameter :: hgRevision=-1\ncharacter(len=12), parameter :: hgHash="(unknown)"\n' > $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+	@if [ -f .hg/branch ] ; then hg branch | awk '{print "character(len=128), parameter :: hgBranch=\""$$1"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc; else printf 'character(len=128), parameter :: hgBranch="(unknown)"\n' >> $(BUILDPATH)/galacticus.output.version.revision.inc; fi
+	@date --utc | awk '{print "character(len=32), parameter :: buildTime=\""$$0"\""}' >> $(BUILDPATH)/galacticus.output.version.revision.inc
 
 # Rules for build information routines.
 $(BUILDPATH)/galacticus.output.build.environment.inc:

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorDiskSpheroid
      !% A stellar population selector class which returns a different population for disks and spheroids.
      private
-     class(stellarPopulationClass), pointer :: stellarPopulationDisk_, stellarPopulationSpheroid_
+     class(stellarPopulationClass), pointer :: stellarPopulationDisk_ => null(), stellarPopulationSpheroid_ => null()
    contains
      final     ::                                 diskSpheroidDestructor
      procedure :: select                       => diskSpheroidSelect
@@ -42,6 +43,7 @@ contains
   function diskSpheroidConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily diskSpheroid} stellar population class which takes a parameter list as input.
     use Input_Parameters
+    use Stellar_Populations , only : stellarPopulation
     implicit none
     type (stellarPopulationSelectorDiskSpheroid)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
@@ -51,6 +53,8 @@ contains
     !# <objectBuilder class="stellarPopulation" parameterName="stellarPopulationSpheroid" name="stellarPopulationSpheroid_" source="parameters"/>
     self=stellarPopulationSelectorDiskSpheroid(stellarPopulationDisk_,stellarPopulationSpheroid_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarPopulationDisk_"    />
+    !# <objectDestructor name="stellarPopulationSpheroid_"/>
     return
   end function diskSpheroidConstructorParameters
   
@@ -77,6 +81,7 @@ contains
   function diskSpheroidSelect(self,rateStarFormation,abundances_,component)
     !% Return a diskSpheroid stellar population.
     use Galacticus_Error
+    use Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (stellarPopulationClass               ), pointer       :: diskSpheroidSelect
     class           (stellarPopulationSelectorDiskSpheroid), intent(inout) :: self

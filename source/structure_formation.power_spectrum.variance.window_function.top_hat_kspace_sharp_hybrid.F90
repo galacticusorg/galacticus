@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -98,6 +99,7 @@ contains
     end if
     self=powerSpectrumWindowFunctionTopHatSharpKHybrid(cosmologyParameters_,normalizationValue,radiiRatio)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function topHatSharpKHybridConstructorParameters
 

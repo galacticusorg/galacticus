@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implementation of a null ram pressure stripping of disks class.
 
-  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksNull" defaultThreadPrivate="yes">
+  !# <ramPressureStrippingDisks name="ramPressureStrippingDisksNull">
   !#  <description>A null model of ram pressure stripping in galactic disks.</description>
   !# </ramPressureStrippingDisks>
   type, extends(ramPressureStrippingDisksClass) :: ramPressureStrippingDisksNull

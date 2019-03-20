@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 
 module Satellite_Merging_Mass_Movements
   !% Implements a class for determining how mass is moved around as a consequence of a satellite merging event.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -30,7 +31,6 @@ module Satellite_Merging_Mass_Movements
   !#  <descriptiveName>Merger Mass Movements</descriptiveName>
   !#  <description>Class providing models of the movements of mass during mergers.</description>
   !#  <default>simple</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="get" >
   !#   <description>Determine movements of mass during mergers.</description>
   !#   <type>void</type>

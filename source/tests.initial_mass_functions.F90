@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,6 @@
 program Test_Initial_Mass_Functions
   !% Tests of stellar initial mass functions.
   use Unit_Tests
-  use Memory_Management
   use Galacticus_Display
   use Numerical_Integration2
   use Stellar_Populations_Initial_Mass_Functions
@@ -40,7 +40,6 @@ program Test_Initial_Mass_Functions
   double precision                                                :: massInInitialMassFunction
 
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  call Code_Memory_Usage('tests.initial_mass_functions.size')
   call Unit_Tests_Begin_Group("Stellar initial mass functions")
   call integrator_%initialize  (24           )
   call integrator_%toleranceSet(1.0d-7,1.0d-7)

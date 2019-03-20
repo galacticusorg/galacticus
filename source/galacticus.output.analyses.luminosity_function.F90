@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Geometry_Surveys
   use Cosmology_Functions
 
-  !# <outputAnalysis name="outputAnalysisLuminosityFunction" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisLuminosityFunction">
   !#  <description>A luminosity function output analysis class.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunction
@@ -122,6 +123,13 @@ contains
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
     self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,char(filterName),char(filterType),redshiftBand)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="galacticFilter_"                    />
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="cosmologyFunctionsData"             />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"    />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"/>
+    !# <objectDestructor name="surveyGeometry_"                    />
+    !# <objectDestructor name="outputTimes_"                       />
     return
   end function luminosityFunctionConstructorParameters
 
@@ -196,7 +204,7 @@ contains
     self%binCount=size(magnitudesAbsolute,kind=c_size_t)
     call allocateArray(outputWeight,[self%binCount,self%outputTimes_%count()])
     do iBin=1,self%binCount
-       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctionsData,self%outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
+       outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
     end do
     ! Create a luminosity property extractor.
     allocate(outputAnalysisPropertyExtractor_)
@@ -279,7 +287,9 @@ contains
     !% Destructor for  the ``luminosityFunction'' output analysis class.
     type(outputAnalysisLuminosityFunction), intent(inout) :: self
     
-    !# <objectDestructor name="self%surveyGeometry_"/>
+    !# <objectDestructor name="self%surveyGeometry_"       />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
+    !# <objectDestructor name="self%cosmologyFunctionsData"/>
     return
   end subroutine luminosityFunctionDestructor
   

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module Node_Component_Disk_Very_Simple
   !% Implements a very simple disk component.
   use ISO_Varying_String
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   use Math_Exponentiation
   use Cosmology_Functions
   use Stellar_Population_Properties
@@ -31,11 +32,12 @@ module Node_Component_Disk_Very_Simple
   use Dark_Matter_Profiles
   implicit none
   private
-  public :: Node_Component_Disk_Very_Simple_Post_Evolve, Node_Component_Disk_Very_Simple_Rate_Compute     , &
-       &    Node_Component_Disk_Very_Simple_Scale_Set  , Node_Component_Disk_Very_Simple_Satellite_Merging, &
-       &    Node_Component_Disk_Very_Simple_Initialize , Node_Component_Disk_Very_Simple_Pre_Evolve       , &
-       &    Node_Component_Disk_Very_Simple_Rates      , Node_Component_Disk_Very_Simple_Analytic_Solver  , &
-       &    Node_Component_Disk_Very_Simple_Post_Step  , Node_Component_Disk_Very_Simple_Thread_Initialize
+  public :: Node_Component_Disk_Very_Simple_Post_Evolve        , Node_Component_Disk_Very_Simple_Rate_Compute     , &
+       &    Node_Component_Disk_Very_Simple_Scale_Set          , Node_Component_Disk_Very_Simple_Satellite_Merging, &
+       &    Node_Component_Disk_Very_Simple_Initialize         , Node_Component_Disk_Very_Simple_Pre_Evolve       , &
+       &    Node_Component_Disk_Very_Simple_Rates              , Node_Component_Disk_Very_Simple_Analytic_Solver  , &
+       &    Node_Component_Disk_Very_Simple_Post_Step          , Node_Component_Disk_Very_Simple_Thread_Initialize, &
+       &    Node_Component_Disk_Very_Simple_Thread_Uninitialize
 
   !# <component>
   !#  <class>disk</class>
@@ -135,6 +137,7 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Initialize(parameters)
     !% Initializes the tree node very simple disk component module.
     use Input_Parameters
+    use Galacticus_Nodes, only : nodeComponentDiskVerySimple, defaultDiskComponent
     implicit none
     type            (inputParameters            ), intent(inout) :: parameters
     type            (nodeComponentDiskVerySimple)                :: diskVerySimpleComponent
@@ -235,12 +238,13 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultDiskComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -259,11 +263,31 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Initialize
 
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Disk_Very_Simple_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple disk profile module.
+    use Galacticus_Nodes, only : defaultDiskComponent
+    implicit none
+
+    if (defaultDiskComponent%verySimpleIsActive()) then
+       !# <objectDestructor name="cosmologyFunctions_"         />
+       !# <objectDestructor name="stellarPopulationProperties_"/>
+       !# <objectDestructor name="darkMatterHaloScale_"        />
+       !# <objectDestructor name="darkMatterProfile_"          />
+       !# <objectDestructor name="starFormationFeedbackDisks_" />
+       !# <objectDestructor name="starFormationTimescaleDisks_"/>       
+    end if
+    return
+  end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize
+
   !# <preEvolveTask>
   !# <unitName>Node_Component_Disk_Very_Simple_Pre_Evolve</unitName>
   !# </preEvolveTask>
   subroutine Node_Component_Disk_Very_Simple_Pre_Evolve(node)
     !% Ensure the disk has been initialized.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk, nodeComponentDiskVerySimple
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
     class(nodeComponentDisk)               , pointer :: disk
@@ -289,11 +313,12 @@ contains
     use Histories
     use Stellar_Luminosities_Structure
     use Abundances_Structure
+    use Galacticus_Nodes              , only : treeNode, nodeComponentDisk, nodeComponentDiskVerySimple, nodeComponentBasic
     implicit none
-    type            (treeNode          ), intent(inout), pointer :: node
-    class           (nodeComponentDisk )               , pointer :: disk
-    class           (nodeComponentBasic)               , pointer :: basic
-    type            (history           )                         :: stellarPropertiesHistory
+    type (treeNode          ), intent(inout), pointer :: node
+    class(nodeComponentDisk )               , pointer :: disk
+    class(nodeComponentBasic)               , pointer :: basic
+    type (history           )                         :: stellarPropertiesHistory
 
     ! Get the disk component.
     disk => node%disk()
@@ -314,7 +339,8 @@ contains
   !# </postStepTask>
   subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
     !% Catch rounding errors in the very simple disk gas evolution.
-    use FGSL
+    use FGSL                          , only : FGSL_Failure
+    use Galacticus_Nodes              , only : treeNode    , nodeComponentDisk, nodeComponentDiskVerySimple
     use Galacticus_Display
     use String_Handling
     use Abundances_Structure
@@ -385,6 +411,7 @@ contains
   subroutine Node_Component_Disk_Very_Simple_Create(node)
     !% Create properties in a very simple disk component.
     use Histories
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk
     implicit none
     type   (treeNode         ), intent(inout), pointer :: node
     class  (nodeComponentDisk)               , pointer :: disk
@@ -422,6 +449,8 @@ contains
     use Galactic_Structure_Options
     use Histories
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : treeNode            , nodeComponentDisk          , nodeComponentHotHalo, interruptTask, &
+         &                                     propertyTypeInactive, nodeComponentDiskVerySimple
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     logical                               , intent(in   )          :: odeConverged
@@ -494,6 +523,7 @@ contains
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Galacticus_Error
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic, nodeComponentDisk, nodeComponentHotHalo, nodeComponentSatellite
     implicit none
     type            (treeNode              ), intent(inout), pointer   :: node
     double precision                        , intent(in   )            :: timeStart              , timeEnd
@@ -707,6 +737,7 @@ contains
     use Galactic_Structure_Options
     use Histories
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : treeNode, nodeComponentDisk, nodeComponentDiskVerySimple
     implicit none
     type            (treeNode           ), intent(inout), pointer :: node
     type            (history            ), intent(inout)          :: stellarHistoryRate
@@ -761,6 +792,7 @@ contains
     use Abundances_Structure
     use Stellar_Luminosities_Structure
     use Histories
+    use Galacticus_Nodes              , only : treeNode, nodeComponentDisk, nodeComponentDiskVerySimple
     implicit none
     type            (treeNode           ), intent(inout), pointer :: node
     class           (nodeComponentDisk  )               , pointer :: disk
@@ -811,6 +843,7 @@ contains
     use Galacticus_Error
     use Abundances_Structure
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : treeNode, nodeComponentDisk, nodeComponentDiskVerySimple, nodeComponentSpheroid
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     type (treeNode             )               , pointer :: nodeHost
@@ -912,6 +945,7 @@ contains
   double precision function Node_Component_Disk_Very_Simple_SFR(self)
     !% Return the star formation rate of the very simple disk.
     use Numerical_Constants_Math
+    use Galacticus_Nodes        , only : nodeComponentDiskVerySimple
     implicit none
     class           (nodeComponentDiskVerySimple     ), intent(inout) :: self
     double precision                                                  :: diskDynamicalTime           , gasMass              , &

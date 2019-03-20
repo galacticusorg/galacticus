@@ -80,20 +80,22 @@
   <!-- Metal production -->
   <diskVerySimpleTrackAbundances value="true"/>
   <stellarPopulationMethod value="standard">
-    <metalYield       value="0.025"/>
+    <metalYield value="0.025"/>
     <recycledFraction value="0.400"/>
   </stellarPopulationMethod>
 
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="1.0e-6"/>
   <odeToleranceRelative value="0.001"/>
-  <timestepHostAbsolute value="1.000"/>
-  <timestepHostRelative value="0.100"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.000"/>
+    <timestepHostRelative value="0.100"/>
+  </mergerTreeEvolverMethod>
 
   <!-- Output options -->
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
+  </mergerTreeOutputterMethod>
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/closedBox.hdf5"/>

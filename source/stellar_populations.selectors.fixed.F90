@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +25,7 @@
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorFixed
      !% A fixed stellar population selector class.
      private
-     class(stellarPopulationClass), pointer :: stellarPopulation_
+     class(stellarPopulationClass), pointer :: stellarPopulation_ => null()
    contains
      final     ::                                 fixedDestructor
      procedure :: select                       => fixedSelect
@@ -42,6 +43,7 @@ contains
   function fixedConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily fixed} stellar population class which takes a parameter list as input.
     use Input_Parameters
+    use Stellar_Populations , only : stellarPopulation
     implicit none
     type (stellarPopulationSelectorFixed)                :: self
     type (inputParameters               ), intent(inout) :: parameters
@@ -50,6 +52,7 @@ contains
     !# <objectBuilder class="stellarPopulation" name="stellarPopulation_" source="parameters"/>
     self=stellarPopulationSelectorFixed(stellarPopulation_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="stellarPopulation_"/>
     return
   end function fixedConstructorParameters
   

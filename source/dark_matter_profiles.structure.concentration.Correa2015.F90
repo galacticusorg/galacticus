@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,14 +26,19 @@
 
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationCorrea2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{correa_accretion_2015}.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationCorrea2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{correa_accretion_2015}.
      private
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     class           (linearGrowthClass            ), pointer :: linearGrowth_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
+     class           (linearGrowthClass            ), pointer :: linearGrowth_                    => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
+     type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
+     type            (darkMatterProfileNFW         ), pointer :: darkMatterProfileDefinition_     => null()
      double precision                                         :: A
    contains
      final     ::                                correa2015Destructor
@@ -76,6 +82,10 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterProfileConcentrationCorrea2015(A,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function correa2015ConstructorParameters
   
@@ -98,10 +108,12 @@ contains
     implicit none
     type(darkMatterProfileConcentrationCorrea2015), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%linearGrowth_"            />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"            />
+    !# <objectDestructor name="self%cosmologyFunctions_"             />
+    !# <objectDestructor name="self%linearGrowth_"                   />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"       />
+    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
     return
   end subroutine correa2015Destructor
   
@@ -110,9 +122,10 @@ contains
     !% \cite{correa_accretion_2015} algorithm.
     use Dark_Matter_Halos_Correa2015
     use Root_Finder
+    use Galacticus_Nodes            , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileConcentrationCorrea2015), intent(inout), target  :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
+    type            (treeNode                                ), intent(inout), target  :: node
     class           (nodeComponentBasic                      )               , pointer :: basic
     double precision                                          , parameter              :: toleranceRelative=1.0d-6
     double precision                                          , parameter              :: toleranceAbsolute=0.0d+0
@@ -224,17 +237,18 @@ contains
     implicit none
     class(darkMatterProfileClass                            ), pointer       :: correa2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationCorrea2015          ), intent(inout) :: self
-    class(darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition
+    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
+    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    allocate(darkMatterProfileNFW                               :: correa2015DarkMatterProfileDefinition)
-    allocate(darkMatterHaloScaleVirialDensityContrastDefinition :: darkMatterHaloScaleDefinition        )
-    select type (correa2015DarkMatterProfileDefinition)
-    type is (darkMatterProfileNFW)
-       select type (darkMatterHaloScaleDefinition)
-       type is (darkMatterHaloScaleVirialDensityContrastDefinition)
-          darkMatterHaloScaleDefinition        =darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%densityContrastDefinition())
-          correa2015DarkMatterProfileDefinition=darkMatterProfileNFW                              (darkMatterHaloScaleDefinition                                                      )
-       end select
-    end select
+    if (.not.associated(self%darkMatterProfileDefinition_)) then
+       allocate(self%darkMatterProfileDefinition_  )
+       allocate(     darkMatterHaloScaleDefinition_)
+       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
+       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
+       !# <objectDestructor name="virialDensityContrastDefinition_"/>
+    end if
+    correa2015DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
     return
   end function correa2015DarkMatterProfileDefinition

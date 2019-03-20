@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,17 +20,17 @@
 !% Contains a module which implements a sequence output analysis property operator class.
 
   type, public :: propertyOperatorList
-     class(outputAnalysisPropertyOperatorClass), pointer :: operator_
+     class(outputAnalysisPropertyOperatorClass), pointer :: operator_ => null()
      type (propertyOperatorList               ), pointer :: next      => null()
   end type propertyOperatorList
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence" defaultThreadPrivate="yes">
+  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSequence">
   !#  <description>A sequence output analysis property operator class.</description>
   !# </outputAnalysisPropertyOperator>
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence
      !% A sequence output property operator class.
      private
-     type(propertyOperatorList), pointer :: operators
+     type(propertyOperatorList), pointer :: operators => null()
    contains
      !@ <objectMethods>
      !@   <object>outputAnalysisPropertyOperatorSequence</object>
@@ -73,7 +74,7 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       operator_%operator_ => outputAnalysisPropertyOperator(parameters,i)
+       !# <objectBuilder class="outputAnalysisPropertyOperator" name="operator_%operator_" source="parameters" copy="i" />
     end do
     return
   end function sequenceConstructorParameters
@@ -83,12 +84,18 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorSequence)                        :: self
     type(propertyOperatorList                  ), target, intent(in   ) :: operators
+    type(propertyOperatorList                  ), pointer               :: operator_
 
-    self%operators => operators
+    self     %operators => operators
+    operator_           => operators
+    do while (associated(operator_))
+       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       operator_ => operator_%next
+    end do
     return
   end function sequenceConstructorInternal
 
-  elemental subroutine sequenceDestructor(self)
+  subroutine sequenceDestructor(self)
     !% Destructor for the sequence property operator class.
     implicit none
     type(outputAnalysisPropertyOperatorSequence), intent(inout) :: self
@@ -98,8 +105,8 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          deallocate(operator_%operator_)
-          deallocate(operator_          )
+          !# <objectDestructor name="operator_%operator_"/>
+          deallocate(operator_)
           operator_ => operatorNext
        end do
     end if
@@ -144,7 +151,7 @@ contains
     use Galacticus_Error
     implicit none
     class(outputAnalysisPropertyOperatorSequence), intent(inout) :: self
-    class(outputAnalysisPropertyOperatorClass   ), intent(  out) :: destination
+    class(outputAnalysisPropertyOperatorClass   ), intent(inout) :: destination
     type (propertyOperatorList                  ), pointer       :: operator_   , operatorDestination_, &
          &                                                          operatorNew_
 
@@ -164,7 +171,7 @@ contains
              operatorDestination_            => operatorNew_
           end if
           allocate(operatorNew_%operator_,mold=operator_%operator_)
-          call operator_%operator_%deepCopy(operatorNew_%operator_)
+          !# <deepCopy source="operator_%operator_" destination="operatorNew_%operator_"/>
           operator_ => operator_%next
        end do       
     class default

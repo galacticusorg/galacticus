@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module Merger_Tree_Branching
   !% Implements a merger tree branching probability class.
   use Pseudo_Random
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   implicit none
   private
 
@@ -30,7 +31,6 @@ module Merger_Tree_Branching
   !#  <descriptiveName>Merger Tree Branching Probabilities</descriptiveName>
   !#  <description>Class providing merger tree branching probabilities.</description>
   !#  <default>parkinsonColeHelly</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="probability" >
   !#   <description>Computes the probability per unit ``time'' that a branching event occurs.</description>
   !#   <type>double precision</type>

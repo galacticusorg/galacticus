@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,14 +21,13 @@
 
 module Node_Component_Satellite_Very_Simple
   !% Implements a very simple satellite orbit component.
-  use Galacticus_Nodes
-     use Virial_Orbits
-    use Satellite_Merging_Timescales
- implicit none
+  use Virial_Orbits
+  use Satellite_Merging_Timescales
+  implicit none
   private
-  public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create      , &
-       &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute, &
-       &    Node_Component_Satellite_Very_Simple_Thread_Initialize
+  public :: Node_Component_Satellite_Very_Simple_Halo_Formation_Task, Node_Component_Satellite_Very_Simple_Create             , &
+       &    Node_Component_Satellite_Very_Simple_Tree_Initialize    , Node_Component_Satellite_Very_Simple_Rate_Compute       , &
+       &    Node_Component_Satellite_Very_Simple_Thread_Initialize  , Node_Component_Satellite_Very_Simple_Thread_Uninitialize
 
   !# <component>
   !#  <class>satellite</class>
@@ -85,12 +85,13 @@ contains
     return
   end subroutine Node_Component_Satellite_Very_Simple_Initialize
 
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize(parameters)
     !% Initializes the tree node very simple satellite module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -101,11 +102,27 @@ contains
     return
   end subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize
 
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Satellite_Very_Simple_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Satellite_Very_Simple_Thread_Uninitialize()
+    !% Uninitializes the tree node very simple satellite module.
+    use Galacticus_Nodes, only : defaultSatelliteComponent
+    implicit none
+
+    if (defaultSatelliteComponent%verySimpleIsActive()) then
+       !# <objectDestructor name="virialOrbit_"               />
+       !# <objectDestructor name="satelliteMergingTimescales_"/>
+    end if
+    return
+  end subroutine Node_Component_Satellite_Very_Simple_Thread_Uninitialize
+
   !# <haloFormationTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Halo_Formation_Task</unitName>
   !# </haloFormationTask>
   subroutine Node_Component_Satellite_Very_Simple_Halo_Formation_Task(thisNode)
     !% Reset the orbits of satellite galaxies on halo formation events.
+    use Galacticus_Nodes, only : treeNode, defaultSatelliteComponent
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
     type(treeNode)               , pointer :: satelliteNode
@@ -131,6 +148,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(thisNode,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the time until satellite merging rate of change.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSatellite, nodeComponentSatelliteVerySimple, propertyTypeInactive, defaultSatelliteComponent
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     logical                                 , intent(in   )          :: odeConverged
@@ -159,6 +177,7 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize(thisNode)
     !% Initialize the very simple satellite component.
+    use Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(inout), pointer :: thisNode
 
@@ -175,6 +194,7 @@ contains
   subroutine Node_Component_Satellite_Very_Simple_Create(thisNode)
     !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
     use Kepler_Orbits
+    use Galacticus_Nodes, only : treeNode, nodeComponentSatellite, nodeComponentSatelliteVerySimple, defaultSatelliteComponent
     implicit none
     type            (treeNode              ), intent(inout), pointer :: thisNode
     type            (treeNode              )               , pointer :: hostNode

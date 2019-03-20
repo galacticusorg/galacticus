@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
   use Hot_Halo_Ram_Pressure_Forces
 
-  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsSimple" defaultThreadPrivate="yes">
+  !# <ramPressureStrippingSpheroids name="ramPressureStrippingSpheroidsSimple">
   !#  <description>A simple model of ram pressure stripping in galactic spheroids.</description>
   !# </ramPressureStrippingSpheroids>
   type, extends(ramPressureStrippingSpheroidsClass) :: ramPressureStrippingSpheroidsSimple
      !% Implementation of a simple model of ram pressure stripping of galactic spheroids.
      private
-     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
      double precision                                        :: rateFractionalMaximum
    contains
      final     ::                 simpleDestructor
@@ -62,6 +63,7 @@ contains
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     self=ramPressureStrippingSpheroidsSimple(rateFractionalMaximum,hotHaloRamPressureForce_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="hotHaloRamPressureForce_"/>
     return
   end function simpleConstructorParameters
 
@@ -105,6 +107,7 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                  , only : nodeComponentSpheroid
     implicit none
     class           (ramPressureStrippingSpheroidsSimple), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node

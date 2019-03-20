@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 
   use Cosmology_Parameters
   
-  !# <cosmologicalMassVariance name="cosmologicalMassVariancePeakBackgroundSplit" defaultThreadPrivate="yes">
+  !# <cosmologicalMassVariance name="cosmologicalMassVariancePeakBackgroundSplit">
   !#  <description>
   !#   The cosmological mass variance is computed by taking the variance from some other mass variance class, $\sigma^2(M)$, and
   !#   offsetting it by the variance of the background in the peak-background split model, $\sigma^2(M_\mathrm{e})$, where
@@ -32,9 +33,9 @@
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVariancePeakBackgroundSplit
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (haloEnvironmentClass         ), pointer :: haloEnvironment_
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_ => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (haloEnvironmentClass         ), pointer :: haloEnvironment_ => null()
      double precision                                         :: varianceBackground       , massBackground
    contains
      final     ::                                       variancePeakBackgroundSplitDestructor
@@ -70,6 +71,9 @@ contains
     ! Construct the instance.
     self=cosmologicalMassVariancePeakBackgroundSplit(haloEnvironment_,cosmologicalMassVariance_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloEnvironment_"         />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
     return
   end function variancePeakBackgroundSplitConstructorParameters
 
@@ -95,6 +99,7 @@ contains
     
     !# <objectDestructor name="self%haloEnvironment_"         />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !# <objectDestructor name="self%cosmologyParameters_"     />
     return
   end subroutine variancePeakBackgroundSplitDestructor
 

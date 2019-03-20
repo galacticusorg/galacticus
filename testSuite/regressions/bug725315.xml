@@ -157,7 +157,11 @@
     <velocityCharacteristic value="50.0"/>
   </starFormationFeedbackSpheroidsMethod>
   <mergerTreeStructureOutput value="false"/>
-  <timestepHostRelative value="0.1"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostRelative value="0.1"/>
+    <timestepHostAbsolute value="1"/>
+  </mergerTreeEvolverMethod>
+
   <randomSeed value="228"/>
   <elementsToTrack value="Ca Mg Si Ti Fe"/>
   <starFormationFeedbackDisksMethod value="powerLaw">
@@ -172,15 +176,20 @@
     <mergeProbability value="0.1"/>
     <accretionLimit value="0.1"/>
   </mergerTreeBuilderMethod>
-  <outputRedshifts value="0"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0"/>
+  </outputTimesMethod>
+
   <coolingRadiusMethod value="simple"/>
   <randomSpinResetMassFactor value="2"/>
   <blackHoleBinaryMergersMethod value="rezzolla2008"/>
-  <timestepHostAbsolute value="1"/>
   <galacticStructureRadiusSolverMethod value="adiabatic"/>
   <mergerTreeConstructorMethod value="build">
       <treeBeginAt value="1"/>
       <redshiftBase value="0"/>
   </mergerTreeConstructorMethod>
-  <hotHaloOutflowReturnRate value="1.26027"/>
-</parameters>
+  <hotHaloOutflowReincorporationMethod value="haloDynamicalTime">
+    <multiplier value="1.26027"/>
+  </hotHaloOutflowReincorporationMethod>
+
+  </parameters>

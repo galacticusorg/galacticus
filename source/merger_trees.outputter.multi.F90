@@ -1,0 +1,195 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% Implements a merger trees outputter class which combines multiple other outputters.
+  
+  type, public :: multiOutputterList
+     class(mergerTreeOutputterClass), pointer :: outputter_ => null()
+     type (multiOutputterList      ), pointer :: next       => null()
+  end type multiOutputterList
+  
+  !# <mergerTreeOutputter name="mergerTreeOutputterMulti">
+  !#  <description>A merger tree outputter which combines multiple other outputters.</description>
+  !# </mergerTreeOutputter>
+  type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti
+     !% Implementation of a merger tree outputter which combines multiple other outputters.
+     private
+     type(multiOutputterList), pointer :: outputters => null()
+   contains
+     final     ::             multiDestructor
+     procedure :: output   => multiOutput
+     procedure :: finalize => multiFinalize
+     procedure :: reduce   => multiReduce
+     procedure :: deepCopy => multiDeepCopy
+  end type mergerTreeOutputterMulti
+
+  interface mergerTreeOutputterMulti
+     !% Constructors for the {\normalfont \ttfamily multi} merger tree outputter.
+     module procedure multiConstructorParameters
+     module procedure multiConstructorInternal
+  end interface mergerTreeOutputterMulti
+
+contains
+
+  function multiConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily multi} merger tree outputter class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type   (mergerTreeOutputterMulti)                :: self
+    type   (inputParameters         ), intent(inout) :: parameters
+    type   (multiOutputterList      ), pointer       :: outputter_
+    integer                                          :: i
+
+    self      %outputters => null()
+    outputter_           => null()
+    do i=1,parameters%copiesCount('mergerTreeOutputterMethod',zeroIfNotPresent=.true.)
+       if (associated(outputter_)) then
+          allocate(outputter_%next)
+          outputter_ => outputter_%next
+       else
+          allocate(self%outputters)
+          outputter_ => self%outputters
+       end if
+       !# <objectBuilder class="mergerTreeOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
+    end do
+    return
+  end function multiConstructorParameters
+  
+  function multiConstructorInternal(outputters) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily multi} outputter class.
+    implicit none
+    type(mergerTreeOutputterMulti)                        :: self
+    type(multiOutputterList      ), target, intent(in   ) :: outputters
+    type(multiOutputterList      ), pointer               :: outputter_
+
+    self      %outputters => outputters
+    outputter_            => outputters
+    do while (associated(outputter_))
+       !# <referenceCountIncrement owner="outputter_" object="outputter_"/>
+       outputter_ => outputter_%next
+    end do
+    return
+  end function multiConstructorInternal
+  
+  subroutine multiDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily multi} outputter class.
+    implicit none
+    type(mergerTreeOutputterMulti), intent(inout) :: self
+    type(multiOutputterList      ), pointer       :: outputter_, outputterNext
+
+    if (associated(self%outputters)) then
+       outputter_ => self%outputters
+       do while (associated(outputter_))
+          outputterNext => outputter_%next
+          !# <objectDestructor name="outputter_%outputter_"/>
+          deallocate(outputter_)
+          outputter_ => outputterNext
+       end do
+    end if
+    return
+  end subroutine multiDestructor
+
+  subroutine multiOutput(self,tree,indexOutput,time,isLastOutput)
+    !% Output from all outputters.
+    implicit none
+    class           (mergerTreeOutputterMulti), intent(inout)           :: self
+    type            (multiOutputterList      ), pointer                 :: outputter_
+    type            (mergerTree              ), intent(inout), target   :: tree
+    integer         (c_size_t                ), intent(in   )           :: indexOutput
+    double precision                          , intent(in   )           :: time
+    logical                                   , intent(in   ), optional :: isLastOutput
+
+    outputter_ => self%outputters
+    do while (associated(outputter_))
+       call outputter_%outputter_%output(tree,indexOutput,time,isLastOutput)
+       outputter_ => outputter_%next
+    end do
+    return
+  end subroutine multiOutput
+
+  subroutine multiFinalize(self)
+    !% Finalize all outputters.
+    implicit none
+    class(mergerTreeOutputterMulti), intent(inout) :: self
+    type (multiOutputterList      ), pointer       :: outputter_
+
+    outputter_ => self%outputters
+    do while (associated(outputter_))
+       call outputter_%outputter_%finalize()
+       outputter_ => outputter_%next
+    end do
+    return
+  end subroutine multiFinalize
+
+  subroutine multiReduce(self,reduced)
+    !% Reduce over the outputter.
+    use Galacticus_Error
+    implicit none
+    class(mergerTreeOutputterMulti), intent(inout) :: self
+    class(mergerTreeOutputterClass), intent(inout) :: reduced
+    type (multiOutputterList      ), pointer       :: outputter_, outputterReduced_
+
+    select type (reduced)
+    type is (mergerTreeOutputterMulti)
+       outputter_        => self   %outputters
+       outputterReduced_ => reduced%outputters
+       do while (associated(outputter_))
+          call outputter_%outputter_%reduce(outputterReduced_%outputter_)
+          outputter_        => outputter_%next
+          outputterReduced_ => outputterReduced_%next
+       end do
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine multiReduce
+
+  subroutine multiDeepCopy(self,destination)
+    !% Perform a deep copy for the {\normalfont \ttfamily multi} outputter class.
+    use Galacticus_Error
+    implicit none
+    class(mergerTreeOutputterMulti), intent(inout) :: self
+    class(mergerTreeOutputterClass), intent(inout) :: destination
+    type (multiOutputterList      ), pointer       :: outputter_   , outputterDestination_, &
+         &                                            outputterNew_
+
+    call self%mergerTreeOutputterClass%deepCopy(destination)
+    select type (destination)
+    type is (mergerTreeOutputterMulti)
+       destination%outputters => null          ()
+       outputterDestination_  => null          ()
+       outputter_             => self%outputters
+       do while (associated(outputter_))
+          allocate(outputterNew_)
+          if (associated(outputterDestination_)) then
+             outputterDestination_%next       => outputterNew_
+             outputterDestination_            => outputterNew_             
+          else
+             destination          %outputters => outputterNew_
+             outputterDestination_            => outputterNew_
+          end if
+          allocate(outputterNew_%outputter_,mold=outputter_%outputter_)
+          !# <deepCopy source="outputter_%outputter_" destination="outputterNew_%outputter_"/>
+          outputter_ => outputter_%next
+       end do       
+    class default
+       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine multiDeepCopy

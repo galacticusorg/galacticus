@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,16 +24,16 @@
   use Hot_Halo_Mass_Distributions
   use Hot_Halo_Ram_Pressure_Forces
 
-  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureTimescale name="hotHaloRamPressureTimescaleRamPressureAcceleration">
   !#  <description>A hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure acceleration.</description>
   !# </hotHaloRamPressureTimescale>
   type, extends(hotHaloRamPressureTimescaleClass) :: hotHaloRamPressureTimescaleRamPressureAcceleration
      !% Implementation of a hot halo ram pressure timescale class in which the timescale is estimated from the ram pressure
      !% acceleration.
      private
-     class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_
-     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
-     class(hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
+     class(darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_ => null()
+     class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
+     class(hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
    contains
      final     ::              ramPressureAccelerationDestructor
      procedure :: timescale => ramPressureAccelerationTimescale
@@ -61,6 +62,9 @@ contains
     !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
     self=hotHaloRamPressureTimescaleRamPressureAcceleration(darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloRamPressureForce_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"    />
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
+    !# <objectDestructor name="hotHaloRamPressureForce_"/>
     return
   end function ramPressureAccelerationConstructorParameters
   
@@ -97,6 +101,7 @@ contains
     use Numerical_Constants_Prefixes
     use Numerical_Constants_Physical
     use Numerical_Constants_Astronomical
+    use Galacticus_Nodes                , only : nodeComponentHotHalo
     implicit none
     class           (hotHaloRamPressureTimescaleRamPressureAcceleration), intent(inout) :: self
     type            (treeNode                                          ), intent(inout) :: node

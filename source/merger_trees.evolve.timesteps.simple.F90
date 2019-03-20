@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,13 +19,13 @@
 
   use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSimple" defaultThreadPrivate="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepSimple">
   !#  <description>A merger tree evolution timestepping class which limits the step to a fraction of the current time or an absolute step, whichever is smaller.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepSimple
      !% Implementation of an output times class which reads a simple of output times from a parameter.
      private
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      double precision                                   :: timeStepAbsolute   , timeStepRelative
    contains
      final     ::                 simpleDestructor
@@ -69,6 +70,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeEvolveTimestepSimple(timeStepAbsolute,timeStepRelative,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function simpleConstructorParameters
 
@@ -95,6 +97,7 @@ contains
   double precision function simpleTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
     !% Determine a suitable timestep for {\normalfont \ttfamily node} using the simple method. This simply selects the smaller of {\normalfont \ttfamily
     !% timeStepAbsolute} and {\normalfont \ttfamily timeStepRelative}$H^{-1}(t)$.
+    use Galacticus_Nodes      , only : nodeComponentBasic
     use Evolve_To_Time_Reports
     use ISO_Varying_String
     implicit none

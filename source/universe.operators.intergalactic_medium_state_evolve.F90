@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -38,26 +39,26 @@
   use Atomic_Cross_Sections_Ionization_Photo  , only : atomicCrossSectionIonizationPhoto    , atomicCrossSectionIonizationPhotoClass
   use Galacticus_Nodes                        , only : treeNode
 
-  !# <universeOperator name="universeOperatorIntergalacticMediumStateEvolve" defaultThreadPrivate="yes">
+  !# <universeOperator name="universeOperatorIntergalacticMediumStateEvolve">
   !#  <description>An operator on universes which attaches hooks to compute evolution of the intergalactic medium.</description>
   !# </universeOperator>
   type, extends(universeOperatorClass) :: universeOperatorIntergalacticMediumStateEvolve
      !% Implementation of a universeOperator which computes and outputs the power spectrum and related quantities.
      private
-     class           (outputTimesClass                        ), pointer                     :: outputTimes_
-     class           (cosmologyParametersClass                ), pointer                     :: cosmologyParameters_
-     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_
-     class           (linearGrowthClass                       ), pointer                     :: linearGrowth_
-     class           (cosmologicalMassVarianceClass           ), pointer                     :: cosmologicalMassVariance_
-     class           (radiationFieldClass                     ), pointer                     :: radiationField_  
-     class           (gauntFactorClass                        ), pointer                     :: gauntFactor_
-     class           (atomicCrossSectionIonizationPhotoClass  ), pointer                     :: atomicCrossSectionIonizationPhoto_ 
-     class           (atomicIonizationPotentialClass          ), pointer                     :: atomicIonizationPotential_
-     class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_
-     class           (atomicRecombinationRateRadiativeClass   ), pointer                     :: atomicRecombinationRateRadiative_
-     class           (atomicIonizationRateCollisionalClass    ), pointer                     :: atomicIonizationRateCollisional_
-     class           (atomicExcitationRateCollisionalClass    ), pointer                     :: atomicExcitationRateCollisional_
-     class           (intergalacticMediumStateClass           ), pointer                     :: intergalacticMediumState_  
+     class           (outputTimesClass                        ), pointer                     :: outputTimes_ => null()
+     class           (cosmologyParametersClass                ), pointer                     :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass                 ), pointer                     :: cosmologyFunctions_ => null()
+     class           (linearGrowthClass                       ), pointer                     :: linearGrowth_ => null()
+     class           (cosmologicalMassVarianceClass           ), pointer                     :: cosmologicalMassVariance_ => null()
+     class           (radiationFieldClass                     ), pointer                     :: radiationField_ => null()  
+     class           (gauntFactorClass                        ), pointer                     :: gauntFactor_ => null()
+     class           (atomicCrossSectionIonizationPhotoClass  ), pointer                     :: atomicCrossSectionIonizationPhoto_ => null() 
+     class           (atomicIonizationPotentialClass          ), pointer                     :: atomicIonizationPotential_ => null()
+     class           (atomicRecombinationRateDielectronicClass), pointer                     :: atomicRecombinationRateDielectronic_ => null()
+     class           (atomicRecombinationRateRadiativeClass   ), pointer                     :: atomicRecombinationRateRadiative_ => null()
+     class           (atomicIonizationRateCollisionalClass    ), pointer                     :: atomicIonizationRateCollisional_ => null()
+     class           (atomicExcitationRateCollisionalClass    ), pointer                     :: atomicExcitationRateCollisional_ => null()
+     class           (intergalacticMediumStateClass           ), pointer                     :: intergalacticMediumState_ => null()  
      type            (intergalacticMediumStateRecFast         )                              :: intergalacticMediumStateInitial
      double precision                                          , allocatable, dimension(:  ) :: temperature                         , massFiltering  , &
           &                                                                                     clumpingFactor                      , opticalDepth
@@ -68,8 +69,18 @@
      double precision                                          , allocatable, dimension(:,:) :: densityHydrogen                     , densityHelium  , &
           &                                                                                     massFilteringComposite
    contains
-     final     ::            intergalacticMediumStateEvolveDestructor
-     procedure :: operate => intergalacticMediumStateEvolveOperate
+     !@ <objectMethods>
+     !@   <object>universeOperatorIntergalacticMediumStateEvolve</object>
+     !@   <objectMethod>
+     !@     <method>stateSet</method>
+     !@     <type>void</type>
+     !@     <arguments>\textcolor{red}{\textless integer(c\_size\_t) \textgreater} iNow\argin</arguments>
+     !@     <description>Set the state of the IGM state class up to the given time index.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::             intergalacticMediumStateEvolveDestructor
+     procedure :: operate  => intergalacticMediumStateEvolveOperate
+     procedure :: stateSet => intergalacticMediumStateEvolveStateSet
   end type universeOperatorIntergalacticMediumStateEvolve
 
   interface universeOperatorIntergalacticMediumStateEvolve
@@ -156,20 +167,35 @@ contains
     timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
     self=universeOperatorIntergalacticMediumStateEvolve(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"                />
+    !# <objectDestructor name="cosmologyFunctions_"                 />
+    !# <objectDestructor name="linearGrowth_"                       />
+    !# <objectDestructor name="cosmologicalMassVariance_"           />
+    !# <objectDestructor name="outputTimes_"                        />
+    !# <objectDestructor name="gauntFactor_"                        />
+    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"  />
+    !# <objectDestructor name="atomicIonizationPotential_"          />
+    !# <objectDestructor name="atomicRecombinationRateDielectronic_"/>
+    !# <objectDestructor name="atomicRecombinationRateRadiative_"   />
+    !# <objectDestructor name="atomicIonizationRateCollisional_"    />
+    !# <objectDestructor name="atomicExcitationRateCollisional_"    />
+    !# <objectDestructor name="intergalacticMediumState_"           />
+    !# <objectDestructor name="radiationField_"                     />
     return
   end function intergalacticMediumStateEvolveConstructorParameters
 
   function intergalacticMediumStateEvolveConstructorInternal(timeMinimum,timeMaximum,timeCountPerDecade,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_,outputTimes_,gauntFactor_,atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_,atomicRecombinationRateDielectronic_,atomicRecombinationRateRadiative_,atomicIonizationRateCollisional_,atomicExcitationRateCollisional_,intergalacticMediumState_,radiationField_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily intergalacticMediumStateEvolve} universeOperator class.
-    use Memory_Management
-    use Numerical_Ranges
-    use Intergalactic_Medium_Filtering_Masses
-    use Numerical_Constants_Math
-    use Numerical_Constants_Units
-    use Numerical_Constants_Atomic
-    use Numerical_Constants_Astronomical
-    use Numerical_Comparison
-    use Galacticus_Error
+    use, intrinsic :: ISO_C_Binding                        , only : c_size_t
+    use            :: Memory_Management
+    use            :: Numerical_Ranges
+    use            :: Intergalactic_Medium_Filtering_Masses
+    use           ::  Numerical_Constants_Math
+    use           ::  Numerical_Constants_Units
+    use           ::  Numerical_Constants_Atomic
+    use           ::  Numerical_Constants_Astronomical
+    use            :: Numerical_Comparison
+    use            :: Galacticus_Error
     implicit none
     type            (universeOperatorIntergalacticMediumStateEvolve)                        :: self
     class           (outputTimesClass                              ), intent(in   ), target :: outputTimes_
@@ -305,17 +331,7 @@ contains
      ! Initialize optical depth.
      self%opticalDepth  (1)=0.0d0
      ! Initialize the IGM state object.
-     select type(intergalacticMediumState_ => self%intergalacticMediumState_)
-     class is (intergalacticMediumStateInternal)
-        call intergalacticMediumState_%timeSet         (self%time           (1:1  ))
-        call intergalacticMediumState_%temperatureSet  (self%temperature    (1:1  ))
-        call intergalacticMediumState_%densityH1Set    (self%densityHydrogen(1:1,1))
-        call intergalacticMediumState_%densityH2Set    (self%densityHydrogen(1:1,2))
-        call intergalacticMediumState_%densityHe1Set   (self%densityHelium  (1:1,1))
-        call intergalacticMediumState_%densityHe2Set   (self%densityHelium  (1:1,2))
-        call intergalacticMediumState_%densityHe3Set   (self%densityHelium  (1:1,3))
-        call intergalacticMediumState_%massFilteringSet(self%massFiltering  (1:1  ))
-     end select
+     call self%stateSet(1_c_size_t)
      return
    end function intergalacticMediumStateEvolveConstructorInternal
 
@@ -359,8 +375,8 @@ contains
    
    logical function intergalacticMediumStateEvolveUpdate(event,universe_) result (success)
      !% Update the properties for a given universe.
-     use, intrinsic :: ISO_C_Binding
-     use               Galacticus_Nodes
+     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+     use               Galacticus_Nodes                , only : universeEvent, mergerTree, nodeComponentBasic, mergerTreeList
      use               Galacticus_Display
      use               Galactic_Structure_Options
      use               Galacticus_Error
@@ -530,19 +546,7 @@ contains
            !$ call hdf5Access%unset()
         end if
         ! Store the past history to the default IGM state class.
-        select type (intergalacticMediumState_ => self%intergalacticMediumState_)
-           class is (intergalacticMediumStateInternal)
-           call intergalacticMediumState_%timeSet         (self%time           (1:iNow  ))
-           call intergalacticMediumState_%temperatureSet  (self%temperature    (1:iNow  ))
-           call intergalacticMediumState_%densityH1Set    (self%densityHydrogen(1:iNow,1))
-           call intergalacticMediumState_%densityH2Set    (self%densityHydrogen(1:iNow,2))
-           call intergalacticMediumState_%densityHe1Set   (self%densityHelium  (1:iNow,1))
-           call intergalacticMediumState_%densityHe2Set   (self%densityHelium  (1:iNow,2))
-           call intergalacticMediumState_%densityHe3Set   (self%densityHelium  (1:iNow,3))
-           call intergalacticMediumState_%massFilteringSet(self%massFiltering  (1:iNow  ))
-           class default
-           call Galacticus_Error_Report('"internal" IGM evolution calculation requires [intergalacticMediumStateMethod]=internal'//{introspection:location})
-        end select
+        call self%stateSet(iNow)
         ! Display message.
         call Galacticus_Display_Unindent('done')
         class default
@@ -564,6 +568,7 @@ contains
      use Numerical_Constants_Atomic
      use Intergalactic_Medium_Filtering_Masses
      use Numerical_Integration
+     use FGSL                                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Success
      implicit none
      double precision                                          , intent(in  )                :: time
      double precision                                          , intent(in   ), dimension(:) :: properties
@@ -1003,3 +1008,28 @@ contains
      end function integrandPhotoionizationHeatingRate
 
    end function intergalacticMediumStateEvolveODEs
+
+   subroutine intergalacticMediumStateEvolveStateSet(self,iNow)
+     use, intrinsic :: ISO_C_Binding, only : c_size_t
+     implicit none
+     class  (universeOperatorIntergalacticMediumStateEvolve), intent(inout) :: self
+     integer(c_size_t                                      ), intent(in   ) :: iNow
+     
+     !# <eventHook name="intergalacticMediumStateEvolveUpdate">
+     !#  <interface>
+     !#    double precision, intent(in   ), dimension(:) :: time            , densityHydrogen1
+     !#    double precision, intent(in   ), dimension(:) :: densityHydrogen2, densityHelium1
+     !#    double precision, intent(in   ), dimension(:) :: densityHelium2  , densityHelium3
+     !#    double precision, intent(in   ), dimension(:) :: temperature     , massFiltering
+     !#  </interface>
+     !#  <callWith>self%time           (1:iNow  ), &amp;
+     !#    &amp;   self%densityHydrogen(1:iNow,1), &amp;
+     !#    &amp;   self%densityHydrogen(1:iNow,2), &amp;
+     !#    &amp;   self%densityHelium  (1:iNow,1), &amp;
+     !#    &amp;   self%densityHelium  (1:iNow,2), &amp;
+     !#    &amp;   self%densityHelium  (1:iNow,3), &amp;
+     !#    &amp;   self%temperature    (1:iNow  ), &amp;
+     !#    &amp;   self%massFiltering  (1:iNow  )</callWith>
+     !# </eventHook>
+     return
+   end subroutine intergalacticMediumStateEvolveStateSet

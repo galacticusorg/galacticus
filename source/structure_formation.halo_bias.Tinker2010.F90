@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Cosmological_Density_Field
   use Virial_Density_Contrast
 
-  !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010" defaultThreadPrivate="yes">
+  !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010">
   !#  <description>
   !#   A dark matter halo mass bias class utilizing the algorithm of \cite{tinker_large_2010}.
   !#  </description>
@@ -29,9 +30,9 @@
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2010
      !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{tinker_large_2010}.
      private
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_ => null()
      double precision                                         :: timePrevious             , massPrevious, &
           &                                                      lowerA                   , upperA      , &
           &                                                      upperC
@@ -63,6 +64,9 @@ contains
     !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"   source="parameters"/>
     self=darkMatterHaloBiasTinker2010(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="virialDensityContrast_"   />
     return
   end function tinker2010ConstructorParameters
 

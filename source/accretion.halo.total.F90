@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module Accretion_Halo_Totals
   !% Provides a class for calculations of the total accretion rate onto halos for use by the halo accretion classes which compute
   !% the accretion rates of baryonic material.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>
@@ -29,7 +30,6 @@ module Accretion_Halo_Totals
   !#  <descriptiveName>Halo Total Accretion Rates</descriptiveName>
   !#  <description>Class providing total accretion rates onto halos.</description>
   !#  <default>simple</default>
-  !#  <defaultThreadPrivate>no</defaultThreadPrivate>
   !#  <method name="accretionRate" >
   !#   <description>Return the total accretion rate onto the given {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>

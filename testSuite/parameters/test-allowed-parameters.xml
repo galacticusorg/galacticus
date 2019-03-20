@@ -153,12 +153,15 @@
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>
-  <timestepHostAbsolute value="1.00"/>
-  <timestepHostRelative value="0.10"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.00"/>
+    <timestepHostRelative value="0.10"/>
+  </mergerTreeEvolverMethod>
+
   <mergerTreeEvolveTimestepMethod value="multi">
-    <mergerTreeEvolveTimestepMethod value="simple"    >
-      <timestepAbsolute value="10.00"/>
-      <timestepRelative value="10.00"/>
+    <mergerTreeEvolveTimestepMethod value="simple">
+      <timeStepAbsolute value="10.00"/>
+      <timeStepRelative value="10.00"/>
     </mergerTreeEvolveTimestepMethod>
     <mergerTreeEvolveTimestepMethod value="satellite"/>
   </mergerTreeEvolveTimestepMethod>
@@ -171,41 +174,22 @@
   <!-- Output options -->
   <outputTimestepHistory value="false"/>
   <outputVirialData value="true"/>
-  <outputRedshifts value="0.0"/>
+  <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
 
   <!-- Output file -->
   <galacticusOutputFileName value="subhalosWDM.hdf5"/>
-  <mergerTreeOutput>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-    <outputMergerTrees value="true"/>
-    <outputAnalysisMethod value="volumeFunction1D">
-      <label value="dummy"/>
-      <comment value="dummy"/>
-      <propertyLabel value="dummy1"/>
-      <propertyComment value="dummy"/>
-      <propertyUnits value="dummy"/>
-      <propertyUnitsInSI value="1.0"/>
-      <distributionLabel value="dummy2"/>
-      <distributionComment value="dummy"/>
-      <distributionUnits value="dummy"/>
-      <distributionUnitsInSI value="1.0"/>
-      <binCenter value="1.0 2.0 3.0"/>
-      <bufferCount value="1"/>
-      <outputWeight value="1.0 1.0 1.0"/>
-      <covarianceModel value="binomial"/>
-      <unoperatorParameters>	
-      </unoperatorParameters>
-      <cosmologyParametersMethod value="simple"> <!-- VALID: This should be allowed as galacticFilterMethod below will composite cosmologyFunctions which in turn composites cosmologyParameters -->
-	<HubbleConstant value="69.7"/>
-	<OmegaMatter value="0.2812"/>
-	<OmegaDarkEnergy value="0.7188"/>
-	<OmegaBaryon value="0.04611"/>
-	<temperatureCMB value="2.72548"/>
-      </cosmologyParametersMethod>
-      <galacticFilterMethod value="stellarApparentMagnitudes">
-	<apparentMagnitudeThreshold value="20.0"/>
-      </galacticFilterMethod>
-    </outputAnalysisMethod>
-  </mergerTreeOutput>
+    <cosmologyParametersMethod value="simple"> <!-- VALID: This should be allowed as galacticFilterMethod below will composite cosmologyFunctions which in turn composites cosmologyParameters -->
+      <HubbleConstant value="69.7"/>
+      <OmegaMatter value="0.2812"/>
+      <OmegaDarkEnergy value="0.7188"/>
+      <OmegaBaryon value="0.04611"/>
+      <temperatureCMB value="2.72548"/>
+    </cosmologyParametersMethod>
+    <galacticFilterMethod value="haloIsolated"/>
+  </mergerTreeOutputterMethod>
     
 </parameters>

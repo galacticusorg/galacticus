@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,13 +93,14 @@ contains
 
   subroutine pruneByMassOperate(self,tree)
     !% Perform a prune-by-mass operation on a merger tree.
+    use Galacticus_Nodes              , only : treeNode, nodeComponentBasic
     use Merger_Trees_Pruning_Utilities
     use Merger_Tree_Walkers
     implicit none
     class  (mergerTreeOperatorPruneByMass), intent(inout), target :: self
     type   (mergerTree                   ), intent(inout), target :: tree
-    type   (treeNode                     ), pointer               :: nodeNext     , nodePrevious , &
-         &                                                           node         , nodeWork
+    type   (treeNode                     ), pointer               :: nodeNext     , nodeWork   , &
+         &                                                           node
     class  (nodeComponentBasic           ), pointer               :: basic        , basicParent
     type   (mergerTree                   ), pointer               :: currentTree
     type   (mergerTreeWalkerIsolatedNodes)                        :: treeWalker
@@ -142,8 +144,9 @@ contains
                 basic => node%basic()
                 if (basic%mass() < self%massThreshold) then
                    didPruning=.true.
-                   ! Step tree walker back to the previous node.
-                   call treeWalker%previous(nodePrevious)
+                   ! Set the tree walker back to the base node so that it exits - we've changed the tree structure so need to
+                   ! begin the walk again.
+                   call treeWalker%setNode(currentTree%baseNode)
                    ! Decouple from other nodes.
                    basicParent => node%parent%basic()
                    call Merger_Tree_Prune_Unlink_Parent(node,node%parent,basicParent%mass() < self%massThreshold,self%preservePrimaryProgenitor)

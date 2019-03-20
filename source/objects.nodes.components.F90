@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,9 +22,11 @@
 module Node_Components
   !% Implements top-level functions for node components.
   private
-  public :: Node_Components_Initialize, Node_Components_Thread_Initialize
+  public :: Node_Components_Initialize  , Node_Components_Thread_Initialize  , &
+       &    Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
 
-  logical :: initialized=.false.
+  integer :: initializationCount=0, initializationThreadCount=0
+  !$omp threadprivate(initializationThreadCount)
 
 contains
 
@@ -36,30 +39,65 @@ contains
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
-    if (.not.initialized) then
+    if (initializationCount == 0) then
        !# <include directive="nodeComponentInitializationTask" type="functionCall" functionType="void">
        !#  <functionArgs>parameters</functionArgs>
        include 'node_components.initialize.inc'
        !# </include>
-       initialized=.true.
     end if
+    initializationCount=initializationCount+1
     return
   end subroutine Node_Components_Initialize
   
   subroutine Node_Components_Thread_Initialize(parameters)
-    !% Perform initialization tasks for node components.
+    !% Perform per-thread initialization tasks for node components.
     use Input_Parameters
-    !# <include directive="nodeComopnentThreadInitializationTask" type="moduleUse">
+    !# <include directive="nodeComponentThreadInitializationTask" type="moduleUse">
     include 'node_components.threadInitialize.moduleUse.inc'
     !# </include>
     implicit none
     type(inputParameters), intent(inout) :: parameters
-
-    !# <include directive="nodeComopnentThreadInitializationTask" type="functionCall" functionType="void">
-    !#  <functionArgs>parameters</functionArgs>
-    include 'node_components.threadInitialize.inc'
-    !# </include>
+    
+    if (initializationThreadCount == 0) then
+       !# <include directive="nodeComponentThreadInitializationTask" type="functionCall" functionType="void">
+       !#  <functionArgs>parameters</functionArgs>
+       include 'node_components.threadInitialize.inc'
+       !# </include>
+    end if
+    initializationThreadCount=initializationThreadCount+1
     return
   end subroutine Node_Components_Thread_Initialize
+  
+  subroutine Node_Components_Uninitialize()
+    !% Perform uninitialization tasks for node components.
+    !# <include directive="nodeComponentUninitializationTask" type="moduleUse">
+    include 'node_components.uninitialize.moduleUse.inc'
+    !# </include>
+    implicit none
+
+    initializationCount=initializationCount-1
+    if (initializationCount == 0) then
+       !# <include directive="nodeComponentUninitializationTask" type="functionCall" functionType="void">
+       include 'node_components.uninitialize.inc'
+       !# </include>
+    end if
+    return
+  end subroutine Node_Components_Uninitialize
+  
+  subroutine Node_Components_Thread_Uninitialize()
+    !% Perform per-thread uninitialization tasks for node components.
+    !# <include directive="nodeComponentThreadUninitializationTask" type="moduleUse">
+    include 'node_components.threadUninitialize.moduleUse.inc'
+    !# </include>
+    implicit none
+    
+    initializationThreadCount=initializationThreadCount-1
+    if (initializationThreadCount == 0) then
+       !# <include directive="nodeComponentThreadUninitializationTask" type="functionCall" functionType="void">
+       include 'node_components.threadUninitialize.inc'
+       !# </include>
+    end if
+    return
+  end subroutine Node_Components_Thread_Uninitialize
   
 end module Node_Components

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileEnzoHydrostatic
      !% An implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.
      private
-     class(darkMatterProfileClass), pointer :: darkMatterProfile_
+     class(darkMatterProfileClass), pointer :: darkMatterProfile_ => null()
    contains
      final     ::                        enzoHydrostaticDestructor
      procedure :: temperature         => enzoHydrostaticTemperature
@@ -54,6 +55,7 @@ contains
     !# <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters"/>
     self=hotHaloTemperatureProfileEnzoHydrostatic(darkMatterProfile_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"/>
     return
   end function enzoHydrostaticConstructorParameters
 

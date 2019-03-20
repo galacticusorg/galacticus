@@ -101,7 +101,7 @@
   </mergerTreeBuildMassDistributionMethod>
   
   <!-- Merger tree operators -->
-  <mergerTreePruneBaryons value="true"/>
+  <mergerTreeOperatorMethod value="pruneBaryons"/>
   
   <!-- Merger tree halo hierarchy -->
   <nodeMergersMethod value="singleLevelHierarchy"/>
@@ -117,8 +117,10 @@
     <phi0 value="7.1395684741179295"/>
     <phi1 value="1.37"/>
   </darkMatterProfileConcentrationMethod>
-  <darkMatterProfileScaleCorrectForConcentrationDefinition value="true"/>
-  
+  <darkMatterProfileScaleRadiusMethod value="concentration">
+    <correctForConcentrationDefinition value="true"/>
+  </darkMatterProfileScaleRadiusMethod>
+
   <!-- Dark matter halo spin -->
   <haloSpinDistributionMethod value="bett2007">
     <alpha value="2.5051096022584427"/>
@@ -215,10 +217,13 @@
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <diskVerySimpleMassScaleAbsolute value="1.0e6"/>
   <hotHaloVerySimpleDelayedMassScaleRelative value="1.0"/>
-  <timestepHostAbsolute value="1.0"/>
-  <timestepHostRelative value="0.01"/>
+  <mergerTreeEvolverMethod value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.01"/>
+  </mergerTreeEvolverMethod>
+
   <mergerTreeEvolveTimestepMethod value="multi">
-    <mergerTreeEvolveTimestepMethod value="simple"    >
+    <mergerTreeEvolveTimestepMethod value="simple">
       <timestepAbsolute value="1.00"/>
       <timestepRelative value="0.01"/>
     </mergerTreeEvolveTimestepMethod>
@@ -231,10 +236,11 @@
   <!-- Output -->
   <galacticusOutputFileName value="testSuite/outputs/test-model-integration/beta/galacticus.hdf5"/>
   <hdf5CompressionLevel value="-1"/>
-  <mergerTreeOutput value="">
-    <outputMergerTrees value="true"/>
+  <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
-  </mergerTreeOutput>
-  <outputRedshifts value="0.0"/>
-  
-</parameters>
+  </mergerTreeOutputterMethod>
+  <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
+  </parameters>

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,6 @@ module Stellar_Astrophysics_Tracks
   !#  <descriptiveName>Stellar Tracks</descriptiveName>
   !#  <description>Class providing models of stellar tracks.</description>
   !#  <default>file</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="luminosity" >
   !#   <description>Returns the bolometric luminosity of a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily metallicity} and {\normalfont \ttfamily age}.</description>
   !#   <type>double precision</type>

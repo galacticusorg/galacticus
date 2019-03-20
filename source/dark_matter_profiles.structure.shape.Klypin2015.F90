@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,8 +28,8 @@
   type, extends(darkMatterProfileShapeClass) :: darkMatterProfileShapeKlypin2015
      !% A dark matter halo profile shape parameter class implementing the algorithm of \cite{klypin_multidark_2014}.
      private
-     class  (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
+     class  (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      integer                                         :: sample
    contains
      final     ::          klypin2015Destructor
@@ -76,6 +77,8 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=darkMatterProfileShapeKlypin2015(enumerationKlypin2015SampleEncode(char(sampleText),includesPrefix=.false.),criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function klypin2015ConstructorParameters
 
@@ -107,7 +110,7 @@ contains
   double precision function klypin2015Shape(self,node)
     !% Return the Einasto profile shape parameter of the dark matter halo profile of {\normalfont \ttfamily node} using the
     !% \cite{klypin_multidark_2014} algorithm.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : nodeComponentBasic
     use Galacticus_Error
     implicit none
     class           (darkMatterProfileShapeKlypin2015), intent(inout)          :: self

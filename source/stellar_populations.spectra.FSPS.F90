@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(stellarPopulationSpectraFile) :: stellarPopulationSpectraFSPS
      !% A stellar population spectra class which utilizes the FSPS package \citep{conroy_propagation_2009}.
      private
-     class(initialMassFunctionClass), pointer :: initialMassFunction_
+     class(initialMassFunctionClass), pointer :: initialMassFunction_ => null()
    contains
      final     ::             fspsDestructor
      procedure :: readFile => fspsReadFile
@@ -59,6 +60,7 @@ contains
     !# <objectBuilder class="initialMassFunction" name="initialMassFunction_" source="parameters"/>
     self=stellarPopulationSpectraFSPS(forceZeroMetallicity,initialMassFunction_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="initialMassFunction_"/>
     return
   end function fspsConstructorParameters
   

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,8 +22,8 @@
 function PositionPresetPosition(self)
   !% Return the position of the node.
   use, intrinsic :: ISO_C_Binding
-  use Numerical_Interpolation
-  use FGSL
+  use            :: Numerical_Interpolation
+  use            :: FGSL                   , only : fgsl_interp_accel
   implicit none
   double precision                             , allocatable  , dimension(:) :: PositionPresetPosition
   class           (nodeComponentPositionPreset), intent(inout)               :: self
@@ -56,8 +57,8 @@ end function PositionPresetPosition
 function PositionPresetVelocity(self)
   !% Return the velocity of the node.
   use, intrinsic :: ISO_C_Binding
-  use Numerical_Interpolation
-  use FGSL
+  use            :: Numerical_Interpolation
+  use            :: FGSL                   , only : fgsl_interp_accel
   implicit none
   double precision                             , allocatable  , dimension(:) :: PositionPresetVelocity
   class           (nodeComponentPositionPreset), intent(inout)               :: self

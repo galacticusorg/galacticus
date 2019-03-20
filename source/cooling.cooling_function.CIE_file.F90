@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,9 +19,9 @@
 
   !% Implements a cooling function class which interpolates in a tabulated cooling function read from file.
   
-  use FGSL
+  use FGSL, only : fgsl_interp_accel
 
-  !# <coolingFunction name="coolingFunctionCIEFile" defaultThreadPrivate="yes">
+  !# <coolingFunction name="coolingFunctionCIEFile">
   !#  <description>
   !#   Class providing a cooling function interpolated from a table read from file.  The HDF5 file containing the table should have the following form:
   !#   \begin{verbatim}
@@ -469,7 +470,6 @@ contains
     call hdf5Access%set()
     ! Read the file.
     call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
-    call Galacticus_Display_Counter(0,.true.,verbosityWorking)
     call coolingFunctionFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check the file format version of the file.
     call coolingFunctionFile%readAttribute('fileFormat',fileFormatVersion)

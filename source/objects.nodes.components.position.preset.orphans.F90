@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,11 +21,11 @@
 
 module Node_Component_Position_Preset_Orphans
   !% Implements a preset position component with placement of orphan galaxies.
-  use Galacticus_Nodes
   use Satellite_Oprhan_Distributions
   implicit none
   private
-  public :: Node_Component_Position_Preset_Orphans_Initialize, Node_Component_Position_Preset_Orphans_Thread_Initialize
+  public :: Node_Component_Position_Preset_Orphans_Initialize         , Node_Component_Position_Preset_Orphans_Thread_Initialize, &
+       &    Node_Component_Position_Preset_Orphans_Thread_Uninitialize
 
   !# <component>
   !#  <class>position</class>
@@ -87,6 +88,7 @@ contains
   !# </nodeComponentInitializationTask>
   subroutine Node_Component_Position_Preset_Orphans_Initialize(parameters)
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPositionPresetOrphans
     implicit none
     type(inputParameters                   ), intent(inout) :: parameters
     type(nodeComponentPositionPresetOrphans)                :: position
@@ -100,11 +102,12 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Orphans_Initialize
   
-  !# <nodeComopnentThreadInitializationTask>
+  !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Initialize</unitName>
-  !# </nodeComopnentThreadInitializationTask>
+  !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(parameters)
     !% Initializes the tree node preset orphans position module.
+    use Galacticus_Nodes, only : defaultPositionComponent
     use Input_Parameters
     implicit none
     type(inputParameters), intent(inout) :: parameters
@@ -115,8 +118,23 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize
 
+  !# <nodeComponentThreadUninitializationTask>
+  !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Uninitialize</unitName>
+  !# </nodeComponentThreadUninitializationTask>
+  subroutine Node_Component_Position_Preset_Orphans_Thread_Uninitialize()
+    !% Uninitializes the tree node preset orphans position module.
+    use Galacticus_Nodes, only : defaultPositionComponent
+    implicit none
+
+    if (defaultPositionComponent%presetOrphansIsActive()) then
+       !# <objectDestructor name="satelliteOrphanDistribution_"/>
+    end if
+    return
+  end subroutine Node_Component_Position_Preset_Orphans_Thread_Uninitialize
+
   function Node_Component_Position_Preset_Orphans_Position_Orphan(self)
     !% Return the position of the orphan node.
+    use Galacticus_Nodes, only : treeNode, nodeComponentPositionPresetOrphans, nodeComponentBasic
     implicit none
     double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Position_Orphan
     class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self
@@ -135,6 +153,7 @@ contains
 
   function Node_Component_Position_Preset_Orphans_Velocity_Orphan(self)
     !% Return the velocity of the orphan node.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentPositionPresetOrphans
     implicit none
     double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Velocity_Orphan
     class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,8 +19,7 @@
 
 program Tests_Tree_Branch_Destroy
   use Unit_Tests
-  use Memory_Management
-  use Galacticus_Nodes
+  use Galacticus_Nodes  , only : mergerTree, treeNodeList, treeNode
   use Kind_Numbers
   use Input_Parameters
   use Galacticus_Display
@@ -32,8 +32,6 @@ program Tests_Tree_Branch_Destroy
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
 
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.tree_branch_destroy.size')
   ! Initialize parameters.
   parameters=inputParameters()
   call parameters%markGlobal()

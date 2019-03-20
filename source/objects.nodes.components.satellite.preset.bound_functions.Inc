@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -52,9 +53,9 @@ end subroutine Node_Component_Satellite_Preset_Merge_Time_Set
 double precision function SatellitePresetMergeBoundMass(self)
   !% Return the satellite bound mass at the current time.
   use, intrinsic :: ISO_C_Binding
-  use Histories
-  use FGSL
-  use Numerical_Interpolation
+  use            :: Histories
+  use            :: FGSL                   , only : fgsl_interp_accel
+  use            :: Numerical_Interpolation
   implicit none
   class  (nodeComponentSatellitePreset), intent(inout) :: self
   class  (nodeComponentBasic          ), pointer       :: selfBasicComponent
@@ -94,10 +95,10 @@ end function SatellitePresetMergeBoundMass
 function SatellitePresetNodeIndex(self)
   !% Return the satellite node index.
   use, intrinsic :: ISO_C_Binding
-  use Kind_Numbers
-  use Histories
-  use FGSL
-  use Numerical_Interpolation
+  use            :: Histories
+  use            :: FGSL                   , only : fgsl_interp_accel
+  use            :: Numerical_Interpolation
+  use            :: Kind_Numbers
   implicit none
   integer(kind=kind_int8              )                :: SatellitePresetNodeIndex
   class  (nodeComponentSatellitePreset), intent(inout) :: self

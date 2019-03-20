@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Virial_Density_Contrast
   use Cosmology_Functions
 
-  !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch" defaultThreadPrivate="yes">
+  !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch">
   !#  <description>
   !#   A dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
   !#  </description>
@@ -29,8 +30,8 @@
   type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateVanDenBosch
      !% Implementation of a dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
      private
-     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_
-     class           (virialDensityContrastClass), pointer :: virialDensityContrast_
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_ => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
      double precision                                      :: timescaleNormalization
      double precision                                      :: zeta
    contains
@@ -76,6 +77,8 @@ contains
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     self=darkMatterHaloMassLossRateVanDenBosch(timescaleNormalization,zeta,cosmologyFunctions_,virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"   />
+    !# <objectDestructor name="virialDensityContrast_"/>
     return
   end function vanDenBoschConstructorParameters
 
@@ -103,6 +106,7 @@ contains
 
   double precision function vanDenBoschRate(self,node)
     !% Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite
     implicit none
     class           (darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self
     type            (treeNode                             ), intent(inout) :: node

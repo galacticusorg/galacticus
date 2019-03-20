@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,13 +22,13 @@
 
   use Statistics_NBody_Halo_Mass_Errors
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNbodyMass" defaultThreadPrivate="yes">
+  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNbodyMass">
   !#  <description>A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.</description>
   !# </outputAnalysisWeightOperator>
   type, extends(outputAnalysisWeightOperatorNormal) :: outputAnalysisWeightOperatorNbodyMass
      !% A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.
      private
-     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_
+     class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
    contains
      final     ::                 nbodyMassDestructor
      procedure :: rootVariance => nbodyMassRootVariance
@@ -72,6 +73,9 @@ contains
     !# <objectBuilder class="nbodyHaloMassError"              name="nbodyHaloMassError_"              source="parameters"/>
     self=outputAnalysisWeightOperatorNbodyMass(rangeLower,rangeUpper,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperator_" />
+    !# <objectDestructor name="nbodyHaloMassError_"             />
     return
   end function nbodyMassConstructorParameters
 
@@ -93,7 +97,9 @@ contains
     !% Destructor for  the ``nbodyMass'' output analysis weight operator class.
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
     
-    !# <objectDestructor name="self%nbodyHaloMassError_" />
+    !# <objectDestructor name="self%nbodyHaloMassError_"             />
+    !# <objectDestructor name="self%outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="self%outputAnalysisPropertyOperator_" />
     return
   end subroutine nbodyMassDestructor
 

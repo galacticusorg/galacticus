@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,6 @@ program Tests_Power_Spectrum
   use Unit_Tests
   use Input_Parameters
   use ISO_Varying_String
-  use Memory_Management
   use Cosmological_Density_Field
   use Power_Spectra
   use Power_Spectra_Primordial
@@ -32,6 +32,7 @@ program Tests_Power_Spectrum
   use Numerical_Constants_Math
   use Cosmology_Parameters
   use Galacticus_Display
+  use Dark_Matter_Particles               , only : darkMatterParticleCDM
   implicit none
   type            (inputParameters                         ), target       :: parameters
   double precision                                          , parameter    :: radiusNormalization                      =8.0d0 ! Radius for σ(M) normalization in Mpc/h.
@@ -67,12 +68,9 @@ program Tests_Power_Spectrum
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
-
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.power_spectrum.size')
   ! Read parameters.
   parameterFile='testSuite/parameters/powerSpectrum.xml'
-  parameters=inputParameters(parameterFile,allowedParametersFile='tests.power_spectrum.parameters.xml')
+  parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Power spectra")

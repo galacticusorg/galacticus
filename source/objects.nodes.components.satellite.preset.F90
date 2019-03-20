@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,7 +23,6 @@
 
 module Node_Component_Satellite_Preset
   !% Implements a preset satellite orbit component.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Satellite_Preset_Promote               , Node_Component_Satellite_Preset_Inter_Tree_Attach    , &
@@ -105,6 +105,7 @@ contains
   subroutine Node_Component_Satellite_Preset_Promote(thisNode)
     !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
     !% from the parent.
+    use Galacticus_Nodes, only : treeNode, defaultSatelliteComponent
     implicit none
     type (treeNode), intent(inout), pointer :: thisNode
 
@@ -121,6 +122,7 @@ contains
   subroutine Node_Component_Satellite_Preset_Inter_Tree_Insert(node,replaceNode)
     !% A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
     !% assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSatellite, nodeComponentBasic, defaultSatelliteComponent
     use Histories
     implicit none
     type (treeNode              ), intent(inout), pointer :: node            , replaceNode
@@ -167,6 +169,7 @@ contains
   subroutine Node_Component_Satellite_Preset_Inter_Tree_Attach(node)
     !% A satellite node is being moved between trees and attached as the primary progenitor of an existing satellite node. Ensure
     !% that preset satellite properties are correctly handled.
+    use Galacticus_Nodes, only : treeNode, nodeComponentSatellite, nodeComponentBasic, defaultSatelliteComponent
     use Histories
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
@@ -234,6 +237,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
+    use Galacticus_Nodes, only : treeNode, treeNodeLinkedList, nodeComponentSatellite
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
     type (treeNode              )               , pointer :: mergee         , nodeWork
@@ -293,6 +297,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
+    use Galacticus_Nodes  , only : treeNode, nodeComponentSatellite, treeNodeLinkedList
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
     class(nodeComponentSatellite)               , pointer :: satellite
@@ -344,6 +349,7 @@ contains
   subroutine Node_Component_Satellite_Preset_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Interrupt differential evolution when a preset satellite becomes an orphan.
     use Histories
+    use Galacticus_Nodes  , only : treeNode, nodeComponentSatellite, nodeComponentBasic, propertyTypeInactive, interruptTask
     implicit none
     type     (treeNode              ), intent(inout), pointer :: node
     logical                          , intent(in   )          :: odeConverged
@@ -372,6 +378,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
+    use Galacticus_Nodes  , only : treeNode, nodeComponentSatellite, nodeComponentBasic
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
     type (treeNode              )               , pointer :: nodeHost

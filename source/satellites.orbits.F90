@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
-  use Galacticus_Nodes
+  use Galacticus_Nodes    , only : treeNode
   use Kind_Numbers
   use Dark_Matter_Profiles
   implicit none
@@ -71,8 +72,7 @@ contains
     class           (darkMatterHaloScaleClass), intent(inout)           :: darkMatterHaloScale_
     class           (darkMatterProfileClass  ), intent(inout), target   :: darkMatterProfile_
     double precision                          , parameter               :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder              ), save                    :: finder
-    !$omp threadprivate(finder)
+    type            (rootFinder              )                          :: finder
     type            (keplerOrbit             )                          :: orbitCurrent
 
     ! Convert the orbit to the potential of the current halo in which the satellite finds itself.
@@ -93,17 +93,15 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
        if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       if (.not.finder%isInitialized()) then
-          call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
-          call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-       end if
+       call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       call finder%rangeExpand (                                                             &
+            &                   rangeExpandUpward            =2.0d0                        , &
+            &                   rangeExpandDownward          =0.5d0                        , &
+            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                   rangeExpandType              =rangeExpandMultiplicative      &
+            &                  )
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(nodeHost))
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
@@ -146,18 +144,19 @@ contains
     use Galacticus_Error
     use Galactic_Structure_Options
     use Galactic_Structure_Potentials
+    use Galacticus_Nodes             , only : nodeComponentBasic
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: nodeHost
-    type            (keplerOrbit      ), intent(inout)          :: orbit
-    integer                            , intent(in   )          :: extremumType
-    double precision                   , intent(  out)          :: radius                 , velocity
-    class          (nodeComponentBasic), pointer                :: basicHost
-    double precision                   , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder       ), save                   :: finder
-    !$omp threadprivate(finder)
-    type            (keplerOrbit      )                         :: orbitCurrent
-    integer                                                     :: status
-    double precision                                            :: potential
+    type            (treeNode          ), intent(inout), pointer :: nodeHost
+    type            (keplerOrbit       ), intent(inout)          :: orbit
+    integer                             , intent(in   )          :: extremumType
+    double precision                    , intent(  out)          :: radius                 , velocity
+    class           (nodeComponentBasic), pointer                :: basicHost
+    double precision                    , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder        ), save                   :: finder
+    !$omp threadprivate(finder )
+    type            (keplerOrbit       )                         :: orbitCurrent
+    integer                                                      :: status
+    double precision                                             :: potential
 
 
     

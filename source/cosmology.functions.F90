@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,13 +21,13 @@
 
 module Cosmology_Functions
   !% Provides an object that implements cosmological functions.
+  private
  
   !# <functionClass>
   !#  <name>cosmologyFunctions</name>
   !#  <descriptiveName>Cosmology Functions</descriptiveName>
   !#  <description>Object providing various cosmological functions.</description>
   !#  <default>matterLambda</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="epochValidate" >
   !#   <description>Check the given cosmic epoch is valid (aborting otherwise) and, optionally, return time or expansion factor associated with the epoch.</description>
   !#   <type>void</type>

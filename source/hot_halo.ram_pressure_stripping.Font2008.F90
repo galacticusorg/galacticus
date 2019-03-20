@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,15 +24,15 @@
   use Hot_Halo_Mass_Distributions
   use Kind_Numbers
 
-  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008" defaultThreadPrivate="yes">
+  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
   !#  <description>A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.</description>
   !# </hotHaloRamPressureStripping>
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingFont2008
      !% Implementation of a hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.
      private
-     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_
-     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_
-     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_
+     class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_ => null()
+     class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
+     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
      double precision                                        :: formFactor
      integer         (kind_int8                   )          :: uniqueIDLast            =-1
      double precision                                        :: radiusLast              =-1.0d0
@@ -79,6 +80,9 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
     self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"    />
+    !# <objectDestructor name="hotHaloRamPressureForce_"/>
+    !# <objectDestructor name="hotHaloMassDistribution_"/>
     return
   end function font2008ConstructorParameters
 
@@ -167,7 +171,7 @@ contains
                 self%radiusLast  =radiusVirial
                 self%uniqueIDLast=node%uniqueID()
              end if
-             font2008RadiusStripped=finder%find(rootGuess=self%radiusLast)
+             font2008RadiusStripped=finder%find(rootGuess=min(self%radiusLast,radiusVirial))
              self%radiusLast=font2008RadiusStripped
           end if
        end if

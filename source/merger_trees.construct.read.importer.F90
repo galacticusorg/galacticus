@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,7 @@ module Merger_Tree_Read_Importers
   use, intrinsic :: ISO_C_Binding
   use               ISO_Varying_String
   use               Kind_Numbers
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes  , only : treeNode
   use               Pseudo_Random
   private
   public :: nodeData, nodeDataMinimal
@@ -94,7 +95,7 @@ module Merger_Tree_Read_Importers
      logical                                                :: childIsSubhalo    , isSubhalo
      class           (nodeData ), pointer                   :: descendent        , host                    , & 
           &                                                    parent                                         
-     type            (treeNode ), pointer                   :: node
+     type            (treeNode ), pointer                   :: node => null()
   end type nodeData
 
   interface importerUnitConvert
@@ -109,7 +110,6 @@ module Merger_Tree_Read_Importers
   !#  <description>Object providing functions for importing merger trees.</description>
   !#  <descriptiveName>Merger Tree Importer</descriptiveName>
   !#  <default>galacticus</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="open" >
   !#   <description>Opens the file.</description>
   !#   <type>void</type>

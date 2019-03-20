@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +45,7 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Merger_Tree_Structure_Output(tree)
     !% Output the structure of {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes
+    use Galacticus_Nodes                 , only : mergerTree, treeNode, nodeComponentBasic
     use Input_Parameters
     use Memory_Management
     use Galacticus_HDF5

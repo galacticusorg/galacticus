@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,7 +19,7 @@
 
   !% Implements a satellite tidal field class which assumes zero tidal field.
 
-  !# <satelliteTidalField name="satelliteTidalFieldNull" defaultThreadPrivate="yes">
+  !# <satelliteTidalField name="satelliteTidalFieldNull">
   !#  <description>A satellite tidal field class which computes the tidal field assuming no tidal field.</description>
   !# </satelliteTidalField>
   type, extends(satelliteTidalFieldClass) :: satelliteTidalFieldNull

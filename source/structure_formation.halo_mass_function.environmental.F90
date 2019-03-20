@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -59,6 +60,10 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"           source="parameters"                                              />
     self=haloMassFunctionEnvironmental(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloMassFunctionConditioned_"  />
+    !# <objectDestructor name="haloMassFunctionUnconditioned_"/>
+    !# <objectDestructor name="haloEnvironment_"              />
+    !# <objectDestructor name="cosmologyParameters_"          />
     return
   end function environmentalConstructorParameters
 
@@ -74,7 +79,7 @@ contains
     self%timeMatching=-1.0d0
     return
   end function environmentalConstructorInternal
-  
+ 
   double precision function environmentalDifferential(self,time,mass,node)
     !% Return the differential halo mass function at the given time and mass.
     implicit none

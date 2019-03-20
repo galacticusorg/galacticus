@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
 module Hot_Halo_Mass_Distributions_Core_Radii
   !% Provides an object that implements core radii for hot halo mass distributions.
-  use Galacticus_Nodes
+  use Galacticus_Nodes, only : treeNode
   private
 
   !# <functionClass>
@@ -28,7 +29,6 @@ module Hot_Halo_Mass_Distributions_Core_Radii
   !#  <descriptiveName>Hot Halo Mass Distributions Core Radii</descriptiveName>
   !#  <description>Object implementing core radii for hot halo mass distributions.</description>
   !#  <default>virialFraction</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="radius" >
   !#   <description>Return the core radius of the hot halo mass distribution.</description>
   !#   <type>double precision</type>

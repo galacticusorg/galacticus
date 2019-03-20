@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,7 +27,7 @@
   type, extends(darkMatterParticleClass) :: darkMatterParticleWDMThermal
      !% A thermal warm dark matter particle class.
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: massValue           , degreesOfFreedomEffectiveValue
    contains
      !@ <objectMethods>
@@ -50,6 +51,7 @@
      !@     <description>Return the effective number of relativisitc degrees of freedom in the universe at the time at which the thermal wark dark matter particle decoupled.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                                        wdmThermalDestructor
      procedure :: mass                                => wdmThermalMass
      procedure :: degreesOfFreedomEffective           => wdmThermalDegreesOfFreedomEffective
      procedure :: degreesOfFreedomEffectiveDecoupling => wdmThermalDegreesOfFreedomEffectiveDecoupling
@@ -63,14 +65,14 @@
   
 contains
 
-  function wdmThermalConstructorParameters(parameters)
+  function wdmThermalConstructorParameters(parameters) result(self)
     !% Constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (darkMatterParticleWDMThermal)                :: wdmThermalConstructorParameters
+    type            (darkMatterParticleWDMThermal)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     class           (cosmologyParametersClass    ), pointer       :: cosmologyParameters_    
-    double precision                                              :: massValue                      , degreesOfFreedomEffectiveValue
+    double precision                                              :: massValue           , degreesOfFreedomEffectiveValue
 
     !# <inputParameter>
     !#   <name>mass</name>
@@ -91,43 +93,34 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    wdmThermalConstructorParameters=darkMatterParticleWDMThermal(massValue,degreesOfFreedomEffectiveValue,cosmologyParameters_)
+    self=darkMatterParticleWDMThermal(massValue,degreesOfFreedomEffectiveValue,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     return
   end function wdmThermalConstructorParameters
 
-  function wdmThermalConstructorInternal(mass,degreesOfFreedomEffective,cosmologyParameters_)
+  function wdmThermalConstructorInternal(mass,degreesOfFreedomEffective,cosmologyParameters_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily WDMThermal}'' dark matter particle class.
     use Input_Parameters
     implicit none
-    type            (darkMatterParticleWDMThermal)                        :: wdmThermalConstructorInternal
-    double precision                              , intent(in   )         :: mass                         , degreesOfFreedomEffective
+    type            (darkMatterParticleWDMThermal)                        :: self
+    double precision                              , intent(in   )         :: mass                , degreesOfFreedomEffective
     class           (cosmologyParametersClass    ), intent(inout), target :: cosmologyParameters_    
+    !# <constructorAssign variables="*cosmologyParameters_"/>
     
-    wdmThermalConstructorInternal%massValue                      =  mass
-    wdmThermalConstructorInternal%degreesOfFreedomEffectiveValue =  degreesOfFreedomEffective
-    wdmThermalConstructorInternal%cosmologyParameters_           => cosmologyParameters_
+    self%massValue                     =mass
+    self%degreesOfFreedomEffectiveValue=degreesOfFreedomEffective
     return
   end function wdmThermalConstructorInternal
   
-  subroutine wdmThermalDescriptor(self,descriptor)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
-    use Input_Parameters
-    use FoX_DOM
+  subroutine wdmThermalDestructor(self)
+    !% Destructor for the cut off cooling rate class.
     implicit none
-    class    (darkMatterParticleWDMThermal), intent(inout) :: self
-    type     (inputParameters             ), intent(inout) :: descriptor
-    type     (inputParameters             )                :: subParameters
-    character(len=10                      )                :: parameterLabel
+    type(darkMatterParticleWDMThermal), intent(inout) :: self
 
-    call descriptor%addParameter("darkMatterParticleMethod","WDMThermal")
-    subParameters=descriptor%subparameters("criticalOverdensityMethod")
-    write (parameterLabel,'(f10.6)') self%massValue
-    call subParameters%addParameter("mass"                     ,trim(adjustl(parameterLabel)))
-    write (parameterLabel,'(f10.6)') self%degreesOfFreedomEffectiveValue
-    call subParameters%addParameter("degreesOfFreedomEffective",trim(adjustl(parameterLabel)))
+    !# <objectDestructor name="self%cosmologyParameters_"/>
     return
-  end subroutine wdmThermalDescriptor
+  end subroutine wdmThermalDestructor
 
   double precision function wdmThermalMass(self)
     !% Return the mass, in units of keV, of a thermal warm dark matter particle.

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,16 +22,16 @@
   use Halo_Mass_Functions
   use Cosmological_Density_Field
 
-  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction" defaultThreadPrivate="yes">
+  !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionHaloMassFunction">
   !#  <description>A merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.</description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionHaloMassFunction
      !% Implementation of merger tree halo mass function sampling class in which the sampling rate is proportional to the halo mass function.
      private
-     class           (haloMassFunctionClass), pointer :: haloMassFunction_
-     class           (haloEnvironmentClass ), pointer :: haloEnvironment_
-     double precision                                 :: abundanceMinimum, abundanceMaximum, &
-          &                                              modifier1       , modifier2
+     class           (haloMassFunctionClass), pointer :: haloMassFunction_ => null()
+     class           (haloEnvironmentClass ), pointer :: haloEnvironment_  => null()
+     double precision                                 :: abundanceMinimum           , abundanceMaximum, &
+          &                                              modifier1                  , modifier2
    contains
      final     ::           haloMassFunctionDestructor
      procedure :: sample => haloMassFunctionSample
@@ -91,6 +92,8 @@ contains
     !# <objectBuilder class="haloEnvironment" name="haloEnvironment_"   source="parameters"/>
     self=mergerTreeBuildMassDistributionHaloMassFunction(abundanceMinimum,abundanceMaximum,modifier1,modifier2,haloMassFunction_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="haloMassFunction_"/>
+    !# <objectDestructor name="haloEnvironment_" />
     return
   end function haloMassFunctionConstructorParameters
 
@@ -113,12 +116,13 @@ contains
     type(mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
 
     !# <objectDestructor name="self%haloMassFunction_"/>
+    !# <objectDestructor name="self%haloEnvironment_" />
     return
   end subroutine haloMassFunctionDestructor
 
   double precision function haloMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate using a volume-limited sampling.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode
     implicit none
     class           (mergerTreeBuildMassDistributionHaloMassFunction), intent(inout) :: self
     double precision                                                 , intent(in   ) :: mass                , massMaximum, &

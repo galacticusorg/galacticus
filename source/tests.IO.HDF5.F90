@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,6 @@ program Tests_IO_HDF5
   use Kind_Numbers
   use Unit_Tests
   use ISO_Varying_String
-  use Memory_Management
   use Galacticus_Display
   implicit none
   type            (hdf5Object    ), target                                 :: datasetObject                  , fileObject           , &
@@ -65,9 +65,6 @@ program Tests_IO_HDF5
   type            (varying_string), allocatable, dimension( :)             :: datasetNames
   type            (varying_string)             , dimension(17)             :: datasetNamesReference
 
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('tests.IO.HDF5.size')
-
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   
@@ -84,12 +81,12 @@ program Tests_IO_HDF5
      select case (iPass)
      case(1)
         call Unit_Tests_Begin_Group("Tests with chunking enabled")
-        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024&
+        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=1024_hsize_t&
              &,compressionLevel=9)
         appendableOK=.true.
      case (2)
         call Unit_Tests_Begin_Group("Tests with chunking disabled")
-        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=-1&
+        groupObject=fileObject%openGroup("myGroup",commentText="This is my group.",objectsOverwritable=.true.,chunkSize=-1_hsize_t&
              &,compressionLevel=-1)
         appendableOK=.false.
      end select

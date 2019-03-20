@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -29,7 +30,6 @@ module Stellar_Populations_Initial_Mass_Functions
   !#  <descriptiveName>Initial Mass Functions</descriptiveName>
   !#  <description>Class providing stellar initial mass functions.</description>
   !#  <default>chabrier2001</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="massMinimum" >
   !#   <description>Return the minimum mass in the initial mass function.</description>
   !#   <type>double precision</type>

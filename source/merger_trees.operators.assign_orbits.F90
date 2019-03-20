@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,17 +19,17 @@
 
 !% Contains a module which implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
   
-  use Virial_Orbits
-  use Satellite_Merging_Timescales
+  use Virial_Orbits               , only : virialOrbitClass               , virialOrbit
+  use Satellite_Merging_Timescales, only : satelliteMergingTimescalesClass, satelliteMergingTimescales
   
-  !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits">
   !#  <description>Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.</description>
   !# </mergerTreeOperator>
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAssignOrbits
      !% An orbit assigning merger tree operator class.
      private
-     class(virialOrbitClass               ), pointer :: virialOrbit_
-     class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_
+     class(virialOrbitClass               ), pointer :: virialOrbit_ => null()
+     class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
    contains
      final     ::            assignOrbitsDestructor
      procedure :: operate => assignOrbitsOperate
@@ -55,6 +56,8 @@ contains
     !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
     self=mergerTreeOperatorAssignOrbits(satelliteMergingTimescales_,virialOrbit_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="satelliteMergingTimescales_"/>
+    !# <objectDestructor name="virialOrbit_"               />
     return
   end function assignOrbitsConstructorParameters
 
@@ -82,6 +85,7 @@ contains
 
   subroutine assignOrbitsOperate(self,tree)
     !% Perform a orbit assigning operation on a merger tree.
+    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic, nodeComponentSatellite
     use Kepler_Orbits
     use Merger_Tree_Walkers
     implicit none

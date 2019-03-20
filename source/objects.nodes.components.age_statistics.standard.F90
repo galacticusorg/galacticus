@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Node_Component_Age_Statistics_Standard
   !% Implements the standard galaxy age statistics component.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Age_Statistics_Standard_Scale_Set        , Node_Component_Age_Statistics_Standard_Rate_Compute, &
@@ -78,6 +78,7 @@ contains
   subroutine Node_Component_Age_Statistics_Standard_Initialize(parameters)
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
+    use Galacticus_Nodes, only : defaultAgeStatisticsComponent
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -100,6 +101,7 @@ contains
   subroutine Node_Component_Age_Statistics_Standard_Inactive(node)
     !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
     use Stellar_Luminosities_Structure
+    use Galacticus_Nodes              , only : treeNode, nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentAgeStatistics)               , pointer :: ageStatistics
@@ -124,6 +126,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Age_Statistics_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
+    use Galacticus_Nodes, only : treeNode, nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, nodeComponentDisk, nodeComponentSpheroid
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: node
     class           (nodeComponentAgeStatistics)               , pointer :: ageStatistics
@@ -157,7 +160,9 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the exponential disk node mass rate of change.
-    use Galacticus_Nodes
+    use Galacticus_Nodes, only : treeNode             , nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, nodeComponentDisk            , &
+         &                       nodeComponentSpheroid, nodeComponentBasic        , interruptTask                     , defaultAgeStatisticsComponent, &
+         &                       propertyTypeActive   , propertyTypeInactive      , propertyTypeAll
     use Output_Times
     implicit none
     type            (treeNode                    ), intent(inout), pointer :: node
@@ -221,10 +226,11 @@ contains
     use Satellite_Merging_Remnant_Properties
     use Satellite_Merging_Mass_Movements
     use Galacticus_Error
+    use Galacticus_Nodes                    , only : treeNode, nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard
     implicit none
     type   (treeNode                  ), intent(inout), pointer :: node
     type   (treeNode                  )               , pointer :: nodeHost
-    class  (nodeComponentAgeStatistics)               , pointer :: ageStatistics          , ageStatisticsHost
+    class  (nodeComponentAgeStatistics)               , pointer :: ageStatistics, ageStatisticsHost
  
     ! Get the inter-output component.
     ageStatistics => node%ageStatistics()

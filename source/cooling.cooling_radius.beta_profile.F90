@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,7 @@
   use Hot_Halo_Mass_Distributions
   use Radiation_Fields
 
-  !# <coolingRadius name="coolingRadiusBetaProfile" defaultThreadPrivate="yes">
+  !# <coolingRadius name="coolingRadiusBetaProfile">
   !#  <description>
   !#   A cooling radius class for $\beta$-profile halos. Computes the cooling radius by assuming that the hot gas density profile is a
   !#   $\beta$-profile ($\rho(r) \propto [r^2+r_\mathrm{c}^2]^{-1}$), and that the cooling rate scales as density squared, $\dot{E}\propto
@@ -38,23 +39,26 @@
   !#   \end{equation}
   !#   where $t_0$, and $t_\mathrm{virial}$ are the cooling times at zero radius and the virial radius respectively.
   !#  </description>
+  !#  <deepCopy>
+  !#   <functionClass variables="radiation"/>
+  !#  </deepCopy>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusBetaProfile
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
      !% for cooling equals the cooling time.
      private
-     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_
-     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_
-     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_
-     class           (coolingTimeClass                       ), pointer :: coolingTime_
-     class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_
-     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_
-     type            (radiationFieldCosmicMicrowaveBackground)          :: radiation
-     integer         (kind=kind_int8                         )          :: lastUniqueID              =-1
-     integer                                                            :: abundancesCount              , chemicalsCount
+     class           (cosmologyFunctionsClass                ), pointer :: cosmologyFunctions_        => null()
+     class           (darkMatterHaloScaleClass               ), pointer :: darkMatterHaloScale_       => null()
+     class           (coolingTimeAvailableClass              ), pointer :: coolingTimeAvailable_      => null()
+     class           (coolingTimeClass                       ), pointer :: coolingTime_               => null()
+     class           (hotHaloTemperatureProfileClass         ), pointer :: hotHaloTemperatureProfile_ => null()
+     class           (hotHaloMassDistributionClass           ), pointer :: hotHaloMassDistribution_   => null()
+     type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                  => null()
+     integer         (kind=kind_int8                         )          :: lastUniqueID               =  -1
+     integer                                                            :: abundancesCount                     , chemicalsCount
      ! Stored values of cooling radius.
-     logical                                                            :: radiusComputed               , radiusGrowthRateComputed
-     double precision                                                   :: radiusGrowthRateStored       , radiusStored
+     logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
+     double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      final     ::                     betaProfileDestructor
      procedure :: radius           => betaProfileRadius
@@ -91,11 +95,18 @@ contains
     !# <objectBuilder class="hotHaloMassDistribution"   name="hotHaloMassDistribution_"   source="parameters"/>
     self=coolingRadiusBetaProfile(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"       />
+    !# <objectDestructor name="darkMatterHaloScale_"      />
+    !# <objectDestructor name="coolingTimeAvailable_"     />
+    !# <objectDestructor name="coolingTime_"              />
+    !# <objectDestructor name="hotHaloTemperatureProfile_"/>
+    !# <objectDestructor name="hotHaloMassDistribution_"  />
     return
   end function betaProfileConstructorParameters
 
   function betaProfileConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,coolingTimeAvailable_,coolingTime_,hotHaloTemperatureProfile_,hotHaloMassDistribution_) result(self)
     !% Internal constructor for the $\beta$-profile cooling radius class.
+    use Galacticus_Nodes             , only : defaultHotHaloComponent
     use ISO_Varying_String
     use Galacticus_Error
     use Array_Utilities
@@ -119,7 +130,8 @@ contains
     self%abundancesCount=Abundances_Property_Count()
     self%chemicalsCount =Chemicals_Property_Count ()
     ! Initialize radiation field.
-    self%radiation=radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)
+    allocate(self%radiation)
+    !# <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     ! Check that required components are gettable.
     if     (                                                                                                                        &
          &  .not.(                                                                                                                  &
@@ -158,7 +170,7 @@ contains
     end select
     select type (hotHaloMassDistribution_   => self%hotHaloMassDistribution_  )
     class is (hotHaloMassDistributionBetaProfile)
-       ! An beta-model profile - this is acceptable.
+       ! A beta-model profile - this is acceptable.
     class default
        call Galacticus_Error_Report('assumption of β-model hot halo mass distribution is not met'     //{introspection:location})
     end select
@@ -176,6 +188,7 @@ contains
     !# <objectDestructor name="self%hotHaloTemperatureProfile_"/>
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
     !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !# <objectDestructor name="self%radiation"                 />
    return
   end subroutine betaProfileDestructor
 
@@ -183,7 +196,7 @@ contains
     !% Reset the cooling radius calculation.
     implicit none
     class(coolingRadiusBetaProfile), intent(inout) :: self
-    type (treeNode               ), intent(inout) :: node
+    type (treeNode                ), intent(inout) :: node
 
     self%radiusComputed          =.false.
     self%radiusGrowthRateComputed=.false.
@@ -193,6 +206,7 @@ contains
 
   double precision function betaProfileRadiusGrowthRate(self,node)
     !% Returns the cooling radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
     use Abundances_Structure
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
@@ -273,6 +287,7 @@ contains
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
     use Hot_Halo_Mass_Distributions
+    use Galacticus_Nodes                 , only : nodeComponentBasic, nodeComponentHotHalo
     implicit none
     class           (coolingRadiusBetaProfile), intent(inout), target  :: self
     type            (treeNode                ), intent(inout), target  :: node

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +26,7 @@
   !#  <description>Implements the geometry of the SDSS survey of \cite{montero-dorta_sdss_2009}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryMonteroDorta2009SDSS
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      character       (len=1                  )          :: band
      double precision                                   :: redshiftMinimum         , redshiftMaximum         , &
           &                                                magnitudeApparentMinimum, magnitudeApparentMaximum
@@ -62,6 +63,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=surveyGeometryMonteroDorta2009SDSS(band,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function monteroDorta2009SDSSConstructorParameters
   

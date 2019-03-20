@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
   use Kind_Numbers
   use Cosmology_Functions
 
-  !# <mergerTreeOperator name="mergerTreeOperatorProfiler" defaultThreadPrivate="yes">
+  !# <mergerTreeOperator name="mergerTreeOperatorProfiler">
   !#  <description>
   !#   A merger tree operator which profiles merger tree structure.
   !# </description>
@@ -29,7 +30,7 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorProfiler
      !% A merger tree operator class which profiles merger tree structure.
      private
-     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_
+     class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
      integer         (kind_int8              )                              :: nodeCount                  , singleProgenitorCount
      integer         (kind_int8              ), allocatable, dimension(:,:) :: nonPrimaryProgenitorCount
      integer                                                                :: massBinsCount              , timeBinsCount
@@ -112,6 +113,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     self=mergerTreeOperatorProfiler(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function profilerConstructorParameters
   
@@ -159,7 +161,8 @@ contains
 
   subroutine profilerOperate(self,tree)
     !% Perform a information content operation on a merger tree.
-    use Merger_Tree_Walkers
+    use Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
+    use Galacticus_Nodes   , only : treeNode                     , nodeComponentBasic
     implicit none
     class  (mergerTreeOperatorProfiler   ), intent(inout), target   :: self
     type   (mergerTree                   ), intent(inout), target  :: tree

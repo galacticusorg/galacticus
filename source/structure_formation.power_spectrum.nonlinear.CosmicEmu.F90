@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +20,7 @@
 !% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
 !% code of \cite{lawrence_coyote_2010}.
 
-  use FGSL
+  use FGSL                      , only : fgsl_interp, fgsl_interp_accel
   use Cosmology_Parameters
   use Cosmology_Functions
   use Cosmological_Density_Field
@@ -39,10 +40,10 @@
      logical                                                                      :: resetInterpolation
      double precision                                                             :: timePrevious
      type            (lockDescriptor                 )                            :: fileLock
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_
-     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_
-     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_
-     class           (cosmologicalMassVarianceClass  ), pointer                   :: cosmologicalMassVariance_
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_ => null()
+     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_ => null()
+     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_ => null()
+     class           (cosmologicalMassVarianceClass  ), pointer                   :: cosmologicalMassVariance_ => null()
    contains
      final     ::          cosmicEmuDestructor
      procedure :: value => cosmicEmuValue
@@ -79,6 +80,10 @@ contains
     ! Call the internal constructor.
     self=powerSpectrumNonlinearCosmicEmu(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="powerSpectrumPrimordial_" />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function cosmicEmuConstructorParameters
 
@@ -92,16 +97,12 @@ contains
     class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class(powerSpectrumPrimordialClass   ), intent(in   ), target :: powerSpectrumPrimordial_
     class(cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *powerSpectrumPrimordial_, *cosmologicalMassVariance_"/>
 
     ! Initialize state.
     self%timePrevious      =-1.0d0
     self%resetInterpolation=.true.
     call File_Lock_Initialize(self%fileLock)
-    ! Store objects.
-    self%cosmologyFunctions_       => cosmologyFunctions_
-    self%cosmologyParameters_      => cosmologyParameters_
-    self%powerSpectrumPrimordial_  => powerSpectrumPrimordial_
-    self%cosmologicalMassVariance_ => cosmologicalMassVariance_
     ! Check that this is a flat cosmology.
     if     (                                                                                                 &
          &  Values_Differ(                                                                                   &

@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,6 @@
 
 module Node_Component_Basic_Non_Evolving
   !% A non-evolving implementation of basic tree node methods.
-  use Galacticus_Nodes
   implicit none
   private
   public :: Node_Component_Basic_Non_Evolving_Rate_Compute, Node_Component_Basic_Non_Evolving_Scale_Set   , &
@@ -63,6 +63,7 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Basic_Non_Evolving_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute rates of change of properties in the standard implementation of the basic component.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, defaultBasicComponent, propertyTypeInactive, nodeComponentBasicNonEvolving
     implicit none
     type     (treeNode          ), intent(inout), pointer :: node
     logical                      , intent(in   )          :: odeConverged
@@ -93,6 +94,7 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Basic_Non_Evolving_Scale_Set(node)
     !% Set scales for properties in the standard implementation of the basic component.
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicNonEvolving
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     double precision                    , parameter              :: timeScale     =1.0d-3
@@ -116,6 +118,7 @@ contains
     !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the mass of {\normalfont \ttfamily node}
     !% to be that of its parent.
     use Galacticus_Error
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicNonEvolving
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
     type (treeNode          )               , pointer :: nodeParent

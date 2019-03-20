@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,7 +26,7 @@
      !% A halo mass function class which modifies another mass function using a simple model for systematics.
      private
      double precision                                 :: alpha                , beta
-     class           (haloMassFunctionClass), pointer :: referenceMassFunction
+     class           (haloMassFunctionClass), pointer :: referenceMassFunction => null()
     contains
      final     ::                 simpleSystematicDestructor
      procedure :: differential => simpleSystematicDifferential
@@ -39,18 +40,20 @@
 
 contains
 
-  function simpleSystematicConstructorParameters(parameters)
+  function simpleSystematicConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(haloMassFunctionSimpleSystematic)                :: simpleSystematicConstructorParameters
-    type(inputParameters                 ), intent(inout) :: parameters
-    
+    type            (haloMassFunctionSimpleSystematic)                :: self
+    type            (inputParameters                 ), intent(inout) :: parameters
+    class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_    
+    class           (haloMassFunctionClass           ), pointer       :: referenceMassFunction
+    double precision                                                  :: alpha                , beta
+
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>alpha</name>
     !#   <source>parameters</source>
-    !#   <variable>simpleSystematicConstructorParameters%alpha</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter $\alpha$ appearing in model for simple systematic shift in the halo mass function.</description>
     !#   <type>real</type>
@@ -59,27 +62,29 @@ contains
     !# <inputParameter>
     !#   <name>beta</name>
     !#   <source>parameters</source>
-    !#   <variable>simpleSystematicConstructorParameters%beta</variable>
     !#   <defaultValue>0.0d0</defaultValue>
     !#   <description>Parameter $\beta$ appearing in model for simple systematic shift in the halo mass function.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="simpleSystematicConstructorParameters%cosmologyParameters_"  source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"    name="simpleSystematicConstructorParameters%referenceMassFunction" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"    name="referenceMassFunction" source="parameters"/>
+    self=haloMassFunctionSimpleSystematic(alpha,beta,cosmologyParameters_,referenceMassFunction)
     !# <inputParametersValidate source="parameters"/>
+   !# <objectDestructor name="cosmologyParameters_" />
+   !# <objectDestructor name="referenceMassFunction"/>
    return
   end function simpleSystematicConstructorParameters
 
-  function simpleSystematicConstructorInternal(cosmologyParameters_,referenceMassFunction)
+  function simpleSystematicConstructorInternal(alpha,beta,cosmologyParameters_,referenceMassFunction) result(self)
     !% Internal constructor for the {\normalfont \ttfamily simpleSystematic} halo mass function class.
     implicit none
-    type (haloMassFunctionSimpleSystematic)                        :: simpleSystematicConstructorInternal
-    class(cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_    
-    class(haloMassFunctionClass           ), target, intent(in   ) :: referenceMassFunction
-
-    simpleSystematicConstructorInternal%cosmologyParameters_  => cosmologyParameters_
-    simpleSystematicConstructorInternal%referenceMassFunction => referenceMassFunction
+    type            (haloMassFunctionSimpleSystematic)                        :: self
+    class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_    
+    class           (haloMassFunctionClass           ), target, intent(in   ) :: referenceMassFunction
+    double precision                                          , intent(in   ) :: alpha                , beta
+    !# <constructorAssign variables="alpha, beta, *cosmologyParameters_, *referenceMassFunction"/>
+    
     return
   end function simpleSystematicConstructorInternal
   

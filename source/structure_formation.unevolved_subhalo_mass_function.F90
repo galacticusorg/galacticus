@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -27,7 +28,6 @@ module Unevolved_Subhalo_Mass_Functions
   !#  <descriptiveName>Unevolved Subhalo Mass Function</descriptiveName>
   !#  <description>Class providing unevolved subhalo mass functions.</description>
   !#  <default>giocoli2008</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="differential" >
   !#   <description>Return the differential unevolved subhalo mass function per halo for {\normalfont \ttfamily mass} [$M_\odot$] subhalos in {\normalfont \ttfamily massHost} [$M_\odot$] hosts at {\normalfont \ttfamily time} [Gyr].</description>
   !#   <type>double precision</type>

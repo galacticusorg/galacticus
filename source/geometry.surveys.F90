@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,7 +29,6 @@ module Geometry_Surveys
   !#  <descriptiveName>Survey Geometry</descriptiveName>
   !#  <description>Object providing galaxy surveys geometries and related functions.</description>
   !#  <default>liWhite2009SDSS</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <method name="fieldCount" >
   !#   <description>Returns the number of distinct fields included in the survey.</description>
   !#   <type>integer</type>

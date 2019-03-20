@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -23,7 +24,6 @@ program nbodyAnalyze
   use Galacticus_Error
   use Galacticus_Display_Verbosity
   use IO_HDF5
-  use Memory_Management
   use Input_Parameters
   use NBody_Simulation_Data
   use NBody_Importers
@@ -36,8 +36,6 @@ program nbodyAnalyze
   type     (nBodyData                )            :: simulation
   character(len=fileNameLengthMaximum)            :: parameterFileName, nbodyFileName, nbodyFileNamePrevious
 
-  ! Read in basic code memory usage.
-  call Code_Memory_Usage('nbodyAnalyze.size')
   ! Read arguments.
   if (Command_Argument_Count() /= 2 .and. Command_Argument_Count() /= 3) then
      call Galacticus_Error_Report(message="Usage: nbodyAnalyze.exe <parameterFile> <nbodyFile> [nbodyFilePrevious]")

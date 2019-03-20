@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +22,7 @@
 module Geometry_Lightcones
   !% Implements geometries of lightcones.
   use, intrinsic :: ISO_C_Binding
-  use               Galacticus_Nodes
+  use               Galacticus_Nodes, only : treeNode
   private
   
   !# <functionClass>
@@ -29,7 +30,6 @@ module Geometry_Lightcones
   !#  <descriptiveName>Lightcone Geometries</descriptiveName>
   !#  <description>Class providing geometries of lightcones.</description>
   !#  <default>square</default>
-  !#  <defaultThreadPrivate>yes</defaultThreadPrivate>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="isInLightcone" >
   !#   <description>Returns true if the provided node lies within the lightcone.</description>

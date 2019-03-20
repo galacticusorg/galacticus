@@ -1,4 +1,5 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +21,7 @@
 
   use Gravitational_Lensing
   
-  !# <outputAnalysis name="outputAnalysisLuminosityFunctionGunawardhana2013SDSS" defaultThreadPrivate="yes">
+  !# <outputAnalysis name="outputAnalysisLuminosityFunctionGunawardhana2013SDSS">
   !#  <description>An SDSS H$\alpha$ luminosity function output analysis class for the \cite{gunawardhana_galaxy_2013} analysis.</description>
   !# </outputAnalysis>
   type, extends(outputAnalysisLuminosityFunctionHalpha) :: outputAnalysisLuminosityFunctionGunawardhana2013SDSS
@@ -150,6 +151,10 @@ contains
     ! Build the object.
     self=outputAnalysisLuminosityFunctionGunawardhana2013SDSS(cosmologyFunctions_,gravitationalLensing_,stellarSpectraDustAttenuation_,outputTimes_,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,sizeSourceLensing,depthOpticalISMCoefficient)
     !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"           />
+    !# <objectDestructor name="outputTimes_"                  />
+    !# <objectDestructor name="gravitationalLensing_"         />
+    !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
     return
   end function luminosityFunctionGunawardhana2013SDSSConstructorParameters
 
