@@ -86,13 +86,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Position_Preset_Orphans_Initialize(parameters)
+  subroutine Node_Component_Position_Preset_Orphans_Initialize(globalParameters_)
     use Input_Parameters
     use Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPositionPresetOrphans
     implicit none
-    type(inputParameters                   ), intent(inout) :: parameters
+    type(inputParameters                   ), intent(inout) :: globalParameters_
     type(nodeComponentPositionPresetOrphans)                :: position
-    !GCC$ attributes unused :: parameters
+    !GCC$ attributes unused :: globalParameters_
     
     ! Initialize the module if necessary.
     if (defaultPositionComponent%presetIsActive()) then
@@ -105,15 +105,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(parameters)
+  subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(globalParameters_)
     !% Initializes the tree node preset orphans position module.
     use Galacticus_Nodes, only : defaultPositionComponent
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultPositionComponent%presetOrphansIsActive()) then
-       !# <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters"/>
+       !# <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize

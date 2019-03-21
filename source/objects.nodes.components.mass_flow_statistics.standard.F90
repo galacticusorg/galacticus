@@ -71,15 +71,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize(parameters)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the tree node standard mass flow statistics module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultMassFlowStatisticsComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultMassFlowStatisticsComponent%standardIsActive()) then
-       !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
+       !# <objectBuilder class="coolingRate" name="coolingRate_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize
