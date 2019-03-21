@@ -73,7 +73,7 @@ module Node_Component_Spin_Vitvitska
   !$omp threadprivate(haloSpinDistribution_,darkMatterProfile_)
   
   ! Parameter controlling scaling of orbital angular momentum with mass ratio.
-  double precision :: spinVitvitskaMassExponent
+  double precision :: spinVitvitskaMassExponent, spinVitvitskaUnresolvedBoost
   
 contains
 
@@ -92,8 +92,16 @@ contains
     !# <inputParameter>
     !#   <name>spinVitvitskaMassExponent</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>globalParameters</source>
+    !#   <source>parameters</source>
     !#   <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska spin model.</description>
+    !#   <type>double</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>spinVitvitskaUnresolvedBoost</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <source>parameters</source>
+    !#   <description>The factor by which the angular momentum of unresolved accretion is boosted relative to the angular momentum of the primary progenitor.</description>
     !#   <type>double</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -155,7 +163,8 @@ contains
     double precision                        , dimension(3)           :: angularMomentumOrbital, angularMomentumTotal, &
          &                                                              spinVector
     double precision                                                 :: spinValue             , massRatio           , &
-         &                                                              theta                 , phi
+         &                                                              theta                 , phi                 , &
+         &                                                              massUnresolved
     
     ! Check if we are the default method.
     if (defaultSpinComponent%vitvitskaIsActive()) then
@@ -174,29 +183,31 @@ contains
                 spinValue =haloSpinDistribution_%sample(node)             
                 spinVector=spinValue*[sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
              else
-                nodeChild  => node     %firstChild
-                spinChild  => nodeChild%spin      ()
-                basicChild => nodeChild%basic     ()
+                nodeChild      =>  node      %firstChild
+                spinChild      =>  nodeChild %spin      ()
+                basicChild     =>  nodeChild %basic     ()
+                massUnresolved =  +basic     %mass      () &
+                     &            -basicChild%mass      ()
                 ! Node has multiple progenitors - iterate over them and sum their angular momenta.
-                nodeSibling          =>                                    nodeChild
-                angularMomentumTotal =  +Dark_Matter_Halo_Angular_Momentum(nodeChild,darkMatterProfile_) &
-                     &                  *spinChild%spinVector()                                          &
-                     &                  /spinChild%spin      ()
+                angularMomentumTotal =   0.0d0
+                nodeSibling          =>  nodeChild
                 do while(associated(nodeSibling%sibling))
-                   nodeSibling            =>  nodeSibling %sibling
-                   basicSibling           =>  nodeSibling %basic    (                 )
-                   spinSibling            =>  nodeSibling %spin     (                 )
-                   satelliteSibling       =>  nodeSibling %satellite(autoCreate=.true.)
-                   massRatio              =  +basicSibling%mass     (                 ) &
-                        &                    /basicChild  %mass     (                 )
-                   angularMomentumOrbital =  +Orbital_Angular_Momentum(nodeSibling)
+                   nodeSibling            =>  nodeSibling   %sibling
+                   basicSibling           =>  nodeSibling   %basic    (                      )
+                   spinSibling            =>  nodeSibling   %spin     (                      )
+                   satelliteSibling       =>  nodeSibling   %satellite(autoCreate=.true.     )
+                   massRatio              =  +basicSibling  %mass     (                      ) &
+                        &                    /basicChild    %mass     (                      )
+                   angularMomentumOrbital =  +Orbital_Angular_Momentum(           nodeSibling)
+                   massUnresolved         =  +massUnresolved                                   &
+                        &                    -basicSibling  %mass     (                      )
                    ! Add orbital angular momentum of this sibling scaled by the reduced mass to correct to the center of mass of the
                    ! sibling-child binary system.
-                   angularMomentumTotal=+angularMomentumTotal   &
-                        &               +angularMomentumOrbital &
-                        &               /(                      &
-                        &                 +1.0d0                &
-                        &                 +massRatio            &
+                   angularMomentumTotal=+angularMomentumTotal        &
+                        &               +angularMomentumOrbital      &
+                        &               /(                           &
+                        &                 +1.0d0                     &
+                        &                 +massRatio                 &
                         &               )**spinVitvitskaMassExponent
                    ! Add the spin angular momentum of the sibling.
                    angularMomentumTotal=+angularMomentumTotal                                              &
@@ -204,6 +215,21 @@ contains
                         &               *spinSibling%spinVector()                                          &
                         &               /spinSibling%spin      ()
                 end do
+                ! Account for unresolved accretion. The assumption is that unresolved accretion has the same specific angular
+                ! momentum as the primary progenitor, multiplied by some boost factor.              
+                angularMomentumTotal=+angularMomentumTotal                                  &
+                     &               +Dark_Matter_Halo_Angular_Momentum(                    &
+                     &                                                  nodeChild         , &
+                     &                                                  darkMatterProfile_  &
+                     &                                                 )                    &
+                     &               *  spinChild                   %spinVector()           &
+                     &               /  spinChild                   %spin      ()           &
+                     &               *(                                                     &
+                     &                 +1.0d0                                               &
+                     &                 +spinVitvitskaUnresolvedBoost                        &
+                     &                 *massUnresolved                                      &
+                     &                 /basicChild                  %mass      ()           &
+                     &                )
                 ! Convert angular momentum back to spin.
                 spinValue =+Dark_Matter_Halo_Spin(node,Vector_Magnitude(angularMomentumTotal),darkMatterProfile_)
                 spinVector=+spinValue                              &
