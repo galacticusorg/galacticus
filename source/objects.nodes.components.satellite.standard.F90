@@ -412,8 +412,8 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
        ! Get an orbit for this satellite.
-       hostNode => node        %parent
-       orbit    =  virialOrbit_%orbit (node,hostNode,acceptUnboundOrbits)
+       hostNode => node        %parent%firstChild
+       orbit    =  virialOrbit_%orbit            (node,hostNode,acceptUnboundOrbits)
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
