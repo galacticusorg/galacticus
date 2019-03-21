@@ -270,7 +270,7 @@ contains
     if (self%likelihoodBin > 0_c_size_t) then
        ! Assume that only a single bin of the relation is to be populated. Set the target dataset in all other bins to zero so
        ! that they do not contribute to the likelihood.
-       if (self%likelihoodBin > massHaloCount) call Galacticus_Error_Report('lieklihoodBin is out of range'//{introspection:location})
+       if (self%likelihoodBin > massHaloCount) call Galacticus_Error_Report('likelihoodBin is out of range'//{introspection:location})
        do iBin=1,massHaloCount
           if (iBin /= self%likelihoodBin) massStellarLogarithmicTarget(iBin)=0.0d0
        end do       
