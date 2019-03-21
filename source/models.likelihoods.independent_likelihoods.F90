@@ -79,9 +79,9 @@ contains
           allocate(self%modelLikelihoods)
           modelLikelihood_ => self%modelLikelihoods
        end if
-       modelLikelihood_%modelLikelihood_        => posteriorSampleLikelihood (parameters,i)
-       modelLikelihood_%simulationState         =  posteriorSampleStateSimple(           1)
-       modelLikelihood_%parameterMapInitialized =  .false.
+       !# <objectBuilder class="posteriorSampleLikelihood" name="modelLikelihood_%modelLikelihood_" source="parameters" copy="i"/>
+       modelLikelihood_%simulationState        =posteriorSampleStateSimple(1)
+       modelLikelihood_%parameterMapInitialized=.false.
        call parameters%value('parameterMap',parameterMapJoined,copyInstance=i)
        parameterMapCount=String_Count_Words(char(parameterMapJoined)," ")
        allocate(modelLikelihood_%parameterMap          (parameterMapCount))
@@ -116,7 +116,7 @@ contains
     return
   end function independentLikelihoodsConstructorInternal
   
-  elemental subroutine independentLikelihoodsDestructor(self)
+  subroutine independentLikelihoodsDestructor(self)
     !% Destructor for ``independentLikelihoods'' posterior sampling likelihood class.
     implicit none
     type(posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
@@ -126,8 +126,14 @@ contains
        modelLikelihood_ => self%modelLikelihoods
        do while (associated(modelLikelihood_))
           modelLikelihoodNext => modelLikelihood_%next
-          deallocate(modelLikelihood_%modelLikelihood_)
-          deallocate(modelLikelihood_          )
+          !# <objectDestructor name="modelLikelihood_%modelLikelihood_"/>
+          do i=1,size(modelLikelihood_%modelParametersActive_  )
+             !# <objectDestructor name="modelLikelihood_%modelParametersActive_  (i)%modelParameter_"/>
+          end do
+          do i=1,size(modelLikelihood_%modelParametersInactive_)
+             !# <objectDestructor name="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+          end do
+          deallocate(modelLikelihood_)
           modelLikelihood_ => modelLikelihoodNext
        end do
     end if

@@ -257,7 +257,7 @@ contains
     double precision                                    , allocatable  , dimension(:  ) :: stateVector                                     , ages                         , &
          &                                                                                 weights
     double precision                                    , allocatable  , dimension(:,:) :: massToLightRatios
-    double precision                                    , parameter                     :: logImprobable              =-7.00000000000000d+0
+    double precision                                    , parameter                     :: logUnlikely                =-7.00000000000000d+0
     double precision                                    , parameter                     :: toleranceRelativeFractional=+1.00000000000000d-2
     double precision                                    , parameter                     :: stellarAgeArbitrary        =+1.00000000000000d+0
     double precision                                    , parameter                     :: vBandWavelength            =+5.50461227375652d+3
@@ -560,7 +560,7 @@ contains
                &   -                                        &
                &    (logLikelihoodCurrent+logPriorCurrent ) &
                &  <                                         &
-               &    logImprobable                           &
+               &    logUnlikely                             &
                &   *temperature                             &
                & ) exit
        else if (.not.useRapidEvaluation) then
