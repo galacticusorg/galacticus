@@ -762,7 +762,7 @@ CODE
 					$assignments .= "nullify(destination%".$name.")\n";
 					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
 				    }
 				};
@@ -790,7 +790,7 @@ CODE
 						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments .= "end if\n";
@@ -899,7 +899,7 @@ CODE
 				$assignments .= "nullify(destination%".$name.")\n";
 				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-				$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+				$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 				    if ( $debugging );
 			    }
 		    }
@@ -925,7 +925,7 @@ CODE
 				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 			    }
 			    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-			    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).")\n"
+			    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 				if ( $debugging );
 			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 				$assignments .= "end if\n";
