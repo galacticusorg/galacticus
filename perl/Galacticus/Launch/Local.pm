@@ -101,7 +101,7 @@ sub jobArrayLaunch {
     my %arguments = %{shift()};
     my @jobStack  = @_;
     # Find the appropriate PBS section.
-    my $localConfig = &Galacticus::Options::Config("pbs");
+    my $localConfig = &Galacticus::Options::Config("local");
     # Determine maximum number allowed in queue at once.
     my $jobMaximum = Sys::CPU::cpu_count() ;
     $jobMaximum = $localConfig->{'jobMaximum'}
@@ -136,8 +136,14 @@ sub jobArrayLaunch {
 	    print $scriptFile "ulimit -t ".$newJob->{'local'}->{'cpuTimeLimit'}."\n"
 		if ( exists($newJob->{'local'}->{'cpuTimeLimit'}) );
 	    print $scriptFile "ulimit -c unlimited\n";
-	    print $scriptFile "export OMP_NUM_THREADS=".$newJob->{'local'}->{'ompThreads'}."\n"
-		if ( exists($newJob->{'local'}->{'ompThreads'}) );
+	    my $ompThreads;
+	    if ( exists($newJob->{'local'}->{'ompThreads'}) ) {
+		$ompThreads = $newJob->{'local'}->{'ompThreads'};
+	    } elsif ( exists($localConfig->{'ompThreads'}) ) {
+		$ompThreads = $localConfig->{'ompThreads'};
+	    }
+	    print $scriptFile "export OMP_NUM_THREADS=".$ompThreads."\n"
+		if ( defined($ompThreads) );
 	    print $scriptFile $newJob->{'command'}."\n";
 	    print $scriptFile "exit\n";
 	    close($scriptFile);
