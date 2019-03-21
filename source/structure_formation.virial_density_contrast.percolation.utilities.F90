@@ -107,9 +107,10 @@ contains
     workNode              => treeNode                  (                 )
     workBasic             => workNode%basic            (autoCreate=.true.)
     workDarkMatterProfile => workNode%darkMatterProfile(autoCreate=.true.)
-    call workBasic%massSet            (mass)
-    call workBasic%timeSet            (time)
-    call workBasic%timeLastIsolatedSet(time)
+    call workBasic            %massSet            (mass   )
+    call workBasic            %timeSet            (time   )
+    call workBasic            %timeLastIsolatedSet(time   )
+    call workDarkMatterProfile%scaleIsLimitedSet  (.false.)
     call Galacticus_Calculations_Reset(workNode)
     ! Make an initial guess at the halo radius.
     radiusHalo=(mass/4.0d0/Pi/boundingDensity)**(1.0d0/3.0d0)
