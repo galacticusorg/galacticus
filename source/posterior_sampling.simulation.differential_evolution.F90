@@ -40,7 +40,7 @@
           &                                                                                       logFlushCount                                     , reportCount
      double precision                                                                          :: logPosterior                                      , logPrior
      logical                                                                                   :: isConverged                                       , sampleOutliers                    , &
-          &                                                                                       isInteractive
+          &                                                                                       isInteractive                                     , appendLogs
      type            (modelParameterList                          ), allocatable, dimension(:) :: modelParametersActive_                            , modelParametersInactive_
      class           (posteriorSampleLikelihoodClass              ), pointer                   :: posteriorSampleLikelihood_               => null()
      class           (posteriorSampleConvergenceClass             ), pointer                   :: posteriorSampleConvergence_              => null()
@@ -142,7 +142,7 @@ contains
          &                                                                                  iActive                                 , iInactive
     type   (varying_string                                )                              :: logFileRoot                             , interactionRoot         , &
          &                                                                                  message
-    logical                                                                              :: sampleOutliers
+    logical                                                                              :: sampleOutliers                          , appendLogs
 
     !# <inputParameter>
     !#   <name>stepsMaximum</name>
@@ -207,6 +207,14 @@ contains
     !#   <source>parameters</source>
     !#   <type>integer</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>appendLogs</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>If true, do not overwrite existing log files, but instead append to them.</description>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <type>integer</type>
+    !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood"               name="posteriorSampleLikelihood_"               source="parameters"/>
     !# <objectBuilder class="posteriorSampleConvergence"              name="posteriorSampleConvergence_"              source="parameters"/>
     !# <objectBuilder class="posteriorSampleStoppingCriterion"        name="posteriorSampleStoppingCriterion_"        source="parameters"/>
@@ -252,7 +260,7 @@ contains
        end select
        !# <objectDestructor name="modelParameter_"/>
     end do
-    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot))
+    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleLikelihood_"              />
     !# <objectDestructor name="posteriorSampleConvergence_"             />
@@ -272,7 +280,7 @@ contains
     return
   end function differentialEvolutionConstructorParameters
 
-  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot) result(self)
+  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs) result(self)
     !% Internal constructor for the ``differentialEvolution'' simulation class.
     implicit none
     type     (posteriorSampleSimulationDifferentialEvolution)                              :: self
@@ -288,9 +296,9 @@ contains
          &                                                                                    stateSwapCount                          , logFlushCount           , &
          &                                                                                    reportCount
     character(len=*                                         ), intent(in   )               :: logFileRoot                             , interactionRoot
-    logical                                                  , intent(in   )               :: sampleOutliers
+    logical                                                  , intent(in   )               :: sampleOutliers                          , appendLogs
     integer                                                                                :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot"/>
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
@@ -393,7 +401,11 @@ contains
     if (self%logPosterior <= logImpossible) call Galacticus_Error_Report('impossible initial state'//{introspection:location})
     ! Begin stepping.
     logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
-    open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted')
+    if (self%appendLogs) then
+       open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted',position='append')
+    else
+       open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted'                  )
+    end if
     self%isConverged=.false. 
     do while (                                                                                                   &
          &          self%posteriorSampleState_            %count(                          ) < self%stepsMaximum &
