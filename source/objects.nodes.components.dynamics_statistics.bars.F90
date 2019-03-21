@@ -74,12 +74,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dynamics_Statistics_Bars_Initialize(parameters)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Initialize(globalParameters_)
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
     
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
        !# <inputParameter>
@@ -88,7 +88,7 @@ contains
        !#   <defaultValue>0.1d0</defaultValue>
        !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
        !#   <group>timeStepping</group>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
     end if
@@ -98,16 +98,16 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(parameters)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(globalParameters_)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
-       !# <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="globalParameters_"/>
+       !# <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize

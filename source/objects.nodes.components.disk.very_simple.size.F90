@@ -98,15 +98,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters)
+  subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(globalParameters_)
     !% Initializes the tree node standard merging statistics module.
     use Galacticus_Nodes, only : defaultDiskComponent
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
-       !# <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters"/>
+       !# <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize

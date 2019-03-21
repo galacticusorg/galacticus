@@ -80,14 +80,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Bindings</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Spin_Vitvitska_Bindings(parameters)
+  subroutine Node_Component_Spin_Vitvitska_Bindings(globalParameters_)
     !% Initializes the ``Vitvitskae'' implementation of the spin component.
     use Input_Parameters
     use Galacticus_Nodes, only : nodeComponentspinVitvitska
     implicit none
-    type(inputParameters           ), intent(inout) :: parameters
+    type(inputParameters           ), intent(inout) :: globalParameters_
     type(nodeComponentspinVitvitska)                :: spin
-    !GCC$ attributes unused :: parameters
+    !GCC$ attributes unused :: globalParameters_
 
     !# <inputParameter>
     !#   <name>spinVitvitskaMassExponent</name>
@@ -107,16 +107,16 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spin_Vitvitska_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(parameters)
+  subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(globalParameters_)
     !% Initializes the tree node Vitvitsake spin module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultSpinComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
-       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
-       !# <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
+       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Initialize

@@ -100,18 +100,18 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Initialize(parameters)
+  subroutine Node_Component_Merging_Statistics_Standard_Initialize(globalParameters_)
     !% Initializes the standard merging statistics component.
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     !# <inputParameter>
     !#   <name>nodeMajorMergerFraction</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.25d0</defaultValue>
     !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -119,7 +119,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>0.5d0</defaultValue>
     !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -127,7 +127,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>1.0d100</defaultValue>
     !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     ! Bind the hierarchy level get functions.
@@ -139,15 +139,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(parameters)
+  subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the tree node standard merging statistics module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
-       !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize
@@ -253,40 +253,31 @@ contains
     !% Initialize the merging statistics component by creating components in nodes and computing formation times.
     use Dark_Matter_Halo_Formation_Times
     use Galacticus_Nodes                , only : treeNode, nodeComponentMergingStatistics, nodeComponentBasic, defaultMergingStatisticsComponent
-    use Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     implicit none
     type   (treeNode                      ), intent(inout), pointer :: node
-    type   (treeNode                      )               , pointer :: nodeHost          , nodeWork
+    type   (treeNode                      )               , pointer :: nodeHost
     class  (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
     class  (nodeComponentBasic            )               , pointer :: basic
-    type   (mergerTreeWalkerAllNodes      )                         :: treeWalker
     integer                                                         :: nodeHierarchyLevel
 
     ! Return immediately if this class is not active.
     if (.not.defaultMergingStatisticsComponent%standardIsActive()) return
-    ! Check for initialization of this node.
+    ! Find the initial hierarchy level.
+    nodeHierarchyLevel =  0
+    nodeHost       => node
+    do while (nodeHost%isSatellite())
+       nodeHierarchyLevel =  nodeHierarchyLevel       +1
+       nodeHost           => nodeHost          %parent
+    end do    
+    ! Create a merger statistics component and initialize it. 
     mergingStatistics => node%mergingStatistics(autoCreate=.true.)
-    if (mergingStatistics%nodeFormationTime() > 0.0d0) return
-    ! Iterate over all nodes in the tree, since we must compute formation times before any tree evolution occurs.
-    treeWalker=mergerTreeWalkerAllNodes(node%hostTree)
-    do while (treeWalker%next(nodeWork))
-       ! Find the initial hierarchy level.
-       nodeHierarchyLevel =  0
-       nodeHost           => nodeWork
-       do while (nodeHost%isSatellite())
-          nodeHierarchyLevel =  nodeHierarchyLevel       +1
-          nodeHost           => nodeHost          %parent
-       end do
-       ! Create a merger statistics component and initialize it. 
-       mergingStatistics => nodeWork%mergingStatistics(autoCreate=.true.)
-       basic             => nodeWork%basic            (                 )
-       call mergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel)
-       call mergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel)
-       call mergingStatistics%    massWhenFirstIsolatedSet(      basic%mass())
-       call mergingStatistics%    galaxyMajorMergerTimeSet(            -1.0d0)
-       call mergingStatistics%      nodeMajorMergerTimeSet(            -1.0d0)
-    call mergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(nodeWork,nodeFormationMassFraction,darkMatterHaloMassAccretionHistory_))
-    end do
+    basic             => node%basic            (                 )
+    call mergingStatistics%       nodeHierarchyLevelSet(nodeHierarchyLevel)
+    call mergingStatistics%nodeHierarchyLevelMaximumSet(nodeHierarchyLevel)
+    call mergingStatistics%    massWhenFirstIsolatedSet(      basic%mass())
+    call mergingStatistics%    galaxyMajorMergerTimeSet(            -1.0d0)
+    call mergingStatistics%      nodeMajorMergerTimeSet(            -1.0d0)
+    call mergingStatistics%        nodeFormationTimeSet(Dark_Matter_Halo_Formation_Time(node,nodeFormationMassFraction,darkMatterHaloMassAccretionHistory_))
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init
 

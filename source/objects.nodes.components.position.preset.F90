@@ -67,11 +67,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Position_Preset_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Position_Preset_Initialize(parameters)
+  subroutine Node_Component_Position_Preset_Initialize(globalParameters_)
     use Input_Parameters
     use Galacticus_Nodes, only : defaultPositionComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     ! Initialize the module if necessary.
     if (defaultPositionComponent%presetIsActive()) then
@@ -81,7 +81,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>bool</type>
        !# </inputParameter>
     end if

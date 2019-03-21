@@ -81,12 +81,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Black_Hole_Simple_Initialize(parameters)
+  subroutine Node_Component_Black_Hole_Simple_Initialize(globalParameters_)
     !% Initializes the simple black hole node component module.
     use Galacticus_Nodes, only : nodeComponentBlackHoleSimple
     use Input_Parameters
     implicit none
-    type(inputParameters             ), intent(inout) :: parameters
+    type(inputParameters             ), intent(inout) :: globalParameters_
     type(nodeComponentBlackHoleSimple)                :: blackHoleSimple
 
     ! Get the black hole seed mass.
@@ -98,7 +98,7 @@ contains
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The ratio of the rates of black hole growth and spheroid stellar mass growth.</description>
     !#   <group>blackHoles</group>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     ! Options controlling AGN feedback.
@@ -108,7 +108,7 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not the black hole should heat the hot halo.</description>
     !#   <group>blackHoles</group>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     if (blackHoleHeatsHotHalo) then
@@ -118,7 +118,7 @@ contains
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The efficiency with which accretion onto a black hole heats the hot halo.</description>
        !#   <group>blackHoles</group>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
     else
@@ -131,7 +131,7 @@ contains
     !#   <defaultValue>2.2157d-3</defaultValue>
     !#   <description>The efficiency of the black hole accretion-driven wind.</description>
     !#   <group>blackHoles</group>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     ! Get options controlling output.
@@ -140,7 +140,7 @@ contains
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not accretion rates and jet powers will be output.</description>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     return
@@ -149,17 +149,17 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Simple_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Black_Hole_Simple_Thread_Initialize(parameters)
+  subroutine Node_Component_Black_Hole_Simple_Thread_Initialize(globalParameters_)
     !% Initializes the tree node random spin module.
     use Galacticus_Nodes, only : defaultBlackHoleComponent
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultBlackHoleComponent%simpleIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
-       !# <objectBuilder class="coolingRadius"         name="coolingRadius_"         source="parameters"/>
-       !# <objectBuilder class="blackHoleBinaryMerger" name="blackHoleBinaryMerger_" source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="globalParameters_"/>
+       !# <objectBuilder class="coolingRadius"         name="coolingRadius_"         source="globalParameters_"/>
+       !# <objectBuilder class="blackHoleBinaryMerger" name="blackHoleBinaryMerger_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Initialize

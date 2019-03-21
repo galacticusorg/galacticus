@@ -71,11 +71,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize(parameters)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize(globalParameters_)
     !% Initializes the ``scale'' implementation of the dark matter halo profile component.
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     !# <inputParameter>
     !#   <name>mergerTreeStructureOutputDarkMatterProfileShape</name>
@@ -83,7 +83,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not dark matter halo shape parameter is included in outputs of merger trees.</description>
     !#   <group>output</group>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     ! Bind the shape get function.
@@ -94,15 +94,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init(parameters)
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init(globalParameters_)
     !% Initializes the tree node random spin module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultDarkMatterProfileComponent%scaleShapeIsActive()) then
-       !# <objectBuilder class="darkMatterProfileShape" name="darkMatterProfileShape_" source="parameters"/>
+       !# <objectBuilder class="darkMatterProfileShape" name="darkMatterProfileShape_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init
