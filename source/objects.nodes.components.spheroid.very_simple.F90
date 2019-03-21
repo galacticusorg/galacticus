@@ -141,12 +141,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Initialize(parameters)
+  subroutine Node_Component_Spheroid_Very_Simple_Initialize(globalParameters_)
     !% Initializes the tree node very simple spheroid component module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroidVerySimple
     implicit none
-    type(inputParameters                ), intent(inout) :: parameters
+    type(inputParameters                ), intent(inout) :: globalParameters_
     type(nodeComponentSpheroidVerySimple)                :: spheroidVerySimpleComponent
 
     ! Initialize the module if necessary.
@@ -157,7 +157,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>100.0d0</defaultValue>
        !#   <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -165,7 +165,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the spheroid.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -173,7 +173,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the spheroid.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -181,7 +181,7 @@ contains
        !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track abundances in the very simple spheroid component.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -189,7 +189,7 @@ contains
        !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -197,7 +197,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        ! Bind the star formation rate function.
@@ -209,19 +209,19 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spheroid_Very_Simple_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters)
+  subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(globalParameters_)
     !% Initializes the tree node very simple satellite module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="parameters"/>
-       !# <objectBuilder class="darkMatterProfile"               name="darkMatterProfile_"               source="parameters"/>
-       !# <objectBuilder class="stellarPopulationProperties"     name="stellarPopulationProperties_"     source="parameters"/>
-       !# <objectBuilder class="starFormationFeedbackSpheroids"  name="starFormationFeedbackSpheroids_"  source="parameters"/>
-       !# <objectBuilder class="starFormationTimescaleSpheroids" name="starFormationTimescaleSpheroids_" source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfile"               name="darkMatterProfile_"               source="globalParameters_"/>
+       !# <objectBuilder class="stellarPopulationProperties"     name="stellarPopulationProperties_"     source="globalParameters_"/>
+       !# <objectBuilder class="starFormationFeedbackSpheroids"  name="starFormationFeedbackSpheroids_"  source="globalParameters_"/>
+       !# <objectBuilder class="starFormationTimescaleSpheroids" name="starFormationTimescaleSpheroids_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize

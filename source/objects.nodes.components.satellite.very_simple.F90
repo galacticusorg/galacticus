@@ -88,16 +88,16 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Satellite_Very_Simple_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize(parameters)
+  subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize(globalParameters_)
     !% Initializes the tree node very simple satellite module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultSatelliteComponent%verySimpleIsActive()) then
-       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
-       !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
+       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="globalParameters_"/>
+       !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize

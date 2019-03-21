@@ -157,19 +157,19 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters)
+  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(globalParameters_)
     !% Initializes the tree node orbiting satellite module.
     use Galacticus_Nodes, only : defaultSatelliteComponent
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters"/>
-       !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
-       !# <objectBuilder class="satelliteTidalHeatingRate"  name="satelliteTidalHeatingRate_"  source="parameters"/>
-       !# <objectBuilder class="satelliteTidalStripping"    name="satelliteTidalStripping_"    source="parameters"/>
-       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="globalParameters_"/>
+       !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="globalParameters_"/>
+       !# <objectBuilder class="satelliteTidalHeatingRate"  name="satelliteTidalHeatingRate_"  source="globalParameters_"/>
+       !# <objectBuilder class="satelliteTidalStripping"    name="satelliteTidalStripping_"    source="globalParameters_"/>
+       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize

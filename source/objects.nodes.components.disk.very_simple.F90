@@ -134,12 +134,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Disk_Very_Simple_Initialize(parameters)
+  subroutine Node_Component_Disk_Very_Simple_Initialize(globalParameters_)
     !% Initializes the tree node very simple disk component module.
     use Input_Parameters
     use Galacticus_Nodes, only : nodeComponentDiskVerySimple, defaultDiskComponent
     implicit none
-    type            (inputParameters            ), intent(inout) :: parameters
+    type            (inputParameters            ), intent(inout) :: globalParameters_
     type            (nodeComponentDiskVerySimple)                :: diskVerySimpleComponent
     double precision                             , parameter     :: velocityNormalization  =200.0d0
 
@@ -151,7 +151,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>100.0d0</defaultValue>
        !#   <description>The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -159,7 +159,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the halo dynamical time) on which outflows may deplete gas in the disk.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -167,7 +167,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the halo dynamical time) on which star formation may occur in the disk.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -175,7 +175,7 @@ contains
        !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track abundances in the very simple disk component.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -183,7 +183,7 @@ contains
        !#   <cardinality>0..1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -191,7 +191,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.0d0</defaultValue>
        !#   <description>The threshold gas surface denisty above this star formation occurs [$M_\odot$/Mpc$^2$].</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -199,7 +199,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.0d0</defaultValue>
        !#   <description>The exponent of velocity in the threshold gas surface denisty above this star formation occurs.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -207,7 +207,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>If true, employ an analytic ODE solver when evolving satellites.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -215,7 +215,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.0d0</defaultValue>
        !#   <description>Gas mass below which the analytic solver will prune a galaxy.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -223,7 +223,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>0.0d0</defaultValue>
        !#   <description>Stellar mass below which the analytic solver will prune a galaxy.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        ! Initialize exponentiators.
@@ -241,20 +241,20 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters)
+  subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(globalParameters_)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultDiskComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultDiskComponent%verySimpleIsActive()) then
-       !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
-       !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
-       !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters"/>
-       !# <objectBuilder class="darkMatterProfile"           name="darkMatterProfile_"           source="parameters"/>
-       !# <objectBuilder class="starFormationFeedbackDisks"  name="starFormationFeedbackDisks_"  source="parameters"/>
-       !# <objectBuilder class="starFormationTimescaleDisks" name="starFormationTimescaleDisks_" source="parameters"/>       
+       !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="globalParameters_"/>
+       !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfile"           name="darkMatterProfile_"           source="globalParameters_"/>
+       !# <objectBuilder class="starFormationFeedbackDisks"  name="starFormationFeedbackDisks_"  source="globalParameters_"/>
+       !# <objectBuilder class="starFormationTimescaleDisks" name="starFormationTimescaleDisks_" source="globalParameters_"/>       
        ! If using the analytic solver, find the time at the present day.
        !$omp critical (Node_Component_Disk_Very_Simple_Thread_Initialize)
        if (diskVerySimpleUseAnalyticSolver.and.timePresentDay < 0.0d0) timePresentDay=cosmologyFunctions_%cosmicTime(1.0d0)

@@ -73,11 +73,11 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Black_Hole_Noncentral_Initialize(parameters)
+  subroutine Node_Component_Black_Hole_Noncentral_Initialize(globalParameters_)
     !% Initializes the noncentral black hole component module.
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     !# <inputParameter>
     !#   <name>tripleBlackHoleInteraction</name>
@@ -85,7 +85,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Determines whether or not triple black hole interactions will be accounted for.</description>
     !#   <group>blackHoles</group>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     return
@@ -94,18 +94,18 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Black_Hole_Noncentral_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(parameters)
+  subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize(globalParameters_)
     !% Initializes the tree node random spin module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultBlackHoleComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultBlackHoleComponent%noncentralIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters"/>
-       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters"/>
-       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters"/>
-       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="globalParameters_"/>
+       !# <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="globalParameters_"/>
+       !# <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="globalParameters_"/>
+       !# <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Thread_Initialize

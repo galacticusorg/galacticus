@@ -121,17 +121,17 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Merging_Statistics_Recent_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(parameters)
+  subroutine Node_Component_Merging_Statistics_Recent_Thread_Initialize(globalParameters_)
     !% Initializes the tree node recent merging flow statistics module.
     use Galacticus_Nodes , only : defaultMergingStatisticsComponent
     use Input_Parameters
     use Memory_Management
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultMergingStatisticsComponent%recentIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="globalParameters_"/>
+       !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="globalParameters_"/>
        !$omp critical (Node_Component_Merging_Statistics_Recent_Thread_Initialize)
        if (.not.allocated(zeroCount)) then
           mergingStatisticsRecentCount=outputTimes_%count()

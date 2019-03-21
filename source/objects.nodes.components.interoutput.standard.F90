@@ -61,15 +61,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Interoutput_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Interoutput_Standard_Thread_Initialize(parameters)
+  subroutine Node_Component_Interoutput_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the tree node standard interoutput module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultInteroutputComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultInteroutputComponent%standardIsActive()) then
-       !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>     
+       !# <objectBuilder class="outputTimes" name="outputTimes_" source="globalParameters_"/>     
     end if
     return
   end subroutine Node_Component_Interoutput_Standard_Thread_Initialize

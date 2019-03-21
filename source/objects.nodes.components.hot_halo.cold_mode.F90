@@ -98,13 +98,13 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize(parameters)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Initialize(globalParameters_)
     !% Initializes the tree node hot halo methods module.
     use Galacticus_Nodes    , only : nodeComponentHotHaloColdMode, defaultHotHaloComponent
     use Abundances_Structure
     use Input_Parameters
     implicit none
-    type(inputParameters             ), intent(inout) :: parameters
+    type(inputParameters             ), intent(inout) :: globalParameters_
     type(nodeComponentHotHaloColdMode)                :: hotHaloComponent
 
     ! Initialize the module if necessary.
@@ -118,7 +118,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not outflows from galaxies are returned to the cold or hot modes in the hot halo.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        ! Bind the outflow return function if outflow returns to the cold mode. (If it does not, do
@@ -132,22 +132,22 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(parameters)
+  subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize(globalParameters_)
     !% Initializes the tree node hot halo cold mode methods module.
     use Input_Parameters
     use Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
     use Hot_Halo_Cold_Mode_Density_Core_Radii
     use Galacticus_Nodes                                 , only : defaultHotHaloComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultHotHaloComponent%coldModeIsActive()) then
-       !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-       !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
-       !# <objectBuilder class="darkMatterProfile"        name="darkMatterProfile_"        source="parameters"/>
-       !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="parameters"/>
-       !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="parameters"/>
-       !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="parameters"/>
+       !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfile"        name="darkMatterProfile_"        source="globalParameters_"/>
+       !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="globalParameters_"/>
+       !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="globalParameters_"/>
+       !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize

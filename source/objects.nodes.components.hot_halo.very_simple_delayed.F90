@@ -64,12 +64,12 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_VS_Delayed_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(parameters)
+  subroutine Node_Component_Hot_Halo_VS_Delayed_Initialize(globalParameters_)
     !% Initializes the very simple hot halo component module.
     use Galacticus_Nodes, only : nodeComponentHotHaloVerySimpleDelayed, defaultHotHaloComponent
     use Input_Parameters
     implicit none
-    type(inputParameters                      ), intent(inout) :: parameters
+    type(inputParameters                      ), intent(inout) :: globalParameters_
     type(nodeComponentHotHaloVerySimpleDelayed)                :: hotHaloComponent
 
     !$omp critical (Node_Component_Hot_Halo_Very_Simple_Delayed_Initialize)
@@ -83,7 +83,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-2</defaultValue>
        !#   <description>The mass scale, relative to the total mass of the node, below which calculations in the delayed very simple hot halo component are allowed to become inaccurate.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
     end if

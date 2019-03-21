@@ -79,15 +79,15 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Spin_Random_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Spin_Random_Thread_Initialize(parameters)
+  subroutine Node_Component_Spin_Random_Thread_Initialize(globalParameters_)
     !% Initializes the tree node random spin module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultSpinComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultSpinComponent%randomIsActive()) then
-       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
+       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Spin_Random_Thread_Initialize
