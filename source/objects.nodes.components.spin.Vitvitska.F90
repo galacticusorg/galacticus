@@ -87,12 +87,11 @@ contains
     implicit none
     type(inputParameters           ), intent(inout) :: globalParameters_
     type(nodeComponentspinVitvitska)                :: spin
-    !GCC$ attributes unused :: globalParameters_
 
     !# <inputParameter>
     !#   <name>spinVitvitskaMassExponent</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <description>The exponent of mass ratio appearing in the orbital angular momentum term in the Vitvitska spin model.</description>
     !#   <type>double</type>
     !#   <cardinality>1</cardinality>
@@ -100,7 +99,7 @@ contains
     !# <inputParameter>
     !#   <name>spinVitvitskaUnresolvedBoost</name>
     !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <description>The factor by which the angular momentum of unresolved accretion is boosted relative to the angular momentum of the primary progenitor.</description>
     !#   <type>double</type>
     !#   <cardinality>1</cardinality>
