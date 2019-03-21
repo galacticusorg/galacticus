@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'         }."/perl";
 use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
+use Cwd;
 use PDL;
 use PDL::IO::HDF5;
 use PDL::NiceSlice;
@@ -19,7 +20,7 @@ die("Usage: analysesPlot.pl <galacticusFile> [options]")
     unless ( scalar(@ARGV) >= 1 );
 my $galacticusFileName  = $ARGV[0];
 my %options;
-$options{'outputDirectory'} = $galacticusFileName =~ m/^(.*)\/[^\/]+$/ ? $1 : ".";
+$options{'outputDirectory'} = $galacticusFileName =~ m/^(.*)\/[^\/]+$/ ? $1 : getcwd();
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 # Open the Galacticus file.
 my $galacticusFile = new PDL::IO::HDF5($galacticusFileName);
@@ -44,7 +45,7 @@ foreach my $analysisName ( @analyses ) {
     unless ( exists($attributes->{'type'}) ) {
 	print "Warning: analysis '".$analysisName."' has no 'type' attribute, so it can not be processed.\n";
     } elsif ( $attributes->{'type'} eq "function1D" ) {
-	# Simple 1D function - will be shown as an x-y scatter plot.
+    	# Simple 1D function - will be shown as an x-y scatter plot.
 	# Validate attributes.
 	my @datasetNames = ( 'xDataset', 'yDataset', 'yDatasetTarget', 'yCovariance', 'yCovarianceTarget' );
 	foreach my $attributeRequired ( @datasetNames ) {
