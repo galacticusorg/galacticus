@@ -479,8 +479,8 @@ contains
     select type (satelliteComponent)
     class is (nodeComponentSatelliteOrbiting)
        ! Get an orbit for this satellite.
-       hostNode  => thisNode%parent
-       thisOrbit =  virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
+       hostNode  => thisNode    %parent%firstChild
+       thisOrbit =  virialOrbit_%orbit            (thisNode,hostNode,acceptUnboundOrbits)
        ! Store the orbit.
        call satelliteComponent%virialOrbitSet(thisOrbit)
        ! Set the initial bound mass of this satellite.
