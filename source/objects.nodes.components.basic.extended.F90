@@ -94,14 +94,14 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Basic_Extended_Bindings</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Basic_Extended_Bindings(parameters)
+  subroutine Node_Component_Basic_Extended_Bindings(globalParameters_)
     !% Initializes the ``extended'' implementation of the basic component.
     use Galacticus_Nodes                     , only : nodeComponentBasicStandardExtended
     use ISO_Varying_String
     use Input_Parameters
     use Spherical_Collapse_Matter_Dark_Energy
     implicit none
-    type(inputParameters                   ), intent(inout) :: parameters
+    type(inputParameters                   ), intent(inout) :: globalParameters_
     type(varying_string                    )                :: nodeComponentBasicExtendedSphericalCollapseTypeText, nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText
     type(nodeComponentBasicStandardExtended)                :: basic
 
@@ -111,7 +111,7 @@ contains
     !#   <defaultValue>var_str('matterLambda')</defaultValue>
     !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
     !#   <group>cosmology</group>
-    !#   <source>parameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>string</type>
     !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
     !# </inputParameter>
@@ -128,7 +128,7 @@ contains
        !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
        !#     \citealt{percival_cosmological_2005}; \S8.).</description>
        !#   <group>cosmology</group>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>string</type>
        !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
        !# </inputParameter>
@@ -145,16 +145,16 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Basic_Extended_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Basic_Extended_Thread_Initialize(parameters)
+  subroutine Node_Component_Basic_Extended_Thread_Initialize(globalParameters_)
     !% Initializes the tree node random spin module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultBasicComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
     
     if (defaultBasicComponent%standardExtendedIsActive()) then
-       !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-       !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+       !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="globalParameters_"/>
+       !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Basic_Extended_Thread_Initialize

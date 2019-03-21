@@ -187,7 +187,7 @@ contains
   !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Disk_Standard_Initialize</unitName>
   !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Disk_Standard_Initialize(parameters)
+  subroutine Node_Component_Disk_Standard_Initialize(globalParameters_)
     !% Initializes the tree node standard disk methods module.
     use Input_Parameters
     use Abundances_Structure
@@ -195,7 +195,7 @@ contains
     use Node_Component_Disk_Standard_Data
     use Galacticus_Nodes                 , only : defaultDiskComponent, nodeComponentDiskStandard
     implicit none
-    type(inputParameters          ), intent(inout) :: parameters
+    type(inputParameters          ), intent(inout) :: globalParameters_
     type(nodeComponentDiskStandard)                :: diskStandardComponent
 
     if (defaultDiskComponent%standardIsActive()) then
@@ -214,7 +214,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -222,7 +222,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-3</defaultValue>
        !#   <description>The minimum timescale (in units of the disk dynamical time) on which outflows may deplete gas in the disk.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -230,7 +230,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d0</defaultValue>
        !#   <description>The radius (in units of the standard scale length) to use in solving for the size of the disk.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -238,7 +238,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description></description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -246,7 +246,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not negative angular momentum is allowed for the disk.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -254,7 +254,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not star formation occurs in disks in satellites.</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
@@ -262,7 +262,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not disk stellar luminosities are inactive properties (i.e. do not appear in any ODE being solved).</description>
-       !#   <source>parameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>boolean</type>
        !# </inputParameter>
     end if
@@ -272,30 +272,30 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Disk_Standard_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Disk_Standard_Thread_Initialize(parameters)
+  subroutine Node_Component_Disk_Standard_Thread_Initialize(globalParameters_)
     !% Initializes the standard disk component module for each thread.
     use Input_Parameters
     use Galacticus_Error
     use Node_Component_Disk_Standard_Data
     use Galacticus_Nodes                 , only : defaultDiskComponent
     implicit none
-    type            (inputParameters), intent(inout) :: parameters
+    type            (inputParameters), intent(inout) :: globalParameters_
     double precision                                 :: diskMassDistributionDensityMoment1, diskMassDistributionDensityMoment2
     logical                                          :: surfaceDensityMoment1IsInfinite   , surfaceDensityMoment2IsInfinite
     
     ! Check if this implementation is selected. If so, initialize the mass distribution.
     if (defaultDiskComponent%standardIsActive()) then
        
-       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters"/>
-       !# <objectBuilder class="stellarPopulationProperties"         name="stellarPopulationProperties_"         source="parameters"/>
-       !# <objectBuilder class="starFormationFeedbackDisks"          name="starFormationFeedbackDisks_"          source="parameters"/>
-       !# <objectBuilder class="starFormationExpulsiveFeedbackDisks" name="starFormationExpulsiveFeedbackDisks_" source="parameters"/>
-       !# <objectBuilder class="starFormationTimescaleDisks"         name="starFormationTimescaleDisks_"         source="parameters"/>
-       !# <objectBuilder class="galacticDynamicsBarInstability"      name="galacticDynamicsBarInstability_"      source="parameters"/>
-       !# <objectBuilder class="ramPressureStrippingDisks"           name="ramPressureStrippingDisks_"           source="parameters"/>
-       !# <objectBuilder class="tidalStrippingDisks"                 name="tidalStrippingDisks_"                 source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="globalParameters_"/>
+       !# <objectBuilder class="stellarPopulationProperties"         name="stellarPopulationProperties_"         source="globalParameters_"/>
+       !# <objectBuilder class="starFormationFeedbackDisks"          name="starFormationFeedbackDisks_"          source="globalParameters_"/>
+       !# <objectBuilder class="starFormationExpulsiveFeedbackDisks" name="starFormationExpulsiveFeedbackDisks_" source="globalParameters_"/>
+       !# <objectBuilder class="starFormationTimescaleDisks"         name="starFormationTimescaleDisks_"         source="globalParameters_"/>
+       !# <objectBuilder class="galacticDynamicsBarInstability"      name="galacticDynamicsBarInstability_"      source="globalParameters_"/>
+       !# <objectBuilder class="ramPressureStrippingDisks"           name="ramPressureStrippingDisks_"           source="globalParameters_"/>
+       !# <objectBuilder class="tidalStrippingDisks"                 name="tidalStrippingDisks_"                 source="globalParameters_"/>
        
-       !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters" threadPrivate="yes">
+       !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters_" threadPrivate="yes">
        !#  <default>
        !#   <diskMassDistribution value="exponentialDisk">
        !#    <dimensionless value="true"/>

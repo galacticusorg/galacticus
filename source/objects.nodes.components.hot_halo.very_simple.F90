@@ -121,17 +121,17 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Hot_Halo_Very_Simple_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(parameters)
+  subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize(globalParameters_)
     !% Initializes the tree node very simple disk profile module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
-    type(inputParameters), intent(inout) :: parameters
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultHotHaloComponent%verySimpleIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-       !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="parameters"/>
-       !# <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="globalParameters_"/>
+       !# <objectBuilder class="coolingRate"         name="coolingRate_"         source="globalParameters_"/>
+       !# <objectBuilder class="accretionHalo"       name="accretionHalo_"       source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Initialize
