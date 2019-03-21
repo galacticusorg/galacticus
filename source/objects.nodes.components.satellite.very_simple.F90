@@ -223,8 +223,8 @@ contains
        ! Ensure the module has been initialized.
        call Node_Component_Satellite_Very_Simple_Initialize()
        ! Get an orbit for this satellite.
-       hostNode  => thisNode%parent
-       thisOrbit =  virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
+       hostNode  => thisNode    %parent%firstChild
+       thisOrbit =  virialOrbit_%orbit            (thisNode,hostNode,acceptUnboundOrbits)
        ! Compute and store a time until merging.
        mergeTime=satelliteMergingTimescales_%timeUntilMerging(thisNode,thisOrbit)
        if (mergeTime >= 0.0d0) call satelliteComponent%mergeTimeSet(mergeTime)
