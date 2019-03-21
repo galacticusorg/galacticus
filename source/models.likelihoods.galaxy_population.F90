@@ -106,7 +106,7 @@ contains
     !# <inputParameter>
     !#   <name>failedParametersFileName</name>
     !#   <cardinality>1</cardinality>
-    !#   <description>The verbosity level to use while performing evolve forests tasks.</description>
+    !#   <description>The filename to which parameters of failed models should be written.</description>
     !#   <defaultValue>var_str('./failedParameters.xml')</defaultValue>
     !#   <source>parameters</source>
     !#   <type>string</type>
@@ -145,11 +145,11 @@ contains
   double precision function galaxyPopulationEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
     !% Return the log-likelihood for the \glc\ likelihood function.
     use Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Perform_, Tasks_Evolve_Forest_Destruct_
-    use Models_Likelihoods_Constants  , only : logImpossible
+    use Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use Posterior_Sampling_State      , only : posteriorSampleStateClass
     use Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use MPI_Utilities                 , only : mpiSelf                        , mpiBarrier
-    use String_Handling               , only : String_Count_Words             , String_Split_Words          , String_Join                  , operator(//)
+    use String_Handling
     use Galacticus_Error              , only : Galacticus_Error_Report
     use Galacticus_Display            , only : Galacticus_Verbosity_Level_Set , Galacticus_Verbosity_Level  , Galacticus_Display_Message   , Galacticus_Display_Indent, &
          &                                     Galacticus_Display_Unindent    , verbosityStandard
@@ -387,20 +387,20 @@ contains
              call self%parametersModel%serializeToXML(self%failedParametersFileName//"."//iRank//".errCode"//status)
              ! Return impossible likelihood. We use a somewhat-less-than-impossible value to avoid this being rejected as the
              ! initial state.
-             galaxyPopulationEvaluate=1.0d-2*logImpossible
+             galaxyPopulationEvaluate=logImprobable
           end if
        else
           ! Forst evolution was successful - evaluate the likelihood.
           ! Extract the log-likelihood. This is evaluated by all chains (as they likely need to perform reduction across MPI
           ! processes), but only stored for the chain of this rank.
           logLikelihoodProposed=self%outputAnalysis_%logLikelihood()
-          if (iRank == mpiSelf%rank()) then
-             galaxyPopulationEvaluate=logLikelihoodProposed
-             ! Record timing information.
-             call CPU_Time(timeEnd)
-             timeEvaluate=timeEnd-timeBegin
-          end if
+          if (iRank == mpiSelf%rank()) galaxyPopulationEvaluate=logLikelihoodProposed
        end if
+       if (iRank == mpiSelf%rank()) then
+          ! Record timing information.
+          call CPU_Time(timeEnd)
+          timeEvaluate=timeEnd-timeBegin
+       end if       
        call mpiBarrier()
        call Tasks_Evolve_Forest_Destruct_(self%task_)
        !# <objectDestructor name="self%outputAnalysis_"/>
