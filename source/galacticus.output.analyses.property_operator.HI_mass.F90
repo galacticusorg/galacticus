@@ -92,7 +92,11 @@ contains
     !GCC$ attributes unused :: propertyType, outputIndex
 
     if (.not.present(node)) call Galacticus_Error_Report('node must be provided'//{introspection:location})
-    hiMassOperate=+propertyValue                                                &
-         &        *self%outputAnalysisMolecularRatio_%ratio(propertyValue,node)
+    hiMassOperate=+propertyValue                                                                                       &
+         &        *          self%outputAnalysisMolecularRatio_                      %ratio       (propertyValue,node) &
+         &        *10.0d0**(                                                                                           &
+         &                  +node%hostTree                     %randomNumberGenerator%normalSample(                  ) &
+         &                  *self%outputAnalysisMolecularRatio_                      %ratioScatter(propertyValue,node) &
+         &                 )
     return
   end function hiMassOperate
