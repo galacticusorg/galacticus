@@ -25,7 +25,8 @@
   type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionScaled
      !% A merger tree mass resolution class which assumes a mass resolution that scales with tree mass.
      private
-     double precision :: massResolutionMinimum, massResolutionFractional
+     double precision :: massResolutionMinimum   , massResolutionMaximum, &
+          &              massResolutionFractional
    contains
      procedure :: resolution => scaledResolution
   end type mergerTreeMassResolutionScaled
@@ -38,44 +39,53 @@
   
 contains
 
-  function scaledConstructorParameters(parameters)
+  function scaledConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily scaled} merger tree building mass resolution class which reads parameters from a
     !% provided parameter list.
     implicit none
-    type(mergerTreeMassResolutionScaled)                :: scaledConstructorParameters    
-    type(inputParameters               ), intent(inout) :: parameters
+    type            (mergerTreeMassResolutionScaled)                :: self    
+    type            (inputParameters               ), intent(inout) :: parameters
+    double precision                                                :: massResolutionMinimum    , massResolutionMaximum, &
+         &                                                             massResolutionFractional
 
     ! Check and read parameters.
     !# <inputParameter>
     !#   <name>massResolutionMinimum</name>
     !#   <source>parameters</source>
-    !#   <variable>scaledConstructorParameters%massResolutionMinimum</variable>
     !#   <defaultValue>5.0d9</defaultValue>
     !#   <description>The minimum mass resolution to use when building merger trees.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
+    !#   <name>massResolutionMaximum</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>huge(0.0d0)</defaultValue>
+    !#   <description>The maximum mass resolution to use when building merger trees.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
     !#   <name>massResolutionFractional</name>
     !#   <source>parameters</source>
-    !#   <variable>scaledConstructorParameters%massResolutionFractional</variable>
     !#   <defaultValue>1.0d-3</defaultValue>
     !#   <description>The fraction of the tree's root node mass to be used for the mass resolution when building merger trees.</description>
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    self=mergerTreeMassResolutionScaled(massResolutionMinimum,massResolutionMaximum,massResolutionFractional)
     !# <inputParametersValidate source="parameters"/>
     return
   end function scaledConstructorParameters
 
-  function scaledConstructorInternal(massResolutionMinimum,massResolutionFractional)
+  function scaledConstructorInternal(massResolutionMinimum,massResolutionMaximum,massResolutionFractional) result(self)
     !% Internal constructor for the {\normalfont \ttfamily scaled} merger tree building mass resolution class.
     implicit none
-    type            (mergerTreeMassResolutionScaled)                :: scaledConstructorInternal
-    double precision                                , intent(in   ) :: massResolutionMinimum    , massResolutionFractional
-
-    scaledConstructorInternal%massResolutionMinimum   =massResolutionMinimum
-    scaledConstructorInternal%massResolutionFractional=massResolutionFractional
+    type            (mergerTreeMassResolutionScaled)                :: self
+    double precision                                , intent(in   ) :: massResolutionMinimum    , massResolutionMaximum, &
+         &                                                             massResolutionFractional
+    !# <constructorAssign variables="massResolutionMinimum, massResolutionMaximum, massResolutionFractional"/>
+    
     return
   end function scaledConstructorInternal
 
@@ -88,9 +98,12 @@ contains
     class(nodeComponentBasic            ), pointer       :: baseBasic
 
     baseBasic        => tree%baseNode%basic()
-    scaledResolution =  max(                                                &
-         &                  self%massResolutionMinimum                    , &
-         &                  self%massResolutionFractional*baseBasic%mass()  &
+    scaledResolution =  max(                                                    &
+         &                      self%massResolutionMinimum                    , &
+         &                  min(                                                &
+         &                      self%massResolutionMaximum                    , &
+         &                      self%massResolutionFractional*baseBasic%mass()  &
+         &                     )                                                &
          &                 )
     return
   end function scaledResolution
