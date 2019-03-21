@@ -50,6 +50,8 @@
      module procedure independentLikelihoodsSequentialConstructorInternal
   end interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
 
+  double precision, parameter :: indpndntLklhdsSqntLogLikelihoodIncrement=1.0d2
+  
 contains
 
   function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
@@ -135,8 +137,9 @@ contains
     integer                                                       , allocatable  , dimension(:) :: evaluateCounts        , chainIndices           , &
          &                                                                                         forceCounts
     double precision                                              , allocatable  , dimension(:) :: stateVector           , stateVectorMapped
-    double precision                                                                            :: logLikelihoodVariance_, timeEvaluate_          , &
-         &                                                                                         logLikelihood         , logPriorProposed_
+    real                                                                                        :: timeEvaluate_
+    double precision                                                                            :: logLikelihoodVariance_, logPriorProposed_      , &
+         &                                                                                         logLikelihood
     integer                                                                                     :: i                     , j                      , &
          &                                                                                         likelihoodCount       , evaluateCount          , &
          &                                                                                         forceCount
@@ -148,15 +151,15 @@ contains
     allocate(evaluateCounts   (0:mpiSelf        %count    ()-1))
     allocate(forceCounts      (0:mpiSelf        %count    ()-1))
     allocate(chainIndices     (0:mpiSelf        %count    ()-1))
-    stateVector                                                =  simulationState%get()
-    independentLikelihoodsSequantialEvaluate                   =  0.0d0
-    likelihoodCount                                            =  0
-    evaluateCounts                                             =  mpiSelf%gather(self%evaluateCount)
-    forceCounts                                                =  mpiSelf%gather(self%forceCount   )
-    evaluateCount                                              =  minval(evaluateCounts)
-    modelLikelihood_                                           => self%modelLikelihoods
-    timeEvaluate_                                              =  0.0d0
-    if (present(logLikelihoodVariance)) logLikelihoodVariance_ =  0.0d0
+    stateVector                                               =  simulationState%get()
+    independentLikelihoodsSequantialEvaluate                  =  0.0d0
+    likelihoodCount                                           =  0
+    evaluateCounts                                            =  mpiSelf%gather(self%evaluateCount)
+    forceCounts                                               =  mpiSelf%gather(self%forceCount   )
+    evaluateCount                                             =  minval(evaluateCounts)
+    modelLikelihood_                                          => self%modelLikelihoods
+    timeEvaluate                                              =  0.0d0
+    if (present(logLikelihoodVariance)) logLikelihoodVariance =  0.0d0
     ! If a new global likelihood has been reached, report on it.
     if (mpiSelf%isMaster().and.evaluateCount > self%evaluateCountGlobal) then
        self%evaluateCountGlobal=evaluateCount
@@ -233,23 +236,27 @@ contains
             &                                                                                                                  logLikelihoodCurrent    , &
             &                                                                                                                  logPriorCurrent         , &
             &                                                                                                                  logPriorProposed_       , &
-            &                                                                                                                  timeEvaluate            , &
-            &                                                                                                                  logLikelihoodVariance     &
+            &                                                                                                                  timeEvaluate_           , &
+            &                                                                                                                  logLikelihoodVariance_    &
             &                                                                                                                 )
-       ! Modify the likelihood.
-       !! First shift it so that acceptable likelihoods are always positive.
-       logLikelihood=logLikelihood-self%likelihoodAccept    (likelihoodCount)
-       !! Scale by a multilying factor to steepen the likelihood function.
-       logLikelihood=logLikelihood*self%likelihoodMultiplier(likelihoodCount)
+       ! Modify the likelihood, unless it is improbable, in which case we simply leave it alone.
+       if (logLikelihood > logImprobable) then
+          !! First shift it so that acceptable likelihoods are always positive.
+          logLikelihood=logLikelihood-self%likelihoodAccept    (likelihoodCount)
+          !! Scale by a multiplying factor to steepen the likelihood function.
+          logLikelihood=logLikelihood*self%likelihoodMultiplier(likelihoodCount)
+          !! If likelihood is positive, fix it to our likelihood increment value.
+          if (logLikelihood >= 0.0d0) logLikelihood=indpndntLklhdsSqntLogLikelihoodIncrement
+       end if
        ! Accumulate the likelihood unless our local proposed prior is impossible (in which case we did not actually need to
        ! compute this likelihood, but were calling the evaluate method just to ensure MPI synchronization).
-       if (logPriorProposed_ > logImpossible)                                                               &
-            & independentLikelihoodsSequantialEvaluate           =+independentLikelihoodsSequantialEvaluate &
-            &                                                     +logLikelihood
-       if (present(logLikelihoodVariance)) logLikelihoodVariance_=+logLikelihoodVariance_                   &
-            &                                                     +logLikelihoodVariance
-       timeEvaluate_                                             =+timeEvaluate_                            &
-            &                                                     +timeEvaluate
+       if (logPriorProposed_ > logImpossible)                                                              &
+            & independentLikelihoodsSequantialEvaluate          =+independentLikelihoodsSequantialEvaluate &
+            &                                                    +logLikelihood
+       if (present(logLikelihoodVariance)) logLikelihoodVariance=+logLikelihoodVariance                    &
+            &                                                    +logLikelihoodVariance_
+       timeEvaluate                                             =+timeEvaluate                             &
+            &                                                    +timeEvaluate_
        if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
           if (likelihoodCount > evaluateCounts(simulationState%chainIndex())) then                
              ! We have matched or exceeded the previous number of likelihoods evaluated.             
@@ -261,7 +268,7 @@ contains
                 forceAcceptance                              =.true.
              end if
              ! Check for acceptable likelihood.
-             if (logLikelihood > 0.0d0) then
+             if (logLikelihood >= 0.0d0) then
                 ! We have achieved a match at a new likelihood.
                 evaluateCounts(simulationState%chainIndex())=likelihoodCount                   
              else
@@ -300,14 +307,10 @@ contains
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
     double precision                                              , intent(in   ), dimension(:) :: simulationState
     double precision                                              , intent(in   )               :: logLikelihood
-    double precision                                              , save                        :: logLikelihoodSuccess=0.0d0
-    !$omp threadprivate(logLikelihoodSuccess)
     !GCC$ attributes unused :: simulationState
     
     ! Detect the sequential state jumping to the next level.
-    if (logLikelihood-dble(self%evaluateCount)*logLikelihoodSuccess > 0.0d0) then
-       ! Store the jump in log-likelihood at the jump.
-       if (logLikelihoodSuccess <= 0.0d0) logLikelihoodSuccess=logLikelihood
+    if (logLikelihood-dble(self%evaluateCount)*indpndntLklhdsSqntLogLikelihoodIncrement > 0.0d0) then
        ! Increment the record of the level achieved.
        self%evaluateCount=self%evaluateCount+1
        self%   forceCount=self%   forceCount+1
