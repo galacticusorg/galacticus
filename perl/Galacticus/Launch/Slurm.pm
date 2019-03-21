@@ -295,8 +295,24 @@ sub SubmitJobs {
 		}
 		# Create the batch script.
 		my $resourceModel = exists($newJob->{'resourceModel'}) ? $newJob->{'resourceModel'} : "nodes";
-		my $ppn           = exists($newJob->{'ppn'          }) ? $newJob->{'ppn'          } : 1      ;
-		my $nodes         = exists($newJob->{'nodes'        }) ? $newJob->{'nodes'        } : 1      ;
+		my $ppn = 1;
+		if ( exists($newJob->{'ppn'}) ) {
+		    $ppn = $newJob->{'ppn'};
+		} elsif ( exists($slurmConfig->{'ppn'}) ) {
+		    $ppn = $slurmConfig->{'ppn'};
+		}
+		my $nodes = 1;
+		if ( exists($newJob->{'nodes'}) ) {
+		    $nodes = $newJob->{'nodes'};
+		} elsif ( exists($slurmConfig->{'nodes'}) ) {
+		    $nodes = $slurmConfig->{'nodes'};
+		}
+		my $ompThreads = 1;
+		if ( exists($newJob->{'ompThreads'}) ) {
+		    $ompThreads = $newJob->{'ompThreads'};
+		} elsif ( exists($slurmConfig->{'ompThreads'}) ) {
+		    $ompThreads = $slurmConfig->{'ompThreads'};
+		}
 		open(my $scriptFile,">".$newJob->{'launchFile'});
 		print $scriptFile "#!/bin/bash\n";
 		print $scriptFile "#SBATCH --job-name=\"".$newJob->{'label'}."\"\n";
@@ -319,7 +335,7 @@ sub SubmitJobs {
 		}
 		print $scriptFile "#SBATCH --error=".$newJob->{'logFile'}."\n";
 		print $scriptFile "#SBATCH --output=".$newJob->{'logFile'}."\n";
-		# Find the working directory - we support either SLURM or SLURM environment variables here.
+		# Find the working directory.
 		print $scriptFile "if [ ! -z \${SLURM_SUBMIT_DIR+x} ]; then\n";
 		print $scriptFile " cd \$SLURM_SUBMIT_DIR\n";
 		print $scriptFile "fi\n";
@@ -327,8 +343,8 @@ sub SubmitJobs {
 		    foreach ( &List::ExtraUtils::as_array($slurmConfig->{'environment'}) );
 		print $scriptFile "ulimit -t unlimited\n";
 		print $scriptFile "ulimit -c unlimited\n";
-		print $scriptFile "export OMP_NUM_THREADS=".$ppn."\n";
-		print $scriptFile $newJob->{'command'}."\n";
+		print $scriptFile "export OMP_NUM_THREADS=".$ompThreads."\n";
+		print $scriptFile (exists($newJob->{'mpi'}) && $newJob->{'mpi'} eq "yes" ? "mpirun -np ".($ppn*$nodes)." " : "").$newJob->{'command'}."\n";
 		print $scriptFile "exit\n";
 		close($scriptFile);
 	    } else {
