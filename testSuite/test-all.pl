@@ -740,7 +740,7 @@ sub testFailure {
 	    if ( $expect eq "fail" ) {
 		# We expected failure, but we did not fail. This is a failure.
 		$result = "FAILED: ".$jobMessage." (failure expected)\n";
-	    } else {
+	    } elsif ( $expect eq "success" ) {
 		# We expected failure, but we did not fail. This is a failure.
 		$result = "SUCCESS: ".$jobMessage."\n";
 	    } else {
