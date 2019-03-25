@@ -21,7 +21,6 @@
 
 program Test_Crash
   !% Tests that crashes are detected.
-  double precision, allocatable, dimension(:) :: a
 
-  a(1)=0.0d0
+  call abort()
 end program Test_Crash
