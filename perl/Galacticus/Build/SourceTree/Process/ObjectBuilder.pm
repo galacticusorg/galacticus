@@ -120,7 +120,7 @@ sub Process_ObjectBuilder {
 		    $defaultXML                 =~ s/\s*\n\s*//g;
 		    $defaultXML                 =~ s/\s{2,}/ /g;
 		    $builderCode               .=  "   if (.not.parametersCurrent%isPresent('".$parameterName."')) then\n";
-		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'),noOutput=.true.)\n";
+		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'),allowedParameterNames=['".$parameterName."'],noOutput=.true.)\n";
 		    $builderCode               .= "     call parametersDefault%parametersGroupCopy(parametersCurrent)\n";
 		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
 		    $builderCode               .=  "  end if\n";
