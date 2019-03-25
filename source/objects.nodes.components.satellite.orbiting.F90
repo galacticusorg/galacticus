@@ -451,8 +451,12 @@ contains
     select type (satelliteComponent)
     class is (nodeComponentSatelliteOrbiting)
        ! Get an orbit for this satellite.
-       hostNode  => thisNode    %parent%firstChild
-       thisOrbit =  virialOrbit_%orbit            (thisNode,hostNode,acceptUnboundOrbits)
+       if (thisNode%isSatellite()) then
+          hostNode => thisNode%parent
+       else
+          hostNode => thisNode%parent%firstChild
+       end if
+       thisOrbit=virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Store the orbit.
        call satelliteComponent%virialOrbitSet(thisOrbit)
     end select
