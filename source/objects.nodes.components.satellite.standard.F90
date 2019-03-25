@@ -279,8 +279,12 @@ contains
              orbit=self%virialOrbitValue()
           end if
        else
-          hostNode => selfNode    %parent
-          orbit    =  virialOrbit_%orbit (selfNode,hostNode,acceptUnboundOrbits)
+          if (selfNode%isSatellite()) then
+             hostNode => selfNode%parent
+          else
+             hostNode => selfNode%parent%firstChild
+          end if
+          orbit=virialOrbit_%orbit(selfNode,hostNode,acceptUnboundOrbits)
        end if
     else
        call orbit%reset()
@@ -412,8 +416,12 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
        ! Get an orbit for this satellite.
-       hostNode => node        %parent%firstChild
-       orbit    =  virialOrbit_%orbit            (node,hostNode,acceptUnboundOrbits)
+       if (node%isSatellite()) then
+          hostNode => node%parent
+       else
+          hostNode => node%parent%firstChild
+       end if
+       orbit=virialOrbit_%orbit(node,hostNode,acceptUnboundOrbits)
        ! Store the orbit if necessary.
        if (satelliteOrbitStoreOrbitalParameters) call satellite%virialOrbitSet(orbit)
        ! Compute and store a time until merging.
