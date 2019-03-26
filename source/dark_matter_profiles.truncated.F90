@@ -29,13 +29,20 @@
      private
      class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
+     double precision                                    :: radiusFractionalTruncateMinimum    , radiusFractionalTruncateMaximum
      logical                                             :: unimplementedIsFatal
+     ! Record of unique ID of node which we last computed results for.
+     integer         (kind=kind_int8          )          :: lastUniqueID
+     ! Stored values of computed quantities.
+     double precision                                    :: enclosedMassTruncateMinimumPrevious, enclosedMassTruncateMaximumPrevious, &
+          &                                                 enclosingMassRadiusPrevious
    contains
      final                                             truncatedDestructor
+     procedure :: calculationReset                  => truncatedCalculationReset
      procedure :: density                           => truncatedDensity
      procedure :: densityLogSlope                   => truncatedDensityLogSlope
      procedure :: radiusEnclosingDensity            => truncatedRadiusEnclosingDensity
+     procedure :: radiusEnclosingMass               => truncatedRadiusEnclosingMass
      procedure :: radialMoment                      => truncatedRadialMoment
      procedure :: enclosedMass                      => truncatedEnclosedMass
      procedure :: potential                         => truncatedPotential
@@ -113,6 +120,7 @@ contains
     logical                                     , intent(in   )         :: unimplementedIsFatal
     !# <constructorAssign variables="radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,unimplementedIsFatal,*darkMatterProfile_,*darkMatterHaloScale_"/>
 
+    self%lastUniqueID=-1_kind_int8
     return
   end function truncatedConstructorInternal
 
@@ -125,6 +133,20 @@ contains
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine truncatedDestructor
+
+  subroutine truncatedCalculationReset(self,node)
+    !% Reset the dark matter profile calculation.
+    implicit none
+    class(darkMatterProfileTruncated), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node
+
+    self%lastUniqueID                       =node%uniqueID()
+    self%enclosingMassRadiusPrevious        =-1.0d0
+    self%enclosedMassTruncateMinimumPrevious=-1.0d0
+    self%enclosedMassTruncateMaximumPrevious=-1.0d0
+    call self%darkMatterHaloScale_%calculationReset(node)
+    return
+  end subroutine truncatedCalculationReset
   
   double precision function truncatedDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
@@ -184,10 +206,80 @@ contains
        truncatedRadiusEnclosingDensity=0.0d0
        call Galacticus_Error_Report('radius enclosing density in truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedRadiusEnclosingDensity=self%darkMatterProfile_%densityLogSlope(node,density)
+       truncatedRadiusEnclosingDensity=self%darkMatterProfile_%radiusEnclosingDensity(node,density)
     end if
     return
   end function truncatedRadiusEnclosingDensity
+
+  double precision function truncatedRadiusEnclosingMass(self,node,mass)
+    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    use Root_Finder
+    implicit none
+    class           (darkMatterProfileTruncated), intent(inout), target :: self
+    type            (treeNode                  ), intent(inout), target :: node
+    double precision                            , intent(in   )         :: mass
+    type            (rootFinder                ), save                  :: finder
+    !$omp threadprivate(finder)
+    double precision                                                    :: radiusTruncateMinimum, radiusTruncateMaximum, &
+         &                                                                 radiusVirial
+
+    if (mass <= 0.0d0) then
+       truncatedRadiusEnclosingMass=0.0d0
+       return
+    end if
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Get the virial radius.
+    radiusVirial         = self%darkMatterHaloScale_%virialRadius(node)
+    ! Compute the radii where the truncation starts and ends.
+    radiusTruncateMinimum= radiusVirial*self%radiusFractionalTruncateMinimum
+    radiusTruncateMaximum= radiusVirial*self%radiusFractionalTruncateMaximum
+    ! Compute the enclosed mass within the radii where the truncation starts and ends if required.
+    if (self%enclosedMassTruncateMinimumPrevious < 0.0d0) then
+       self%enclosedMassTruncateMinimumPrevious=self%enclosedMass(node,radiusTruncateMinimum)
+    end if
+    if (self%enclosedMassTruncateMaximumPrevious < 0.0d0) then
+       self%enclosedMassTruncateMaximumPrevious=self%enclosedMass(node,radiusTruncateMaximum)
+    end if
+    ! If the given mass is smaller than the enclosed mass within the radius where the truncation starts,
+    ! compute the radius from untruncated profile. If the given mass is larger than the enclosed mass
+    ! within the radius where the truncation ends, return the maximum truncation radius. Otherwise, solve
+    ! the radius numerically.
+    if      (mass <= self%enclosedMassTruncateMinimumPrevious) then
+       truncatedRadiusEnclosingMass=self%darkMatterProfile_%radiusEnclosingMass(node,mass)
+    else if (mass >= self%enclosedMassTruncateMaximumPrevious) then
+       truncatedRadiusEnclosingMass=radiusTruncateMaximum
+    else
+       ! Initialize the root finder.
+       if (.not.finder%isInitialized()) then
+          call finder%rangeExpand (                                                                 &
+               &                       rangeExpandDownward          =0.5d0                        , &
+               &                       rangeExpandUpward            =2.0d0                        , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+          call finder%rootFunction(truncatedEnclosedMassRoot                         )
+          call finder%tolerance   (toleranceAbsolute=0.0d0  ,toleranceRelative=1.0d-6)
+       end if
+       if (self%enclosingMassRadiusPrevious < 0.0d0) then
+          self%enclosingMassRadiusPrevious = radiusVirial
+       end if
+       self%enclosingMassRadiusPrevious=finder%find(rootGuess=self%enclosingMassRadiusPrevious)
+       truncatedRadiusEnclosingMass    =self%enclosingMassRadiusPrevious
+    end if
+    return
+    contains
+      double precision function truncatedEnclosedMassRoot(radius)
+        !% Root function used in solving for the radius that encloses a given mass.
+        implicit none
+        double precision, intent(in) :: radius
+
+        truncatedEnclosedMassRoot=self%enclosedMass(node,radius)-mass
+        return
+      end function truncatedEnclosedMassRoot
+  end function truncatedRadiusEnclosingMass
 
   double precision function truncatedRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given

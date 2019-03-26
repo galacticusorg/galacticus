@@ -78,26 +78,33 @@ contains
     use Galacticus_Error
     use Root_Finder
     use Dark_Matter_Halo_Scales
+    use Dark_Matter_Profiles
+    use Cosmology_Parameters
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
     use Kind_Numbers           , only : kind_int8
     implicit none
     type            (treeNode                ), intent(inout), target   :: thisNode
-    integer                                   , intent(in   ), optional :: componentType                    , massType   , &
-         &                                                                 weightBy                         , weightIndex
-    double precision                          , intent(in   ), optional :: fractionalMass                   , mass
+    integer                                   , intent(in   ), optional :: componentType                , massType   , &
+         &                                                                 weightBy                     , weightIndex
+    double precision                          , intent(in   ), optional :: fractionalMass               , mass
     logical                                   , intent(in   ), optional :: haloLoaded
     class           (darkMatterHaloScaleClass), pointer                 :: darkMatterHaloScale_
+    class           (darkMatterProfileClass  ), pointer                 :: darkMatterProfile_
+    class           (cosmologyParametersClass), pointer                 :: cosmologyParameters_
     type            (rootFinder              ), save                    :: finder
     !$omp threadprivate(finder)
-    double precision                          , save                    :: radiusPrevious      =-huge(0.0d0)
-    integer         (kind_int8               ), save                    :: uniqueIDPrevious=   -1_kind_int8
+    double precision                          , save                    :: radiusPrevious  =-huge(0.0d0)
+    integer         (kind_int8               ), save                    :: uniqueIDPrevious=-1_kind_int8
     !$omp threadprivate(radiusPrevious,uniqueIDPrevious)
-    double precision :: radiusGuess
+    double precision                                                    :: radiusGuess
+    double precision                                                    :: massBaryons                  , fractionDarkMatter
     type            (varying_string          )                          :: message
     character       (len=11                  )                          :: massLabel
 
+    ! Mass of baryons.
+    massBaryons=Galactic_Structure_Enclosed_Mass(thisnode,componentType=componentTypeAll,massType=massTypeBaryonic)
     ! Set default options.
     call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
     ! Determine what mass to use.
@@ -113,40 +120,65 @@ contains
        Galactic_Structure_Radius_Enclosing_Mass=0.0d0
        return
     end if
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-       call finder%rootFunction(Enclosed_Mass_Root                              )
-       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
-    end if
-    ! Solve for the radius.
     activeNode => thisNode
-    if (Enclosed_Mass_Root(0.0d0) >= 0.0d0) then
-       message='Enclosed mass in galaxy (ID='
-       write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,0.0d0,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoaded=haloLoadedShared)
-       message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
-       write (massLabel,'(e10.4)') massRoot
-       message=message//') at zero radius (was seeking '//trim(massLabel)
-       message=message//') - returning zero radius.'
-       call Galacticus_Display_Message(message,verbosityWarn)
-       Galactic_Structure_Radius_Enclosing_Mass=0.0d0
-       return
-    end if
-    if (thisNode%uniqueID() == uniqueIDPrevious) then
-       radiusGuess          =  radiusPrevious
+    ! If dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
+    ! matter profile. Otherwise, find the radius numerically.
+    if     (                                         &
+         &   (                                       &
+         &    componentType == componentTypeDarkHalo &
+         &    .or.                                   &
+         &    massType      == massTypeDark          &
+         &   )                                       &
+         &   .and.                                   &
+         &   (                                       &
+         &    .not.haloLoaded                        &
+         &    .or.                                   &
+         &    massBaryons == 0.0d0                   &
+         &   )                                       &
+         & ) then
+       darkMatterProfile_   => darkMatterProfile  ()
+       cosmologyParameters_ => cosmologyParameters()
+       fractionDarkMatter   =  +(                                    &
+            &                    +cosmologyParameters_%OmegaMatter() &
+            &                    -cosmologyParameters_%OmegaBaryon() &
+            &                   )                                    &
+            &                  /  cosmologyParameters_%OmegaMatter()
+       Galactic_Structure_Radius_Enclosing_Mass=darkMatterProfile_%radiusEnclosingMass(activeNode,massRoot/fractionDarkMatter)
     else
-       darkMatterHaloScale_ => darkMatterHaloScale              (        )
-       radiusGuess          =  darkMatterHaloScale_%virialRadius(thisNode)
+       ! Initialize our root finder.
+       if (.not.finder%isInitialized()) then
+          call finder%rangeExpand (                                                             &
+               &                   rangeExpandDownward          =0.5d0                        , &
+               &                   rangeExpandUpward            =2.0d0                        , &
+               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                   rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+          call finder%rootFunction(Enclosed_Mass_Root                              )
+          call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+       end if
+       ! Solve for the radius.
+       if (Enclosed_Mass_Root(0.0d0) >= 0.0d0) then
+          message='Enclosed mass in galaxy (ID='
+          write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,0.0d0,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoaded=haloLoadedShared)
+          message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
+          write (massLabel,'(e10.4)') massRoot
+          message=message//') at zero radius (was seeking '//trim(massLabel)
+          message=message//') - returning zero radius.'
+          call Galacticus_Display_Message(message,verbosityWarn)
+          Galactic_Structure_Radius_Enclosing_Mass=0.0d0
+          return
+       end if
+       if (thisNode%uniqueID() == uniqueIDPrevious) then
+          radiusGuess          =  radiusPrevious
+       else
+          darkMatterHaloScale_ => darkMatterHaloScale              (        )
+          radiusGuess          =  darkMatterHaloScale_%virialRadius(thisNode)
+       end if
+       Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootGuess=radiusGuess)
+       uniqueIDPrevious                        =thisNode%uniqueID()
+       radiusPrevious                          =Galactic_Structure_Radius_Enclosing_Mass
     end if
-    Galactic_Structure_Radius_Enclosing_Mass=finder%find(rootGuess=radiusGuess)
-    uniqueIDPrevious                        =thisNode%uniqueID()
-    radiusPrevious                          =Galactic_Structure_Radius_Enclosing_Mass
     return
   end function Galactic_Structure_Radius_Enclosing_Mass
 
