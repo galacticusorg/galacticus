@@ -183,6 +183,8 @@ contains
     type(fgsl_error_handler_t) :: galacticusGslErrorHandler, standardGslErrorHandler
 
     call Signal( 2,Galacticus_Signal_Handler_SIGINT )
+    call Signal( 4,Galacticus_Signal_Handler_SIGILL )
+    call Signal( 7,Galacticus_Signal_Handler_SIGBUS )
     call Signal( 8,Galacticus_Signal_Handler_SIGFPE )
     call Signal(11,Galacticus_Signal_Handler_SIGSEGV)
     call Signal(15,Galacticus_Signal_Handler_SIGINT )
@@ -323,6 +325,95 @@ contains
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
+
+  subroutine Galacticus_Signal_Handler_SIGBUS()
+    !% Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
+    !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
+    implicit none
+    integer            :: error
+#ifdef USEMPI
+    integer            :: mpiRank
+    character(len=128) :: hostName
+    logical            :: flag
+#endif
+
+    write (0,*) 'Galacticus experienced a bus error - will try to flush data before exiting.'
+    !$ if (omp_in_parallel()) then
+    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
+    !$ else
+    !$    write (0,*) " => Error occurred in master thread"
+    !$ end if
+    call Galacticus_Warn_Review   (     )
+    call Flush                    (    0)
+#ifdef UNCLEANEXIT
+    call Exit(1)
+#else
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(errorWaitTime)
+    end if
+#endif
+    call H5Close_F                (error)
+    call H5Close_C                (     )
+    call Semaphore_Post_On_Error  (     )
+    call Abort                    (     )
+#endif
+    return
+  end subroutine Galacticus_Signal_Handler_SIGBUS
+
+
+  subroutine Galacticus_Signal_Handler_SIGILL()
+    !% Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
+    !$ use OMP_Lib
+#ifdef USEMPI
+    use MPI
+#endif
+    implicit none
+    integer            :: error
+#ifdef USEMPI
+    integer            :: mpiRank
+    character(len=128) :: hostName
+    logical            :: flag
+#endif
+
+    write (0,*) 'Galacticus experienced an illegal instruction - will try to flush data before exiting.'
+    !$ if (omp_in_parallel()) then
+    !$    write (0,*) " => Error occurred in thread ",omp_get_thread_num()
+    !$ else
+    !$    write (0,*) " => Error occurred in master thread"
+    !$ end if
+    call Galacticus_Warn_Review   (     )
+    call Flush                    (    0)
+#ifdef UNCLEANEXIT
+    call Exit(1)
+#else
+#ifdef USEMPI
+    call MPI_Initialized(flag,error)
+    if (flag) then
+       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+       call hostnm(hostName)
+       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+       write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
+       call Flush(0)
+       call Sleep(errorWaitTime)
+    end if
+#endif
+    call H5Close_F                (error)
+    call H5Close_C                (     )
+    call Semaphore_Post_On_Error  (     )
+    call Abort                    (     )
+#endif
+    return
+  end subroutine Galacticus_Signal_Handler_SIGILL
 
   subroutine Galacticus_Signal_Handler_SIGXCPU()
     !% Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
