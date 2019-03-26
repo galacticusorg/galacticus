@@ -29,16 +29,22 @@
   type, extends(darkMatterProfileClass) :: darkMatterProfileTruncatedExponential
      !% A dark matter halo profile class implementing exponentially truncated dark matter halos.
      private
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_   => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: radiusFractionalDecay, alpha, &
-          &                                                 beta                 , gamma
+     double precision                                    :: radiusFractionalDecay      , alpha, &
+          &                                                 beta                       , gamma
      logical                                             :: unimplementedIsFatal
+     ! Record of unique ID of node which we last computed results for.
+     integer         (kind=kind_int8          )          :: lastUniqueID
+     ! Stored values of computed quantities.
+     double precision                                    :: enclosingMassRadiusPrevious, kappaPrevious
    contains
      final                                             truncatedExponentialDestructor
+     procedure :: calculationReset                  => truncatedExponentialCalculationReset
      procedure :: density                           => truncatedExponentialDensity
      procedure :: densityLogSlope                   => truncatedExponentialDensityLogSlope
      procedure :: radiusEnclosingDensity            => truncatedExponentialRadiusEnclosingDensity
+     procedure :: radiusEnclosingMass               => truncatedExponentialRadiusEnclosingMass
      procedure :: radialMoment                      => truncatedExponentialRadialMoment
      procedure :: enclosedMass                      => truncatedExponentialEnclosedMass
      procedure :: potential                         => truncatedExponentialPotential
@@ -134,6 +140,7 @@ contains
     logical                                                , intent(in   )         :: unimplementedIsFatal
     !# <constructorAssign variables="radiusFractionalDecay,alpha,beta,gamma,unimplementedIsFatal,*darkMatterProfile_,*darkMatterHaloScale_"/>
 
+    self%lastUniqueID=-1_kind_int8
     return
   end function truncatedExponentialConstructorInternal
 
@@ -146,7 +153,20 @@ contains
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine truncatedExponentialDestructor
-  
+
+  subroutine truncatedExponentialCalculationReset(self,node)
+    !% Reset the dark matter profile calculation.
+    implicit none
+    class(darkMatterProfileTruncatedExponential), intent(inout) :: self
+    type (treeNode                             ), intent(inout) :: node
+
+    self%lastUniqueID               = node%uniqueID()
+    self%kappaPrevious              =-huge(0.0d0)
+    self%enclosingMassRadiusPrevious=-1.0d0
+    call self%darkMatterHaloScale_%calculationReset(node)
+    return
+  end subroutine truncatedExponentialCalculationReset 
+
   double precision function truncatedExponentialDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
@@ -156,24 +176,28 @@ contains
     type            (treeNode                             ), intent(inout) :: node
     double precision                                       , intent(in   ) :: radius
     class           (nodeComponentDarkMatterProfile       ), pointer       :: darkMatterProfile
-    double precision                                                       :: radiusVirial, scaleRadius, concentration
-    double precision                                                       :: kappa       , radiusDecay
+    double precision                                                       :: radiusVirial     , scaleRadius, &
+         &                                                                    concentration    , radiusDecay
 
-    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-    
-    radiusVirial  =self%darkMatterHaloScale_%virialRadius(node)
-    scaleRadius   =darkMatterProfile%scale()
-    concentration =radiusVirial/scaleRadius
-
-    kappa         = -(self%gamma+self%beta*concentration**self%alpha)/(1.0d0+concentration**self%alpha) &
-         &          +1.0d0/self%radiusFractionalDecay
-    radiusDecay   =  self%radiusFractionalDecay*radiusVirial
-
-    if      (radius <= radiusVirial) then
-       truncatedExponentialDensity=+self%darkMatterProfile_%density(node,radius      )
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Get the virial radius.
+    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    if (radius <= radiusVirial) then
+       truncatedExponentialDensity=+self%darkMatterProfile_%density(node,radius)
     else
+       ! Compute kappa if required.
+       if (self%kappaPrevious == -huge(0.0d0)) then
+          darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
+          scaleRadius       =  darkMatterProfile%scale()
+          concentration     =  radiusVirial/scaleRadius
+          self%kappaPrevious= -(self%gamma+self%beta*concentration**self%alpha)/(1.0d0+concentration**self%alpha) &
+               &              +1.0d0/self%radiusFractionalDecay
+       end if
+       ! Compute decay scale.
+       radiusDecay                =+self%radiusFractionalDecay*radiusVirial
        truncatedExponentialDensity=+self%darkMatterProfile_%density(node,radiusVirial) &
-            &                      *(radius/radiusVirial)**kappa                       &
+            &                      *(radius/radiusVirial)**self%kappaPrevious          &
             &                      *exp(-(radius-radiusVirial)/radiusDecay)
     end if
     return
@@ -210,10 +234,65 @@ contains
        truncatedExponentialRadiusEnclosingDensity=0.0d0
        call Galacticus_Error_Report('radius enclosing density in exponentially truncated dark matter profiles is not supported'//{introspection:location})
     else
-       truncatedExponentialRadiusEnclosingDensity=self%darkMatterProfile_%densityLogSlope(node,density)
+       truncatedExponentialRadiusEnclosingDensity=self%darkMatterProfile_%radiusEnclosingDensity(node,density)
     end if
     return
   end function truncatedExponentialRadiusEnclosingDensity
+
+  double precision function truncatedExponentialRadiusEnclosingMass(self,node,mass)
+    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    use Galacticus_Nodes, only : nodeComponentBasic
+    use Root_Finder
+    implicit none
+    class           (darkMatterProfileTruncatedExponential), intent(inout), target :: self
+    type            (treeNode                             ), intent(inout), target :: node
+    double precision                                       , intent(in   )         :: mass
+    class           (nodeComponentBasic                   ), pointer               :: basic
+    type            (rootFinder                           ), save                  :: finder
+    !$omp threadprivate(finder)
+
+    if (mass <= 0.0d0) then
+       truncatedExponentialRadiusEnclosingMass=0.0d0
+       return
+    end if
+    ! Get basic component.
+    basic => node%basic()
+    ! If the given mass is smaller than the virial mass, compute the radius from untruncated profile.
+    if (mass <= basic%mass()) then
+       truncatedExponentialRadiusEnclosingMass=self%darkMatterProfile_%radiusEnclosingMass(node,mass)
+    else
+       ! Initialize the root finder.
+       if (.not.finder%isInitialized()) then
+          call finder%rangeExpand (                                                                 &
+               &                       rangeExpandDownward          =0.5d0                        , &
+               &                       rangeExpandUpward            =2.0d0                        , &
+               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                       rangeExpandType              =rangeExpandMultiplicative      &
+               &                  )
+          call finder%rootFunction(truncatedExponentialEnclosedMassRoot                         )
+          call finder%tolerance   (toleranceAbsolute=0.0d0             ,toleranceRelative=1.0d-6)
+       end if
+       ! Check if node differs from previous one for which we performed calculations.
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       if (self%enclosingMassRadiusPrevious < 0.0d0) then
+          self%enclosingMassRadiusPrevious=self%darkMatterHaloScale_%virialRadius(node)
+       end if
+       self%enclosingMassRadiusPrevious=finder%find(rootGuess=self%enclosingMassRadiusPrevious)
+       truncatedExponentialRadiusEnclosingMass=self%enclosingMassRadiusPrevious
+    end if
+    return
+    contains
+      double precision function truncatedExponentialEnclosedMassRoot(radius)
+        !% Root function used in solving for the radius that encloses a given mass.
+        implicit none
+        double precision, intent(in) :: radius
+
+        truncatedExponentialEnclosedMassRoot=self%enclosedMass(node,radius)-mass
+        return
+      end function truncatedExponentialEnclosedMassRoot
+  end function truncatedExponentialRadiusEnclosingMass
 
   double precision function truncatedExponentialRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given

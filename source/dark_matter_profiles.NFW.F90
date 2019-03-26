@@ -59,8 +59,10 @@
      double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale       , &
           &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious     , &
           &                                                     maximumVelocityPrevious                , enclosedDensityPrevious            , &
-          &                                                     enclosingRadiusPrevious                , densityScalePrevious               , &
-          &                                                     circularVelocityPrevious               , circularVelocityRadiusPrevious
+          &                                                     enclosingDensityRadiusPrevious         , densityScalePrevious               , &
+          &                                                     enclosedMassPrevious                   , enclosingMassRadiusPrevious        , &
+          &                                                     massScalePrevious                      , circularVelocityPrevious           , &
+          &                                                     circularVelocityRadiusPrevious
      ! Pointer to object setting halo scales.
      class(darkMatterHaloScaleClass           ), pointer     :: darkMatterHaloScale_ => null()
    contains
@@ -146,6 +148,7 @@
      procedure :: radialMoment                      => nfwRadialMoment
      procedure :: enclosedMass                      => nfwEnclosedMass
      procedure :: radiusEnclosingDensity            => nfwRadiusEnclosingDensity
+     procedure :: radiusEnclosingMass               => nfwRadiusEnclosingMass
      procedure :: potential                         => nfwPotential
      procedure :: circularVelocity                  => nfwCircularVelocity
      procedure :: circularVelocityMaximum           => nfwCircularVelocityMaximum
@@ -277,6 +280,8 @@ contains
     self%maximumVelocityComputed                =.false.
     self%enclosedDensityPrevious                =-1.0d0
     self%densityScalePrevious                   =-1.0d0
+    self%enclosedMassPrevious                   =-1.0d0
+    self%massScalePrevious                      =-1.0d0
     self%circularVelocityRadiusPrevious         =-1.0d0
     self%lastUniqueID                           =node%uniqueID()
     call self%darkMatterHaloScale_%calculationReset(node)
@@ -897,12 +902,60 @@ contains
           ! Ensure density table spans required range.
           call self%enclosedDensityTabulate(densityScaleFree)
           ! Interpolate in density table to find the required radius.
-          self%enclosingRadiusPrevious=self%nfwEnclosedDensityInverse%interpolate(-densityScaleFree)*scaleRadius
+          self%enclosingDensityRadiusPrevious=self%nfwEnclosedDensityInverse%interpolate(-densityScaleFree)*scaleRadius
        end if
     end if
-    nfwRadiusEnclosingDensity=self%enclosingRadiusPrevious
+    nfwRadiusEnclosingDensity=self%enclosingDensityRadiusPrevious
     return
   end function nfwRadiusEnclosingDensity
+
+  double precision function nfwRadiusEnclosingMass(self,node,mass)
+    !% Returns the radius (in Mpc) in an NFW dark matter profile with given {\normalfont \ttfamily
+    !% concentration} which encloses a given mass (in $M_\odot$).
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
+    use FGSL            , only : FGSL_SF_LAMBERT_W0
+    implicit none
+    class           (darkMatterProfileNFW          ), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: mass
+    class           (nodeComponentBasic            ), pointer               :: basic
+    class           (nodeComponentDarkMatterProfile), pointer               :: darkMatterProfile
+    double precision                                                        :: scaleRadius                , massScaleFree, &
+         &                                                                     virialRadiusOverScaleRadius
+
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Get scale radius if required.
+    if (self%massScalePrevious < 0.0d0 .or. mass /= self%enclosedMassPrevious) then
+       darkMatterProfile => node             %darkMatterProfile(autoCreate=.true.)
+       scaleRadius       =  darkMatterProfile%scale            (                 )
+       ! Compute the mass scale if necessary.
+       if (self%massScalePrevious < 0.0d0) then
+          ! Extract profile parameters.
+          basic                       => node%basic()
+          virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+          ! Compute the mass profile normalization factor.
+          call nfwMassNormalizationFactor(self,virialRadiusOverScaleRadius)
+          ! Compute mass normalization scale.
+          self%massScalePrevious      =  1.0d0/basic%mass()/self%nfwNormalizationFactorPrevious
+       end if
+       ! Compute radius enclosing mass if necessary.
+       if (mass /= self%enclosedMassPrevious) then
+          self%enclosedMassPrevious       = mass
+          ! Compute scaled mass.
+          massScaleFree                   =+mass                                                   &
+               &                           *self%massScalePrevious
+          ! Compute radius.
+          self%enclosingMassRadiusPrevious=-(                                                      &
+               &                             +1.0d0/FGSL_SF_LAMBERT_W0(-exp(-1.0d0-massScaleFree)) &
+               &                             +1.0d0                                                &
+               &                            )                                                      &
+               &                           *scaleRadius
+       end if
+    end if
+    nfwRadiusEnclosingMass=self%enclosingMassRadiusPrevious
+    return
+  end function nfwRadiusEnclosingMass
 
   double precision function nfwDensityEnclosedByRadiusScaleFree(self,radius)
     !% Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
