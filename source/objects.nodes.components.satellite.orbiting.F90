@@ -29,6 +29,7 @@ module Node_Component_Satellite_Orbiting
   use Satellite_Tidal_Heating
   use Dark_Matter_Halo_Scales
   use Virial_Orbits
+  use ISO_Varying_String          , only : varying_string, var_str, operator(==)
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
@@ -117,7 +118,9 @@ module Node_Component_Satellite_Orbiting
   ! Option controlling minimum mass of satellite halos before a merger is triggered.
   double precision            :: satelliteOrbitingDestructionMass
   logical                     :: satelliteOrbitingDestructionMassIsFractional
-
+  ! Option controlling how to initialize the bound mass of satellite halos.
+  type(varying_string)        :: satelliteBoundMassInitializeType
+  double precision            :: satelliteMaximumRadiusOverVirialRadius      , satelliteDensityContrast
 contains
 
   !# <mergerTreePreTreeConstructionTask>
@@ -148,6 +151,30 @@ contains
        !#   <source>globalParameters</source>
        !#   <type>double</type>
        !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>satelliteBoundMassInitializeType</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>var_str('basicMass')</defaultValue>
+       !#   <description>Specify how to initialize the bound mass of a satellite halo. By default, the initial bound mass of a satellite halo is set to the node mass.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>string</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>satelliteMaximumRadiusOverVirialRadius</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>1.0d0</defaultValue>
+       !#   <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
+       !# <inputParameter>
+       !#   <name>satelliteDensityContrast</name>
+       !#   <cardinality>1</cardinality>
+       !#   <defaultValue>200.0d0</defaultValue>
+       !#   <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
+       !#   <source>globalParameters</source>
+       !#   <type>double</type>
+       !# </inputParameter>
        ! Specify the function to use for setting virial orbits.
        call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
     end if
@@ -157,19 +184,19 @@ contains
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
-  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(globalParameters_)
+  subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters)
     !% Initializes the tree node orbiting satellite module.
     use Galacticus_Nodes, only : defaultSatelliteComponent
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="globalParameters_"/>
-       !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="globalParameters_"/>
-       !# <objectBuilder class="satelliteTidalHeatingRate"  name="satelliteTidalHeatingRate_"  source="globalParameters_"/>
-       !# <objectBuilder class="satelliteTidalStripping"    name="satelliteTidalStripping_"    source="globalParameters_"/>
-       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"        name="darkMatterHaloScale_"        source="parameters"/>
+       !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
+       !# <objectBuilder class="satelliteTidalHeatingRate"  name="satelliteTidalHeatingRate_"  source="parameters"/>
+       !# <objectBuilder class="satelliteTidalStripping"    name="satelliteTidalStripping_"    source="parameters"/>
+       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
@@ -455,6 +482,8 @@ contains
        thisOrbit =  virialOrbit_%orbit(thisNode,hostNode,acceptUnboundOrbits)
        ! Store the orbit.
        call satelliteComponent%virialOrbitSet(thisOrbit)
+       ! Set the initial bound mass of this satellite.
+       call Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satelliteComponent,thisNode)
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
@@ -521,5 +550,45 @@ contains
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set
+
+  subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satelliteComponent,thisNode)
+    !% Set the initial bound mass of the satellite.
+    use Galacticus_Error
+    use Galacticus_Nodes                    , only : nodeComponentSatellite          , treeNode, nodeComponentSatelliteOrbiting
+    use Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Enclosed_Mass
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (nodeComponentSatellite)              , intent(inout) :: satelliteComponent
+    type            (treeNode              ), pointer     , intent(in   ) :: thisNode
+    double precision                                                      :: virialRadius      , maximumRadius, &
+         &                                                                   satelliteMass
+
+    select type (satelliteComponent)
+    class is (nodeComponentSatelliteOrbiting)
+       if      (satelliteBoundMassInitializeType == 'basicMass'      ) then
+          ! Do nothing. The bound mass of this satellite is set to the node mass by default.
+       else if (satelliteBoundMassInitializeType == 'maximumRadius'  ) then
+          ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
+          if (satelliteMaximumRadiusOverVirialRadius > 0.0d0) then
+             virialRadius  = darkMatterHaloScale_%virialRadius  (thisNode                         )
+             maximumRadius = satelliteMaximumRadiusOverVirialRadius*virialRadius
+             satelliteMass = Galactic_Structure_Enclosed_Mass   (thisNode,maximumRadius           )
+          else
+             call Galacticus_Error_Report('specify a positive maximum radius for the satellite'//{introspection:location})
+          end if
+       else if (satelliteBoundMassInitializeType == 'densityContrast') then
+          ! Set the initial bound mass of this satellite by assuming a specified density contrast.
+          if (satelliteDensityContrast > 0.0d0) then
+             satelliteMass = Dark_Matter_Profile_Mass_Definition(thisNode,satelliteDensityContrast)
+          else
+             call Galacticus_Error_Report('specify a positive density contrast for the satellite'//{introspection:location})
+          end if
+       else
+          call Galacticus_Error_Report('tpye of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
+       end if
+       call satelliteComponent%boundMassSet(satelliteMass)
+    end select
+    return
+  end subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize
 
 end module Node_Component_Satellite_Orbiting
