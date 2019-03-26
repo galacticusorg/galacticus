@@ -87,8 +87,12 @@ contains
     !# <constructorAssign variables="*haloEnvironment_, *cosmologicalMassVariance_, *cosmologyParameters_"/>
 
     ! Evaluate and store the variance of the background.
-    self%massBackground    =self%haloEnvironment_         %environmentMass(                   )
-    self%varianceBackground=self%cosmologicalMassVariance_%rootVariance   (self%massBackground)**2
+    self   %massBackground    =self%haloEnvironment_         %environmentMass(                   )
+    if (self%massBackground < huge(0.0d0)) then
+       self%varianceBackground=self%cosmologicalMassVariance_%rootVariance   (self%massBackground)**2
+    else
+       self%varianceBackground=0.0d0
+    end if
     return
   end function variancePeakBackgroundSplitConstructorInternal
 
