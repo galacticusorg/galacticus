@@ -134,6 +134,57 @@ module Dark_Matter_Profiles
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: time</argument>
   !#  </method>
+  !#  <method name="radiusEnclosingMass" >
+  !#   <description>Returns the radius (in Mpc) enclosing a given mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
+  !#   <argument>type             (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision           , intent(in   )         :: mass</argument>
+  !#   <modules>Dark_Matter_Halo_Scales Root_Finder Kind_Numbers</modules>
+  !#   <code>
+  !#    class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  !#    double precision                                    :: radiusGuess
+  !#    type            (rootFinder              ), save    :: finder
+  !#    double precision                          , save    :: radiusPrevious=-huge(0.0d0)
+  !#    integer         (kind_int8               ), save    :: uniqueIDPrevious=-1_kind_int8
+  !#    !$omp threadprivate(finder,radiusPrevious,uniqueIDPrevious)
+  !#    if(mass &lt;= 0) then
+  !#       darkMatterProfileRadiusEnclosingMass=0.0d0
+  !#       return
+  !#    end if
+  !#    ! Initialize the root finder.
+  !#    if (.not.finder%isInitialized()) then
+  !#       call finder%rangeExpand (                                                                 &amp;
+  !#            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
+  !#            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
+  !#            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
+  !#            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &amp;
+  !#            &amp;                   rangeExpandType              =rangeExpandMultiplicative      &amp;
+  !#            &amp;              )
+  !#       call finder%rootFunction(enclosedMassRoot                                )
+  !#       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
+  !#    end if
+  !#    if (node%uniqueID()     == uniqueIDPrevious) then
+  !#       radiusGuess          =  radiusPrevious
+  !#    else
+  !#       darkMatterHaloScale_ => darkMatterHaloScale              (    )
+  !#       radiusGuess          =  darkMatterHaloScale_%virialRadius(node)
+  !#       uniqueIDPrevious     =  node                %uniqueID    (    )
+  !#    end if
+  !#    radiusPrevious=finder%find(rootGuess=radiusGuess)
+  !#    darkMatterProfileRadiusEnclosingMass=radiusPrevious
+  !#    return
+  !#    contains
+  !#      double precision function enclosedMassRoot(radius)
+  !#        !% Root function used in solving for the radius that encloses a given mass.
+  !#        implicit none
+  !#        double precision,               intent(in) :: radius
+  !#        enclosedMassRoot=self%enclosedMass(node,radius)-mass
+  !#        return
+  !#      end function enclosedMassRoot
+  !#   </code>
+  !#  </method>
   !# </functionClass>
 
   !# <functionClass>
