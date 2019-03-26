@@ -23,8 +23,7 @@
   !#  <description>
   !#   A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class
   !#   begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without
-  !#   evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions
-  !#   applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given
+  !#   evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions !#   applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given
   !#   likelihood has been evaluated it will be evaluated on all subsequent calls. Additionally, when a new likelihood is
   !#   evaluated for the first time, acceptance of the proposed state will be forced. This class therefore allows a sequence of
   !#   likelihoods to be specified which must be sequentially made sufficiently ``good'' before evaluating the next. The approach
@@ -37,7 +36,7 @@
      private
      integer                                     :: evaluateCount                , evaluateCountGlobal, &
           &                                         forceCount
-     logical                                     :: finalLikelihoodFullEvaluation
+     logical                                     :: finalLikelihoodFullEvaluation, restored
      double precision, dimension(:), allocatable :: likelihoodMultiplier         , likelihoodAccept
    contains
      procedure :: evaluate => independentLikelihoodsSequantialEvaluate
@@ -112,6 +111,7 @@ contains
     self%evaluateCount      =0
     self%evaluateCountGlobal=0
     self%forceCount         =0
+    self%restored           =.false.
     return
   end function independentLikelihoodsSequentialConstructorInternal
 
@@ -177,7 +177,7 @@ contains
     ! If this chain has already reached beyond the current evaluate level then we do not want to evaluate it again. Set the
     ! proposed prior to an impossible value to prevent the model likehood being evaluated. This will result in the chain remaining
     ! locked into its current state.
-    if (evaluateCounts(simulationState%chainIndex()) > evaluateCount) then
+    if (evaluateCounts(simulationState%chainIndex()) > evaluateCount .and. .not.self%restored) then
        logPriorProposed_                       =logImpossible
        independentLikelihoodsSequantialEvaluate=logImpossible
     end if
@@ -258,8 +258,8 @@ contains
        timeEvaluate                                             =+timeEvaluate                             &
             &                                                    +timeEvaluate_
        if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
-          if (likelihoodCount > evaluateCounts(simulationState%chainIndex())) then                
-             ! We have matched or exceeded the previous number of likelihoods evaluated.             
+          if (likelihoodCount > evaluateCounts(simulationState%chainIndex()) .or. self%restored) then                
+             ! We have matched or exceeded the previous number of likelihoods evaluated. (Or this is the first evaulation after being restored.)      
              ! Force acceptance if this is the first time we have reached this far (unless the proposed prior is impossible - we
              ! do not want to accept states outside of the prior bounds).
              if (forceCounts(simulationState%chainIndex()) < evaluateCounts(simulationState%chainIndex()) .and. logPriorProposed > logImpossible) then
@@ -298,6 +298,8 @@ contains
           exit
        end if
     end do
+    ! Unset restored status - the likelihood has now been evaluated.
+    self%restored=.false.
     return    
   end function independentLikelihoodsSequantialEvaluate
 
@@ -315,6 +317,8 @@ contains
        self%evaluateCount=self%evaluateCount+1
        self%   forceCount=self%   forceCount+1
     end if
+    ! Set restored status - likelihood must always be evaluated after restoration.
+    self%restored=.true.
     return
   end subroutine independentLikelihoodsSequentialRestore
 
