@@ -51,6 +51,7 @@
      procedure :: density                           => heatedDensity
      procedure :: densityLogSlope                   => heatedDensityLogSlope
      procedure :: radiusEnclosingDensity            => heatedRadiusEnclosingDensity
+     procedure :: radiusEnclosingMass               => heatedRadiusEnclosingMass
      procedure :: radialMoment                      => heatedRadialMoment
      procedure :: enclosedMass                      => heatedEnclosedMass
      procedure :: potential                         => heatedPotential
@@ -273,6 +274,33 @@ contains
     end if
     return
   end function heatedRadiusEnclosingDensity
+
+  double precision function heatedRadiusEnclosingMass(self,node,mass)
+    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    use Numerical_Constants_Physical
+    use Galactic_Structure_Options
+    implicit none
+    class           (darkMatterProfileHeated), intent(inout), target :: self
+    type            (treeNode               ), intent(inout), target :: node
+    double precision                         , intent(in   )         :: mass
+    double precision                                                 :: radiusInitial
+    double precision                                                 :: energySpecific
+
+    radiusInitial            =self%darkMatterProfile_%radiusEnclosingMass(node,mass)
+    energySpecific           =self%darkMatterProfileHeating_%specificEnergy(node,self%darkMatterProfile_,radiusInitial)
+    heatedRadiusEnclosingMass=+1.0d0                                                      &
+         &                    /                                                           &
+         &                    (                                                           &
+         &                     +1.0d0/radiusInitial                                       &
+         &                     -2.0d0/gravitationalConstantGalacticus/mass*energySpecific &
+         &                    )
+    ! If the radius found is negative, which means the intial shell has expanded to infinity, return the largest radius.
+    if (heatedRadiusEnclosingMass < 0.0d0) then
+       heatedRadiusEnclosingMass=radiusLarge
+    end if
+    return
+  end function heatedRadiusEnclosingMass
 
   double precision function heatedRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
