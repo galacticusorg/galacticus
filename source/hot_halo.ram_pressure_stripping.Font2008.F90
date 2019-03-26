@@ -113,7 +113,9 @@ contains
 
   double precision function font2008RadiusStripped(self,node)
     !% Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
-     use Root_Finder
+    use Root_Finder
+    use Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
+    use Galacticus_Display, only : Galacticus_Display_Message
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -121,7 +123,11 @@ contains
     double precision                                     , parameter             :: radiusSmallestOverRadiusVirial=1.0d-6
     type            (rootFinder                         ), save                  :: finder
     !$omp threadprivate(finder)
-    double precision                                                             :: radiusVirial
+    double precision                                                             :: radiusVirial                         , radiusVirialRoot        , &
+         &                                                                          radiusSmallRoot
+    integer                                                                      :: status
+    type            (varying_string                     )                        :: message
+    character       (len=16                             )                        :: label
  
     ! Get the virial radius of the satellite.
     radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
@@ -133,12 +139,14 @@ contains
        ! Get the ram pressure force due to the hot halo.
        font2008ForceRamPressure =  self%hotHaloRamPressureForce_%force(node)
        ! Find the radial range within which the ram pressure radius must lie.
-       if      (font2008RadiusSolver(                             radiusVirial) >= 0.0d0) then
+       radiusVirialRoot=font2008RadiusSolver(radiusVirial)
+       if      (radiusVirialRoot >= 0.0d0) then
           ! The ram pressure force is not sufficiently strong to strip even at the satellite virial radius - simply return the
           ! virial radius as the stripping radius in this case.
           font2008RadiusStripped=radiusVirial
        else
-          if (font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial) <= 0.0d0) then
+          radiusSmallRoot=font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
+          if (radiusSmallRoot <= 0.0d0) then
              ! The ram pressure force can strip to (essentially) arbitrarily small radii.
              font2008RadiusStripped=0.0d0
           else
@@ -171,7 +179,26 @@ contains
                 self%radiusLast  =radiusVirial
                 self%uniqueIDLast=node%uniqueID()
              end if
-             font2008RadiusStripped=finder%find(rootGuess=min(self%radiusLast,radiusVirial))
+             font2008RadiusStripped=finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status)
+             if (status /= errorStatusSuccess) then
+                message='virial radius / root function at virial radius = '
+                write (label,'(e12.6)') radiusVirial
+                message=message//trim(adjustl(label))
+                write (label,'(e12.6)') radiusVirialRoot
+                message=message//" / "//trim(adjustl(label))
+                write (label,'(e12.6)') font2008RadiusSolver(radiusVirial)
+                message=message//" : "//trim(adjustl(label))
+                call Galacticus_Display_Message(message)
+                message='small radius / root function at small radius = '
+                write (label,'(e12.6)') radiusSmallestOverRadiusVirial*radiusVirial
+                message=message//trim(adjustl(label))
+                write (label,'(e12.6)') radiusSmallRoot
+                message=message//" / "//trim(adjustl(label))
+                write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
+                message=message//" : "//trim(adjustl(label))
+                call Galacticus_Display_Message(message)
+                call Galacticus_Error_Report('root finding failed'//{introspection:location})
+             end if
              self%radiusLast=font2008RadiusStripped
           end if
        end if
