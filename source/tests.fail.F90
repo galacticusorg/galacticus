@@ -21,7 +21,6 @@
 
 program Test_Fail
   !% Tests that failures are detected.
-  double precision, allocatable, dimension(:) :: a
 
   write (0,*) "FAILED: failed intentionally"
 end program Test_Fail
