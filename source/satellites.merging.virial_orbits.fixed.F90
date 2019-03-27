@@ -31,9 +31,11 @@
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
      class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_   => null()
    contains
-     final     ::                              fixedDestructor
-     procedure :: orbit                     => fixedOrbit
-     procedure :: densityContrastDefinition => fixedDensityContrastDefinition
+     final     ::                                    fixedDestructor
+     procedure :: orbit                           => fixedOrbit
+     procedure :: densityContrastDefinition       => fixedDensityContrastDefinition
+     procedure :: velocityTangentialMagnitudeMean => fixedVelocityTangentialMagnitudeMean
+     procedure :: velocityTangentialVectorMean    => fixedVelocityTangentialVectorMean
   end type virialOrbitFixed
   
   interface virialOrbitFixed
@@ -171,4 +173,37 @@ contains
     fixedDensityContrastDefinition => self%virialDensityContrast_
     return
   end function fixedDensityContrastDefinition
+  
+  double precision function fixedVelocityTangentialMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the tangential velocity.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitFixed  ), intent(inout) :: self
+    type            (treeNode          ), intent(inout) :: node        , host
+    class           (nodeComponentBasic), pointer       :: hostBasic
+    double precision                                    :: massHost    , radiusHost, &
+         &                                                 velocityHost
+    !GCC$ attributes unused :: node
+
+    hostBasic                            =>  host%basic()
+    massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    fixedVelocityTangentialMagnitudeMean =  +self%velocityTangential &
+         &                                  *     velocityHost
+    return
+  end function fixedVelocityTangentialMagnitudeMean
+
+  function fixedVelocityTangentialVectorMean(self,node,host)
+    !% Return the mean of the vector tangential velocity.
+    use Galacticus_Error
+    implicit none
+    double precision                  , dimension(3)  :: fixedVelocityTangentialVectorMean
+    class           (virialOrbitFixed), intent(inout) :: self
+    type            (treeNode        ), intent(inout) :: node                             , host
+    !GCC$ attributes unused :: self, node, host
+
+    fixedVelocityTangentialVectorMean=0.0d0
+    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    return
+  end function fixedVelocityTangentialVectorMean
 
