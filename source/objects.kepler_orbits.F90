@@ -35,12 +35,17 @@ module Kepler_Orbits
      !% stationary host. Energy and angular momentum are defined per unit satellite mass (not per unit reduced mass). Note that
      !% not all interconversions between elements are implemented. The object works by attempting to get the radial and tangential
      !% velocities and the radius. If it can obtain these, any other parameter can be computed. Getting these three parameters
-     !% relies on having known conversions from other possible combinations of parameters.
+     !% relies on having known conversions from other possible combinations of parameters. The position of the object is described
+     !% by $(r,\theta,\phi)$ in standard spherical coordinates. The direction of the tangential component is velocity is taken to
+     !% be the direction of the vector $\mathbf{r} \cross \mathbf{e}_\hat{\mathrm{z}}$, rotated by an angle $\epsilon$ around the
+     !% vector $\mathbf{r}$.
      private
      double precision :: hostMassValue        , specificReducedMassValue
      double precision :: radiusApocenterValue , radiusPericenterValue   , &
           &              radiusValue
      double precision :: velocityRadialValue  , velocityTangentialValue
+     double precision :: thetaValue           , phiValue                , &
+          &              epsilonValue
      double precision :: angularMomentumValue
      double precision :: energyValue
      double precision :: eccentricityValue
@@ -48,11 +53,13 @@ module Kepler_Orbits
      logical          :: massesIsSet
      logical          :: radiusApocenterIsSet , radiusIsSet             , &
           &              radiusPericenterIsSet
+     logical          :: thetaIsSet           , phiIsSet                , &
+          &              epsilonIsSet
      logical          :: velocityRadialIsSet  , velocityTangentialIsSet
      logical          :: angularMomentumIsSet
      logical          :: energyIsSet
      logical          :: eccentricityIsSet
-     logical          :: semimajorAxisIsSet
+     logical          :: semimajorAxisIsSet     
    contains
      ! Orbit methods.
      !@ <objectMethods>
@@ -154,6 +161,24 @@ module Kepler_Orbits
      !@     <arguments>\doublezero\ radius\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>thetaSet</method>
+     !@     <description>Sets the angle $\theta$ of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ theta\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>phiSet</method>
+     !@     <description>Sets the angle $\phi$ of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ theta\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>epsilonSet</method>
+     !@     <description>Sets the angle $\epsilon$ of an orbit.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ theta\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>radiusPericenterSet</method>
      !@     <description>Sets the pericenter radius of an orbit.</description>
      !@     <type>\void</type>
@@ -220,6 +245,24 @@ module Kepler_Orbits
      !@     <arguments></arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>theta</method>
+     !@     <description>Returns the angle $\theta$ of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>phi</method>
+     !@     <description>Returns the angle $\phi$ of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>epsilon</method>
+     !@     <description>Returns the angle $\epsilon$ of an orbit.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>radiusPericenter</method>
      !@     <description>Returns the pericenter radius of an orbit.</description>
      !@     <type>\doublezero</type>
@@ -267,6 +310,18 @@ module Kepler_Orbits
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>position</method>
+     !@     <description>Returns the position coordinates.</description>
+     !@     <type>\textcolor{red}{\textless coordinateCartesian}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>velocity</method>
+     !@     <description>Returns the velocity coordinates.</description>
+     !@     <type>\textcolor{red}{\textless coordinateCartesian}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: builder               => Kepler_Orbits_Builder
      procedure :: dump                  => Kepler_Orbits_Dump
@@ -283,6 +338,9 @@ module Kepler_Orbits
      procedure :: propagate             => Kepler_Orbits_Propagate
      procedure :: massesSet             => Kepler_Orbits_Masses_Set
      procedure :: radiusSet             => Kepler_Orbits_Radius_Set
+     procedure :: thetaSet              => Kepler_Orbits_Theta_Set
+     procedure :: phiSet                => Kepler_Orbits_Phi_Set
+     procedure :: epsilonSet            => Kepler_Orbits_Epsilon_Set
      procedure :: radiusPericenterSet   => Kepler_Orbits_Pericenter_Radius_Set
      procedure :: radiusApocenterSet    => Kepler_Orbits_Apocenter_Radius_Set
      procedure :: velocityRadialSet     => Kepler_Orbits_Velocity_Radial_Set
@@ -295,10 +353,15 @@ module Kepler_Orbits
      procedure :: hostMass              => Kepler_Orbits_Host_Mass
      procedure :: velocityScale         => Kepler_Orbits_Velocity_Scale
      procedure :: radius                => Kepler_Orbits_Radius
+     procedure :: theta                 => Kepler_Orbits_Theta
+     procedure :: phi                   => Kepler_Orbits_Phi
+     procedure :: epsilon               => Kepler_Orbits_Epsilon
+     procedure :: position              => Kepler_Orbits_Position
      procedure :: radiusPericenter      => Kepler_Orbits_Pericenter_Radius
      procedure :: radiusApocenter       => Kepler_Orbits_Apocenter_Radius
      procedure :: velocityRadial        => Kepler_Orbits_Velocity_Radial
      procedure :: velocityTangential    => Kepler_Orbits_Velocity_Tangential
+     procedure :: velocity              => Kepler_Orbits_Velocity
      procedure :: energy                => Kepler_Orbits_Energy
      procedure :: angularMomentum       => Kepler_Orbits_Angular_Momentum
      procedure :: eccentricity          => Kepler_Orbits_Eccentricity
@@ -311,7 +374,7 @@ module Kepler_Orbits
   end interface keplerOrbit
   
   ! A null orbit.
-  type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
+  type(keplerOrbit), public :: zeroKeplerOrbit=keplerOrbit(0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,0.0d0,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.,.false.)
   
 contains
 
@@ -707,6 +770,75 @@ contains
     return
   end subroutine Kepler_Orbits_Semi_Major_Axis_Set
 
+  subroutine Kepler_Orbits_Theta_Set(orbit,theta)
+    !% Sets the angle $\theta$ to the specified value.
+    implicit none
+    class           (keplerOrbit), intent(inout) :: orbit
+    double precision             , intent(in   ) :: theta
+
+    ! Set the theta and flag that is set.
+    orbit%thetaValue=theta
+    orbit%thetaIsSet=.true.
+    return
+  end subroutine Kepler_Orbits_Theta_Set
+
+  subroutine Kepler_Orbits_Phi_Set(orbit,phi)
+    !% Sets the angle $\phi$ to the specified value.
+    implicit none
+    class           (keplerOrbit), intent(inout) :: orbit
+    double precision             , intent(in   ) :: phi
+
+    ! Set the phi and flag that is set.
+    orbit%phiValue=phi
+    orbit%phiIsSet=.true.
+    return
+  end subroutine Kepler_Orbits_Phi_Set
+
+  subroutine Kepler_Orbits_Epsilon_Set(orbit,epsilon)
+    !% Sets the $\epsilon$ to the specified value.
+    implicit none
+    class           (keplerOrbit), intent(inout) :: orbit
+    double precision             , intent(in   ) :: epsilon
+
+    ! Set the epsilon and flag that is set.
+    orbit%epsilonValue=epsilon
+    orbit%epsilonIsSet=.true.
+    return
+  end subroutine Kepler_Orbits_Epsilon_Set
+
+  double precision function Kepler_Orbits_Theta(orbit)
+    !% Return the angle $\theta$ for this orbit.
+    use Galacticus_Error
+    implicit none
+    class(keplerOrbit), intent(inout) :: orbit
+
+    if (.not.orbit%thetaIsSet) call Galacticus_Error_Report('theta has not been set for this orbit'//{introspection:location})
+    Kepler_Orbits_Theta=orbit%thetaValue
+    return
+  end function Kepler_Orbits_Theta
+
+  double precision function Kepler_Orbits_Phi(orbit)
+    !% Return the angle $\phi$ for this orbit.
+    use Galacticus_Error
+    implicit none
+    class(keplerOrbit), intent(inout) :: orbit
+
+    if (.not.orbit%phiIsSet) call Galacticus_Error_Report('phi has not been set for this orbit'//{introspection:location})
+    Kepler_Orbits_Phi=orbit%phiValue
+    return
+  end function Kepler_Orbits_Phi
+
+  double precision function Kepler_Orbits_Epsilon(orbit)
+    !% Return the angle $\epsilon$ for this orbit.
+    use Galacticus_Error
+    implicit none
+    class(keplerOrbit), intent(inout) :: orbit
+
+    if (.not.orbit%epsilonIsSet) call Galacticus_Error_Report('epsilon has not been set for this orbit'//{introspection:location})
+    Kepler_Orbits_Epsilon=orbit%epsilonValue
+    return
+  end function Kepler_Orbits_Epsilon
+
   double precision function Kepler_Orbits_Specific_Reduced_Mass(orbit)
     !% Return the specific reduced mass for this orbit.
     use Galacticus_Error
@@ -972,9 +1104,9 @@ contains
     call orbit%assertIsDefined()
     ! Check that the radius is within the allowed range.
     if     (                                                                                                               &
-         &    newRadius < orbit%radiusPericenter()                                                                     &
+         &    newRadius < orbit%radiusPericenter()                                                                         &
          &  .or.                                                                                                           &
-         &   (newRadius > orbit%radiusApocenter () .and. orbit%radiusApocenter() > 0.0d0)                          &
+         &   (newRadius > orbit%radiusApocenter () .and. orbit%radiusApocenter() > 0.0d0)                                  &
          & ) call Galacticus_Error_Report('radius lies outside of allowed range for this orbit'//{introspection:location})
     ! Get the energy and angular momentum
     energy         =orbit%energy         ()
@@ -990,7 +1122,52 @@ contains
     call orbit%radiusSet            (newRadius            )
     call orbit%velocityTangentialSet(newVelocityTangential)
     call orbit%velocityRadialSet    (newVelocityRadial    )
+    ! Propagation of positional information is not yet supported.
+    orbit%  thetaIsSet=.false.
+    orbit%    phiIsSet=.false.
+    orbit%epsilonIsSet=.false.
     return
   end subroutine Kepler_Orbits_Propagate
+
+  function Kepler_Orbits_Position(orbit) result(position)
+    !% Return the position of the orbit in Cartesian coordinates.
+    use Coordinates
+    implicit none
+    type (coordinateCartesian)                :: position
+    class(keplerOrbit        ), intent(inout) :: orbit
+    
+    position=+      orbit%radius()                    &
+         &   *[                                       &
+         &     +sin(orbit%theta ())*cos(orbit%phi()), &
+         &     +sin(orbit%theta ())*sin(orbit%phi()), &
+         &     +cos(orbit%theta ())                   &
+         &    ]
+    return
+  end function Kepler_Orbits_Position
+  
+  function Kepler_Orbits_Velocity(orbit) result(velocity)
+    !% Return the position of the orbit in Cartesian coordinates.
+    use Coordinates
+    use Vectors
+    implicit none
+    type            (coordinateCartesian)                :: velocity
+    class           (keplerOrbit        ), intent(inout) :: orbit
+    double precision                     , dimension(3)  :: radialVector             , velocityRadialVector     , &
+         &                                                  velocityTangentialVector1, velocityTangentialVector2
+
+    radialVector=[                                       &
+         &        +sin(orbit%theta ())*cos(orbit%phi()), &
+         &        +sin(orbit%theta ())*sin(orbit%phi()), &
+         &        +cos(orbit%theta ())                   &
+         &       ]
+    velocityRadialVector     =orbit%velocityRadial()*radialVector
+    velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
+    velocityTangentialVector1=velocityTangentialVector1/sqrt(sum(velocityTangentialVector1**2))
+    velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
+    velocityTangentialVector1=velocityTangentialVector1*orbit%velocityTangential()*cos(orbit%epsilon())
+    velocityTangentialVector2=velocityTangentialVector2*orbit%velocityTangential()*sin(orbit%epsilon())
+    velocity                 =velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2
+    return
+  end function Kepler_Orbits_Velocity
   
 end module Kepler_Orbits
