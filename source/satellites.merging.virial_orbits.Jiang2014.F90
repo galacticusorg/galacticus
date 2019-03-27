@@ -37,12 +37,25 @@
      class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_    => null()
      type            (virialDensityContrastFixed), pointer        :: virialDensityContrast_ => null()
      double precision                            , dimension(3,3) :: B                               , gamma, &
-          &                                                          sigma                           , mu
+          &                                                          sigma                           , mu   , &
+          &                                                          velocityTangentialMean
      type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
    contains
-     final     ::                              jiang2014Destructor
-     procedure :: orbit                     => jiang2014Orbit
-     procedure :: densityContrastDefinition => jiang2014DensityContrastDefinition
+     !@ <objectMethods>
+     !@   <object>virialOrbitJiang2014</object>
+     !@   <objectMethod>
+     !@     <method>parametersSelect</method>
+     !@     <arguments>\doublezero\ massHost\argin, \doublezero\ massSatellite\argin, \intzero\ i\argout, \intzero\ j\argout</arguments>
+     !@     <type>\void</type>
+     !@     <description>Select the parameter set to use for this satellite/host pairing.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                                    jiang2014Destructor
+     procedure :: orbit                           => jiang2014Orbit
+     procedure :: densityContrastDefinition       => jiang2014DensityContrastDefinition
+     procedure :: velocityTangentialMagnitudeMean => jiang2014VelocityTangentialMagnitudeMean
+     procedure :: velocityTangentialVectorMean    => jiang2014VelocityTangentialVectorMean
+     procedure :: parametersSelect                => jiang2014ParametersSelect
   end type virialOrbitJiang2014
 
   interface virialOrbitJiang2014
@@ -180,6 +193,8 @@ contains
 
   function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
+    use FGSL                 , only : FGSL_Integ_Gauss61, fgsl_function, fgsl_integration_workspace
+    use Numerical_Integration
     implicit none
     type            (virialOrbitJiang2014        )                         :: self
     double precision                              , dimension(3)           :: bRatioLow                          , bRatioIntermediate          , bRatioHigh          , &
@@ -198,6 +213,9 @@ contains
     double precision                                                       :: limitLower                         , limitUpper                  , halfWidthHalfMaximum, &
          &                                                                    fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
     logical                                                                :: reUse                              , limitFound
+    type            (fgsl_function               )                         :: integrandFunction
+    type            (fgsl_integration_workspace  )                         :: integrationWorkspace
+    logical                                                                :: integrationReset
     !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
 
     ! Assign parameters of the distribution.
@@ -281,6 +299,20 @@ contains
                 if (limitFound) call self%voightDistributions(i,j)%populate(0.0d0-1.0d-6,k)
                 if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
              end do
+             ! Compute the mean magnitude of tangential velocity.
+             integrationReset                =.true.
+             self%velocityTangentialMean(i,j)=Integrate(                                                       &
+                  &                                     limitLower                                           , &
+                  &                                     limitUpper                                           , &
+                  &                                     jiang2014DistributionVelocityTotal                   , &
+                  &                                     integrandFunction                                    , &
+                  &                                     integrationWorkspace                                 , &
+                  &                                     reset                             =integrationReset  , &
+                  &                                     toleranceAbsolute                 =0.0d+0            , &
+                  &                                     toleranceRelative                 =1.0d-6            , &
+                  &                                     integrationRule                   =FGSL_Integ_Gauss61  &
+                  &                                    )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
              ! Store this table for later reuse.
              !$omp critical(virialOrbitJiang2014ReUse)
              previousInitialized(i,j)=.true.
@@ -297,6 +329,34 @@ contains
     allocate(self%virialDensityContrast_)
     !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)"/>
     return
+
+  contains
+
+    double precision function jiang2014DistributionVelocityTotal(velocityTotal)
+      !% The distribution function for total velocity.
+      use Struve_Functions        , only : Struve_Function_L1
+      use Bessel_Functions        , only : Bessel_Function_I1
+      use Numerical_Constants_Math, only : Pi
+      implicit none
+      double precision, intent(in   ) :: velocityTotal
+      
+      jiang2014DistributionVelocityTotal=+voightDistribution%density(velocityTotal) &
+           &                             *Pi                                        &
+           &                             *                           velocityTotal  &
+           &                             *(                                         &
+           &                               +                         self%B(i,j)    & 
+           &                               -2.0d0*Bessel_Function_I1(self%B(i,j))   &
+           &                               -2.0d0*Struve_Function_L1(self%B(i,j))   &
+           &                              )                                         &
+           &                             /4.0d0                                     &
+           &                             /(                                         &
+           &                               +1.0d0                                   &
+           &                               +                         self%B(i,j)    &
+           &                               -      exp               (self%B(i,j))   &
+           &                              )
+      return
+    end function jiang2014DistributionVelocityTotal
+
   end function jiang2014ConstructorInternal
 
   subroutine jiang2014Destructor(self)
@@ -345,20 +405,7 @@ contains
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
     !# <objectDestructor name="virialDensityContrast_"/>
     ! Select parameters appropriate for this host-satellite pair.
-    if      (massHost < 10.0d0**12.5d0) then
-       jiang2014I=1
-    else if (massHost < 10.0d0**13.5d0) then
-       jiang2014I=2
-    else
-       jiang2014I=3
-    end if
-    if      (massSatellite/massHost < 0.005d0) then
-       jiang2014J=1
-    else if (massSatellite/massHost < 0.050d0) then
-       jiang2014J=2
-    else
-       jiang2014J=3
-    end if
+    call self%parametersSelect(massHost,massSatellite,jiang2014I,jiang2014J)
     ! Configure finder objects.
     if (.not.totalFinder %isInitialized()) then
        call totalFinder %rootFunction(jiang2014TotalVelocityCDF          )
@@ -474,4 +521,67 @@ contains
     jiang2014DensityContrastDefinition => self%virialDensityContrast_
     return
   end function jiang2014DensityContrastDefinition
-  
+
+  double precision function jiang2014VelocityTangentialMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the tangential velocity.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitJiang2014      ), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node                  , host
+    class           (nodeComponentBasic        ), pointer       :: hostBasic             , basic
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    double precision                                            :: massHost              , radiusHost   , &
+         &                                                         velocityHost          , massSatellite
+    integer                                                     :: i                     , j
+
+    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
+    basic         => node%basic()
+    hostBasic     => host%basic()
+    massHost      =  Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    massSatellite =  Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        )
+    !# <objectDestructor name="virialDensityContrast_"/>
+    call self%parametersSelect(massHost,massSatellite,i,j)
+    jiang2014VelocityTangentialMagnitudeMean=+self%velocityTangentialMean(i,j) &
+         &                                   *velocityHost
+    return
+  end function jiang2014VelocityTangentialMagnitudeMean
+
+  function jiang2014VelocityTangentialVectorMean(self,node,host)
+    !% Return the mean of the vector tangential velocity.
+    use Galacticus_Error
+    implicit none
+    double precision                       , dimension(3)  :: jiang2014VelocityTangentialVectorMean
+    class           (virialOrbitJiang2014), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node                                  , host
+    !GCC$ attributes unused :: self, node, host
+
+    jiang2014VelocityTangentialVectorMean=0.0d0
+    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    return
+  end function jiang2014VelocityTangentialVectorMean
+
+  subroutine jiang2014ParametersSelect(self,massHost,massSatellite,i,j)
+    !% Select the parameter set to use for this satellite/host pairing.
+    implicit none
+    class           (virialOrbitJiang2014), intent(inout) :: self
+    double precision                      , intent(in   ) :: massHost, massSatellite
+    integer                               , intent(  out) :: i       , j
+    !GCC$ attributes unused :: self
+    
+    if      (              massHost < 10.0d0**12.5d0) then
+       i=1
+    else if (              massHost < 10.0d0**13.5d0) then
+       i=2
+    else
+       i=3
+    end if
+    if      (massSatellite/massHost < 0.005d0       ) then
+       j=1
+    else if (massSatellite/massHost < 0.050d0       ) then
+       j=2
+    else
+       j=3
+    end if
+    return
+  end subroutine jiang2014ParametersSelect
