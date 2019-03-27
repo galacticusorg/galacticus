@@ -44,6 +44,18 @@ module Virial_Orbits
   !#   <type>class(virialDensityContrastClass)</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="velocityTangentialMagnitudeMean" >
+  !#   <description>Returns the mean of the magnitude of tangential velocity averaged over all orbits.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
+  !#  </method>
+  !#  <method name="velocityTangentialVectorMean" >
+  !#   <description>Returns the mean vector of the vector tangential velocity averaged over all orbits.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
+  !#  </method>
   !# </functionClass>
 
 end module Virial_Orbits

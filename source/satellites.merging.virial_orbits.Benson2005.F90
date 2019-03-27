@@ -35,9 +35,11 @@
      class(cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_    => null()
      type (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrast_ => null()
    contains
-     final     ::                              benson2005Destructor
-     procedure :: orbit                     => benson2005Orbit
-     procedure :: densityContrastDefinition => benson2005DensityContrastDefinition
+     final     ::                                    benson2005Destructor
+     procedure :: orbit                           => benson2005Orbit
+     procedure :: densityContrastDefinition       => benson2005DensityContrastDefinition
+     procedure :: velocityTangentialMagnitudeMean => benson2005VelocityTangentialMagnitudeMean
+     procedure :: velocityTangentialVectorMean    => benson2005VelocityTangentialVectorMean
   end type virialOrbitBenson2005
 
   interface virialOrbitBenson2005
@@ -177,3 +179,39 @@ contains
     benson2005DensityContrastDefinition => self%virialDensityContrast_
     return
   end function benson2005DensityContrastDefinition
+
+  double precision function benson2005VelocityTangentialMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the tangential velocity.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitBenson2005), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node                             , host
+    class           (nodeComponentBasic   ), pointer       :: hostBasic
+    ! The mean magnitude of tangential velocity. This was by numerical integration over the velocity distribution fitting function.
+    double precision                       , parameter     :: velocityTangentialMean=0.748205d0
+    double precision                                       :: massHost                         , radiusHost, &
+         &                                                    velocityHost
+    !GCC$ attributes unused :: node
+
+    hostBasic                                 =>  host%basic()
+    massHost                                  =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    benson2005VelocityTangentialMagnitudeMean =  +velocityTangentialMean &
+         &                                       *velocityHost
+    return
+  end function benson2005VelocityTangentialMagnitudeMean
+
+  function benson2005VelocityTangentialVectorMean(self,node,host)
+    !% Return the mean of the vector tangential velocity.
+    use Galacticus_Error
+    implicit none
+    double precision                       , dimension(3)  :: benson2005VelocityTangentialVectorMean
+    class           (virialOrbitBenson2005), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node                                  , host
+    !GCC$ attributes unused :: self, node, host
+
+    benson2005VelocityTangentialVectorMean=0.0d0
+    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    return
+  end function benson2005VelocityTangentialVectorMean
+

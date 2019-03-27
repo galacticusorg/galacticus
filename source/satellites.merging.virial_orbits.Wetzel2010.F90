@@ -44,9 +44,11 @@
      class  (criticalOverdensityClass             ), pointer     :: criticalOverdensity_          => null()
      type   (virialDensityContrastFriendsOfFriends), pointer     :: virialDensityContrast_        => null()
    contains
-     final     ::                              wetzel2010Destructor
-     procedure :: orbit                     => wetzel2010Orbit
-     procedure :: densityContrastDefinition => wetzel2010DensityContrastDefinition
+     final     ::                                    wetzel2010Destructor
+     procedure :: orbit                           => wetzel2010Orbit
+     procedure :: densityContrastDefinition       => wetzel2010DensityContrastDefinition
+     procedure :: velocityTangentialMagnitudeMean => wetzel2010VelocityTangentialMagnitudeMean
+     procedure :: velocityTangentialVectorMean    => wetzel2010VelocityTangentialVectorMean
   end type virialOrbitWetzel2010
 
   interface virialOrbitWetzel2010
@@ -277,3 +279,31 @@ contains
          &+wetzel2010CircularityGamma2],[2.0d0+wetzel2010CircularityGamma2],circularity)/(wetzel2010CircularityGamma2+1.0d0)
     return
   end function wetzel2010CircularityCumulativeProbability
+
+  double precision function wetzel2010VelocityTangentialMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the tangential velocity.
+    use Galacticus_Error
+    implicit none
+    class(virialOrbitWetzel2010), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node, host
+    !GCC$ attributes unused :: self, node, host
+
+    wetzel2010VelocityTangentialMagnitudeMean=0.0d0
+    call Galacticus_Error_Report('mean tangential velocity is not defined for this class'//{introspection:location})
+    return
+  end function wetzel2010VelocityTangentialMagnitudeMean
+
+  function wetzel2010VelocityTangentialVectorMean(self,node,host)
+    !% Return the mean of the vector tangential velocity.
+    use Galacticus_Error
+    implicit none
+    double precision                       , dimension(3)  :: wetzel2010VelocityTangentialVectorMean
+    class           (virialOrbitWetzel2010), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node                                  , host
+    !GCC$ attributes unused :: self, node, host
+
+    wetzel2010VelocityTangentialVectorMean=0.0d0
+    call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
+    return
+  end function wetzel2010VelocityTangentialVectorMean
+
