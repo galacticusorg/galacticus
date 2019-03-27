@@ -481,10 +481,10 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <starFormationExpulsiveFeedbackDisksMethod value="zero"/>
-    <starFormationExpulsiveFeedbackDisksMethod value="superWind">
-      <starFormationExpulsiveFeedbackSpheroidsMethod value="zero"/>
-      <starFormationExpulsiveFeedbackSpheroidsMethod value="superWind"/>
+    <starFormationExpulsiveFeedbackDisksMethod value="zero"     />
+    <starFormationExpulsiveFeedbackDisksMethod value="superWind" >
+      <starFormationExpulsiveFeedbackSpheroidsMethod value="zero"      parameterLevel="top"/>
+      <starFormationExpulsiveFeedbackSpheroidsMethod value="superWind" parameterLevel="top"/>
     </starFormationExpulsiveFeedbackDisksMethod>
   </parameters>
 
