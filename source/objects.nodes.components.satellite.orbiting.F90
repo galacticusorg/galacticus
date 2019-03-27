@@ -572,6 +572,7 @@ contains
     class is (nodeComponentSatelliteOrbiting)
        if      (satelliteBoundMassInitializeType == 'basicMass'      ) then
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
+          satelliteMass=satelliteComponent%boundMass()
        else if (satelliteBoundMassInitializeType == 'maximumRadius'  ) then
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
           if (satelliteMaximumRadiusOverVirialRadius > 0.0d0) then
