@@ -507,17 +507,12 @@ contains
 
   subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,thisOrbit)
     !% Set the orbit of the satellite at the virial radius.
-    use Numerical_Constants_Math
-    use Vectors
-    use Galacticus_Nodes        , only : nodeComponentSatellite, nodeComponentSatelliteOrbiting
+    use Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteOrbiting
+    use Coordinates     , only : assignment(=)
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: self
     type            (keplerOrbit           ), intent(in   ) :: thisOrbit
-    double precision                        , dimension(3)  :: radialVector                    , velocityRadialVector     , &
-         &                                                     velocityTangentialVector1       , velocityTangentialVector2
-    double precision                                        :: orbitalRadius                   , orbitalVelocityRadial    , &
-         &                                                     orbitalVelocityTangential       , velocityPhi              , &
-         &                                                     orbitalPositionPhi              , orbitalPositionTheta
+    double precision                        , dimension(3)  :: position , velocity
     type            (keplerOrbit           )                :: virialOrbit
 
     select type (self)
@@ -526,28 +521,12 @@ contains
        call thisOrbit%assertIsDefined()
        ! Store the orbit.
        call self%virialOrbitSetValue(thisOrbit)
-       ! Compute and store orbitial position and velocity.
-       virialOrbit              =thisOrbit
-       orbitalRadius            =virialOrbit%radius()
-       orbitalVelocityRadial    =virialOrbit%velocityRadial()
-       orbitalVelocityTangential=virialOrbit%velocityTangential()
-       orbitalPositionPhi       =     2.0d0*Pi*self%hostNode%hostTree%randomNumberGenerator%uniformSample()
-       orbitalPositionTheta     =acos(2.0d0   *self%hostNode%hostTree%randomNumberGenerator%uniformSample()-1.0d0)
-       radialVector             =[                                                   &
-            &                     sin(orbitalPositionTheta)*cos(orbitalPositionPhi), &
-            &                     sin(orbitalPositionTheta)*sin(orbitalPositionPhi), &
-            &                     cos(orbitalPositionTheta)                          &
-            &                    ]
-       call self%positionSet(orbitalRadius*radialVector)
-       velocityRadialVector     =orbitalVelocityRadial*radialVector
-       velocityTangentialVector1=Vector_Product(radialVector,[1.0d0,0.0d0,0.0d0]      )
-       ! Normalization.
-       velocityTangentialVector1=velocityTangentialVector1/sqrt(sum(velocityTangentialVector1**2))
-       velocityTangentialVector2=Vector_Product(radialVector,velocityTangentialVector1)
-       velocityPhi              =self%hostNode%hostTree%randomNumberGenerator%uniformSample()*2.0d0*Pi
-       velocityTangentialVector1=velocityTangentialVector1*orbitalVelocityTangential*cos(velocityPhi)
-       velocityTangentialVector2=velocityTangentialVector2*orbitalVelocityTangential*sin(velocityPhi)
-       call self%velocitySet(velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2)
+       ! Store orbitial position and velocity.
+       virialOrbit=thisOrbit
+       position   =virialOrbit%position()
+       velocity   =virialOrbit%velocity()
+       call self%positionSet(position)
+       call self%velocitySet(velocity)
        ! Set the merging time to -1 to indicate that we don't know when merging will occur.
        call self%mergeTimeSet                (           -1.0d0)
        call self%tidalTensorPathIntegratedSet(tensorNullR2D3Sym)
