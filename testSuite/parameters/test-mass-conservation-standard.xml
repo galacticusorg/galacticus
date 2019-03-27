@@ -294,8 +294,8 @@
     <diskMassToleranceAbsolute value="1.0e-6"/>
     <spheroidMassToleranceAbsolute value="1.0e-6"/>
     <mergerTreeEvolverMethod value="standard">
-      <timeStepHostAbsolute value="1.0"/>
-      <timeStepHostRelative value="0.1"/>
+      <timestepHostAbsolute value="1.0"/>
+      <timestepHostRelative value="0.1"/>
     </mergerTreeEvolverMethod>
     
     <!-- Output options -->
