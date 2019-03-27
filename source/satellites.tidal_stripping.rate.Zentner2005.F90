@@ -195,13 +195,13 @@ contains
              call finder%rootFunction(zentner2005TidalRadiusSolver)
              call finder%tolerance   (toleranceAbsolute,toleranceRelative)
           end if
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandUpward            =1.0d0*self%expandMultiplier  , &
-               &                   rangeExpandDownward          =1.0d0/self%expandMultiplier  , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                   rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
+        call finder%rangeExpand(                                                             &
+               &                rangeExpandUpward            =1.0d0*self%expandMultiplier  , &
+               &                rangeExpandDownward          =1.0d0/self%expandMultiplier  , &
+               &                rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+               &                rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+               &                rangeExpandType              =rangeExpandMultiplicative      &
+               &               )
           zentner2005Node => node
           ! Check for extremes.
           if (zentner2005TidalRadiusSolver(radiusTidalTinyFraction*self%radiusTidalPrevious) >  0.0d0) then
@@ -239,7 +239,7 @@ contains
     double precision                :: enclosedMass
 
     ! Get the satellite component.
-    enclosedMass                = +Galactic_Structure_Enclosed_Mass(zentner2005Node,radius)
+    enclosedMass                =+Galactic_Structure_Enclosed_Mass(zentner2005Node,radius)
     zentner2005TidalRadiusSolver=+zentner2005TidalPull               &
          &                       -gravitationalConstantGalacticus    &
          &                       *enclosedMass                       &
