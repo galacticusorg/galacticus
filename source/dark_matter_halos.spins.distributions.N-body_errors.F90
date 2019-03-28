@@ -214,7 +214,7 @@ contains
     return
   end function nbodyErrorsConstructorInternal
 
-  subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasured)
+  subroutine nbodyErrorsTabulate(self,massRequired,spinRequired,massFixed,spinFixed,spinFixedMeasuredMinimum,spinFixedMeasuredMaximum)
     !% Tabulate the halo spin distribution.
     use, intrinsic :: ISO_C_Binding
     use               Numerical_Integration
@@ -228,7 +228,7 @@ contains
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: massRequired                        , spinRequired               , &
          &                                                                        massFixed                           , spinFixed                  , &
-         &                                                                        spinFixedMeasured
+         &                                                                        spinFixedMeasuredMinimum            , spinFixedMeasuredMaximum
     type            (treeNode                       ), pointer                 :: node
     class           (nodeComponentBasic             ), pointer                 :: nodeBasic
     class           (nodeComponentSpin              ), pointer                 :: nodeSpin
@@ -280,14 +280,14 @@ contains
              self%spinMinimum=min(self%spinMinimum,0.5d0*spinFixed)
              self%spinMaximum=max(self%spinMaximum,2.0d0*spinFixed)
           end if
-          if (present(spinFixedMeasured)) then
-             if (spinFixedMeasured < self%spinMinimum) then
+          if (present(spinFixedMeasuredMinimum)) then
+             if (spinFixedMeasuredMinimum < self%spinMinimum) then
                 retabulate      =.true.
-                self%spinMinimum=0.5d0*spinFixedMeasured
+                self%spinMinimum=spinFixedMeasuredMinimum
              end if
-             if (spinFixedMeasured > self%spinMaximum) then
+             if (spinFixedMeasuredMaximum > self%spinMaximum) then
                 retabulate      =.true.
-                self%spinMaximum=2.0d0*spinFixedMeasured
+                self%spinMaximum=spinFixedMeasuredMaximum
              end if
           end if
        else
@@ -823,18 +823,19 @@ contains
     return
   end function nbodyErrorsDistribution
 
-  double precision function nbodyErrorsDistributionFixedPoint(self,node,spinMeasured)
+  double precision function nbodyErrorsDistributionFixedPoint(self,node,spinMeasured,spinMeasuredMinimum,spinMeasuredMaximum)
     !% Compute the spin distribution for a fixed point in intrinsic mass and spin.
     use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
-    double precision                                 , intent(in   ) :: spinMeasured
+    double precision                                 , intent(in   ) :: spinMeasured       , spinMeasuredMinimum, &
+         &                                                              spinMeasuredMaximum
     class           (nodeComponentBasic             ), pointer       :: nodeBasic
     class           (nodeComponentSpin              ), pointer       :: nodeSpin
-    double precision                                                 :: spin        , hSpin, &
+    double precision                                                 :: spin               , hSpin              , &
          &                                                              mass
-    integer                                                             iSpin       , jSpin
+    integer                                                             iSpin              , jSpin
 
     ! Extract the mass and spin of the halo.
     nodeBasic => node     %basic()
@@ -842,7 +843,7 @@ contains
     mass      =  nodeBasic%mass ()
     spin      =  nodeSpin %spin ()
     ! Ensure the table has sufficient extent.
-    call self%tabulate(massFixed=mass,spinFixed=spin,spinFixedMeasured=spinMeasured)
+    call self%tabulate(massFixed=mass,spinFixed=spin,spinFixedMeasuredMinimum=spinMeasuredMinimum,spinFixedMeasuredMaximum=spinMeasuredMaximum)
     ! Find the interpolating factors.
     hSpin=log10(spinMeasured/self%spinMinimum)/self%spinDelta
     iSpin=int(hSpin)+1

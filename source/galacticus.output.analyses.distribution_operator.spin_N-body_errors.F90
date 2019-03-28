@@ -101,11 +101,22 @@ contains
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: spinNBodyErrorsOperateScalar
     integer         (c_size_t                                         )                                                       :: i
-    double precision                                                                                                          :: spinMeasuredMinimum         , spinMeasuredMaximum
+    double precision                                                                                                          :: spinMeasuredMinimum         , spinMeasuredMaximum     , &
+         &                                                                                                                       spinMeasuredRangeMinimum    , spinMeasuredRangeMaximum
     type            (fgsl_function                                    )                                                       :: integrandFunction
     type            (fgsl_integration_workspace                       )                                                       :: integrationWorkspace
     !GCC$ attributes unused :: outputIndex, propertyValue
-
+    
+    select case (propertyType)
+    case (outputAnalysisPropertyTypeLinear)
+       spinMeasuredRangeMinimum=        propertyValueMinimum(                        1 )
+       spinMeasuredRangeMaximum=        propertyValueMaximum(size(propertyValueMaximum))
+    case (outputAnalysisPropertyTypeLog10)
+       spinMeasuredRangeMinimum=10.0d0**propertyValueMinimum(                        1 )
+       spinMeasuredRangeMaximum=10.0d0**propertyValueMaximum(size(propertyValueMaximum))
+    case default
+       call Galacticus_Error_Report('unhandled property type'//{introspection:location})
+    end select
     do i=1,size(propertyValueMinimum)
        select case (propertyType)
        case (outputAnalysisPropertyTypeLinear)
@@ -143,8 +154,8 @@ contains
       
       select type (haloSpinDistribution_ => self%haloSpinDistribution_)
       class is (haloSpinDistributionNbodyErrors)
-         spinDistributionIntegrate=+                                                  spinMeasured  &
-              &                    *haloSpinDistribution_%distributionFixedPoint(node,spinMeasured)
+         spinDistributionIntegrate=+                                                  spinMeasured                                                    &
+              &                    *haloSpinDistribution_%distributionFixedPoint(node,spinMeasured,spinMeasuredRangeMinimum,spinMeasuredRangeMaximum)
       class default
          spinDistributionIntegrate=0.0d0
       end select
