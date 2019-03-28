@@ -491,7 +491,7 @@ contains
       if (self%fixedPoint) then
          massSpinIntegral=spinErrorIntegral(spinFixed)
       else
-         ! Evaluate an esimtate of the absolute scale of the spin distribution for use in setting an absolute precision level on the
+         ! Evaluate an estimate of the absolute scale of the spin distribution for use in setting an absolute precision level on the
          ! integration.
          call nodeSpin%spinSet(spinMeasured)
          call Galacticus_Calculations_Reset(node)
