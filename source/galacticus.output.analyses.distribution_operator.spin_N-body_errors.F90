@@ -100,17 +100,12 @@ contains
     integer         (c_size_t                                         ), intent(in   )                                        :: outputIndex
     type            (treeNode                                         ), intent(inout)                                        :: node
     double precision                                                                  , dimension(size(propertyValueMinimum)) :: spinNBodyErrorsOperateScalar
-    class           (haloSpinDistributionClass                        ), pointer                                              :: haloSpinDistribution_
     integer         (c_size_t                                         )                                                       :: i
     double precision                                                                                                          :: spinMeasuredMinimum         , spinMeasuredMaximum
     type            (fgsl_function                                    )                                                       :: integrandFunction
     type            (fgsl_integration_workspace                       )                                                       :: integrationWorkspace
     !GCC$ attributes unused :: outputIndex, propertyValue
 
-    ! Make a private copy of the halo spin distribution object to avoid thread conflicts.
-    allocate(haloSpinDistribution_,mold=self%haloSpinDistribution_)
-    !# <deepCopy source="self%haloSpinDistribution_" destination="haloSpinDistribution_"/>
-    !$omp critical(spinNBodyErrorsOperateScalar)
     do i=1,size(propertyValueMinimum)
        select case (propertyType)
        case (outputAnalysisPropertyTypeLinear)
@@ -137,8 +132,6 @@ contains
             &                           )
        call Integrate_Done(integrandFunction,integrationWorkspace)
     end do
-    !$omp end critical(spinNBodyErrorsOperateScalar)
-    !# <objectDestructor name="haloSpinDistribution_" />
     return
     
   contains
@@ -148,7 +141,7 @@ contains
       implicit none
       double precision, intent(in   ) :: spinMeasured
       
-      select type (haloSpinDistribution_)
+      select type (haloSpinDistribution_ => self%haloSpinDistribution_)
       class is (haloSpinDistributionNbodyErrors)
          spinDistributionIntegrate=+                                                  spinMeasured  &
               &                    *haloSpinDistribution_%distributionFixedPoint(node,spinMeasured)
