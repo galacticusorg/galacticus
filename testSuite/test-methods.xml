@@ -839,7 +839,9 @@
     <linearGrowthMethod value="simple"/>
     <haloMassFunctionMethod value="tinker2008"/>
     <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
-    <virialOrbitMethod value="fixed"/>
+    <virialOrbitMethod value="isotropic">
+      <virialOrbitMethod value="fixed"/>
+    </virialOrbitMethod>
     <mergerTreeConstructorMethod value="build"/>
     <mergerTreeBuilderMethod value="cole2000">
       <accretionLimit value="0.1"/>
