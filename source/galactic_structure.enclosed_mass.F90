@@ -123,18 +123,18 @@ contains
     activeNode => thisNode
     ! If dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
     ! matter profile. Otherwise, find the radius numerically.
-    if     (                                         &
-         &   (                                       &
-         &    componentType == componentTypeDarkHalo &
-         &    .or.                                   &
-         &    massType      == massTypeDark          &
-         &   )                                       &
-         &   .and.                                   &
-         &   (                                       &
-         &    .not.haloLoaded                        &
-         &    .or.                                   &
-         &    massBaryons == 0.0d0                   &
-         &   )                                       &
+    if     (                                               &
+         &   (                                             &
+         &    componentTypeShared == componentTypeDarkHalo &
+         &    .or.                                         &
+         &    massTypeShared      == massTypeDark          &
+         &   )                                             &
+         &   .and.                                         &
+         &   (                                             &
+         &    .not.haloLoadedShared                        &
+         &    .or.                                         &
+         &    massBaryons == 0.0d0                         &
+         &   )                                             &
          & ) then
        darkMatterProfile_   => darkMatterProfile  ()
        cosmologyParameters_ => cosmologyParameters()
