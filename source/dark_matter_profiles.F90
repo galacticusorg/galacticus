@@ -149,7 +149,7 @@ module Dark_Matter_Profiles
   !#    double precision                          , save    :: radiusPrevious=-huge(0.0d0)
   !#    integer         (kind_int8               ), save    :: uniqueIDPrevious=-1_kind_int8
   !#    !$omp threadprivate(finder,radiusPrevious,uniqueIDPrevious)
-  !#    if(mass &lt;= 0) then
+  !#    if(mass &lt;= 0.0d0) then
   !#       darkMatterProfileRadiusEnclosingMass=0.0d0
   !#       return
   !#    end if
