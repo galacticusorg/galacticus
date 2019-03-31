@@ -430,6 +430,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.dark_matter_halo_radius_enclosing_mass.exe",                   # Tests of dark matter halo radius enclosing mass functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.MPI.exe",                                                      # Tests of MPI functionality.
 	valgrind => 0,
 	mpi      => 4
