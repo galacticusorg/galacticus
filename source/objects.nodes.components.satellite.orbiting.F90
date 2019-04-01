@@ -29,7 +29,6 @@ module Node_Component_Satellite_Orbiting
   use Satellite_Tidal_Heating
   use Dark_Matter_Halo_Scales
   use Virial_Orbits
-  use ISO_Varying_String          , only : varying_string, var_str, operator(==)
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
@@ -104,6 +103,15 @@ module Node_Component_Satellite_Orbiting
   !#  <functions>objects.nodes.components.satellite.orbiting.bound_functions.inc</functions>
   !# </component>
   
+  !# <enumeration>
+  !#  <name>satelliteBoundMassInitializeType</name>
+  !#  <description>Specify how to initialize the bound mass of a satellite halo.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <entry label="basicMass"      />
+  !#  <entry label="maximumRadius"  />
+  !#  <entry label="densityContrast"/>
+  !# </enumeration>
+  
   ! Objects used by this module.
   class(darkMatterHaloScaleClass       ), pointer :: darkMatterHaloScale_
   class(satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_
@@ -119,7 +127,7 @@ module Node_Component_Satellite_Orbiting
   double precision            :: satelliteOrbitingDestructionMass
   logical                     :: satelliteOrbitingDestructionMassIsFractional
   ! Option controlling how to initialize the bound mass of satellite halos.
-  type(varying_string)        :: satelliteBoundMassInitializeType
+  integer                     :: satelliteBoundMassInitializeType
   double precision            :: satelliteMaximumRadiusOverVirialRadius      , satelliteDensityContrast
 
 contains
@@ -130,9 +138,12 @@ contains
   subroutine Node_Component_Satellite_Orbiting_Initialize()
     !% Initializes the orbiting satellite methods module.
     use Input_Parameters
-    use Galacticus_Nodes, only : nodeComponentSatelliteOrbiting, defaultSatelliteComponent
+    use Galacticus_Error
+    use Galacticus_Nodes  , only : nodeComponentSatelliteOrbiting, defaultSatelliteComponent
+    use ISO_Varying_String, only : varying_string                , var_str                  , char
     implicit none
     type(nodeComponentSatelliteOrbiting) :: satelliteComponent
+    type(varying_string                ) :: satelliteBoundMassInitializeTypeText
 
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
@@ -159,7 +170,9 @@ contains
        !#   <description>Specify how to initialize the bound mass of a satellite halo. By default, the initial bound mass of a satellite halo is set to the node mass.</description>
        !#   <source>globalParameters</source>
        !#   <type>string</type>
+       !#   <variable>satelliteBoundMassInitializeTypeText</variable>
        !# </inputParameter>
+       satelliteBoundMassInitializeType=enumerationSatelliteBoundMassInitializeTypeEncode(char(satelliteBoundMassInitializeTypeText),includesPrefix=.false.)
        !# <inputParameter>
        !#   <name>satelliteMaximumRadiusOverVirialRadius</name>
        !#   <cardinality>1</cardinality>
@@ -176,6 +189,19 @@ contains
        !#   <source>globalParameters</source>
        !#   <type>double</type>
        !# </inputParameter>
+       ! Validate the parameters.
+       select case (satelliteBoundMassInitializeType)
+       case (satelliteBoundMassInitializeTypeMaximumRadius  )
+          if (satelliteMaximumRadiusOverVirialRadius <= 0.0d0) then
+             call Galacticus_Error_Report('specify a positive maximum radius for the satellite'//{introspection:location})
+          end if
+       case (satelliteBoundMassInitializeTypeDensityContrast)
+          if (satelliteDensityContrast               <= 0.0d0) then
+             call Galacticus_Error_Report('specify a positive density contrast for the satellite'//{introspection:location})
+          end if
+       case default
+          ! Do nothing.
+       end select
        ! Specify the function to use for setting virial orbits.
        call satelliteComponent%virialOrbitSetFunction(Node_Component_Satellite_Orbiting_Virial_Orbit_Set)
     end if
@@ -549,29 +575,22 @@ contains
 
     select type (satelliteComponent)
     class is (nodeComponentSatelliteOrbiting)
-       if      (satelliteBoundMassInitializeType == 'basicMass'      ) then
+       select case (satelliteBoundMassInitializeType)
+       case (satelliteBoundMassInitializeTypeBasicMass      )
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
-          satelliteMass=satelliteComponent%boundMass()
-       else if (satelliteBoundMassInitializeType == 'maximumRadius'  ) then
+       case (satelliteBoundMassInitializeTypeMaximumRadius  )
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
-          if (satelliteMaximumRadiusOverVirialRadius > 0.0d0) then
-             virialRadius  = darkMatterHaloScale_%virialRadius  (thisNode                         )
-             maximumRadius = satelliteMaximumRadiusOverVirialRadius*virialRadius
-             satelliteMass = Galactic_Structure_Enclosed_Mass   (thisNode,maximumRadius           )
-          else
-             call Galacticus_Error_Report('specify a positive maximum radius for the satellite'//{introspection:location})
-          end if
-       else if (satelliteBoundMassInitializeType == 'densityContrast') then
+          virialRadius =darkMatterHaloScale_%virialRadius  (thisNode                         )
+          maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
+          satelliteMass=Galactic_Structure_Enclosed_Mass   (thisNode,maximumRadius           )
+          call satelliteComponent%boundMassSet(satelliteMass)
+       case (satelliteBoundMassInitializeTypeDensityContrast)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
-          if (satelliteDensityContrast > 0.0d0) then
-             satelliteMass = Dark_Matter_Profile_Mass_Definition(thisNode,satelliteDensityContrast)
-          else
-             call Galacticus_Error_Report('specify a positive density contrast for the satellite'//{introspection:location})
-          end if
-       else
-          call Galacticus_Error_Report('tpye of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
-       end if
-       call satelliteComponent%boundMassSet(satelliteMass)
+          satelliteMass=Dark_Matter_Profile_Mass_Definition(thisNode,satelliteDensityContrast)
+          call satelliteComponent%boundMassSet(satelliteMass)
+       case default
+          call Galacticus_Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
+       end select
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize
