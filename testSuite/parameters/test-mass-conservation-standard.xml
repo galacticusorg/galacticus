@@ -135,13 +135,13 @@
     <randomSpinResetMassFactor value="2.0"/>
 
     <!-- Halo accretion options -->
-    <accretionHaloMethod value="simple">
+    <accretionHaloMethod value="naozBarkana2007">
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="35.0"/>
       <accretionNegativeAllowed value="false"/>
     </accretionHaloMethod>
     <intergalacticMediumStateMethod value="file">
-      <fileName value="constraints/data/igmState.xml"/>
+      <fileName value="%DATASTATICPATH%/intergalacticMedium/recFast_OmegaMatter0.308_OmegaDarkEnergy0.692_OmegaBaryon0.0484_HubbleConstant67.8_temperatureCMB2.725_YHe0.22.hdf5"/>
     </intergalacticMediumStateMethod>
 
     <!-- Hot halo gas cooling model options -->
