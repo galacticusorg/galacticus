@@ -465,6 +465,7 @@ REAL(dp)  :: amax, amin, am1, ap1, ap2, ap3, apn, b, c1, c2, c3, c4, c5, d,  &
              e, eps, e2, g, h, pn, qg, qn, r, rta, s, sum, s2, t, u, w, xmin, &
              xn, y, z
 INTEGER   :: ier, iop
+!$GLC attributes initialized :: s
 !------------------------
 !     LN10 = LN(10)
 !     C = EULER CONSTANT
