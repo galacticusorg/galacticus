@@ -104,7 +104,7 @@ module Galacticus_Output_Analyses_Mass_Functions
      double precision                                                       :: surfaceBrightnessLimit    , surfaceBrightnessZeroPoint
      integer                                                                :: systematicCoefficientCount, randomCoefficientCount
      integer                                                                :: massType
-     character       (len= 35                        )                      :: label
+     character       (len= 37                        )                      :: label
      character       (len=128                        )                      :: comment
      procedure       (Map_Mass                       ), pointer    , nopass :: mapMass
      class           (surveyGeometryClass            ), allocatable         :: geometry
