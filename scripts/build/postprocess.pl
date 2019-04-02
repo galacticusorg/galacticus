@@ -25,6 +25,9 @@ my @map;
 # Initialize a hash of (possibly) unused functions.
 my %unusedFunctions;
 
+# Initialize a hash of variables which are asserted to be initialized.
+my %initializedVariables;
+
 # Initialize a hash of variables for which "pointer may outlive target" is ignored.
 my %ignoreOutlives;
 
@@ -56,6 +59,12 @@ while ( my $line = <$file> ) {
 	(my $functions = $1) =~ s/\s*$//;
 	$unusedFunctions{lc($_)} = 1
 	    foreach ( split(/\s*,\s*/,$functions) );
+    }
+    # Capture bogus uninitialized variable attributes.
+    if ( $line =~ m/^\s*!\$GLC\s+attributes\s+initialized\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
+	(my $variables = $1) =~ s/\s*$//;
+	$initializedVariables{lc($_)} = 1
+	    foreach ( split(/\s*,\s*/,$variables) );
     }
     # Capture pointer outlive ignores.
     if ( $line =~ m/^\s*!\$GLC\s+ignore\s+outlive\s*::\s*([a-zA-Z0-9_,\s]+)\s*$/ ) {
@@ -112,7 +121,7 @@ while ( my $line = <STDIN> ) {
 	}
     }
     # Handle unused function attributes.
-    if ( $line =~ m/^\d+\s*\|\s*subroutine\s+([a-z0-9_]+)/i ) {
+    if ( $line =~ m/^\s*\d+\s*\|\s*subroutine\s+([a-z0-9_]+)/i ) {
 	$functionName = lc($1);
     }
     if ( $line =~ m/\[\-Wunused\-function\]/ && defined($functionName) ) {
@@ -120,8 +129,13 @@ while ( my $line = <STDIN> ) {
 	    if ( exists($unusedFunctions{lc($functionName)}) );
 	undef($functionName);
     }
+    # Handle uninitialized variable attributes.
+    if ( $line =~ /^Warning: '([a-zA-Z0-9_]+)' may be used uninitialized in this function \[\-Wmaybe\-uninitialized\]/ ) {
+	$dropBuffer = 1
+	    if ( exists($initializedVariables{lc($1)}) );
+    }
     # Handle ignore "pointer may outlive target" warnings.
-    if ( $line =~ m/^\d+\s*\|\s*([a-z0-9_]+)\s*=>\s*[a-z0-9_]+/i ) {
+    if ( $line =~ m/^\s*\d+\s*\|\s*([a-z0-9_]+)\s*=>\s*[a-z0-9_]+/i ) {
 	$pointerName = lc($1);
     }
     if ( $line =~ m/\[\-Wtarget\-lifetime\]/ ) {
