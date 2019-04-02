@@ -369,13 +369,15 @@ contains
                   &                                                +satelliteTidalHeatingRate_%heatingRate   (thisNode) &
                   &                                               )
           end if
-          ! Get half-mass radii of central and satellite galaxies.
-          if (Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,radius=0.0d0) > 0.0d0) then
+          ! Get half-mass radii of central and satellite galaxies. We first check that the total mass in the galactic componet
+          ! (found by setting the radius to "radiusLarge" is non-zero as we do not want to attempt to find the half-mass radius of
+          ! the galactic componet, if no galactic component exists.
+          if (Galactic_Structure_Enclosed_Mass(hostNode,massType=massTypeGalactic,radius=radiusLarge) > 0.0d0) then
              halfMassRadiusCentral  =Galactic_Structure_Radius_Enclosing_Mass(hostNode,fractionalMass=0.5d0,massType=massTypeGalactic)
           else
              halfMassRadiusCentral  =0.0d0
           end if
-          if (Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic,radius=0.0d0) > 0.0d0) then
+          if (Galactic_Structure_Enclosed_Mass(thisNode,massType=massTypeGalactic,radius=radiusLarge) > 0.0d0) then
              halfMassRadiusSatellite=Galactic_Structure_Radius_Enclosing_Mass(thisNode,fractionalMass=0.5d0,massType=massTypeGalactic)
           else
              halfMassRadiusSatellite=0.0d0
