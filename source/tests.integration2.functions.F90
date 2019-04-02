@@ -47,7 +47,7 @@ module Test_Integration2_Functions
 
   type :: testFunction
      !% Type used for referencing functions.
-     character       (len=18         )                  :: description
+     character       (len=22         )                  :: description
      double precision                                   :: rangeLow   , rangeHigh, solution
      procedure       (function1Scalar), pointer, nopass :: scalar
      procedure       (function1Vector), pointer, nopass :: vector
@@ -65,7 +65,7 @@ module Test_Integration2_Functions
 
   type :: testFunctionMulti
      !% Type used for referencing functions.
-     character       (len=18         )                             :: description
+     character       (len=22         )                             :: description
      double precision                                              :: rangeLow   , rangeHigh
      double precision                  , allocatable, dimension(:) :: solution
      procedure       (function14Vector), pointer    , nopass       :: vector
