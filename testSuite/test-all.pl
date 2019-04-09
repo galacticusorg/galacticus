@@ -170,6 +170,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.differentiation.exe",                                          # Tests of differentiation functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.tables.exe",                                                   # Tests of table functions.
 	valgrind => 0,
 	mpi      => 0
