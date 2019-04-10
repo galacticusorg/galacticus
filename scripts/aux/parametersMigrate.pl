@@ -610,7 +610,10 @@ my @translations =
 	     "timestepHostRelative"                                      => "mergerTreeEvolverMethod.standard.--timestepHostRelative"                               ,
 	     "timestepHostAbsolute"                                      => "mergerTreeEvolverMethod.standard.--timestepHostAbsolute"                               ,
 	     "mergerTreeOutput"                                          => "mergerTreeOutputterMethod"	                                                            ,
-	     "hotHaloOutflowReturnRate"                                  => "hotHaloOutflowReincorporationMethod.haloDynamicalTime.--multiplier"
+	     "hotHaloOutflowReturnRate"                                  => "hotHaloOutflowReincorporationMethod.haloDynamicalTime.--multiplier"                    ,
+	     "equilibriumStructureIncludeBaryonGravity"                  => "equilibriumStructureIncludeBaryonGravity"                                              ,
+	     "equilibriumStructureUseFormationHalo"                      => "equilibriumStructureUseFormationHalo"                                                  ,
+	     "equilibriumStructureSolutionTolerance"                     => "equilibriumStructureSolutionTolerance"
 	 },
 	 values        =>
 	 {
