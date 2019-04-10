@@ -27,7 +27,7 @@ module Galactic_Structure_Radii_Equilibrium
   public :: Galactic_Structure_Radii_Equilibrium_Initialize
 
   ! Parameter controlling the accuracy of the solutions sought.
-  double precision                                      :: equilibriumContractionSolutionTolerance
+  double precision                                      :: equilibriumStructureSolutionTolerance
 
   ! Module variables used to communicate current state of radius solver.
   integer                                               :: activeComponentCount                              , iterationCount
@@ -37,7 +37,7 @@ module Galactic_Structure_Radii_Equilibrium
   logical                                               :: revertStructure                           =.false.
   !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloNode,radiusStored,velocityStored,revertStructure)
   ! Options controlling the solver.
-  logical                                               :: equilibriumContractionIncludeBaryonGravity        , equilibriumContractionUseFormationHalo
+  logical                                               :: equilibriumStructureIncludeBaryonGravity        , equilibriumStructureUseFormationHalo
 
 contains
 
@@ -58,7 +58,7 @@ contains
        Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Equilibrium
        ! Get parameters of the model.
        !# <inputParameter>
-       !#   <name>equilibriumContractionIncludeBaryonGravity</name>
+       !#   <name>equilibriumStructureIncludeBaryonGravity</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
        !#   <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in equilibriumally contracted dark matter halos.</description>
@@ -66,7 +66,7 @@ contains
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
-       !#   <name>equilibriumContractionUseFormationHalo</name>
+       !#   <name>equilibriumStructureUseFormationHalo</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
@@ -74,7 +74,7 @@ contains
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
-       !#   <name>equilibriumContractionSolutionTolerance</name>
+       !#   <name>equilibriumStructureSolutionTolerance</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-2</defaultValue>
        !#   <description>Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.</description>
@@ -109,10 +109,10 @@ contains
     if (node%isPhysicallyPlausible) then
        ! Initialize the solver state.
        iterationCount=0
-       fitMeasure    =2.0d0*equilibriumContractionSolutionTolerance
+       fitMeasure    =2.0d0*equilibriumStructureSolutionTolerance
 
        ! Determine which node to use for halo properties.
-       if (equilibriumContractionUseFormationHalo) then
+       if (equilibriumStructureUseFormationHalo) then
           if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
           haloNode => node%formationNode
        else
@@ -120,7 +120,7 @@ contains
        end if
 
        ! Begin iteration to find a converged solution.
-       do while (iterationCount <= 2 .or. ( fitMeasure > equilibriumContractionSolutionTolerance .and. iterationCount < iterationMaximum ) )
+       do while (iterationCount <= 2 .or. ( fitMeasure > equilibriumStructureSolutionTolerance .and. iterationCount < iterationMaximum ) )
           iterationCount      =iterationCount+1
           activeComponentCount=0
           if (iterationCount > 1) fitMeasure=0.0d0
@@ -135,7 +135,7 @@ contains
           end if
        end do
        ! Check that we found a converged solution.
-       if (fitMeasure > equilibriumContractionSolutionTolerance) then
+       if (fitMeasure > equilibriumStructureSolutionTolerance) then
           call Galacticus_Display_Message('dumping node for which radii are currently being sought')
           call node%serializeASCII()
           call Galacticus_Error_Report('failed to find converged solution'//{introspection:location})
@@ -244,7 +244,7 @@ contains
        darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
 
        ! Compute baryonic contribution to rotation curve.
-       if (equilibriumContractionIncludeBaryonGravity) then
+       if (equilibriumStructureIncludeBaryonGravity) then
           baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(node,radius,massType=massTypeBaryonic)**2
        else
           baryonicVelocitySquared=0.0d0
