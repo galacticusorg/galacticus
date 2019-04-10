@@ -24,7 +24,7 @@ module Unit_Tests
   use ISO_Varying_String
   implicit none
   private
-  public :: Assert, Unit_Tests_Finish, Unit_Tests_Begin_Group, Unit_Tests_End_Group
+  public :: Assert, Skip, Unit_Tests_Finish, Unit_Tests_Begin_Group, Unit_Tests_End_Group
 
   ! Types of comparison.
   integer, parameter, public :: compareEquals            =0
@@ -34,11 +34,20 @@ module Unit_Tests
   integer, parameter, public :: compareLessThanOrEqual   =4
   integer, parameter, public :: compareGreaterThanOrEqual=5
 
+  !# <enumeration>
+  !#  <name>test</name>
+  !#  <description>Statuses for unit tests.</description>
+  !#  <entry label="passed"/>
+  !#  <entry label="failed" />
+  !#  <entry label="skipped"/>
+  !# </enumeration>
+  
   ! Type for assert results.
   type assertResult
      !% A derived type for storing results of asserts.
-     logical                          :: beginGroup, endGroup, result
-     type   (varying_string)          :: label
+     integer                          :: result
+     logical                          :: beginGroup, endGroup
+     type   (varying_string)          :: label     , note
      type   (assertResult  ), pointer :: nextResult
   end type assertResult
 
@@ -72,6 +81,33 @@ module Unit_Tests
   end interface Assert
 
 contains
+
+  integer function getStatus(passed)
+    !% Return the status code for a test on the basis of a boolean pass/fail.
+    implicit none
+    logical, intent(in   ) :: passed
+
+    if (passed) then
+       getStatus=testPassed
+    else
+       getStatus=testFailed
+    end if
+    return
+  end function getStatus
+  
+  subroutine Skip(testName,reason)
+    !% Record that a test was skipped.
+    implicit none
+    character(len=*       ), intent(in   ) :: testName  , reason
+    type     (assertResult), pointer       :: thisResult
+
+    ! Get an object to store the results in.
+    thisResult => Get_New_Assert_Result()
+    thisResult%result=testSkipped
+    thisResult%label =trim(testName)
+    thisResult%note  =trim(reason  )
+    return
+  end subroutine Skip
 
   subroutine Assert_Real_Scalar(testName,value1,value2,compare,absTol,relTol)
     !% Assess and record an assertion about real arguments.
@@ -116,7 +152,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -134,6 +170,7 @@ contains
     type            (assertResult), pointer                 :: thisResult
     integer                                                 :: compareActual
     logical                                                 :: passed
+    character       (len=16      )                          :: label        , comparison
 
     ! Determine what type of comparison to perform.
     if (present(compare)) then
@@ -146,28 +183,41 @@ contains
     select case (compareActual)
     case (compareEquals)
        passed=.not.Values_Differ(value1,value2,absTol,relTol)
+       comparison="≉"
     case (compareNotEqual          )
        passed=(value1 /= value2)
+       comparison="="
     case (compareLessThan          )
        passed=(value1  < value2)
+       comparison="≮"
     case (compareGreaterThan       )
        passed=(value1  > value2)
+       comparison="≯"
     case (compareLessThanOrEqual   )
        passed=(value1 <= value2)
+       comparison="≰"
     case (compareGreaterThanOrEqual)
        passed=(value1 >= value2)
+       comparison="≱"
     case default
        passed=.false.
+       comparison=""
        call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
+    end select       
+    
     ! Get an object to store the results in.
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
-
+    if (.not.passed) then
+       write (label,'(e16.8)') value1
+       thisResult%note=                 trim(adjustl(label))
+       thisResult%note=thisResult%note//" "//trim(comparison)//" "
+       write (label,'(e16.8)') value2
+       thisResult%note=thisResult%note//trim(adjustl(label))
+    end if
     return
   end subroutine Assert_Double_Scalar
 
@@ -212,7 +262,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -260,7 +310,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -307,7 +357,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -354,7 +404,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -409,7 +459,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -420,13 +470,14 @@ contains
     use Galacticus_Error
     use Numerical_Comparison
     implicit none
-    character       (len=*       )              , intent(in   )           :: testName
-    double precision              , dimension(:), intent(in   )           :: value1       , value2
-    integer                                     , intent(in   ), optional :: compare
-    double precision                            , intent(in   ), optional :: absTol       , relTol
-    type            (assertResult), pointer                               :: thisResult
-    integer                                                               :: compareActual, iTest
-    logical                                                               :: passed
+    character       (len=*       )                         , intent(in   )           :: testName
+    double precision              , dimension(          : ), intent(in   )           :: value1       , value2
+    integer                                                , intent(in   ), optional :: compare
+    double precision                                       , intent(in   ), optional :: absTol       , relTol
+    type            (assertResult), pointer                                          :: thisResult
+    integer                                                                          :: compareActual, iTest
+    logical                       , dimension(size(value1))                          :: passed
+    character       (len=22      )                                                   :: label        , comparison
 
     ! Determine what type of comparison to perform.
     if (present(compare)) then
@@ -440,33 +491,47 @@ contains
     case (compareEquals)
        passed=.true.
        do iTest=1,min(size(value1),size(value2))
-          if (.not.Values_Agree(value1(iTest),value2(iTest),absTol,relTol)) then
-             passed=.false.
-             exit
-          end if
+          if (.not.Values_Agree(value1(iTest),value2(iTest),absTol,relTol)) passed(iTest)=.false.
        end do
-    case (compareNotEqual          )
-       passed=all(value1 /= value2)
+       comparison="≉"
+   case (compareNotEqual          )
+       passed=value1 /= value2
+       comparison="="
     case (compareLessThan          )
-       passed=all(value1  < value2)
+       passed=value1  < value2
+       comparison="≮"
     case (compareGreaterThan       )
-       passed=all(value1  > value2)
+       passed=value1  > value2
+       comparison="≯"
     case (compareLessThanOrEqual   )
-       passed=all(value1 <= value2)
+       passed=value1 <= value2
+       comparison="≰"
     case (compareGreaterThanOrEqual)
-       passed=all(value1 >= value2)
+       passed=value1 >= value2
+       comparison="≱"
     case default
        passed=.false.
+       comparison=""
        call Galacticus_Error_Report('unknown comparison'//{introspection:location})
-    end select
-
+    end select       
+    
     ! Get an object to store the results in.
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(all(passed))
     thisResult%label =trim(testName)
-
+    if (.not.all(passed)) then
+       thisResult%note=var_str('')
+       do iTest=1,min(size(value1),size(value2))
+          if (passed(iTest)) cycle
+          write (label,'(i2,1x,a1,1x,e16.8)') iTest,':',value1(iTest)
+          thisResult%note=thisResult%note//trim(adjustl(label))
+          thisResult%note=thisResult%note//" "//trim(comparison)//" "
+          write (label,'(e16.8)') value2(iTest)
+          thisResult%note=thisResult%note//trim(adjustl(label))//"; "
+       end do
+    end if
     return
   end subroutine Assert_Double_1D_Array
 
@@ -522,7 +587,7 @@ contains
     ! Get an object to store the results in.
     thisResult => Get_New_Assert_Result()
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
     return
   end subroutine Assert_Double_Complex_1D_Array
@@ -578,7 +643,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -637,7 +702,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -699,7 +764,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -763,7 +828,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -810,7 +875,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -849,7 +914,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -898,7 +963,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -937,7 +1002,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -984,7 +1049,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -1031,7 +1096,7 @@ contains
     thisResult => Get_New_Assert_Result()
 
     ! Store the result.
-    thisResult%result=passed
+    thisResult%result=getStatus(passed)
     thisResult%label =trim(testName)
 
     return
@@ -1075,12 +1140,15 @@ contains
     do while (associated(thisResult))
        if (.not.(thisResult%beginGroup.or.thisResult%endGroup)) then
           select case (thisResult%result)
-          case (.false.)
+          case (testFailed)
              failCount=failCount+1
-             message="FAILED: "//thisResult%label
-          case (.true. )
+             message=" FAILED: "//thisResult%label
+             if (thisResult%note /= "") message=message//" ["//thisResult%note//"]"
+          case (testPassed)
              passCount=passCount+1
-             message="passed: "//thisResult%label
+             message=" passed: "//thisResult%label
+          case (testSkipped)
+             message="skipped: "//thisResult%label//" ["//thisResult%note//"]"
           end select
           call Galacticus_Display_Message(message)
        else
@@ -1089,7 +1157,7 @@ contains
        end if
        thisResult => thisResult%nextResult
     end do
-    if (passCount+FailCount > 0) then
+    if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(passCount)/dble(passCount+failCount))
     else
        percentage=100
@@ -1097,7 +1165,7 @@ contains
     message="Tests passed: "
     message=message//passCount//" ("//percentage//"%)"
     call Galacticus_Display_Message(message)
-    if (passCount+FailCount > 0) then
+    if (passCount+failCount > 0) then
        percentage=int(100.0d0*dble(failCount)/dble(passCount+failCount))
     else
        percentage=100
@@ -1137,7 +1205,8 @@ contains
     currentResult => newResult
     newResult%beginGroup=.false.
     newResult%endGroup  =.false.
-    newResult%result    =.false.
+    newResult%result    =testFailed
+    newResult%note      =""
     newResult%nextResult => null()
     return
   end function Get_New_Assert_Result
