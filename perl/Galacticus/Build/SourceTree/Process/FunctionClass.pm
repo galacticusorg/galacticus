@@ -1543,7 +1543,8 @@ CODE
 	    # Generate the base class.
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."Class","public");
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}        ,"public");
-	    $preContains->[0]->{'content'} .= "   type, extends(functionClass) :: ".$directive->{'name'}."Class\n";
+	    my $extends = exists($directive->{'extends'}) ? $directive->{'extends'} : "functionClass";
+	    $preContains->[0]->{'content'} .= "   type, extends(".$extends.") :: ".$directive->{'name'}."Class\n";
 	    $preContains->[0]->{'content'} .= "    private\n";
 	    my $usesNode =
 	    {
@@ -1674,7 +1675,7 @@ CODE
 		);    
 	    foreach ( keys(%methods) ) {
 		my $method = $methods{$_};
-		my $extension = "Null";
+		my $extension = "__";
 		$extension = ""
 		    if ( exists($method->{'code'}) );
 		$methodTable->add("",$_,$directive->{'name'}.ucfirst($_).$extension);
@@ -2038,7 +2039,7 @@ CODE
 		my $type;
 		my $category;
 		my $self;
-		my $extension = "Null";	       
+		my $extension = "__";	       
 		$extension = ""
 		    if ( exists($method->{'code'}) );
 		my $recursive = exists($method->{'recursive'}) && $method->{'recursive'} eq "yes" ? "recursive " : "";

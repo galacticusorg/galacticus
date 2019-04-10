@@ -29,7 +29,7 @@ module Function_Classes
   public :: debugStackPush, debugStackPop, debugStackGet
 #endif
   
-  type functionClass
+  type, abstract :: functionClass
      !% The base class for all {\normalfont \ttfamily functionClass} classes.
      logical :: isDefaultOfClass=.false.
      integer :: referenceCount  =0
