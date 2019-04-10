@@ -23,7 +23,7 @@ module Node_Component_Spheroid_Very_Simple
   !% Implements a very simple spheroid component.
   use ISO_Varying_String
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Stellar_Population_Properties
   use Star_Formation_Feedback_Spheroids
   use Star_Formation_Timescales_Spheroids
@@ -127,9 +127,9 @@ module Node_Component_Spheroid_Very_Simple
   class(stellarPopulationPropertiesClass    ), pointer :: stellarPopulationProperties_
   class(starFormationFeedbackSpheroidsClass ), pointer :: starFormationFeedbackSpheroids_
   class(darkMatterHaloScaleClass            ), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileClass              ), pointer :: darkMatterProfile_
+  class(darkMatterProfileDMOClass              ), pointer :: darkMatterProfileDMO_
   class(starFormationTimescaleSpheroidsClass), pointer :: starFormationTimescaleSpheroids_
-  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,darkMatterHaloScale_,starFormationTimescaleSpheroids_,darkMatterProfile_)
+  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,darkMatterHaloScale_,starFormationTimescaleSpheroids_,darkMatterProfileDMO_)
  
   ! Parameters controlling the physical implementation.
   double precision :: spheroidOutflowTimescaleMinimum    , spheroidStarFormationTimescaleMinimum, &
@@ -218,7 +218,7 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        !# <objectBuilder class="darkMatterHaloScale"             name="darkMatterHaloScale_"             source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfile"               name="darkMatterProfile_"               source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"               name="darkMatterProfileDMO_"               source="globalParameters_"/>
        !# <objectBuilder class="stellarPopulationProperties"     name="stellarPopulationProperties_"     source="globalParameters_"/>
        !# <objectBuilder class="starFormationFeedbackSpheroids"  name="starFormationFeedbackSpheroids_"  source="globalParameters_"/>
        !# <objectBuilder class="starFormationTimescaleSpheroids" name="starFormationTimescaleSpheroids_" source="globalParameters_"/>
@@ -236,7 +236,7 @@ contains
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        !# <objectDestructor name="darkMatterHaloScale_"            />
-       !# <objectDestructor name="darkMatterProfile_"              />
+       !# <objectDestructor name="darkMatterProfileDMO_"              />
        !# <objectDestructor name="stellarPopulationProperties_"    />
        !# <objectDestructor name="starFormationFeedbackSpheroids_" />
        !# <objectDestructor name="starFormationTimescaleSpheroids_"/>
@@ -883,7 +883,7 @@ contains
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
           basic                   => node             %basic()
-          specificAngularMomentum =  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
+          specificAngularMomentum =  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)/basic%mass()
        end if
        ! Associate the pointers with the appropriate property routines.
        Radius_Get   => Node_Component_Spheroid_Very_Simple_Radius

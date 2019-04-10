@@ -69,14 +69,14 @@ contains
     return
   end subroutine assertPropertiesGettable
 
-  double precision function Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)
+  double precision function Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)
     !% Returns the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
     use Galacticus_Nodes            , only : treeNode                       , nodeComponentBasic, nodeComponentSpin
     use Numerical_Constants_Physical, only : gravitationalConstantGalacticus
-    use Dark_Matter_Profiles        , only : darkMatterProfileClass
+    use Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
     implicit none
     type (treeNode              ), intent(inout) :: node
-    class(darkMatterProfileClass), intent(inout) :: darkMatterProfile_
+    class(darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
     class(nodeComponentBasic    ), pointer       :: basic
     class(nodeComponentSpin     ), pointer       :: spin
 
@@ -86,24 +86,24 @@ contains
     Dark_Matter_Halo_Angular_Momentum=+gravitationalConstantGalacticus                   &
          &                            *         spin              %spin  (    )          &
          &                            *         basic             %mass  (    )**2.5d0   &
-         &                            /sqrt(abs(darkMatterProfile_%energy(node)       ))
+         &                            /sqrt(abs(darkMatterProfileDMO_%energy(node)       ))
     return
   end function Dark_Matter_Halo_Angular_Momentum
 
-  double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfile_)
+  double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfileDMO_)
     !% Returns the rate of change of the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
     use Galacticus_Nodes    , only : treeNode              , nodeComponentBasic, nodeComponentSpin
-    use Dark_Matter_Profiles, only : darkMatterProfileClass
+    use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     implicit none
     type (treeNode              ), intent(inout) :: node
-    class(darkMatterProfileClass), intent(inout) :: darkMatterProfile_
+    class(darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
     class(nodeComponentBasic    ), pointer       :: basic
     class(nodeComponentSpin     ), pointer       :: spin
 
     call assertPropertiesGettable()
     basic                                         =>  node%basic(                 )
     spin                                          =>  node%spin (autoCreate=.true.)
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate =  +Dark_Matter_Halo_Angular_Momentum    (node,darkMatterProfile_) &
+    Dark_Matter_Halo_Angular_Momentum_Growth_Rate =  +Dark_Matter_Halo_Angular_Momentum    (node,darkMatterProfileDMO_) &
          &                                           *(                                                              &
          &                                             +spin%spinGrowthRate                (                       ) &
          &                                             /spin%spin                          (                       ) &
@@ -111,28 +111,28 @@ contains
          &                                             *basic%accretionRate                (                       ) &
          &                                             /basic%mass                         (                       ) &
          &                                             -0.5d0                                                        &
-         &                                             *darkMatterProfile_%energyGrowthRate(node                   ) &
-         &                                             /darkMatterProfile_%energy          (node                   ) &
+         &                                             *darkMatterProfileDMO_%energyGrowthRate(node                   ) &
+         &                                             /darkMatterProfileDMO_%energy          (node                   ) &
          &                                            )
     return
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
 
-  double precision function Dark_Matter_Halo_Spin(node,angularMomentum,darkMatterProfile_)
+  double precision function Dark_Matter_Halo_Spin(node,angularMomentum,darkMatterProfileDMO_)
     !% Returns the spin of {\normalfont \ttfamily node} given its angular momentum.
     use Galacticus_Nodes            , only : treeNode                       , nodeComponentBasic
     use Numerical_Constants_Physical, only : gravitationalConstantGalacticus
-    use Dark_Matter_Profiles        , only : darkMatterProfileClass
+    use Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
     double precision                        , intent(in   )          :: angularMomentum
-    class           (darkMatterProfileClass), intent(inout)          :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass), intent(inout)          :: darkMatterProfileDMO_
     class           (nodeComponentBasic    )               , pointer :: basic
 
     call assertPropertiesGettable()
     basic                 =>  node             %basic()
     Dark_Matter_Halo_Spin =  +angularMomentum                             &
          &                   /gravitationalConstantGalacticus             &
-         &                   *abs(darkMatterProfile_%energy(node))**0.5d0 &
+         &                   *abs(darkMatterProfileDMO_%energy(node))**0.5d0 &
          &                   /    basic             %mass  (    ) **2.5d0
     return
   end function Dark_Matter_Halo_Spin

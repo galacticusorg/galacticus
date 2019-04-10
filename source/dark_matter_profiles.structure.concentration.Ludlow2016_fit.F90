@@ -27,7 +27,7 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2016Fit">
   !#  <description>Dark matter halo concentrations are computed using the fitting function of \cite{ludlow_mass-concentration-redshift_2016}.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationLudlow2016Fit
@@ -38,12 +38,12 @@
      class(cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      type (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileEinasto     ), pointer :: darkMatterProfileDefinition_     => null()
+     type (darkMatterProfileDMOEinasto     ), pointer :: darkMatterProfileDMODefinition_     => null()
    contains
      final     ::                                ludlow2016FitDestructor
      procedure :: concentration               => ludlow2016FitConcentration
      procedure :: densityContrastDefinition   => ludlow2016FitDensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => ludlow2016FitDarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => ludlow2016FitDarkMatterProfileDefinition
   end type darkMatterProfileConcentrationLudlow2016Fit
 
   interface darkMatterProfileConcentrationLudlow2016Fit
@@ -97,7 +97,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine ludlow2016FitDestructor
 
@@ -158,20 +158,20 @@ contains
     !% \cite{ludlow_mass-concentration-redshift_2016} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: ludlow2016FitDarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: ludlow2016FitDarkMatterProfileDefinition
     class(darkMatterProfileConcentrationLudlow2016Fit       ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileEinasto                          (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMOEinasto                          (darkMatterHaloScaleDefinition_                                                     )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    ludlow2016FitDarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    ludlow2016FitDarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function ludlow2016FitDarkMatterProfileDefinition

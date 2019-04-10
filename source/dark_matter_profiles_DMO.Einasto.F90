@@ -24,13 +24,13 @@
   use Tables
   use Kind_Numbers
 
-  !# <darkMatterProfile name="darkMatterProfileEinasto">
+  !# <darkMatterProfileDMO name="darkMatterProfileDMOEinasto">
   !#  <description>``Einasto'' dark matter halo profiles</description>
   !#  <stateStorable>
   !#   <restoreTo variables="angularMomentumTableAlphaInterpolationReset, angularMomentumTableRadiusInterpolationReset, freefallRadiusTableAlphaInterpolationReset, freefallRadiusTableRadiusInterpolationReset, energyTableAlphaInterpolationReset, energyTableConcentrationInterpolationReset, fourierProfileTableAlphaInterpolationReset, fourierProfileTableConcentrationInterpolationReset, fourierProfileTableWavenumberInterpolationReset " state=".true."/>
   !#  </stateStorable>
-  !# </darkMatterProfile>
-  type, extends(darkMatterProfileClass) :: darkMatterProfileEinasto
+  !# </darkMatterProfileDMO>
+  type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOEinasto
      !% A dark matter halo profile class implementing ``Einasto'' dark matter halos.
      private
      ! Tables for specific angular momentum vs. radius table
@@ -93,7 +93,7 @@
      class           (darkMatterHaloScaleClass), pointer                :: darkMatterHaloScale_ => null()
    contains
      !@ <objectMethods>
-     !@   <object>darkMatterProfileEinasto</object>
+     !@   <object>darkMatterProfileDMOEinasto</object>
      !@   <objectMethod>
      !@     <method>densityScaleFree</method>
      !@     <type>\doublezero</type>
@@ -175,29 +175,29 @@
      procedure :: freefallTabulate                           => einastoFreefallTabulate
      procedure :: energyTableMake                            => einastoEnergyTableMake
      procedure :: fourierProfileTableMake                    => einastoFourierProfileTableMake
-  end type darkMatterProfileEinasto
+  end type darkMatterProfileDMOEinasto
 
-  interface darkMatterProfileEinasto
+  interface darkMatterProfileDMOEinasto
      !% Constructors for the {\normalfont \ttfamily einasto} dark matter halo profile class.
      module procedure einastoConstructorParameters
      module procedure einastoConstructorInternal
-  end interface darkMatterProfileEinasto
+  end interface darkMatterProfileDMOEinasto
 
   ! Granularity parameters for tabulations.
   integer, parameter :: einastoAngularMomentumTableRadiusPointsPerDecade      =100
   integer, parameter :: einastoAngularMomentumTableAlphaPointsPerUnit         =100
-  integer, parameter :: einastoFreefallRadiusTableRadiusPointsPerDecade       = 10
+  integer, parameter :: einastoFreefallRadiusTableRadiusPointsPerDecade       = 30
   integer, parameter :: einastoFreefallRadiusTableAlphaPointsPerUnit          = 30
   integer, parameter :: einastoEnergyTableConcentrationPointsPerDecade        =100
   integer, parameter :: einastoEnergyTableAlphaPointsPerUnit                  =100
-  integer, parameter :: einastoFourierProfileTableConcentrationPointsPerDecade= 10
-  integer, parameter :: einastoFourierProfileTableWavenumberPointsPerDecade   = 10
+  integer, parameter :: einastoFourierProfileTableConcentrationPointsPerDecade=100
+  integer, parameter :: einastoFourierProfileTableWavenumberPointsPerDecade   =100
   integer, parameter :: einastoFourierProfileTableAlphaPointsPerUnit          =100
 
   ! Module-scope variables used in root finding.
-  class           (darkMatterProfileEinasto), pointer :: einastoSelf
-  type            (treeNode                ), pointer :: einastoNode
-  double precision                                    :: einastoDensityEnclosed
+  class           (darkMatterProfileDMOEinasto), pointer :: einastoSelf
+  type            (treeNode                   ), pointer :: einastoNode
+  double precision                                       :: einastoDensityEnclosed
   !$omp threadprivate(einastoSelf,einastoNode,einastoDensityEnclosed)
   
 contains
@@ -206,12 +206,12 @@ contains
     !% Constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(darkMatterProfileEinasto )                :: self
+    type(darkMatterProfileDMOEinasto )                :: self
     type (inputParameters         ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=darkMatterProfileEinasto(darkMatterHaloScale_)
+    self=darkMatterProfileDMOEinasto(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
@@ -223,10 +223,10 @@ contains
     use Array_Utilities
     use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
-    type (darkMatterProfileEinasto)                              :: self
-    class(darkMatterHaloScaleClass), intent(in   ), target       :: darkMatterHaloScale_
-    type (varying_string          ), allocatable  , dimension(:) :: matchingComponentsShape, matchingComponentsScale, &
-         &                                                          matchingComponents
+    type (darkMatterProfileDMOEinasto)                              :: self
+    class(darkMatterHaloScaleClass   ), intent(in   ), target       :: darkMatterHaloScale_
+    type (varying_string             ), allocatable  , dimension(:) :: matchingComponentsShape, matchingComponentsScale, &
+         &                                                             matchingComponents
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
 
     ! Initialize table states.
@@ -293,7 +293,7 @@ contains
     !% Destructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
     use Numerical_Interpolation
     implicit none
-    type(darkMatterProfileEinasto), intent(inout) :: self
+    type(darkMatterProfileDMOEinasto), intent(inout) :: self
 
     call Interpolate_Done(                                                                                        &
          &                interpolationObject     =self%angularMomentumTableRadiusInterpolationObject           , &
@@ -343,7 +343,7 @@ contains
   subroutine einastoCalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
-    class(darkMatterProfileEinasto), intent(inout) :: self
+    class(darkMatterProfileDMOEinasto), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node
 
     call self%darkMatterHaloScale_%calculationReset(node)
@@ -355,7 +355,7 @@ contains
     !% in units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -380,7 +380,7 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -408,15 +408,15 @@ contains
     use Numerical_Comparison
     use Gamma_Functions
     implicit none
-    class           (darkMatterProfileEinasto     ), intent(inout)           :: self
-    type            (treeNode                     ), intent(inout)           :: node
-    double precision                               , intent(in   )           :: moment
-    double precision                               , intent(in   ), optional :: radiusMinimum      , radiusMaximum
-    class           (nodeComponentBasic            )              , pointer  :: basic
-    class           (nodeComponentDarkMatterProfile)              , pointer  :: darkMatterProfile
-    double precision                                                         :: scaleRadius        , virialRadiusOverScaleRadius, &
-         &                                                                      radiusMinimumActual, radiusMaximumActual        , &
-         &                                                                      alpha              , densityNormalization
+    class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
+    type            (treeNode                      ), intent(inout)           :: node
+    double precision                                , intent(in   )           :: moment
+    double precision                                , intent(in   ), optional :: radiusMinimum      , radiusMaximum
+    class           (nodeComponentBasic            )               , pointer  :: basic
+    class           (nodeComponentDarkMatterProfile)               , pointer  :: darkMatterProfile
+    double precision                                                          :: scaleRadius        , virialRadiusOverScaleRadius, &
+         &                                                                       radiusMinimumActual, radiusMaximumActual        , &
+         &                                                                       alpha              , densityNormalization
 
     radiusMinimumActual=0.0d0
     radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
@@ -435,7 +435,7 @@ contains
          &               /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha)
     einastoRadialMoment=+densityNormalization                                            &
          &              *basic%mass()                                                    &
-         &              *scaleRadius**(moment-3.0d0)                                     &
+         &              *scaleRadius**(moment-2.0d0)                                     &
          &              *(                                                               &
          &                +einastoRadialMomentScaleFree(radiusMaximumActual/scaleRadius) &
          &                -einastoRadialMomentScaleFree(radiusMinimumActual/scaleRadius) &
@@ -451,11 +451,7 @@ contains
       
       einastoRadialMomentScaleFree=-exp(2.0d0/alpha)                                                          &
            &                       *0.5d0   **((1.0d0+moment)/alpha)                                          &
-           &                       *radius  ** (1.0d0+moment)                                                 &
-           &                       /(                                                                         &
-           &                         +radius**                alpha                                           &
-           &                         /alpha                                                                   &
-           &                        )       **((1.0d0+moment)/alpha)                                          &
+           &                       *alpha   **((1.0d0+moment)/alpha)                                          &
            &                       *Gamma_Function           ((1.0d0+moment)/alpha                          ) &
            &                       *Gamma_Function_Incomplete((1.0d0+moment)/alpha,2.0d0*radius**alpha/alpha) &
            &                       /alpha
@@ -469,7 +465,7 @@ contains
     !% units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -494,7 +490,7 @@ contains
     !% units of Mpc).
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
     double precision                          , intent(in   ) :: radius
 
@@ -513,7 +509,7 @@ contains
     use Numerical_Constants_Physical
     use Root_Finder
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto      ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                , parameter     :: toleranceRelative=1.0d-3
@@ -581,7 +577,7 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)           :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
@@ -601,7 +597,7 @@ contains
     virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     einastoPotential=+self%potentialScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
          &           *gravitationalConstantGalacticus                                                  &
-         &           *basic%mass()                                                        &
+         &           *basic%mass()                                                                     &
          &           /scaleRadius
     return
   end function einastoPotential
@@ -612,7 +608,7 @@ contains
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)          :: self
+    class           (darkMatterProfileDMOEinasto      ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: specificAngularMomentum
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -640,7 +636,7 @@ contains
     use, intrinsic :: ISO_C_Binding
     use Numerical_Interpolation
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout)  :: self
+    class           (darkMatterProfileDMOEinasto), intent(inout)  :: self
     double precision                          , intent(in   )  :: alpha , specificAngularMomentumScaleFree
     integer         (c_size_t                ), dimension(0:1) :: jAlpha
     double precision                          , dimension(0:1) :: hAlpha
@@ -685,7 +681,7 @@ contains
     use Gamma_Functions
     use Memory_Management
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
     double precision                          , intent(in   ) :: alphaRequired, specificAngularMomentumRequired
     integer                                                   :: iAlpha       , iRadius
     logical                                                   :: makeTable
@@ -764,7 +760,7 @@ contains
     use Numerical_Constants_Math
     use Gamma_Functions
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: alpha                      , scaleRadius, &
@@ -772,21 +768,17 @@ contains
 
     ! Get components.
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-
     ! Get scale radius, shape and concentration.
-    scaleRadius                =darkMatterProfile%scale()
-    alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-
-    ! Compute the rotation normalization.
-    einastoRotationNormalization=                                                                               &
-         &  (4.0d0/Pi/scaleRadius)                                                                              &
-         & *(2.0d0/alpha)**(1.0d0/alpha)                                                                        &
-         & *Gamma_Function                         (3.0d0/alpha                                               ) &
-         & /Gamma_Function                         (4.0d0/alpha                                               ) &
-         & *Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha) &
-         & /Gamma_Function_Incomplete_Complementary(4.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha)
-
+    scaleRadius                 =+darkMatterProfile%scale()
+    alpha                       =+darkMatterProfile%shape()
+    virialRadiusOverScaleRadius =+self             %darkMatterHaloScale_%virialRadius(node) &
+         &                       /                                       scaleRadius
+    einastoRotationNormalization=+(2.0d0/alpha)**(1.0d0/alpha)                                                                        &
+         &                       *Gamma_Function                         (3.0d0/alpha                                               ) &
+         &                       /Gamma_Function                         (4.0d0/alpha                                               ) &
+         &                       *Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha) &
+         &                       /Gamma_Function_Incomplete_Complementary(4.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha) &
+         &                       /scaleRadius
     return
   end function einastoRotationNormalization
 
@@ -796,7 +788,7 @@ contains
     use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     use            :: Numerical_Interpolation
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)  :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
     class           (nodeComponentBasic            ), pointer        :: basic
     class           (nodeComponentDarkMatterProfile), pointer        :: darkMatterProfile
@@ -844,7 +836,7 @@ contains
     use            :: Galacticus_Nodes       , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     use            :: Numerical_Interpolation
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)           :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout) , target  :: node
     class           (nodeComponentBasic            )                , pointer :: basic
     class           (nodeComponentDarkMatterProfile)                , pointer :: darkMatterProfile
@@ -904,7 +896,7 @@ contains
     use Memory_Management
     use Numerical_Constants_Math
     implicit none
-    class           (darkMatterProfileEinasto  ), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto  ), intent(inout) :: self
     double precision                            , intent(in   ) :: alphaRequired          , concentrationRequired
     integer                                                     :: iAlpha                 , iConcentration
     logical                                                     :: makeTable
@@ -1042,17 +1034,12 @@ contains
     !% given {\normalfont \ttfamily radius} (given in units of the scale radius).
     use Gamma_Functions
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout) :: self
-    double precision                          , intent(in   ) :: alpha, concentration, radius
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
+    double precision                             , intent(in   ) :: alpha, concentration, radius
     !GCC$ attributes unused :: self
     
-    if (radius >= concentration) then
-       einastoEnclosedMassScaleFree=1.0d0
-    else
-       einastoEnclosedMassScaleFree=                                                                 &
-            &  Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha) &
-            & /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
-    end if
+    einastoEnclosedMassScaleFree=+Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha) &
+         &                       /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
     return
   end function einastoEnclosedMassScaleFree
 
@@ -1062,47 +1049,52 @@ contains
     use Numerical_Constants_Math
     use Gamma_Functions
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout) :: self
-    double precision                          , intent(in   ) :: alpha               , concentration, radius
-    double precision                                          :: densityNormalization
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
+    double precision                             , intent(in   ) :: alpha               , concentration, radius
+    double precision                                             :: densityNormalization
     !GCC$ attributes unused :: self
     
     densityNormalization= (alpha/4.0d0/Pi)                                                                      &
          &               *    ((2.0d0/alpha)                   **(3.0d0/alpha)                                ) &
-         &               *exp(-2.0d0/alpha                                                                   ) &
+         &               *exp(-2.0d0/alpha                                                                    ) &
          &               /Gamma_Function                         (3.0d0/alpha                                 ) &
          &               /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
     einastoDensityScaleFree=densityNormalization*exp(-(2.0d0/alpha)*(radius**alpha-1.0d0))
     return
   end function einastoDensityScaleFree
 
-  double precision function einastoPotentialScaleFree(self,radius,concentration,alpha)
+  double precision function einastoPotentialScaleFree(self,radius,concentration,alpha)              
     !% Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter
-    !% profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !% profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont
+    !% \ttfamily radius} (given in units of the scale radius). Uses the results from \cite{retana-montenegro_analytical_2012},
+    !% their equations (19) and (20).
     use Gamma_Functions
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout) :: self
-    double precision                          , intent(in   ) :: alpha, concentration, radius
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
+    double precision                             , intent(in   ) :: alpha , concentration, &
+         &                                                          radius
     !GCC$ attributes unused :: self
-    
+
     if (radius <= 0.0d0) then
-       einastoPotentialScaleFree=                                                                    &
-            & -((2.0d0/alpha)**(1.0d0/alpha))                                                        &
-            & *2.0d0                                                                                 &
-            & *Gamma_Function                         (2.0d0/alpha                                 ) &
-            & /Gamma_Function                         (3.0d0/alpha                                 ) &
-            & /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
+       einastoPotentialScaleFree=-((2.0d0/alpha)**(1.0d0/alpha))                                                          &
+            &                    *  Gamma_Function                         (2.0d0/alpha                                 ) &
+            &                    /  Gamma_Function                         (3.0d0/alpha                                 ) &
+            &                    /  Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
        
     else
-       einastoPotentialScaleFree=                                                                                    &
-            & -(                                                                                                     &
-            &           Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha)/radius &
-            &   +((2.0d0/alpha)**(1.0d0/alpha))                                                                      &
-            &   *(1.0d0+Gamma_Function_Incomplete              (2.0d0/alpha,2.0d0*radius       **alpha/alpha))       &
-            &   *       Gamma_Function                         (2.0d0/alpha                                 )        &
-            &   /       Gamma_Function                         (3.0d0/alpha                                 )        &
-            &  )                                                                                                     &
-            & /         Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
+       einastoPotentialScaleFree=-1.0d0                                                                                   &
+            &                    /radius                                                                                  &
+            &                    *(                                                                                       &
+            &                      +Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha) &
+            &                      +(                                                                                     &
+            &                        +radius                                                                              &
+            &                        *(2.0d0/alpha)**(1.0d0/alpha)&
+            &                       )                                                                                     &
+            &                      *Gamma_Function_Incomplete              (2.0d0/alpha,2.0d0*radius       **alpha/alpha) &
+            &                      *Gamma_Function                         (2.0d0/alpha                                 ) &
+            &                      /Gamma_Function                         (3.0d0/alpha                                 ) &
+            &                     )                                                                                       &
+            &                    /  Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*concentration**alpha/alpha)
     end if
     return
   end function einastoPotentialScaleFree
@@ -1113,7 +1105,7 @@ contains
     use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile
     use            :: Numerical_Interpolation
     implicit none
-    class           (darkMatterProfileEinasto      )                , intent(inout)          :: self
+    class           (darkMatterProfileDMOEinasto   )                , intent(inout)          :: self
     type            (treeNode                      )                , intent(inout), pointer :: node
     double precision                                                , intent(in   )          :: wavenumber
     class           (nodeComponentDarkMatterProfile)                               , pointer :: darkMatterProfile
@@ -1172,20 +1164,20 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileEinasto  ), intent(inout) :: self
-    double precision                            , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
-    double precision                            , parameter     :: profileTruncateLevel  =6.0d-6
-    integer                                                     :: iAlpha                       , iConcentration       , iWavenumber        , &
-         &                                                         percentage                   , errorStatus
-    logical                                                     :: makeTable
-    double precision                                            :: alpha                        , concentration        , radiusMaximum      , &
-         &                                                         radiusMinimum                , wavenumber           , wavenumberParameter, &
-         &                                                         concentrationParameter       , alphaParameter
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    character       (len=12                    )                :: label
-    type            (varying_string            )                :: message
-    
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
+    double precision                             , intent(in   ) :: alphaRequired                , concentrationRequired, wavenumberRequired
+    double precision                             , parameter     :: profileTruncateLevel  =6.0d-6
+    integer                                                      :: iAlpha                       , iConcentration       , iWavenumber        , &
+         &                                                          percentage                   , errorStatus
+    logical                                                      :: makeTable
+    double precision                                             :: alpha                        , concentration        , radiusMaximum      , &
+         &                                                          radiusMinimum                , wavenumber           , wavenumberParameter, &
+         &                                                          concentrationParameter       , alphaParameter
+    type            (fgsl_function              )                :: integrandFunction
+    type            (fgsl_integration_workspace )                :: integrationWorkspace
+    character       (len=12                     )                :: label
+    type            (varying_string             )                :: message
+
     ! Assume table does not need remaking.
     makeTable=.false.
     ! Check for uninitialized table.
@@ -1254,7 +1246,7 @@ contains
                    self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=0.0d0
                 else
                    wavenumber=self%fourierProfileTableWavenumber(iWavenumber)
-                   ! Compute the potential fourierProfile.
+                   ! Compute the Fourier profile.
                    radiusMinimum         =0.0d0
                    radiusMaximum         =concentration
                    wavenumberParameter   =wavenumber
@@ -1262,7 +1254,7 @@ contains
                    concentrationParameter=concentration
                    self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum&
                         &,einastoFourierProfileIntegrand,integrandFunction,integrationWorkspace&
-                        &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-2,maxIntervals=10000,errorStatus=errorStatus)
+                        &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3,maxIntervals=10000,errorStatus=errorStatus)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
                    if (errorStatus /= errorStatusSuccess) then
                       message="Integration of Einasto profile Fourier transform failed at:"//char(10)
@@ -1320,8 +1312,9 @@ contains
     use            :: Numerical_Constants_Astronomical
     use            :: Numerical_Constants_Physical
     use            :: Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDarkMatterProfile
+    use            :: Gamma_Functions
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)  :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
     double precision                                , intent(in   )  :: time
     class           (nodeComponentBasic            ), pointer        :: basic
@@ -1329,9 +1322,9 @@ contains
     integer         (c_size_t                      ), dimension(0:1) :: jAlpha
     double precision                                , dimension(0:1) :: hAlpha
     integer                                                          :: iAlpha
-    double precision                                                 :: alpha            , freefallTimeScaleFree, &
-         &                                                              radiusScale      , timeScale            , &
-         &                                                              velocityScale
+    double precision                                                 :: alpha            , freefallTimeScaleFree      , &
+         &                                                              radiusScale      , timeScale                  , &
+         &                                                              velocityScale    , virialRadiusOverScaleRadius
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -1347,13 +1340,18 @@ contains
     alpha        =darkMatterProfile%shape()
 
     ! Get the scale radius.
-    radiusScale  =darkMatterProfile%scale()
+    radiusScale                =darkMatterProfile%scale()
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
 
     ! Get the velocity scale.
     velocityScale=sqrt(gravitationalConstantGalacticus*basic%mass()/radiusScale)
 
     ! Compute time scale.
-    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
+    timeScale=+Mpc_per_km_per_s_To_Gyr                                                                                   &
+         &    *radiusScale                                                                                               &
+         &    /velocityScale                                                                                             &
+         &    *sqrt(Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha)) &
+         &    /sqrt(Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0                                   /alpha))
 
     ! Compute dimensionless time.
     freefallTimeScaleFree=time/timeScale
@@ -1363,17 +1361,13 @@ contains
 
     ! Interpolate to get the freefall radius.
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%freefallRadiusTableAlpha&
-         &,self%freefallRadiusTableAlphaInterpolationAccelerator,alpha,reset=self%freefallRadiusTableAlphaInterpolationReset)
+    jAlpha(0)=Interpolate_Locate                 (self%freefallRadiusTableAlpha,self%freefallRadiusTableAlphaInterpolationAccelerator,alpha,reset=self%freefallRadiusTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
-    hAlpha=Interpolate_Linear_Generate_Factors(self%freefallRadiusTableAlpha,jAlpha(0),alpha)
+    hAlpha   =Interpolate_Linear_Generate_Factors(self%freefallRadiusTableAlpha,jAlpha(0)                                            ,alpha                                                      )
 
     einastoFreefallRadius=0.0d0
     do iAlpha=0,1
-       einastoFreefallRadius=einastoFreefallRadius+Interpolate(self%freefallRadiusTable(:&
-            &,jAlpha(iAlpha)),self%freefallRadiusTableRadius ,self%freefallRadiusTableRadiusInterpolationObject&
-            &,self%freefallRadiusTableRadiusInterpolationAccelerator ,freefallTimeScaleFree,reset&
-            &=self%freefallRadiusTableRadiusInterpolationReset)*hAlpha(iAlpha)
+       einastoFreefallRadius=einastoFreefallRadius+Interpolate(self%freefallRadiusTable(:,jAlpha(iAlpha)),self%freefallRadiusTableRadius,self%freefallRadiusTableRadiusInterpolationObject,self%freefallRadiusTableRadiusInterpolationAccelerator,freefallTimeScaleFree,reset=self%freefallRadiusTableRadiusInterpolationReset)*hAlpha(iAlpha)
     end do
     einastoFreefallRadius=einastoFreefallRadius*radiusScale
     return
@@ -1387,8 +1381,9 @@ contains
     use            :: Numerical_Interpolation
     use            :: Numerical_Constants_Astronomical
     use            :: Numerical_Constants_Physical
+    use            :: Gamma_Functions
     implicit none
-    class           (darkMatterProfileEinasto      ), intent(inout)  :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
     type            (treeNode                      ), intent(inout)  :: node
     double precision                                , intent(in   )  :: time
     class           (nodeComponentBasic            ), pointer        :: basic
@@ -1396,9 +1391,9 @@ contains
     integer         (c_size_t                      ), dimension(0:1) :: jAlpha
     double precision                                , dimension(0:1) :: hAlpha
     integer                                                          :: iAlpha
-    double precision                                                 :: alpha             , freefallTimeScaleFree, &
-         &                                                              radiusScale       , timeScale            , &
-         &                                                              velocityScale
+    double precision                                                 :: alpha            , freefallTimeScaleFree      , &
+         &                                                              radiusScale      , timeScale                  , &
+         &                                                              velocityScale    , virialRadiusOverScaleRadius
 
     ! For non-positive freefall times, return a zero freefall radius immediately.
     if (time <= 0.0d0) then
@@ -1414,13 +1409,18 @@ contains
     alpha        =darkMatterProfile%shape()
 
     ! Get the scale radius.
-    radiusScale  =darkMatterProfile%scale()
+    radiusScale                =darkMatterProfile%scale()
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
 
     ! Get the velocity scale.
     velocityScale=sqrt(gravitationalConstantGalacticus*basic%mass()/radiusScale)
 
     ! Compute time scale.
-    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale
+    timeScale=+Mpc_per_km_per_s_To_Gyr                                                                                   &
+         &    *radiusScale                                                                                               &
+         &    /velocityScale                                                                                             &
+         &    *sqrt(Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha)) &
+         &    /sqrt(Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0                                   /alpha))
 
     ! Compute dimensionless time.
     freefallTimeScaleFree=time/timeScale
@@ -1453,11 +1453,11 @@ contains
     use Memory_Management
     use Numerical_Interpolation
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout) :: self
-    double precision                          , intent(in   ) :: alphaRequired, freefallTimeScaleFree
-    logical                                                   :: retabulate
-    integer                                                   :: iAlpha       , iRadius              , percentage
-    double precision                                          :: alpha
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
+    double precision                             , intent(in   ) :: alphaRequired, freefallTimeScaleFree
+    logical                                                      :: retabulate
+    integer                                                      :: iAlpha       , iRadius              , percentage
+    double precision                                             :: alpha
 
     retabulate=.not.self%freefallRadiusTableInitialized
     ! If the table has not yet been made, compute and store the freefall times corresponding to the minimum and maximum
@@ -1489,14 +1489,14 @@ contains
        call Galacticus_Display_Indent('Constructing Einasto profile freefall radius lookup table...',verbosityWorking)
        ! Decide how many points to tabulate and allocate table arrays.
        self%freefallRadiusTableRadiusCount=int(log10(self%freefallRadiusTableRadiusMaximum/self%freefallRadiusTableRadiusMinimum)*dble(einastoFreefallRadiusTableRadiusPointsPerDecade))+1
-       self%freefallRadiusTableAlphaCount =int(      (self%freefallRadiusTableAlphaMaximum -self%freefallRadiusTableAlphaMinimum )*dble(einastoFreefallRadiusTableAlphaPointsPerUnit   ))+1
+       self%freefallRadiusTableAlphaCount =int(     (self%freefallRadiusTableAlphaMaximum -self%freefallRadiusTableAlphaMinimum )*dble(einastoFreefallRadiusTableAlphaPointsPerUnit   ))+1
        if (allocated(self%freefallRadiusTableRadius)) then
           call deallocateArray(self%freefallRadiusTableAlpha )
           call deallocateArray(self%freefallRadiusTableRadius)
           call deallocateArray(self%freefallRadiusTable      )
        end if
-       call allocateArray(self%freefallRadiusTableAlpha ,[                               self%freefallRadiusTableAlphaCount])
-       call allocateArray(self%freefallRadiusTableRadius,[self%freefallRadiusTableRadiusCount                              ])
+       call allocateArray(self%freefallRadiusTableAlpha ,[                                    self%freefallRadiusTableAlphaCount])
+       call allocateArray(self%freefallRadiusTableRadius,[self%freefallRadiusTableRadiusCount                                   ])
        call allocateArray(self%freefallRadiusTable      ,[self%freefallRadiusTableRadiusCount,self%freefallRadiusTableAlphaCount])
        ! Create a range of radii and alpha.
        self%freefallRadiusTableAlpha =Make_Range(self%freefallRadiusTableAlphaMinimum ,self%freefallRadiusTableAlphaMaximum ,self%freefallRadiusTableAlphaCount ,rangeType=rangeTypeLinear     )
@@ -1514,11 +1514,11 @@ contains
           end do
        end do
        ! Ensure interpolations get reset.
-       call Interpolate_Done(                                                                            &
+       call Interpolate_Done(                                                                                 &
             &                interpolationAccelerator=self%freefallRadiusTableAlphaInterpolationAccelerator,  &
             &                reset                   =self%freefallRadiusTableAlphaInterpolationReset         &
             &               )
-       call Interpolate_Done(                                                                            &
+       call Interpolate_Done(                                                                                 &
             &                interpolationObject     =self%freefallRadiusTableRadiusInterpolationObject,      &
             &                interpolationAccelerator=self%freefallRadiusTableRadiusInterpolationAccelerator, &
             &                reset                   =self%freefallRadiusTableRadiusInterpolationReset        &
@@ -1526,7 +1526,7 @@ contains
        self%freefallRadiusTableAlphaInterpolationReset =.true.
        self%freefallRadiusTableRadiusInterpolationReset=.true.
        ! Store the minimum and maximum tabulated freefall times across all alpha values.
-       self%freefallTimeMinimum=maxval(self%freefallRadiusTable(                             1,:))
+       self%freefallTimeMinimum=maxval(self%freefallRadiusTable(                                  1,:))
        self%freefallTimeMaximum=minval(self%freefallRadiusTable(self%freefallRadiusTableRadiusCount,:))
        ! Display a message.
        call Galacticus_Display_Unindent('...done',verbosityWorking)
@@ -1540,18 +1540,25 @@ contains
     !% Compute the freefall time in a scale-free Einasto halo.
     use Numerical_Integration
     implicit none
-    class           (darkMatterProfileEinasto  ), intent(inout) :: self
-    double precision                            , intent(in   ) :: alpha               , radius
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: radiusStart         , radiusEnd, &
-         &                                                         alphaParameter
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
+    double precision                             , intent(in   ) :: alpha               , radius
+    type            (fgsl_function              )                :: integrandFunction
+    type            (fgsl_integration_workspace )                :: integrationWorkspace
+    double precision                                             :: radiusStart         , radiusEnd, &
+         &                                                          alphaParameter
 
-    radiusStart   =radius
-    radiusEnd     =0.0d0
-    alphaParameter=alpha
-    einastoFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,einastoFreefallTimeScaleFreeIntegrand&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    radiusStart                 =radius
+    radiusEnd                   =0.0d0
+    alphaParameter              =alpha
+    einastoFreefallTimeScaleFree=Integrate(                                                         &
+         &                                                   radiusEnd                            , &
+         &                                                   radiusStart                          , &
+         &                                                   einastoFreefallTimeScaleFreeIntegrand, &
+         &                                                   integrandFunction                    , &
+         &                                                   integrationWorkspace                 , &
+         &                                 toleranceAbsolute=0.0d+0                               , &
+         &                                 toleranceRelative=1.0d-3                                 &
+         &                                )
     return
 
   contains
@@ -1561,14 +1568,13 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
       
-      einastoFreefallTimeScaleFreeIntegrand= 1.0d0                                                                   &
-           &                                     /sqrt(                                                              &
-           &                                             2.0d0                                                       &
-           &                                            *(                                                           &
-           &                                               self%potentialScaleFree(radiusStart,1.0d0,alphaParameter) &
-           &                                              -self%potentialScaleFree(radius     ,1.0d0,alphaParameter) &
-           &                                             )                                                           &
-           &                                           )
+      einastoFreefallTimeScaleFreeIntegrand=+1.0d0                                                             &
+           &                                /sqrt(+2.0d0                                                       &
+           &                                      *(                                                           &
+           &                                        +self%potentialScaleFree(radiusStart,1.0d0,alphaParameter) &
+           &                                        -self%potentialScaleFree(radius     ,1.0d0,alphaParameter) &
+           &                                       )                                                           &
+           &                                     )
       return
     end function einastoFreefallTimeScaleFreeIntegrand
 
@@ -1579,7 +1585,7 @@ contains
     !% function uses a numerical root finder to find the enclosing radius---this is likely not the most efficient solution\ldots
     use Root_Finder
     implicit none
-    class           (darkMatterProfileEinasto), intent(inout), target :: self
+    class           (darkMatterProfileDMOEinasto), intent(inout), target :: self
     type            (treeNode                ), intent(inout), target :: node
     double precision                          , intent(in   )         :: density
     type            (rootFinder              ), save                  :: finder

@@ -37,20 +37,18 @@ double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self
   return
 end function Node_Component_Spheroid_Standard_Half_Mass_Radius
 
-double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
   !% Computes the mass within a given radius for an standard spheroid.
   use Node_Component_Spheroid_Standard_Data
   use Galactic_Structure_Options
   use Node_Component_Spheroid_Standard_Data
   implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout)           :: self
-  integer                                        , intent(in   )           :: componentType   , massType      , weightBy, weightIndex
-  double precision                               , intent(in   )           :: radius
-  logical                                        , intent(in   ), optional :: haloLoaded
-  double precision                                                         :: fractionalRadius, spheroidRadius
-  type            (stellarLuminosities          ), save                    :: luminositiesSpheroid
+  class           (nodeComponentSpheroidStandard), intent(inout) :: self
+  integer                                        , intent(in   ) :: componentType   , massType      , weightBy, weightIndex
+  double precision                               , intent(in   ) :: radius
+  double precision                                               :: fractionalRadius, spheroidRadius
+  type            (stellarLuminosities          ), save          :: luminositiesSpheroid
   !$omp threadprivate(luminositiesSpheroid)
-  !GCC$ attributes unused :: haloLoaded
   
   ! Return if the spheroid component is not selected.
   Node_Component_Spheroid_Standard_Enclosed_Mass=0.0d0
@@ -86,17 +84,15 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   return
 end function Node_Component_Spheroid_Standard_Enclosed_Mass
 
-double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType,haloLoaded)
+double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType)
   !% Computes the rotation curve at a given radius for a standard spheroid.
   use Galactic_Structure_Options
   use Numerical_Constants_Physical
   implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout)           :: self
-  integer                                        , intent(in   )           :: componentType, massType
-  double precision                               , intent(in   )           :: radius
-  logical                                        , intent(in   ), optional :: haloLoaded
-  double precision                                                         :: componentMass
-  !GCC$ attributes unused :: haloLoaded
+  class           (nodeComponentSpheroidStandard), intent(inout) :: self
+  integer                                        , intent(in   ) :: componentType, massType
+  double precision                               , intent(in   ) :: radius
+  double precision                                               :: componentMass
   
   ! Set to zero by default.
   Node_Component_Spheroid_Standard_Rotation_Curve=0.0d0
@@ -105,24 +101,23 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,r
   if (radius <= 0.0d0) return
 
   ! Compute if a spheroid is present.
-  componentMass=self%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+  componentMass=self%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull)
   if (componentMass > 0.0d0) Node_Component_Spheroid_Standard_Rotation_Curve=sqrt(gravitationalConstantGalacticus&
        &*componentMass)/sqrt(radius)
   return
 end function Node_Component_Spheroid_Standard_Rotation_Curve
 
-double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType,haloLoaded)
+double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType)
   !% Computes the rotation curve gradient for the standard spheroid.
   use Galactic_Structure_Options
   use Numerical_Constants_Physical
   use Numerical_Constants_Prefixes
   use Numerical_Constants_Math
   implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout)           :: self
-  integer                                        , intent(in   )           :: componentType   , massType
-  double precision                               , intent(in   )           :: radius
-  logical                                        , intent(in   ), optional :: haloLoaded
-  double precision                                                         :: componentDensity, componentMass, positionSpherical(3)
+  class           (nodeComponentSpheroidStandard), intent(inout) :: self
+  integer                                        , intent(in   ) :: componentType   , massType
+  double precision                               , intent(in   ) :: radius
+  double precision                                               :: componentDensity, componentMass, positionSpherical(3)
 
   ! Set to zero by default.
   Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=0.0d0
@@ -132,8 +127,8 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradie
 
   ! Compute if a spheroid is present.
   positionSpherical= [radius,0.0d0,0.0d0]
-  componentMass    =self%enclosedMass(radius           ,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
-  componentDensity =self%density     (positionSpherical,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+  componentMass    =self%enclosedMass(radius           ,componentType,massType,weightByMass,weightIndexNull)
+  componentDensity =self%density     (positionSpherical,componentType,massType,weightByMass,weightIndexNull)
   if (componentMass == 0.0d0 .or. componentDensity == 0.0d0) return
   Node_Component_Spheroid_Standard_Rotation_Curve_Gradient=  &
        &                  gravitationalConstantGalacticus    &
@@ -144,23 +139,21 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradie
   return
 end function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
 
-double precision function Node_Component_Spheroid_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
+double precision function Node_Component_Spheroid_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
   !% Computes the density at a given position for an standard spheroid.
   use Galactic_Structure_Options
   use Numerical_Constants_Math
   use Coordinates
   use Node_Component_Spheroid_Standard_Data
   implicit none
-  class           (nodeComponentSpheroidStandard), intent(inout)           :: self
-  integer                                        , intent(in   )           :: componentType       , massType, weightBy, &
-       &                                                                      weightIndex
-  double precision                               , intent(in   )           :: positionSpherical(3)
-  logical                                        , intent(in   ), optional :: haloLoaded
-  double precision                               , parameter               :: radiusHuge          =1.0d+100
-  type            (coordinateSpherical          )                          :: position
-  type            (stellarLuminosities          ), save                    :: luminositiesSpheroid
+  class           (nodeComponentSpheroidStandard), intent(inout) :: self
+  integer                                        , intent(in   ) :: componentType       , massType, weightBy, &
+       &                                                            weightIndex
+  double precision                               , intent(in   ) :: positionSpherical(3)
+  double precision                               , parameter     :: radiusHuge          =1.0d+100
+  type            (coordinateSpherical          )                :: position
+  type            (stellarLuminosities          ), save          :: luminositiesSpheroid
   !$omp threadprivate(luminositiesSpheroid)
-  !GCC$ attributes unused :: haloLoaded
 
   Node_Component_Spheroid_Standard_Density=0.0d0
   if (.not.(componentType == componentTypeAll .or. componentType == componentTypeSpheroid)) return
@@ -203,7 +196,7 @@ double precision function Node_Component_Spheroid_Standard_Density(self,position
   return
 end function Node_Component_Spheroid_Standard_Density
 
-double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,haloLoaded,status)
+double precision function Node_Component_Spheroid_Standard_Potential(self,radius,componentType,massType,status)
   use Galactic_Structure_Options
   use Numerical_Constants_Physical
   use Coordinates
@@ -212,7 +205,6 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   class           (nodeComponentSpheroidStandard), intent(inout)           :: self
   integer                                        , intent(in   )           :: componentType, massType
   double precision                               , intent(in   )           :: radius
-  logical                                        , intent(in   ), optional :: haloLoaded
   integer                                        , intent(inout), optional :: status
   double precision                                                         :: componentMass
   type            (coordinateSpherical          )                          :: position
@@ -229,7 +221,7 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   class is (nodeComponentSpheroidStandard)
      ! Compute if a spheroid is present.
      componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass&
-          &,weightIndexNull,haloLoaded)
+          &,weightIndexNull)
      if (componentMass > 0.0d0 .and. self%radius() > 0.0d0) then
         position=[radius/self%radius(),0.0d0,0.0d0]
         Node_Component_Spheroid_Standard_Potential=(gravitationalConstantGalacticus*componentMass&

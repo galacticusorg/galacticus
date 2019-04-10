@@ -57,20 +57,18 @@ double precision function Node_Component_Disk_Standard_Half_Mass_Radius(self)
   return
 end function Node_Component_Disk_Standard_Half_Mass_Radius
 
-double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
   !% Computes the mass within a given radius for an standard disk.
   use Galactic_Structure_Options
   use Tables
   use Node_Component_Disk_Standard_Data
   implicit none
-  class           (nodeComponentDiskStandard), intent(inout)           :: self
-  integer                                    , intent(in   )           :: componentType   , massType        , weightBy, weightIndex
-  double precision                           , intent(in   )           :: radius
-  logical                                    , intent(in   ), optional :: haloLoaded
-  double precision                                                     :: diskRadius      , fractionalRadius
-  type            (stellarLuminosities      ), save                    :: luminositiesDisk
+  class           (nodeComponentDiskStandard), intent(inout) :: self
+  integer                                    , intent(in   ) :: componentType   , massType        , weightBy, weightIndex
+  double precision                           , intent(in   ) :: radius
+  double precision                                           :: diskRadius      , fractionalRadius
+  type            (stellarLuminosities      ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
-  !GCC$ attributes unused :: haloLoaded
   
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Enclosed_Mass=0.0d0
@@ -108,7 +106,7 @@ double precision function Node_Component_Disk_Standard_Enclosed_Mass(self,radius
   return
 end function Node_Component_Disk_Standard_Enclosed_Mass
 
-double precision function Node_Component_Disk_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
+double precision function Node_Component_Disk_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
   !% Computes the density at a given position for an standard disk.
   use Galactic_Structure_Options
   use Numerical_Constants_Math
@@ -116,15 +114,13 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
   use Node_Component_Disk_Standard_Data
   use Coordinates
   implicit none
-  class           (nodeComponentDiskStandard), intent(inout)           :: self
-  integer                                    , intent(in   )           :: componentType       , massType   , &
-       &                                                                  weightBy            , weightIndex
-  double precision                           , intent(in   )           :: positionSpherical(3)
-  logical                                    , intent(in   ), optional :: haloLoaded
-  type            (stellarLuminosities      ), save                    :: luminositiesDisk
+  class           (nodeComponentDiskStandard), intent(inout) :: self
+  integer                                    , intent(in   ) :: componentType       , massType   , &
+       &                                                        weightBy            , weightIndex
+  double precision                           , intent(in   ) :: positionSpherical(3)
+  type            (stellarLuminosities      ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
-  type            (coordinateSpherical      )                           :: position
-  !GCC$ attributes unused :: haloLoaded
+  type            (coordinateSpherical      )                :: position
   
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Density=0.0d0
@@ -158,7 +154,7 @@ double precision function Node_Component_Disk_Standard_Density(self,positionSphe
    return
 end function Node_Component_Disk_Standard_Density
 
-double precision function Node_Component_Disk_Standard_Potential(self,radius,componentType,massType,haloLoaded,status)
+double precision function Node_Component_Disk_Standard_Potential(self,radius,componentType,massType,status)
   !% Compute the gravitational potential due to an standard disk.
   use Numerical_Constants_Physical
   use Bessel_Functions
@@ -170,7 +166,6 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   class           (nodeComponentDiskStandard), intent(inout)           :: self
   integer                                    , intent(in   )           :: componentType, massType
   double precision                           , intent(in   )           :: radius
-  logical                                    , intent(in   ), optional :: haloLoaded
   integer                                    , intent(inout), optional :: status
   double precision                                                     :: componentMass
   type            (coordinateCylindrical    )                          :: position
@@ -182,7 +177,7 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   ! Avoid an arithmetic exception at radius zero.
   if (radius <= 0.0d0) return
   ! Get the relevant mass of the disk.
-  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
   if (componentMass <= 0.0d0) return
   ! Check for zero-sized disk.
   if (self%radius() <= 0.0d0) then
@@ -201,23 +196,22 @@ double precision function Node_Component_Disk_Standard_Potential(self,radius,com
   return
 end function Node_Component_Disk_Standard_Potential
 
-double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radius,componentType,massType,haloLoaded)
+double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radius,componentType,massType)
   !% Computes the rotation curve at a given radius for an standard disk.
   use Tables
   use Node_Component_Disk_Standard_Data
   use Galactic_Structure_Options
   use Numerical_Constants_Physical
   implicit none
-  class           (nodeComponentDiskStandard), intent(inout)           :: self
-  integer                                    , intent(in   )           :: componentType         , massType
-  double precision                           , intent(in   )           :: radius
-  logical                                    , intent(in   ), optional :: haloLoaded
-  double precision                                                     :: componentMass         , diskRadius, fractionalRadius
+  class           (nodeComponentDiskStandard), intent(inout) :: self
+  integer                                    , intent(in   ) :: componentType, massType
+  double precision                           , intent(in   ) :: radius
+  double precision                                           :: componentMass, diskRadius, fractionalRadius
 
   ! Set to zero by default.
   Node_Component_Disk_Standard_Rotation_Curve=0.0d0
   ! Get the mass of the disk.
-  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
   if (componentMass <= 0.0d0) return
   ! Check that the mass distribution is cylindrical.
   select type (diskMassDistribution)
@@ -237,7 +231,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve(self,radiu
   return
 end function Node_Component_Disk_Standard_Rotation_Curve
 
-double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType,haloLoaded)
+double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType)
   !% Computes the rotation curve gradient for an standard disk.
   use Tables
   use Node_Component_Disk_Standard_Data
@@ -245,19 +239,18 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
   use Numerical_Constants_Physical
   use Numerical_Constants_Prefixes
   implicit none
-  class           (nodeComponentDiskStandard), intent(inout)           :: self
-  integer                                    , intent(in   )           :: componentType, massType
-  double precision                           , intent(in   )           :: radius
-  logical                                    , intent(in   ), optional :: haloLoaded
-  double precision                                                     :: diskRadius   , fractionalRadius, &
-       &                                                                  componentMass
+  class           (nodeComponentDiskStandard), intent(inout) :: self
+  integer                                    , intent(in   ) :: componentType, massType
+  double precision                           , intent(in   ) :: radius
+  double precision                                           :: diskRadius   , fractionalRadius, &
+       &                                                        componentMass
 
   ! Set to zero by default.
   Node_Component_Disk_Standard_Rotation_Curve_Gradient=0.0d0
   ! Return if radius is zero.
   if (radius <= 0.0d0) return
   ! Get the mass of the disk.
-  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+  componentMass=self%enclosedMass(radiusLarge,componentType,massType,weightByMass,weightIndexNull)
   if (componentMass <= 0.0d0) return
   ! Check that the mass distribution is cylindrical.
   select type (diskMassDistribution)
@@ -276,7 +269,7 @@ double precision function Node_Component_Disk_Standard_Rotation_Curve_Gradient(s
 end function Node_Component_Disk_Standard_Rotation_Curve_Gradient
 
 double precision function Node_Component_Disk_Standard_Surface_Density(self,positionCylindrical,componentType,massType&
-     &,weightBy,weightIndex,haloLoaded)
+     &,weightBy,weightIndex)
   !% Computes the surface density at a given position for an standard disk.
   use Galactic_Structure_Options
   use Numerical_Constants_Math
@@ -284,16 +277,14 @@ double precision function Node_Component_Disk_Standard_Surface_Density(self,posi
   use Node_Component_Disk_Standard_Data
   use Coordinates
   implicit none
-  class           (nodeComponentDiskStandard), intent(inout)           :: self
-  integer                                    , intent(in   )           :: componentType         , massType   , &
-       &                                                                  weightBy              , weightIndex
-  double precision                           , intent(in   )           :: positionCylindrical(3)
-  logical                                    , intent(in   ), optional :: haloLoaded
-  type            (treeNode                 ), pointer                 :: selfNode
-  type            (stellarLuminosities      ), save                    :: luminositiesDisk
+  class           (nodeComponentDiskStandard), intent(inout) :: self
+  integer                                    , intent(in   ) :: componentType         , massType   , &
+       &                                                        weightBy              , weightIndex
+  double precision                           , intent(in   ) :: positionCylindrical(3)
+  type            (treeNode                 ), pointer       :: selfNode
+  type            (stellarLuminosities      ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
-  type            (coordinateCylindrical    )                          :: position
-  !GCC$ attributes unused :: haloLoaded
+  type            (coordinateCylindrical    )                :: position
   
   ! Return immediately if disk component is not requested.
   Node_Component_Disk_Standard_Surface_Density=0.0d0

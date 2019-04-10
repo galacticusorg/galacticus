@@ -440,6 +440,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.dark_matter_profiles.generic.exe",                             # Tests of generic, numerical implementations of dark matter profile functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.MPI.exe",                                                      # Tests of MPI functionality.
 	valgrind => 0,
 	mpi      => 4

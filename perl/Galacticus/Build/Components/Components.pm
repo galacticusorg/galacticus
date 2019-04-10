@@ -162,7 +162,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the mass enclosed within a radius."                                                           ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -171,7 +171,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the density."                                                                                 ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionSpherical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
+	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionSpherical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -180,7 +180,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the surface density."                                                                         ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
+	     arguments   => "\\textcolor{red}{\\textless double(3)\\textgreater} positionCylindrical\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\enumWeightBy\\ [weightBy]\\argin, \\intzero\\ [weightIndex]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -189,7 +189,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the gravitational potential."                                                                 ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -198,7 +198,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the rotation curve."                                                                          ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
@@ -207,7 +207,7 @@ sub Build_Node_Component_Class {
 	     description => "Compute the rotation curve gradient."                                                                 ,
 	     mappable    => "summation"                                                                                            ,
 	     returnType  => "\\doublezero"                                                                                         ,
-	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin, \\logicalzero\\ [haloLoaded]\\argin"
+	     arguments   => "\\doublezero\\ radius\\argin, \\enumComponentType\\ [componentType]\\argin, \\enumMassType\\ [massType]\\argin"
 	 }
 	);
     # Specify the data content.

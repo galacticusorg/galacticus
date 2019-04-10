@@ -34,10 +34,10 @@
      class(darkMatterProfileConcentrationClass), pointer :: cdmConcentration => null()
      class(transferFunctionClass              ), pointer :: transferFunction_ => null()
    contains
-     final     ::                                wdmDestructor
-     procedure :: concentration               => wdmConcentration
-     procedure :: densityContrastDefinition   => wdmDensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => wdmDarkMatterProfileDefinition
+     final     ::                                   wdmDestructor
+     procedure :: concentration                  => wdmConcentration
+     procedure :: densityContrastDefinition      => wdmDensityContrastDefinition
+     procedure :: darkMatterProfileDMODefinition => wdmDarkMatterProfileDefinition
   end type darkMatterProfileConcentrationWDM
 
   interface darkMatterProfileConcentrationWDM
@@ -126,9 +126,9 @@ contains
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% warm dark matter modifier of \cite{schneider_non-linear_2012}.
     implicit none
-    class(darkMatterProfileClass           ), pointer       :: wdmDarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass        ), pointer       :: wdmDarkMatterProfileDefinition
     class(darkMatterProfileConcentrationWDM), intent(inout) :: self
 
-    wdmDarkMatterProfileDefinition => self%cdmConcentration%darkMatterProfileDefinition()
+    wdmDarkMatterProfileDefinition => self%cdmConcentration%darkMatterProfileDMODefinition()
     return
   end function wdmDarkMatterProfileDefinition

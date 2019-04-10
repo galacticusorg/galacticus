@@ -27,7 +27,7 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationZhao2009">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{zhao_accurate_2009}.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationZhao2009
@@ -38,12 +38,12 @@
      class(cosmologyParametersClass               ), pointer :: cosmologyParameters_                => null()
      class(darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
      type (virialDensityContrastBryanNorman1998   ), pointer :: virialDensityContrastDefinition_    => null()
-     type (darkMatterProfileNFW                   ), pointer :: darkMatterProfileDefinition_        => null()
+     type (darkMatterProfileDMONFW                   ), pointer :: darkMatterProfileDMODefinition_        => null()
    contains
      final     ::                                zhao2009Destructor
      procedure :: concentration               => zhao2009Concentration
      procedure :: densityContrastDefinition   => zhao2009DensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => zhao2009DarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => zhao2009DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationZhao2009
 
   interface darkMatterProfileConcentrationZhao2009
@@ -99,7 +99,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"               />
     !# <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
     !# <objectDestructor name="self%virialDensityContrastDefinition_"   />
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"       />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"       />
     return
   end subroutine zhao2009Destructor
 
@@ -147,21 +147,21 @@ contains
     !% concentration in the \cite{zhao_accurate_2009} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: zhao2009DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: zhao2009DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationZhao2009            ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    zhao2009DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    zhao2009DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function zhao2009DarkMatterProfileDefinition
 

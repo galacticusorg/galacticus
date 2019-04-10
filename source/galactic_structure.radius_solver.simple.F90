@@ -106,13 +106,13 @@ contains
 
   subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
-    use Dark_Matter_Profiles
+    use Dark_Matter_Profiles_DMO
     implicit none
     type            (treeNode                  ), intent(inout)          :: node
     double precision                            , intent(in   )          :: specificAngularMomentum
     procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
     procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
-    class           (darkMatterProfileClass    )               , pointer :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass    )               , pointer :: darkMatterProfileDMO_
     double precision                                                     :: radius                 , velocity
     !GCC$ attributes unused :: Radius_Get, Velocity_Get
     
@@ -120,12 +120,12 @@ contains
     if (specificAngularMomentum <= 0.0d0) return
 
     ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
+    darkMatterProfileDMO_ => darkMatterProfileDMO()
     ! Find the radius in the dark matter profile with the required specific angular momentum
-    radius=darkMatterProfile_%radiusFromSpecificAngularMomentum(haloNode,specificAngularMomentum)
+    radius=darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(haloNode,specificAngularMomentum)
 
     ! Find the velocity at this radius.
-    velocity=darkMatterProfile_%circularVelocity(haloNode,radius)
+    velocity=darkMatterProfileDMO_%circularVelocity(haloNode,radius)
 
     ! Set the component size to new radius and velocity.
     call Radius_Set  (node,radius  )

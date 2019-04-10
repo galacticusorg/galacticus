@@ -17,10 +17,10 @@
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
-  <galacticStructureRadiiInitialMethod value="gnedin2004">
+  <darkMatterProfileDMOMethod value="adiabaticGnedin2004">
     <omega value="0.77"/>
     <A value="0.8"/>
-  </galacticStructureRadiiInitialMethod>
+  </darkMatterProfileDMOMethod>
 
   <starFormationTimescaleDisksMethod value="dynamicalTime">
     <efficiency value="0.01"/>
@@ -33,7 +33,7 @@
   </cosmologicalMassVarianceMethod>
 
   <bondiHoyleAccretionTemperatureSpheroid value="100"/>
-  <darkMatterProfileMethod value="NFW"/>
+  <darkMatterProfileDMOMethod value="NFW"/>
   <coolingTimeAvailableMethod value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailableMethod>
@@ -183,7 +183,7 @@
   <coolingRadiusMethod value="simple"/>
   <randomSpinResetMassFactor value="2"/>
   <blackHoleBinaryMergersMethod value="rezzolla2008"/>
-  <galacticStructureRadiusSolverMethod value="adiabatic"/>
+  <galacticStructureRadiusSolverMethod value="equilibrium"/>
   <mergerTreeConstructorMethod value="build">
       <treeBeginAt value="1"/>
       <redshiftBase value="0"/>

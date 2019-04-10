@@ -51,17 +51,17 @@ contains
     return
   end function tidalConstructorParameters
 
-  double precision function tidalSpecificEnergy(self,node,darkMatterProfile_,radius)
+  double precision function tidalSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
     !% Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
-    class           (darkMatterProfileClass       ), intent(inout) :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass       ), intent(inout) :: darkMatterProfileDMO_
     double precision                               , intent(in   ) :: radius
     class           (nodeComponentSatellite       ), pointer       :: satellite
     double precision                                               :: specificEnergyOverRadiusSquared
-    !GCC$ attributes unused :: self, darkMatterProfile_
+    !GCC$ attributes unused :: self, darkMatterProfileDMO_
 
     satellite                       =>      node     %satellite             ()
     specificEnergyOverRadiusSquared =  max(                                     &
@@ -73,17 +73,17 @@ contains
     return
   end function tidalSpecificEnergy
 
-  double precision function tidalSpecificEnergyGradient(self,node,darkMatterProfile_,radius)
+  double precision function tidalSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (darkMatterProfileHeatingTidal), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
-    class           (darkMatterProfileClass       ), intent(inout) :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass       ), intent(inout) :: darkMatterProfileDMO_
     double precision                               , intent(in   ) :: radius
     class           (nodeComponentSatellite       ), pointer       :: satellite
     double precision                                               :: specificEnergyOverRadiusSquared
-    !GCC$ attributes unused :: self, darkMatterProfile_
+    !GCC$ attributes unused :: self, darkMatterProfileDMO_
 
     satellite                       =>      node     %satellite             ()
     specificEnergyOverRadiusSquared =  max(                                     &
@@ -96,15 +96,15 @@ contains
     return
   end function tidalSpecificEnergyGradient
 
-  logical function tidalSpecificEnergyIsEverywhereZero(self,node,darkMatterProfile_)
+  logical function tidalSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
     !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
     use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class(darkMatterProfileHeatingTidal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
-    class(darkMatterProfileClass       ), intent(inout) :: darkMatterProfile_
+    class(darkMatterProfileDMOClass       ), intent(inout) :: darkMatterProfileDMO_
     class(nodeComponentSatellite       ), pointer       :: satellite
-    !GCC$ attributes unused :: self, darkMatterProfile_
+    !GCC$ attributes unused :: self, darkMatterProfileDMO_
 
     satellite                           => node     %satellite             ()
     tidalSpecificEnergyIsEverywhereZero =  satellite%tidalHeatingNormalized() <= 0.0d0

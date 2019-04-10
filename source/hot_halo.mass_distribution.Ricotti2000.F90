@@ -20,7 +20,7 @@
 !% An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
 
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   
   !# <hotHaloMassDistribution name="hotHaloMassDistributionRicotti2000">
   !#  <description>Provides an implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.</description>
@@ -28,8 +28,8 @@
   type, extends(hotHaloMassDistributionBetaProfile) :: hotHaloMassDistributionRicotti2000
      !% An implementation of the hot halo mass distribution class which uses the model of \cite{ricotti_feedback_2000}.
      private
-     class(darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
    contains
      final     ::               ricotti2000Destructor
      procedure :: initialize => ricotti2000Initialize
@@ -49,29 +49,29 @@ contains
     implicit none
     type (hotHaloMassDistributionRicotti2000)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
-    class(darkMatterProfileClass            ), pointer       :: darkMatterProfile_
+    class(darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
     class(darkMatterHaloScaleClass          ), pointer       :: darkMatterHaloScale_
 
-    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=hotHaloMassDistributionRicotti2000(darkMatterProfile_,darkMatterHaloScale_)
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    self=hotHaloMassDistributionRicotti2000(darkMatterProfileDMO_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfile_"  />
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !# <objectDestructor name="darkMatterHaloScale_" />
     return
   end function ricotti2000ConstructorParameters
 
-  function ricotti2000ConstructorInternal(darkMatterProfile_,darkMatterHaloScale_) result(self)
+  function ricotti2000ConstructorInternal(darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily ricotti2000} hot halo mass distribution class.
     use Galacticus_Error
     use Array_Utilities
     use Galacticus_Nodes, only : defaultHotHaloComponent, defaultDarkMatterProfileComponent
     implicit none
     type   (hotHaloMassDistributionRicotti2000)                        :: self
-    class  (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
+    class  (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
     class  (darkMatterHaloScaleClass          ), intent(in   ), target :: darkMatterHaloScale_
-    logical                                    , save                  :: initialized         =.false.
-    !# <constructorAssign variables="*darkMatterProfile_, *darkMatterHaloScale_"/>
+    logical                                    , save                  :: initialized          =.false.
+    !# <constructorAssign variables="*darkMatterProfileDMO_, *darkMatterHaloScale_"/>
 
     if (.not.initialized) then
        !$omp critical(ricotti2000Initialized)
@@ -123,8 +123,8 @@ contains
     implicit none
     type(hotHaloMassDistributionRicotti2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfile_"  />
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine ricotti2000Destructor
 

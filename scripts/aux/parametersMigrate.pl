@@ -586,6 +586,8 @@ my @translations =
 	     "galacticStructureRadiusSolverInitialRadiusMethod"          => "galacticStructureRadiiInitialMethod"                                                   ,
 	     "adiabaticContractionGnedinA"                               => "galacticStructureRadiiInitialMethod.gnedin2004.--A"                                    ,
 	     "adiabaticContractionGnedinOmega"                           => "galacticStructureRadiiInitialMethod.gnedin2004.--omega"                                ,
+	     "darkMatterProfileMethod"                                   => "darkMatterProfileDMOMethod"                                                            ,
+	     "galacticStructureRadiiInitialMethod"                       => "darkMatterProfileMethod"                                                               ,
 	     "virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt" => "virialDensityContrastMethod.sphericalCollapseMatterDE.--energyFixedAt"                 ,
 	     "outputRedshifts"                                           => "outputTimesMethod.list.--redshifts"                                                    ,
 	     "outputTimes"                                               => "outputTimesMethod.list.--times"                                                        ,
@@ -667,9 +669,18 @@ my @translations =
 		 "Cole2000"          => "cole2000"        ,
 		 "Covington2008"     => "covington2008"
 	     },
+	     galacticStructureRadiusSolverMethod =>
+	     {
+		 "adiabatic"         => "equilibrium"
+	     },
 	     galacticStructureRadiusSolverInitialRadiusMethod =>
 	     {
 		 "adiabatic"         => "gnedin2004"
+	     },
+	     galacticStructureRadiiInitialMethod =>
+	     {
+		 "gnedin2004"        => "adiabaticGnedin2004",
+		 "static"            => "darkMatterOnly"
 	     },
 	     imfSelectionFixed                                =>
 	     {		

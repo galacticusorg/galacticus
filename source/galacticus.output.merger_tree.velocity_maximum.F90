@@ -84,7 +84,7 @@ contains
     ! Return property names if we are outputting velocityMaximum data.
     if (outputVelocityMaximumData) then
        doubleProperty=doubleProperty+1
-       doublePropertyNames   (doubleProperty)='darkMatterProfileVelocityMaximum'
+       doublePropertyNames   (doubleProperty)='darkMatterProfileDMOVelocityMaximum'
        doublePropertyComments(doubleProperty)='Maximum rotation velocity of the dark matter profile [km/s].'
        doublePropertyUnitsSI (doubleProperty)=kilo
     end if
@@ -119,7 +119,7 @@ contains
        &,doubleBufferCount,doubleBuffer,time,instance)
     !% Store velocityMaximum properties in the \glc\ output file buffers.
     use Galacticus_Nodes, only : treeNode
-    use Dark_Matter_Profiles
+    use Dark_Matter_Profiles_DMO
     use Kind_Numbers
     use Multi_Counters
     implicit none
@@ -130,16 +130,16 @@ contains
     integer         (kind=kind_int8        ), intent(inout), dimension(:,:) :: integerBuffer    
     double precision                        , intent(inout), dimension(:,:) :: doubleBuffer     
     type            (multiCounter          ), intent(inout)                 :: instance
-    class           (darkMatterProfileClass)               , pointer        :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass)               , pointer        :: darkMatterProfileDMO_
     !GCC$ attributes unused :: time, integerProperty, integerBuffer, integerBufferCount, instance
     
     ! Initialize the module.
     call Galacticus_Output_Tree_Velocity_Maximum_Initialize()
     ! Store property data if we are outputting velocity maximum data.
     if (outputVelocityMaximumData) then
-       darkMatterProfile_  => darkMatterProfile()
+       darkMatterProfileDMO_  => darkMatterProfileDMO()
        doubleProperty=doubleProperty+1
-       doubleBuffer(doubleBufferCount,doubleProperty)=darkMatterProfile_%circularVelocityMaximum(node)
+       doubleBuffer(doubleBufferCount,doubleProperty)=darkMatterProfileDMO_%circularVelocityMaximum(node)
     end if
     return
   end subroutine Galacticus_Output_Tree_Velocity_Maximum

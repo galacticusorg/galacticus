@@ -21,9 +21,9 @@
 
 module Dark_Matter_Profiles_Concentration
   !% Provides a class that implements concentrations of dark matter halo profiles.
-  use Galacticus_Nodes       , only : treeNode
+  use Galacticus_Nodes        , only : treeNode
   use Virial_Density_Contrast
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   implicit none
   private
 
@@ -51,9 +51,9 @@ module Dark_Matter_Profiles_Concentration
   !#   <type>class(virialDensityContrastClass)</type>
   !#   <pass>yes</pass>
   !#  </method>
-  !#  <method name="darkMatterProfileDefinition" >
-  !#   <description>Returns a {\normalfont \ttfamily darkMatterProfile} object describing the dark matter density profile used to define this concentration.</description>
-  !#   <type>class(darkMatterProfileClass)</type>
+  !#  <method name="darkMatterProfileDMODefinition" >
+  !#   <description>Returns a {\normalfont \ttfamily darkMatterProfileDMO} object describing the dark matter density profile used to define this concentration.</description>
+  !#   <type>class(darkMatterProfileDMOClass)</type>
   !#   <pass>yes</pass>
   !#  </method>
   !# </functionClass>

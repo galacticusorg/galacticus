@@ -27,7 +27,7 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationPrada2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{prada_halo_2011}.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationPrada2011
@@ -38,13 +38,13 @@
      class           (linearGrowthClass            ), pointer :: linearGrowth_                    => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileNFW         ), pointer :: darkMatterProfileDefinition_     => null()
+     type            (darkMatterProfileDMONFW         ), pointer :: darkMatterProfileDMODefinition_     => null()
      double precision                                         :: A, B, C, D, C0, C1, X0, X1, inverseSigma0, inverseSigma1, alpha, beta
    contains
      final     ::                                prada2011Destructor
      procedure :: concentration               => prada2011Concentration
      procedure :: densityContrastDefinition   => prada2011DensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => prada2011DarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => prada2011DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationPrada2011
   
   interface darkMatterProfileConcentrationPrada2011
@@ -236,7 +236,7 @@ contains
     !# <objectDestructor name="self%linearGrowth_"                   />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine prada2011Destructor
 
@@ -326,20 +326,20 @@ contains
     !% \cite{prada_halo_2011} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: prada2011DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: prada2011DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationPrada2011           ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    prada2011DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    prada2011DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function prada2011DarkMatterProfileDefinition

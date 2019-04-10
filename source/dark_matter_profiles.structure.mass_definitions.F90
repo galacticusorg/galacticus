@@ -31,7 +31,7 @@ contains
     use Galacticus_Nodes            , only : treeNode, nodeComponentBasic
     use Cosmology_Parameters
     use Cosmology_Functions
-    use Dark_Matter_Profiles
+    use Dark_Matter_Profiles_DMO
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     use Numerical_Comparison
@@ -45,14 +45,14 @@ contains
     class           (nodeComponentBasic        ), pointer                 :: basic
     class           (cosmologyParametersClass  ), pointer                 :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_
-    class           (darkMatterProfileClass    ), pointer                 :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass    ), pointer                 :: darkMatterProfileDMO_
     double precision                                                      :: radiusHalo            , density
     class           (virialDensityContrastClass), pointer                 :: virialDensityContrast_
 
     ! Get required objects.
     cosmologyParameters_   =>  cosmologyParameters        ()
     cosmologyFunctions_    =>  cosmologyFunctions         ()
-    darkMatterProfile_     =>  darkMatterProfile          ()
+    darkMatterProfileDMO_     =>  darkMatterProfileDMO          ()
     virialDensityContrast_ =>  virialDensityContrast      ()
     basic                  =>  node                 %basic()
     ! Compute the density from the density contrast.
@@ -81,7 +81,7 @@ contains
     else
        ! Mismatched density contrast definitions - compute the mass directly.
        ! Get the radius in the halo enclosing this density.
-       radiusHalo           =   darkMatterProfile_%radiusEnclosingDensity(node,density   )
+       radiusHalo           =   darkMatterProfileDMO_%radiusEnclosingDensity(node,density   )
        ! Find the mass within that radius - this is computable directly from the mean density and the radius enclosing that mean
        ! density.
        massHalo             =  +4.0d0         &

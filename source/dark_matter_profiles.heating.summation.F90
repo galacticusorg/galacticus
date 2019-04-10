@@ -103,64 +103,64 @@ contains
     return
   end subroutine summationDestructor
 
-  double precision function summationSpecificEnergy(self,node,darkMatterProfile_,radius)
+  double precision function summationSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
     !% Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     implicit none
     class           (darkMatterProfileHeatingSummation), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
-    class           (darkMatterProfileClass           ), intent(inout) :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass           ), intent(inout) :: darkMatterProfileDMO_
     double precision                                   , intent(in   ) :: radius
     type            (heatSourceList                   ), pointer       :: heatSource
 
     summationSpecificEnergy =  0.0d0
     heatSource              => self%heatSources
     do while (associated(heatSource))
-       summationSpecificEnergy=+summationSpecificEnergy                                  &
-            &                  +heatSource%heatSource%specificEnergy(                    &
-            &                                                        node              , &
-            &                                                        darkMatterProfile_, &
-            &                                                        radius              &
+       summationSpecificEnergy=+summationSpecificEnergy                                     &
+            &                  +heatSource%heatSource%specificEnergy(                       &
+            &                                                        node                 , &
+            &                                                        darkMatterProfileDMO_, &
+            &                                                        radius                 &
             &                                                       )
        heatSource => heatSource%next
     end do
     return
   end function summationSpecificEnergy
 
-  double precision function summationSpecificEnergyGradient(self,node,darkMatterProfile_,radius)
+  double precision function summationSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     implicit none
     class           (darkMatterProfileHeatingSummation), intent(inout) :: self
     type            (treeNode                         ), intent(inout) :: node
-    class           (darkMatterProfileClass           ), intent(inout) :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass           ), intent(inout) :: darkMatterProfileDMO_
     double precision                                   , intent(in   ) :: radius
     type            (heatSourceList                   ), pointer       :: heatSource
 
     summationSpecificEnergyGradient =  0.0d0
     heatSource                      => self%heatSources
     do while (associated(heatSource))
-       summationSpecificEnergyGradient=+summationSpecificEnergyGradient                                  &
-            &                          +heatSource%heatSource%specificEnergyGradient(                    &
-            &                                                                        node              , &
-            &                                                                        darkMatterProfile_, &
-            &                                                                        radius              &
+       summationSpecificEnergyGradient=+summationSpecificEnergyGradient                                     &
+            &                          +heatSource%heatSource%specificEnergyGradient(                       &
+            &                                                                        node                 , &
+            &                                                                        darkMatterProfileDMO_, &
+            &                                                                        radius                 &
             &                                                                       )
        heatSource => heatSource%next
     end do
     return
   end function summationSpecificEnergyGradient
 
-  logical function summationSpecificEnergyIsEverywhereZero(self,node,darkMatterProfile_)
+  logical function summationSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
     !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
     implicit none
     class(darkMatterProfileHeatingSummation), intent(inout) :: self
     type (treeNode                         ), intent(inout) :: node
-    class(darkMatterProfileClass           ), intent(inout) :: darkMatterProfile_
+    class(darkMatterProfileDMOClass           ), intent(inout) :: darkMatterProfileDMO_
     type (heatSourceList                   ), pointer       :: heatSource
 
     summationSpecificEnergyIsEverywhereZero =  .true.
     heatSource                              => self%heatSources
     do while (associated(heatSource))
-       if (.not.heatSource%heatSource%specificEnergyIsEverywhereZero(node,darkMatterProfile_)) then
+       if (.not.heatSource%heatSource%specificEnergyIsEverywhereZero(node,darkMatterProfileDMO_)) then
           summationSpecificEnergyIsEverywhereZero=.false.
           exit
        end if

@@ -21,7 +21,7 @@
   use Halo_Mass_Functions
   use Unevolved_Subhalo_Mass_Functions
   use Dark_Matter_Halo_Biases
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Dark_Matter_Halo_Scales
   use Cosmology_Parameters
   use Cosmology_Functions
@@ -40,7 +40,7 @@
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_ => null()
      class           (virialDensityContrastClass       ), pointer :: virialDensityContrast_ => null()
-     class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_ => null()
      class           (criticalOverdensityClass         ), pointer :: criticalOverdensity_ => null()
      class           (linearGrowthClass                ), pointer :: linearGrowth_ => null()
      class           (haloMassFunctionClass            ), pointer :: haloMassFunction_ => null()
@@ -79,7 +79,7 @@ contains
     class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class           (virialDensityContrastClass       ), pointer       :: virialDensityContrast_
-    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
     class           (criticalOverdensityClass         ), pointer       :: criticalOverdensity_
     class           (linearGrowthClass                ), pointer       :: linearGrowth_
     class           (haloMassFunctionClass            ), pointer       :: haloMassFunction_
@@ -133,7 +133,7 @@ contains
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="virialDensityContrast"        name="virialDensityContrast_"        source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="criticalOverdensity"          name="criticalOverdensity_"          source="parameters"/>
     !# <objectBuilder class="linearGrowth"                 name="linearGrowth_"                 source="parameters"/>
     !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
@@ -153,7 +153,7 @@ contains
          &                    cosmologyParameters_         , &
          &                    cosmologyFunctions_          , &
          &                    virialDensityContrast_       , &
-         &                    darkMatterProfile_           , &
+         &                    darkMatterProfileDMO_        , &
          &                    criticalOverdensity_         , &
          &                    linearGrowth_                , &
          &                    haloMassFunction_            , &
@@ -170,7 +170,7 @@ contains
     !# <objectDestructor name="cosmologyParameters_"         />
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="virialDensityContrast_"       />
-    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="darkMatterProfileDMO_"        />
     !# <objectDestructor name="criticalOverdensity_"         />
     !# <objectDestructor name="linearGrowth_"                />
     !# <objectDestructor name="haloMassFunction_"            />
@@ -193,7 +193,7 @@ contains
        &                                       cosmologyParameters_         , &
        &                                       cosmologyFunctions_          , &
        &                                       virialDensityContrast_       , &
-       &                                       darkMatterProfile_           , &
+       &                                       darkMatterProfileDMO_        , &
        &                                       criticalOverdensity_         , &
        &                                       linearGrowth_                , &
        &                                       haloMassFunction_            , &
@@ -212,7 +212,7 @@ contains
     class           (cosmologyParametersClass         ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     class           (virialDensityContrastClass       ), intent(in   ), target :: virialDensityContrast_
-    class           (darkMatterProfileClass           ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
     class           (criticalOverdensityClass         ), intent(in   ), target :: criticalOverdensity_
     class           (linearGrowthClass                ), intent(in   ), target :: linearGrowth_
     class           (haloMassFunctionClass            ), intent(in   ), target :: haloMassFunction_
@@ -227,7 +227,7 @@ contains
     type            (varying_string                   ), intent(in   )         :: outputGroup
     double precision                                   , intent(in   )         :: haloMassMinimum              , haloMassMaximum
     integer                                            , intent(in   )         :: pointsPerDecade
-    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfile_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
+    !# <constructorAssign variables="haloMassMinimum,haloMassMaximum,pointsPerDecade,outputGroup,*cosmologyParameters_,*cosmologyFunctions_,*virialDensityContrast_,*darkMatterProfileDMO_,*criticalOverdensity_,*linearGrowth_,*haloMassFunction_,*haloEnvironment_,*unevolvedSubhaloMassFunction_,*darkMatterHaloScale_, *darkMatterProfileScaleRadius_, *cosmologicalMassVariance_,*darkMatterHaloBias_,*transferFunction_, *outputTimes_"/>
     
     return
   end function haloMassFunctionConstructorInternal
@@ -241,7 +241,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"         />
     !# <objectDestructor name="self%cosmologyFunctions_"          />
     !# <objectDestructor name="self%virialDensityContrast_"       />
-    !# <objectDestructor name="self%darkMatterProfile_"           />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
     !# <objectDestructor name="self%criticalOverdensity_"         />
     !# <objectDestructor name="self%linearGrowth_"                />
     !# <objectDestructor name="self%haloMassFunction_"            />
@@ -398,7 +398,7 @@ contains
           velocityVirial                                (iMass,iOutput)=self%darkMatterHaloScale_          %virialVelocity                 (                                                                                      tree%baseNode)
           temperatureVirial                             (iMass,iOutput)=self%darkMatterHaloScale_          %virialTemperature              (                                                                                      tree%baseNode)
           radiusVirial                                  (iMass,iOutput)=self%darkMatterHaloScale_          %virialRadius                   (                                                                                      tree%baseNode)
-          velocityMaximum                               (iMass,iOutput)=self%darkMatterProfile_            %circularVelocityMaximum        (                                                                                      tree%baseNode)
+          velocityMaximum                               (iMass,iOutput)=self%darkMatterProfileDMO_         %circularVelocityMaximum        (                                                                                      tree%baseNode)
           darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                   )
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
           massFunctionCumulativeSubhalo                 (iMass,iOutput)=Integrate(                                                              &

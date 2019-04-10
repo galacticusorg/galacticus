@@ -304,7 +304,7 @@ contains
     use ISO_Varying_String
     use String_Handling
     use Memory_Management
-    use Dark_Matter_Profiles
+    use Dark_Matter_Profiles_DMO
     use Cosmology_Functions
     use Kind_Numbers
     implicit none
@@ -315,7 +315,7 @@ contains
     type            (treeNode          )                    , pointer      :: hostNode
     class           (nodeComponentBasic     )               , pointer      :: basic
     class           (cosmologyFunctionsClass)               , pointer      :: cosmologyFunctions_
-    class           (darkMatterProfileClass )               , pointer      :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass )               , pointer      :: darkMatterProfileDMO_
     double precision                         , allocatable  , dimension(:) :: fourierProfile
     logical                                                                :: nodeExistsInOutput
     integer                                                                :: iWavenumber
@@ -328,7 +328,7 @@ contains
     ! Return immediately if halo model is not to be output or this node is filtered out.
     if (.not.(outputHaloModelData.and.nodePassesFilter)) return
     ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
+    darkMatterProfileDMO_ => darkMatterProfileDMO()
      ! Find the host halo.
     hostNode => node
     do while (hostNode%isSatellite())
@@ -359,7 +359,7 @@ contains
        ! Construct profile. (Our wavenumbers are comoving, so we must convert them to physics
        ! coordinates before passing them to the dark matter profile k-space routine.)
        do iWavenumber=1,waveNumberCount
-          fourierProfile(iWavenumber)=darkMatterProfile_%kSpace(hostNode,waveNumber(iWavenumber)/expansionFactor)
+          fourierProfile(iWavenumber)=darkMatterProfileDMO_%kSpace(hostNode,waveNumber(iWavenumber)/expansionFactor)
        end do
        ! Write dataset to the group.
        call treeGroup%writeDataset(fourierProfile,char(dataSetName),"The Fourier-space density profile.")

@@ -549,7 +549,7 @@ contains
     use            :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic
     use Dark_Matter_Halo_Biases
     use Cosmology_Functions
-    use Dark_Matter_Profiles
+    use Dark_Matter_Profiles_DMO
     use Memory_Management
     use Galacticus_Output_Merger_Tree_Data
     implicit none
@@ -562,7 +562,7 @@ contains
     type            (treeNode               )               , pointer        :: hostNode
     class           (cosmologyFunctionsClass)               , pointer        :: cosmologyFunctions_    
     class           (nodeComponentBasic     )               , pointer        :: basic                    , basicRoot
-    class           (darkMatterProfileClass )               , pointer        :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass )               , pointer        :: darkMatterProfileDMO_
     class           (darkMatterHaloBiasClass)               , pointer        :: darkMatterHaloBias_
     double precision                         , allocatable  , dimension(:,:) :: satelliteProbabilityTmp
     integer                                  , parameter                     :: satelliteCountMinimum=100
@@ -645,7 +645,7 @@ contains
        end if
        if (galaxyInclusionProbability > 0.0d0 .and. .not.haloWork%propertiesSet) then
           cosmologyFunctions_           => cosmologyFunctions      (        )
-          darkMatterProfile_            => darkMatterProfile       (        )
+          darkMatterProfileDMO_            => darkMatterProfileDMO       (        )
           darkMatterHaloBias_           => darkMatterHaloBias      (        )
           haloWork%propertiesSet        =  .true.
           haloWork%isMainBranch         =  hostNode %isOnMainBranch(        )
@@ -660,7 +660,7 @@ contains
           expansionFactor               =  cosmologyFunctions_%expansionFactor(basic%time())
           do i=1,size(correlationFunction_%wavenumber)
              ! Note that wavenumbers must be converted from comoving to physical units for the dark matter profile k-space function.
-             haloWork%fourierProfile(i)=darkMatterProfile_%kSpace(                                                        &
+             haloWork%fourierProfile(i)=darkMatterProfileDMO_%kSpace(                                                        &
                   &                                                hostNode                                             , &
                   &                                                correlationFunction_%waveNumber             (i      )  &
                   &                                               *correlationFunction_%cosmologyConversionSize(iOutput)  &

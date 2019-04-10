@@ -27,7 +27,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   use Radiation_Fields
   use ISO_Varying_String
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Cooling_Cold_Mode_Infall_Rates
   use Accretion_Halos
   implicit none
@@ -82,10 +82,10 @@ module Node_Component_Hot_Halo_Cold_Mode
   ! Objects used by this component.
   class(accretionHaloClass      ), pointer :: accretionHalo_
   class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileClass  ), pointer :: darkMatterProfile_
+  class(darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_
   class(coldModeInfallRateClass ), pointer :: coldModeInfallRate_
   class(cosmologyParametersClass), pointer :: cosmologyParameters_
-  !$omp threadprivate(accretionHalo_,darkMatterHaloScale_,darkMatterProfile_,coldModeInfallRate_,cosmologyParameters_)
+  !$omp threadprivate(accretionHalo_,darkMatterHaloScale_,darkMatterProfileDMO_,coldModeInfallRate_,cosmologyParameters_)
 
   ! Options controlling the behavior of the cold mode gas.
   logical :: hotHaloOutflowToColdMode   
@@ -144,7 +144,7 @@ contains
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfile"        name="darkMatterProfile_"        source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="globalParameters_"/>
        !# <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="globalParameters_"/>
        !# <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="globalParameters_"/>
        !# <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="globalParameters_"/>
@@ -164,7 +164,7 @@ contains
     if (defaultHotHaloComponent%coldModeIsActive()) then
        !# <objectDestructor name="cosmologyParameters_"     />
        !# <objectDestructor name="darkMatterHaloScale_"     />
-       !# <objectDestructor name="darkMatterProfile_"       />
+       !# <objectDestructor name="darkMatterProfileDMO_"       />
        !# <objectDestructor name="accretionHalo_"           />
        !# <objectDestructor name="coldModeInfallRate_"      />
        !# <objectDestructor name="hotHaloColdModeCoreRadii_"/>
@@ -279,7 +279,7 @@ contains
     ! Next block of tasks occur only if the accretion rate is non-zero.
     if (massAccretionRate > 0.0d0) then
        ! Compute the rate of accretion of angular momentum.
-       angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfile_)*(massAccretionRate &
+       angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfileDMO_)*(massAccretionRate &
             &/basic%accretionRate())
        if (hotHaloOutflowAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
        call hotHalo%angularMomentumColdRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
@@ -302,7 +302,7 @@ contains
                &   outerRadius           > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%virialRadius(node) &
                & ) then
              ! The ram pressure stripping radius is within the outer radius. Remove mass from the cold mode halo at the appropriate rate.
-             densityAtOuterRadius = Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous,haloLoaded=.true.)
+             densityAtOuterRadius = Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
              ! Compute the mass loss rate.
              massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
              ! Adjust the rates.
@@ -369,7 +369,7 @@ contains
        outerRadius =self%outerRadius()
        radiusVirial=darkMatterHaloScale_%virialRadius(selfNode)
        if (outerRadius < radiusVirial) then 
-          densityAtOuterRadius=Galactic_Structure_Density(selfNode,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous,haloLoaded=.true.)
+          densityAtOuterRadius=Galactic_Structure_Density(selfNode,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
           ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
           ! density profile.
           if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then
@@ -480,7 +480,7 @@ contains
        basic              => node             %basic  (                 )
        call hotHalo%massColdSet(coldModeMass)
        ! Also add the appropriate angular momentum.
-       angularMomentum=coldModeMass*Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
+       angularMomentum=coldModeMass*Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)/basic%mass()
        call hotHalo%angularMomentumColdSet(angularMomentum)
        ! Add the appropriate abundances.
        call hotHalo%abundancesColdSet(accretionHalo_%accretedMassMetals(node,accretionModeCold))

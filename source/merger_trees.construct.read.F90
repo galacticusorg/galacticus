@@ -26,7 +26,7 @@
   use Merger_Tree_Read_Importers
   use Halo_Spin_Distributions
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Dark_Matter_Profiles_Concentration
   use Satellite_Merging_Timescales
   use Virial_Orbits
@@ -45,7 +45,7 @@
      class           (darkMatterProfileConcentrationClass), pointer                   :: darkMatterProfileConcentration_       => null()
      class           (satelliteMergingTimescalesClass    ), pointer                   :: satelliteMergingTimescales_           => null()
      class           (darkMatterHaloScaleClass           ), pointer                   :: darkMatterHaloScale_                  => null()
-     class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_                    => null()
+     class           (darkMatterProfileDMOClass          ), pointer                   :: darkMatterProfileDMO_                 => null()
      class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_                 => null()
      class           (virialOrbitClass                   ), pointer                   :: virialOrbit_                          => null()
      class           (outputTimesClass                   ), pointer                   :: outputTimes_                          => null()
@@ -400,7 +400,7 @@ contains
     class           (darkMatterProfileConcentrationClass), pointer                   :: darkMatterProfileConcentration_
     class           (satelliteMergingTimescalesClass    ), pointer                   :: satelliteMergingTimescales_
     class           (darkMatterHaloScaleClass           ), pointer                   :: darkMatterHaloScale_
-    class           (darkMatterProfileClass             ), pointer                   :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass          ), pointer                   :: darkMatterProfileDMO_
     class           (haloSpinDistributionClass          ), pointer                   :: haloSpinDistribution_
     class           (virialOrbitClass                   ), pointer                   :: virialOrbit_
     class           (outputTimesClass                   ), pointer                   :: outputTimes_
@@ -656,7 +656,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                                                  />
     !# <objectBuilder class="mergerTreeImporter"             name="mergerTreeImporter_"             source="parameters"                                                                                  />
     !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterProfile"              name="darkMatterProfile_"              source="parameters"                                                                                  />
+    !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"                                                                                  />
     !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                                                  />
     !# <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                                                  />
     !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                                                  />    
@@ -699,7 +699,7 @@ contains
          &                                                                               cosmologyFunctions_                                          , &
          &                                                                               mergerTreeImporter_                                          , &
          &                                                                               darkMatterHaloScale_                                         , &
-         &                                                                               darkMatterProfile_                                           , &
+         &                                                                               darkMatterProfileDMO_                                        , &
          &                                                                               darkMatterProfileConcentration_                              , &
          &                                                                               haloSpinDistribution_                                        , &
          &                                                                               satelliteMergingTimescales_                                  , &
@@ -711,7 +711,7 @@ contains
     !# <objectDestructor name="cosmologyFunctions_"            />
     !# <objectDestructor name="mergerTreeImporter_"            />
     !# <objectDestructor name="darkMatterHaloScale_"           />
-    !# <objectDestructor name="darkMatterProfile_"             />
+    !# <objectDestructor name="darkMatterProfileDMO_"          />
     !# <objectDestructor name="darkMatterProfileConcentration_"/>
     !# <objectDestructor name="haloSpinDistribution_"          />
     !# <objectDestructor name="virialOrbit_"                   />
@@ -721,7 +721,7 @@ contains
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_) result(self)
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
     !$ use OMP_Lib                      , only : OMP_Init_Lock
     use Galacticus_Nodes                , only : defaultNBodyComponent, nodeComponentNBodyGeneric
@@ -735,7 +735,7 @@ contains
     class           (cosmologyFunctionsClass            ), intent(in   ), target       :: cosmologyFunctions_                                                                              
     class           (mergerTreeImporterClass            ), intent(in   ), target       :: mergerTreeImporter_                                                                              
     class           (darkMatterHaloScaleClass           ), intent(in   ), target       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass             ), intent(in   ), target       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass          ), intent(in   ), target       :: darkMatterProfileDMO_
     class           (darkMatterProfileConcentrationClass), intent(in   ), target       :: darkMatterProfileConcentration_
     class           (haloSpinDistributionClass          ), intent(in   ), target       :: haloSpinDistribution_
     class           (satelliteMergingTimescalesClass    ), intent(in   ), target       :: satelliteMergingTimescales_
@@ -760,7 +760,7 @@ contains
          &                                                                                presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     integer         (c_size_t                           )                              :: iOutput                             , i
     type            (varying_string                     )                              :: message
-    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_"/>
+    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_"/>
 
     ! Initialize statuses.
     self%warningNestedHierarchyIssued           =.false.                                            
@@ -947,7 +947,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"            />
     !# <objectDestructor name="self%mergerTreeImporter_"            />
     !# <objectDestructor name="self%darkMatterHaloScale_"           />
-    !# <objectDestructor name="self%darkMatterProfile_"             />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"          />
     !# <objectDestructor name="self%darkMatterProfileConcentration_"/>
     !# <objectDestructor name="self%haloSpinDistribution_"          />
     !# <objectDestructor name="self%satelliteMergingTimescales_"    />
@@ -2147,8 +2147,8 @@ contains
     double precision function spinNormalization()
       !% Normalization for conversion of angular momentum to spin.
       implicit none
-      spinNormalization= sqrt(abs(self%darkMatterProfile_%energy(nodeList(iIsolatedNode)%node))) &
-           &            /gravitationalConstantGalacticus                                    &
+      spinNormalization= sqrt(abs(self%darkMatterProfileDMO_%energy(nodeList(iIsolatedNode)%node))) &
+           &            /gravitationalConstantGalacticus                                            &
            &            /basic%mass()**2.5d0
       return
     end function spinNormalization
@@ -2202,7 +2202,7 @@ contains
     ! Set scale radius to current guess.
     call readDarkMatterProfile%scaleSet(radius)
     ! Compute difference between mass fraction enclosed at half mass radius and one half.
-    readRadiusHalfMassRoot=readSelf%darkMatterProfile_%enclosedMass(readNode,readRadiusHalfMass)/readBasic%mass()-0.50d0
+    readRadiusHalfMassRoot=readSelf%darkMatterProfileDMO_%enclosedMass(readNode,readRadiusHalfMass)/readBasic%mass()-0.50d0
     return
   end function readRadiusHalfMassRoot
 

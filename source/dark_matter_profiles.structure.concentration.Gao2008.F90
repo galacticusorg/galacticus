@@ -25,7 +25,7 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationGao2008">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{gao_redshift_2008}.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationGao2008
@@ -34,12 +34,12 @@
      class(cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
      class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
      type (virialDensityContrastFixed), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileNFW      ), pointer :: darkMatterProfileDefinition_     => null()
+     type (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_     => null()
    contains
      final     ::                                gao2008Destructor
      procedure :: concentration               => gao2008Concentration
      procedure :: densityContrastDefinition   => gao2008DensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => gao2008DarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => gao2008DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationGao2008
   
   interface darkMatterProfileConcentrationGao2008
@@ -88,7 +88,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine gao2008Destructor
   
@@ -135,21 +135,21 @@ contains
     !% \cite{gao_redshift_2008} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: gao2008DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: gao2008DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationGao2008             ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    gao2008DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    gao2008DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function gao2008DarkMatterProfileDefinition
 

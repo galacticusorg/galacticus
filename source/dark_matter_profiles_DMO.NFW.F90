@@ -23,10 +23,10 @@
   use Tables
   use Kind_Numbers
 
-  !# <darkMatterProfile name="darkMatterProfileNFW">
+  !# <darkMatterProfileDMO name="darkMatterProfileDMONFW">
   !#  <description>\cite{navarro_universal_1997} dark matter halo profiles</description>
-  !# </darkMatterProfile>
-  type, extends(darkMatterProfileClass) :: darkMatterProfileNFW
+  !# </darkMatterProfileDMO>
+  type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMONFW
      !% A dark matter halo profile class implementing \cite{navarro_universal_1997} dark matter halos.
      private
      ! Minimum and maximum concentrations to tabulate.
@@ -67,7 +67,7 @@
      class(darkMatterHaloScaleClass           ), pointer     :: darkMatterHaloScale_ => null()
    contains
      !@ <objectMethods>
-     !@   <object>darkMatterProfileNFW</object>
+     !@   <object>darkMatterProfileDMONFW</object>
      !@   <objectMethod>
      !@     <method>densityScaleFree</method>
      !@     <type>\doublezero</type>
@@ -170,13 +170,13 @@
      procedure :: freefallTabulate                  => nfwFreefallTabulate
      procedure :: freefallTimeScaleFree             => nfwFreefallTimeScaleFree
      procedure :: enclosedDensityTabulate           => nfwEnclosedDensityTabulate
-  end type darkMatterProfileNFW
+  end type darkMatterProfileDMONFW
 
-  interface darkMatterProfileNFW
+  interface darkMatterProfileDMONFW
      !% Constructors for the {\normalfont \ttfamily nfw} dark matter halo profile class.
      module procedure nfwConstructorParameters
      module procedure nfwConstructorInternal
-  end interface darkMatterProfileNFW
+  end interface darkMatterProfileDMONFW
 
   ! Number of points per decade of concentration in NFW tabulations.
   integer, parameter   :: nfwTablePointsPerDecade               =100
@@ -192,12 +192,12 @@ contains
     !% Constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (darkMatterProfileNFW    )                :: self
+    type (darkMatterProfileDMONFW    )                :: self
     type (inputParameters         ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=darkMatterProfileNFW(darkMatterHaloScale_)
+    self=darkMatterProfileDMONFW(darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
@@ -208,7 +208,7 @@ contains
     use Galacticus_Error
     use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
-    type (darkMatterProfileNFW    )                        :: self
+    type (darkMatterProfileDMONFW    )                        :: self
     class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
     
@@ -246,7 +246,7 @@ contains
   subroutine nfwDestructor(self)
     !% Destructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
     implicit none
-    type(darkMatterProfileNFW), intent(inout) :: self
+    type(darkMatterProfileDMONFW), intent(inout) :: self
 
     if (self%nfwFreefallTableInitialized) then
        call self%nfwFreeFall                      %destroy()
@@ -273,7 +273,7 @@ contains
   subroutine nfwCalculationReset(self,node)
     !% Reset the dark matter profile calculation.
     implicit none
-    class(darkMatterProfileNFW), intent(inout) :: self
+    class(darkMatterProfileDMONFW), intent(inout) :: self
     type (treeNode            ), intent(inout) :: node
 
     self%specificAngularMomentumScalingsComputed=.false.
@@ -291,11 +291,11 @@ contains
   subroutine nfwTabulate(self,concentration)
     !% Tabulate properties of the NFW halo profile which must be computed numerically.
     implicit none
-    class           (darkMatterProfileNFW), intent(inout)           :: self
-    double precision                      , intent(in   ), optional :: concentration
-    integer                                                         :: iConcentration
-    logical                                                         :: retabulate
-    double precision                                                :: tableConcentration
+    class           (darkMatterProfileDMONFW), intent(inout)           :: self
+    double precision                         , intent(in   ), optional :: concentration
+    integer                                                            :: iConcentration
+    logical                                                            :: retabulate
+    double precision                                                   :: tableConcentration
 
     retabulate=.not.self%nfwTableInitialized
     if (present(concentration)) then
@@ -328,7 +328,7 @@ contains
   subroutine nfwInverseAngularMomentum(self,specificAngularMomentum)
     !% Tabulates the specific angular momentum vs. radius in an NFW profile for rapid inversion.
     implicit none
-    class           (darkMatterProfileNFW), intent(inout)           :: self
+    class           (darkMatterProfileDMONFW), intent(inout)           :: self
     double precision                      , intent(in   ), optional :: specificAngularMomentum
     integer                                                         :: iRadius
     logical                                                         :: retabulate
@@ -377,7 +377,7 @@ contains
     !% in units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -400,7 +400,7 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -424,7 +424,7 @@ contains
     use Numerical_Constants_Math
     use Numerical_Comparison
     implicit none
-    class           (darkMatterProfileNFW         ), intent(inout)           :: self
+    class           (darkMatterProfileDMONFW      ), intent(inout)           :: self
     type            (treeNode                     ), intent(inout)           :: node
     double precision                               , intent(in   )           :: moment
     double precision                               , intent(in   ), optional :: radiusMinimum                 , radiusMaximum
@@ -442,7 +442,7 @@ contains
     scaleRadius                    =darkMatterProfile%scale()
     virialRadiusOverScaleRadius    =self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     nfwRadialMoment                =+basic%mass()                                                &
-         &                          *scaleRadius**(moment-3.0d0)                                 &
+         &                          *scaleRadius**(moment-2.0d0)                                 &
          &                          /(                                                           &
          &                            +log(1.0d0+virialRadiusOverScaleRadius)                    &
          &                            -          virialRadiusOverScaleRadius                     &
@@ -469,6 +469,13 @@ contains
               &                   -2.0d0*atanh(1.0d0+2.0d0*radius)
       else if (Values_Agree(moment,1.0d0,absTol=1.0d-6)) then
          nfwRadialMomentScaleFree=-1.0d0/     (1.0d0      +radius)
+      else if (Values_Agree(moment,2.0d0,absTol=1.0d-6)) then
+         nfwRadialMomentScaleFree=+1.0d0/     (1.0d0      +radius) &
+              &                   +      log  (1.0d0      +radius)
+      else if (Values_Agree(moment,3.0d0,absTol=1.0d-6)) then
+         nfwRadialMomentScaleFree=+                        radius  &
+              &                   -1.0d0/     (1.0d0      +radius) &
+              &                   -2.0d0*log  (1.0d0      +radius)
       else
          nfwRadialMomentScaleFree=+(1.0d0+radius)**(moment-1.0d0)                                                     &
               &                   /moment                                                                             &
@@ -494,7 +501,7 @@ contains
     !% units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -518,7 +525,7 @@ contains
     use Galacticus_Nodes          , only : nodeComponentDarkMatterProfile
     use Galactic_Structure_Options
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout)           :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
@@ -554,7 +561,7 @@ contains
     !% units of Mpc).
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
     type            (treeNode            ), intent(inout) :: node
     double precision                      , intent(in   ) :: radius
 
@@ -578,7 +585,7 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -614,7 +621,7 @@ contains
     !% in units of km s$^{-1}$ Mpc).
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: specificAngularMomentum
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -661,7 +668,7 @@ contains
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: concentration
@@ -685,7 +692,7 @@ contains
     !% Return the energy of an NFW halo density profile.
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -712,7 +719,7 @@ contains
     !% Return the rate of change of the energy of an NFW halo density profile.
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), target  :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     class           (nodeComponentBasic            )               , pointer :: basic
@@ -766,7 +773,7 @@ contains
     !% J = \left. \left[ 1 + c - 2 \ln (1+c) - {1 \over 1+c} \right] \right/ \left[ \ln(1+c)-{c\over 1+c} \right].
     !% \end{equation}
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                      , intent(in   ) :: concentration
     !GCC$ attributes unused :: self
     
@@ -779,7 +786,7 @@ contains
     !% Returns the specific angular momentum, normalized to unit scale length and unit velocity at the scale radius, at position
     !% {\normalfont \ttfamily radius} (in units of the scale radius) in an NFW profile.
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                      , intent(in   ) :: radius
     double precision                      , parameter     :: radiusSmall=1.0d-9
     !GCC$ attributes unused :: self
@@ -822,11 +829,11 @@ contains
     !% Returns the enclosed mass (in units of the virial mass) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the
     !% given {\normalfont \ttfamily radius} (given in units of the scale radius).
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
-    double precision                      , intent(in   ) :: concentration                                                   , radius
-    double precision                      , parameter     :: minimumRadiusForExactSolution          =1.0d-6
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
+    double precision                         , intent(in   ) :: concentration                                                   , radius
+    double precision                         , parameter     :: minimumRadiusForExactSolution          =1.0d-6
     ! Precomputed NFW normalization factor for unit radius.
-    double precision                      , parameter     :: nfwNormalizationFactorUnitRadius       =log(2.0d0)-0.5d0
+    double precision                         , parameter     :: nfwNormalizationFactorUnitRadius       =log(2.0d0)-0.5d0
 
     if (radius == 1.0d0) then
        nfwEnclosedMassScaleFree=nfwNormalizationFactorUnitRadius
@@ -845,10 +852,10 @@ contains
   subroutine nfwMassNormalizationFactor(self,concentration)
     !% Compute the normalization factor for the NFW mass profile.
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
-    double precision                      , intent(in   ) :: concentration
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
+    double precision                         , intent(in   ) :: concentration
     ! Precomputed NFW normalization factor for unit concentration.
-    double precision                      , parameter     :: nfwNormalizationFactorUnitConcentration=1.0d0/(log(2.0d0)-0.5d0)
+    double precision                         , parameter     :: nfwNormalizationFactorUnitConcentration=1.0d0/(log(2.0d0)-0.5d0)
 
     ! Check if we were called with a different concentration compared to the previous call.
     if (concentration /= self%concentrationPrevious) then
@@ -869,7 +876,7 @@ contains
     use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile, nodeComponentBasic
     use Numerical_Constants_Math
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout), target :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout), target :: self
     type            (treeNode                      ), intent(inout), target :: node
     double precision                                , intent(in   )         :: density
     class           (nodeComponentBasic            ), pointer               :: basic
@@ -886,7 +893,7 @@ contains
        ! Compute the density scale if necessary.
        if (self%densityScalePrevious < 0.0d0) then
           ! Extract profile parameters.
-          basic                       => node             %basic            (                 )
+          basic                       => node                     %basic       (    )
           virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
           ! Compute density normalization scale.
           self%densityScalePrevious=+scaleRadius                                                         **3 &
@@ -897,7 +904,7 @@ contains
        if (density /= self%enclosedDensityPrevious) then
           self%enclosedDensityPrevious=density
           ! Compute scaled density.
-          densityScaleFree=+density                   &
+          densityScaleFree=+     density              &
                &           *self%densityScalePrevious       
           ! Ensure density table spans required range.
           call self%enclosedDensityTabulate(densityScaleFree)
@@ -915,7 +922,7 @@ contains
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     use FGSL            , only : FGSL_SF_LAMBERT_W0
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout), target :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout), target :: self
     type            (treeNode                      ), intent(inout), target :: node
     double precision                                , intent(in   )         :: mass
     class           (nodeComponentBasic            ), pointer               :: basic
@@ -962,8 +969,8 @@ contains
     !% concentration} which is enclosed a given radius (in units of the scale radius).
     use Numerical_Constants_Math
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
-    double precision                      , intent(in   ) :: radius
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
+    double precision                         , intent(in   ) :: radius
 
     nfwDensityEnclosedByRadiusScaleFree=+3.0d0                                       &
          &                              *self%enclosedMassScaleFree(radius,1.0d0)    &
@@ -976,7 +983,7 @@ contains
   subroutine nfwEnclosedDensityTabulate(self,enclosedDensityScaleFree)
     !% Tabulates the enclosed density vs. radius for NFW halos.
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                      , intent(in   ) :: enclosedDensityScaleFree
     logical                                               :: retabulate
     integer                                               :: iRadius
@@ -1023,7 +1030,7 @@ contains
     !% given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).
     use Numerical_Constants_Math
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                      , intent(in   ) :: concentration, radius
     !GCC$ attributes unused :: self
     
@@ -1037,7 +1044,7 @@ contains
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none
-    class           (darkMatterProfileNFW      ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW      ), intent(inout) :: self
     double precision                            , intent(in   ) :: concentration
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
@@ -1112,7 +1119,7 @@ contains
     use Galacticus_Nodes     , only : nodeComponentDarkMatterProfile
     use Exponential_Integrals
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout)          :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: waveNumber
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -1146,7 +1153,7 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
@@ -1193,7 +1200,7 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileNFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
@@ -1237,7 +1244,7 @@ contains
   subroutine nfwFreefallTabulate(self,freefallTimeScaleFree)
     !% Tabulates the freefall time vs. freefall radius for NFW halos.
     implicit none
-    class           (darkMatterProfileNFW), intent(inout) :: self
+    class           (darkMatterProfileDMONFW), intent(inout) :: self
     double precision                      , intent(in   ) :: freefallTimeScaleFree
     logical                                               :: retabulate
     integer                                               :: iRadius
@@ -1283,7 +1290,7 @@ contains
     !% Compute the freefall time in a scale-free NFW halo.
     use Numerical_Integration
     implicit none
-    class           (darkMatterProfileNFW      ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW      ), intent(inout) :: self
     double precision                            , intent(in   ) :: radius
     double precision                            , parameter     :: radiusSmall         =4.0d-6
     type            (fgsl_function             )                :: integrandFunction

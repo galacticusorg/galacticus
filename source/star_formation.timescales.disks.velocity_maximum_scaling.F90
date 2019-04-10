@@ -22,7 +22,7 @@
   use Kind_Numbers
   use Math_Exponentiation
   use Cosmology_Functions
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
 
   !# <starFormationTimescaleDisks name="starFormationTimescaleDisksVelocityMaxScaling">
   !#  <description>A velocityMaxScaling timescale for star formation in galactic disks.</description>
@@ -31,7 +31,7 @@
      !% Implementation of a velocityMaxScaling timescale for star formation in galactic disks.
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_ => null()
      double precision                                   :: expansionFactorFactorPrevious, exponentVelocity            , &
           &                                                exponentRedshift             , timescaleNormalization      , &
           &                                                timescaleStored              , velocityMaximumPrevious     , &
@@ -63,7 +63,7 @@ contains
     type            (starFormationTimescaleDisksVelocityMaxScaling)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                      ), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileClass                       ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass                       ), pointer       :: darkMatterProfileDMO_
     double precision                                                               :: timescale           , exponentVelocity, &
          &                                                                            exponentRedshift
     
@@ -96,23 +96,23 @@ contains
     !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
-    self=starFormationTimescaleDisksVelocityMaxScaling(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfile_)
+    !# <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    self=starFormationTimescaleDisksVelocityMaxScaling(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="darkMatterProfile_" />
+    !# <objectDestructor name="darkMatterProfileDMO_" />
     return
   end function velocityMaxScalingConstructorParameters
 
-  function velocityMaxScalingConstructorInternal(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfile_) result(self)
+  function velocityMaxScalingConstructorInternal(timescale,exponentVelocity,exponentRedshift,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation in disks class.
     implicit none
     type            (starFormationTimescaleDisksVelocityMaxScaling)                        :: self
     double precision                                               , intent(in   )         :: timescale          , exponentVelocity, &
          &                                                                                    exponentRedshift
     class           (cosmologyFunctionsClass                      ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileClass                       ), intent(in   ), target :: darkMatterProfile_
-    !# <constructorAssign variables="exponentVelocity, exponentRedshift, *cosmologyFunctions_, *darkMatterProfile_"/>
+    class           (darkMatterProfileDMOClass                       ), intent(in   ), target :: darkMatterProfileDMO_
+    !# <constructorAssign variables="exponentVelocity, exponentRedshift, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
 
     self%lastUniqueID                 =-1_kind_int8
     self%timescaleComputed            =.false.
@@ -135,7 +135,7 @@ contains
     type(starFormationTimescaleDisksVelocityMaxScaling), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%darkMatterProfile_"/>
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine velocityMaxScalingDestructor
 
@@ -166,7 +166,7 @@ contains
     if (.not.self%timescaleComputed) then
        ! Get virial velocity and expansion factor.
        basic           => node%basic                                      (            )
-       velocityMaximum =  self%darkMatterProfile_ %circularVelocityMaximum(node        )
+       velocityMaximum =  self%darkMatterProfileDMO_ %circularVelocityMaximum(node        )
        expansionFactor =  self%cosmologyFunctions_%expansionFactor        (basic%time())
        ! Compute the velocity factor.
        if (velocityMaximum /= self%velocityMaximumPrevious) then

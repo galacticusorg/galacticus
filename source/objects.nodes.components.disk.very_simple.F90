@@ -29,7 +29,7 @@ module Node_Component_Disk_Very_Simple
   use Dark_Matter_Halo_Scales
   use Star_Formation_Feedback_Disks
   use Star_Formation_Timescales_Disks
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   implicit none
   private
   public :: Node_Component_Disk_Very_Simple_Post_Evolve        , Node_Component_Disk_Very_Simple_Rate_Compute     , &
@@ -112,8 +112,8 @@ module Node_Component_Disk_Very_Simple
   class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
   class(starFormationFeedbackDisksClass ), pointer :: starFormationFeedbackDisks_
   class(starFormationTimescaleDisksClass), pointer :: starFormationTimescaleDisks_
-  class(darkMatterProfileClass          ), pointer :: darkMatterProfile_
-  !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,starFormationFeedbackDisks_,starFormationTimescaleDisks_,darkMatterProfile_)
+  class(darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_
+  !$omp threadprivate(cosmologyFunctions_,stellarPopulationProperties_,darkMatterHaloScale_,starFormationFeedbackDisks_,starFormationTimescaleDisks_,darkMatterProfileDMO_)
 
   ! Record of whether to use the simple disk analytic solver.
   logical                             :: diskVerySimpleUseAnalyticSolver
@@ -252,7 +252,7 @@ contains
        !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="globalParameters_"/>
        !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfile"           name="darkMatterProfile_"           source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="globalParameters_"/>
        !# <objectBuilder class="starFormationFeedbackDisks"  name="starFormationFeedbackDisks_"  source="globalParameters_"/>
        !# <objectBuilder class="starFormationTimescaleDisks" name="starFormationTimescaleDisks_" source="globalParameters_"/>       
        ! If using the analytic solver, find the time at the present day.
@@ -275,7 +275,7 @@ contains
        !# <objectDestructor name="cosmologyFunctions_"         />
        !# <objectDestructor name="stellarPopulationProperties_"/>
        !# <objectDestructor name="darkMatterHaloScale_"        />
-       !# <objectDestructor name="darkMatterProfile_"          />
+       !# <objectDestructor name="darkMatterProfileDMO_"          />
        !# <objectDestructor name="starFormationFeedbackDisks_" />
        !# <objectDestructor name="starFormationTimescaleDisks_"/>       
     end if
@@ -969,7 +969,7 @@ contains
                &                  /2.0d0            &
                &                  /Pi
           surfaceDensityThreshold=+surfaceDensityNormalization                                                                    &
-               &                  *velocityExponentiator%exponentiate(darkMatterProfile_ %circularVelocityMaximum(self%hostNode))
+               &                  *velocityExponentiator%exponentiate(darkMatterProfileDMO_ %circularVelocityMaximum(self%hostNode))
           if (surfaceDensityCentral > surfaceDensityThreshold) then
              radiusThreshold=-log(surfaceDensityThreshold/surfaceDensityCentral)
              massStarForming=gasMass*(1.0d0-(1.0d0+radiusThreshold)*exp(-radiusThreshold))

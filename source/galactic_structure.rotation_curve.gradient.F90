@@ -29,13 +29,12 @@ module Galactic_Structure_Rotation_Curve_Gradients
 
   ! Module scope variables used in mapping over components.
   integer          :: componentTypeShared, massTypeShared
-  logical          :: haloLoadedShared
   double precision :: radiusShared
-  !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,radiusShared)
+  !$omp threadprivate(massTypeShared,componentTypeShared,radiusShared)
   
 contains
 
-  double precision function Galactic_Structure_Rotation_Curve_Gradient(thisNode,radius,componentType,massType,haloLoaded)
+  double precision function Galactic_Structure_Rotation_Curve_Gradient(thisNode,radius,componentType,massType)
     !% Solve for the rotation curve gradient at a given radius. Assumes the galactic structure has already been computed.
     use Galactic_Structure_Rotation_Curves
     use Galacticus_Nodes                  , only : treeNode, optimizeForRotationCurveGradientSummation, reductionSummation
@@ -45,7 +44,6 @@ contains
     implicit none
     type            (treeNode                         ), intent(inout)           :: thisNode
     integer                                            , intent(in   ), optional :: componentType                         , massType
-    logical                                            , intent(in   ), optional :: haloLoaded
     double precision                                   , intent(in   )           :: radius
     procedure       (Component_Rotation_Curve_Gradient)               , pointer  :: componentRotationCurveGradientFunction
     double precision                                                             :: componentRotationCurveGradient
@@ -62,12 +60,6 @@ contains
     else
        massTypeShared=massTypeAll
     end if
-    ! Determine whether halo loading is to be used.
-    if (present(haloLoaded)) then
-       haloLoadedShared=haloLoaded
-    else
-       haloLoadedShared=.true.
-    end if
     ! Store the radius.
     radiusShared=radius
     ! Call routines to supply the gradient for all components' rotation curves. Specifically, the returned quantities are
@@ -75,7 +67,7 @@ contains
     componentRotationCurveGradientFunction => Component_Rotation_Curve_Gradient
     Galactic_Structure_Rotation_Curve_Gradient=thisNode%mapDouble0(componentRotationCurveGradientFunction,reductionSummation,optimizeFor=optimizeForRotationCurveGradientSummation)
     !# <include directive="rotationCurveGradientTask" type="functionCall" functionType="function" returnParameter="componentRotationCurveGradient">
-    !#  <functionArgs>thisNode,radiusShared,massTypeShared,componentTypeShared,haloLoadedShared</functionArgs>
+    !#  <functionArgs>thisNode,radiusShared,massTypeShared,componentTypeShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Rotation_Curve_Gradient=Galactic_Structure_Rotation_Curve_Gradient+componentRotationCurveGradient</onReturn>
     include 'galactic_structure.rotation_curve.gradient.tasks.inc'
     !# </include>
@@ -94,7 +86,7 @@ contains
     class(nodeComponent), intent(inout) :: component
 
     Component_Rotation_Curve_Gradient=component%rotationCurveGradient(radiusShared,componentTypeShared&
-         &,massTypeShared,haloLoadedShared)
+         &,massTypeShared)
     return
   end function Component_Rotation_Curve_Gradient
 

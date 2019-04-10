@@ -23,7 +23,7 @@
 
   use Cosmology_Parameters
   use Cosmology_Functions
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Dark_Matter_Halo_Scales
   use ISO_Varying_String
   use Kind_Numbers
@@ -41,7 +41,7 @@
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_ => null()
      type            (varying_string          )          :: outputFileName
      double precision                                    :: massParticle        , radiusTruncateOverRadiusVirial   , &
           &                                                 timeSnapshot        , energyDistributionPointsPerDecade, & 
@@ -129,7 +129,7 @@ contains
     class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass       ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass       ), pointer       :: darkMatterProfileDMO_
     type            (inputParameters              ), pointer       :: parametersRoot
     type            (varying_string               )                :: selectionText       , kernelSofteningText
     
@@ -272,25 +272,25 @@ contains
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
     if (associated(parameters%parent)) then
        parametersRoot => parameters%parent
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parametersRoot)
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parametersRoot)
     else
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parameters    )
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters    )
     end if
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="darkMatterProfile_"  />
+    !# <objectDestructor name="darkMatterProfileDMO_"  />
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,parameters) result(self)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters) result(self)
     !% Internal constructor for the particulate merger tree operator class.
     use Galacticus_Error
     implicit none
@@ -309,9 +309,9 @@ contains
     class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileClass       ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass       ), intent(in   ), target :: darkMatterProfileDMO_
     type            (inputParameters              ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfile_"/>
+    !# <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_"/>
     
     self%parameters=inputParameters(parameters)
     ! Validate input.
@@ -327,7 +327,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%darkMatterProfile_"  />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"  />
     return
   end subroutine particulateDestructor
 
@@ -457,8 +457,7 @@ contains
           massTruncate=Galactic_Structure_Enclosed_Mass(                             &
                &                                        node                       , &
                &                                        radiusTruncate             , &
-               &                                        massType      =massTypeDark, &
-               &                                        haloLoaded    =.true.        &
+               &                                        massType      =massTypeDark  &
                &                                       ) 
           ! Determine the mean number of particles required to represent this node.          
           particleCountMean   =+massTruncate      &
@@ -509,8 +508,7 @@ contains
                   &                                                                   node                         , &
                   &                                                                   mass      =+massTruncate       &
                   &                                                                              *randomDeviates(3), &
-                  &                                                                   massType  =massTypeDark      , &
-                  &                                                                   haloLoaded=.true.              &
+                  &                                                                   massType  =massTypeDark        &
                   &                                                                  )                               &
                   &                         )
              ! Get the corresponding cartesian coordinates.
@@ -764,7 +762,7 @@ contains
             &                             )
        select case (particulateSofteningKernel)
        case (particulateKernelDelta)
-          energyPotentialTruncate=+particulateSelf%darkMatterProfile_%potential(                            &
+          energyPotentialTruncate=+particulateSelf%darkMatterProfileDMO_%potential(                            &
                &                                                                 particulateNode          , &
                &                                                                +particulateRadiusTruncate  &
                &                                                               )
@@ -775,7 +773,7 @@ contains
        do i=1,radiusCount
           particulateRadius=particulateEnergyDistribution%x(i)
           call particulateEnergyDistribution%populate(                                                                                          & 
-               &                                              +particulateSelf%darkMatterProfile_%density  (                                    &
+               &                                              +particulateSelf%darkMatterProfileDMO_%density  (                                    &
                &                                                                                            particulateNode                   , &
                &                                                                                            particulateEnergyDistribution%x(i)  &
                &                                                                                           )                                  , &
@@ -793,7 +791,7 @@ contains
                   &                                computeSpline=i==radiusCount                                                           &
                   &                               )            
              call particulateEnergyDistribution%populate(                                                                                          & 
-                  &                                              -particulateSelf%darkMatterProfile_%potential(                                    &
+                  &                                              -particulateSelf%darkMatterProfileDMO_%potential(                                    &
                   &                                                                                            particulateNode                   , &
                   &                                                                                            particulateEnergyDistribution%x(i)  &
                   &                                                                                           )                                    &
@@ -1034,7 +1032,7 @@ contains
     double precision                :: radiusSplineKernel, lengthSplineKernel
 
     particulateSmoothingIntegrandR=+radiusCylindrical                                                        &
-         &                         *particulateSelf%darkMatterProfile_%density(                              &
+         &                         *particulateSelf%darkMatterProfileDMO_%density(                              &
          &                                                                     particulateNode             , &
          &                                                                     sqrt(                         &
          &                                                                          +radiusCylindrical  **2  &
