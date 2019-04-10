@@ -21,7 +21,7 @@
 
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Halo_Mass_Functions
   use Statistics_NBody_Halo_Mass_Errors
   use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
@@ -53,7 +53,7 @@ contains
     class           (nbodyHaloMassErrorClass               ), pointer       :: nbodyHaloMassError_ 
     class           (haloMassFunctionClass                 ), pointer       :: haloMassFunction_            
     class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_         
-    class           (darkMatterProfileClass                ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
     double precision                                                        :: timeRecent
     
@@ -69,21 +69,21 @@ contains
     !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
     !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"            name="darkMatterProfileDMO_"            source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    self=outputAnalysisSpinDistributionBett2007(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileScaleRadius_,outputTimes_)
+    self=outputAnalysisSpinDistributionBett2007(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="outputTimes_"                 />
     !# <objectDestructor name="nbodyHaloMassError_"          />
     !# <objectDestructor name="haloMassFunction_"            />
     !# <objectDestructor name="darkMatterHaloScale_"         />
-    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="darkMatterProfileDMO_"           />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function spinDistributionBett2007ConstructorParameters
 
-  function spinDistributionBett2007ConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileScaleRadius_,outputTimes_) result(self)
+  function spinDistributionBett2007ConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_) result(self)
     !% Internal constructor for the ``spinDistributionBett2007'' output analysis class.
     use ISO_Varying_String
     use Output_Times
@@ -103,7 +103,7 @@ contains
     class           (nbodyHaloMassErrorClass                          ), target     , intent(in   )  :: nbodyHaloMassError_ 
     class           (haloMassFunctionClass                            ), target     , intent(in   )  :: haloMassFunction_            
     class           (darkMatterHaloScaleClass                         ), target     , intent(in   )  :: darkMatterHaloScale_         
-    class           (darkMatterProfileClass                           ), target     , intent(in   )  :: darkMatterProfile_           
+    class           (darkMatterProfileDMOClass                           ), target     , intent(in   )  :: darkMatterProfileDMO_           
     class           (darkMatterProfileScaleRadiusClass                ), target     , intent(in   )  :: darkMatterProfileScaleRadius_           
     type            (outputAnalysisPropertyExtractorSpin              ), pointer                     :: outputAnalysisPropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10              ), pointer                     :: outputAnalysisPropertyOperator_
@@ -181,7 +181,7 @@ contains
     !#     &amp;                           nbodyHaloMassError_               =nbodyHaloMassError_                                      , &amp;
     !#     &amp;                           haloMassFunction_                 =haloMassFunction_                                        , &amp;
     !#     &amp;                           darkMatterHaloScale_              =darkMatterHaloScale_                                     , &amp;
-    !#     &amp;                           darkMatterProfile_                =darkMatterProfile_                                       , &amp;
+    !#     &amp;                           darkMatterProfileDMO_                =darkMatterProfileDMO_                                       , &amp;
     !#     &amp;                           darkMatterProfileScaleRadius_     =darkMatterProfileScaleRadius_                              &amp;
     !#     &amp;                          )
     !#  </constructor>

@@ -21,7 +21,7 @@
 !% systematic errors arising in the friends-of-friends halo finding algorithm.
 
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   
   !# <haloMassFunction name="haloMassFunctionFofBias">
   !#  <description>
@@ -41,7 +41,7 @@
      logical                                             :: linkingLengthIsComoving
      class           (haloMassFunctionClass   ), pointer :: massFunctionIntrinsic => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class           (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_ => null()
     contains
      final     ::                 fofBiasDestructor
@@ -64,7 +64,7 @@ contains
     type            (inputParameters         ), intent(inout) :: parameters
     class           (haloMassFunctionClass   ), pointer       :: massFunctionIntrinsic
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass  ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass  ), pointer       :: darkMatterProfileDMO_
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     double precision                                          :: massParticle           , massInfiniteToMassSharpEdge, &
@@ -105,18 +105,18 @@ contains
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"   source="parameters"/>
     !# <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"    source="parameters"/>
-    self=haloMassFunctionFofBias(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge)
+    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"    source="parameters"/>
+    self=haloMassFunctionFofBias(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge)
     !# <inputParametersValidate source="parameters"/>
    !# <objectDestructor name="cosmologyParameters_" />
    !# <objectDestructor name="cosmologyFunctions_"  />
    !# <objectDestructor name="massFunctionIntrinsic"/>
    !# <objectDestructor name="darkMatterHaloScale_" />
-   !# <objectDestructor name="darkMatterProfile_"   />
+   !# <objectDestructor name="darkMatterProfileDMO_"   />
    return
   end function fofBiasConstructorParameters
 
-  function fofBiasConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge) result(self)
+  function fofBiasConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,massParticle,linkingLength,linkingLengthIsComoving,massInfiniteToMassSharpEdge) result(self)
     !% Internal constructor for the {\normalfont \ttfamily fofBias} halo mass function class.
     implicit none
     type            (haloMassFunctionFofBias )                        :: self
@@ -124,11 +124,11 @@ contains
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass), target, intent(in   ) :: darkMatterHaloScale_
-    class           (darkMatterProfileClass  ), target, intent(in   ) :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass  ), target, intent(in   ) :: darkMatterProfileDMO_
     double precision                                  , intent(in   ) :: massParticle           , massInfiniteToMassSharpEdge, &
          &                                                               linkingLength
     logical                                           , intent(in   ) :: linkingLengthIsComoving
-    !# <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfile_, massParticle, linkingLength, linkingLengthIsComoving, massInfiniteToMassSharpEdge"/>
+    !# <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_, *darkMatterProfileDMO_, massParticle, linkingLength, linkingLengthIsComoving, massInfiniteToMassSharpEdge"/>
 
     return
   end function fofBiasConstructorInternal
@@ -142,7 +142,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_" />
     !# <objectDestructor name="self%cosmologyFunctions_"  />
     !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%darkMatterProfile_"   />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"   />
     return
   end subroutine fofBiasDestructor
 
@@ -218,7 +218,7 @@ contains
             &                                  *gradientRadiusHaloMass &
             &                                  /linkingLength    
        ! Compute negative a logarithmic slope of the density profile at the outer edge of the halo.
-       densityProfileLogarithmicSlope=+self%darkMatterProfile_ %densityLogSlope(nodeWork,radiusHalo)
+       densityProfileLogarithmicSlope=+self%darkMatterProfileDMO_ %densityLogSlope(nodeWork,radiusHalo)
        ! Compute absolute value of the rate of change of logarithmic mass at halo outer edge as the
        ! percolation critical probability changes.
        numberDensityCritical                                 =+numberDensityPercolation          &

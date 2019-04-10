@@ -130,7 +130,7 @@
   <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
  
   <!-- Dark matter halo profile -->
-  <darkMatterProfileMethod value="NFW"/>
+  <darkMatterProfileDMOMethod value="NFW"/>
   
   <!-- Halo accretion options -->
   <accretionHaloMethod value="zero"/>

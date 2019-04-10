@@ -20,9 +20,9 @@
   !% An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2016}
   !% algorithm.
 
-  use Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
-  use Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass 
-  use Dark_Matter_Profiles, only : darkMatterProfile  , darkMatterProfileClass
+  use Cosmology_Functions     , only : cosmologyFunctions  , cosmologyFunctionsClass
+  use Cosmology_Parameters    , only : cosmologyParameters , cosmologyParametersClass 
+  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
   use Root_Finder
   
   !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016">
@@ -41,7 +41,7 @@
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
-     class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_            => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
      double precision                                             :: C                                      , f              , &
           &                                                          timeFormationSeekDelta                 , densityContrast
    contains
@@ -99,7 +99,7 @@ contains
     class           (cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass              ), pointer       :: cosmologyParameters_     
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
-    class           (darkMatterProfileClass                ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     double precision                                                        :: C                            , f, &
          &                                                                     timeFormationSeekDelta
 
@@ -131,17 +131,17 @@ contains
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
-    self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfile_)
+    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    self=darkMatterProfileScaleRadiusLudlow2016(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="cosmologyParameters_"         />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
-    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="darkMatterProfileDMO_"        />
     return
   end function ludlow2016ConstructorParameters
   
-  function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfile_) result(self)
+  function ludlow2016ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_) result(self)
     !% Constructor for the {\normalfont \ttfamily ludlow2016} dark matter halo profile concentration class.
     use Galacticus_Error
     implicit none
@@ -151,8 +151,8 @@ contains
     class           (cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
     class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_     
     class           (darkMatterProfileScaleRadiusClass     ), intent(in   ), target :: darkMatterProfileScaleRadius_
-    class           (darkMatterProfileClass                ), intent(in   ), target :: darkMatterProfile_
-    !# <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *darkMatterProfile_"/>
+    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
+    !# <constructorAssign variables="C, f, timeFormationSeekDelta, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileScaleRadius_, *darkMatterProfileDMO_"/>
 
     ! Find the density contrast as used to define masses by Ludlow et al. (2016).
     self%densityContrast=200.0d0/self%cosmologyParameters_%omegaMatter()
@@ -167,7 +167,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"          />
     !# <objectDestructor name="self%cosmologyParameters_"         />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
-    !# <objectDestructor name="self%darkMatterProfile_"           />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
     return
   end subroutine ludlow2016Destructor
 
@@ -232,8 +232,8 @@ contains
        do while (iterationCount < iterationCountMaximum)
           iterationCount=iterationCount+1
           ! Compute the characteristic halo mass, M₋₂.
-          basic                                                         =>  node                    %basic       (                               )
-          massHaloCharacteristic                                        =  +self %darkMatterProfile_%enclosedMass(node,darkMatterProfile_%scale())
+          basic                                                         =>  node                       %basic       (                               )
+          massHaloCharacteristic                                        =  +self %darkMatterProfileDMO_%enclosedMass(node,darkMatterProfile_%scale())
           ludlow2016States(ludlow2016StateCount)%self                   =>  self
           ludlow2016States(ludlow2016StateCount)%node                   =>  node
           ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic =   massHaloCharacteristic

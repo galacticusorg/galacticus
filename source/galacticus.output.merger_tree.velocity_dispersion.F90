@@ -41,7 +41,6 @@ module Galacticus_Output_Trees_Velocity_Dispersion
      integer                          :: component            , direction    , integralWeightBy, &
           &                              integralWeightByIndex, mass         , type            , &
           &                              weightBy             , weightByIndex
-     logical                          :: loaded
      double precision                 :: fraction             , value
   end type radiusSpecifier
   type            (radiusSpecifier)           , allocatable, dimension(:) :: radii
@@ -64,11 +63,10 @@ module Galacticus_Output_Trees_Velocity_Dispersion
 
   ! Module scope variables used in integrations.
   type            (treeNode       ), pointer                              :: activeNode
-  logical                                                                 :: haloLoaded
   integer                                                                 :: componentType                        , massType            , &
        &                                                                     weightBy                             , weightIndex
   double precision                                                        :: radiusImpact                         , radiusOuter
-  !$omp threadprivate(activeNode,radiusOuter,haloLoaded,massType,componentType,weightBy,weightIndex,radiusImpact)
+  !$omp threadprivate(activeNode,radiusOuter,massType,componentType,weightBy,weightIndex,radiusImpact)
   
 contains
 
@@ -81,7 +79,7 @@ contains
     use Stellar_Luminosities_Structure
     use Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent, defaultSpheroidComponent
     implicit none
-    type     (varying_string), dimension(6) :: radiusDefinition
+    type     (varying_string), dimension(5) :: radiusDefinition
     type     (varying_string), dimension(3) :: fractionDefinition
     type     (varying_string), dimension(2) :: weightingDefinition
     type     (varying_string)               :: valueDefinition    , message
@@ -226,23 +224,15 @@ contains
                 end select
                 radii(i)%component=enumerationComponentTypeEncode(char(radiusDefinition(2)),includesPrefix=.false.)
                 radii(i)%mass     =enumerationMassTypeEncode     (char(radiusDefinition(3)),includesPrefix=.false.)
-                select case (char(radiusDefinition(4)))
-                case ('loaded'  )
-                   radii(i)%loaded=.true.
-                case ('unloaded')
-                   radii(i)%loaded=.false.
-                case default
-                   call Galacticus_Error_Report('unrecognized loading specifier'//{introspection:location})
-                end select
                 ! Detect cases which specify the weighting for integrals over the velocity dispersion.
-                valueDefinition=radiusDefinition(5)
+                valueDefinition=radiusDefinition(4)
                 if     (                                                &
                      &   extract(valueDefinition,1,11) == 'lineOfSight' &
                      &  .or.                                            &
                      &   extract(valueDefinition,1, 7) == 'lambdaR'     &
                      & ) then
                    call String_Split_Words(weightingDefinition,char(valueDefinition),'{}')
-                   radiusDefinition(5)=weightingDefinition(1)
+                   radiusDefinition(4)=weightingDefinition(1)
                    if (weightingDefinition(2) == "mass" .or. weightingDefinition(2) == "") then
                       radii(i)%integralWeightBy     =weightByMass
                       radii(i)%integralWeightByIndex=weightIndexNull
@@ -252,7 +242,7 @@ contains
                    end if
                 end if
                 ! Parse the direction definition.
-                select case (char(radiusDefinition(5)))
+                select case (char(radiusDefinition(4)))
                 case ('radial'                    )
                    radii(i)%direction=directionRadial
                 case ('lineOfSight'               )
@@ -262,7 +252,7 @@ contains
                 case ('lambdaR'                   )
                    radii(i)%direction=directionLambdaR
                 case default
-                   message='unrecognized direction specifier: "'//radiusDefinition(5)//'"'
+                   message='unrecognized direction specifier: "'//radiusDefinition(4)//'"'
                    message=message//char(10)//'available specifiers are:'
                    message=message//char(10)//' --> radial'
                    message=message//char(10)//' --> lineOfSight'
@@ -270,7 +260,7 @@ contains
                    message=message//char(10)//' --> lambdaR'
                    call Galacticus_Error_Report(message//{introspection:location})
                 end select
-                radiusLabel=radiusDefinition(6)
+                radiusLabel=radiusDefinition(5)
                 read (radiusLabel,*) radii(i)%value
              end do
              deallocate(outputVelocityDispersionRadii)
@@ -447,15 +437,13 @@ contains
                      &                                                                          radius                          , &
                      &                                                                          radiusOuter                     , &
                      &                                                                          massType     =radii(i)%mass     , &
-                     &                                                                          componentType=radii(i)%component, &
-                     &                                                                          haloLoaded   =radii(i)%loaded     &
+                     &                                                                          componentType=radii(i)%component  &
                      &                                                                         )
              case (directionLineOfSight               )
                 ! Line-of-sight velocity dispersion.
                 activeNode   => thisNode
                 massType     =  radii(i)%mass
                 componentType=  radii(i)%component
-                haloLoaded   =  radii(i)%loaded
                 weightBy     =  radii(i)%integralWeightBy
                 weightIndex  =  radii(i)%integralWeightByIndex
                 radiusImpact =  radius
@@ -465,7 +453,6 @@ contains
                 activeNode   => thisNode
                 massType     =  radii(i)%mass
                 componentType=  radii(i)%component
-                haloLoaded   =  radii(i)%loaded
                 weightBy     =  radii(i)%integralWeightBy
                 weightIndex  =  radii(i)%integralWeightByIndex
                 radiusZero   =  0.0d0
@@ -488,7 +475,6 @@ contains
                 activeNode   => thisNode
                 massType     =  radii(i)%mass
                 componentType=  radii(i)%component
-                haloLoaded   =  radii(i)%loaded
                 weightBy     =  radii(i)%integralWeightBy
                 weightIndex  =  radii(i)%integralWeightByIndex
                 ! Check the total masses of the disk and spheroid components. If either is zero we can use the solutions for the
@@ -499,8 +485,7 @@ contains
                      &                                        massType     =massType         , &
                      &                                        componentType=componentType    , &
                      &                                        weightBy     =weightBy         , &
-                     &                                        weightIndex  =weightIndex      , &
-                     &                                        haloLoaded   =haloLoaded         &
+                     &                                        weightIndex  =weightIndex        &
                      &                                       )
                 massDisk    =Galactic_Structure_Enclosed_Mass(                                 &
                      &                                        thisNode                       , &
@@ -508,8 +493,7 @@ contains
                      &                                        massType     =massTypeStellar  , &
                      &                                        componentType=componentTypeDisk, &
                      &                                        weightBy     =weightBy         , &
-                     &                                        weightIndex  =weightIndex      , &
-                     &                                        haloLoaded   =haloLoaded         &
+                     &                                        weightIndex  =weightIndex        &
                      &                                       )                             
                 if (massDisk <= 0.0d0) then
                    doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
@@ -608,15 +592,13 @@ contains
             &                                                     massType            =massTypeStellar  , &
             &                                                     componentType       =componentTypeDisk, &
             &                                                     weightBy            =weightBy         , &
-            &                                                     weightIndex         =weightIndex      , &
-            &                                                     haloLoaded          =haloLoaded         &
+            &                                                     weightIndex         =weightIndex        &
             &                                                    )                     
        velocityDisk=Galactic_Structure_Rotation_Curve            (                                        &
             &                                                     activeNode                            , &
             &                                                     radius                                , &
             &                                                     massType            =massTypeAll      , &
-            &                                                     componentType       =componentTypeAll , &
-            &                                                     haloLoaded          =haloLoaded         &
+            &                                                     componentType       =componentTypeAll   &
             &                                                    )
        ! Test if the spheroid density is significant....
        if (densitySpheroid < fractionSmall*densityDisk) then
@@ -700,15 +682,13 @@ contains
             &                                         massType            =massTypeStellar  , &
             &                                         componentType       =componentTypeDisk, &
             &                                         weightBy            =weightBy         , &
-            &                                         weightIndex         =weightIndex      , &
-            &                                         haloLoaded          =haloLoaded         &
+            &                                         weightIndex         =weightIndex        &
             &                                        )                     
        velocityDisk=Galactic_Structure_Rotation_Curve(                                        &
             &                                         activeNode                            , &
             &                                         radius                                , &
             &                                         massType            =massTypeAll      , &
-            &                                         componentType       =componentTypeAll , &
-            &                                         haloLoaded          =haloLoaded         &
+            &                                         componentType       =componentTypeAll   &
             &                                        )           
        Galacticus_Output_Trees_Vlcty_Dsprsn_LambdaR_Intgrnd2=2.0d0*Pi*radius*densityDisk*velocityDisk
     end if
@@ -734,16 +714,14 @@ contains
             &                                                               massType     =massType     , &
             &                                                               componentType=componentType, &
             &                                                               weightBy     =weightBy     , &
-            &                                                               weightIndex  =weightIndex  , &
-            &                                                               haloLoaded   =haloLoaded     &
+            &                                                               weightIndex  =weightIndex    &
             &                                                              )                             &
             &                       *Galactic_Structure_Velocity_Dispersion(                             &
             &                                                               activeNode                 , &
             &                                                               radius                     , &
             &                                                               radiusOuter                , &
             &                                                               massType     =massType     , &
-            &                                                               componentType=componentType, &
-            &                                                               haloLoaded   =haloLoaded     &
+            &                                                               componentType=componentType  &
             &                                                              )**2
     end if
    return
@@ -767,8 +745,7 @@ contains
             &                                                    massType     =massType     , &
             &                                                    componentType=componentType, &
             &                                                    weightBy     =weightBy     , &
-            &                                                    weightIndex  =weightIndex  , &
-            &                                                    haloLoaded   =haloLoaded     &
+            &                                                    weightIndex  =weightIndex    &
             &                                                   )
     end if
     return
@@ -833,8 +810,7 @@ contains
             &                                                               massType     =massType     , &
             &                                                               componentType=componentType, &
             &                                                               weightBy     =weightBy     , &
-            &                                                               weightIndex  =weightIndex  , &
-            &                                                               haloLoaded   =haloLoaded     &
+            &                                                               weightIndex  =weightIndex    &
             &                                                              )                             &
             &                       *     radius                                                         &
             &                       /sqrt(radius**2-radiusImpact**2)
@@ -885,15 +861,13 @@ contains
             &                                                               massType     =massType        , &
             &                                                               componentType=componentType   , &
             &                                                               weightBy     =weightBy        , &
-            &                                                               weightIndex  =weightIndex     , &
-            &                                                               haloLoaded   =haloLoaded        &
+            &                                                               weightIndex  =weightIndex       &
             &                                                              )                                &
             &                       *Galactic_Structure_Enclosed_Mass(                                      &
             &                                                               activeNode                    , &
             &                                                               radius                        , &
             &                                                               massType     =massTypeAll     , &
-            &                                                               componentType=componentTypeAll, &
-            &                                                               haloLoaded   =haloLoaded        &
+            &                                                               componentType=componentTypeAll  &
             &                                                              )                                &
             &                       /     radius**2                                                         &
             &                       *sqrt(radius**2-radiusImpact**2)

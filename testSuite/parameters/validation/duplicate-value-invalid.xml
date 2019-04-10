@@ -68,7 +68,7 @@
   <nodeMergersMethod value="singleLevelHierarchy"/>
 
   <!-- Dark matter halo structure options -->
-  <darkMatterProfileMethod value="NFW"/>
+  <darkMatterProfileDMOMethod value="NFW"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <haloSpinDistributionMethod value="bett2007">
@@ -128,11 +128,11 @@
   <satelliteTidalFieldMethod value="null"/>
 
   <!-- Galactic structure solver options -->
-  <galacticStructureRadiusSolverMethod value="adiabatic"/>
-  <galacticStructureRadiiInitialMethod value="gnedin2004">
+  <galacticStructureRadiusSolverMethod value="equilibrium"/>
+  <darkMatterProfileDMOMethod value="adiabaticGnedin2004">
     <A value="0.73"/>
     <omega value="0.7"/>
-  </galacticStructureRadiiInitialMethod>
+  </darkMatterProfileDMOMethod>
 
   <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 

@@ -19,7 +19,7 @@
 
   !% Implementation of a simple freefall radius class.
 
-  use Dark_Matter_Profiles            , only : darkMatterProfileClass    , darkMatterProfile
+  use Dark_Matter_Profiles_DMO            , only : darkMatterProfileDMOClass    , darkMatterProfileDMO
   use Cooling_Freefall_Times_Available, only : freefallTimeAvailableClass, freefallTimeAvailable
 
   !# <freefallRadius name="freefallRadiusDarkMatterHalo">
@@ -30,7 +30,7 @@
   type, extends(freefallRadiusClass) :: freefallRadiusDarkMatterHalo
      !% Implementation of freefall radius class in which the freefall radius is based on the freefall time in the dark matter halo.
      private
-     class(darkMatterProfileClass    ), pointer :: darkMatterProfile_ => null()
+     class(darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_ => null()
      class(freefallTimeAvailableClass), pointer :: freefallTimeAvailable_ => null()
    contains
      final     ::                     darkMatterHaloDestructor
@@ -52,25 +52,25 @@ contains
     implicit none
     type (freefallRadiusDarkMatterHalo)                :: self
     type (inputParameters             ), intent(inout) :: parameters
-    class(darkMatterProfileClass      ), pointer       :: darkMatterProfile_
+    class(darkMatterProfileDMOClass      ), pointer       :: darkMatterProfileDMO_
     class(freefallTimeAvailableClass  ), pointer       :: freefallTimeAvailable_
     
-    !# <objectBuilder class="darkMatterProfile"     name="darkMatterProfile_"     source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
     !# <objectBuilder class="freefallTimeAvailable" name="freefallTimeAvailable_" source="parameters"/>
-    self=freefallRadiusDarkMatterHalo(darkMatterProfile_,freefallTimeAvailable_)
+    self=freefallRadiusDarkMatterHalo(darkMatterProfileDMO_,freefallTimeAvailable_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfile_"    />
+    !# <objectDestructor name="darkMatterProfileDMO_"    />
     !# <objectDestructor name="freefallTimeAvailable_"/>
     return
   end function darkMatterHaloConstructorParameters
 
-  function darkMatterHaloConstructorInternal(darkMatterProfile_,freefallTimeAvailable_) result(self)
+  function darkMatterHaloConstructorInternal(darkMatterProfileDMO_,freefallTimeAvailable_) result(self)
     !% Internal constructor for the darkMatterHalo freefall radius class.
     implicit none
     type (freefallRadiusDarkMatterHalo)                        :: self
-    class(darkMatterProfileClass      ), intent(in   ), target :: darkMatterProfile_
+    class(darkMatterProfileDMOClass      ), intent(in   ), target :: darkMatterProfileDMO_
     class(freefallTimeAvailableClass  ), intent(in   ), target :: freefallTimeAvailable_
-    !# <constructorAssign variables="*darkMatterProfile_, *freefallTimeAvailable_"/>
+    !# <constructorAssign variables="*darkMatterProfileDMO_, *freefallTimeAvailable_"/>
     
     return
   end function darkMatterHaloConstructorInternal
@@ -80,7 +80,7 @@ contains
     implicit none
     type(freefallRadiusDarkMatterHalo), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfile_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"    />
     !# <objectDestructor name="self%freefallTimeAvailable_"/>
     return
   end subroutine darkMatterHaloDestructor
@@ -97,7 +97,7 @@ contains
     ! Get the rate of increase of the time available for freefall.
     timeAvailableIncreaseRate     =+self%freefallTimeAvailable_%timeAvailableIncreaseRate (node                          )
     ! Get freefall radius increase rate from dark matter profile.
-    darkMatterHaloRadiusGrowthRate=+self%darkMatterProfile_    %freefallRadiusIncreaseRate(node,timeAvailable            ) &
+    darkMatterHaloRadiusGrowthRate=+self%darkMatterProfileDMO_    %freefallRadiusIncreaseRate(node,timeAvailable            ) &
          &                         *                                                            timeAvailableIncreaseRate
     return
   end function darkMatterHaloRadiusGrowthRate
@@ -112,6 +112,6 @@ contains
     ! Get the time available for freefall.
     timeAvailable       =self%freefallTimeAvailable_%timeAvailable (node              )
     ! Get freefall radius from dark matter profile.
-    darkMatterHaloRadius=self%darkMatterProfile_    %freefallRadius(node,timeAvailable)
+    darkMatterHaloRadius=self%darkMatterProfileDMO_    %freefallRadius(node,timeAvailable)
     return
   end function darkMatterHaloRadius

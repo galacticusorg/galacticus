@@ -28,13 +28,12 @@ module Galactic_Structure_Rotation_Curves
 
   ! Module scope variables used in mapping over components.
   integer          :: componentTypeShared, massTypeShared
-  logical          :: haloLoadedShared
   double precision :: radiusShared
-  !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,radiusShared)
+  !$omp threadprivate(massTypeShared,componentTypeShared,radiusShared)
 contains
 
-  double precision function Galactic_Structure_Rotation_Curve(thisNode,radius,componentType,massType,haloLoaded)
-    !% Solve for the rotation curve a given radius. Assumes that galacticus structure has already been solved for.,
+  double precision function Galactic_Structure_Rotation_Curve(thisNode,radius,componentType,massType)
+    !% Solve for the rotation curve a given radius. Assumes that galactic structure has already been solved for.
     use Galacticus_Nodes, only : treeNode, optimizeForRotationCurveSummation, reductionSummation
     !# <include directive="rotationCurveTask" type="moduleUse">
     include 'galactic_structure.rotation_curve.tasks.modules.inc'
@@ -42,7 +41,6 @@ contains
     implicit none
     type            (treeNode                ), intent(inout)                    :: thisNode
     integer                                   , intent(in   ), optional          :: componentType                 , massType
-    logical                                   , intent(in   ), optional          :: haloLoaded
     double precision                          , intent(in   )                    :: radius
     procedure       (Component_Rotation_Curve)                         , pointer :: componentRotationCurveFunction
     double precision                                                             :: componentVelocity             , rotationCurveSquared
@@ -59,19 +57,13 @@ contains
     else
        componentTypeShared=componentTypeAll
     end if
-    ! Determine whether halo loading is to be used.
-    if (present(haloLoaded)) then
-       haloLoadedShared=haloLoaded
-    else
-       haloLoadedShared=.true.
-    end if
     ! Store the radius.
     radiusShared=radius
     ! Call routines to supply the velocities for all components.
     componentRotationCurveFunction => Component_Rotation_Curve
     rotationCurveSquared=thisNode%mapDouble0(componentRotationCurveFunction,reductionSummation,optimizeFor=optimizeForRotationCurveSummation)
     !# <include directive="rotationCurveTask" type="functionCall" functionType="function" returnParameter="componentVelocity">
-    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,haloLoadedShared</functionArgs>
+    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared</functionArgs>
     !#  <onReturn>rotationCurveSquared=rotationCurveSquared+componentVelocity**2</onReturn>
     include 'galactic_structure.rotation_curve.tasks.inc'
     !# </include>
@@ -86,7 +78,7 @@ contains
     implicit none
     class(nodeComponent), intent(inout) :: component
 
-    Component_Rotation_Curve=component%rotationCurve(radiusShared,componentTypeShared,massTypeShared,haloLoadedShared)**2
+    Component_Rotation_Curve=component%rotationCurve(radiusShared,componentTypeShared,massTypeShared)**2
     return
   end function Component_Rotation_Curve
 

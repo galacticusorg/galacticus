@@ -207,8 +207,8 @@ contains
        ! Check if host has finite mass.
        if (massSpheroidSatellite+massSpheroidHost > 0.0d0) then
           ! Compute masses of dark matter within the host and satellite radii.
-          massDarkMatterHost     =Galactic_Structure_Enclosed_Mass(nodeHost,radiusHost     ,massType=massTypeDark,haloLoaded=.true.)
-          massDarkMatterSatellite=Galactic_Structure_Enclosed_Mass(node    ,radiusSatellite,massType=massTypeDark,haloLoaded=.true.)
+          massDarkMatterHost     =Galactic_Structure_Enclosed_Mass(nodeHost,radiusHost     ,massType=massTypeDark)
+          massDarkMatterSatellite=Galactic_Structure_Enclosed_Mass(node    ,radiusSatellite,massType=massTypeDark)
           ! Combine baryonic and dark matter masses.
           massSpheroidHostTotal     =+massSpheroidHost     +2.0d0*massDarkMatterHost
           massSpheroidTotalSatellite=+massSpheroidSatellite+2.0d0*massDarkMatterSatellite

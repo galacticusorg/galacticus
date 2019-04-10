@@ -53,7 +53,7 @@
       <phi0 value="7.0647575634271202"/>
       <phi1 value="1.37"/>
     </darkMatterProfileConcentrationMethod>
-    <darkMatterProfileMethod value="NFW"/>
+    <darkMatterProfileDMOMethod value="NFW"/>
     <darkMatterProfileScaleRadiusMethod value="concentration">
     <correctForConcentrationDefinition value="true"/>
   </darkMatterProfileScaleRadiusMethod>

@@ -57,7 +57,7 @@
   <fileName value="testSuite/parameters/reproducibility/adiabaticContractionTree.xml"/>
   </mergerTreeConstructorMethod>
   <!-- Dark matter halo profile -->
-  <darkMatterProfileMethod value="isothermal"/>
+  <darkMatterProfileDMOMethod value="isothermal"/>
   
   <!-- Halo accretion options -->
   <accretionHaloMethod value="zero"/>
@@ -66,10 +66,10 @@
   <hotHaloMassDistributionMethod value="null"/>
 
   <!-- Adiabatic contraction solver -->
-  <galacticStructureRadiiInitialMethod value="gnedin2004">
+  <darkMatterProfileMethod value="adiabaticGnedin2004">
     <A value="1.0"/>
     <omega value="1.0"/>
-  </galacticStructureRadiiInitialMethod>
+  </darkMatterProfileMethod>
 
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>
@@ -85,7 +85,7 @@
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
   <outputRotationCurveData value="true"/>
-  <outputRotationCurveRadii value="spheroidRadius:all:all:loaded:1.0 spheroidRadius:darkHalo:dark:loaded:1.0 spheroidRadius:spheroid:baryonic:loaded:1.0"/>
+  <outputRotationCurveRadii value="spheroidRadius:all:all:1.0 spheroidRadius:darkHalo:dark:1.0 spheroidRadius:spheroid:baryonic:1.0"/>
   <outputVirialData value="true"/>
 
   <!-- Output file -->

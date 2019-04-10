@@ -28,7 +28,7 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerKravtsov2014">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_universal_2014}.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDiemerKravtsov2014
@@ -41,7 +41,7 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      class           (powerSpectrumClass           ), pointer :: powerSpectrum_                   => null()
      type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileNFW         ), pointer :: darkMatterProfileDefinition_     => null()
+     type            (darkMatterProfileDMONFW         ), pointer :: darkMatterProfileDMODefinition_     => null()
      double precision                                         :: kappa                                     , scatter     , &
           &                                                      phi0                                      , phi1        , &
           &                                                      eta0                                      , eta1        , &
@@ -53,7 +53,7 @@
      procedure :: concentration               => diemerKravtsov2014Concentration
      procedure :: concentrationMean           => diemerKravtsov2014ConcentrationMean
      procedure :: densityContrastDefinition   => diemerKravtsov2014DensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => diemerKravtsov2014DarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => diemerKravtsov2014DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationDiemerKravtsov2014
 
   interface darkMatterProfileConcentrationDiemerKravtsov2014
@@ -197,7 +197,7 @@ contains
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%powerSpectrum_"                  />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine diemerKravtsov2014Destructor
 
@@ -295,20 +295,20 @@ contains
     !% \cite{diemer_universal_2014} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: diemerKravtsov2014DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: diemerKravtsov2014DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationDiemerKravtsov2014  ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    diemerKravtsov2014DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    diemerKravtsov2014DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function diemerKravtsov2014DarkMatterProfileDefinition

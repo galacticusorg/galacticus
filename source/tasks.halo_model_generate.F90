@@ -21,7 +21,7 @@
   use Cosmology_Parameters      , only : cosmologyParameters         , cosmologyParametersClass
   use Conditional_Mass_Functions, only : conditionalMassFunction     , conditionalMassFunctionClass
   use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
-  use Dark_Matter_Profiles      , only : darkMatterProfile           , darkMatterProfileClass
+  use Dark_Matter_Profiles_DMO      , only : darkMatterProfileDMO           , darkMatterProfileDMOClass
 
   !# <task name="taskHaloModelGenerate">
   !#  <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
@@ -29,13 +29,13 @@
   type, extends(taskClass) :: taskHaloModelGenerate
      !% Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
      private 
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_ => null()
-     class           (conditionalMassFunctionClass     ), pointer :: conditionalMassFunction_ => null()
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
+     class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
+     class           (conditionalMassFunctionClass     ), pointer :: conditionalMassFunction_      => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
-     double precision                                             :: massMinimum                  , massMaximum
-     type            (varying_string                   )          :: galaxyCatalogFileName        , haloCatalogFileName
+     double precision                                             :: massMinimum                            , massMaximum
+     type            (varying_string                   )          :: galaxyCatalogFileName                  , haloCatalogFileName
    contains
      final     ::                       haloModelGenerateDestructor
      procedure :: perform            => haloModelGeneratePerform
@@ -60,7 +60,7 @@ contains
     type            (inputParameters                  ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
-    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
     class           (conditionalMassFunctionClass     ), pointer       :: conditionalMassFunction_
     class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
     double precision                                                   :: massMinimum                  , massMaximum
@@ -100,20 +100,20 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    self=taskHaloModelGenerate(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfile_,conditionalMassFunction_,darkMatterProfileScaleRadius_)
+    self=taskHaloModelGenerate(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"         />
     !# <objectDestructor name="cosmologyFunctions_"          />
-    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="darkMatterProfileDMO_"        />
     !# <objectDestructor name="conditionalMassFunction_"     />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function haloModelGenerateConstructorParameters
   
-  function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfile_,conditionalMassFunction_,darkMatterProfileScaleRadius_) result(self)
+  function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_) result(self)
     !% Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
     implicit none
     type            (taskHaloModelGenerate            )                        :: self
@@ -121,10 +121,10 @@ contains
     double precision                                   , intent(in   )         :: massMinimum                  , massMaximum
     class           (cosmologyParametersClass         ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileClass           ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
     class           (conditionalMassFunctionClass     ), intent(in   ), target :: conditionalMassFunction_
     class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
-    !# <constructorAssign variables="galaxyCatalogFileName, haloCatalogFileName, massMinimum, massMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfile_, *conditionalMassFunction_, *darkMatterProfileScaleRadius_"/>
+    !# <constructorAssign variables="galaxyCatalogFileName, haloCatalogFileName, massMinimum, massMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *conditionalMassFunction_, *darkMatterProfileScaleRadius_"/>
 
     return
   end function haloModelGenerateConstructorInternal
@@ -137,7 +137,7 @@ contains
 
     !# <objectDestructor name="self%cosmologyParameters_"         />
     !# <objectDestructor name="self%cosmologyFunctions_"          />
-    !# <objectDestructor name="self%darkMatterProfile_"           />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
     !# <objectDestructor name="self%conditionalMassFunction_"     />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     call Node_Components_Uninitialize       ()
@@ -266,7 +266,7 @@ contains
              xSatellite               =     randomSequence%uniformSample()
              satelliteRadius          =Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=xSatellite,massType=massTypeDark)
              ! Get circular velocity at this radius.
-             satelliteVelocityCircular=self%darkMatterProfile_%circularVelocity(node,satelliteRadius)
+             satelliteVelocityCircular=self%darkMatterProfileDMO_%circularVelocity(node,satelliteRadius)
              ! Convert radial position to comoving coordinates.
              satelliteRadius          =satelliteRadius*(1.0d0+redshift)
              ! Sample galaxy angular position.

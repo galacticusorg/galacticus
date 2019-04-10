@@ -22,7 +22,7 @@
 module Node_Component_Disk_Very_Simple_Size
   !% Implements a very simple disk component.
   use ISO_Varying_String
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   implicit none
   private
   public :: Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility, Node_Component_Disk_Very_Simple_Size_Radius_Solver    , &
@@ -64,8 +64,8 @@ module Node_Component_Disk_Very_Simple_Size
   !# </component>
 
   ! Classes used.
-  class           (darkMatterProfileClass), pointer :: darkMatterProfile_
-  !$omp threadprivate(darkMatterProfile_)
+  class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+  !$omp threadprivate(darkMatterProfileDMO_)
   
   ! Parameters controlling the physical implementation.
   double precision                                  :: diskMassToleranceAbsolute
@@ -106,7 +106,7 @@ contains
     type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
-       !# <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize
@@ -120,7 +120,7 @@ contains
     implicit none
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
-       !# <objectDestructor name="darkMatterProfile_"/>
+       !# <objectDestructor name="darkMatterProfileDMO_"/>
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
@@ -173,7 +173,7 @@ contains
        componentActive        =  .true.
        if (specificAngularMomentumRequired) then
           basic                  => node             %basic()
-          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
+          specificAngularMomentum=  Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)/basic%mass()
        end if
        ! Associate the pointers with the appropriate property routines.
        Radius_Get   => Node_Component_Disk_Very_Simple_Size_Radius

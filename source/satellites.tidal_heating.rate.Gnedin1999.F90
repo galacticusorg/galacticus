@@ -170,15 +170,13 @@ contains
          &                                                             node                                     , &
          &                                                             mass                   =satelliteHalfMass, &
          &                                                             componentType          =componentTypeAll , &
-         &                                                             massType               =massTypeDark     , &
-         &                                                             haloLoaded             =.true.             &
+         &                                                             massType               =massTypeDark       &
          &                                                            )
     velocityCircularSatellite=Galactic_Structure_Rotation_Curve       (                                           &
          &                                                             node                                     , &
          &                                                             radiusHalfMassSatellite                  , &
          &                                                             componentType          =componentTypeAll , &
-         &                                                             massType               =massTypeDark     , &
-         &                                                             haloLoaded             =.true.             &
+         &                                                             massType               =massTypeDark       &
          &                                                            )
     if (radiusHalfMassSatellite > 0.0d0) then
        ! Compute the orbital frequency.

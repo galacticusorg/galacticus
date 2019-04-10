@@ -124,7 +124,7 @@ contains
   subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
     use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles
+    use Dark_Matter_Profiles_DMO
     use Galacticus_Nodes       , only : treeNode, nodeComponentSpin, nodeComponentBasic
     implicit none
     type            (treeNode                  ), intent(inout)          :: node
@@ -134,7 +134,7 @@ contains
     class           (nodeComponentSpin         )               , pointer :: thisSpinComponent
     class           (nodeComponentBasic        )               , pointer :: basic
     class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileClass    )               , pointer :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass    )               , pointer :: darkMatterProfileDMO_
     double precision                                                     :: radius                 , velocity
     !GCC$ attributes unused :: Radius_Get, Velocity_Get, specificAngularMomentum
     
@@ -146,9 +146,9 @@ contains
        velocity             =  darkMatterHaloScale_%virialVelocity         (node)
        radius               =  darkMatterHaloScale_%virialRadius           (node)*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
     case (galacticStructureRadiiFixedRadiusTurnaround)
-       darkMatterProfile_   => darkMatterProfile                           (    )
+       darkMatterProfileDMO_   => darkMatterProfileDMO                           (    )
        basic                => node                %basic                  (    )
-       velocity             =  darkMatterProfile_  %circularVelocityMaximum(node)
+       velocity             =  darkMatterProfileDMO_  %circularVelocityMaximum(node)
        radius               =  basic               %radiusTurnaround       (    )*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
     end select
     ! Set the component size to new radius and velocity.

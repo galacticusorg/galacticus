@@ -30,35 +30,36 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   use Node_Components        , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Uninitialize  , &
        &                              Node_Components_Thread_Uninitialize
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Unit_Tests
   use Galacticus_Display
   implicit none
-  type            (treeNode                             )               :: node
-  class           (nodeComponentBasic                   ), pointer      :: basic
-  class           (nodeComponentSatellite               ), pointer      :: satellite
-  class           (nodeComponentDarkMatterProfile       ), pointer      :: dmProfile
-  class           (darkMatterHaloScaleClass             ), pointer      :: darkMatterHaloScale_
-  class           (darkMatterProfileClass               ), pointer      :: darkMatterProfile_
-  type            (darkMatterProfileNFW                 ), target       :: darkMatterProfileNFW_
-  type            (darkMatterProfileBurkert             ), target       :: darkMatterProfileBurkert_
-  type            (darkMatterProfileTruncated           ), target       :: darkMatterProfileTruncated_
-  type            (darkMatterProfileTruncatedExponential), target       :: darkMatterProfileTruncatedExponential_
-  type            (darkMatterProfileHeated              ), target       :: darkMatterProfileHeated_
-  type            (darkMatterProfileHeatingTidal        )               :: darkMatterProfileHeatingTidal_
-  double precision                                                      :: time=13.8d0
-  double precision                                       , parameter    :: massVirial=1.0d10, concentration=8.0d0
-  double precision                                                      :: radiusVirial     , radiusScale
-  double precision                                       , dimension(7) :: radiusOverVirialRadius=[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0]
-  double precision                                       , dimension(7) :: radius           , radiusRoot
-  double precision                                       , dimension(7) :: mass
-  logical                                                               :: unimplementedIsFatal=.true.
-  double precision                                                      :: radiusFractionalTruncateMinimum=2.0d0, radiusFractionalTruncateMaximum=8.0d0
-  double precision                                                      :: radiusFractionalDecay=0.06d0, alpha=1.0d0, beta=3.0d0, gamma=1.0d0
-  double precision                                       , parameter    :: heatingSpecific=1.0d06
-  type            (varying_string                       )               :: parameterFile
-  type            (inputParameters                      )               :: parameters
-  integer                                                               :: i, j
+  type            (treeNode                                )               :: node
+  class           (nodeComponentBasic                      ), pointer      :: basic
+  class           (nodeComponentSatellite                  ), pointer      :: satellite
+  class           (nodeComponentDarkMatterProfile          ), pointer      :: dmProfile
+  class           (darkMatterHaloScaleClass                ), pointer      :: darkMatterHaloScale_
+  class           (darkMatterProfileDMOClass               ), pointer      :: darkMatterProfileDMO_
+  type            (darkMatterProfileDMONFW                 ), target       :: darkMatterProfileDMONFW_
+  type            (darkMatterProfileDMOBurkert             ), target       :: darkMatterProfileDMOBurkert_
+  type            (darkMatterProfileDMOTruncated           ), target       :: darkMatterProfileDMOTruncated_
+  type            (darkMatterProfileDMOTruncatedExponential), target       :: darkMatterProfileDMOTruncatedExponential_
+  type            (darkMatterProfileDMOHeated              ), target       :: darkMatterProfileDMOHeated_
+  type            (darkMatterProfileHeatingTidal           )               :: darkMatterProfileHeatingTidal_
+  double precision                                          , dimension(7) :: radiusOverVirialRadius                   =[0.125d0, 0.250d0, 0.500d0, 1.000d0, 2.000d0, 4.000d0, 8.000d0] 
+  double precision                                          , dimension(7) :: radius                                           , radiusRoot
+  double precision                                          , dimension(7) :: mass
+  logical                                                   , parameter    :: unimplementedIsFatal                     =.true.
+  double precision                                          , parameter    :: radiusFractionalTruncateMinimum          = 2.00d00, radiusFractionalTruncateMaximum=8.0d0
+  double precision                                          , parameter    :: time                                     =13.80d00
+  double precision                                          , parameter    :: massVirial                               = 1.00d10, concentration                  =8.0d0
+  double precision                                                         :: radiusFractionalDecay                    = 0.06d00, alpha                          =1.0d0, &
+       &                                                                      beta                                     = 3.00d00, gamma                          =1.0d0
+  double precision                                          , parameter    :: heatingSpecific=1.0d06
+  double precision                                                         :: radiusVirial                                     , radiusScale
+  type            (varying_string                          )               :: parameterFile
+  type            (inputParameters                         )               :: parameters
+  integer                                                                  :: i                                                , j
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -73,16 +74,16 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
   ! Create the dark matter profiles.
-  darkMatterHaloScale_                   => darkMatterHaloScale                  (                                                               )
-  darkMatterProfileNFW_                  =  darkMatterProfileNFW                 (                                           darkMatterHaloScale_)
-  darkMatterProfileBurkert_              =  darkMatterProfileBurkert             (                                           darkMatterHaloScale_)
-  darkMatterProfileTruncated_            =  darkMatterProfileTruncated           (radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum, &
-       &                                                                          unimplementedIsFatal,darkMatterProfileNFW_,darkMatterHaloScale_)
-  darkMatterProfileTruncatedExponential_ =  darkMatterProfileTruncatedExponential(radiusFractionalDecay, alpha        , beta,gamma               , &
-       &                                                                          unimplementedIsFatal,darkMatterProfileNFW_,darkMatterHaloScale_)
-  darkMatterProfileHeatingTidal_         =  darkMatterProfileHeatingTidal        (                                                               )
-  darkMatterProfileHeated_               =  darkMatterProfileHeated              (unimplementedIsFatal,darkMatterProfileNFW_,darkMatterHaloScale_, &
-       &                                                                          darkMatterProfileHeatingTidal_                                 )
+  darkMatterHaloScale_                      => darkMatterHaloScale                     (                                                                                          )
+  darkMatterProfileDMONFW_                  =  darkMatterProfileDMONFW                 (                                                                darkMatterHaloScale_      )
+  darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                darkMatterHaloScale_      )
+  darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,                            &
+       &                                                                                unimplementedIsFatal           ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_      )
+  darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay          ,alpha                          ,beta                ,gamma, &
+       &                                                                                unimplementedIsFatal           ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_      )
+  darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (                                                                                          )
+  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (unimplementedIsFatal           ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_,       &
+       &                                                                                darkMatterProfileHeatingTidal_                                                            )
   ! Set up the node.
   basic     => node%basic                 (autoCreate=.true.)
   satellite => node%satellite             (autoCreate=.true.)
@@ -102,23 +103,23 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
      select case (i)
      case (1)
         call Unit_Tests_Begin_Group('NFW profile'                       )
-        darkMatterProfile_ => darkMatterProfileNFW_
+        darkMatterProfileDMO_ => darkMatterProfileDMONFW_
      case (2)
         call Unit_Tests_Begin_Group('Burkert profile'                   )
-        darkMatterProfile_ => darkMatterProfileBurkert_
+        darkMatterProfileDMO_ => darkMatterProfileDMOBurkert_
      case (3)
         call Unit_Tests_Begin_Group('Truncated profile'                 )
-        darkMatterProfile_ => darkMatterProfileTruncated_
+        darkMatterProfileDMO_ => darkMatterProfileDMOTruncated_
      case (4)
         call Unit_Tests_Begin_Group('Exponentially truncated profile'   )
-        darkMatterProfile_ => darkMatterProfileTruncatedExponential_
+        darkMatterProfileDMO_ => darkMatterProfileDMOTruncatedExponential_
      case default
         call Unit_Tests_Begin_Group('Heated profile'                    )
-        darkMatterProfile_ => darkMatterProfileHeated_
+        darkMatterProfileDMO_ => darkMatterProfileDMOHeated_
      end select
      do j=1,7
-        mass      (j)=darkMatterProfile_%enclosedMass       (node, radius(j))
-        radiusRoot(j)=darkMatterProfile_%radiusEnclosingMass(node, mass  (j)) 
+        mass      (j)=darkMatterProfileDMO_%enclosedMass       (node, radius(j))
+        radiusRoot(j)=darkMatterProfileDMO_%radiusEnclosingMass(node, mass  (j)) 
      end do
      call Assert('radius enclosing a given mass',radius,radiusRoot,relTol=1.0d-6)
      call Unit_Tests_End_Group()

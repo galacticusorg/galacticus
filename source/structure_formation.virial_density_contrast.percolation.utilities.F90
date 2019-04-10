@@ -24,19 +24,19 @@ module Virial_Density_Contrast_Percolation_Utilities
   use Galacticus_Nodes          , only : treeNode                                 , nodeComponentDarkMatterProfile
   use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius             , darkMatterProfileScaleRadiusClass, &
        &                                 darkMatterProfileScaleRadiusConcentration
-  use Dark_Matter_Profiles      , only : darkMatterProfile                        , darkMatterProfileClass
+  use Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO                     , darkMatterProfileDMOClass
   private
   public :: Virial_Density_Contrast_Percolation_Solver
 
   ! Module-scope variables used in root finding.
   type            (treeNode                                 ), pointer :: workNode
   class           (nodeComponentDarkMatterProfile           ), pointer :: workDarkMatterProfile
-  class           (darkMatterProfileClass                   ), pointer :: darkMatterProfile_
+  class           (darkMatterProfileDMOClass                ), pointer :: darkMatterProfileDMO_
   type            (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
   double precision                                                     :: boundingDensity              , densityMatterMean, &
        &                                                                  massHalo
   double precision                                           , pointer :: densityContrast
-  !$omp threadprivate(workNode,workDarkMatterProfile,boundingDensity,densityMatterMean,massHalo,densityContrast,darkMatterProfileScaleRadius_,darkMatterProfile_)
+  !$omp threadprivate(workNode,workDarkMatterProfile,boundingDensity,densityMatterMean,massHalo,densityContrast,darkMatterProfileScaleRadius_,darkMatterProfileDMO_)
 
 contains
 
@@ -78,7 +78,7 @@ contains
     ! Get required objects.
     cosmologyFunctions_             => cosmologyFunctions            ()
     cosmologyParameters_            => cosmologyParameters           ()
-    darkMatterProfile_              => darkMatterProfile             ()
+    darkMatterProfileDMO_           => darkMatterProfileDMO          ()
     darkMatterHaloScale_            => darkMatterHaloScale           ()
     darkMatterProfileConcentration_ => darkMatterProfileConcentration()
     virialDensityContrast_          => virialDensityContrast         ()
@@ -92,7 +92,7 @@ contains
     !#    &amp;                                    cosmologyParameters_             =cosmologyParameters_           , &amp;
     !#    &amp;                                    cosmologyFunctions_              =cosmologyFunctions_            , &amp;
     !#    &amp;                                    darkMatterHaloScale_             =darkMatterHaloScale_           , &amp;
-    !#    &amp;                                    darkMatterProfile_               =darkMatterProfile_             , &amp;
+    !#    &amp;                                    darkMatterProfileDMO_            =darkMatterProfileDMO_          , &amp;
     !#    &amp;                                    virialDensityContrast_           =virialDensityContrast_         , &amp;
     !#    &amp;                                    darkMatterProfileConcentration_  =darkMatterProfileConcentration_  &amp;
     !#    &amp;                                   )
@@ -166,7 +166,7 @@ contains
     end if
     call Galacticus_Calculations_Reset(workNode)
     ! Compute density at the halo radius.
-    densityHaloRadius=darkMatterProfile_%density(workNode,haloRadiusTrial)
+    densityHaloRadius=darkMatterProfileDMO_%density(workNode,haloRadiusTrial)
     ! Find difference from target density.
     haloRadiusRootFunction=boundingDensity-densityHaloRadius
     return

@@ -34,31 +34,31 @@ program Test_Dark_Matter_Profiles_Heated
   use Input_Parameters
   use ISO_Varying_String
   use Galacticus_Display
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Dark_Matter_Halo_Scales
   use Numerical_Constants_Math
   use Numerical_Constants_Astronomical
   implicit none
-  double precision                               , parameter    :: time                          =13.8d00
-  double precision                               , parameter    :: massVirial                    = 1.0d10
-  double precision                               , parameter    :: heatingSpecific               = 1.0d06
-  class           (nodeComponentBasic           ), pointer      :: basic
-  class           (nodeComponentSatellite       ), pointer      :: satellite
-  class           (darkMatterHaloScaleClass     ), pointer      :: darkMatterHaloScale_
-  double precision                               , dimension(3) :: radiusVirialFractional        =[0.1d0,0.5d0,1.0d0]
-  type            (treeNode                     )               :: node
-  type            (varying_string               )               :: parameterFile
-  type            (inputParameters              )               :: parameters
-  type            (darkMatterProfileIsothermal  )               :: darkMatterProfileIsothermal_
-  type            (darkMatterProfileHeated      )               :: darkMatterProfileHeated_
-  type            (darkMatterProfileHeatingTidal)               :: darkMatterProfileHeatingTidal_
-  double precision                                              :: radiusVirial                                      , radiusHeated         , &
-       &                                                           density                                           , densityAnalytic      , &
-       &                                                           radiusInitial                                     , radiusInitialAnalytic, &
-       &                                                           massEnclosed                                      , massEnclosedAnalytic , &
-       &                                                           radius
-  integer                                                       :: i
-  character       (len=5                        )               :: radiusLabel
+  double precision                                , parameter    :: time                           =13.8d00
+  double precision                                , parameter    :: massVirial                     = 1.0d10
+  double precision                                , parameter    :: heatingSpecific                = 1.0d06
+  class           (nodeComponentBasic            ), pointer      :: basic
+  class           (nodeComponentSatellite        ), pointer      :: satellite
+  class           (darkMatterHaloScaleClass      ), pointer      :: darkMatterHaloScale_
+  double precision                                , dimension(3) :: radiusVirialFractional         =[0.1d0,0.5d0,1.0d0]
+  type            (treeNode                      )               :: node
+  type            (varying_string                )               :: parameterFile
+  type            (inputParameters               )               :: parameters
+  type            (darkMatterProfileDMOIsothermal)               :: darkMatterProfileDMOIsothermal_
+  type            (darkMatterProfileDMOHeated    )               :: darkMatterProfileDMOHeated_
+  type            (darkMatterProfileHeatingTidal )               :: darkMatterProfileHeatingTidal_
+  double precision                                               :: radiusVirial                                       , radiusHeated         , &
+       &                                                            density                                            , densityAnalytic      , &
+       &                                                            radiusInitial                                      , radiusInitialAnalytic, &
+       &                                                            massEnclosed                                       , massEnclosedAnalytic , &
+       &                                                            radius
+  integer                                                        :: i
+  character       (len=5                         )               :: radiusLabel
 
   ! Initialize.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
@@ -68,10 +68,10 @@ program Test_Dark_Matter_Profiles_Heated
   call Unit_Tests_Begin_Group("Heated dark matter profiles")
   call nodeClassHierarchyInitialize(parameters)
   ! Create the dark matter profiles.
-  darkMatterHaloScale_           => darkMatterHaloScale          (                                                                                       )
-  darkMatterProfileHeatingTidal_ =  darkMatterProfileHeatingTidal(                                                                                       )
-  darkMatterProfileIsothermal_   =  darkMatterProfileIsothermal  (                                    darkMatterHaloScale_                               )
-  darkMatterProfileHeated_       =  darkMatterProfileHeated      (.true.,darkMatterProfileIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterHaloScale_            => darkMatterHaloScale           (                                                                                          )
+  darkMatterProfileHeatingTidal_  =  darkMatterProfileHeatingTidal (                                                                                          )
+  darkMatterProfileDMOIsothermal_ =  darkMatterProfileDMOIsothermal(                                       darkMatterHaloScale_                               )
+  darkMatterProfileDMOHeated_     =  darkMatterProfileDMOHeated    (.true.,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
   basic     => node%basic    (autoCreate=.true.)
   satellite => node%satellite(autoCreate=.true.)
@@ -85,11 +85,11 @@ program Test_Dark_Matter_Profiles_Heated
   ! Compute initial radius, enclosed mass, and density for a variety of radii and compare to the analytic solutions.
   do i=1,size(radiusVirialFractional)
      write (radiusLabel,'(f4.2)') radiusVirialFractional(i)
-     radius               =+radiusVirial                                        &
-          &                *radiusVirialFractional                (     i     )
-     radiusInitial        =+darkMatterProfileHeated_%radiusInitial(node,radius)
-     massEnclosed         =+darkMatterProfileHeated_%enclosedMass (node,radius)
-     density              =+darkMatterProfileHeated_%density      (node,radius)
+     radius               =+radiusVirial                                           &
+          &                *radiusVirialFractional                   (     i     )
+     radiusInitial        =+darkMatterProfileDMOHeated_%radiusInitial(node,radius)
+     massEnclosed         =+darkMatterProfileDMOHeated_%enclosedMass (node,radius)
+     density              =+darkMatterProfileDMOHeated_%density      (node,radius)
      radiusInitialAnalytic=+sqrt(                            &
           &                      +  radiusHeated         **4 &
           &                      /4.0d0                      &

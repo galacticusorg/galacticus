@@ -55,7 +55,7 @@ contains
           !# <inputParameter>
           !#   <name>galacticStructureRadiusSolverMethod</name>
           !#   <cardinality>1</cardinality>
-          !#   <defaultValue>var_str('adiabatic')</defaultValue>
+          !#   <defaultValue>var_str('equilibrium')</defaultValue>
           !#   <description>Selects the method to be used for solving for galactic structure.</description>
           !#   <source>globalParameters</source>
           !#   <type>string</type>

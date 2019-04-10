@@ -23,7 +23,7 @@
   use Statistics_NBody_Halo_Mass_Errors
   use Cosmology_Functions
   use Halo_Mass_Functions
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profile_Scales       , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
 
@@ -41,7 +41,7 @@
      class           (nbodyHaloMassErrorClass          ), pointer                     :: nbodyHaloMassError_           => null()
      class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_             => null()
      class           (darkMatterHaloScaleClass         ), pointer                     :: darkMatterHaloScale_          => null()
-     class           (darkMatterProfileClass           ), pointer                     :: darkMatterProfile_            => null()
+     class           (darkMatterProfileDMOClass        ), pointer                     :: darkMatterProfileDMO_         => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                     :: darkMatterProfileScaleRadius_ => null()
      double precision                                                                 :: massParticle                           , time
      logical                                                                          :: fixedPoint
@@ -113,7 +113,7 @@ contains
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class           (haloMassFunctionClass            ), pointer       :: haloMassFunction_
     class           (darkMatterHaloScaleClass         ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
     double precision                                                   :: massParticle                 , redshift                          , &
          &                                                                time                         , energyEstimateParticleCountMaximum
@@ -157,7 +157,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     ! Find the time corresponding to the given redshift.
     time=  cosmologyFunctions_ %cosmicTime                 (          &
@@ -176,7 +176,7 @@ contains
          &                              nbodyHaloMassError_               , &
          &                              haloMassFunction_                 , &
          &                              darkMatterHaloScale_              , &
-         &                              darkMatterProfile_                , &
+         &                              darkMatterProfileDMO_             , &
          &                              darkMatterProfileScaleRadius_       &
          &                             )
     !# <inputParametersValidate source="parameters"/>
@@ -184,12 +184,12 @@ contains
     !# <objectDestructor name="nbodyHaloMassError_"          />
     !# <objectDestructor name="haloMassFunction_"            />
     !# <objectDestructor name="darkMatterHaloScale_"         />
-    !# <objectDestructor name="darkMatterProfile_"           />
+    !# <objectDestructor name="darkMatterProfileDMO_"        />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function nbodyErrorsConstructorParameters
 
-  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfile_,darkMatterProfileScaleRadius_) result(self)
+  function nbodyErrorsConstructorInternal(distributionIntrinsic,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,time,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nbodyErrors} dark matter halo spin distribution class.
     implicit none
     type            (haloSpinDistributionNbodyErrors  )                        :: self
@@ -197,12 +197,12 @@ contains
     class           (nbodyHaloMassErrorClass          ), intent(in   ), target :: nbodyHaloMassError_
     class           (haloMassFunctionClass            ), intent(in   ), target :: haloMassFunction_
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileClass           ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass        ), intent(in   ), target :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
     double precision                                   , intent(in   )         :: massParticle                      , time, &
          &                                                                        energyEstimateParticleCountMaximum
     integer                                            , intent(in   )         :: particleCountMinimum
-    !# <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfile_, *darkMatterProfileScaleRadius_"/>
+    !# <constructorAssign variables="*distributionIntrinsic, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, time, *nbodyHaloMassError_, *haloMassFunction_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileScaleRadius_"/>
 
     ! Set default ranges of spin and mass for tabulation.
     self%fixedPoint =.false.
@@ -477,9 +477,9 @@ contains
       errorSpinIndependent1D       =+errorSpinIndependent                                        &
            &                        /sqrt(3.0d0)
       ! Get the outer radius of the halo.
-      radiusHalo                   =+self%darkMatterHaloScale_%virialRadius(node           )
+      radiusHalo                   =+self%darkMatterHaloScale_ %virialRadius(node           )
       ! Get the density at the edge of the halo.
-      densityOuterRadius           =+self%darkMatterProfile_  %density     (node,radiusHalo)
+      densityOuterRadius           =+self%darkMatterProfileDMO_%density     (node,radiusHalo)
       ! Find the ratio of the mean interior density in the halo to the density at the halo outer radius.
       densityRatioInternalToSurface=+3.0d0                 &
            &                        *massIntrinsic         &
@@ -768,7 +768,7 @@ contains
     !# <objectDestructor name="self%nbodyHaloMassError_"          />
     !# <objectDestructor name="self%haloMassFunction_"            />
     !# <objectDestructor name="self%darkMatterHaloScale_"         />
-    !# <objectDestructor name="self%darkMatterProfile_"           />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
     !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     return
   end subroutine nbodyErrorsDestructor

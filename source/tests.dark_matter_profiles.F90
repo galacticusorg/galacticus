@@ -28,7 +28,7 @@ program Test_Dark_Matter_Profiles
   use Unit_Tests
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Galacticus_Display
   implicit none
   type            (treeNode                      ), pointer      :: node
@@ -42,7 +42,7 @@ program Test_Dark_Matter_Profiles
   double precision                                , dimension(7) :: mass                                                                                     , &
        &                                                            density                                                                                  , &
        &                                                            fourier
-  type            (darkMatterProfileBurkert      )               :: darkMatterProfileBurkert_
+  type            (darkMatterProfileDMOBurkert   )               :: darkMatterProfileDMOBurkert_
   type            (varying_string                )               :: parameterFile
   type            (inputParameters               )               :: parameters
   integer                                                        :: i
@@ -61,27 +61,27 @@ program Test_Dark_Matter_Profiles
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
   ! Create a node.
-  node                      => treeNode                                    (                                )
+  node                         => treeNode                                     (                                )
   ! Create components.
-  basic                     => node                    %basic              (autoCreate=.true.               )
-  dmProfile                 => node                    %darkMatterProfile  (autoCreate=.true.               )
+  basic                        => node                       %basic            (autoCreate=.true.               )
+  dmProfile                    => node                       %darkMatterProfile(autoCreate=.true.               )
   ! Get required objects.
-  cosmologyFunctions_       => cosmologyFunctions                          (                                )
-  darkMatterHaloScale_      => darkMatterHaloScale                         (                                )
-  darkMatterProfileBurkert_ =  darkMatterProfileBurkert                    (            darkMatterHaloScale_)
+  cosmologyFunctions_          => cosmologyFunctions                           (                                )
+  darkMatterHaloScale_         => darkMatterHaloScale                          (                                )
+  darkMatterProfileDMOBurkert_ =  darkMatterProfileDMOBurkert                  (            darkMatterHaloScale_)
   ! Set properties.
   call basic%timeSet     (cosmologyFunctions_%cosmicTime(1.0d0))
   call basic%massSet     (massVirial                           )
   ! Compute scale radius.
-  radiusScale               = +darkMatterHaloScale_    %virialRadius       (node             ) &
-       &                      /concentration             
+  radiusScale                  = +darkMatterHaloScale_       %virialRadius     (            node                ) &
+       &                         /concentration             
   call dmProfile%scaleSet(radiusScale                          )
   ! Test Burkert profile.
   call Unit_Tests_Begin_Group('Burkert profile')
   do i=1,7
-     mass   (i)=darkMatterProfileBurkert_%enclosedMass(node,      radiusScale*radius(i))
-     density(i)=darkMatterProfileBurkert_%density     (node,      radiusScale*radius(i))*radiusScale**3
-     fourier(i)=darkMatterProfileBurkert_%kSpace      (node,1.0d0/radiusScale/radius(i))
+     mass   (i)=darkMatterProfileDMOBurkert_%enclosedMass(node,      radiusScale*radius(i))
+     density(i)=darkMatterProfileDMOBurkert_%density     (node,      radiusScale*radius(i))*radiusScale**3
+     fourier(i)=darkMatterProfileDMOBurkert_%kSpace      (node,1.0d0/radiusScale/radius(i))
   end do
   call Assert(                        &
        &      'enclosed mass'       , &

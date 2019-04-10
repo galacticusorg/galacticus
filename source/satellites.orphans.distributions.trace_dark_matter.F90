@@ -108,8 +108,7 @@ contains
          &                                                                      nodeHost                       , &
          &                                                                      fractionalMass=fraction        , &
          &                                                                      componentType =componentTypeAll, &
-         &                                                                      massType      =massTypeDark    , &
-         &                                                                      haloLoaded    =.true.            &
+         &                                                                      massType      =massTypeDark      &
          &                                                                     )
     return
   end function traceDarkMatterInverseCMFRadial

@@ -25,7 +25,7 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationMunozCuartas2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{munoz-cuartas_redshift_2011}.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationMunozCuartas2011
@@ -34,12 +34,12 @@
      class(cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_              => null()
      class(cosmologyParametersClass            ), pointer :: cosmologyParameters_             => null()
      type (virialDensityContrastBryanNorman1998), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileNFW                ), pointer :: darkMatterProfileDefinition_     => null()
+     type (darkMatterProfileDMONFW                ), pointer :: darkMatterProfileDMODefinition_     => null()
    contains
      final     ::                                munozCuartas2011Destructor
      procedure :: concentration               => munozCuartas2011Concentration
      procedure :: densityContrastDefinition   => munozCuartas2011DensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => munozCuartas2011DarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => munozCuartas2011DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationMunozCuartas2011
 
   interface darkMatterProfileConcentrationMunozCuartas2011
@@ -89,7 +89,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine munozCuartas2011Destructor
 
@@ -141,20 +141,20 @@ contains
     !% \cite{munoz-cuartas_redshift_2011} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: munozCuartas2011DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: munozCuartas2011DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationMunozCuartas2011    ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    munozCuartas2011DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    munozCuartas2011DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function munozCuartas2011DarkMatterProfileDefinition

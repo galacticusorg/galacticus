@@ -41,16 +41,15 @@ subroutine Node_Component_Disk_Very_Simple_Attach_Pipe(self)
   return
 end subroutine Node_Component_Disk_Very_Simple_Attach_Pipe
 
-double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+double precision function Node_Component_Disk_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
   !% Computes the mass within a given radius for an very simple disk.
   use Galactic_Structure_Options
   use Galacticus_Error
   implicit none
-  class           (nodeComponentDiskVerySimple), intent(inout)           :: self
-  integer                                      , intent(in   )           :: componentType, massType, weightBy, weightIndex
-  double precision                             , intent(in   )           :: radius
-  logical                                      , intent(in   ), optional :: haloLoaded
-  !GCC$ attributes unused :: haloLoaded, weightIndex
+  class           (nodeComponentDiskVerySimple), intent(inout) :: self
+  integer                                      , intent(in   ) :: componentType, massType, weightBy, weightIndex
+  double precision                             , intent(in   ) :: radius
+  !GCC$ attributes unused :: weightIndex
   
   ! Return zero mass if the mass and component types do not match.
   Node_Component_Disk_Very_Simple_Enclosed_Mass=0.0d0

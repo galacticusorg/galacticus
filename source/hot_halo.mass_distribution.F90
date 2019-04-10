@@ -72,19 +72,18 @@ contains
   !# <enclosedMassTask>
   !#  <unitName>hotHaloMassDistributionEnclosedMass</unitName>
   !# </enclosedMassTask>
-  double precision function hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightBy,weightIndex)
     !% Computes the mass within a given radius for a dark matter profile.
     use Galactic_Structure_Options
     use Galacticus_Nodes          , only : nodeComponentHotHalo
     implicit none
-    type            (treeNode                    ), intent(inout)           :: node
-    integer                                       , intent(in   )           :: componentType           , massType   , &
-         &                                                                     weightBy                , weightIndex
-    double precision                              , intent(in   )           :: radius
-    logical                                       , intent(in   ), optional :: haloLoaded
-    class           (hotHaloMassDistributionClass)               , pointer  :: hotHaloMassDistribution_
-    class           (nodeComponentHotHalo        )               , pointer  :: hotHalo
-    !GCC$ attributes unused :: haloLoaded, weightIndex
+    type            (treeNode                    ), intent(inout) :: node
+    integer                                       , intent(in   ) :: componentType           , massType   , &
+         &                                                           weightBy                , weightIndex
+    double precision                              , intent(in   ) :: radius
+    class           (hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
+    class           (nodeComponentHotHalo        ), pointer       :: hotHalo
+    !GCC$ attributes unused :: weightIndex
 
     ! Return zero mass if the requested mass type or component is not matched.
     hotHaloMassDistributionEnclosedMass=0.0d0
@@ -105,21 +104,20 @@ contains
   !# <rotationCurveTask>
   !#  <unitName>hotHaloMassDistributionRotationCurve</unitName>
   !# </rotationCurveTask>
-  double precision function hotHaloMassDistributionRotationCurve(node,radius,componentType,massType,haloLoaded)
+  double precision function hotHaloMassDistributionRotationCurve(node,radius,componentType,massType)
     !% Computes the rotation curve at a given radius for the hot halo density profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     implicit none
-    type            (treeNode), intent(inout)           :: node
-    integer                   , intent(in   )           :: componentType, massType
-    double precision          , intent(in   )           :: radius
-    logical                   , intent(in   ), optional :: haloLoaded
-    double precision                                    :: componentMass
+    type            (treeNode), intent(inout) :: node
+    integer                   , intent(in   ) :: componentType, massType
+    double precision          , intent(in   ) :: radius
+    double precision                          :: componentMass
 
     ! Compute rotation curve if radius is non-zero.
     hotHaloMassDistributionRotationCurve=0.0d0
     if (radius > 0.0d0) then
-       componentMass=hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+       componentMass=hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightByMass,weightIndexNull)
        if (componentMass > 0.0d0)                                                         &
             & hotHaloMassDistributionRotationCurve=+sqrt(                                 &
             &                                            +gravitationalConstantGalacticus &
@@ -133,24 +131,23 @@ contains
   !# <rotationCurveGradientTask>
   !#  <unitName>hotHaloMassDistributionRotationCurveGradient</unitName>
   !# </rotationCurveGradientTask>
-  double precision function hotHaloMassDistributionRotationCurveGradient(node,radius,componentType,massType,haloLoaded)
+  double precision function hotHaloMassDistributionRotationCurveGradient(node,radius,componentType,massType)
     !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
     use Galactic_Structure_Options
     use Numerical_Constants_Physical
     use Numerical_Constants_Math
     implicit none
-    type            (treeNode                    ), intent(inout)           :: node
-    integer                                       , intent(in   )           :: componentType   , massType
-    double precision                              , intent(in   )           :: radius
-    logical                                       , intent(in   ), optional :: haloLoaded
-    class           (hotHaloMassDistributionClass)               , pointer  :: hotHalo
-    double precision                                                        :: componentDensity, componentMass
+    type            (treeNode                    ), intent(inout) :: node
+    integer                                       , intent(in   ) :: componentType   , massType
+    double precision                              , intent(in   ) :: radius
+    class           (hotHaloMassDistributionClass), pointer       :: hotHalo
+    double precision                                              :: componentDensity, componentMass
 
     ! Set to zero by default.
     hotHaloMassDistributionRotationCurveGradient=0.0d0
     ! Compute if a spheroid is present.
     if (radius > 0.0d0) then
-       componentMass=hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightByMass,weightIndexNull,haloLoaded)
+       componentMass=hotHaloMassDistributionEnclosedMass(node,radius,componentType,massType,weightByMass,weightIndexNull)
        if (componentMass > 0.0d0) then
           hotHalo                                      =>  hotHaloMassDistribution        (           )
           componentDensity                             =   hotHalo                %density(node,radius)
@@ -171,7 +168,7 @@ contains
   !# <densityTask>
   !#  <unitName>hotHaloMassDistributionDensity</unitName>
   !# </densityTask>
-  double precision function hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function hotHaloMassDistributionDensity(node,positionSpherical,componentType,massType,weightBy,weightIndex)
     !% Computes the density at a given position for a dark matter profile.
     use Galactic_Structure_Options
     implicit none
@@ -180,8 +177,7 @@ contains
          &                                                                     weightIndex
     double precision                              , intent(in   )           :: positionSpherical(3)
     class           (hotHaloMassDistributionClass)               , pointer  :: hotHalo
-    logical                                       , intent(in   ), optional :: haloLoaded
-    !GCC$ attributes unused :: haloLoaded, weightIndex
+    !GCC$ attributes unused :: weightIndex
     
     hotHaloMassDistributionDensity=0.0d0
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeHotHalo                                 )) return

@@ -51,39 +51,39 @@ contains
     return
   end function nullConstructorParameters
 
-  double precision function nullSpecificEnergy(self,node,darkMatterProfile_,radius)
+  double precision function nullSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
     !% Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
     implicit none
     class           (darkMatterProfileHeatingNull), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    class           (darkMatterProfileClass      ), intent(inout) :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass      ), intent(inout) :: darkMatterProfileDMO_
     double precision                              , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, radius, darkMatterProfile_
+    !GCC$ attributes unused :: self, node, radius, darkMatterProfileDMO_
 
     nullSpecificEnergy=0.0d0
     return
   end function nullSpecificEnergy
 
-  double precision function nullSpecificEnergyGradient(self,node,darkMatterProfile_,radius)
+  double precision function nullSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
     !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
     implicit none
     class           (darkMatterProfileHeatingNull), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
-    class           (darkMatterProfileClass      ), intent(inout) :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass      ), intent(inout) :: darkMatterProfileDMO_
     double precision                              , intent(in   ) :: radius
-    !GCC$ attributes unused :: self, node, darkMatterProfile_, radius
+    !GCC$ attributes unused :: self, node, darkMatterProfileDMO_, radius
 
     nullSpecificEnergyGradient=0.0d0
     return
   end function nullSpecificEnergyGradient
 
-  logical function nullSpecificEnergyIsEverywhereZero(self,node,darkMatterProfile_)
+  logical function nullSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
     !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
     implicit none
     class(darkMatterProfileHeatingNull), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
-    class(darkMatterProfileClass      ), intent(inout) :: darkMatterProfile_
-    !GCC$ attributes unused :: self, node, darkMatterProfile_
+    class(darkMatterProfileDMOClass      ), intent(inout) :: darkMatterProfileDMO_
+    !GCC$ attributes unused :: self, node, darkMatterProfileDMO_
 
     nullSpecificEnergyIsEverywhereZero=.true.
     return

@@ -23,7 +23,7 @@ module Satellite_Orbits
   !% Implements calculations related to satellite orbits.
   use Galacticus_Nodes    , only : treeNode
   use Kind_Numbers
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   implicit none
   private
   public :: Satellite_Orbit_Equivalent_Circular_Orbit_Radius, Satellite_Orbit_Extremum_Phase_Space_Coordinates
@@ -33,8 +33,8 @@ module Satellite_Orbits
   !$omp threadprivate(orbitalEnergyInternal,orbitalAngularMomentumInternal)
   ! Node used in root finding calculations.
   type            (treeNode              ), pointer           :: activeNode
-  class           (darkMatterProfileClass), pointer           :: darkMatterProfile__
-  !$omp threadprivate(activeNode,darkMatterProfile__)
+  class           (darkMatterProfileDMOClass), pointer           :: darkMatterProfileDMO__
+  !$omp threadprivate(activeNode,darkMatterProfileDMO__)
 
   ! Enumeratation used to indicate type of extremum.
   integer                                 , parameter, public :: extremumPericenter            =-1
@@ -60,7 +60,7 @@ module Satellite_Orbits
   
 contains
 
-  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfile_,errorCode)
+  double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfileDMO_,errorCode)
     !% Solves for the equivalent circular orbit radius for {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
     use Root_Finder
     use Kepler_Orbits
@@ -70,7 +70,7 @@ contains
     type            (keplerOrbit             ), intent(inout)           :: orbit
     integer                                   , intent(  out), optional :: errorCode
     class           (darkMatterHaloScaleClass), intent(inout)           :: darkMatterHaloScale_
-    class           (darkMatterProfileClass  ), intent(inout), target   :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass  ), intent(inout), target   :: darkMatterProfileDMO_
     double precision                          , parameter               :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-6
     type            (rootFinder              )                          :: finder
     type            (keplerOrbit             )                          :: orbitCurrent
@@ -79,7 +79,7 @@ contains
     orbitCurrent=Satellite_Orbit_Convert_To_Current_Potential(orbit,nodeHost)
     ! Assign the active node.
     activeNode          => nodeHost
-    darkMatterProfile__ => darkMatterProfile_
+    darkMatterProfileDMO__ => darkMatterProfileDMO_
     ! Store the orbital energy.
     orbitalEnergyInternal=orbit%energy()
     ! Test for conditions that an equivalent circular orbit exists.
@@ -123,7 +123,7 @@ contains
     potential=Galactic_Structure_Potential(activeNode,radius,status=status)
     select case (status)
     case (structureErrorCodeSuccess )
-       Equivalent_Circular_Orbit_Solver=potential+0.5d0*darkMatterProfile__%circularVelocity(activeNode,radius)**2-orbitalEnergyInternal
+       Equivalent_Circular_Orbit_Solver=potential+0.5d0*darkMatterProfileDMO__%circularVelocity(activeNode,radius)**2-orbitalEnergyInternal
     case (structureErrorCodeInfinite)
        ! The gravitational potential is negative infinity at this radius (most likely zero radius). Since all we care about in
        ! this root-finding function is the sign of the function, return a large negative value.

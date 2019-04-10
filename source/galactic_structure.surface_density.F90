@@ -28,13 +28,12 @@ module Galactic_Structure_Surface_Densities
 
   ! Module scope variables used in mapping over components.
   integer                        :: componentTypeShared      , massTypeShared, weightByShared, weightIndexShared
-  logical                        :: haloLoadedShared
   double precision, dimension(3) :: positionCylindricalShared
-  !$omp threadprivate(massTypeShared,componentTypeShared,haloLoadedShared,positionCylindricalShared,weightByShared,weightIndexShared)
+  !$omp threadprivate(massTypeShared,componentTypeShared,positionCylindricalShared,weightByShared,weightIndexShared)
 
 contains
 
-  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function Galactic_Structure_Surface_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
     use Galacticus_Error
@@ -45,7 +44,6 @@ contains
     integer                                    , intent(in   ), optional :: componentType                     , coordinateSystem, &
          &                                                                  massType                          , weightBy        , &
          &                                                                  weightIndex
-    logical                                    , intent(in   ), optional :: haloLoaded
     double precision                           , intent(in   )           :: position                       (3)
     procedure       (Component_Surface_Density), pointer                 :: componentSurfaceDensityFunction
     integer                                                              :: coordinateSystemActual
@@ -88,12 +86,6 @@ contains
     else
        componentTypeShared=componentTypeAll
     end if
-    ! Determine whether halo loading is to be used.
-    if (present(haloLoaded)) then
-       haloLoadedShared=haloLoaded
-    else
-       haloLoadedShared=.true.
-    end if
     ! Call routines to supply the densities for all components.
     componentSurfaceDensityFunction => Component_Surface_Density
     Galactic_Structure_Surface_Density=thisNode%mapDouble0(componentSurfaceDensityFunction,reductionSummation,optimizeFor=optimizeForSurfaceDensitySummation)
@@ -107,7 +99,7 @@ contains
     class(nodeComponent), intent(inout) :: component
 
     Component_Surface_Density=component%surfaceDensity(positionCylindricalShared,componentTypeShared&
-         &,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared)
+         &,massTypeShared,weightByShared,weightIndexShared)
     return
   end function Component_Surface_Density
 

@@ -29,11 +29,10 @@ module Galactic_Structure_Densities
   double precision, dimension(3) :: positionSphericalShared
   integer                        :: componentTypeShared    , massTypeShared   , &
        &                            weightByShared         , weightIndexShared
-  logical                        :: haloLoadedShared
-  !$omp threadprivate(positionSphericalShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared)
+  !$omp threadprivate(positionSphericalShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared)
 contains
 
-  double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
     !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
     !% been computed.
     use Galacticus_Nodes          , only : treeNode, optimizeForDensitySummation, reductionSummation
@@ -48,7 +47,6 @@ contains
     integer                            , intent(in   ), optional :: componentType              , coordinateSystem, &
          &                                                          massType                   , weightBy        , &
          &                                                          weightIndex
-    logical                            , intent(in   ), optional :: haloLoaded
     double precision                   , intent(in   )           :: position                (3)
     procedure       (Component_Density), pointer                 :: componentDensityFunction
     integer                                                      :: coordinateSystemActual
@@ -82,12 +80,6 @@ contains
     else
        componentTypeShared=componentTypeAll
     end if
-    ! Determine which component type to use.
-    if (present(haloLoaded)) then
-       haloLoadedShared=haloLoaded
-    else
-       haloLoadedShared=.true.
-    end if
     ! Determine which weighting to use.
     if (present(weightBy)) then
        weightByShared=weightBy
@@ -104,7 +96,7 @@ contains
     componentDensityFunction => Component_Density
     Galactic_Structure_Density=thisNode%mapDouble0(componentDensityFunction,reductionSummation,optimizeFor=optimizeForDensitySummation)
     !# <include directive="densityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
-    !#  <functionArgs>thisNode,positionSphericalShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared</functionArgs>
+    !#  <functionArgs>thisNode,positionSphericalShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Density=Galactic_Structure_Density+componentDensity</onReturn>
     include 'galactic_structure.density.tasks.inc'
     !# </include>
@@ -118,7 +110,7 @@ contains
     class(nodeComponent), intent(inout) :: component
 
     Component_Density=component%density(positionSphericalShared,componentTypeShared&
-         &,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared)
+         &,massTypeShared,weightByShared,weightIndexShared)
     return
   end function Component_Density
 

@@ -20,7 +20,7 @@
   !% Implements calculations of satellite merging times using the \cite{jiang_fitting_2008} method.
   
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   
   !# <satelliteMergingTimescales name="satelliteMergingTimescalesJiang2008">
   !#  <description>Computes the merging timescale using the method of \cite{jiang_fitting_2008}.</description>
@@ -29,7 +29,7 @@
      !% A class implementing the \cite{jiang_fitting_2008} method for satellite merging timescales.
      private
      class          (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     class          (darkMatterProfileClass  ), pointer :: darkMatterProfile_ => null()
+     class          (darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_ => null()
      double precision                                   :: timescaleMultiplier
      ! Scatter (in log(T_merge)) to add to the merger times.
      double precision                                   :: scatter
@@ -56,7 +56,7 @@ contains
     type            (satelliteMergingTimescalesJiang2008)                :: self
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass             ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     double precision                                                     :: scatter             , timescaleMultiplier
 
     if (.not.defaultBasicComponent%massIsGettable()) call Galacticus_Error_Report('this method requires that the "mass" property of the basic component be gettable'//{introspection:location})
@@ -78,22 +78,22 @@ contains
     !#   <type>string</type>
     !# </inputParameter>       
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"   name="darkMatterProfile_"   source="parameters"/>
-    self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfile_)
+    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
+    self=satelliteMergingTimescalesJiang2008(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="darkMatterProfile_"  />
+    !# <objectDestructor name="darkMatterProfileDMO_"  />
     return
   end function jiang2008ConstructorParameters
 
-  function jiang2008ConstructorInternal(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfile_) result(self)
+  function jiang2008ConstructorInternal(timescaleMultiplier,scatter,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
     !% Constructor for the \cite{jiang_fitting_2008} merging timescale class.
     implicit none
     type            (satelliteMergingTimescalesJiang2008)                        :: self
     double precision                                     , intent(in   )         :: timescaleMultiplier , scatter
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    class           (darkMatterProfileClass             ), intent(in   ), target :: darkMatterProfile_
-    !# <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfile_"/>
+    class           (darkMatterProfileDMOClass             ), intent(in   ), target :: darkMatterProfileDMO_
+    !# <constructorAssign variables="timescaleMultiplier, scatter, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
 
     return
   end function jiang2008ConstructorInternal
@@ -104,7 +104,7 @@ contains
     type(satelliteMergingTimescalesJiang2008), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%darkMatterProfile_"  />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"  />
     return
   end subroutine jiang2008Destructor
 
@@ -131,7 +131,7 @@ contains
     ! Find the host node.
     nodeHost => node%parent
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfile_,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )
@@ -151,7 +151,7 @@ contains
     ! Compute orbital circularity.
     orbitalCircularity= orbit%angularMomentum()                                                          &
          &             /equivalentCircularOrbitRadius                                                    &
-         &             /self%darkMatterProfile_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
+         &             /self%darkMatterProfileDMO_%circularVelocity(nodeHost,equivalentCircularOrbitRadius)
     ! Compute mass ratio (mass in host [not including satellite] divided by mass in satellite).
     basic => node%basic()
     basicHost => nodeHost%basic()

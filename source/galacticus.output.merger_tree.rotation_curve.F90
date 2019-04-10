@@ -38,7 +38,6 @@ module Galacticus_Output_Trees_Rotation_Curve
      type            (varying_string) :: name
      integer                          :: component    , mass , type, weightBy, &
           &                              weightByIndex
-     logical                          :: loaded
      double precision                 :: fraction     , value
   end type radiusSpecifier
   type   (radiusSpecifier)           , allocatable, dimension(:) :: radii
@@ -66,7 +65,7 @@ contains
     use Galactic_Structure_Options
     use Stellar_Luminosities_Structure
     implicit none
-    type     (varying_string), dimension(5) :: radiusDefinition
+    type     (varying_string), dimension(4) :: radiusDefinition
     type     (varying_string), dimension(3) :: fractionDefinition
     type     (varying_string)               :: valueDefinition
     character(len=20        )               :: fractionLabel     , radiusLabel
@@ -212,15 +211,7 @@ contains
                 end select
                 radii(i)%component=enumerationComponentTypeEncode(char(radiusDefinition(2)),includesPrefix=.false.)
                 radii(i)%mass     =enumerationMassTypeEncode     (char(radiusDefinition(3)),includesPrefix=.false.)
-                select case (char(radiusDefinition(4)))
-                case ('loaded'  )
-                   radii(i)%loaded=.true.
-                case ('unloaded')
-                   radii(i)%loaded=.false.
-                case default
-                   call Galacticus_Error_Report('unrecognized loading specifier'//{introspection:location})
-                end select
-                radiusLabel=radiusDefinition(5)
+                radiusLabel=radiusDefinition(4)
                 read (radiusLabel,*) radii(i)%value
              end do
              deallocate(outputRotationCurveRadii)
@@ -366,8 +357,7 @@ contains
                &                                                                           thisNode                        , &
                &                                                                           radius                          , &
                &                                                                           componentType=radii(i)%component, &
-               &                                                                           massType     =radii(i)%mass     , &
-               &                                                                           haloLoaded   =radii(i)%loaded     &
+               &                                                                           massType     =radii(i)%mass       &
                &                                                                          )
        end do
     end if

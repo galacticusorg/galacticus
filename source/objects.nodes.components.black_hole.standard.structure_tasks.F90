@@ -25,15 +25,15 @@ module Node_Component_Black_Hole_Standard_Structure_Tasks
   !% Implements galactic structure tasks for the standard black hole tree node component.
   implicit none
   private
-  public :: Node_Component_Black_Hole_Standard_Rotation_Curve         , &
-       &    Node_Component_Black_Hole_Standard_Potential    , Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient
+  public :: Node_Component_Black_Hole_Standard_Rotation_Curve         , Node_Component_Black_Hole_Standard_Potential, &
+       &    Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient
 
 contains
 
   !# <rotationCurveTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve</unitName>
   !# </rotationCurveTask>
-  double precision function Node_Component_Black_Hole_Standard_Rotation_Curve(thisNode,radius,componentType,massType,haloLoaded)
+  double precision function Node_Component_Black_Hole_Standard_Rotation_Curve(thisNode,radius,componentType,massType)
     !% Computes the rotation curve for the central black hole. Assumes a point mass black hole with a Keplerian rotation curve,
     !% \emph{except} that the rotation speed is limited to never exceed the speed of light.
     use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
@@ -44,7 +44,6 @@ contains
     type            (treeNode              ), intent(inout)           :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType
     double precision                        , intent(in   )           :: radius
-    logical                                 , intent(in   ), optional :: haloLoaded
     class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
     double precision                                                  :: componentMass
 
@@ -58,7 +57,7 @@ contains
        if (radius > Black_Hole_Gravitational_Radius(thisBlackHoleComponent)) then
           ! Radius is larger than the gravitational radius - compute the rotation speed.
           componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass &
-               &,weightIndexNull,haloLoaded)
+               &,weightIndexNull)
           if (componentMass > 0.0d0) Node_Component_Black_Hole_Standard_Rotation_Curve=sqrt(gravitationalConstantGalacticus&
                &*componentMass/radius)
        else
@@ -72,7 +71,7 @@ contains
   !# <potentialTask>
   !#  <unitName>Node_Component_Black_Hole_Standard_Potential</unitName>
   !# </potentialTask>
-  double precision function Node_Component_Black_Hole_Standard_Potential(thisNode,radius,componentType,massType,haloLoaded,status)
+  double precision function Node_Component_Black_Hole_Standard_Potential(thisNode,radius,componentType,massType,status)
     !% Compute the gravitational potential due to a black hole.
     use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
     use Numerical_Constants_Physical
@@ -82,7 +81,6 @@ contains
     type            (treeNode              ), intent(inout), pointer  :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType
     double precision                        , intent(in   )           :: radius
-    logical                                 , intent(in   ), optional :: haloLoaded
     integer                                 , intent(inout), optional :: status
     class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
     double precision                                                  :: componentMass
@@ -98,7 +96,7 @@ contains
        if (Black_Hole_Gravitational_Radius(thisBlackHoleComponent) <=0.0d0) return
        ! Computes the potential - limit the radius to the gravitational radius to avoid divergent potentials.
        componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass&
-            &,weightIndexNull,haloLoaded)
+            &,weightIndexNull)
        Node_Component_Black_Hole_Standard_Potential=-gravitationalConstantGalacticus*componentMass/max(radius &
             &,Black_Hole_Gravitational_Radius(thisBlackHoleComponent))
     end select
@@ -109,7 +107,7 @@ contains
   !#  <unitName>Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient</unitName>
   !# </rotationCurveGradientTask>
   double precision function Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient(thisNode,radius,componentType &
-       &,massType,haloLoaded)
+       &,massType)
     !% Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
     !% rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
     use Galacticus_Nodes            , only : treeNode, nodeComponentBlackHole, nodeComponentBlackHoleStandard
@@ -120,7 +118,6 @@ contains
     type            (treeNode              ), intent(inout)           :: thisNode
     integer                                 , intent(in   )           :: componentType         , massType
     double precision                        , intent(in   )           :: radius
-    logical                                 , intent(in   ), optional :: haloLoaded
     class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
     double precision                                                  :: componentMass
 
@@ -133,8 +130,7 @@ contains
     thisBlackHoleComponent => thisNode%blackHole(instance=1)
     select type (thisBlackHoleComponent)
     class is (nodeComponentBlackHoleStandard)
-       componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull&
-            &,haloLoaded)
+       componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull)
        if (componentMass == 0.0d0) return
        if (radius > Black_Hole_Gravitational_Radius(thisBlackHoleComponent)) then
           Node_Component_Black_Hole_Standard_Rotation_Curve_Gradient=     &

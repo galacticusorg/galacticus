@@ -27,7 +27,7 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationKlypin2015">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{klypin_multidark_2014}.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="darkMatterProfileDefinition_"/>
+  !#   <functionClass variables="darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
@@ -37,14 +37,14 @@
      class  (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
      class  (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      class  (virialDensityContrastClass   ), pointer :: virialDensityContrastDefinition_ => null()
-     type   (darkMatterProfileNFW         ), pointer :: darkMatterProfileDefinition_     => null()
+     type   (darkMatterProfileDMONFW         ), pointer :: darkMatterProfileDMODefinition_     => null()
      integer                                         :: virialDensityContrast                     , fittingFunction
      type   (table1DGeneric               )          :: fitParameters
    contains
      final     ::                                klypin2015Destructor
      procedure :: concentration               => klypin2015Concentration
      procedure :: densityContrastDefinition   => klypin2015DensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => klypin2015DarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => klypin2015DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationKlypin2015
   
   interface darkMatterProfileConcentrationKlypin2015
@@ -637,7 +637,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine klypin2015Destructor
 
@@ -743,20 +743,20 @@ contains
     !% \cite{klypin_multidark_2014} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: klypin2015DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: klypin2015DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationKlypin2015          ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    klypin2015DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    klypin2015DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function klypin2015DarkMatterProfileDefinition

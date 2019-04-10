@@ -26,7 +26,7 @@
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationBullock2001">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{bullock_profiles_2001}.</description>
   !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDefinition_"/>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationBullock2001
@@ -37,13 +37,13 @@
      class           (criticalOverdensityClass                          ), pointer :: criticalOverdensity_             => null()
      class           (cosmologicalMassVarianceClass                     ), pointer :: cosmologicalMassVariance_        => null()
      type            (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileNFW                              ), pointer :: darkMatterProfileDefinition_     => null()
+     type            (darkMatterProfileDMONFW                              ), pointer :: darkMatterProfileDMODefinition_     => null()
      double precision                                                              :: F                                         , K
    contains
      final     ::                                bullock2001Destructor
      procedure :: concentration               => bullock2001Concentration
      procedure :: densityContrastDefinition   => bullock2001DensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => bullock2001DarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => bullock2001DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationBullock2001
   
   interface darkMatterProfileConcentrationBullock2001
@@ -124,7 +124,7 @@ contains
     !# <objectDestructor name="self%criticalOverdensity_"            />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine bullock2001Destructor
 
@@ -185,21 +185,21 @@ contains
     !% \cite{bullock_profiles_2001} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: bullock2001DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: bullock2001DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationBullock2001         ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDefinition_"     constructor="darkMatterProfileNFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    bullock2001DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    bullock2001DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function bullock2001DarkMatterProfileDefinition
 

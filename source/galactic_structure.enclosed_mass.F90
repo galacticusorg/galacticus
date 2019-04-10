@@ -31,13 +31,12 @@ module Galactic_Structure_Enclosed_Masses
   integer                             :: componentTypeShared, massTypeShared, weightByShared, &
        &                                 weightIndexShared
   double precision                    :: massRoot           , radiusShared  , densityRoot
-  logical                             :: haloLoadedShared
   type            (treeNode), pointer :: activeNode
-  !$omp threadprivate(massRoot,densityRoot,radiusShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,haloLoadedShared,activeNode)
+  !$omp threadprivate(massRoot,densityRoot,radiusShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared,activeNode)
   
 contains
 
-  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function Galactic_Structure_Enclosed_Mass(thisNode,radius,componentType,massType,weightBy,weightIndex)
     !% Solve for the mass within a given radius, or the total mass if no radius is specified. Assumes that galactic structure has
     !% already been computed.
     use Galacticus_Nodes, only : optimizeForEnclosedMassSummation, reductionSummation
@@ -49,12 +48,11 @@ contains
     integer                                  , intent(in   ), optional :: componentType        , massType, weightBy, &
          &                                                                weightIndex
     double precision                         , intent(in   ), optional :: radius
-    logical                                  , intent(in   ), optional :: haloLoaded
     procedure       (Component_Enclosed_Mass), pointer                 :: componentEnclosedMass
     double precision                                                   :: componentMass
 
     ! Set default options.
-    call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
+    call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
     ! Determine which radius to use.
     if (present(radius)) then
        radiusShared=radius
@@ -66,53 +64,47 @@ contains
     Galactic_Structure_Enclosed_Mass=thisNode%mapDouble0(componentEnclosedMass,reductionSummation,optimizeFor=optimizeForEnclosedMassSummation)
     ! Call routines to supply the masses for all components.
     !# <include directive="enclosedMassTask" type="functionCall" functionType="function" returnParameter="componentMass">
-    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoadedShared</functionArgs>
+    !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
     !#  <onReturn>Galactic_Structure_Enclosed_Mass=Galactic_Structure_Enclosed_Mass+componentMass</onReturn>
     include 'galactic_structure.enclosed_mass.tasks.inc'
     !# </include>
     return
   end function Galactic_Structure_Enclosed_Mass
 
-  double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function Galactic_Structure_Radius_Enclosing_Mass(thisNode,mass,fractionalMass,componentType,massType,weightBy,weightIndex)
     !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily thisNode}.
     use Galacticus_Error
     use Root_Finder
     use Dark_Matter_Halo_Scales
     use Dark_Matter_Profiles
-    use Cosmology_Parameters
     use Galacticus_Display
     use ISO_Varying_String
     use String_Handling
-    use Kind_Numbers           , only : kind_int8
+    use Kind_Numbers               , only : kind_int8
     implicit none
     type            (treeNode                ), intent(inout), target   :: thisNode
-    integer                                   , intent(in   ), optional :: componentType                , massType   , &
-         &                                                                 weightBy                     , weightIndex
-    double precision                          , intent(in   ), optional :: fractionalMass               , mass
-    logical                                   , intent(in   ), optional :: haloLoaded
+    integer                                   , intent(in   ), optional :: componentType                        , massType   , &
+         &                                                                 weightBy                             , weightIndex
+    double precision                          , intent(in   ), optional :: fractionalMass                       , mass
     class           (darkMatterHaloScaleClass), pointer                 :: darkMatterHaloScale_
     class           (darkMatterProfileClass  ), pointer                 :: darkMatterProfile_
-    class           (cosmologyParametersClass), pointer                 :: cosmologyParameters_
     type            (rootFinder              ), save                    :: finder
     !$omp threadprivate(finder)
-    double precision                          , save                    :: radiusPrevious  =-huge(0.0d0)
-    integer         (kind_int8               ), save                    :: uniqueIDPrevious=-1_kind_int8
+    double precision                          , save                    :: radiusPrevious          =-huge(0.0d0)
+    integer         (kind_int8               ), save                    :: uniqueIDPrevious        =-1_kind_int8
     !$omp threadprivate(radiusPrevious,uniqueIDPrevious)
     double precision                                                    :: radiusGuess
-    double precision                                                    :: massBaryons                  , fractionDarkMatter
     type            (varying_string          )                          :: message
     character       (len=11                  )                          :: massLabel
 
-    ! Mass of baryons.
-    massBaryons=Galactic_Structure_Enclosed_Mass(thisnode,componentType=componentTypeAll,massType=massTypeBaryonic)
-    ! Set default options.
-    call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
+     ! Set default options.
+    call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
     ! Determine what mass to use.
     if (present(mass)) then
        if (present(fractionalMass)) call Galacticus_Error_Report('only one mass or fractionalMass can be specified'//{introspection:location})
        massRoot=mass
     else if (present(fractionalMass)) then
-       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeShared,massType=massTypeShared,weightBy=weightByShared,weightIndex=weightIndexShared,haloLoaded=haloLoadedShared)
+       massRoot=fractionalMass*Galactic_Structure_Enclosed_Mass(thisNode,componentType=componentTypeShared,massType=massTypeShared,weightBy=weightByShared,weightIndex=weightIndexShared)
     else
        call Galacticus_Error_Report('either mass or fractionalMass must be specified'//{introspection:location})
     end if
@@ -123,27 +115,13 @@ contains
     activeNode => thisNode
     ! If dark matter component is queried and its density profile is unaffected by baryons, compute the radius from dark
     ! matter profile. Otherwise, find the radius numerically.
-    if     (                                               &
-         &   (                                             &
-         &    componentTypeShared == componentTypeDarkHalo &
-         &    .or.                                         &
-         &    massTypeShared      == massTypeDark          &
-         &   )                                             &
-         &   .and.                                         &
-         &   (                                             &
-         &    .not.haloLoadedShared                        &
-         &    .or.                                         &
-         &    massBaryons == 0.0d0                         &
-         &   )                                             &
+    if     (                                              &
+         &   componentTypeShared == componentTypeDarkHalo &
+         &  .or.                                          &
+         &   massTypeShared      == massTypeDark          &
          & ) then
-       darkMatterProfile_   => darkMatterProfile  ()
-       cosmologyParameters_ => cosmologyParameters()
-       fractionDarkMatter   =  +(                                    &
-            &                    +cosmologyParameters_%OmegaMatter() &
-            &                    -cosmologyParameters_%OmegaBaryon() &
-            &                   )                                    &
-            &                  /  cosmologyParameters_%OmegaMatter()
-       Galactic_Structure_Radius_Enclosing_Mass=darkMatterProfile_%radiusEnclosingMass(activeNode,massRoot/fractionDarkMatter)
+       darkMatterProfile_ => darkMatterProfile()
+       Galactic_Structure_Radius_Enclosing_Mass=darkMatterProfile_%radiusEnclosingMass(activeNode,massRoot)
     else
        ! Initialize our root finder.
        if (.not.finder%isInitialized()) then
@@ -160,7 +138,7 @@ contains
        ! Solve for the radius.
        if (Enclosed_Mass_Root(0.0d0) >= 0.0d0) then
           message='Enclosed mass in galaxy (ID='
-          write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,0.0d0,componentTypeShared,massTypeShared,weightByShared,weightIndexShared,haloLoaded=haloLoadedShared)
+          write (massLabel,'(e10.4)') Galactic_Structure_Enclosed_Mass(activeNode,0.0d0,componentTypeShared,massTypeShared,weightByShared,weightIndexShared)
           message=message//thisNode%index()//') seems to be finite ('//trim(massLabel)
           write (massLabel,'(e10.4)') massRoot
           message=message//') at zero radius (was seeking '//trim(massLabel)
@@ -182,7 +160,7 @@ contains
     return
   end function Galactic_Structure_Radius_Enclosing_Mass
 
-  double precision function Galactic_Structure_Radius_Enclosing_Density(thisNode,density,densityContrast,componentType,massType,weightBy,weightIndex,haloLoaded)
+  double precision function Galactic_Structure_Radius_Enclosing_Density(thisNode,density,densityContrast,componentType,massType,weightBy,weightIndex)
     !% Return the radius enclosing a given density (or density contrast) in {\normalfont \ttfamily thisNode}.
     use Galacticus_Error
     use Root_Finder
@@ -196,7 +174,6 @@ contains
     type            (treeNode                ), intent(inout), target   :: thisNode
     integer                                   , intent(in   ), optional :: componentType       , massType       , weightBy, weightIndex
     double precision                          , intent(in   ), optional :: density             , densityContrast
-    logical                                   , intent(in   ), optional :: haloLoaded
     class           (darkMatterHaloScaleClass)               , pointer  :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass )               , pointer  :: cosmologyFunctions_
     class           (nodeComponentBasic      )               , pointer  :: basic
@@ -204,7 +181,7 @@ contains
     !$omp threadprivate(finder)
 
     ! Set default options.
-    call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
+    call Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
     ! Determine what mass to use.
     if (present(density)) then
        if (present(densityContrast)) call Galacticus_Error_Report('only one density or densityContrast can be specified'//{introspection:location})
@@ -240,12 +217,11 @@ contains
     return
   end function Galactic_Structure_Radius_Enclosing_Density
 
-  subroutine Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex,haloLoaded)
+  subroutine Galactic_Structure_Enclosed_Mass_Defaults(componentType,massType,weightBy,weightIndex)
     !% Set the default values for options in the enclosed mass functions.
     use Galacticus_Error
     implicit none
     integer, intent(in   ), optional :: componentType, massType, weightBy, weightIndex
-    logical, intent(in   ), optional :: haloLoaded
 
     ! Determine which mass type to use.
     if (present(massType)) then
@@ -270,12 +246,6 @@ contains
     else
        weightByShared=weightByMass
     end if
-    ! Determine if halo loading is to be used.
-    if (present(haloLoaded)) then
-       haloLoadedShared=haloLoaded
-    else
-       haloLoadedShared=.true.
-    end if
     return
   end subroutine Galactic_Structure_Enclosed_Mass_Defaults
 
@@ -285,7 +255,7 @@ contains
 
     ! Evaluate the root function.
     Enclosed_Mass_Root=Galactic_Structure_Enclosed_Mass(activeNode,radius,componentTypeShared,massTypeShared,weightByShared&
-         &,weightIndexShared,haloLoadedShared)-massRoot
+         &,weightIndexShared)-massRoot
     return
   end function Enclosed_Mass_Root
 
@@ -305,7 +275,7 @@ contains
     class(nodeComponent), intent(inout) :: component
 
     Component_Enclosed_Mass=component%enclosedMass(radiusShared,componentTypeShared,massTypeShared&
-         &,weightByShared,weightIndexShared,haloLoadedShared)
+         &,weightByShared,weightIndexShared)
     return
   end function Component_Enclosed_Mass
 

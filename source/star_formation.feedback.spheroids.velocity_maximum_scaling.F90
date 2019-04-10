@@ -21,7 +21,7 @@
   
   use Math_Exponentiation
   use Cosmology_Functions
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
 
   !# <starFormationFeedbackSpheroids name="starFormationFeedbackSpheroidsVlctyMxSclng">
   !#  <description>An outflow rate due to star formation feedback in galactic spheroids which scales with peak halo velocity.</description>
@@ -35,7 +35,7 @@
           &                                                expansionFactorPrevious, expansionFactorFactor
      type            (fastExponentiator      )          :: velocityExponentiator  , expansionFactorExponentiator
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_ => null()
    contains
      final     ::                vlctyMxSclngDestructor
      procedure :: outflowRate => vlctyMxSclngOutflowRate
@@ -59,7 +59,7 @@ contains
     double precision                                                            :: fraction            , exponentRedshift, &
          &                                                                         exponentVelocity
     class           (cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileClass                    ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass                    ), pointer       :: darkMatterProfileDMO_
 
     !# <inputParameter>
     !#   <name>fraction</name>
@@ -86,15 +86,15 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
-    self=starFormationFeedbackSpheroidsVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfile_)
+    !# <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    self=starFormationFeedbackSpheroidsVlctyMxSclng(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="darkMatterProfile_" />
+    !# <objectDestructor name="darkMatterProfileDMO_" />
     return
   end function vlctyMxSclngConstructorParameters
 
-  function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfile_) result(self)
+  function vlctyMxSclngConstructorInternal(fraction,exponentRedshift,exponentVelocity,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the halo scaling star formation feedback from spheroids class.
     use Stellar_Feedback
     implicit none
@@ -102,10 +102,10 @@ contains
     double precision                                            , intent(in   )         :: fraction                     , exponentRedshift, &
          &                                                                                 exponentVelocity
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileClass                    ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass                    ), intent(in   ), target :: darkMatterProfileDMO_
     double precision                                            , parameter             :: velocityNormalization=200.0d0
 
-    !# <constructorAssign variables="fraction, exponentRedshift, exponentVelocity, *cosmologyFunctions_, *darkMatterProfile_"/>
+    !# <constructorAssign variables="fraction, exponentRedshift, exponentVelocity, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
     ! Initialize stored values.
     self%velocityPrevious       =-1.0d0
     self%expansionFactorPrevious=-1.0d0
@@ -127,7 +127,7 @@ contains
     type(starFormationFeedbackSpheroidsVlctyMxSclng), intent(inout) :: self
   
     !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%darkMatterProfile_" />
+    !# <objectDestructor name="self%darkMatterProfileDMO_" />
     return
   end subroutine vlctyMxSclngDestructor
   
@@ -145,7 +145,7 @@ contains
     ! Get the basic component.
     basic              => node             %basic()
     ! Get virial velocity and expansion factor.
-    velocityMaximum=self%darkMatterProfile_ %circularVelocityMaximum(node        )
+    velocityMaximum=self%darkMatterProfileDMO_ %circularVelocityMaximum(node        )
     expansionFactor=self%cosmologyFunctions_%expansionFactor        (basic%time())
     ! Compute the velocity factor.
     if (velocityMaximum /= self%velocityPrevious) then

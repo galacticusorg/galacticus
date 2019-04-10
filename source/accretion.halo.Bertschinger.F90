@@ -20,7 +20,7 @@
   !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
   !% mimic the effects of reionization, and the Bertschinger mass to define available mass.
 
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
 
   !# <accretionHalo name="accretionHaloBertschinger">
   !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define available mass.</description>
@@ -29,7 +29,7 @@
      !% A halo accretion class using simple truncation to mimic the effects of reionization, and the Bertschinger mass to define
      !% available mass.
      private
-     class(darkMatterProfileClass), pointer:: darkMatterProfile_ => null()
+     class(darkMatterProfileDMOClass), pointer:: darkMatterProfileDMO_ => null()
    contains
      final     ::                  bertschingerDestructor
      procedure :: velocityScale => bertschingerVelocityScale
@@ -51,12 +51,12 @@ contains
     type (inputParameters          ), intent(inout) :: parameters
 
     self%accretionHaloSimple=accretionHaloSimple(parameters)
-    !# <objectBuilder class="darkMatterProfile" name="self%darkMatterProfile_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="self%darkMatterProfileDMO_" source="parameters"/>
     !# <inputParametersValidate source="parameters"/>
     return
   end function bertschingerConstructorParameters
        
-  function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfile_) result(self)
+  function bertschingerConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily bertschinger} halo accretion class.
     use Galacticus_Error
     use Atomic_Data
@@ -69,9 +69,9 @@ contains
     class           (accretionHaloTotalClass      ), intent(in   ), target :: accretionHaloTotal_
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
-    class           (darkMatterProfileClass       ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass       ), intent(in   ), target :: darkMatterProfileDMO_
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
-    !# <constructorAssign variables="*darkMatterProfile_"/>
+    !# <constructorAssign variables="*darkMatterProfileDMO_"/>
 
     self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     return
@@ -82,7 +82,7 @@ contains
     implicit none
     type(accretionHaloBertschinger), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfile_"/>
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine bertschingerDestructor
 
@@ -92,6 +92,6 @@ contains
     class(accretionHaloBertschinger), intent(inout) :: self
     type (treeNode                 ), intent(inout) :: node
     
-    bertschingerVelocityScale=self%darkMatterProfile_%circularVelocityMaximum(node)
+    bertschingerVelocityScale=self%darkMatterProfileDMO_%circularVelocityMaximum(node)
     return
   end function bertschingerVelocityScale

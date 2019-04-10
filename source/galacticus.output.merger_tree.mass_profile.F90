@@ -167,7 +167,7 @@ contains
        do iRadius=1,massProfilePropertyCount
 
           ! Find the total mass enclosed.
-          massEnclosed=Galactic_Structure_Enclosed_Mass(thisNode,outputMassProfileRadii(iRadius),componentType=componentTypeAll,massType=massTypeAll,haloLoaded=.true.)
+          massEnclosed=Galactic_Structure_Enclosed_Mass(thisNode,outputMassProfileRadii(iRadius),componentType=componentTypeAll,massType=massTypeAll)
 
           ! Store the resulting mass.
           doubleProperty=doubleProperty+1

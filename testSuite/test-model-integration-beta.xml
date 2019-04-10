@@ -107,7 +107,7 @@
   <nodeMergersMethod value="singleLevelHierarchy"/>
   
   <!-- Dark matter halo structure -->
-  <darkMatterProfileMethod value="NFW"/>
+  <darkMatterProfileDMOMethod value="NFW"/>
   <darkMatterProfileConcentrationMethod value="diemerKravtsov2014">
     <alpha value="1.12"/>
     <beta value="1.69"/>

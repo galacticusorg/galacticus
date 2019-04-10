@@ -43,18 +43,18 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <darkMatterProfileMethod value="NFW"/>
-    <darkMatterProfileMethod value="isothermal"/>
-    <darkMatterProfileMethod value="einasto">
+    <darkMatterProfileDMOMethod value="NFW"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="einasto">
       <treeNodeMethodDarkMatterProfile value="scaleShape" parameterLevel="top"/>
       <virialOrbitMethod value="fixed" parameterLevel="top"/>
-    </darkMatterProfileMethod>
+    </darkMatterProfileDMOMethod>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <galacticStructureRadiiInitialMethod value="static"/>
-    <galacticStructureRadiusSolverMethod value="adiabatic">
+    <darkMatterProfileDMOMethod value="darkMatterOnly"/>
+    <galacticStructureRadiusSolverMethod value="equilibrium">
       <galacticStructureRadiiInitialMethod value="gnedin2004" parameterLevel="top"/>
     </galacticStructureRadiusSolverMethod>
     <galacticStructureRadiusSolverMethod value="simple"/>
@@ -481,9 +481,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <starFormationExpulsiveFeedbackDisksMethod value="zero"     />
-    <starFormationExpulsiveFeedbackDisksMethod value="superWind" >
-      <starFormationExpulsiveFeedbackSpheroidsMethod value="zero"      parameterLevel="top"/>
+    <starFormationExpulsiveFeedbackDisksMethod value="zero"/>
+    <starFormationExpulsiveFeedbackDisksMethod value="superWind">
+      <starFormationExpulsiveFeedbackSpheroidsMethod value="zero" parameterLevel="top"/>
       <starFormationExpulsiveFeedbackSpheroidsMethod value="superWind" parameterLevel="top"/>
     </starFormationExpulsiveFeedbackDisksMethod>
   </parameters>
@@ -854,9 +854,9 @@
       <accuracyFirstOrder value="+0.10"/>
     </mergerTreeBranchingProbabilityMethod>
     <nodeMergersMethod value="singleLevelHierarchy"/>
-    <darkMatterProfileMethod value="heated">
+    <darkMatterProfileDMOMethod value="heated">
       <darkMatterProfileMethod value="NFW"/>
-    </darkMatterProfileMethod>
+    </darkMatterProfileDMOMethod>
     <darkMatterProfileConcentrationMethod value="gao2008"/>
     <darkMatterProfileMinimumConcentration value="4"/>
     <haloSpinDistributionMethod value="bett2007">
@@ -904,7 +904,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -985,7 +985,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1026,7 +1026,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1072,7 +1072,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1107,7 +1107,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1145,7 +1145,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1182,7 +1182,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1219,7 +1219,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1256,7 +1256,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1298,7 +1298,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
     <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
@@ -1335,7 +1335,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
@@ -1386,7 +1386,7 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
@@ -1433,7 +1433,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
     <accretionHaloMethod value="zero"/>
-    <darkMatterProfileMethod value="isothermal"/>
+    <darkMatterProfileDMOMethod value="isothermal"/>
     <darkMatterProfileScaleRadiusMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
@@ -1602,7 +1602,7 @@
       <massResolution value="1.0e9"/>
     </mergerTreeMassResolutionMethod>
     <virialDensityContrastMethod value="sphericalCollapseMatterLambda"/>
-    <darkMatterProfileMethod value="NFW"/>
+    <darkMatterProfileDMOMethod value="NFW"/>
     <accretionHaloMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>

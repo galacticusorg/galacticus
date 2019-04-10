@@ -59,7 +59,7 @@
   <accretionHaloMethod value="zero"/>
 
   <!-- Dark matter halo profile -->
-  <darkMatterProfileMethod value="isothermal"/>
+  <darkMatterProfileDMOMethod value="isothermal"/>
   
   <!-- Hot halo model options -->
   <hotHaloMassDistributionMethod value="null"/>

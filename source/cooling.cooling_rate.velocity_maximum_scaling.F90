@@ -21,7 +21,7 @@
 
   use Math_Exponentiation
   use Cosmology_Functions , only : cosmologyFunctionsClass, cosmologyFunctions
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
 
   !# <coolingRate name="coolingRateVelocityMaximumScaling">
   !#  <description>A cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.</description>
@@ -30,7 +30,7 @@
      !% Implementation of cooling rate class in which the cooling rate scales with the peak circular velocity in the halo.
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     class           (darkMatterProfileClass ), pointer :: darkMatterProfile_ => null()
+     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_ => null()
      ! Parameters controlling the cooling rate.
      double precision                                   :: timescale                         , exponentRedshift              , &
           &                                                widthCutOff                       , velocityCutOff                , &
@@ -63,7 +63,7 @@ contains
     type            (coolingRateVelocityMaximumScaling)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
-    class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass           ), pointer       :: darkMatterProfileDMO_
     double precision                                                   :: timeScale          , timescaleMinimum              , &
          &                                                                exponentRedshift   , exponentVelocity              , &
          &                                                                velocityCutOff     , velocityCutOffExponentRedshift, &
@@ -134,15 +134,15 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfile"  name="darkMatterProfile_"  source="parameters"/>
-    self=coolingRateVelocityMaximumScaling(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfile_)
+    !# <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    self=coolingRateVelocityMaximumScaling(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="darkMatterProfile_" />
+    !# <objectDestructor name="darkMatterProfileDMO_" />
     return
   end function velocityMaximumScalingConstructorParameters
 
-  function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfile_) result(self)
+  function velocityMaximumScalingConstructorInternal(timeScale,timescaleMinimum,exponentRedshift,exponentVelocity,velocityCutOff,velocityCutOffExponentRedshift,widthCutOff,exponentCutOff,cosmologyFunctions_,darkMatterProfileDMO_) result(self)
     !% Internal constructor for the velocity maximum scaling cooling rate class.
     use Galacticus_Nodes, only : defaultHotHaloComponent, defaultBasicComponent
     use Galacticus_Error
@@ -154,9 +154,9 @@ contains
          &                                                                        velocityCutOff               , velocityCutOffExponentRedshift, &
          &                                                                        widthCutOff                  , exponentCutOff
     class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
-    class           (darkMatterProfileClass           ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
     double precision                                   , parameter             :: velocityNormalization=200.0d0
-    !# <constructorAssign variables="timeScale, timescaleMinimum, exponentRedshift, exponentVelocity, velocityCutOff, velocityCutOffExponentRedshift, widthCutOff, exponentCutOff, *cosmologyFunctions_, *darkMatterProfile_"/>
+    !# <constructorAssign variables="timeScale, timescaleMinimum, exponentRedshift, exponentVelocity, velocityCutOff, velocityCutOffExponentRedshift, widthCutOff, exponentCutOff, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
     
     ! Check that the properties we need are gettable.
     if (.not.defaultHotHaloComponent%massIsGettable())                                                                                  &
@@ -205,7 +205,7 @@ contains
     type(coolingRateVelocityMaximumScaling), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%darkMatterProfile_" />
+    !# <objectDestructor name="self%darkMatterProfileDMO_" />
     return
   end subroutine velocityMaximumScalingDestructor
 
@@ -225,7 +225,7 @@ contains
     basic               => node                    %basic                  (            )
     hotHalo             => node                    %hotHalo                (            )
     expansionFactor     =  self%cosmologyFunctions_%expansionFactor        (basic%time())
-    velocityMaximum     =  self%darkMatterProfile_ %circularVelocityMaximum(node        )
+    velocityMaximum     =  self%darkMatterProfileDMO_ %circularVelocityMaximum(node        )
     if (expansionFactor /= self%expansionFactorPrevious .or. velocityMaximum /= self%velocityMaximumPrevious) then
        expArgument=log10(                                                                       &
             &            +velocityMaximum                                                       &

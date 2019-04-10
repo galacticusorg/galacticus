@@ -17,21 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements non-dark-matter-only dark matter halo profiles.
+!% Contains a module which provides an object that implements dark matter halo profiles.
 
-module Dark_Matter_Profiles
-  !% Provides an object that implements non-dark-matter-only dark matter halo profiles.
-  use Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
-  use Galacticus_Nodes            , only : treeNode
-  use Kind_Numbers                , only : kind_int8
+module Dark_Matter_Profiles_DMO
+  !% Provides an object that implements dark matter halo profiles.
+  use Galacticus_Nodes, only : treeNode
   private
-  
+
   !# <functionClass>
-  !#  <name>darkMatterProfile</name>
-  !#  <extends>darkMatterProfileGeneric</extends>
+  !#  <name>darkMatterProfileDMO</name>
   !#  <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
   !#  <description>Object providing dark matter halo profiles.</description>
-  !#  <default>darkMatterOnly</default>
+  !#  <default>NFW</default>
   !#  <calculationReset>yes</calculationReset>
   !#  <method name="density" >
   !#   <description>Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
@@ -61,6 +58,12 @@ module Dark_Matter_Profiles
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
+  !#  <method name="energyGrowthRate" >
+  !#   <description> Returns the rate of chance of the total energy of {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-1}$ Gyr$^{-1}$.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
+  !#  </method>
   !#  <method name="rotationNormalization" >
   !#   <description> Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for the given {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$</description>
   !#   <type>double precision</type>
@@ -71,7 +74,6 @@ module Dark_Matter_Profiles
   !#   <description> Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} at which the specific angular momentum of a circular orbit equals {\normalfont \ttfamily specificAngularMomentum} (specified in units of km s$^{-1}$ Mpc.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
   !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
   !#   <argument>double precision          , intent(in   )          :: specificAngularMomentum</argument>
   !#  </method>
@@ -92,7 +94,6 @@ module Dark_Matter_Profiles
   !#   <description>Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
   !#   <argument>type            (treeNode), intent(inout), pointer  :: node</argument>
   !#   <argument>double precision          , intent(in   )           :: radius</argument>
   !#   <argument>integer                   , intent(  out), optional :: status</argument>
@@ -126,6 +127,13 @@ module Dark_Matter_Profiles
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#   <argument>double precision          , intent(in   ) :: time</argument>
   !#  </method>
+  !#  <method name="freeFallRadiusIncreaseRate" >
+  !#   <description>Returns the rate of increase of the freefall radius (in Mpc/Gyr) corresponding to the given {\normalfont \ttfamily time} (in Gyr) in {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: time</argument>
+  !#  </method>
   !#  <method name="radiusEnclosingMass" >
   !#   <description>Returns the radius (in Mpc) enclosing a given mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node}.</description>
   !#   <type>double precision</type>
@@ -141,8 +149,8 @@ module Dark_Matter_Profiles
   !#    double precision                          , save    :: radiusPrevious=-huge(0.0d0)
   !#    integer         (kind_int8               ), save    :: uniqueIDPrevious=-1_kind_int8
   !#    !$omp threadprivate(finder,radiusPrevious,uniqueIDPrevious)
-  !#    if(mass &lt;= 0) then
-  !#       darkMatterProfileRadiusEnclosingMass=0.0d0
+  !#    if(mass &lt;= 0.0d0) then
+  !#       darkMatterProfileDMORadiusEnclosingMass=0.0d0
   !#       return
   !#    end if
   !#    ! Initialize the root finder.
@@ -165,7 +173,7 @@ module Dark_Matter_Profiles
   !#       uniqueIDPrevious     =  node                %uniqueID    (    )
   !#    end if
   !#    radiusPrevious=finder%find(rootGuess=radiusGuess)
-  !#    darkMatterProfileRadiusEnclosingMass=radiusPrevious
+  !#    darkMatterProfileDMORadiusEnclosingMass=radiusPrevious
   !#    return
   !#    contains
   !#      double precision function enclosedMassRoot(radius)
@@ -178,5 +186,36 @@ module Dark_Matter_Profiles
   !#   </code>
   !#  </method>
   !# </functionClass>
-  
-end module Dark_Matter_Profiles
+
+  !# <functionClass>
+  !#  <name>darkMatterProfileHeating</name>
+  !#  <descriptiveName>Dark Matter Profile Heating</descriptiveName>
+  !#  <description>Class providing models of heating of dark matter profiles.</description>
+  !#  <default>null</default>
+  !#  <calculationReset>yes</calculationReset>
+  !#  <method name="specificEnergy" >
+  !#   <description>The specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_</argument>
+  !#   <argument>double precision                        , intent(in   ) :: radius</argument>
+  !#  </method>
+  !#  <method name="specificEnergyGradient" >
+  !#   <description>The gradient of the specific energy of heating at the given {\normalfont \ttfamily radius} in the given {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_</argument>
+  !#   <argument>double precision                        , intent(in   ) :: radius</argument>
+  !#  </method>
+  !#  <method name="specificEnergyIsEverywhereZero" >
+  !#   <description>Returns true if the specific energy is zero everywhere in the given {\normalfont \ttfamily node}.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>class(darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_</argument>
+  !#  </method>
+  !# </functionClass>
+
+end module Dark_Matter_Profiles_DMO

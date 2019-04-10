@@ -32,11 +32,10 @@ module Galactic_Structure_Velocity_Dispersions
   ! Module scoped variables used in integrations.
   integer                    :: componentTypeGlobal, massTypeGlobal
   type   (treeNode), pointer :: activeNode
-  logical                    :: haloLoadedActual
-  !$omp threadprivate(massTypeGlobal,componentTypeGlobal,activeNode,haloLoadedActual)
+  !$omp threadprivate(massTypeGlobal,componentTypeGlobal,activeNode)
 contains
 
-  double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType,haloLoaded)
+  double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType)
     !% Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
     use FGSL                              , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
@@ -46,7 +45,6 @@ contains
     type            (treeNode                  ), intent(inout), target   :: thisNode
     double precision                            , intent(in   )           :: radius              , radiusOuter
     integer                                     , intent(in   )           :: componentType       , massType
-    logical                                     , intent(in   ), optional :: haloLoaded
     double precision                                                      :: componentDensity    , densityVelocityVariance, &
          &                                                                   massTotal
     type            (fgsl_function             )                          :: integrandFunction
@@ -55,8 +53,6 @@ contains
     activeNode         => thisNode
     componentTypeGlobal=  componentType
     massTypeGlobal     =  massType
-    haloLoadedActual   =  .true.
-    if (present(haloLoaded)) haloLoadedActual=haloLoaded
     ! Find the total mass.
     massTotal=Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentType,massType=massType)
     ! Return with zero dispersion if the component is massless.
@@ -100,8 +96,7 @@ contains
             &                                                          activeNode                       , &
             &                                                          [radius,0.0d0,0.0d0]             , &
             &                                                          componentType=componentTypeGlobal, &
-            &                                                          massType=massTypeGlobal          , &
-            &                                                          haloLoaded=haloLoadedActual        &
+            &                                                          massType=massTypeGlobal            &
             &                                                         )
     end if
     return

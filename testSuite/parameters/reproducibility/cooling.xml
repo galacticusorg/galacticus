@@ -56,7 +56,7 @@
     <fileName value="testSuite/parameters/reproducibility/coolingTree.xml"/>
   </mergerTreeConstructorMethod>
   <!-- Dark matter halo profile -->
-  <darkMatterProfileMethod value="isothermal"/>
+  <darkMatterProfileDMOMethod value="isothermal"/>
   
   <!-- Halo accretion options -->
   <accretionHaloMethod value="zero"/>

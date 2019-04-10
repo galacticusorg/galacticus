@@ -23,7 +23,7 @@
   use Cosmology_Parameters
   use Cosmological_Density_Field
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
 
   !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodHaloMassFunction">
   !#  <description>A posterior sampling likelihood class which implements a likelihood for halo mass functions.</description>
@@ -39,7 +39,7 @@
      class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_ => null(), cosmologicalMassVarianceUnconditioned_ => null()
      class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_      => null(), criticalOverdensityUnconditioned_      => null()
      class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_      => null()
-     class           (darkMatterProfileClass       ), pointer                     :: darkMatterProfile_        => null()
+     class           (darkMatterProfileDMOClass       ), pointer                     :: darkMatterProfileDMO_        => null()
      class           (haloEnvironmentClass         ), pointer                     :: haloEnvironment_          => null()
      double precision                                                             :: time                               , massParticle                                    , &
           &                                                                          massRangeMinimum                   , redshift     
@@ -94,7 +94,7 @@ contains
     class           (cosmologicalMassVarianceClass            ), pointer       :: cosmologicalMassVariance_, cosmologicalMassVarianceUnconditioned_
     class           (criticalOverdensityClass                 ), pointer       :: criticalOverdensity_     , criticalOverdensityUnconditioned_
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
-    class           (darkMatterProfileClass                   ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass                   ), pointer       :: darkMatterProfileDMO_
     class           (haloEnvironmentClass                     ), pointer       :: haloEnvironment_
 
     parametersUnconditioned=parameters%subParameters("unconditioned",requireValue=.false.)
@@ -161,9 +161,9 @@ contains
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"                   source="parameters"             />
     !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensityUnconditioned_"      source="parametersUnconditioned"/>
     !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"                   source="parameters"             />
-    !# <objectBuilder class="darkMatterProfile"        name="darkMatterProfile_"                     source="parameters"             />
+    !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"                     source="parameters"             />
     !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"                       source="parameters"             />
-    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfile_,haloEnvironment_)
+    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,char(massFunctionType),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"                   />
     !# <objectDestructor name="cosmologyParameters_"                  />
@@ -172,12 +172,12 @@ contains
     !# <objectDestructor name="criticalOverdensity_"                  />
     !# <objectDestructor name="criticalOverdensityUnconditioned_"     />
     !# <objectDestructor name="darkMatterHaloScale_"                  />
-    !# <objectDestructor name="darkMatterProfile_"                    />
+    !# <objectDestructor name="darkMatterProfileDMO_"                    />
     !# <objectDestructor name="haloEnvironment_"                      />
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,massFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfile_,haloEnvironment_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,massFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
     !% Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     use IO_HDF5
     use Galacticus_Error
@@ -195,7 +195,7 @@ contains
     class           (cosmologicalMassVarianceClass            ), intent(in   ), target         :: cosmologicalMassVariance_     , cosmologicalMassVarianceUnconditioned_
     class           (criticalOverdensityClass                 ), intent(in   ), target         :: criticalOverdensity_          , criticalOverdensityUnconditioned_
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target         :: darkMatterHaloScale_
-    class           (darkMatterProfileClass                   ), intent(in   ), target         :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass                   ), intent(in   ), target         :: darkMatterProfileDMO_
     class           (haloEnvironmentClass                     ), intent(in   ), target         :: haloEnvironment_
     double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal                          , &
          &                                                                                        massFunctionOriginal
@@ -209,7 +209,7 @@ contains
     double precision                                                                           :: massIntervalLogarithmic
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
-    !# <constructorAssign variables="fileName, redshift, massRangeMinimum, massFunctionType, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologicalMassVarianceUnconditioned_, *criticalOverdensityUnconditioned_, *darkMatterHaloScale_, *darkMatterProfile_, *haloEnvironment_"/>
+    !# <constructorAssign variables="fileName, redshift, massRangeMinimum, massFunctionType, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologicalMassVarianceUnconditioned_, *criticalOverdensityUnconditioned_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *haloEnvironment_"/>
     
     ! Convert redshift to time.
     self%time=self%cosmologyFunctions_ %cosmicTime                (          &
@@ -309,7 +309,7 @@ contains
     !# <objectDestructor name="self%cosmologicalMassVariance_"             />
     !# <objectDestructor name="self%criticalOverdensity_"                  />
     !# <objectDestructor name="self%darkMatterHaloScale_"                  />
-    !# <objectDestructor name="self%darkMatterProfile_"                    />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"                    />
     !# <objectDestructor name="self%haloEnvironment_"                      />
     !# <objectDestructor name="self%cosmologicalMassVarianceUnconditioned_"/>
     !# <objectDestructor name="self%criticalOverdensityUnconditioned_"     />
@@ -445,7 +445,7 @@ contains
        type is (nbodyHaloMassErrorSOHaloFinder)
           nbodyHaloMassError_=nbodyHaloMassErrorSOHaloFinder(                           &
                &                                             self%darkMatterHaloScale_, &
-               &                                             self%darkMatterProfile_  , &
+               &                                             self%darkMatterProfileDMO_  , &
                &                                             self%massParticle          &
                &                                            )
        end select

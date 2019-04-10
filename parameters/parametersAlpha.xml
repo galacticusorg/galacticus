@@ -76,7 +76,7 @@
   <nodeMergersMethod value="singleLevelHierarchy"/>
 
   <!-- Dark matter halo structure options -->
-  <darkMatterProfileMethod value="isothermal"/>
+  <darkMatterProfileDMOMethod value="isothermal"/>
 
   <!-- Halo accretion options -->
   <accretionHaloMethod value="simple">

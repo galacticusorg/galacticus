@@ -19,7 +19,7 @@
 
 !% An implementation of the hot halo temperature class which uses the ``hydrostatic'' solution from the Enzo code.
 
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
 
   !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic">
   !#  <description>Provides an implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.</description>
@@ -27,7 +27,7 @@
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileEnzoHydrostatic
      !% An implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.
      private
-     class(darkMatterProfileClass), pointer :: darkMatterProfile_ => null()
+     class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
      final     ::                        enzoHydrostaticDestructor
      procedure :: temperature         => enzoHydrostaticTemperature
@@ -50,21 +50,21 @@ contains
     implicit none
     type (hotHaloTemperatureProfileEnzoHydrostatic)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
-    class(darkMatterProfileClass                  ), pointer       :: darkMatterProfile_
+    class(darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
 
-    !# <objectBuilder class="darkMatterProfile" name="darkMatterProfile_" source="parameters"/>
-    self=hotHaloTemperatureProfileEnzoHydrostatic(darkMatterProfile_)
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    self=hotHaloTemperatureProfileEnzoHydrostatic(darkMatterProfileDMO_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfile_"/>
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
     return
   end function enzoHydrostaticConstructorParameters
 
-  function enzoHydrostaticConstructorInternal(darkMatterProfile_) result(self)
+  function enzoHydrostaticConstructorInternal(darkMatterProfileDMO_) result(self)
     !% Internal constructor for the enzoHydrostatic cooling rate class.
     implicit none
     type (hotHaloTemperatureProfileEnzoHydrostatic)                        :: self
-    class(darkMatterProfileClass                  ), intent(in   ), target :: darkMatterProfile_
-    !# <constructorAssign variables="*darkMatterProfile_"/>
+    class(darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
+    !# <constructorAssign variables="*darkMatterProfileDMO_"/>
 
     return
   end function enzoHydrostaticConstructorInternal
@@ -74,7 +74,7 @@ contains
     implicit none
     type(hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfile_"/>
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     return
   end subroutine enzoHydrostaticDestructor
 
@@ -93,7 +93,7 @@ contains
     if (radius == 0.0d0) then
        enzoHydrostaticTemperature=enzoHydrostaticTemperatureMinimum
     else
-       enclosedMass              =self%darkMatterProfile_%enclosedMass(        &
+       enclosedMass              =self%darkMatterProfileDMO_%enclosedMass(        &
             &                                                          node  , &
             &                                                          radius  &
             &                                                         )
@@ -125,11 +125,11 @@ contains
     if (self%temperature(node,radius) <= enzoHydrostaticTemperatureMinimum) then
        enzoHydrostaticTemperatureLogSlope=0.0d0
     else
-       enclosedMass                      =  self%darkMatterProfile_%enclosedMass(        &
+       enclosedMass                      =  self%darkMatterProfileDMO_%enclosedMass(        &
             &                                                                    node  , &
             &                                                                    radius  &
             &                                                                   )
-       density                           =  self%darkMatterProfile_%density     (        &
+       density                           =  self%darkMatterProfileDMO_%density     (        &
             &                                                                    node  , &
             &                                                                    radius  &
             &                                                                   )

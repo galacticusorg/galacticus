@@ -25,7 +25,7 @@ module Node_Component_Hot_Halo_Standard
   use Cosmology_Functions
   use Radiation_Fields
   use Dark_Matter_Halo_Scales
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use Accretion_Halos
   use Chemical_Reaction_Rates
   use Hot_Halo_Ram_Pressure_Stripping
@@ -213,7 +213,7 @@ module Node_Component_Hot_Halo_Standard
   ! Objects used by this component.
   class(cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_
   class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
-  class(darkMatterProfileClass             ), pointer :: darkMatterProfile_
+  class(darkMatterProfileDMOClass             ), pointer :: darkMatterProfileDMO_
   class(coolingSpecificAngularMomentumClass), pointer :: coolingSpecificAngularMomentum_
   class(coolingInfallRadiusClass           ), pointer :: coolingInfallRadius_
   class(hotHaloMassDistributionClass       ), pointer :: hotHaloMassDistribution_
@@ -225,7 +225,7 @@ module Node_Component_Hot_Halo_Standard
   class(chemicalStateClass                 ), pointer :: chemicalState_
   class(coolingRateClass                   ), pointer :: coolingRate_
   class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
-  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfile_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_)
+  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_)
   
   ! Internal count of abundances and chemicals.
   integer                                                             :: abundancesCount                            , chemicalsCount
@@ -441,7 +441,7 @@ contains
        !# <objectBuilder class="cosmologyParameters"            name="cosmologyParameters_"            source="globalParameters_"/>
        !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfile"              name="darkMatterProfile_"              source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"              name="darkMatterProfileDMO_"              source="globalParameters_"/>
        !# <objectBuilder class="coolingSpecificAngularMomentum" name="coolingSpecificAngularMomentum_" source="globalParameters_"/>
        !# <objectBuilder class="coolingInfallRadius"            name="coolingInfallRadius_"            source="globalParameters_"/>
        !# <objectBuilder class="hotHaloMassDistribution"        name="hotHaloMassDistribution_"        source="globalParameters_"/>
@@ -488,7 +488,7 @@ contains
        !# <objectDestructor name="cosmologyParameters_"              />
        !# <objectDestructor name="cosmologyFunctions_"               />
        !# <objectDestructor name="darkMatterHaloScale_"              />
-       !# <objectDestructor name="darkMatterProfile_"                />
+       !# <objectDestructor name="darkMatterProfileDMO_"             />
        !# <objectDestructor name="coolingSpecificAngularMomentum_"   />
        !# <objectDestructor name="coolingInfallRadius_"              />
        !# <objectDestructor name="hotHaloMassDistribution_"          />
@@ -1044,7 +1044,7 @@ contains
        ! Next block of tasks occur only if the accretion rate is non-zero.
        if (basic%accretionRate() /= 0.0d0) then
           ! Compute the rate of accretion of angular momentum.
-          angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfile_)*(massAccretionRate &
+          angularMomentumAccretionRate=Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfileDMO_)*(massAccretionRate &
                &/basic%accretionRate())
              if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
           call hotHalo%angularMomentumRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
@@ -1410,7 +1410,7 @@ contains
           call hotHalo%           massSet(hotHaloMass)
           call hotHalo% unaccretedMassSet( failedMass)
           ! Also add the appropriate angular momentum.
-          angularMomentum=hotHaloMass*Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfile_)/basic%mass()
+          angularMomentum=hotHaloMass*Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)/basic%mass()
           call hotHalo%angularMomentumSet(angularMomentum   )
           ! Add the appropriate abundances.
           call hotHalo%abundancesSet(accretionHalo_%accretedMassMetals   (node,accretionModeHot))

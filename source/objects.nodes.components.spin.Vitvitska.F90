@@ -28,7 +28,7 @@ module Node_Component_Spin_Vitvitska
   use Vectors
   use Dark_Matter_Halo_Spins
   use Numerical_Constants_Physical
-  use Dark_Matter_Profiles
+  use Dark_Matter_Profiles_DMO
   use ISO_Varying_String
   use Halo_Spin_Distributions
   implicit none
@@ -69,8 +69,8 @@ module Node_Component_Spin_Vitvitska
   
   ! Objects used by this component.
   class(haloSpinDistributionClass), pointer :: haloSpinDistribution_
-  class(darkMatterProfileClass   ), pointer :: darkMatterProfile_
-  !$omp threadprivate(haloSpinDistribution_,darkMatterProfile_)
+  class(darkMatterProfileDMOClass   ), pointer :: darkMatterProfileDMO_
+  !$omp threadprivate(haloSpinDistribution_,darkMatterProfileDMO_)
   
   ! Parameter controlling scaling of orbital angular momentum with mass ratio.
   double precision :: spinVitvitskaMassExponent, spinVitvitskaUnresolvedBoost
@@ -123,7 +123,7 @@ contains
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
        !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"    name="darkMatterProfileDMO_"    source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Initialize
@@ -138,7 +138,7 @@ contains
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
        !# <objectDestructor name="haloSpinDistribution_"/>
-       !# <objectDestructor name="darkMatterProfile_"   />
+       !# <objectDestructor name="darkMatterProfileDMO_"   />
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize
@@ -210,7 +210,7 @@ contains
                         &               )**spinVitvitskaMassExponent
                    ! Add the spin angular momentum of the sibling.
                    angularMomentumTotal=+angularMomentumTotal                                              &
-                        &               +Dark_Matter_Halo_Angular_Momentum(nodeSibling,darkMatterProfile_) &
+                        &               +Dark_Matter_Halo_Angular_Momentum(nodeSibling,darkMatterProfileDMO_) &
                         &               *spinSibling%spinVector()                                          &
                         &               /spinSibling%spin      ()
                 end do
@@ -219,7 +219,7 @@ contains
                 angularMomentumTotal=+angularMomentumTotal                                  &
                      &               +Dark_Matter_Halo_Angular_Momentum(                    &
                      &                                                  nodeChild         , &
-                     &                                                  darkMatterProfile_  &
+                     &                                                  darkMatterProfileDMO_  &
                      &                                                 )                    &
                      &               *  spinChild                   %spinVector()           &
                      &               /  spinChild                   %spin      ()           &
@@ -230,7 +230,7 @@ contains
                      &                 /basicChild                  %mass      ()           &
                      &                )
                 ! Convert angular momentum back to spin.
-                spinValue =+Dark_Matter_Halo_Spin(node,Vector_Magnitude(angularMomentumTotal),darkMatterProfile_)
+                spinValue =+Dark_Matter_Halo_Spin(node,Vector_Magnitude(angularMomentumTotal),darkMatterProfileDMO_)
                 spinVector=+spinValue                              &
                      &     *                 angularMomentumTotal  &
                      &     /Vector_Magnitude(angularMomentumTotal)
@@ -295,8 +295,8 @@ contains
     Node_Component_Spin_Vitvitska_Spin_Growth_Rate =  +self             %spin               (             ) &
          &                                            *(                                                    &
          &                                              +0.5d0                                              &
-         &                                              *darkMatterProfile_%energyGrowthRate(self%hostNode) &
-         &                                              /darkMatterProfile_%energy          (self%hostNode) &
+         &                                              *darkMatterProfileDMO_%energyGrowthRate(self%hostNode) &
+         &                                              /darkMatterProfileDMO_%energy          (self%hostNode) &
          &                                              -2.5d0                                              &
          &                                              *basic             %accretionRate   (             ) &
          &                                              /basic             %mass            (             ) &

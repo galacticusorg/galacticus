@@ -343,16 +343,16 @@ contains
     double precision function powerSpectrumOneHaloIntegrand(massHalo)
       !% Integrand for the one-halo term in the power spectrum.
       use Dark_Matter_Profile_Scales     , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
-      use Dark_Matter_Profiles
+      use Dark_Matter_Profiles_DMO
       use Galacticus_Calculations_Resets
       implicit none
       double precision                                   , intent(in   ) :: massHalo
-      class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+      class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
       class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
       double precision                                                   :: darkMatterProfileKSpace      , numberCentrals   , &
            &                                                                numberSatellites             , wavenumberMaximum
 
-      darkMatterProfile_            => darkMatterProfile           ()
+      darkMatterProfileDMO_         => darkMatterProfileDMO        ()
       darkMatterProfileScaleRadius_ => darkMatterProfileScaleRadius()
       call Galacticus_Calculations_Reset(node)
       call basic            % massSet(massHalo                           )
@@ -364,7 +364,7 @@ contains
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumOneHaloIntegrand=0.0d0
       else
-         darkMatterProfileKSpace=darkMatterProfile_%kSpace(node,waveNumber(iWavenumber)/expansionFactor)
+         darkMatterProfileKSpace=darkMatterProfileDMO_%kSpace(node,waveNumber(iWavenumber)/expansionFactor)
          numberCentrals         =max(                                                                                                                       &
               &                      +0.0d0                                                                                                               , &
               &                      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum,haloModelGalaxyTypeCentral  )  &
@@ -433,16 +433,16 @@ contains
       !% Integrand for the two-halo term in the power spectrum.
       use Dark_Matter_Profile_Scales    , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
       use Dark_Matter_Halo_Biases
-      use Dark_Matter_Profiles
+      use Dark_Matter_Profiles_DMO
       use Galacticus_Calculations_Resets
       implicit none
       double precision                                   , intent(in   ) :: massHalo
-      class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
+      class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
       class           (darkMatterHaloBiasClass          ), pointer       :: darkMatterHaloBias_
       class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
       double precision                                                   :: wavenumberMaximum
       
-      darkMatterProfile_            => darkMatterProfile           ()
+      darkMatterProfileDMO_         => darkMatterProfileDMO        ()
       darkMatterHaloBias_           => darkMatterHaloBias          ()
       darkMatterProfileScaleRadius_ => darkMatterProfileScaleRadius()
       call Galacticus_Calculations_Reset(node)
@@ -456,9 +456,9 @@ contains
          powerSpectrumTwoHaloIntegrand=0.0d0
       else
          powerSpectrumTwoHaloIntegrand=                                                                        &
-              & +haloMassFunction_  %differential(time,massHalo                               )                &
-              & *darkMatterHaloBias_%bias        (node                                        )                &
-              & *darkMatterProfile_ %kSpace      (node,waveNumber(iWavenumber)/expansionFactor)                &
+              & +haloMassFunction_    %differential(time,massHalo                               )              &
+              & *darkMatterHaloBias_  %bias        (node                                        )              &
+              & *darkMatterProfileDMO_%kSpace      (node,waveNumber(iWavenumber)/expansionFactor)              &
               & *max(                                                                                          &
               &      +0.0d0                                                                                  , &
               &      +conditionalMassFunction_%massFunction(massHalo,projectedCorrelationFunctionMassMinimum)  &

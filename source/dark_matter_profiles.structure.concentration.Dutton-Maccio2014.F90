@@ -31,7 +31,7 @@
      class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
      class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrastDefinition_ => null()
-     class           (darkMatterProfileClass    ), pointer :: darkMatterProfileDefinition_     => null()
+     class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMODefinition_     => null()
      double precision                                      :: a1                                        , a2                  , &
           &                                                   a3                                        , a4                  , &
           &                                                   b1                                        , b2
@@ -40,7 +40,7 @@
      final     ::                                duttonMaccio2014Destructor
      procedure :: concentration               => duttonMaccio2014Concentration
      procedure :: densityContrastDefinition   => duttonMaccio2014DensityContrastDefinition
-     procedure :: darkMatterProfileDefinition => duttonMaccio2014DarkMatterProfileDefinition
+     procedure :: darkMatterProfileDMODefinition => duttonMaccio2014DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationDuttonMaccio2014
 
   interface darkMatterProfileConcentrationDuttonMaccio2014
@@ -214,7 +214,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
     return
   end subroutine duttonMaccio2014Destructor
   
@@ -284,33 +284,33 @@ contains
     !% \cite{diemer_universal_2014} algorithm.
     use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileClass                            ), pointer       :: duttonMaccio2014DarkMatterProfileDefinition
+    class(darkMatterProfileDMOClass                            ), pointer       :: duttonMaccio2014DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationDuttonMaccio2014    ), intent(inout) :: self
     type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
     class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
 
-    if (.not.associated(self%darkMatterProfileDefinition_)) then
-       allocate(self%darkMatterProfileDefinition_  )
+    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
+       allocate(self%darkMatterProfileDMODefinition_  )
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire   target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
        select case (self%densityProfileMethod)
        case (duttonMaccio2014DensityProfileMethodNFW    )
-          allocate(darkMatterProfileNFW     :: self%darkMatterProfileDefinition_)
-          select type (darkMatterProfileDefinition_ => self%darkMatterProfileDefinition_)
-          type is (darkMatterProfileNFW    )
-             !# <referenceConstruct isResult="yes" object="darkMatterProfileDefinition_" constructor="darkMatterProfileNFW   (darkMatterHaloScaleDefinition_)"/>
+          allocate(darkMatterProfileDMONFW     :: self%darkMatterProfileDMODefinition_)
+          select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
+          type is (darkMatterProfileDMONFW    )
+             !# <referenceConstruct isResult="yes" object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMONFW   (darkMatterHaloScaleDefinition_)"/>
           end select
        case (duttonMaccio2014DensityProfileMethodEinasto)
-          allocate(darkMatterProfileEinasto :: self%darkMatterProfileDefinition_)
-          select type (darkMatterProfileDefinition_ => self%darkMatterProfileDefinition_)
-          type is (darkMatterProfileEinasto)
-             !# <referenceConstruct isResult="yes" object="darkMatterProfileDefinition_" constructor="darkMatterProfileEinasto(darkMatterHaloScaleDefinition_)"/>
+          allocate(darkMatterProfileDMOEinasto :: self%darkMatterProfileDMODefinition_)
+          select type (darkMatterProfileDMODefinition_ => self%darkMatterProfileDMODefinition_)
+          type is (darkMatterProfileDMOEinasto)
+             !# <referenceConstruct isResult="yes" object="darkMatterProfileDMODefinition_" constructor="darkMatterProfileDMOEinasto(darkMatterHaloScaleDefinition_)"/>
           end select
        end select
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
-    duttonMaccio2014DarkMatterProfileDefinition => self%darkMatterProfileDefinition_
+    duttonMaccio2014DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function duttonMaccio2014DarkMatterProfileDefinition

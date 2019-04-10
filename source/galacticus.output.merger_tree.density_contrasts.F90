@@ -30,8 +30,7 @@ module Galacticus_Output_Trees_Density_Contrasts
   integer                                                         :: densityContrastPropertyCount
 
   ! Flag indicating whether or not density contrast information is to be output.
-  logical                                                         :: outputDensityContrastData                   , outputDensityContrastDataDarkOnly, &
-       &                                                             outputDensityContrastHaloLoaded
+  logical                                                         :: outputDensityContrastData   , outputDensityContrastDataDarkOnly
 
   ! Array of density contrasts for which to output data.
   integer                                                         :: densityContrastCount
@@ -107,15 +106,6 @@ contains
              !#   <group>output</group>
              !#   <source>globalParameters</source>
              !#   <type>real</type>
-             !# </inputParameter>
-             !# <inputParameter>
-             !#   <name>outputDensityContrastHaloLoaded</name>
-             !#   <cardinality>1..*</cardinality>
-             !#   <defaultValue>.true.</defaultValue>
-             !#   <description>Specifies whether baryonic loading of the halo should be accounted for when outputting density contrast data.</description>
-             !#   <group>output</group>
-             !#   <source>globalParameters</source>
-             !#   <type>boolean</type>
              !# </inputParameter>
           end if
 
@@ -239,12 +229,11 @@ contains
           darkMatterHaloScale_ => darkMatterHaloScale()
           radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(thisNode))
           ! Compute the mass enclosed in this radius.
-          enclosedMass=Galactic_Structure_Enclosed_Mass(                                               &
-               &                                        thisNode                                     , &
-               &                                        radius                                       , &
-               &                                        componentType=componentTypeAll               , &
-               &                                        massType     =massTypeSelected               , &
-               &                                        haloLoaded   =outputDensityContrastHaloLoaded  &
+          enclosedMass=Galactic_Structure_Enclosed_Mass(                                &
+               &                                        thisNode                      , &
+               &                                        radius                        , &
+               &                                        componentType=componentTypeAll, &
+               &                                        massType     =massTypeSelected  &
                &                                       )
           ! Store the resulting radius and mass.
           doubleProperty=doubleProperty+1
@@ -271,7 +260,7 @@ contains
     cosmologyFunctions_ => cosmologyFunctions()
     ! Solve for the radius enclosing the specified density contrast.
     enclosedMass              =Galactic_Structure_Enclosed_Mass(activeNode,radius,componentType&
-         &=componentTypeAll,massType=massTypeSelected,haloLoaded=outputDensityContrastHaloLoaded)
+         &=componentTypeAll,massType=massTypeSelected)
     Mean_Density_Contrast_Root=3.0d0*enclosedMass/4.0d0/Pi/radius**3/(referenceDensity &
          &/cosmologyFunctions_%expansionFactor(activeBasicComponent%time())**3)-meanDensityContrastTarget
     return

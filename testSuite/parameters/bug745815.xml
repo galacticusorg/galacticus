@@ -22,10 +22,10 @@
   </accretionHaloMethod>
   <accretionRateThinDiskMaximum value="0.30d0"/>
   <accretionRateThinDiskMinimum value="0.01d0"/>
-  <galacticStructureRadiiInitialMethod value="gnedin2004">
+  <darkMatterProfileDMOMethod value="adiabaticGnedin2004">
     <A value="0.8"/>
     <omega value="0.77"/>
-  </galacticStructureRadiiInitialMethod>
+  </darkMatterProfileDMOMethod>
 
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
   <stabilityThresholdGaseous value="0.9"/>
@@ -51,14 +51,14 @@
   <cosmologyFunctionsMethod value="matterLambda"/>
   <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <darkMatterProfileConcentrationMethod value="gao2008"/>
-  <darkMatterProfileMethod value="NFW"/>
+  <darkMatterProfileDMOMethod value="NFW"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <diskMassToleranceAbsolute value="1e-06"/>
   <starFormationFeedbackDisksMethod value="powerLaw">
     <velocityCharacteristic value="200.0"/>
     <exponent value="2.0"/>
   </starFormationFeedbackDisksMethod>
-  <galacticStructureRadiusSolverMethod value="adiabatic"/>
+  <galacticStructureRadiusSolverMethod value="equilibrium"/>
   <haloMassFunctionMethod value="tinker2008"/>
   <haloSpinDistributionMethod value="bett2007">
     <alpha value="2.509"/>

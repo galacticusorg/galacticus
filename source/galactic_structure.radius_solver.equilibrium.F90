@@ -17,58 +17,56 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an adiabatic contraction galactic radii solver (including self-gravity of baryons) using the
-!% adiabatic contraction algorithm of \cite{gnedin_response_2004}.
+!% Contains a module which implements an equilibrium galactic radii solver.
 
-module Galactic_Structure_Radii_Adiabatic
-  !% Implements an adiabatic contraction galactic radii solver (including self-gravity of baryons) using an adiabatic
-  !% contraction algorithm.
+module Galactic_Structure_Radii_Equilibrium
+  !% Implements an equilibrium galactic radii solver.
   use Galactic_Structure_Radius_Solver_Procedures
   implicit none
   private
-  public :: Galactic_Structure_Radii_Adiabatic_Initialize
+  public :: Galactic_Structure_Radii_Equilibrium_Initialize
 
   ! Parameter controlling the accuracy of the solutions sought.
-  double precision                                      :: adiabaticContractionSolutionTolerance
+  double precision                                      :: equilibriumContractionSolutionTolerance
 
   ! Module variables used to communicate current state of radius solver.
-  integer                                               :: activeComponentCount                 , iterationCount
-  double precision                                      :: fitMeasure                           , haloFraction
+  integer                                               :: activeComponentCount                              , iterationCount
+  double precision                                      :: fitMeasure
   type            (treeNode), pointer                   :: haloNode
-  double precision          , allocatable, dimension(:) :: radiusStored                         , velocityStored
-  logical                                               :: revertStructure=.false.
-  !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloFraction,haloNode,radiusStored,velocityStored,revertStructure)
+  double precision          , allocatable, dimension(:) :: radiusStored                                      , velocityStored
+  logical                                               :: revertStructure                           =.false.
+  !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloNode,radiusStored,velocityStored,revertStructure)
   ! Options controlling the solver.
-  logical                                               :: adiabaticContractionIncludeBaryonGravity, adiabaticContractionUseFormationHalo
+  logical                                               :: equilibriumContractionIncludeBaryonGravity        , equilibriumContractionUseFormationHalo
 
 contains
 
   !# <galacticStructureRadiusSolverMethod>
-  !#  <unitName>Galactic_Structure_Radii_Adiabatic_Initialize</unitName>
+  !#  <unitName>Galactic_Structure_Radii_Equilibrium_Initialize</unitName>
   !# </galacticStructureRadiusSolverMethod>
-  subroutine Galactic_Structure_Radii_Adiabatic_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
-    !% Initializes the ``adiabatic'' galactic radii solver module.
+  subroutine Galactic_Structure_Radii_Equilibrium_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
+    !% Initializes the ``equilibrium'' galactic radii solver module.
     use Input_Parameters
     use ISO_Varying_String
     implicit none
-    type     (varying_string                           ), intent(in   )          :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Adiabatic ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
-    procedure(Galactic_Structure_Radii_Revert_Adiabatic), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
+    type     (varying_string                             ), intent(in   )          :: galacticStructureRadiusSolverMethod
+    procedure(Galactic_Structure_Radii_Solve_Equilibrium ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
+    procedure(Galactic_Structure_Radii_Revert_Equilibrium), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
 
-    if (galacticStructureRadiusSolverMethod == 'adiabatic') then
-       Galactic_Structure_Radii_Solve_Do  => Galactic_Structure_Radii_Solve_Adiabatic
-       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Adiabatic
+    if (galacticStructureRadiusSolverMethod == 'equilibrium') then
+       Galactic_Structure_Radii_Solve_Do  => Galactic_Structure_Radii_Solve_Equilibrium
+       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Equilibrium
        ! Get parameters of the model.
        !# <inputParameter>
-       !#   <name>adiabaticContractionIncludeBaryonGravity</name>
+       !#   <name>equilibriumContractionIncludeBaryonGravity</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.true.</defaultValue>
-       !#   <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in adiabatically contracted dark matter halos.</description>
+       !#   <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in equilibriumally contracted dark matter halos.</description>
        !#   <source>globalParameters</source>
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
-       !#   <name>adiabaticContractionUseFormationHalo</name>
+       !#   <name>equilibriumContractionUseFormationHalo</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>.false.</defaultValue>
        !#   <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
@@ -76,7 +74,7 @@ contains
        !#   <type>boolean</type>
        !# </inputParameter>
        !# <inputParameter>
-       !#   <name>adiabaticContractionSolutionTolerance</name>
+       !#   <name>equilibriumContractionSolutionTolerance</name>
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-2</defaultValue>
        !#   <description>Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.</description>
@@ -85,14 +83,13 @@ contains
        !# </inputParameter>
     end if
     return
-  end subroutine Galactic_Structure_Radii_Adiabatic_Initialize
+  end subroutine Galactic_Structure_Radii_Equilibrium_Initialize
 
-  subroutine Galactic_Structure_Radii_Solve_Adiabatic(node)
-    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``adiabatic'' method.
-    use Cosmology_Parameters
+  subroutine Galactic_Structure_Radii_Solve_Equilibrium(node)
+    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``equilibrium'' method.
     use Galacticus_Error
     use Galacticus_Display
-    use Galacticus_Nodes    , only : treeNode, nodeComponentBasic
+    use Galacticus_Nodes    , only : treeNode
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
@@ -101,8 +98,6 @@ contains
     procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get                      => null(), Velocity_Get => null()
     procedure       (Radius_Solver_Set_Template), pointer               :: Radius_Set                      => null(), Velocity_Set => null()
     !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    class           (nodeComponentBasic        ), pointer               :: basic
-    class           (cosmologyParametersClass  ), pointer               :: cosmologyParameters_
     logical                                     , parameter             :: specificAngularMomentumRequired =  .true.
     logical                                                             :: componentActive
     double precision                                                    :: specificAngularMomentum
@@ -114,25 +109,18 @@ contains
     if (node%isPhysicallyPlausible) then
        ! Initialize the solver state.
        iterationCount=0
-       fitMeasure    =2.0d0*adiabaticContractionSolutionTolerance
+       fitMeasure    =2.0d0*equilibriumContractionSolutionTolerance
 
        ! Determine which node to use for halo properties.
-       if (adiabaticContractionUseFormationHalo) then
+       if (equilibriumContractionUseFormationHalo) then
           if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
           haloNode => node%formationNode
        else
           haloNode => node
        end if
 
-       ! Get the default cosmology.
-       cosmologyParameters_ => cosmologyParameters()
-       ! Compute fraction of mass distribution as the halo. Truncate this to zero: we can get negative values if the ODE solver is
-       ! exploring regimes of high baryonic mass, and this would cause problems.
-       basic => node%basic()
-       haloFraction=(cosmologyParameters_%OmegaMatter()-cosmologyParameters_%OmegaBaryon())/cosmologyParameters_%OmegaMatter() ! Determine the dark matter fraction.
-
        ! Begin iteration to find a converged solution.
-       do while (iterationCount <= 2 .or. ( fitMeasure > adiabaticContractionSolutionTolerance .and. iterationCount < iterationMaximum ) )
+       do while (iterationCount <= 2 .or. ( fitMeasure > equilibriumContractionSolutionTolerance .and. iterationCount < iterationMaximum ) )
           iterationCount      =iterationCount+1
           activeComponentCount=0
           if (iterationCount > 1) fitMeasure=0.0d0
@@ -147,7 +135,7 @@ contains
           end if
        end do
        ! Check that we found a converged solution.
-       if (fitMeasure > adiabaticContractionSolutionTolerance) then
+       if (fitMeasure > equilibriumContractionSolutionTolerance) then
           call Galacticus_Display_Message('dumping node for which radii are currently being sought')
           call node%serializeASCII()
           call Galacticus_Error_Report('failed to find converged solution'//{introspection:location})
@@ -156,48 +144,48 @@ contains
     ! Unset structure reversion flag.
     revertStructure=.false.
     return
-  end subroutine Galactic_Structure_Radii_Solve_Adiabatic
+  end subroutine Galactic_Structure_Radii_Solve_Equilibrium
 
   subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
     !% Solve for the equilibrium radius of the given component.
+    use Dark_Matter_Profiles_DMO
     use Dark_Matter_Profiles
     use Numerical_Constants_Physical
     use Galactic_Structure_Rotation_Curves
     use Galactic_Structure_Options
     use Galacticus_Error
-    use Galactic_Structure_Initial_Radii
     use ISO_Varying_String
     use String_Handling
     use Memory_Management
     use Galacticus_Display
     implicit none
-    type            (treeNode                          ), intent(inout)                     :: node
-    double precision                                    , intent(in   )                     :: specificAngularMomentum
-    procedure       (Radius_Solver_Get_Template        ), intent(in   ) , pointer           :: Radius_Get                          , Velocity_Get
-    procedure       (Radius_Solver_Set_Template        ), intent(in   ) , pointer           :: Radius_Set                          , Velocity_Set
-    class           (darkMatterProfileClass            )                , pointer           :: darkMatterProfile_
-    class           (galacticStructureRadiiInitialClass)               , pointer  :: galacticStructureRadiiInitial_
-    double precision                                    , dimension(:,:), allocatable, save :: radiusHistory
+    type            (treeNode                  ), intent(inout)                     :: node
+    double precision                            , intent(in   )                     :: specificAngularMomentum
+    procedure       (Radius_Solver_Get_Template), intent(in   ) , pointer           :: Radius_Get                          , Velocity_Get
+    procedure       (Radius_Solver_Set_Template), intent(in   ) , pointer           :: Radius_Set                          , Velocity_Set
+    class           (darkMatterProfileDMOClass )                , pointer           :: darkMatterProfileDMO_
+    class           (darkMatterProfileClass    )                , pointer           :: darkMatterProfile_
+    double precision                            , dimension(:,:), allocatable, save :: radiusHistory
     !$omp threadprivate(radiusHistory)
-    double precision                                    , dimension(:,:), allocatable       :: radiusHistoryTemporary
-    double precision                                    , dimension(:  ), allocatable       :: radiusStoredTmp                     , velocityStoredTmp
-    integer                                             , dimension(1  ), parameter         :: storeIncrement                 =[10]
-    integer                                             , parameter                         :: iterationsForBisectionMinimum  = 10
-    integer                                             , parameter                         :: activeComponentMaximumIncrement=  2
-    integer                                                                                 :: activeComponentMaximumCurrent
-    character       (len=14                            )                                    :: label
-    type            (varying_string                    )                                    :: message
-    double precision                                                                        :: baryonicVelocitySquared             , darkMatterMassFinal, &
-         &                                                                                     darkMatterVelocitySquared           , haloMassInitial    , &
-         &                                                                                     radius                              , radiusInitial      , &
-         &                                                                                     radiusNew                           , velocity
+    double precision                            , dimension(:,:), allocatable       :: radiusHistoryTemporary
+    double precision                            , dimension(:  ), allocatable       :: radiusStoredTmp                     , velocityStoredTmp
+    integer                                     , dimension(1  ), parameter         :: storeIncrement                 =[10]
+    integer                                     , parameter                         :: iterationsForBisectionMinimum  = 10
+    integer                                     , parameter                         :: activeComponentMaximumIncrement=  2
+    integer                                                                         :: activeComponentMaximumCurrent
+    character       (len=14                    )                                    :: label
+    type            (varying_string            )                                    :: message
+    double precision                                                                :: baryonicVelocitySquared             , darkMatterMassFinal, &
+         &                                                                             darkMatterVelocitySquared               , &
+         &                                                                             radius                              , radiusNew          , &
+         &                                                                             velocity
 
     ! Get required objects.
-    darkMatterProfile_ => darkMatterProfile()
+    darkMatterProfileDMO_ => darkMatterProfileDMO()
     ! Count the number of active comonents.
     activeComponentCount=activeComponentCount+1
 
-    if (iterationCount == 1 .or. haloFraction <= 0.0d0) then       
+    if (iterationCount == 1) then       
        ! If structure is to be reverted, do so now.
        if (revertStructure.and.allocated(radiusStored)) then
           call   Radius_Set(node,  radiusStored(activeComponentCount))
@@ -206,13 +194,13 @@ contains
        ! On first iteration, see if we have a previous radius set for this component.
        radius=Radius_Get(node)
        if (radius <= 0.0d0) then
-          ! No previous radius was set, so make a simple estimate of sizes of all components ignoring adiabatic contraction and self-gravity.
+          ! No previous radius was set, so make a simple estimate of sizes of all components ignoring equilibrium contraction and self-gravity.
 
           ! Find the radius in the dark matter profile with the required specific angular momentum
-          radius=darkMatterProfile_%radiusFromSpecificAngularMomentum(haloNode,specificAngularMomentum)
+          radius=darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(haloNode,specificAngularMomentum)
 
           ! Find the velocity at this radius.
-          velocity=darkMatterProfile_%circularVelocity(haloNode,radius)
+          velocity=darkMatterProfileDMO_%circularVelocity(haloNode,radius)
        else
           ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
           velocity=Velocity_Get(node)
@@ -248,21 +236,15 @@ contains
        ! Get current radius of the component.
        radius=Radius_Get(node)
 
-       ! Find the corresponding initial radius in the dark matter halo.
-       galacticStructureRadiiInitial_ => galacticStructureRadiiInitial        (               )
-       radiusInitial                  =  galacticStructureRadiiInitial_%radius(haloNode,radius)
-
-       ! Compute mass within that radius.
-       haloMassInitial=darkMatterProfile_%enclosedMass(haloNode,radiusInitial)
+       ! Find the enclosed mass in the dark matter halo.
+       darkMatterProfile_  => darkMatterProfile              (               )
+       darkMatterMassFinal =  darkMatterProfile_%enclosedMass(haloNode,radius)
        
-       ! Compute dark matter mass within final radius.
-       darkMatterMassFinal=haloMassInitial*haloFraction
-
        ! Compute dark matter contribution to rotation curve.
        darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
 
        ! Compute baryonic contribution to rotation curve.
-       if (adiabaticContractionIncludeBaryonGravity) then
+       if (equilibriumContractionIncludeBaryonGravity) then
           baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(node,radius,massType=massTypeBaryonic)**2
        else
           baryonicVelocitySquared=0.0d0
@@ -336,11 +318,7 @@ contains
           write (label,'(e12.6)') sqrt(darkMatterVelocitySquared)
           message=message//'   -> dark matter contribution: '//label//char(10)
           write (label,'(e12.6)') sqrt(baryonicVelocitySquared  )
-          message=message//'   -> baryonic contribution:    '//label//char(10)
-          write (label,'(e12.6)') haloMassInitial
-          message=message//'  initial halo mass enclosed:   '//label//char(10)
-          write (label,'(e12.6)') haloFraction
-          message=message//'  halo fraction:                '//label
+          message=message//'   -> baryonic contribution:    '//label
           call Galacticus_Error_Report(message//{introspection:location})
        end if
 
@@ -352,8 +330,8 @@ contains
      return
   end subroutine Solve_For_Radius
 
-  subroutine Galactic_Structure_Radii_Revert_Adiabatic(node)
-    !% Revert radii for the adiabatic galactic structure solve.
+  subroutine Galactic_Structure_Radii_Revert_Equilibrium(node)
+    !% Revert radii for the equilibrium galactic structure solve.
     implicit none
     type(treeNode), intent(inout), target :: node
     !GCC$ attributes unused :: node
@@ -361,6 +339,6 @@ contains
     ! Simply record that reversion should be performed on the next call to the solver.
     revertStructure=.true.
     return
-  end subroutine Galactic_Structure_Radii_Revert_Adiabatic
+  end subroutine Galactic_Structure_Radii_Revert_Equilibrium
 
-end module Galactic_Structure_Radii_Adiabatic
+end module Galactic_Structure_Radii_Equilibrium
