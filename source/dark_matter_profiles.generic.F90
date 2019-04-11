@@ -123,7 +123,7 @@ module Dark_Matter_Profiles_Generic
      !@     <description>Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given in units of km s$^{-1}$ Mpc).</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>densityLogSlope</method>
+     !@     <method>densityLogSlopeNumerical</method>
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin</arguments>
      !@     <description>Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
