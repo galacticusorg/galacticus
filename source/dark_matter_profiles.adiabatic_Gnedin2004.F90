@@ -73,6 +73,18 @@
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ radius\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radiusInitial</method>
+     !@     <description>Compute the initial radius in the dark matter profile.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radiusInitialDerivative</method>
+     !@     <description>Compute the derivative of the initial radius in the dark matter profile.</description>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      final                                             adiabaticGnedin2004Destructor
      procedure :: calculationReset                  => adiabaticGnedin2004CalculationReset
