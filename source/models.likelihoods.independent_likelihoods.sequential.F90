@@ -23,7 +23,8 @@
   !#  <description>
   !#   A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class
   !#   begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without
-  !#   evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions !#   applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given
+  !#   evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions
+  !#   applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given
   !#   likelihood has been evaluated it will be evaluated on all subsequent calls. Additionally, when a new likelihood is
   !#   evaluated for the first time, acceptance of the proposed state will be forced. This class therefore allows a sequence of
   !#   likelihoods to be specified which must be sequentially made sufficiently ``good'' before evaluating the next. The approach
