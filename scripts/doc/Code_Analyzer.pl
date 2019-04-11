@@ -308,6 +308,8 @@ sub processFile {
 
 		  # Check for function calls.
 		  my $functionSeek = lc($processedLine);
+		  $functionSeek =~ s/''//g;
+		  $functionSeek =~ s/""//g;
 		  $functionSeek =~ s/'[^']+'//g;
 		  $functionSeek =~ s/"[^"]+"//g;
 		  while ( $functionSeek =~ m/\(/ ) {
