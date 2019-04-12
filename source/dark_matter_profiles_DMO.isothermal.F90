@@ -19,15 +19,12 @@
 
   !% An implementation of isothermal dark matter halo profiles.
 
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
-
   !# <darkMatterProfileDMO name="darkMatterProfileDMOIsothermal">
   !#  <description>Isothermal dark matter halo profiles</description>
   !# </darkMatterProfileDMO>
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOIsothermal
      !% A dark matter halo profile class implementing isothermal dark matter halos.
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final                                             isothermalDestructor
      procedure :: calculationReset                  => isothermalCalculationReset
@@ -242,8 +239,8 @@ contains
     !% $r$ the required radius.
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: specificAngularMomentum
+    type            (treeNode                      ), intent(inout), pointer :: node
+    double precision                                , intent(in   )          :: specificAngularMomentum
 
     isothermalRadiusFromSpecificAngularMomentum=specificAngularMomentum/self%darkMatterHaloScale_%virialVelocity(node)
     return
@@ -277,8 +274,8 @@ contains
     use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(darkMatterProfileDMOIsothermal), intent(inout)          :: self
-    type (treeNode                   ), intent(inout), target  :: node
-    class(nodeComponentBasic         )               , pointer :: basic
+    type (treeNode                      ), intent(inout), target  :: node
+    class(nodeComponentBasic            )               , pointer :: basic
 
     basic   => node%basic     ()
     isothermalEnergyGrowthRate=self%energy(node)&
@@ -293,9 +290,9 @@ contains
     use Exponential_Integrals
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout)          :: self
-    type            (treeNode                   ), intent(inout), pointer :: node
-    double precision                             , intent(in   )          :: waveNumber
-    double precision                                                      :: radiusScale, waveNumberScaleFree
+    type            (treeNode                      ), intent(inout), pointer :: node
+    double precision                                , intent(in   )          :: waveNumber
+    double precision                                                         :: radiusScale, waveNumberScaleFree
 
     ! Get the scale radius (for which we use the virial radius).
     radiusScale          =  self%darkMatterHaloScale_%virialRadius(node)
@@ -318,8 +315,8 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: time
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: time
 
     isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node)*time&
          &/Mpc_per_km_per_s_To_Gyr
@@ -335,8 +332,8 @@ contains
     use Numerical_Constants_Astronomical
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: time
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: time
     !GCC$ attributes unused :: time
     
     isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node) &

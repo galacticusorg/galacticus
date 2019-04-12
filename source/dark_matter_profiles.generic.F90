@@ -25,7 +25,7 @@ module Dark_Matter_Profiles_Generic
   !% numerical calculations of certain halo properties which are to be used as a fall-back option when no analytical solution
   !% exists.
   use Function_Classes       , only : functionClass
-  use Galacticus_Nodes       , only : treeNode
+  use Galacticus_Nodes       , only : treeNode                , nodeComponentBasic, nodeComponentDarkMatterProfile
   use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   private
   public :: darkMatterProfileGeneric
@@ -93,10 +93,22 @@ module Dark_Matter_Profiles_Generic
      !@     <description>Return the energy of the dark matter density profile.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>energyGrowthRateNumerical</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout</arguments>
+     !@     <description>Return the rate of growth of the energy of the dark matter density profile.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>freefallRadiusNumerical</method>
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} time\argin</arguments>
-     !@     <description>Returns the freefall radius in the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily time} (given in Gyr).</description>
+     !@     <description>Returns the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>freefallRadiusIncreaseRateNumerical</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} time\argin</arguments>
+     !@     <description>Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr).</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>radiusEnclosingDensityNumerical</method>
@@ -130,33 +142,25 @@ module Dark_Matter_Profiles_Generic
      !@   </objectMethod>
      !@ </objectMethods>
    contains
-     procedure(genericEnclosedMass    ), deferred :: enclosedMass
-     procedure(genericDensityInterface), deferred :: density
-     procedure                                    :: potentialNumerical                         => genericPotentialNumerical
-     procedure                                    :: potentialDifferenceNumerical               => genericPotentialDifferenceNumerical
-     procedure                                    :: circularVelocityNumerical                  => genericCircularVelocityNumerical
-     procedure                                    :: radialMomentNumerical                      => genericRadialMomentNumerical
-     procedure                                    :: rotationNormalizationNumerical             => genericRotationNormalizationNumerical
-     procedure                                    :: kSpaceNumerical                            => genericKSpaceNumerical
-     procedure                                    :: energyNumerical                            => genericEnergyNumerical
-     procedure                                    :: freefallRadiusNumerical                    => genericFreefallRadiusNumerical
-     procedure                                    :: radiusEnclosingDensityNumerical            => genericRadiusEnclosingDensityNumerical
-     procedure                                    :: radiusEnclosingMassNumerical               => genericRadiusEnclosingMassNumerical
-     procedure                                    :: circularVelocityMaximumNumerical           => genericCircularVelocityMaximumNumerical
-     procedure                                    :: radiusFromSpecificAngularMomentumNumerical => genericRadiusFromSpecificAngularMomentumNumerical
-     procedure                                    :: densityLogSlopeNumerical                   => genericDensityLogSlopeNumerical
+     procedure(genericDensityInterface     ), deferred :: density
+     procedure(genericEnclosedMassNumerical), deferred :: enclosedMass
+     procedure                                         :: enclosedMassNumerical                      => genericEnclosedMassNumerical
+     procedure                                         :: potentialNumerical                         => genericPotentialNumerical
+     procedure                                         :: potentialDifferenceNumerical               => genericPotentialDifferenceNumerical
+     procedure                                         :: circularVelocityNumerical                  => genericCircularVelocityNumerical
+     procedure                                         :: radialMomentNumerical                      => genericRadialMomentNumerical
+     procedure                                         :: rotationNormalizationNumerical             => genericRotationNormalizationNumerical
+     procedure                                         :: kSpaceNumerical                            => genericKSpaceNumerical
+     procedure                                         :: energyNumerical                            => genericEnergyNumerical
+     procedure                                         :: energyGrowthRateNumerical                  => genericEnergyGrowthRateNumerical
+     procedure                                         :: freefallRadiusNumerical                    => genericFreefallRadiusNumerical
+     procedure                                         :: freefallRadiusIncreaseRateNumerical        => genericFreefallRadiusIncreaseRateNumerical
+     procedure                                         :: radiusEnclosingDensityNumerical            => genericRadiusEnclosingDensityNumerical
+     procedure                                         :: radiusEnclosingMassNumerical               => genericRadiusEnclosingMassNumerical
+     procedure                                         :: circularVelocityMaximumNumerical           => genericCircularVelocityMaximumNumerical
+     procedure                                         :: radiusFromSpecificAngularMomentumNumerical => genericRadiusFromSpecificAngularMomentumNumerical
+     procedure                                         :: densityLogSlopeNumerical                   => genericDensityLogSlopeNumerical
   end type darkMatterProfileGeneric
-
-  abstract interface
-     double precision function genericEnclosedMass(self,node,radius)
-       !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-       !% units of Mpc).
-       import darkMatterProfileGeneric, treeNode 
-       class           (darkMatterProfileGeneric), intent(inout) :: self
-       type            (treeNode                ), intent(inout) :: node
-       double precision                          , intent(in   ) :: radius
-     end function genericEnclosedMass
-  end interface
 
   abstract interface
      double precision function genericDensityInterface(self,node,radius)
@@ -170,15 +174,65 @@ module Dark_Matter_Profiles_Generic
   end interface
 
   ! Module-scope pointers used in integrand functions and root finding.
-  class           (darkMatterProfileGeneric), pointer :: genericSelf
-  type            (treeNode                ), pointer :: genericNode
-  double precision                                    :: genericTime                   , genericRadiusFreefall, genericDensity, genericMass, &
-       &                                                 genericSpecificAngularMomentum
-  !$omp threadprivate(genericSelf,genericNode,genericTime,genericRadiusFreefall,genericDensity,genericMass,genericSpecificAngularMomentum)
-  
+  class           (darkMatterProfileGeneric      ), pointer :: genericSelf
+  type            (treeNode                      ), pointer :: genericNode
+  class           (nodeComponentBasic            ), pointer :: genericBasic
+  class           (nodeComponentDarkMatterProfile), pointer :: genericDarkMatterProfile
+  double precision                                          :: genericTime                   , genericRadiusFreefall , genericDensity        , genericMass , &
+       &                                                       genericSpecificAngularMomentum, genericMassGrowthRate , genericScaleGrowthRate, genericScale, &
+       &                                                       genericShape                  , genericShapeGrowthRate
+  !$omp threadprivate(genericSelf,genericNode,genericBasic,genericTime,genericRadiusFreefall,genericDensity,genericMass,genericSpecificAngularMomentum,genericMassGrowthRate,genericDarkMatterProfile,genericScaleGrowthRate,genericScale,genericShape,genericShapeGrowthRate)
+
+  !# <enumeration>
+  !#  <name>nonAnalyticSolvers</name>
+  !#  <description>Used to specify the type of solution to use when no analytic solution is available.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <visibility>public</visibility>
+  !#  <validator>yes</validator>
+  !#  <entry label="fallThrough"/>
+  !#  <entry label="numerical"  />
+  !# </enumeration>
+
 contains
 
-    double precision function genericPotentialNumerical(self,node,radius,status)
+  double precision function genericEnclosedMassNumerical(self,node,radius)
+    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    !% units of Mpc).
+    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
+    use Numerical_Integration, only : Integrate    , Integrate_Done
+    implicit none
+    class           (darkMatterProfileGeneric  ), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: radius
+    type            (fgsl_function             )                :: integrandFunction
+    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    
+    genericEnclosedMassNumerical=+Integrate(                                        &
+         &                                                    0.0d0               , &
+         &                                                    radius              , &
+         &                                                    genericMassIntegrand, &
+         &                                                    integrandFunction   , &
+         &                                                    integrationWorkspace, &
+         &                                  toleranceAbsolute=0.0d+0              , &
+         &                                  toleranceRelative=1.0d-6                &
+         &                                 )
+    call Integrate_Done(integrandFunction,integrationWorkspace)
+
+  contains
+
+    double precision function genericMassIntegrand(radius)
+      !% Integrand for mass in generic dark matter profiles.
+      use Numerical_Constants_Math, only : Pi
+      implicit none
+      double precision, intent(in   ) :: radius
+
+      genericMassIntegrand=4.0d0*Pi*radius**2*self%density(node,radius)
+      return
+    end function genericMassIntegrand
+
+  end function genericEnclosedMassNumerical
+
+  double precision function genericPotentialNumerical(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc) using a numerical calculation.
     use FGSL                      , only : fgsl_function            , fgsl_integration_workspace
@@ -211,8 +265,8 @@ contains
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return 
   end function genericPotentialNumerical
-  
-    double precision function genericPotentialDifferenceNumerical(self,node,radiusLower,radiusUpper)
+
+  double precision function genericPotentialDifferenceNumerical(self,node,radiusLower,radiusUpper)
     !% Returns the potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the
     !% given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical
     !% calculation.
@@ -240,7 +294,7 @@ contains
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return 
   end function genericPotentialDifferenceNumerical
-  
+
   double precision function integrandPotential(radius)
     !% Integrand for gravitational potential in a generic dark matter profile.
     use Numerical_Constants_Physical, only : gravitationalConstantGalacticus
@@ -315,7 +369,7 @@ contains
            &                *self%density(node,radius)
       return
     end function integrandRadialMoment
-    
+
   end function genericRadialMomentNumerical
 
   double precision function genericRotationNormalizationNumerical(self,node)
@@ -343,7 +397,7 @@ contains
          &                                                                                )
     return
   end function genericRotationNormalizationNumerical
-  
+
   double precision function genericKSpaceNumerical(self,node,waveNumber)
     !% Returns the Fourier transform of the dark matter density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
@@ -467,7 +521,7 @@ contains
            &                   )**2
       return
     end function integrandEnergyPotential
-    
+
     double precision function integrandEnergyKinetic(radius)
       !% Integrand for kinetic energy of the halo.
       implicit none
@@ -478,7 +532,7 @@ contains
            &                 *                       radius
       return
     end function integrandEnergyKinetic
-    
+
     double precision function integrandPseudoPressure(radius)
       !% Integrand for pseudo-pressure ($\rho(r) \sigma^2(r)$) of the halo.
       implicit none
@@ -491,7 +545,60 @@ contains
     end function integrandPseudoPressure
 
   end function genericEnergyNumerical
-  
+
+  double precision function genericEnergyGrowthRateNumerical(self,node)
+    !% Returns the rate of growth of the energy if the dark matter density profile.
+    use Numerical_Differentiation, only : differentiator
+    implicit none
+    class           (darkMatterProfileGeneric), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , parameter             :: timeLogarithmicStep=0.1d0
+    type            (differentiator          )                        :: differentiator_
+    double precision                                                  :: timeLastIsolated
+
+    differentiator_                  =   differentiator                            (genericEnergyEvaluate                    )
+    genericSelf                      =>  self
+    genericNode                      =>  node
+    genericBasic                     =>  node                    %basic            (                                         )
+    genericDarkMatterProfile         =>  node                    %darkMatterProfile(                                         )
+    genericTime                      =   genericBasic            %time             (                                         )
+    timeLastIsolated                 =   genericBasic            %timeLastIsolated (                                         )
+    genericMass                      =   genericBasic            %mass             (                                         )
+    genericMassGrowthRate            =   genericBasic            %accretionRate    (                                         )
+    genericScale                     =   genericDarkMatterProfile%scale            (                                         )
+    genericScaleGrowthRate           =   genericDarkMatterProfile%scaleGrowthRate  (                                         )
+    genericShape                     =   genericDarkMatterProfile%shape            (                                         )
+    genericShapeGrowthRate           =   genericDarkMatterProfile%shapeGrowthRate  (                                         )
+    genericEnergyGrowthRateNumerical =  +differentiator_         %derivative       (log(genericTime)     ,timeLogarithmicStep) &
+         &                              /                                               genericTime
+    call genericBasic%timeSet                       (genericTime           )
+    call genericBasic%timeLastIsolatedSet           (timeLastIsolated      )
+    call genericBasic%massSet                       (genericMass           )
+    call genericDarkMatterProfile%scaleSet          (genericScale          )
+    call genericDarkMatterProfile%scaleGrowthRateSet(genericScaleGrowthRate)
+    call genericDarkMatterProfile%shapeSet          (genericShape          )
+    call genericDarkMatterProfile%shapeGrowthRateSet(genericShapeGrowthRate)
+    return
+  end function genericEnergyGrowthRateNumerical
+
+  double precision function genericEnergyEvaluate(timeLogarithmic)
+    !% GSL-callable function to evaluate the freefall radius of the dark matter profile.
+    use Functions_Global, only : Galacticus_Calculations_Reset_
+    implicit none
+    double precision, intent(in   ), value :: timeLogarithmic
+    double precision                       :: time
+
+    time=exp(timeLogarithmic)
+    call genericBasic            %timeSet            (                                     time             )
+    call genericBasic            %timeLastIsolatedSet(                                     time             )
+    call genericBasic            %massSet            (genericMass +genericMassGrowthRate *(time-genericTime))
+    call genericDarkMatterProfile%scaleSet           (genericScale+genericScaleGrowthRate*(time-genericTime))
+    call genericDarkMatterProfile%shapeSet           (genericShape+genericShapeGrowthRate*(time-genericTime))
+    call Galacticus_Calculations_Reset_(genericNode)
+    genericEnergyEvaluate=genericSelf%energyNumerical(genericNode)
+    return
+  end function genericEnergyEvaluate
+
   double precision function genericFreefallRadiusNumerical(self,node,time)
     !% Returns the freefall radius in the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
@@ -563,6 +670,34 @@ contains
     end if
     return
   end function integrandTimeFreefall
+
+  double precision function genericFreefallRadiusIncreaseRateNumerical(self,node,time)
+    !% Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont
+    !% \ttfamily time} (given in Gyr).
+    use Numerical_Differentiation, only : differentiator
+    implicit none
+    class           (darkMatterProfileGeneric), intent(inout), target :: self
+    type            (treeNode                ), intent(inout), target :: node
+    double precision                          , intent(in   )         :: time
+    double precision                          , parameter             :: timeLogarithmicStep=0.1d0
+    type            (differentiator          )                        :: differentiator_
+
+    genericSelf                                =>  self
+    genericNode                                =>  node
+    differentiator_                            =   differentiator            (genericFreefallRadiusEvaluate                    )
+    genericFreefallRadiusIncreaseRateNumerical =  +differentiator_%derivative(log(time)                    ,timeLogarithmicStep) &
+         &                                        /                               time
+    return
+  end function genericFreefallRadiusIncreaseRateNumerical
+
+  double precision function genericFreefallRadiusEvaluate(timeLogarithmic)
+    !% GSL-callable function to evaluate the freefall radius of the dark matter profile.
+    implicit none
+    double precision, intent(in   ), value :: timeLogarithmic
+
+    genericFreefallRadiusEvaluate=genericSelf%freefallRadiusNumerical(genericNode,exp(timeLogarithmic))
+    return
+  end function genericFreefallRadiusEvaluate
 
   double precision function genericRadiusEnclosingDensityNumerical(self,node,density)
     !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
@@ -748,6 +883,6 @@ contains
     genericDensityEvaluate=genericSelf%density(genericNode,exp(radiusLogarithmic))
     return
   end function genericDensityEvaluate
-  
+
 end module Dark_Matter_Profiles_Generic
 

@@ -21,11 +21,14 @@
 
 module Dark_Matter_Profiles_DMO
   !% Provides an object that implements dark matter halo profiles.
-  use Galacticus_Nodes, only : treeNode
+  use Dark_Matter_Profiles_Generic, only : darkMatterProfileGeneric
+  use Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass, darkMatterHaloScale
+  use Galacticus_Nodes            , only : treeNode
   private
 
   !# <functionClass>
   !#  <name>darkMatterProfileDMO</name>
+  !#  <extends>darkMatterProfileGeneric</extends>
   !#  <descriptiveName>Dark Matter Halo Profiles</descriptiveName>
   !#  <description>Object providing dark matter halo profiles.</description>
   !#  <default>NFW</default>
@@ -53,13 +56,13 @@ module Dark_Matter_Profiles_DMO
   !#   <argument>double precision          , intent(in   ), optional :: radiusMinimum, radiusMaximum</argument>
   !#  </method>
   !#  <method name="energy" >
-  !#   <description>Return the total energy for the given {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-1}$.</description>
+  !#   <description>Return the total energy for the given {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-2}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node</argument>
   !#  </method>
   !#  <method name="energyGrowthRate" >
-  !#   <description> Returns the rate of chance of the total energy of {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-1}$ Gyr$^{-1}$.</description>
+  !#   <description> Returns the rate of chance of the total energy of {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout), target :: node</argument>

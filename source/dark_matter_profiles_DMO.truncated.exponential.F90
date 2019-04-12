@@ -21,7 +21,7 @@
 
   !% An implementation of exponentially truncated dark matter halo profiles \cite{kazantzidis_2006}.
 
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
+  use Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
   !# <darkMatterProfileDMO name="darkMatterProfileDMOTruncatedExponential">
   !#  <description>exponentially truncated dark matter halo profiles \cite{kazantzidis_2006}.</description>
@@ -29,16 +29,28 @@
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOTruncatedExponential
      !% A dark matter halo profile class implementing exponentially truncated dark matter halos.
      private
-     class           (darkMatterProfileDMOClass  ), pointer :: darkMatterProfileDMO_   => null()
-     class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
-     double precision                                    :: radiusFractionalDecay      , alpha, &
-          &                                                 beta                       , gamma
-     logical                                             :: unimplementedIsFatal
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     double precision                                     :: radiusFractionalDecay          , alpha, &
+          &                                                  beta                           , gamma
+     integer                                              :: nonAnalyticSolver
+
+
+logical :: unimplementedIsFatal
+     
      ! Record of unique ID of node which we last computed results for.
-     integer         (kind=kind_int8          )          :: lastUniqueID
+     integer         (kind=kind_int8          )           :: lastUniqueID
      ! Stored values of computed quantities.
-     double precision                                    :: enclosingMassRadiusPrevious, kappaPrevious
+     double precision                                     :: enclosingMassRadiusPrevious, kappaPrevious
    contains
+     !@ <objectMethods>
+     !@   <object>darkMatterProfileDMOTruncatedExponential</object>
+     !@   <objectMethod>
+     !@     <method>truncationFunction</method>
+     !@     <type>void</type>
+     !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin, \doublezero\ [x]\argout, \doublezero\ [multiplier]\argout, \doublezero\ [multiplierGradient]\argout</arguments>
+     !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final                                             truncatedExponentialDestructor
      procedure :: calculationReset                  => truncatedExponentialCalculationReset
      procedure :: density                           => truncatedExponentialDensity
@@ -57,6 +69,7 @@
      procedure :: kSpace                            => truncatedExponentialKSpace
      procedure :: freefallRadius                    => truncatedExponentialFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => truncatedExponentialFreefallRadiusIncreaseRate     
+     procedure :: truncationFunction                => truncatedExponentialTruncationFunction
   end type darkMatterProfileDMOTruncatedExponential
 
   interface darkMatterProfileDMOTruncatedExponential
@@ -73,19 +86,19 @@ contains
     use Input_Parameters
     implicit none
     type            (darkMatterProfileDMOTruncatedExponential)                :: self
-    type            (inputParameters                      ), intent(inout) :: parameters
+    type            (inputParameters                         ), intent(inout) :: parameters
     class           (darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
-    logical                                                                :: unimplementedIsFatal
-    double precision                                                       :: radiusFractionalDecay, alpha, &
-         &                                                                    beta                 , gamma
+    class           (darkMatterHaloScaleClass                ), pointer       :: darkMatterHaloScale_
+    type            (varying_string                          )                :: nonAnalyticSolver
+    double precision                                                          :: radiusFractionalDecay, alpha, &
+         &                                                                       beta                 , gamma
 
     !# <inputParameter>
-    !#   <name>unimplementedIsFatal</name>
-    !#   <defaultValue>.true.</defaultValue>
+    !#   <name>nonAnalyticSolver</name>
+    !#   <defaultValue>var_str('darkMatterOnly')</defaultValue>
     !#   <source>parameters</source>
-    !#   <description>If {\normalfont \ttfamily true}, unimplemented features of the exponentially truncated dark matter profile cause fatal errors. Otherwise, the solution for an untruncated profile is returned.</description>
-    !#   <type>boolean</type>
+    !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+    !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <inputParameter>
@@ -122,24 +135,27 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    self=darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay,alpha,beta,gamma,unimplementedIsFatal,darkMatterProfileDMO_,darkMatterHaloScale_)
+    self=darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay,alpha,beta,gamma,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterProfileDMO_"  />
     !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function truncatedExponentialConstructorParameters
 
-  function truncatedExponentialConstructorInternal(radiusFractionalDecay,alpha,beta,gamma,unimplementedIsFatal,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function truncatedExponentialConstructorInternal(radiusFractionalDecay,alpha,beta,gamma,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily exponentially truncated} dark matter profile class.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileDMOTruncatedExponential)                        :: self
     class           (darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                                       , intent(in   )         :: radiusFractionalDecay, alpha, &
-         &                                                                            beta                 , gamma
-    logical                                                , intent(in   )         :: unimplementedIsFatal
-    !# <constructorAssign variables="radiusFractionalDecay,alpha,beta,gamma,unimplementedIsFatal,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
+    class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
+    double precision                                          , intent(in   )         :: radiusFractionalDecay, alpha, &
+         &                                                                               beta                 , gamma
+    integer                                                   , intent(in   )         :: nonAnalyticSolver
+    !# <constructorAssign variables="radiusFractionalDecay,alpha,beta,gamma,nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
 
+    ! Validate.
+    if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID=-1_kind_int8
     return
   end function truncatedExponentialConstructorInternal
@@ -149,7 +165,7 @@ contains
     implicit none
     type(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"   />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine truncatedExponentialDestructor
@@ -158,7 +174,7 @@ contains
     !% Reset the dark matter profile calculation.
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type (treeNode                             ), intent(inout) :: node
+    type (treeNode                                ), intent(inout) :: node
 
     self%lastUniqueID               = node%uniqueID()
     self%kappaPrevious              =-huge(0.0d0)
@@ -167,39 +183,73 @@ contains
     return
   end subroutine truncatedExponentialCalculationReset 
 
+  subroutine truncatedExponentialTruncationFunction(self,node,radius,multiplier,multiplierGradient)
+    !% Return the scaled truncation radial coordinate, and the truncation multiplier.
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    implicit none
+    class           (darkMatterProfileDMOTruncatedExponential), intent(inout)           :: self
+    type            (treeNode                                ), intent(inout)           :: node
+    double precision                                          , intent(in   )           :: radius
+    double precision                                          , intent(  out), optional :: multiplier       , multiplierGradient
+    class           (nodeComponentDarkMatterProfile          ), pointer                 :: darkMatterProfile
+    double precision                                                                    :: radiusVirial     , scaleRadius       , &
+         &                                                                                 concentration    , radiusDecay       , &
+         &                                                                                 multiplier_
+
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    if (radius <= radiusVirial) then
+       if (present(multiplier        )) multiplier        =+1.0d0
+       if (present(multiplierGradient)) multiplierGradient=+0.0d0
+    else
+       if (self%kappaPrevious == -huge(0.0d0)) then
+          darkMatterProfile =>  node             %darkMatterProfile(autoCreate=.true.)
+          scaleRadius       =   darkMatterProfile%scale            (                 )
+          concentration     =  +radiusVirial &
+               &               /scaleRadius
+          self%kappaPrevious= -(                           &
+               &                +self%gamma                &
+               &                +self%beta                 &
+               &                *concentration**self%alpha &
+               &               )                           &
+               &              /(                           &
+               &                +1.0d0                     &
+               &                +concentration**self%alpha &
+               &               )                           &
+               &              +1.0d0                       &
+               &              /self%radiusFractionalDecay
+       end if
+       radiusDecay                                        =+self%radiusFractionalDecay*radiusVirial
+       multiplier_                                        =+(                     &
+            &                                                +radius              &
+            &                                                /radiusVirial        &
+            &                                               )**self%kappaPrevious &
+            &                                              *exp(                  &
+            &                                                   -(                &
+            &                                                     +radius         &
+            &                                                     -radiusVirial   &
+            &                                                     )               &
+            &                                                /     radiusDecay    &
+            &                                                )
+       if (present(multiplier        )) multiplier        =+multiplier_
+       if (present(multiplierGradient)) multiplierGradient=+self%kappaPrevious*multiplier_/radius      &
+            &                                              -                   multiplier_/radiusDecay
+    end if
+    return
+  end subroutine truncatedExponentialTruncationFunction
+
   double precision function truncatedExponentialDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: radius
-    class           (nodeComponentDarkMatterProfile       ), pointer       :: darkMatterProfile
-    double precision                                                       :: radiusVirial     , scaleRadius, &
-         &                                                                    concentration    , radiusDecay
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: radius
+    double precision                                                          :: multiplier
 
-    ! Check if node differs from previous one for which we performed calculations.
-    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    ! Get the virial radius.
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
-    if (radius <= radiusVirial) then
-       truncatedExponentialDensity=+self%darkMatterProfileDMO_%density(node,radius)
-    else
-       ! Compute kappa if required.
-       if (self%kappaPrevious == -huge(0.0d0)) then
-          darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-          scaleRadius       =  darkMatterProfile%scale()
-          concentration     =  radiusVirial/scaleRadius
-          self%kappaPrevious= -(self%gamma+self%beta*concentration**self%alpha)/(1.0d0+concentration**self%alpha) &
-               &              +1.0d0/self%radiusFractionalDecay
-       end if
-       ! Compute decay scale.
-       radiusDecay                =+self%radiusFractionalDecay*radiusVirial
-       truncatedExponentialDensity=+self%darkMatterProfileDMO_%density(node,radiusVirial) &
-            &                      *(radius/radiusVirial)**self%kappaPrevious          &
-            &                      *exp(-(radius-radiusVirial)/radiusDecay)
-    end if
+    call self%truncationFunction(node,radius,multiplier=multiplier)
+    truncatedExponentialDensity=+self%darkMatterProfileDMO_%density(node,radius) &
+         &                      *multiplier
     return
   end function truncatedExponentialDensity
 
@@ -209,14 +259,18 @@ contains
     use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: radius
-
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialDensityLogSlope=0.0d0
-       call Galacticus_Error_Report('density logarithmic slope in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: radius
+    double precision                                               :: multiplier, multiplierGradient
+    
+    call self%truncationFunction(node,radius,multiplier=multiplier,multiplierGradient=multiplierGradient)
+    if (multiplier > 0.0d0) then
+       truncatedExponentialDensityLogSlope=+self%darkMatterProfileDMO_%densityLogSlope(node,radius) &
+            &                              +radius                                                  &
+            &                              *multiplierGradient                                      &
+            &                              /multiplier
     else
-       truncatedExponentialDensityLogSlope=self%darkMatterProfileDMO_%densityLogSlope(node,radius)
+       truncatedExponentialDensityLogSlope=+0.0d0
     end if
     return
   end function truncatedExponentialDensityLogSlope
@@ -224,17 +278,15 @@ contains
   double precision function truncatedExponentialRadiusEnclosingDensity(self,node,density)
     !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
     !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout), target :: self
-    type            (treeNode                             ), intent(inout), target :: node
-    double precision                                       , intent(in   )         :: density
-    
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialRadiusEnclosingDensity=0.0d0
-       call Galacticus_Error_Report('radius enclosing density in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    type            (treeNode                                ), intent(inout), target :: node
+    double precision                                          , intent(in   )         :: density
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialRadiusEnclosingDensity=self%darkMatterProfileDMO_%radiusEnclosingDensity         (node,density)
     else
-       truncatedExponentialRadiusEnclosingDensity=self%darkMatterProfileDMO_%radiusEnclosingDensity(node,density)
+       truncatedExponentialRadiusEnclosingDensity=self                      %radiusEnclosingDensityNumerical(node,density)
     end if
     return
   end function truncatedExponentialRadiusEnclosingDensity
@@ -242,73 +294,32 @@ contains
   double precision function truncatedExponentialRadiusEnclosingMass(self,node,mass)
     !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
     !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
-    use Galacticus_Nodes, only : nodeComponentBasic
-    use Root_Finder
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout), target :: self
-    type            (treeNode                             ), intent(inout), target :: node
-    double precision                                       , intent(in   )         :: mass
-    class           (nodeComponentBasic                   ), pointer               :: basic
-    type            (rootFinder                           ), save                  :: finder
-    !$omp threadprivate(finder)
-
-    if (mass <= 0.0d0) then
-       truncatedExponentialRadiusEnclosingMass=0.0d0
-       return
-    end if
-    ! Get basic component.
-    basic => node%basic()
-    ! If the given mass is smaller than the virial mass, compute the radius from untruncated profile.
-    if (mass <= basic%mass()) then
-       truncatedExponentialRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass(node,mass)
+    type            (treeNode                                ), intent(inout), target :: node
+    double precision                                          , intent(in   )         :: mass
+    
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
     else
-       ! Initialize the root finder.
-       if (.not.finder%isInitialized()) then
-          call finder%rangeExpand (                                                                 &
-               &                       rangeExpandDownward          =0.5d0                        , &
-               &                       rangeExpandUpward            =2.0d0                        , &
-               &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-               &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                       rangeExpandType              =rangeExpandMultiplicative      &
-               &                  )
-          call finder%rootFunction(truncatedExponentialEnclosedMassRoot                         )
-          call finder%tolerance   (toleranceAbsolute=0.0d0             ,toleranceRelative=1.0d-6)
-       end if
-       ! Check if node differs from previous one for which we performed calculations.
-       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-       if (self%enclosingMassRadiusPrevious < 0.0d0) then
-          self%enclosingMassRadiusPrevious=self%darkMatterHaloScale_%virialRadius(node)
-       end if
-       self%enclosingMassRadiusPrevious=finder%find(rootGuess=self%enclosingMassRadiusPrevious)
-       truncatedExponentialRadiusEnclosingMass=self%enclosingMassRadiusPrevious
+       truncatedExponentialRadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
     end if
     return
-    contains
-      double precision function truncatedExponentialEnclosedMassRoot(radius)
-        !% Root function used in solving for the radius that encloses a given mass.
-        implicit none
-        double precision, intent(in) :: radius
-
-        truncatedExponentialEnclosedMassRoot=self%enclosedMass(node,radius)-mass
-        return
-      end function truncatedExponentialEnclosedMassRoot
   end function truncatedExponentialRadiusEnclosingMass
 
   double precision function truncatedExponentialRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout)           :: self
-    type            (treeNode                             ), intent(inout)           :: node
-    double precision                                       , intent(in   )           :: moment
-    double precision                                       , intent(in   ), optional :: radiusMinimum, radiusMaximum
+    type            (treeNode                                ), intent(inout)           :: node
+    double precision                                          , intent(in   )           :: moment
+    double precision                                          , intent(in   ), optional :: radiusMinimum, radiusMaximum
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialRadialMoment=0.0d0
-       call Galacticus_Error_Report('radial moment in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialRadialMoment=self%darkMatterProfileDMO_%radialMoment         (node,moment,radiusMinimum,radiusMaximum)
     else
-       truncatedExponentialRadialMoment=self%darkMatterProfileDMO_%radialMoment(node,moment,radiusMinimum,radiusMaximum)
+       truncatedExponentialRadialMoment=self                      %radialMomentNumerical(node,moment,radiusMinimum,radiusMaximum)
     end if
     return 
   end function truncatedExponentialRadialMoment
@@ -316,97 +327,62 @@ contains
   double precision function truncatedExponentialEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
-    use FGSL                 , only : fgsl_function, fgsl_integration_workspace
-    use Numerical_Integration
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: radius
-    double precision                                                       :: radiusVirial
-    type            (fgsl_function                        )                :: integrandFunction
-    type            (fgsl_integration_workspace           )                :: integrationWorkspace
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: radius
 
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
-    if (radius <= radiusVirial) then
-       truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radius)
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialEnclosedMass=self%darkMatterProfileDMO_%enclosedMass         (node,radius)
     else
-       truncatedExponentialEnclosedMass=+Integrate(                                           &
-            &                                             +radiusVirial                     , &
-            &                                             +radius                           , &
-            &                                              truncatedExponentialMassIntegrand, &
-            &                                              integrandFunction                , &
-            &                                              integrationWorkspace             , &
-            &                                      toleranceAbsolute=+0.0d0                 , &
-            &                                      toleranceRelative=+1.0d-9                  &
-            &                                     )                                           &
-            &                           +self%darkMatterProfileDMO_%enclosedMass(node,radiusVirial)
-       call Integrate_Done(integrandFunction,integrationWorkspace)
+       truncatedExponentialEnclosedMass=self                      %enclosedMassNumerical(node,radius)
     end if
     return
-
-  contains
-
-    double precision function truncatedExponentialMassIntegrand(radius)
-      !% Integrand for mass in exponentially truncated dark matter profiles.
-      use Numerical_Constants_Math
-      implicit none
-      double precision, intent(in   ) :: radius
-
-      truncatedExponentialMassIntegrand=4.0d0*Pi*radius**2*self%density(node,radius)
-      return
-    end function truncatedExponentialMassIntegrand
-
   end function truncatedExponentialEnclosedMass
   
   double precision function truncatedExponentialPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
     !% \ttfamily radius} (given in units of Mpc).
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout)           :: self
-    type            (treeNode                             ), intent(inout), pointer  :: node
-    double precision                                       , intent(in   )           :: radius
-    integer                                                , intent(  out), optional :: status    
+    type            (treeNode                                ), intent(inout), pointer  :: node
+    double precision                                          , intent(in   )           :: radius
+    integer                                                   , intent(  out), optional :: status    
  
-     if (self%unimplementedIsFatal) then
-       truncatedExponentialPotential=0.0d0
-       call Galacticus_Error_Report('potential in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialPotential=self%darkMatterProfileDMO_%potential         (node,radius)
     else
-       truncatedExponentialPotential=self%darkMatterProfileDMO_%potential(node,radius,status)
+       truncatedExponentialPotential=self                      %potentialNumerical(node,radius)
     end if
-   return
+    return
   end function truncatedExponentialPotential
 
   double precision function truncatedExponentialCircularVelocity(self,node,radius)
     !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: radius
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: radius
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialCircularVelocity=0.0d0
-       call Galacticus_Error_Report('circular velocity in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialCircularVelocity=self%darkMatterProfileDMO_%circularVelocity         (node,radius)
     else
-       truncatedExponentialCircularVelocity=self%darkMatterProfileDMO_%circularVelocity(node,radius)
+       truncatedExponentialCircularVelocity=self                      %circularVelocityNumerical(node,radius)
     end if
     return
   end function truncatedExponentialCircularVelocity
 
   double precision function truncatedExponentialCircularVelocityMaximum(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    use Galacticus_Error
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type (treeNode                             ), intent(inout) :: node
+    type (treeNode                                ), intent(inout) :: node
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialCircularVelocityMaximum=0.0d0
-       call Galacticus_Error_Report('circular velocity maximum in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialCircularVelocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum         (node)
     else
-       truncatedExponentialCircularVelocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum(node)
+       truncatedExponentialCircularVelocityMaximum=self                      %circularVelocityMaximumNumerical(node)
     end if
     return
   end function truncatedExponentialCircularVelocityMaximum
@@ -414,65 +390,57 @@ contains
   double precision function truncatedExponentialRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
     !% in units of km s$^{-1}$ Mpc).
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout)          :: self
-    type            (treeNode                             ), intent(inout), pointer :: node
-    double precision                                       , intent(in   )          :: specificAngularMomentum
+    type            (treeNode                                ), intent(inout), pointer :: node
+    double precision                                          , intent(in   )          :: specificAngularMomentum
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialRadiusFromSpecificAngularMomentum=0.0d0
-       call Galacticus_Error_Report('radius from specific angular momentum in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum         (node,specificAngularMomentum)
     else
-       truncatedExponentialRadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(node,specificAngularMomentum)
+       truncatedExponentialRadiusFromSpecificAngularMomentum=self                      %radiusFromSpecificAngularMomentumNumerical(node,specificAngularMomentum)
     end if
     return
   end function truncatedExponentialRadiusFromSpecificAngularMomentum
 
   double precision function truncatedExponentialRotationNormalization(self,node)
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
-    use Galacticus_Error
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type (treeNode                             ), intent(inout) :: node
+    type (treeNode                                ), intent(inout) :: node
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialRotationNormalization=0.0d0
-       call Galacticus_Error_Report('rotation normalization in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialRotationNormalization=self%darkMatterProfileDMO_%rotationNormalization         (node)
     else
-       truncatedExponentialRotationNormalization=self%darkMatterProfileDMO_%rotationNormalization(node)
+       truncatedExponentialRotationNormalization=self                      %rotationNormalizationNumerical(node)
     end if
     return
   end function truncatedExponentialRotationNormalization
 
   double precision function truncatedExponentialEnergy(self,node)
     !% Return the energy of a truncatedExponential halo density profile.
-    use Galacticus_Error
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type (treeNode                             ), intent(inout) :: node
+    type (treeNode                                ), intent(inout) :: node
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialEnergy=0.0d0
-       call Galacticus_Error_Report('energy in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialEnergy=self%darkMatterProfileDMO_%energy         (node)
     else
-       truncatedExponentialEnergy=self%darkMatterProfileDMO_%energy(node)
+       truncatedExponentialEnergy=self                      %energyNumerical(node)
     end if
     return
   end function truncatedExponentialEnergy
 
   double precision function truncatedExponentialEnergyGrowthRate(self,node)
     !% Return the rate of change of the energy of a truncatedExponential halo density profile.
-    use Galacticus_Error
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout)         :: self
-    type (treeNode                             ), intent(inout), target :: node
+    type (treeNode                                ), intent(inout), target :: node
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialEnergyGrowthRate=0.0d0
-       call Galacticus_Error_Report('energy growth rate in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
     else
-       truncatedExponentialEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate(node)
+       truncatedExponentialEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
     end if
     return
   end function truncatedExponentialEnergyGrowthRate
@@ -480,17 +448,15 @@ contains
   double precision function truncatedExponentialKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the truncatedExponential density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout)          :: self
-    type            (treeNode                             ), intent(inout), pointer :: node
-    double precision                                       , intent(in   )          :: waveNumber
+    type            (treeNode                                ), intent(inout), pointer :: node
+    double precision                                          , intent(in   )          :: waveNumber
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialKSpace=0.0d0
-       call Galacticus_Error_Report('k-space in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)
     else
-       truncatedExponentialKSpace=self%darkMatterProfileDMO_%kSpace(node,waveNumber)
+       truncatedExponentialKSpace=self                      %kSpaceNumerical(node,waveNumber)
     end if
     return
   end function truncatedExponentialKSpace
@@ -498,18 +464,15 @@ contains
   double precision function truncatedExponentialFreefallRadius(self,node,time)
     !% Returns the freefall radius in the truncatedExponential density profile at the specified {\normalfont \ttfamily time} (given in
     !% Gyr).
-    use Galacticus_Display
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: time
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: time
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialFreefallRadius=0.0d0
-       call Galacticus_Error_Report('freefall radius in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialFreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
     else
-       truncatedExponentialFreefallRadius=self%darkMatterProfileDMO_%freefallRadius(node,time)
+       truncatedExponentialFreefallRadius=self                      %freefallRadiusNumerical(node,time)
     end if
     return
   end function truncatedExponentialFreefallRadius
@@ -517,18 +480,15 @@ contains
   double precision function truncatedExponentialFreefallRadiusIncreaseRate(self,node,time)
     !% Returns the rate of increase of the freefall radius in the truncatedExponential density profile at the specified {\normalfont
     !% \ttfamily time} (given in Gyr).
-    use Galacticus_Display
-    use Galacticus_Error
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
-    type            (treeNode                             ), intent(inout) :: node
-    double precision                                       , intent(in   ) :: time
+    type            (treeNode                                ), intent(inout) :: node
+    double precision                                          , intent(in   ) :: time
 
-    if (self%unimplementedIsFatal) then
-       truncatedExponentialFreefallRadiusIncreaseRate=0.0d0
-       call Galacticus_Error_Report('freefall radius increase rate in exponentially truncated dark matter profiles is not supported'//{introspection:location})
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+       truncatedExponentialFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)
     else
-       truncatedExponentialFreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate(node,time)
+       truncatedExponentialFreefallRadiusIncreaseRate=self                      %freefallRadiusIncreaseRateNumerical(node,time)
     end if
     return
   end function truncatedExponentialFreefallRadiusIncreaseRate
