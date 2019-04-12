@@ -19,7 +19,6 @@
 
   !% An implementation of \cite{navarro_universal_1997} dark matter halo profiles.
 
-  use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass, darkMatterHaloScale
   use Tables
   use Kind_Numbers
 
@@ -63,8 +62,6 @@
           &                                                     enclosedMassPrevious                   , enclosingMassRadiusPrevious        , &
           &                                                     massScalePrevious                      , circularVelocityPrevious           , &
           &                                                     circularVelocityRadiusPrevious
-     ! Pointer to object setting halo scales.
-     class(darkMatterHaloScaleClass           ), pointer     :: darkMatterHaloScale_ => null()
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileDMONFW</object>
@@ -181,7 +178,7 @@
   ! Number of points per decade of concentration in NFW tabulations.
   integer, parameter   :: nfwTablePointsPerDecade               =100
   integer, parameter   :: nfwInverseTablePointsPerDecade        =100
-  integer, parameter   :: nfwFreefallTablePointsPerDecade       =100
+  integer, parameter   :: nfwFreefallTablePointsPerDecade       =300
   integer, parameter   :: nfwEnclosedDensityTablePointsPerDecade=100
   ! Indices for tabulated quantities.
   integer, parameter   :: nfwConcentrationEnergyIndex           =  1, nfwConcentrationRotationNormalizationIndex=2

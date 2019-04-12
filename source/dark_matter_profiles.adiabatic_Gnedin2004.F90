@@ -19,11 +19,13 @@
 
   !% An implementation of adiabaticGnedin2004 dark matter halo profiles.
 
-  use Galactic_Structure_Options, only : componentTypeAll    , massTypeBaryonic         , weightByMass, weightIndexNull, radiusLarge
-  use Math_Exponentiation       , only : fastExponentiator
-  use Cosmology_Parameters      , only : cosmologyParameters , cosmologyParametersClass
-  use Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO, darkMatterProfileDMOClass
-  use Dark_Matter_Halo_Scales   , only : darkMatterHaloScale , darkMatterHaloScaleClass
+  use Galactic_Structure_Options  , only : componentTypeAll                   , massTypeBaryonic                    , weightByMass                 , weightIndexNull, &
+       &                                   radiusLarge
+  use Math_Exponentiation         , only : fastExponentiator
+  use Cosmology_Parameters        , only : cosmologyParameters                , cosmologyParametersClass
+  use Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMO               , darkMatterProfileDMOClass
+  use Dark_Matter_Halo_Scales     , only : darkMatterHaloScale                , darkMatterHaloScaleClass
+  use Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
   ! Number of previous radius solutions to store.
   integer, parameter :: adiabaticGnedin2004StoreCount=10
@@ -100,8 +102,10 @@
      procedure :: radiusFromSpecificAngularMomentum => adiabaticGnedin2004RadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => adiabaticGnedin2004RotationNormalization
      procedure :: energy                            => adiabaticGnedin2004Energy
+     procedure :: energyGrowthRate                  => adiabaticGnedin2004EnergyGrowthRate
      procedure :: kSpace                            => adiabaticGnedin2004KSpace
      procedure :: freefallRadius                    => adiabaticGnedin2004FreefallRadius
+     procedure :: freefallRadiusIncreaseRate        => adiabaticGnedin2004FreefallRadiusIncreaseRate
      procedure :: radiusInitial                     => adiabaticGnedin2004RadiusInitial
      procedure :: radiusInitialDerivative           => adiabaticGnedin2004RadiusInitialDerivative
      procedure :: computeFactors                    => adiabaticGnedin2004ComputeFactors
@@ -122,15 +126,6 @@
   class           (darkMatterProfileAdiabaticGnedin2004), pointer   :: adiabaticGnedin2004Self
   !$omp threadprivate(adiabaticGnedin2004Self,adiabaticGnedin2004Node)
 
-  !# <enumeration>
-  !#  <name>nonAnalyticSolvers</name>
-  !#  <description>Used to specify the type of solution to use when no analytic solution is available.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <entry label="darkMatterOnly"/>
-  !#  <entry label="numerical"     />
-  !# </enumeration>
-  
 contains
 
   function adiabaticGnedin2004ConstructorParameters(parameters) result(self)
@@ -167,7 +162,7 @@ contains
     !#   <name>nonAnalyticSolver</name>
     !#   <defaultValue>var_str('darkMatterOnly')</defaultValue>
     !#   <source>parameters</source>
-    !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily darkMatterOnly}'' then the solution ignoring adiabatic contraction by baryons is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+    !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring adiabatic contraction by baryons is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     !#   <type>string</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
@@ -286,7 +281,7 @@ contains
     double precision                                                      :: radiusInitial
 
     radiusInitial=self%radiusInitial(node,radius)
-    if (radius == radiusInitial .or. self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (radius == radiusInitial .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004DensityLogSlope=self%darkMatterProfileDMO_%densityLogSlope         (node,radius)
     else
        adiabaticGnedin2004DensityLogSlope=self                      %densityLogSlopeNumerical(node,radius)
@@ -302,7 +297,7 @@ contains
     type            (treeNode                            ), intent(inout), target :: node
     double precision                                      , intent(in   )         :: density
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadiusEnclosingDensity=self%darkMatterProfileDMO_%radiusEnclosingDensity         (node,density)
     else
        adiabaticGnedin2004RadiusEnclosingDensity=self                      %radiusEnclosingDensityNumerical(node,density)
@@ -318,7 +313,7 @@ contains
     type            (treeNode                            ), intent(inout), target :: node
     double precision                                      , intent(in   )         :: mass
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
     else
        adiabaticGnedin2004RadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
@@ -335,7 +330,7 @@ contains
     double precision                                      , intent(in   )           :: moment
     double precision                                      , intent(in   ), optional :: radiusMinimum, radiusMaximum
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadialMoment=self%darkMatterProfileDMO_%radialMoment         (node,moment,radiusMinimum,radiusMaximum)
     else
        adiabaticGnedin2004RadialMoment=self                      %radialMomentNumerical(node,moment,radiusMinimum,radiusMaximum)
@@ -354,7 +349,7 @@ contains
     double precision                                                                :: radiusInitial
 
     radiusInitial=self%radiusInitial(node,radius)
-    if (radius == radiusInitial .or. self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (radius == radiusInitial .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        ! No adiabatic contraction - use the dark-matter-only result.
        adiabaticGnedin2004Potential=+self%darkMatterFraction                                           &
             &                       *self%darkMatterProfileDMO_%potential         (node,radius,status)
@@ -373,7 +368,7 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: radius
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004CircularVelocity=self%darkMatterProfileDMO_%circularVelocity         (node,radius)
     else
        adiabaticGnedin2004CircularVelocity=self                      %circularVelocityNumerical(node,radius)
@@ -387,7 +382,7 @@ contains
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004CircularVelocityMaximum=self%darkMatterProfileDMO_%circularVelocityMaximum         (node)
     else
        adiabaticGnedin2004CircularVelocityMaximum=self                      %circularVelocityMaximumNumerical(node)
@@ -403,7 +398,7 @@ contains
     type            (treeNode                            ), intent(inout), pointer :: node
     double precision                                      , intent(in   )          :: specificAngularMomentum
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RadiusFromSpecificAngularMomentum=self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum         (node,specificAngularMomentum)
     else
        adiabaticGnedin2004RadiusFromSpecificAngularMomentum=self                      %radiusFromSpecificAngularMomentumNumerical(node,specificAngularMomentum)
@@ -417,7 +412,7 @@ contains
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004RotationNormalization=self%darkMatterProfileDMO_%rotationNormalization         (node)
     else
        adiabaticGnedin2004RotationNormalization=self                      %rotationNormalizationNumerical(node)
@@ -431,13 +426,27 @@ contains
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004Energy=self%darkMatterProfileDMO_%energy         (node)
     else
        adiabaticGnedin2004Energy=self                      %energyNumerical(node)
     end if
     return
   end function adiabaticGnedin2004Energy
+
+  double precision function adiabaticGnedin2004EnergyGrowthRate(self,node)
+    !% Return the rate of change of the energy of a adiabaticGnedin2004 halo density profile.
+    implicit none
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+    type (treeNode                            ), intent(inout) :: node
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       adiabaticGnedin2004EnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
+    else
+       adiabaticGnedin2004EnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
+    end if
+    return
+  end function adiabaticGnedin2004EnergyGrowthRate
 
   double precision function adiabaticGnedin2004KSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily waveNumber}
@@ -447,7 +456,7 @@ contains
     type            (treeNode                            ), intent(inout), pointer :: node
     double precision                                      , intent(in   )          :: waveNumber
     
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004KSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)
     else
        adiabaticGnedin2004KSpace=self                      %kSpaceNumerical(node,waveNumber)
@@ -463,14 +472,29 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     double precision                                      , intent(in   ) :: time
 
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversDarkMatterOnly) then
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004FreefallRadius=self%darkMatterProfileDMO_%freefallRadius         (node,time)
     else
        adiabaticGnedin2004FreefallRadius=self                      %freefallRadiusNumerical(node,time)
     end if
     return
   end function adiabaticGnedin2004FreefallRadius
+
+  double precision function adiabaticGnedin2004FreefallRadiusIncreaseRate(self,node,time)
+    !% Returns the rate of increase of the freefall radius in the adiabaticGnedin2004 density profile at the specified
+    !% {\normalfont \ttfamily time} (given in Gyr).
+    implicit none
+    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+    type            (treeNode                            ), intent(inout) :: node
+    double precision                                      , intent(in   ) :: time
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       adiabaticGnedin2004FreefallRadiusIncreaseRate=self%darkMatterProfileDMO_%freefallRadiusIncreaseRate         (node,time)
+    else
+       adiabaticGnedin2004FreefallRadiusIncreaseRate=self                      %freefallRadiusIncreaseRateNumerical(node,time)
+    end if
+    return
+  end function adiabaticGnedin2004FreefallRadiusIncreaseRate
 
   double precision function adiabaticGnedin2004RadiusInitial(self,node,radius)
     !% Compute the initial radius in the dark matter halo using the adiabatic contraction algorithm of

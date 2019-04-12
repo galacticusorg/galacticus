@@ -45,8 +45,10 @@
      procedure :: radiusFromSpecificAngularMomentum => darkMatterOnlyRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => darkMatterOnlyRotationNormalization
      procedure :: energy                            => darkMatterOnlyEnergy
+     procedure :: energyGrowthRate                  => darkMatterOnlyEnergyGrowthRate
      procedure :: kSpace                            => darkMatterOnlyKSpace
      procedure :: freefallRadius                    => darkMatterOnlyFreefallRadius
+     procedure :: freefallRadiusIncreaseRate        => darkMatterOnlyFreefallRadiusIncreaseRate
   end type darkMatterProfileDarkMatterOnly
 
   interface darkMatterProfileDarkMatterOnly
@@ -253,6 +255,17 @@ contains
     return
   end function darkMatterOnlyEnergy
 
+  double precision function darkMatterOnlyEnergyGrowthRate(self,node)
+    !% Return the rate of change of the energy of the dark matter halo density profile.
+    implicit none
+    class(darkMatterProfileDarkMatterOnly), intent(inout) :: self
+    type (treeNode                       ), intent(inout) :: node
+
+    darkMatterOnlyEnergyGrowthRate=+self%darkMatterFraction                          **2 &
+         &                         *self%darkMatterProfileDMO_%energyGrowthRate(node)
+    return
+  end function darkMatterOnlyEnergyGrowthRate
+
   double precision function darkMatterOnlyKSpace(self,node,waveNumber)
     !% Returns the Fourier transform of the dark matter halo density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
@@ -278,3 +291,16 @@ contains
     darkMatterOnlyFreefallRadius=self%darkMatterProfileDMO_%freefallRadius(node,time*sqrt(self%darkMatterFraction))
     return
   end function darkMatterOnlyFreefallRadius
+
+  double precision function darkMatterOnlyFreefallRadiusIncreaseRate(self,node,time)
+    !% Returns the freefall radius in the dark matter halo density profile at the specified {\normalfont \ttfamily time} (given in
+    !% Gyr).
+    implicit none
+    class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    double precision                                 , intent(in   ) :: time
+
+    darkMatterOnlyFreefallRadiusIncreaseRate=+                                                                sqrt(self%darkMatterFraction)  &
+         &                                   *self%darkMatterProfileDMO_%freefallRadiusIncreaseRate(node,time*sqrt(self%darkMatterFraction))
+    return
+  end function darkMatterOnlyFreefallRadiusIncreaseRate

@@ -19,7 +19,6 @@
 
   !% An implementation of \cite{burkert_structure_1995} dark matter halo profiles.
 
-  use Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass, darkMatterHaloScale
   use Numerical_Constants_Math, only : Pi
   use Tables
   use Kind_Numbers
@@ -62,8 +61,6 @@
      double precision                                        :: specificAngularMomentumLengthScale               , specificAngularMomentumScale         , &
           &                                                     concentrationPrevious                            , burkertNormalizationFactorPrevious   , &
           &                                                     maximumVelocityPrevious
-     ! Pointer to object setting halo scales.
-     class(darkMatterHaloScaleClass           ), pointer     :: darkMatterHaloScale_                    => null()
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileDMOBurkert</object>

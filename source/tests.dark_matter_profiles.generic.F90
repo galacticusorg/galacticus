@@ -22,44 +22,52 @@
 program Test_Dark_Matter_Profiles_Generic
   !% Tests that numerical differentiation functions work.
   use Input_Parameters
-  use Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard             , Galacticus_Display_Message
-  use Unit_Tests              , only : Unit_Tests_Begin_Group        , Unit_Tests_End_Group          , Unit_Tests_Finish           , Assert                    , &
-       &                               Skip
-  use Galacticus_Nodes        , only : treeNode, nodeComponentBasic  , nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
+  use Galacticus_Display          , only : Galacticus_Verbosity_Level_Set, verbosityStandard   , Galacticus_Display_Message
+  use Unit_Tests                  , only : Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish             , Assert                      , &
+       &                                   Skip
+  use Galacticus_Nodes            , only : treeNode                      , nodeComponentBasic  , nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize, &
+       &                                   nodeClassHierarchyFinalize
+  use Functions_Global_Utilities  , only : Functions_Global_Set
   use Node_Components
   use Cosmology_Parameters
   use Cosmology_Functions
   use Dark_Matter_Profiles_DMO
   use Dark_Matter_Profiles
   use Dark_Matter_Halo_Scales
+  use Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
   implicit none
-  class           (darkMatterHaloScaleClass       ), pointer      :: darkMatterHaloScale_
-  type            (darkMatterProfileDMOIsothermal ), pointer      :: darkMatterProfileIsothermal_
-  type            (darkMatterProfileDMONFW        ), pointer      :: darkMatterProfileNFW_
-  type            (darkMatterProfileDMOEinasto    ), pointer      :: darkMatterProfileEinasto_
-  type            (darkMatterProfileDMOBurkert    ), pointer      :: darkMatterProfileBurkert_
-  type            (darkMatterProfileDarkMatterOnly), pointer      :: darkMatterProfileIsothermal__                   , darkMatterProfileNFW__                   , &
-       &                                                             darkMatterProfileEinasto__                      , darkMatterProfileBurkert__
-  class           (cosmologyParametersClass       ), pointer      :: cosmologyParameters_
-  class           (cosmologyFunctionsClass        ), pointer      :: cosmologyFunctions_
-  type            (treeNode                       ), pointer      :: node_
-  class           (nodeComponentBasic             ), pointer      :: basic_
-  class           (nodeComponentDarkMatterProfile ), pointer      :: darkMatterProfile_
-  double precision                                 , parameter    :: concentration                             =8.0d+0, massVirial                       =1.0d12, &
-       &                                                             shapeProfile                              =1.8d-1
-  type            (inputParameters                )               :: parameters
-  integer                                                         :: i
-  double precision                                                :: radiusScale                                      , radiusVirial                            , &
-       &                                                             timeDynamical
-  double precision                                 , dimension(9) :: potentialNumerical                               , potential                               , &
-       &                                                             velocityCircularNumerical                        , velocityCircular                        , &
-       &                                                             kSpaceNumerical                                  , kSpace                                  , &
-       &                                                             freefallRadiusNumerical                          , freefallRadius                          , &
-       &                                                             radiusEnclosingDensityNumerical                  , radiusEnclosingDensity                  , &
-       &                                                             radiusEnclosingMassNumerical                     , radiusEnclosingMass                     , &
-       &                                                             radiusFromSpecificAngularMomentumNumerical       , radiusFromSpecificAngularMomentum       , &
-       &                                                             densityLogSlopeNumerical                         , densityLogSlope
-  double precision                                 , dimension(9) :: scaleFractional=[0.01d0,0.03d0,0.10d0,0.30d0,1.00d0,3.00d0,10.0d0,30.0d0,100.0d0]
+  class           (darkMatterHaloScaleClass                ), pointer      :: darkMatterHaloScale_
+  type            (darkMatterProfileDMOIsothermal          ), pointer      :: darkMatterProfileIsothermal_
+  type            (darkMatterProfileDMONFW                 ), pointer      :: darkMatterProfileNFW_
+  type            (darkMatterProfileDMOEinasto             ), pointer      :: darkMatterProfileEinasto_
+  type            (darkMatterProfileDMOBurkert             ), pointer      :: darkMatterProfileBurkert_
+  type            (darkMatterProfileDMOTruncated           ), pointer      :: darkMatterProfileTruncated_
+  type            (darkMatterProfileDMOTruncatedExponential), pointer      :: darkMatterProfileTruncatedExponential_
+  type            (darkMatterProfileDarkMatterOnly         ), pointer      :: darkMatterProfileIsothermal__                   , darkMatterProfileNFW__                        , &
+       &                                                                      darkMatterProfileEinasto__                      , darkMatterProfileBurkert__                    , &
+       &                                                                      darkMatterProfileTruncated__                    , darkMatterProfileTruncatedExponential__
+  class           (cosmologyParametersClass                ), pointer      :: cosmologyParameters_
+  class           (cosmologyFunctionsClass                 ), pointer      :: cosmologyFunctions_
+  type            (treeNode                                ), pointer      :: node_
+  class           (nodeComponentBasic                      ), pointer      :: basic_
+  class           (nodeComponentDarkMatterProfile          ), pointer      :: darkMatterProfile_
+  double precision                                          , parameter    :: concentration                             =8.0d+0, massVirial                            =1.0d12, &
+       &                                                                      shapeProfile                              =1.8d-1
+  type            (inputParameters                         )               :: parameters
+  integer                                                                  :: i
+  double precision                                                         :: radiusScale                                      , radiusVirial                                 , &
+       &                                                                      timeDynamical
+  double precision                                          , dimension(9) :: enclosedMass                                     , enclosedMassNumerical                        , &
+       &                                                                      potentialNumerical                               , potential                                    , &
+       &                                                                      velocityCircularNumerical                        , velocityCircular                             , &
+       &                                                                      kSpaceNumerical                                  , kSpace                                       , &
+       &                                                                      freefallRadiusNumerical                          , freefallRadius                               , &
+       &                                                                      freefallRadiusIncreaseRateNumerical              , freefallRadiusIncreaseRate                   , &
+       &                                                                      radiusEnclosingDensityNumerical                  , radiusEnclosingDensity                       , &
+       &                                                                      radiusEnclosingMassNumerical                     , radiusEnclosingMass                          , &
+       &                                                                      radiusFromSpecificAngularMomentumNumerical       , radiusFromSpecificAngularMomentum            , &
+       &                                                                      densityLogSlopeNumerical                         , densityLogSlope
+  double precision                                          , dimension(9) :: scaleFractional=[0.01d0,0.03d0,0.10d0,0.30d0,1.00d0,3.00d0,10.0d0,30.0d0,100.0d0]
 
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
   call Unit_Tests_Begin_Group("Generic dark matter profiles")
@@ -68,28 +76,59 @@ program Test_Dark_Matter_Profiles_Generic
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
-  allocate(darkMatterProfileNFW_        )
-  allocate(darkMatterProfileIsothermal_ )
-  allocate(darkMatterProfileEinasto_    )
-  allocate(darkMatterProfileBurkert_    )
-  allocate(darkMatterProfileNFW__       )
-  allocate(darkMatterProfileIsothermal__)
-  allocate(darkMatterProfileEinasto__   )
-  allocate(darkMatterProfileBurkert__   )
-  cosmologyParameters_             =>  cosmologyParameters            (                                                                      )
-  cosmologyFunctions_              =>  cosmologyFunctions             (                                                                      )
-  darkMatterHaloScale_             =>  darkMatterHaloScale            (                                                                      )
-  darkMatterProfileIsothermal_     =   darkMatterProfileDMOIsothermal (                     darkMatterHaloScale_                             )
-  darkMatterProfileNFW_            =   darkMatterProfileDMONFW        (                     darkMatterHaloScale_                             )
-  darkMatterProfileEinasto_        =   darkMatterProfileDMOEinasto    (                     darkMatterHaloScale_                             )
-  darkMatterProfileBurkert_        =   darkMatterProfileDMOBurkert    (                     darkMatterHaloScale_                             )
-  darkMatterProfileIsothermal__    =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileIsothermal_)
-  darkMatterProfileNFW__           =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileNFW_       )
-  darkMatterProfileEinasto__       =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileEinasto_   )
-  darkMatterProfileBurkert__       =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileBurkert_   )
-  node_                            =>  treeNode                              (                 )
-  basic_                           =>  node_               %basic            (autoCreate=.true.)
-  darkMatterProfile_               =>  node_               %darkMatterProfile(autoCreate=.true.)
+  call Functions_Global_Set             (          )
+  allocate(darkMatterProfileNFW_                  )
+  allocate(darkMatterProfileIsothermal_           )
+  allocate(darkMatterProfileEinasto_              )
+  allocate(darkMatterProfileBurkert_              )
+  allocate(darkMatterProfileTruncated_            )
+  allocate(darkMatterProfileTruncatedExponential_ )
+  allocate(darkMatterProfileNFW__                 )
+  allocate(darkMatterProfileIsothermal__          )
+  allocate(darkMatterProfileEinasto__             )
+  allocate(darkMatterProfileBurkert__             )
+  allocate(darkMatterProfileTruncated__           )
+  allocate(darkMatterProfileTruncatedExponential__)
+  cosmologyParameters_                    =>  cosmologyParameters                     ()
+  cosmologyFunctions_                     =>  cosmologyFunctions                      ()
+  darkMatterHaloScale_                    =>  darkMatterHaloScale                     ()
+  darkMatterProfileIsothermal_            =   darkMatterProfileDMOIsothermal          (                                                             &
+       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+       &                                                                              )
+  darkMatterProfileNFW_                   =   darkMatterProfileDMONFW                 (                                                             &
+       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+       &                                                                              )
+  darkMatterProfileEinasto_               =   darkMatterProfileDMOEinasto             (                                                             &
+       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+       &                                                                              )
+  darkMatterProfileBurkert_               =   darkMatterProfileDMOBurkert             (                                                             &
+       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+       &                                                                              )
+  darkMatterProfileTruncated_             =   darkMatterProfileDMOTruncated           (                                                             &
+       &                                                                               radiusFractionalTruncateMinimum= 1.0d0                     , &
+       &                                                                               radiusFractionalTruncateMaximum=20.0d0                     , &
+       &                                                                               nonAnalyticSolver              =nonAnalyticSolversNumerical, &
+       &                                                                               darkMatterProfileDMO_          =darkMatterProfileNFW_      , &
+       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+       &                                                                              )
+  darkMatterProfileTruncatedExponential_  =   darkMatterProfileDMOTruncatedExponential(                                                             &
+       &                                                                               radiusFractionalDecay          = 3.0d0                     , &
+       &                                                                               alpha                          = 1.0d0                     , &
+       &                                                                               beta                           = 3.0d0                     , &
+       &                                                                               gamma                          = 1.0d0                     , &
+       &                                                                               nonAnalyticSolver              =nonAnalyticSolversNumerical, &
+       &                                                                               darkMatterProfileDMO_          =darkMatterProfileNFW_      , &
+       &                                                                               darkMatterHaloScale_           =darkMatterHaloScale_         &
+       &                                                                              )
+  darkMatterProfileIsothermal__           =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileIsothermal_           )
+  darkMatterProfileNFW__                  =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileNFW_                  )
+  darkMatterProfileEinasto__              =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileEinasto_              )
+  darkMatterProfileBurkert__              =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileBurkert_              )
+  darkMatterProfileTruncated__            =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileTruncated_            )
+  darkMatterProfileTruncatedExponential__ =   darkMatterProfileDarkMatterOnly(cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileTruncatedExponential_ )
+  node_                                   =>  treeNode                              (                 )
+  basic_                                  =>  node_               %basic            (autoCreate=.true.)
+  darkMatterProfile_                      =>  node_               %darkMatterProfile(autoCreate=.true.)
   call basic_            %timeSet            (cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_            %timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_            %massSet            (massVirial                           )
@@ -99,8 +138,10 @@ program Test_Dark_Matter_Profiles_Generic
        &        /concentration             
   call darkMatterProfile_%scaleSet(radiusScale )
   call darkMatterProfile_%shapeSet(shapeProfile)
-  call Unit_Tests_Begin_Group("Isothermal profile")
+  call Unit_Tests_Begin_Group("Isothermal profile"   )
   do i=1,size(scaleFractional)
+     enclosedMass                              (i)=darkMatterProfileIsothermal__%enclosedMass                              (node_,                                                                                     scaleFractional(i)*radiusScale  )
+     enclosedMassNumerical                     (i)=darkMatterProfileIsothermal__%enclosedMassNumerical                     (node_,                                                                                     scaleFractional(i)*radiusScale  )
      potential                                 (i)=darkMatterProfileIsothermal__%potential                                 (node_,                                                                                     scaleFractional(i)*radiusScale  )
      potentialNumerical                        (i)=darkMatterProfileIsothermal__%potentialNumerical                        (node_,                                                                                     scaleFractional(i)*radiusScale  )
      velocityCircular                          (i)=darkMatterProfileIsothermal__%circularVelocity                          (node_,                                                                                     scaleFractional(i)*radiusScale  )
@@ -109,6 +150,8 @@ program Test_Dark_Matter_Profiles_Generic
      kSpaceNumerical                           (i)=darkMatterProfileIsothermal__%kSpaceNumerical                           (node_,                                                                                     scaleFractional(i)/radiusScale  )
      freefallRadius                            (i)=darkMatterProfileIsothermal__%freefallRadius                            (node_,                                                                                     scaleFractional(i)*timeDynamical)
      freefallRadiusNumerical                   (i)=darkMatterProfileIsothermal__%freefallRadiusNumerical                   (node_,                                                                                     scaleFractional(i)*timeDynamical)
+     freefallRadiusIncreaseRate                (i)=darkMatterProfileIsothermal__%freefallRadiusIncreaseRate                (node_,                                                                                     scaleFractional(i)*timeDynamical)
+     freefallRadiusIncreaseRateNumerical       (i)=darkMatterProfileIsothermal__%freefallRadiusIncreaseRateNumerical       (node_,                                                                                     scaleFractional(i)*timeDynamical)
      radiusEnclosingDensity                    (i)=darkMatterProfileIsothermal__%radiusEnclosingDensity                    (node_,darkMatterProfileIsothermal__%density         (node_,scaleFractional(i)*radiusScale)                                 )
      radiusEnclosingDensityNumerical           (i)=darkMatterProfileIsothermal__%radiusEnclosingDensityNumerical           (node_,darkMatterProfileIsothermal__%density         (node_,scaleFractional(i)*radiusScale)                                 )
      radiusEnclosingMass                       (i)=darkMatterProfileIsothermal__%radiusEnclosingMass                       (node_,darkMatterProfileIsothermal__%enclosedMass    (node_,scaleFractional(i)*radiusScale)                                 )
@@ -121,22 +164,27 @@ program Test_Dark_Matter_Profiles_Generic
   potential         =potential         -potential         (1)
   potentialNumerical=potentialNumerical-potentialNumerical(1)
   call Skip  ("Energy                          , E   ","isothermal profile assumes virial equilibrium")
+  call Skip  ("Energy growth rate              , ̇E   ","isothermal profile assumes virial equilibrium")
   call Skip  ("Radial moment                   , ℛ₁ ","1ˢᵗ moment diverges for isothermal profile"    )
   call Assert("Radial moment                   , ℛ₂ ",darkMatterProfileIsothermal__%radialMomentNumerical           (node_,2.0d0,0.0d0,radiusVirial),darkMatterProfileIsothermal__%radialMoment           (node_,2.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Radial moment                   , ℛ₃ ",darkMatterProfileIsothermal__%radialMomentNumerical           (node_,3.0d0,0.0d0,radiusVirial),darkMatterProfileIsothermal__%radialMoment           (node_,3.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Rotation normalization          , A   ",darkMatterProfileIsothermal__%rotationNormalizationNumerical  (node_                         ),darkMatterProfileIsothermal__%rotationNormalization  (node_                         ),relTol=1.0d-3              )
   call Assert("Peak circular velocity          , Vmax",darkMatterProfileIsothermal__%circularVelocityMaximumNumerical(node_                         ),darkMatterProfileIsothermal__%circularVelocityMaximum(node_                         ),relTol=1.0d-3              )
+  call Assert("Enclosed mass                   , M(r)",                              enclosedMassNumerical                                           ,                              enclosedMass                                           ,relTol=1.0d-3              )
   call Assert("Potential                       , Φ(r)",                              potentialNumerical                                              ,                              potential                                              ,relTol=1.0d-3              )
   call Assert("Circular velocity               , V(r)",                              velocityCircularNumerical                                       ,                              velocityCircular                                       ,relTol=1.0d-3              )
   call Assert("Fourier transform               , u(k)",                              kSpaceNumerical                                                 ,                              kSpace                                                 ,relTol=1.0d-3,absTol=1.0d-4)
   call Assert("Freefall radius                 , r(t)",                              freefallRadiusNumerical                                         ,                              freefallRadius                                         ,relTol=1.0d-3              )
+  call Assert("Freefall radius increase rate   , ̇r(t)",                             freefallRadiusIncreaseRateNumerical                             ,                              freefallRadiusIncreaseRate                             ,relTol=1.0d-3              )
   call Assert("Radius enclosing density        , r(ρ)",                              radiusEnclosingDensityNumerical                                 ,                              radiusEnclosingDensity                                 ,relTol=1.0d-3              )
   call Assert("Radius enclosing mass           , r(M)",                              radiusEnclosingMassNumerical                                    ,                              radiusEnclosingMass                                    ,relTol=1.0d-3              )
   call Assert("Radius-specific angular momentum, r(j)",                              radiusFromSpecificAngularMomentumNumerical                      ,                              radiusFromSpecificAngularMomentum                      ,relTol=1.0d-3              )
   call Assert("Density log gradient            , α(r)",                              densityLogSlopeNumerical                                        ,                              densityLogSlope                                        ,relTol=1.0d-3              )
-  call Unit_Tests_End_Group  (                    )
-  call Unit_Tests_Begin_Group("NFW profile"       )
+  call Unit_Tests_End_Group  (                       )
+  call Unit_Tests_Begin_Group("NFW profile"          )
   do i=1,size(scaleFractional)
+     enclosedMass                              (i)=darkMatterProfileNFW__       %enclosedMass                              (node_,                                                                                     scaleFractional(i)*radiusScale  )
+     enclosedMassNumerical                     (i)=darkMatterProfileNFW__       %enclosedMassNumerical                     (node_,                                                                                     scaleFractional(i)*radiusScale  )
      potential                                 (i)=darkMatterProfileNFW__       %potential                                 (node_,                                                                                     scaleFractional(i)*radiusScale  )
      potentialNumerical                        (i)=darkMatterProfileNFW__       %potentialNumerical                        (node_,                                                                                     scaleFractional(i)*radiusScale  )
      velocityCircular                          (i)=darkMatterProfileNFW__       %circularVelocity                          (node_,                                                                                     scaleFractional(i)*radiusScale  )
@@ -145,6 +193,8 @@ program Test_Dark_Matter_Profiles_Generic
      kSpaceNumerical                           (i)=darkMatterProfileNFW__       %kSpaceNumerical                           (node_,                                                                                     scaleFractional(i)/radiusScale  )
      freefallRadius                            (i)=darkMatterProfileNFW__       %freefallRadius                            (node_,                                                                                     scaleFractional(i)*timeDynamical)
      freefallRadiusNumerical                   (i)=darkMatterProfileNFW__       %freefallRadiusNumerical                   (node_,                                                                                     scaleFractional(i)*timeDynamical)
+     freefallRadiusIncreaseRate                (i)=darkMatterProfileNFW__       %freefallRadiusIncreaseRate                (node_,                                                                                     scaleFractional(i)*timeDynamical)
+     freefallRadiusIncreaseRateNumerical       (i)=darkMatterProfileNFW__       %freefallRadiusIncreaseRateNumerical       (node_,                                                                                     scaleFractional(i)*timeDynamical)
      radiusEnclosingDensity                    (i)=darkMatterProfileNFW__       %radiusEnclosingDensity                    (node_,darkMatterProfileNFW__       %density         (node_,scaleFractional(i)*radiusScale)                                 )
      radiusEnclosingDensityNumerical           (i)=darkMatterProfileNFW__       %radiusEnclosingDensityNumerical           (node_,darkMatterProfileNFW__       %density         (node_,scaleFractional(i)*radiusScale)                                 )
      radiusEnclosingMass                       (i)=darkMatterProfileNFW__       %radiusEnclosingMass                       (node_,darkMatterProfileNFW__       %enclosedMass    (node_,scaleFractional(i)*radiusScale)                                 )
@@ -157,22 +207,27 @@ program Test_Dark_Matter_Profiles_Generic
   potential         =potential         -potential         (1)
   potentialNumerical=potentialNumerical-potentialNumerical(1)
   call Assert("Energy                          , E   ",darkMatterProfileNFW__       %energyNumerical                 (node_                         ),darkMatterProfileNFW__       %energy                 (node_                         ),relTol=1.0d-3              )
+  call Assert("Energy growth rate              , ̇E   ",darkMatterProfileNFW__      %energyGrowthRateNumerical       (node_                         ),darkMatterProfileNFW__       %energyGrowthRate       (node_                         ),relTol=1.0d-2              )
   call Assert("Radial moment                   , ℛ₁ ",darkMatterProfileNFW__       %radialMomentNumerical           (node_,1.0d0,0.0d0,radiusVirial),darkMatterProfileNFW__       %radialMoment           (node_,1.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Radial moment                   , ℛ₂ ",darkMatterProfileNFW__       %radialMomentNumerical           (node_,2.0d0,0.0d0,radiusVirial),darkMatterProfileNFW__       %radialMoment           (node_,2.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Radial moment                   , ℛ₃ ",darkMatterProfileNFW__       %radialMomentNumerical           (node_,3.0d0,0.0d0,radiusVirial),darkMatterProfileNFW__       %radialMoment           (node_,3.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Rotation normalization          , A   ",darkMatterProfileNFW__       %rotationNormalizationNumerical  (node_                         ),darkMatterProfileNFW__       %rotationNormalization  (node_                         ),relTol=1.0d-3              )
   call Assert("Peak circular velocity          , Vmax",darkMatterProfileNFW__       %circularVelocityMaximumNumerical(node_                         ),darkMatterProfileNFW__       %circularVelocityMaximum(node_                         ),relTol=1.0d-3              )
+  call Assert("Enclosed mass                   , M(r)",                              enclosedMassNumerical                                           ,                              enclosedMass                                           ,relTol=1.0d-3              )
   call Assert("Potential                       , Φ(r)",                              potentialNumerical                                              ,                              potential                                              ,relTol=1.0d-3              )
   call Assert("Circular velocity               , V(r)",                              velocityCircularNumerical                                       ,                              velocityCircular                                       ,relTol=1.0d-3              )
   call Assert("Fourier transform               , u(k)",                              kSpaceNumerical                                                 ,                              kSpace                                                 ,relTol=1.0d-3,absTol=1.0d-4)
   call Assert("Freefall radius                 , r(t)",                              freefallRadiusNumerical                                         ,                              freefallRadius                                         ,relTol=1.0d-3              )
+  call Assert("Freefall radius increase rate   , ̇r(t)",                             freefallRadiusIncreaseRateNumerical                             ,                              freefallRadiusIncreaseRate                             ,relTol=1.0d-2              )
   call Assert("Radius enclosing density        , r(ρ)",                              radiusEnclosingDensityNumerical                                 ,                              radiusEnclosingDensity                                 ,relTol=1.0d-3              )
   call Assert("Radius enclosing mass           , r(M)",                              radiusEnclosingMassNumerical                                    ,                              radiusEnclosingMass                                    ,relTol=1.0d-3              )
   call Assert("Radius-specific angular momentum, r(j)",                              radiusFromSpecificAngularMomentumNumerical                      ,                              radiusFromSpecificAngularMomentum                      ,relTol=1.0d-3              )
   call Assert("Density log gradient            , α(r)",                              densityLogSlopeNumerical                                        ,                              densityLogSlope                                        ,relTol=1.0d-3              )
-  call Unit_Tests_End_Group  (                    )
-  call Unit_Tests_Begin_Group("Einasto profile"   )
+  call Unit_Tests_End_Group  (                       )
+  call Unit_Tests_Begin_Group("Einasto profile"      )
   do i=1,size(scaleFractional)
+     enclosedMass                              (i)=darkMatterProfileEinasto__   %enclosedMass                              (node_,                                                                                     scaleFractional(i)*radiusScale  )
+     enclosedMassNumerical                     (i)=darkMatterProfileEinasto__   %enclosedMassNumerical                     (node_,                                                                                     scaleFractional(i)*radiusScale  )
      potential                                 (i)=darkMatterProfileEinasto__   %potential                                 (node_,                                                                                     scaleFractional(i)*radiusScale  )
      potentialNumerical                        (i)=darkMatterProfileEinasto__   %potentialNumerical                        (node_,                                                                                     scaleFractional(i)*radiusScale  )
      velocityCircular                          (i)=darkMatterProfileEinasto__   %circularVelocity                          (node_,                                                                                     scaleFractional(i)*radiusScale  )
@@ -198,6 +253,7 @@ program Test_Dark_Matter_Profiles_Generic
   call Assert("Radial moment                   , ℛ₃ ",darkMatterProfileEinasto__   %radialMomentNumerical           (node_,3.0d0,0.0d0,radiusVirial),darkMatterProfileEinasto__   %radialMoment           (node_,3.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Rotation normalization          , A   ",darkMatterProfileEinasto__   %rotationNormalizationNumerical  (node_                         ),darkMatterProfileEinasto__   %rotationNormalization  (node_                         ),relTol=1.0d-3              )
   call Assert("Peak circular velocity          , Vmax",darkMatterProfileEinasto__   %circularVelocityMaximumNumerical(node_                         ),darkMatterProfileEinasto__   %circularVelocityMaximum(node_                         ),relTol=1.0d-3              )
+  call Assert("Enclosed mass                   , M(r)",                              enclosedMassNumerical                                           ,                              enclosedMass                                           ,relTol=1.0d-3              )
   call Assert("Potential                       , Φ(r)",                              potentialNumerical                                              ,                              potential                                              ,relTol=1.0d-3              )
   call Assert("Circular velocity               , V(r)",                              velocityCircularNumerical                                       ,                              velocityCircular                                       ,relTol=1.0d-3              )
   call Assert("Fourier transform               , u(k)",                              kSpaceNumerical                                                 ,                              kSpace                                                 ,relTol=1.0d-3,absTol=1.0d-4)
@@ -206,9 +262,11 @@ program Test_Dark_Matter_Profiles_Generic
   call Assert("Radius enclosing mass           , r(M)",                              radiusEnclosingMassNumerical                                    ,                              radiusEnclosingMass                                    ,relTol=1.0d-3              )
   call Assert("Radius-specific angular momentum, r(j)",                              radiusFromSpecificAngularMomentumNumerical                      ,                              radiusFromSpecificAngularMomentum                      ,relTol=1.0d-3              )
   call Assert("Density log gradient            , α(r)",                              densityLogSlopeNumerical                                        ,                              densityLogSlope                                        ,relTol=1.0d-3              )
-  call Unit_Tests_End_Group  (                    )
-  call Unit_Tests_Begin_Group("Burkert profile"   )
+  call Unit_Tests_End_Group  (                       )
+  call Unit_Tests_Begin_Group("Burkert profile"      )
   do i=1,size(scaleFractional)
+     enclosedMass                              (i)=darkMatterProfileBurkert__   %enclosedMass                              (node_,                                                                                     scaleFractional(i)*radiusScale  )
+     enclosedMassNumerical                     (i)=darkMatterProfileBurkert__   %enclosedMassNumerical                     (node_,                                                                                     scaleFractional(i)*radiusScale  )
      potential                                 (i)=darkMatterProfileBurkert__   %potential                                 (node_,                                                                                     scaleFractional(i)*radiusScale  )
      potentialNumerical                        (i)=darkMatterProfileBurkert__   %potentialNumerical                        (node_,                                                                                     scaleFractional(i)*radiusScale  )
      velocityCircular                          (i)=darkMatterProfileBurkert__   %circularVelocity                          (node_,                                                                                     scaleFractional(i)*radiusScale  )
@@ -241,6 +299,7 @@ program Test_Dark_Matter_Profiles_Generic
   call Assert("Radial moment                   , ℛ₃ ",darkMatterProfileBurkert__   %radialMomentNumerical           (node_,3.0d0,0.0d0,radiusVirial),darkMatterProfileBurkert__   %radialMoment           (node_,3.0d0,0.0d0,radiusVirial),relTol=1.0d-6              )
   call Assert("Rotation normalization          , A   ",darkMatterProfileBurkert__   %rotationNormalizationNumerical  (node_                         ),darkMatterProfileBurkert__   %rotationNormalization  (node_                         ),relTol=1.0d-3              )
   call Assert("Peak circular velocity          , Vmax",darkMatterProfileBurkert__   %circularVelocityMaximumNumerical(node_                         ),darkMatterProfileBurkert__   %circularVelocityMaximum(node_                         ),relTol=1.0d-3              )
+  call Assert("Enclosed mass                   , M(r)",                              enclosedMassNumerical                                           ,                              enclosedMass                                           ,relTol=1.0d-3              )
   call Assert("Potential                       , Φ(r)",                              potentialNumerical                                              ,                              potential                                              ,relTol=1.0d-3              )
   call Assert("Circular velocity               , V(r)",                              velocityCircularNumerical                                       ,                              velocityCircular                                       ,relTol=1.0d-3              )
   call Assert("Fourier transform               , u(k)",                              kSpaceNumerical                                                 ,                              kSpace                                                 ,relTol=1.0d-3,absTol=1.0d-4)
@@ -248,6 +307,50 @@ program Test_Dark_Matter_Profiles_Generic
   call Assert("Radius enclosing density        , r(ρ)",                              radiusEnclosingDensityNumerical                                 ,                              radiusEnclosingDensity                                 ,relTol=1.0d-3              )
   call Assert("Radius enclosing mass           , r(M)",                              radiusEnclosingMassNumerical                                    ,                              radiusEnclosingMass                                    ,relTol=1.0d-3              )
   call Assert("Radius-specific angular momentum, r(j)",                              radiusFromSpecificAngularMomentumNumerical                      ,                              radiusFromSpecificAngularMomentum                      ,relTol=1.0d-3              )
+  call Assert("Density log gradient            , α(r)",                              densityLogSlopeNumerical                                        ,                              densityLogSlope                                        ,relTol=1.0d-3              )
+  call Unit_Tests_End_Group               ()
+  call Unit_Tests_Begin_Group("Truncated NFW profile")
+  do i=1,size(scaleFractional)
+     densityLogSlope                           (i)=darkMatterProfileTruncated__     %densityLogSlope                           (node_,                                                                                         scaleFractional(i)*radiusScale  )
+     densityLogSlopeNumerical                  (i)=darkMatterProfileTruncated__     %densityLogSlopeNumerical                  (node_,                                                                                         scaleFractional(i)*radiusScale  )
+  end do
+  call Skip  ("Energy                          , E   ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Energy growth rate              , ̇E   ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radial moment                   , ℛ₁ ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radial moment                   , ℛ₂ ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radial moment                   , ℛ₃ ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Rotation normalization          , A   ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Peak circular velocity          , Vmax","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Potential                       , Φ(r)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Circular velocity               , V(r)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Fourier transform               , u(k)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Freefall radius                 , r(t)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Freefall radius increase rate   , ̇r(t)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radius enclosing density        , r(ρ)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radius enclosing mass           , r(M)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radius-specific angular momentum, r(j)","implemented numerically"                                                                                                                                                                                       )
+  call Assert("Density log gradient            , α(r)",                              densityLogSlopeNumerical                                        ,                              densityLogSlope                                        ,relTol=1.0d-3              )
+  call Unit_Tests_End_Group               ()
+  call Unit_Tests_Begin_Group("Exponentially-truncated NFW profile")
+  do i=1,size(scaleFractional)
+     densityLogSlope                           (i)=darkMatterProfileTruncatedExponential__     %densityLogSlope                           (node_,                                                                                         scaleFractional(i)*radiusScale  )
+     densityLogSlopeNumerical                  (i)=darkMatterProfileTruncatedExponential__     %densityLogSlopeNumerical                  (node_,                                                                                         scaleFractional(i)*radiusScale  )
+  end do
+  call Skip  ("Energy                          , E   ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Energy growth rate              , ̇E   ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radial moment                   , ℛ₁ ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radial moment                   , ℛ₂ ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radial moment                   , ℛ₃ ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Rotation normalization          , A   ","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Peak circular velocity          , Vmax","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Potential                       , Φ(r)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Circular velocity               , V(r)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Fourier transform               , u(k)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Freefall radius                 , r(t)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Freefall radius increase rate   , ̇r(t)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radius enclosing density        , r(ρ)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radius enclosing mass           , r(M)","implemented numerically"                                                                                                                                                                                       )
+  call Skip  ("Radius-specific angular momentum, r(j)","implemented numerically"                                                                                                                                                                                       )
   call Assert("Density log gradient            , α(r)",                              densityLogSlopeNumerical                                        ,                              densityLogSlope                                        ,relTol=1.0d-3              )
   call Unit_Tests_End_Group               ()
   call Unit_Tests_End_Group               ()
