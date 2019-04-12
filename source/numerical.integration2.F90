@@ -2033,32 +2033,34 @@ contains
             & ) then
           if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
           call Galacticus_Display_Indent('integration failure: current intervals')
-          message="a/b             ="
-          write (label,'(e12.6)') a
+          message="a/b/(b-a)       ="
+          write (label,'(e32.12)') a
           message=message//" "  //label
-          write (label,'(e12.6)') b
+          write (label,'(e32.12)') b
           message=message//"/"  //label
+          write (label,'(e32.12)') b-a
+          message=message//"/(" //label//")"
           call Galacticus_Display_Message(message)
           message="a/b : f(a)/f(b) ="
-          write (label,'(e12.6)') current%a
+          write (label,'(e32.12)') current%a
           message=message//" "  //label
-          write (label,'(e12.6)') current%b
+          write (label,'(e32.12)') current%b
           message=message//"/"  //label
-          write (label,'(e12.6)') current%fa
+          write (label,'(e32.12)') current%fa
           message=message//" : "//label
-          write (label,'(e12.6)') current%fa
+          write (label,'(e32.12)') current%fa
           message=message//"/"  //label
           call Galacticus_Display_Message(message)
           current => head          
           do while (associated(current))
              message="a/b : f(a)/f(b) ="
-             write (label,'(e12.6)') current%a
+             write (label,'(e32.12)') current%a
              message=message//" "  //label
-             write (label,'(e12.6)') current%b
+             write (label,'(e32.12)') current%b
              message=message//"/"  //label
-             write (label,'(e12.6)') current%fa
+             write (label,'(e32.12)') current%fa
              message=message//" : "//label
-             write (label,'(e12.6)') current%fa
+             write (label,'(e32.12)') current%fa
              message=message//"/"  //label
              call Galacticus_Display_Message(message)
              current  => current%next
