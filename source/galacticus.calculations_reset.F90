@@ -27,6 +27,12 @@ module Galacticus_Calculations_Resets
 
 contains
 
+  !# <functionGlobal>
+  !#  <unitName>Galacticus_Calculations_Reset</unitName>
+  !#  <type>void</type>
+  !#  <module>Galacticus_Nodes, only : treeNode</module>
+  !#  <arguments>type(treeNode) , intent(inout) :: thisNode</arguments>
+  !# </functionGlobal>
   subroutine Galacticus_Calculations_Reset(thisNode)
     !% Calls any routines required to reset all calculation for a new or updated node.
     use Galacticus_Nodes, only : treeNode
