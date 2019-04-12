@@ -103,6 +103,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    call BackTrace                (     )
     call Galacticus_Warn_Review   (     )
     call Flush                    (    0)
 #ifdef UNCLEANEXIT
@@ -211,6 +212,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    call BackTrace                (     )
     call Galacticus_Warn_Review   (     )
     call Flush                    (    0)
 #ifdef UNCLEANEXIT
@@ -255,6 +257,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    call BackTrace                (     )
     call Galacticus_Warn_Review   (     )
     call Flush                    (    0)
 #ifdef UNCLEANEXIT
@@ -299,6 +302,7 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
+    call BackTrace                (     )
     call Galacticus_Warn_Review   (     )
     call Flush                    (    0)
 #ifdef UNCLEANEXIT
@@ -369,6 +373,7 @@ contains
        !$ else
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
+    call BackTrace                (     )
     call Galacticus_Warn_Review   (     )
     call Flush                    (    0)
 #ifdef UNCLEANEXIT
