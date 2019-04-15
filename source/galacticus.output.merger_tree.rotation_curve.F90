@@ -22,6 +22,7 @@
 module Galacticus_Output_Trees_Rotation_Curve
   !% Handles outputting of rotation curve data to the \glc\ output file.
   use ISO_Varying_String
+  use Galactic_Structure_Radii_Definitions
   implicit none
   private
   public :: Galacticus_Output_Tree_Rotation_Curve, Galacticus_Output_Tree_Rotation_Curve_Property_Count, Galacticus_Output_Tree_Rotation_Curve_Names
@@ -34,42 +35,18 @@ module Galacticus_Output_Trees_Rotation_Curve
 
   ! Radii at which rotation curve is to be output.
   integer :: radiiCount
-  type radiusSpecifier
-     type            (varying_string) :: name
-     integer                          :: component    , mass , type, weightBy, &
-          &                              weightByIndex
-     double precision                 :: fraction     , value
-  end type radiusSpecifier
-  type   (radiusSpecifier)           , allocatable, dimension(:) :: radii
-  type   (varying_string )           , allocatable, dimension(:) :: outputRotationCurveRadii
-  logical                                                        :: darkMatterScaleRadiusIsNeeded     , diskIsNeeded        , &
-       &                                                            spheroidIsNeeded                  , virialRadiusIsNeeded
-  integer                 , parameter                            :: radiusTypeRadius                =0
-  integer                 , parameter                            :: radiusTypeVirialRadius          =1
-  integer                 , parameter                            :: radiusTypeDarkMatterScaleRadius =2
-  integer                 , parameter                            :: radiusTypeDiskRadius            =3
-  integer                 , parameter                            :: radiusTypeSpheroidRadius        =4
-  integer                 , parameter                            :: radiusTypeDiskHalfMassRadius    =5
-  integer                 , parameter                            :: radiusTypeSpheroidHalfMassRadius=6
-  integer                 , parameter                            :: radiusTypeGalacticMassFraction  =7
-  integer                 , parameter                            :: radiusTypeGalacticLightFraction =8
+  type   (radiusSpecifier), allocatable, dimension(:) :: radii
+  type   (varying_string ), allocatable, dimension(:) :: outputRotationCurveRadii
+  logical                                             :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
+       &                                                 spheroidIsNeeded             , virialRadiusIsNeeded
 
 contains
 
-  subroutine Galacticus_Output_Tree_Rotation_Curve_Initialize
+  subroutine Galacticus_Output_Tree_Rotation_Curve_Initialize()
     !% Initializes the module by determining whether or not rotation curve data should be output.
     use Input_Parameters
     use Galacticus_Error
-    use String_Handling
-    use Galacticus_Nodes              , only : treeNode, defaultDarkMatterProfileComponent, defaultDiskComponent, defaultSpheroidComponent
-    use Galactic_Structure_Options
-    use Stellar_Luminosities_Structure
     implicit none
-    type     (varying_string), dimension(4) :: radiusDefinition
-    type     (varying_string), dimension(3) :: fractionDefinition
-    type     (varying_string)               :: valueDefinition
-    character(len=20        )               :: fractionLabel     , radiusLabel
-    integer                                 :: i
 
     if (.not.outputRotationCurveDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Rotation_Curve_Initialize)
@@ -83,8 +60,6 @@ contains
           !#   <source>globalParameters</source>
           !#   <type>boolean</type>
           !# </inputParameter>
-
-
           ! Read and parse parameter controlling radii of output.
           if (outputRotationCurveData) then
              if (.not.globalParameters%isPresent('outputRotationCurveRadii'))                                             &
@@ -94,7 +69,6 @@ contains
                   &                             )
              radiiCount=globalParameters%count('outputRotationCurveRadii')
              allocate(outputRotationCurveRadii(radiiCount))
-             allocate(radii                   (radiiCount))
              !# <inputParameter>
              !#   <name>outputRotationCurveRadii</name>
              !#   <cardinality>1..*</cardinality>
@@ -104,116 +78,7 @@ contains
              !#   <type>string</type>
              !# </inputParameter>
              ! Parse the radii definitions.
-             diskIsNeeded                  =.false.
-             spheroidIsNeeded              =.false.
-             virialRadiusIsNeeded          =.false.
-             darkMatterScaleRadiusIsNeeded =.false.
-             do i=1,radiiCount
-                radii(i)%name=outputRotationCurveRadii(i)
-                call String_Split_Words(radiusDefinition,char(outputRotationCurveRadii(i)),':',bracketing="{}")
-                ! Detect cases which specify radius via a mass or light fraction. In either case, extract the fraction (and filter
-                ! for light fractions).
-                valueDefinition=radiusDefinition(1)
-                if (extract(valueDefinition,1,21) == 'galacticLightFraction') then
-                   call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
-                   radiusDefinition(1)='galacticLightFraction'
-                end if
-                if (extract(valueDefinition,1,20) == 'galacticMassFraction' ) then
-                   call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
-                   radiusDefinition(1)='galacticMassFraction'
-                end if
-                ! Parse the radius definition.
-                select case (char(radiusDefinition(1)))
-                case ('radius'                )
-                   radii(i)%type=radiusTypeRadius
-                case ('virialRadius'          )
-                   radii(i)%type=radiusTypeVirialRadius
-                   virialRadiusIsNeeded         =.true.
-                case ('darkMatterScaleRadius' )
-                   radii(i)%type=radiusTypeDarkMatterScaleRadius
-                   darkMatterScaleRadiusIsNeeded=.true.
-                   if (.not.defaultDarkMatterProfileComponent%scaleIsGettable         ())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &      (                                                                                                            &
-                        &       'dark matter profile scale radius is not gettable.'//                                                       &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'darkMatterProfile'                                                           ,  &
-                        &                                   defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &       {introspection:location}                                                                                    &
-                        &      )
-                case ('diskRadius'            )
-                   radii(i)%type=radiusTypeDiskRadius
-                   diskIsNeeded                 =.true.
-                   if (.not.defaultDiskComponent             %radiusIsGettable        ())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &(                                                                                                                  &
-                        &                              'disk radius is not gettable.'//                                                     &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'disk'                                                                        ,  &
-                        &                                   defaultDiskComponent    %        radiusAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &       {introspection:location}                                                                                    &
-                        &                             )
-                case ('spheroidRadius'        )
-                   radii(i)%type=radiusTypeSpheroidRadius
-                   spheroidIsNeeded             =.true.
-                   if (.not.defaultSpheroidComponent         %radiusIsGettable        ())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &(                                                                                                                  &
-                        &                              'spheroid radius is not gettable.'//                                                 &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'spheroid'                                                                    ,  &
-                        &                                   defaultSpheroidComponent%        radiusAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &       {introspection:location}                                                                                    &
-                        &                             )
-                case ('diskHalfMassRadius'    )
-                   radii(i)%type=radiusTypeDiskHalfMassRadius
-                   diskIsNeeded                 =.true.
-                   if (.not.defaultDiskComponent             %halfMassRadiusIsGettable())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &(                                                                                                                  &
-                        &                              'disk half-mass radius is not gettable.'//                                           &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'disk'                                                                        ,  &
-                        &                                   defaultDiskComponent    %halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &       {introspection:location}                                                                                    &
-                        &                             )
-                case ('spheroidHalfMassRadius')
-                   radii(i)%type=radiusTypeSpheroidHalfMassRadius
-                   spheroidIsNeeded   =.true.
-                   if (.not.defaultSpheroidComponent         %halfMassRadiusIsGettable())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &(                                                                                                                  &
-                        &                              'spheroid half-mass radius is not gettable.'//                                       &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'spheroid'                                                                    ,  &
-                        &                                   defaultSpheroidComponent%halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &       {introspection:location}                                                                                    &
-                        &                             )
-                case ('galacticMassFraction'  )
-                   radii(i)%type=radiusTypeGalacticMassFraction
-                   fractionLabel=fractionDefinition(2)
-                   read (fractionLabel,*) radii(i)%fraction
-                   radii(i)%weightBy     =weightByMass
-                   radii(i)%weightByIndex=weightIndexNull
-                case ('galacticLightFraction' )
-                   radii(i)%type=radiusTypeGalacticLightFraction
-                   fractionLabel=fractionDefinition(2)
-                   read (fractionLabel,*) radii(i)%fraction
-                   radii(i)%weightBy      =weightByLuminosity
-                   radii(i)%weightByIndex=unitStellarLuminosities%index(fractionDefinition(3))
-                case default
-                   call Galacticus_Error_Report('unrecognized radius specifier "'//char(radiusDefinition(1))//'"'//{introspection:location})
-                end select
-                radii(i)%component=enumerationComponentTypeEncode(char(radiusDefinition(2)),includesPrefix=.false.)
-                radii(i)%mass     =enumerationMassTypeEncode     (char(radiusDefinition(3)),includesPrefix=.false.)
-                radiusLabel=radiusDefinition(4)
-                read (radiusLabel,*) radii(i)%value
-             end do
+             call Galactic_Structure_Radii_Definition_Decode(outputRotationCurveRadii,radii,diskIsNeeded,spheroidIsNeeded,virialRadiusIsNeeded,darkMatterScaleRadiusIsNeeded)
              deallocate(outputRotationCurveRadii)
           end if
           ! Flag that module is now initialized.
