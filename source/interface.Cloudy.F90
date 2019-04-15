@@ -51,7 +51,7 @@ contains
     ! Unpack and patch the code.
     if (.not.File_Exists(cloudyPath)) then
        call Galacticus_Display_Message("unpacking and patching Cloudy code....",verbosityWorking)
-       call System_Command_Do("tar -x -v -z -C aux -f "//cloudyPath//".tar.gz",status)
+       call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//cloudyPath//".tar.gz",status)
        if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Galacticus_Error_Report("failed to unpack Cloudy code"//{introspection:location})
        call System_Command_Do('sed -i~ -r s/"\\\$res\s+\.=\s+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
        if (status /= 0                                  ) call Galacticus_Error_Report("failed to patch Cloudy code"//{introspection:location})

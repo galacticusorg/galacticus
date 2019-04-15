@@ -73,6 +73,7 @@ contains
     use File_Utilities
     use Dates_and_Times
     use IO_HDF5
+    use Interfaces_RecFast
     implicit none
     type            (intergalacticMediumStateRecFast)                              :: self
     class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
@@ -81,14 +82,13 @@ contains
     double precision                                 , allocatable  , dimension(:) :: redshift            , electronFraction , &
          &                                                                            hIonizedFraction    , heIonizedFraction, &
          &                                                                            matterTemperature
-    character       (len=32                         )                              :: parameterLabel      , recFastVersion   , &
-         &                                                                            line
-    type            (varying_string                 )                              :: parameterFile       , recFastFile
+    character       (len=32                         )                              :: parameterLabel
+    type            (varying_string                 )                              :: parameterFile       , recFastFile      , &
+         &                                                                            recfastPath         , recfastVersion
     double precision                                                               :: omegaDarkMatter
-    integer                                                                        :: status              , i                , &
+    integer                                                                        :: fileFormatVersion   , i                , &
          &                                                                            countRedshift       , parametersUnit   , &
-         &                                                                            recFastUnit         , ioStatus         , &
-         &                                                                            fileFormatVersion
+         &                                                                            recFastUnit
     type            (hdf5Object                     )                              :: outputFile          , dataset          , &
          &                                                                            provenance          , recFastProvenance
     logical                                                                        :: buildFile
@@ -133,27 +133,8 @@ contains
     if (buildFile) then
        call File_Unlock(                    self%fileLock                     )
        call File_Lock  (char(self%fileName),self%fileLock,lockIsShared=.false.)
-       ! Download the code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")) then
-          call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
-          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.for")) &
-               & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location}) 
-       end if
-       ! Patch the code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/patched")) then
-          call Galacticus_Display_Message("patching RecFast code....",verbosityWorking)
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//galacticusPath(pathTypeDataDynamic)//"RecFast/; cd "//galacticusPath(pathTypeDataDynamic)//"RecFast/; patch < recfast.for.patch",status)
-          if (status /= 0) call Galacticus_Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
-          call System_Command_Do("touch "//galacticusPath(pathTypeDataDynamic)//"RecFast/patched")
-       end if
-       ! Build the code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe")) then
-          call Galacticus_Display_Message("compiling RecFast code....",verbosityWorking)
-          call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"RecFast/; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none")
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe")) &
-               & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location}) 
-       end if
+       ! Initialize RecFast.
+       call Interface_RecFast_Initialize(recfastPath,recfastVersion)
        ! Build RecFast parameter file.
        parameterFile=File_Name_Temporary("recFastParameters")
        recFastFile  =parameterFile//".out"
@@ -165,7 +146,7 @@ contains
        write (parametersUnit,*    )  6
        close(parametersUnit)
        ! Run RecFast.
-       call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"RecFast/recfast.exe < "//parameterFile)
+       call System_Command_Do(recfastPath//"recfast.exe < "//parameterFile)
        ! Parse the output file.
        countRedshift=Count_Lines_in_File(recFastFile)-1
        allocate(redshift         (countRedshift))
@@ -198,13 +179,6 @@ contains
        provenance=outputFile%openGroup('provenance')
        call provenance%writeAttribute(char(Formatted_Date_and_Time())                      ,'date'       )
        call provenance%writeAttribute('Galacticus via RecFast'                             ,'source'     )
-       recFastVersion="unknown"
-       open(newUnit=recFastUnit,file="aux/RecFast/recfast.for",status='old',form='formatted',ioStat=ioStatus)
-       do while (ioStatus == 0)
-          read (recFastUnit,'(a)',ioStat=ioStatus) line
-          if (line(1:2) == "CV" .and. line(4:11) == "Version:") read (line(13:),'(a)') recFastVersion
-       end do
-       close(recFastUnit)
        recFastProvenance=provenance%openGroup('recFast'                                                                                            )
        call recFastProvenance%writeAttribute(trim(recFastVersion)                                                                        ,'version')
        call recFastProvenance%writeAttribute('Includes modification of H recombination. Includes all modifications for HeI recombination','notes'  )

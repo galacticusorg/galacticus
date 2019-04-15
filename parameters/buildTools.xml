@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Build tools required by Galacticus -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <taskMethod value="multi">
+    <taskMethod value="buildToolFSPS"   />
+    <taskMethod value="buildToolCAMB"   />
+    <taskMethod value="buildToolRecFast"/>
+    <taskMethod value="buildToolCloudy" />
+  </taskMethod>
+    
+</parameters>

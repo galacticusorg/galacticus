@@ -178,6 +178,7 @@ contains
     use               Galacticus_Error
     use               Galacticus_Display
     use               Numerical_Constants_Astronomical
+    use               Interfaces_CAMB
     implicit none
     class           (transferFunctionCAMB), intent(inout)               :: self
     double precision                      , intent(in   )               :: wavenumber
@@ -185,7 +186,8 @@ contains
     type            (lockDescriptor      )                              :: fileLock
     character       (len=32              )                              :: wavenumberLabel
     character       (len=255             )                              :: hostName                    , cambTransferLine
-    type            (varying_string      )                              :: command                     , parameterFile
+    type            (varying_string      )                              :: command                     , parameterFile       , &
+         &                                                                 cambPath                    , cambVersion
     logical                                                             :: makeTransferFunction
     double precision                                                    :: wavenumberCAMB
     integer                                                             :: status                      , cambParameterFile   , &
@@ -242,24 +244,8 @@ contains
        ! Remove the transfer function file so that a new one will be created.
        command='rm -f '//self%fileName
        call System_Command_Do(command)
-       ! Download CAMB if necessary.
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
-          call Galacticus_Display_Message("downloading CAMB code....",verbosityWorking)
-          call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
-       end if
-       ! Unpack the code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB")) then
-          call Galacticus_Display_Message("unpacking CAMB code....",verbosityWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB")) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
-       end if
-       ! Build the CAMB code.
-       if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB/camb")) then
-          call Galacticus_Display_Message("compiling CAMB code",verbosityWorking)
-          call System_Command_Do('cd '//galacticusPath(pathTypeDataDynamic)//'/CAMB/; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1',status);
-          if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB/camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
-       end if
+       ! Ensure CAMB is initialized.
+       call Interface_CAMB_Initialize(cambPath,cambVersion)
        ! Determine maximum wavenumber.
        wavenumberCAMB=exp(max(log(wavenumber)+1.0d0,cambLogWavenumberMaximumDefault))
        if (wavenumberCAMB > self%wavenumberMaximum) then
@@ -371,8 +357,8 @@ contains
        write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'l_sample_boost               ',1
        close(cambParameterFile)
        ! Run CAMB.
-       call System_Command_Do(galacticusPath(pathTypeDataDynamic)//"CAMB/camb "//parameterFile)
-        ! Read the CAMB transfer function file.
+       call System_Command_Do(cambPath//"camb "//parameterFile)
+       ! Read the CAMB transfer function file.
        cambTransferCount=Count_Lines_In_File("camb_transfer_out.dat","#")
        allocate(cambTransferWavenumber(cambTransferCount))
        allocate(cambTransferTransfer  (cambTransferCount))
