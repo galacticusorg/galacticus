@@ -38,14 +38,15 @@ program Test_String_Utilities
   call Unit_Tests_Begin_Group("String handling utilities")
 
   ! Test word counting.
-  call Assert("count words: empty"                            ,String_Count_Words("  "                                                   ),0)
-  call Assert("count words: 'one'"                            ,String_Count_Words("one"                                                  ),1)
-  call Assert("count words: 'one two three'"                  ,String_Count_Words("one two three"                                        ),3)
-  call Assert("count words: 'one two three' [null separated]" ,String_Count_Words("one"//char( 0)//"two"//char( 0)//"three"              ),3)
-  call Assert("count words: 'one two three' [LF separated]"   ,String_Count_Words("one"//char(10)//"two"//char(10)//"three"              ),3)
-  call Assert("count words: 'one two three' [CR separated]"   ,String_Count_Words("one"//char(13)//"two"//char(13)//"three"              ),3)
-  call Assert("count words: 'one two three' [tab separated]"  ,String_Count_Words("one"//char( 9)//"two"//char( 9)//"three"              ),3)
-  call Assert("count words: 'one two three' [comma separated]",String_Count_Words("one,two,three"                          ,separator=","),3)
+  call Assert("count words: empty"                            ,String_Count_Words("  "                                                    ),0)
+  call Assert("count words: 'one'"                            ,String_Count_Words("one"                                                   ),1)
+  call Assert("count words: 'one two three'"                  ,String_Count_Words("one two three"                                         ),3)
+  call Assert("count words: 'one two three' [null separated]" ,String_Count_Words("one"//char( 0)//"two"//char( 0)//"three"               ),3)
+  call Assert("count words: 'one two three' [LF separated]"   ,String_Count_Words("one"//char(10)//"two"//char(10)//"three"               ),3)
+  call Assert("count words: 'one two three' [CR separated]"   ,String_Count_Words("one"//char(13)//"two"//char(13)//"three"               ),3)
+  call Assert("count words: 'one two three' [tab separated]"  ,String_Count_Words("one"//char( 9)//"two"//char( 9)//"three"               ),3)
+  call Assert("count words: 'one two three' [comma separated]",String_Count_Words("one,two,three"                          ,separator="," ),3)
+  call Assert("count words: 'one two three' [bracketed]"      ,String_Count_Words("one{1 2 3} two{5 6 7} three{9 10 11}"  ,bracketing="{}"),3)
 
   ! Test word splitting.
   call String_Split_Words(words,"one"                                                    )

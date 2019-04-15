@@ -60,13 +60,14 @@ module String_Handling
 
 contains
 
-  integer function String_Count_Words(inputString,separator)
+  integer function String_Count_Words(inputString,separator,bracketing)
     !% Return a count of the number of space separated words in {\normalfont \ttfamily inputString}.
     implicit none
     character(len=*         ), intent(in   )           :: inputString
     character(len=*         ), intent(in   ), optional :: separator
+    character(len=2         ), intent(in   ), optional :: bracketing
     logical                                            :: inWord
-    integer                                            :: iCharacter
+    integer                                            :: iCharacter     , inBracket
     type     (varying_string)                          :: separatorActual
 
     ! Decide what separator to use.
@@ -75,13 +76,20 @@ contains
     else
        separatorActual=charactersWhiteSpace
     end if
-
+    
     String_Count_Words=0
-    inWord=.false.
+    inWord            =.false.
+    inBracket         = 0
     do iCharacter=1,len_trim(inputString)
+       if (present(bracketing)) then
+          if (inputString(iCharacter:iCharacter) == bracketing(1:1)) inBracket=inBracket+1
+          if (inputString(iCharacter:iCharacter) == bracketing(2:2)) inBracket=inBracket-1
+       end if
        if (index(separatorActual,inputString(iCharacter:iCharacter)) /= 0) then
-          if (inWord) String_Count_Words=String_Count_Words+1
-          inWord=.false.
+          if (inBracket == 0) then
+             if (inWord) String_Count_Words=String_Count_Words+1
+             inWord=.false.
+          end if
        else
           inWord=.true.
        end if
