@@ -350,9 +350,9 @@ contains
     integer                                                   , intent(  out), optional :: status    
  
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
-       truncatedExponentialPotential=self%darkMatterProfileDMO_%potential         (node,radius)
+       truncatedExponentialPotential=self%darkMatterProfileDMO_%potential         (node,radius,status)
     else
-       truncatedExponentialPotential=self                      %potentialNumerical(node,radius)
+       truncatedExponentialPotential=self                      %potentialNumerical(node,radius,status)
     end if
     return
   end function truncatedExponentialPotential
