@@ -22,7 +22,8 @@
 module Galacticus_Output_Trees_Velocity_Dispersion
   !% Handles outputting of velocity dispersion data to the \glc\ output file.
   use ISO_Varying_String
-  use Galacticus_Nodes  , only : treeNode
+  use Galactic_Structure_Radii_Definitions
+  use Galacticus_Nodes                    , only : treeNode
   implicit none
   private
   public :: Galacticus_Output_Tree_Velocity_Dispersion, Galacticus_Output_Tree_Velocity_Dispersion_Property_Count,&
@@ -35,37 +36,17 @@ module Galacticus_Output_Trees_Velocity_Dispersion
   logical :: outputVelocityDispersionDataInitialized=.false.
 
   ! Radii at which velocity dispersion is to be output.
-  integer :: radiiCount
-  type radiusSpecifier
-     type            (varying_string) :: name
-     integer                          :: component            , direction    , integralWeightBy, &
-          &                              integralWeightByIndex, mass         , type            , &
-          &                              weightBy             , weightByIndex
-     double precision                 :: fraction             , value
-  end type radiusSpecifier
-  type            (radiusSpecifier)           , allocatable, dimension(:) :: radii
-  type            (varying_string )           , allocatable, dimension(:) :: outputVelocityDispersionRadii
-  logical                                                                 :: darkMatterScaleRadiusIsNeeded        , diskIsNeeded        , &
-       &                                                                     spheroidIsNeeded                     , virialRadiusIsNeeded
-  integer                          , parameter                            :: radiusTypeRadius                   =0
-  integer                          , parameter                            :: radiusTypeVirialRadius             =1
-  integer                          , parameter                            :: radiusTypeDarkMatterScaleRadius    =2
-  integer                          , parameter                            :: radiusTypeDiskRadius               =3
-  integer                          , parameter                            :: radiusTypeSpheroidRadius           =4
-  integer                          , parameter                            :: radiusTypeDiskHalfMassRadius       =5
-  integer                          , parameter                            :: radiusTypeSpheroidHalfMassRadius   =6
-  integer                          , parameter                            :: radiusTypeGalacticMassFraction     =7
-  integer                          , parameter                            :: radiusTypeGalacticLightFraction    =8
-  integer                          , parameter                            :: directionRadial                    =0
-  integer                          , parameter                            :: directionLineOfSight               =1
-  integer                          , parameter                            :: directionLineOfSightInteriorAverage=2
-  integer                          , parameter                            :: directionLambdaR                   =3
+  integer                                                      :: radiiCount
+  type            (radiusSpecifier), allocatable, dimension(:) :: radii
+  type            (varying_string ), allocatable, dimension(:) :: outputVelocityDispersionRadii
+  logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
+       &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
 
   ! Module scope variables used in integrations.
-  type            (treeNode       ), pointer                              :: activeNode
-  integer                                                                 :: componentType                        , massType            , &
-       &                                                                     weightBy                             , weightIndex
-  double precision                                                        :: radiusImpact                         , radiusOuter
+  type            (treeNode       ), pointer                   :: activeNode
+  integer                                                      :: componentType                , massType            , &
+       &                                                          weightBy                     , weightIndex
+  double precision                                             :: radiusImpact                 , radiusOuter
   !$omp threadprivate(activeNode,radiusOuter,massType,componentType,weightBy,weightIndex,radiusImpact)
   
 contains
@@ -74,17 +55,7 @@ contains
     !% Initializes the module by determining whether or not velocity dispersion should be output.
     use Input_Parameters
     use Galacticus_Error
-    use String_Handling
-    use Galactic_Structure_Options
-    use Stellar_Luminosities_Structure
-    use Galacticus_Nodes              , only : defaultDarkMatterProfileComponent, defaultDiskComponent, defaultSpheroidComponent
     implicit none
-    type     (varying_string), dimension(5) :: radiusDefinition
-    type     (varying_string), dimension(3) :: fractionDefinition
-    type     (varying_string), dimension(2) :: weightingDefinition
-    type     (varying_string)               :: valueDefinition    , message
-    character(len=20        )               :: fractionLabel      , radiusLabel
-    integer                                 :: i
 
     if (.not.outputVelocityDispersionDataInitialized) then
        !$omp critical(Galacticus_Output_Tree_Velocity_Dispersion_Initialize)
@@ -107,7 +78,6 @@ contains
                   &                             )
              radiiCount=globalParameters%count('outputVelocityDispersionRadii')
              allocate(outputVelocityDispersionRadii(radiiCount))
-             allocate(radii                        (radiiCount))
              !# <inputParameter>
              !#   <name>outputVelocityDispersionRadii</name>
              !#   <cardinality>1..*</cardinality>
@@ -117,152 +87,7 @@ contains
              !#   <type>string</type>
              !# </inputParameter>
              ! Parse the radii definitions.
-             diskIsNeeded                  =.false.
-             spheroidIsNeeded              =.false.
-             virialRadiusIsNeeded          =.false.
-             darkMatterScaleRadiusIsNeeded =.false.
-             do i=1,radiiCount
-                radii(i)%name=outputVelocityDispersionRadii(i)
-                call String_Split_Words(radiusDefinition,char(outputVelocityDispersionRadii(i)),':',bracketing="{}")
-                ! Detect cases which specify radius via a mass or light fraction. In either case, extract the fraction (and filter
-                ! for light fractions).
-                valueDefinition=radiusDefinition(1)
-                if (extract(valueDefinition,1,21) == 'galacticLightFraction') then
-                   call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
-                   radiusDefinition(1)='galacticLightFraction'
-                end if
-                if (extract(valueDefinition,1,20) == 'galacticMassFraction' ) then
-                   call String_Split_Words(fractionDefinition,char(valueDefinition),'{}')
-                   radiusDefinition(1)='galacticMassFraction'
-                end if
-                ! Parse the radius definition.
-                select case (char(radiusDefinition(1)))
-                case ('radius'                )
-                   radii(i)%type=radiusTypeRadius
-                case ('virialRadius'          )
-                   radii(i)%type=radiusTypeVirialRadius
-                   virialRadiusIsNeeded         =.true.
-                case ('darkMatterScaleRadius' )
-                   radii(i)%type=radiusTypeDarkMatterScaleRadius
-                   darkMatterScaleRadiusIsNeeded=.true.
-                   if (.not.defaultDarkMatterProfileComponent%scaleIsGettable         ())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &      (                                                                                                            &
-                        &       'dark matter profile scale radius is not gettable.'//                                                       &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'darkMatterProfile'                                                           ,  &
-                        &                                   defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &        {introspection:location}                                                                                   &
-                        &      )
-                case ('diskRadius'            )
-                   radii(i)%type=radiusTypeDiskRadius
-                   diskIsNeeded                 =.true.
-                   if (.not.defaultDiskComponent             %radiusIsGettable        ())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &(                                                                                                                  &
-                        &                              'disk radius is not gettable.'//                                                     &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'disk'                                                                        ,  &
-                        &                                   defaultDiskComponent    %        radiusAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &        {introspection:location}                                                                                   &
-                        &                             )
-                case ('spheroidRadius'        )
-                   radii(i)%type=radiusTypeSpheroidRadius
-                   spheroidIsNeeded             =.true.
-                   if (.not.defaultSpheroidComponent         %radiusIsGettable        ())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &(                                                                                                                  &
-                        &                              'spheroid radius is not gettable.'//                                                 &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'spheroid'                                                                    ,  &
-                        &                                   defaultSpheroidComponent%        radiusAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &        {introspection:location}                                                                                   &
-                        &                             )
-                case ('diskHalfMassRadius'    )
-                   radii(i)%type=radiusTypeDiskHalfMassRadius
-                   diskIsNeeded                 =.true.
-                   if (.not.defaultDiskComponent             %halfMassRadiusIsGettable())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &(                                                                                                                  &
-                        &                              'disk half-mass radius is not gettable.'//                                           &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'disk'                                                                        ,  &
-                        &                                   defaultDiskComponent    %halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &        {introspection:location}                                                                                   &
-                        &                             )
-                case ('spheroidHalfMassRadius')
-                   radii(i)%type=radiusTypeSpheroidHalfMassRadius
-                   spheroidIsNeeded   =.true.
-                   if (.not.defaultSpheroidComponent         %halfMassRadiusIsGettable())                                                   &
-                        & call Galacticus_Error_Report                                                                                      &
-                        &(                                                                                                                  &
-                        &                              'spheroid half-mass radius is not gettable.'//                                       &
-                        &        Galacticus_Component_List(                                                                                 &
-                        &                                  'spheroid'                                                                    ,  &
-                        &                                   defaultSpheroidComponent%halfMassRadiusAttributeMatch(requireGettable=.true.)   &
-                        &                                  )                                                                             // &
-                        &        {introspection:location}                                                                                   &
-                        &                             )
-                case ('galacticMassFraction'  )
-                   radii(i)%type=radiusTypeGalacticMassFraction
-                   fractionLabel=fractionDefinition(2)
-                   read (fractionLabel,*) radii(i)%fraction
-                   radii(i)%weightBy     =weightByMass
-                   radii(i)%weightByIndex=weightIndexNull
-                case ('galacticLightFraction' )
-                   radii(i)%type=radiusTypeGalacticLightFraction
-                   fractionLabel=fractionDefinition(2)
-                   read (fractionLabel,*) radii(i)%fraction
-                   radii(i)%weightBy      =weightByLuminosity
-                   radii(i)%weightByIndex=unitStellarLuminosities%index(fractionDefinition(3))
-                case default
-                   call Galacticus_Error_Report('unrecognized radius specifier'//{introspection:location})
-                end select
-                radii(i)%component=enumerationComponentTypeEncode(char(radiusDefinition(2)),includesPrefix=.false.)
-                radii(i)%mass     =enumerationMassTypeEncode     (char(radiusDefinition(3)),includesPrefix=.false.)
-                ! Detect cases which specify the weighting for integrals over the velocity dispersion.
-                valueDefinition=radiusDefinition(4)
-                if     (                                                &
-                     &   extract(valueDefinition,1,11) == 'lineOfSight' &
-                     &  .or.                                            &
-                     &   extract(valueDefinition,1, 7) == 'lambdaR'     &
-                     & ) then
-                   call String_Split_Words(weightingDefinition,char(valueDefinition),'{}')
-                   radiusDefinition(4)=weightingDefinition(1)
-                   if (weightingDefinition(2) == "mass" .or. weightingDefinition(2) == "") then
-                      radii(i)%integralWeightBy     =weightByMass
-                      radii(i)%integralWeightByIndex=weightIndexNull
-                   else
-                      radii(i)%integralWeightBy     =weightByLuminosity
-                      radii(i)%integralWeightByIndex=unitStellarLuminosities%index(weightingDefinition(2))
-                   end if
-                end if
-                ! Parse the direction definition.
-                select case (char(radiusDefinition(4)))
-                case ('radial'                    )
-                   radii(i)%direction=directionRadial
-                case ('lineOfSight'               )
-                   radii(i)%direction=directionLineOfSight
-                case ('lineOfSightInteriorAverage')
-                   radii(i)%direction=directionLineOfSightInteriorAverage
-                case ('lambdaR'                   )
-                   radii(i)%direction=directionLambdaR
-                case default
-                   message='unrecognized direction specifier: "'//radiusDefinition(4)//'"'
-                   message=message//char(10)//'available specifiers are:'
-                   message=message//char(10)//' --> radial'
-                   message=message//char(10)//' --> lineOfSight'
-                   message=message//char(10)//' --> lineOfSightInteriorAverage'
-                   message=message//char(10)//' --> lambdaR'
-                   call Galacticus_Error_Report(message//{introspection:location})
-                end select
-                radiusLabel=radiusDefinition(5)
-                read (radiusLabel,*) radii(i)%value
-             end do
+             call Galactic_Structure_Radii_Definition_Decode(outputVelocityDispersionRadii,radii,diskIsNeeded,spheroidIsNeeded,virialRadiusIsNeeded,darkMatterScaleRadiusIsNeeded)
              deallocate(outputVelocityDispersionRadii)
           end if
           ! Flag that module is now initialized.
