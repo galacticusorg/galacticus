@@ -25,7 +25,8 @@ module Node_Component_Basic_Standard
   private
   public :: Node_Component_Basic_Standard_Rate_Compute   , Node_Component_Basic_Standard_Scale_Set     , &
        &    Node_Component_Basic_Standard_Tree_Initialize, Node_Component_Basic_Standard_Stop_Accretion, &
-       &    Node_Component_Basic_Standard_Promote        , Node_Component_Basic_Standard_Plausibility
+       &    Node_Component_Basic_Standard_Promote        , Node_Component_Basic_Standard_Plausibility  , &
+       &    Node_Component_Basic_Standard_Post_Step
 
   !# <component>
   !#  <class>basic</class>
@@ -55,6 +56,12 @@ module Node_Component_Basic_Standard
   !#   </property>
   !#   <property>
   !#     <name>accretionRate</name>
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+  !#   </property>
+  !#   <property>
+  !#     <name>massTarget</name>
   !#     <type>double</type>
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
@@ -147,7 +154,8 @@ contains
        ! Determine node status.
        if (node%isSatellite()) then
           ! Node is a satellite - we assume no accretion.
-          call basic%accretionRateSet(0.0d0)
+          call basic%accretionRateSet(0.0d0       )
+          call basic%massTargetSet   (basic%mass())
        else if (.not.associated(node%parent)) then
           ! For parent-less nodes (i.e. the root node of the tree), the rate is set equal to that of the
           ! progenitor, if it has one.
@@ -159,9 +167,11 @@ contains
              call Node_Component_Basic_Standard_Tree_Initialize(childNode)
              ! Get the growth rate of the child.
              call basic%accretionRateSet(childBasicComponent%accretionRate())
+             call basic%massTargetSet   (basic              %mass         ())
           else
              ! Parentless node has no child - set a zero growth rate.
              call basic%accretionRateSet(0.0d0                              )
+             call basic%massTargetSet   (basic              %mass         ())
           end if
        else
           ! Get the parent node.
@@ -176,9 +186,11 @@ contains
                 ! Main progenitor - compute required growth rate.
                 deltaTime=basicParent%time()-basic%time()
                 if (deltaTime > 0.0d0) call basic%accretionRateSet(massUnresolved/deltaTime)
+                call basic%massTargetSet(basic%mass()+massUnresolved)
              else
                 ! Non-main progenitor - assume zero growth rate.
-                call basic%accretionRateSet(0.0d0)
+                call basic%accretionRateSet(0.0d0       )
+                call basic%massTargetSet   (basic%mass())
              end if
           else
              ! Negative mass growth - assume all progenitors lose mass at proportionally equal rates.
@@ -188,6 +200,7 @@ contains
              deltaTime=basicParent%time()-basic%time()
              ! Compute mass growth rate.
              if (deltaTime > 0.0d0) call basic%accretionRateSet((massUnresolved/deltaTime)*(basic%mass()/progenitorMassTotal))
+             call basic%massTargetSet(basic%mass()+massUnresolved*basic%mass()/progenitorMassTotal)
           end if
        end if
     end select
@@ -301,5 +314,31 @@ contains
     end select
     return
   end subroutine Node_Component_Basic_Standard_Plausibility
-  
+
+  !# <postStepTask>
+  !# <unitName>Node_Component_Basic_Standard_Post_Step</unitName>
+  !# </postStepTask>
+  subroutine Node_Component_Basic_Standard_Post_Step(node,status)
+    !% Trim histories attached to the disk.
+    use FGSL
+    implicit none
+    type   (treeNode          ), intent(inout), pointer :: node
+    integer                    , intent(inout)          :: status
+    class  (nodeComponentBasic)               , pointer :: basic
+
+    basic => node%basic()
+    select type (basic)
+    class is (nodeComponentBasicStandard)
+       if     (                                                                         &
+            &   (basic%accretionRate() < 0.0d0 .and. basic%mass() < basic%massTarget()) &
+            &  .or.                                                                     &
+            &   (basic%accretionRate() > 0.0d0 .and. basic%mass() > basic%massTarget()) &
+            & ) then
+          call basic%massSet(basic%massTarget())
+          status=FGSL_Failure
+       end if
+    end select
+    return
+  end subroutine Node_Component_Basic_Standard_Post_Step
+
 end module Node_Component_Basic_Standard
