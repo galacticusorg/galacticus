@@ -115,7 +115,7 @@ contains
     !% Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
     use Root_Finder
     use Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
-    use Galacticus_Display, only : Galacticus_Display_Message
+    use Galacticus_Display, only : Galacticus_Display_Message, verbositySilent
     implicit none
     class           (hotHaloRamPressureStrippingFont2008), intent(inout), target :: self
     type            (treeNode                           ), intent(inout), target :: node
@@ -180,7 +180,7 @@ contains
                 self%uniqueIDLast=node%uniqueID()
              end if
              font2008RadiusStripped=finder%find(rootGuess=min(self%radiusLast,radiusVirial),status=status)
-             if (status /= errorStatusSuccess) then
+             if (status /= errorStatusSuccess) then                
                 message='virial radius / root function at virial radius = '
                 write (label,'(e12.6)') radiusVirial
                 message=message//trim(adjustl(label))
@@ -188,7 +188,7 @@ contains
                 message=message//" / "//trim(adjustl(label))
                 write (label,'(e12.6)') font2008RadiusSolver(radiusVirial)
                 message=message//" : "//trim(adjustl(label))
-                call Galacticus_Display_Message(message)
+                call Galacticus_Display_Message(message,verbositySilent)
                 message='small radius / root function at small radius = '
                 write (label,'(e12.6)') radiusSmallestOverRadiusVirial*radiusVirial
                 message=message//trim(adjustl(label))
@@ -196,7 +196,7 @@ contains
                 message=message//" / "//trim(adjustl(label))
                 write (label,'(e12.6)') font2008RadiusSolver(radiusSmallestOverRadiusVirial*radiusVirial)
                 message=message//" : "//trim(adjustl(label))
-                call Galacticus_Display_Message(message)
+                call Galacticus_Display_Message(message,verbositySilent)
                 call Galacticus_Error_Report('root finding failed'//{introspection:location})
              end if
              self%radiusLast=font2008RadiusStripped
