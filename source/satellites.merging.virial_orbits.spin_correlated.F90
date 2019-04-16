@@ -101,11 +101,11 @@ contains
     type            (treeNode                 ), intent(inout)          :: host                     , node
     logical                                    , intent(in   )          :: acceptUnboundOrbits
     class           (nodeComponentSpin        )               , pointer :: spinHost
-    double precision                           , dimension(3)           :: spinVector               , position       , &
+    double precision                           , dimension(3)           :: spinVector               , position                , &
          &                                                                 velocity                 , angularMomentum
     integer                                    , parameter              :: trialMaximum       =10000
-    double precision                                                    :: probabilityRetain        , spinMagnitude  , &
-         &                                                                 cosineTheta
+    double precision                                                    :: probabilityRetain        , spinMagnitude           , &
+         &                                                                 cosineTheta              , angularMomentumMagnitude
     logical                                                             :: retain
     integer                                                             :: trial
     type            (coordinateCartesian      )                         :: coordinates
@@ -124,17 +124,22 @@ contains
        call spinCorrelatedOrbit%thetaSet  (acos(2.0d0   *node%hostTree%randomNumberGenerator%uniformSample()-1.0d0))
        call spinCorrelatedOrbit%epsilonSet(     2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()       )
        ! Compute the cosine of the angle between the angular momentum of this orbit and the spin of the host halo.
-       spinHost        =>  host               %spin      ()
-       spinVector      =   spinHost           %spinVector()
-       coordinates     =   spinCorrelatedOrbit%position  ()
-       position        =   coordinates
-       coordinates     =   spinCorrelatedOrbit%velocity  ()
-       velocity        =   coordinates
-       spinMagnitude   =   Vector_Magnitude(spinVector                   )
-       angularMomentum =   Vector_Product  (position     ,velocity       )
-       cosineTheta     =  +Dot_Product     (spinVector   ,angularMomentum) &
-            &             /                 spinMagnitude                  &
-            &             /Vector_Magnitude(              angularMomentum)
+       spinHost        => host               %spin      ()
+       spinVector      =  spinHost           %spinVector()
+       coordinates     =  spinCorrelatedOrbit%position  ()
+       position        =  coordinates
+       coordinates     =  spinCorrelatedOrbit%velocity  ()
+       velocity        =  coordinates
+       spinMagnitude   =  Vector_Magnitude(spinVector                   )
+       angularMomentum =  Vector_Product  (position     ,velocity       )
+       angularMomentumMagnitude=Vector_Magnitude(              angularMomentum)
+       if (spinMagnitude<=0.0d0.or.angularMomentumMagnitude<=0.0d0) then
+          cosineTheta=0.0d0
+       else
+          cosineTheta  =+Dot_Product(spinVector   ,angularMomentum         ) &
+               &        /            spinMagnitude                           &
+               &        /                          angularMomentumMagnitude
+       end if
        ! Decide whether to keep this orbit using rejection sampling.
        probabilityRetain=+(1.0d0+self%alpha*spinMagnitude*cosineTheta) &
             &            /(1.0d0+self%alpha*spinMagnitude            )
