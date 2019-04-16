@@ -37,7 +37,8 @@
      private
      integer                                     :: evaluateCount                , evaluateCountGlobal, &
           &                                         forceCount
-     logical                                     :: finalLikelihoodFullEvaluation, restored
+     logical                                     :: finalLikelihoodFullEvaluation, restored           , &
+          &                                         restoreLevels
      double precision, dimension(:), allocatable :: likelihoodMultiplier         , likelihoodAccept
    contains
      procedure :: evaluate => independentLikelihoodsSequantialEvaluate
@@ -73,6 +74,15 @@ contains
     !#   <source>parameters</source>
     !#   <type>boolean</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>restoreLevels</name>
+    !#   <variable>self%restoreLevels</variable>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <cardinality>1</cardinality>
+    !#   <description>If true the level reached by each chain is restored on restarts. Otherwise, the level is initialized to zero (which may be useful for stochastic likelihoods).</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
     ! Initialize the parent class.
     self%posteriorSampleLikelihoodIndependentLikelihoods=posteriorSampleLikelihoodIndependentLikelihoods(parameters)
     ! Get likelihood multipliers and acceptances.
@@ -99,14 +109,14 @@ contains
     return
   end function independentLikelihoodsSequentialConstructorParameters
 
-  function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation,likelihoodMultiplier,likelihoodAccept) result(self)
+  function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation,restoreLevels,likelihoodMultiplier,likelihoodAccept) result(self)
     !% Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
     implicit none
     type            (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                              :: self
     type            (posteriorSampleLikelihoodList               ), intent(in   ), target       :: modelLikelihoods
-    logical                                                       , intent(in   )               :: finalLikelihoodFullEvaluation
+    logical                                                       , intent(in   )               :: finalLikelihoodFullEvaluation, restoreLevels
     double precision                                              , intent(in   ), dimension(:) :: likelihoodMultiplier         , likelihoodAccept
-    !# <constructorAssign variables="*modelLikelihoods, finalLikelihoodFullEvaluation, likelihoodMultiplier, likelihoodAccept"/>
+    !# <constructorAssign variables="*modelLikelihoods, finalLikelihoodFullEvaluation, restoreLevels, likelihoodMultiplier, likelihoodAccept"/>
     
     ! The evaluateCount value is the likelihood number at which we have achieved success so far.
     self%evaluateCount      =0
@@ -313,7 +323,7 @@ contains
     !GCC$ attributes unused :: simulationState
     
     ! Detect the sequential state jumping to the next level.
-    if (logLikelihood-dble(self%evaluateCount)*indpndntLklhdsSqntLogLikelihoodIncrement > 0.0d0) then
+    if (logLikelihood-dble(self%evaluateCount)*indpndntLklhdsSqntLogLikelihoodIncrement > 0.0d0 .and. self%restoreLevels) then
        ! Increment the record of the level achieved.
        self%evaluateCount=self%evaluateCount+1
        self%   forceCount=self%   forceCount+1
