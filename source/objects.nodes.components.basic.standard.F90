@@ -321,6 +321,7 @@ contains
   subroutine Node_Component_Basic_Standard_Post_Step(node,status)
     !% Trim histories attached to the disk.
     use FGSL
+    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentBasicStandard
     implicit none
     type   (treeNode          ), intent(inout), pointer :: node
     integer                    , intent(inout)          :: status
