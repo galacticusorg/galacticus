@@ -253,6 +253,7 @@ contains
              if (basicBranch%mass() > ludlow2016States(ludlow2016StateCount)%massLimit             ) timeFormationEarliest=min(timeFormationEarliest,basicBranch%time())
              if (basicBranch%mass() > ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic) timeFormationLatest  =min(timeFormationLatest  ,basicBranch%time())
           end do
+          timeFormationLatest=max(timeFormationLatest,timeFormationEarliest)
           ! Test if the formation time is before the earliest time in the branch.
           if (self%formationTimeRoot(timeBranchEarliest) > 0.0d0) then
              ! The characteristic halo mass is never resolved in this branch - fall though to an alternative concentration calculation.
