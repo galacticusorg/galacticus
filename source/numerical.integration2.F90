@@ -1991,7 +1991,8 @@ contains
     type            (intervalMulti                                  ), pointer                                      :: head             , newInterval1 , &
          &                                                                                                             newInterval2     , current      , &
          &                                                                                                             previous         , newInterval
-    integer         (c_size_t                                       )                                               :: iInterval        , intervalCount
+    integer         (c_size_t                                       )                                               :: iInterval        , intervalCount, &
+         &                                                                                                             i
     type            (varying_string                                 )                                               :: message
     character       (len=32                                         )                                               :: label
 
@@ -2075,23 +2076,33 @@ contains
           message=message//" "  //label
           write (label,'(e32.12)') current%b
           message=message//"/"  //label
-          write (label,'(e32.12)') current%fa
-          message=message//" : "//label
-          write (label,'(e32.12)') current%fa
-          message=message//"/"  //label
           call Galacticus_Display_Message(message)
+          do i=1,size(current%fa)
+             message="  (i="
+             write (label,'(i12)') i             
+             message=message//adjustl(trim(label))//")"
+             write (label,'(e32.12)') current%fa(i)
+             message=message//" : "//label
+             write (label,'(e32.12)') current%fb(i)
+             message=message//"/"  //label
+             write (label,'(l1)') converged(i)
+             message=message//" (converged="//adjustl(trim(label))//")"
+             call Galacticus_Display_Message(message)
+          end do
           current => head          
           do while (associated(current))
-             message="a/b : f(a)/f(b) ="
-             write (label,'(e32.12)') current%a
-             message=message//" "  //label
-             write (label,'(e32.12)') current%b
-             message=message//"/"  //label
-             write (label,'(e32.12)') current%fa
-             message=message//" : "//label
-             write (label,'(e32.12)') current%fa
-             message=message//"/"  //label
-             call Galacticus_Display_Message(message)
+             do i=1,size(current%fa)
+                message="  (i="
+                write (label,'(i12)') i             
+                message=message//adjustl(trim(label))//")"
+                write (label,'(e32.12)') current%fa(i)
+                message=message//" : "//label
+                write (label,'(e32.12)') current%fb(i)
+                message=message//"/"  //label
+                write (label,'(l1)') converged(i)
+                message=message//" (converged="//adjustl(trim(label))//")"
+                call Galacticus_Display_Message(message)
+             end do
              current  => current%next
           end do
           call Galacticus_Display_Unindent('done')
