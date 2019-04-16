@@ -382,6 +382,7 @@ contains
   
   !# <postStepTask>
   !# <unitName>Node_Component_Disk_Standard_Post_Step</unitName>
+  !# <after>Node_Component_Basic_Standard_Post_Step</after>
   !# </postStepTask>
   subroutine Node_Component_Disk_Standard_Post_Step(node,status)
     !% Trim histories attached to the disk.

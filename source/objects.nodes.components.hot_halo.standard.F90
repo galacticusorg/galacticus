@@ -453,6 +453,7 @@ contains
 
   !# <postStepTask>
   !#  <unitName>Node_Component_Hot_Halo_Standard_Post_Step</unitName>
+  !# <after>Node_Component_Basic_Standard_Post_Step</after>
   !# </postStepTask>
   subroutine Node_Component_Hot_Halo_Standard_Post_Step(node,status)
     !% Do processing of the node required after evolution.
