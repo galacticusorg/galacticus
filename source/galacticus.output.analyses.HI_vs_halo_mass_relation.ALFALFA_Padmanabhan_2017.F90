@@ -155,10 +155,10 @@ contains
     double precision                                                    , parameter                     :: errorPolynomialZeroPoint                              =10.0d00
     double precision                                                    , parameter                     :: massHILimit                                           = 1.0d06
     logical                                                             , parameter                     :: likelihoodNormalize                                   =.false.
-    double precision                                                    , parameter                     :: alphaFit                                              =0.16d0        , betaFit                                      =-0.63d0       , &
-         &                                                                                                 log10Velocity0Fit                                     =1.61d0        , log10Velocity1Fit                            =4.64d0        , &
-         &                                                                                                 massReferenceFit                                      =1.0d11        , errorAlphaFit                                =0.02d0        , &
-         &                                                                                                 errorBetaFit                                          =0.12d0        , errorLog10Velocity0Fit                       =0.03d0        , &
+    double precision                                                    , parameter                     :: alphaFit                                              =0.09d0        , betaFit                                      =-0.58d0       , &
+         &                                                                                                 log10Velocity0Fit                                     =1.56d0        , log10Velocity1Fit                            =+4.64d0       , &
+         &                                                                                                 massReferenceFit                                      =1.0d11        , errorAlphaFit                                =+0.02d0       , &
+         &                                                                                                 errorBetaFit                                          =0.12d0        , errorLog10Velocity0Fit                       =+0.03d0       , &
          &                                                                                                 errorLog10Velocity1Fit                                =0.75d0
     double precision                                                                                    :: velocityVirial                                                       , fractionHydrogenCosmic                                      , &
          &                                                                                                 velocity0Fit                                                         , velocity1Fit                                                , &
@@ -263,9 +263,10 @@ contains
     !# <referenceConstruct object="virialDensityContrast_"                                 constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_                                 )"/>
     allocate(outputAnalysisPropertyExtractor_                      )
     !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                       constructor="outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                                            )"/>
-    ! Create a halo scale object from which to compute virial velocities. Padmanabhan & Refrigier do not specify what density
-    ! contrast they adopt for "virial" quantities. Tracing back through the references in their paper it seems that the model
-    ! originates in Barnes & Haehnelt (2009) who use the Bryan & Norman (1998) virial density contrast definition.
+    ! Create a halo scale object from which to compute virial velocities. Padmanabhan & Refrigier use the Bryan & Norman (1998)
+    ! virial density contrast definition. However (Padmanabhan, private communication), they assume it gives the density contrast
+    ! relative to mean density, instead of critical density (as was used by Bryan & Norman). This means that virial velocities are
+    ! lower by a factor Ωₘ^⅙ than they should be. We explicitly account for this factor when computing virial velocity below.
     allocate(virialDensityContrastData                             )
     !# <referenceConstruct object="virialDensityContrastData"                              constructor="virialDensityContrastBryanNorman1998                  (cosmologyParametersData      ,cosmologyFunctionsData                              )"/>
     allocate(darkMatterHaloScaleData)
@@ -284,8 +285,11 @@ contains
     velocity1Fit=10.0**log10Velocity1Fit
     do iBin=1,massHaloCount
        call basicWork              %massSet         (massHalo(iBin))
-       call darkMatterHaloScaleData%calculationReset(nodeWork      )       
-       velocityVirial               =+darkMatterHaloScaleData%virialVelocity(nodeWork)
+       call darkMatterHaloScaleData%calculationReset(nodeWork      )
+       ! Compute virial velocity, including the extra factor of Ωₘ^⅙ to correct for incorrect definition of virial density
+       ! contrast used by Padmanabhan & Refrigier (2017).
+       velocityVirial               =+darkMatterHaloScaleData%virialVelocity(nodeWork)                &
+            &                        *cosmologyParametersData%OmegaMatter   (        )**(1.0d0/6.0d0)
        massHILogarithmicTarget(iBin)=+alphaFit                                                       &
             &                        *fractionHydrogenCosmic                                         &
             &                        *  massHalo(iBin)                                               &
@@ -298,14 +302,6 @@ contains
             &                         )**betaFit                                                     &
             &                        *exp(-(velocity0Fit  /velocityVirial)**3)                       &
             &                        *exp(-(velocityVirial/velocity1Fit  )**3)
-
-
-
-       !! AJB HACK
-!       write (0,*) iBin,log10(massHalo(iBin)),velocityVirial,log10(massHILogarithmicTarget(iBin)),velocity0Fit,velocity1Fit,exp(-(velocity0Fit  /velocityVirial)**3),exp(-(velocityVirial/velocity1Fit  )**3)
-
-       
-
        jacobianAlpha    =+massHILogarithmicTarget(iBin)/alphaFit
        jacobianBeta     =+massHILogarithmicTarget(iBin)*log(massHalo(iBin)/(massReferenceFit/cosmologyParametersData%HubbleConstant(hubbleUnitsLittleH)))
        jacobianVelocity0=-massHILogarithmicTarget(iBin)*3.0d0*log(10.0d0)*velocity0Fit  **3/velocityVirial**3
