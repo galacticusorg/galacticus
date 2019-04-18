@@ -100,7 +100,7 @@ contains
   
   subroutine Galactic_Structure_Radii_Revert(node)
     !% Revert the radii of galactic components in {\normalfont \ttfamily node} (if necessary to ensure that the structure solver
-    !% will give the same result when called consequtively).
+    !% will give the same result when called consecutively).
     implicit none
     type(treeNode), intent(inout), target :: node
 
