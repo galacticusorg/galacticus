@@ -30,6 +30,7 @@ module Dark_Matter_Profiles_Generic
   private
   public :: darkMatterProfileGeneric
 
+  !# <functionClassType name="darkMatterProfileGeneric"/>
   type, extends(functionClass), abstract :: darkMatterProfileGeneric
      !% A dark matter halo profile class implementing numerical calculations for generic dark matter halos.
      ! Note that the following components can not be "private", as private components of parent types which are accessed through a
