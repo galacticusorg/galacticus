@@ -123,6 +123,9 @@ sub Process_ObjectBuilder {
 		    $builderCode               .=  "    parametersDefault=inputParameters(var_str('".$defaultXML."'),allowedParameterNames=['".$parameterName."'],noOutput=.true.)\n";
 		    $builderCode               .= "     call parametersDefault%parametersGroupCopy(parametersCurrent)\n";
 		    $builderCode               .=  "    parametersCurrent => parametersDefault\n";
+		    $builderCode               .=  "    parametersDefaultCreated=.true.\n";
+		    $builderCode               .=  "  else\n";
+		    $builderCode               .=  "    parametersDefaultCreated=.false.\n";
 		    $builderCode               .=  "  end if\n";
 		} else {
 		    $builderCode               .= "   do while (.not.parametersCurrent%isPresent('".$parameterName."').and.associated(parametersCurrent%parent))\n";
@@ -196,6 +199,11 @@ sub Process_ObjectBuilder {
 		$builderCode .= $debugMessage;
 		$builderCode .= $copyLoopClose;
 		$builderCode .= "   end if\n";
+	    }
+	    if ( exists($node->{'directive'}->{'parameterName'}) ) {
+		if ( exists($node->{'directive'}->{'default'}) ) {
+		    $builderCode .= "   if (parametersDefaultCreated) call parametersDefault%destroy()\n";
+		}
 	    }
 	    # Build a code node.
 	    my $newNode =
@@ -277,6 +285,10 @@ sub Process_ObjectBuilder {
 			 type       => "inputParameters"      ,
 			 variables  => [ "parametersDefault" ],
 			 attributes => [ "target"            ]
+		     },
+		     {
+			 intrinsic  => "logical"                     ,
+			 variables  => [ "parametersDefaultCreated" ]
 		     }
 		    );
 		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
