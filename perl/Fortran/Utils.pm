@@ -24,7 +24,7 @@ our %unitOpeners = (
     # Find subroutine openings, allowing for pure, elemental and recursive subroutines.
     subroutine         => { unitName => 1, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*subroutine\s+(${label})/},
     # Find function openings, allowing for pure, elemental and recursive functions, and different function types.
-    function           => { unitName => 4, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\((kind|len)=[\w\d]*\))*\s*function\s+(${label})/},
+    function           => { unitName => 5, regEx => qr/^\s*(pure\s+|elemental\s+|recursive\s+)*\s*(real|integer|double\s+precision|double\s+complex|character|logical)*\s*(\(((kind|len)=)??[\w\d]*\))*\s*function\s+(${label})/},
     # Find interfaces.
     interface          => { unitName => 1, regEx => qr/^\s*(abstract\s+)??interface\s+([a-zA-Z0-9_\(\)\/\+\-\*\.=]*)/},
     # Find types.
