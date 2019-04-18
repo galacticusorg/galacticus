@@ -26,7 +26,7 @@ module Interfaces_FSPS
   
 contains
 
-  subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion)
+  subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
     !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
     use ISO_Varying_String
     use Galacticus_Paths
@@ -36,11 +36,13 @@ contains
     use Galacticus_Error
     use String_Handling
     implicit none
-    type     (varying_string), intent(  out) :: fspsPath       , fspsVersion
-    integer                                  :: status         , inputFile
-    logical                                  :: upToDate
-    character(len=40        )                :: currentRevision
-    
+    type     (varying_string), intent(  out)           :: fspsPath       , fspsVersion
+    logical                  , intent(in   ), optional :: static
+    integer                                            :: status         , inputFile
+    logical                                            :: upToDate
+    character(len=40        )                          :: currentRevision
+    !# <optionalArgument name="static" defaultsTo=".false." />
+
     ! Specify source code path.
     fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
     ! Check out the code.
@@ -50,8 +52,10 @@ contains
        if (.not.File_Exists(fspsPath) .or. status /= 0) call Galacticus_Error_Report("failed to clone FSPS git repository"//{introspection:location})
     end if
     ! Get the code revision number.
-    call System_Command_Do("cd "//fspsPath//"; git rev-parse HEAD > currentRevision.txt",status)
-    if (status /= 0) call Galacticus_Error_Report("unable to find FSPS revision"//{introspection:location})
+    if (.not.File_Exists(fspsPath//"/currentRevision.txt")) then
+       call System_Command_Do("cd "//fspsPath//"; git rev-parse HEAD > currentRevision.txt",status)
+       if (status /= 0) call Galacticus_Error_Report("unable to find FSPS revision"//{introspection:location})
+    end if
     open(newUnit=inputFile,file=char(fspsPath)//"/currentRevision.txt",status='old',form='formatted')
     read (inputFile,'(a)') currentRevision
     close(inputFile)
@@ -83,6 +87,11 @@ contains
     !  Build the code.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
        call Galacticus_Display_Message("compiling autosps.exe code",verbosityWorking)
+       if (static_) then
+          call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -r s/'^(F90FLAGS = .*)'/'\1 \-static'/g Makefile")
+       else
+          call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -r s/'^(F90FLAGS = .*)\s*\-static(.*)'/'\1 \2'/g Makefile")
+       end if
        call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//"; make clean; make -j 1",status)
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Galacticus_Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if

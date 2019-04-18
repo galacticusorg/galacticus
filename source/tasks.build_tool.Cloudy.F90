@@ -59,7 +59,7 @@ contains
     !GCC$ attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: Cloudy tool build')
-    call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion)
+    call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static=.true.)
     call Galacticus_DisplaY_Message('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: Cloudy tool build')

@@ -58,9 +58,9 @@ contains
     type   (varying_string      )                          :: recfastPath, recfastVersion
     !GCC$ attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: RecFast tool build')
-    call Interface_RecFast_Initialize(recfastPath,recfastVersion)
-    call Galacticus_DisplaY_Message('RecFast version '//recfastVersion//' successfully built in: '//recfastPath)
+    call Galacticus_Display_Indent ('Begin task: RecFast tool build')
+    call Interface_RecFast_Initialize(recfastPath,recfastVersion,static=.true.)
+    call Galacticus_Display_Message('RecFast version '//recfastVersion//' successfully built in: '//recfastPath)
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: RecFast tool build')
     return

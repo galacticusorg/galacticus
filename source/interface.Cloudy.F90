@@ -26,7 +26,7 @@ module Interfaces_Cloudy
   
 contains
 
-  subroutine Interface_Cloudy_Initialize(cloudyPath,cloudyVersion)
+  subroutine Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static)
     !% Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
     use ISO_Varying_String
     use Galacticus_Paths
@@ -35,8 +35,10 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    type   (varying_string), intent(  out) :: cloudyPath, cloudyVersion
-    integer                                :: status
+    type   (varying_string), intent(  out)           :: cloudyPath, cloudyVersion
+    logical                , intent(in   ), optional :: static
+    integer                                          :: status
+    !# <optionalArgument name="static" defaultsTo=".false." />
 
     ! Specify Cloudy version.
     cloudyVersion="c17.01"
@@ -59,6 +61,11 @@ contains
     ! Build the code.
     if (.not.File_Exists(cloudyPath//"/source/cloudy.exe")) then
        call Galacticus_Display_Message("compiling Cloudy code....",verbosityWorking)
+       if (static_) then
+          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -r s/'^EXTRA\s*=.*'/'EXTRA = -static'/g Makefile")
+       else
+          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -r s/'^EXTRA\s*=.*'/'EXTRA ='/g Makefile")
+       end if
        call System_Command_Do("cd "//cloudyPath//"/source; chmod u=wrx configure.sh capabilities.pl; make",status)
        if (status /= 0 .or. .not.File_Exists(cloudyPath//"/source/cloudy.exe")) call Galacticus_Error_Report("failed to build Cloudy code"//{introspection:location})
     end if

@@ -59,7 +59,7 @@ contains
     !GCC$ attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: CAMB tool build')
-    call Interface_CAMB_Initialize(cambPath,cambVersion)
+    call Interface_CAMB_Initialize(cambPath,cambVersion,static=.true.)
     call Galacticus_DisplaY_Message('CAMB version '//cambVersion//' successfully built in: '//cambPath)
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: CAMB tool build')
