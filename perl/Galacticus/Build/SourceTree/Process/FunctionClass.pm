@@ -59,6 +59,24 @@ sub Process_FunctionClass {
 		    %methods = %{$directive->{'method'}};
 		}
 	    }
+	    # Load any functionClassType that the base class extends.
+	    my $functionClassType;
+	    if ( exists($directive->{'extends'}) ) {
+		(my $functionClassTypeFileName) = map {$_->{'name'} eq $directive->{'extends'} ? $_->{'file'} : ()} &List::ExtraUtils::as_array($stateStorables->{'functionClassTypes'});
+		die('failed to find file containing functionClassType "'.$directive->{'extends'}.'"')
+		    unless ( defined($functionClassTypeFileName) );
+		$functionClassType->{'tree'} = &Galacticus::Build::SourceTree::ParseFile($functionClassTypeFileName);
+		my $classNode  = $functionClassType->{'tree'};
+		my $classDepth = 0;
+		while ( $classNode ) {
+		    if ( $classNode->{'type'} eq "type" ) {
+			if ( $classNode->{'name'} eq $directive->{'extends'} ) {
+			    $functionClassType->{'node'} = $classNode;
+			}
+		    }
+		    $classNode = &Galacticus::Build::SourceTree::Walk_Tree($classNode,\$classDepth);
+		}
+	    }
 	    # Find class locations.
 	    my @classLocations = &List::ExtraUtils::as_array($directiveLocations->{$directive->{'name'}}->{'file'})
 		if ( exists($directiveLocations->{$directive->{'name'}}) );
@@ -117,6 +135,7 @@ sub Process_FunctionClass {
 		    unless ( defined($class->{'type'}) );
 		$classes{$class->{'type'}} = $class;
 	    }
+	    # Sort classes.
 	    my @unsortedClasses = keys(%classes);
 	    my @sortedClasses   = toposort(sub { @{$dependencies{$_[0]} || []}; }, \@unsortedClasses );
 	    my @classes         = map($classes{$_},@sortedClasses);
@@ -281,6 +300,39 @@ sub Process_FunctionClass {
 			 )
 			);
 		}
+		# Add any names declared in the functionClassType.
+		if ( defined($functionClassType) ) {
+		    # Search the node for declarations.
+		    my $node = $functionClassType->{'node'}->{'firstChild'};
+		    while ( $node ) {
+			if ( $node->{'type'} eq "declaration" ) {
+			    foreach my $declaration ( @{$node->{'declarations'}} ) {
+				# Identify object pointers.
+				push(@{$potentialNames->{'objects'}},map {$_ =~ s/\s*([a-zA-Z0-9_]+).*/$1/; $_} @{$declaration->{'variables'}})
+				    if
+				    (
+				     $declaration->{'intrinsic'} eq "class"
+				     &&
+				     $declaration->{'type'     } =~ m/Class\s*$/
+				     &&
+				     grep {$_ eq "pointer"} @{$declaration->{'attributes'}}
+				    );
+				push(@{$potentialNames->{'parameters'}},$declaration)
+				    if
+				    (
+				     (grep {$_ eq $declaration->{'intrinsic'}} ( "integer", "logical", "double precision" ))
+				     ||
+				     (
+				             $declaration->{'intrinsic'}  eq "type"
+				      &&
+				      trimlc($declaration->{'type'     }) eq "varying_string"				      
+				     )
+				    );
+			    }
+			}
+			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
+		    }
+		}		
 		# Search the tree for this class to find the interface to the parameters constructor.
 		my $node = $nonAbstractClass->{'tree'}->{'firstChild'};
 		$node = $node->{'sibling'}
@@ -952,6 +1004,140 @@ CODE
 				foreach ( @{$declaration->{'variables'}} );
 		    }
 		}
+		# Add any objects declared in the functionClassType class.
+		if ( defined($functionClassType) ) {
+		    # Search the node for declarations.
+		    my $node = $functionClassType->{'node'}->{'firstChild'};
+		    while ( $node ) {
+			if ( $node->{'type'} eq "declaration" ) {
+			    foreach my $declaration ( @{$node->{'declarations'}} ) {
+				# Deep copy of functionClass objects.
+				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+				    if ( $declaration->{'intrinsic'} eq "class" );
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "class"
+				     &&
+				     (grep {$_ eq $type    } (@{$stateStorables->{'functionClasses'}},@{$stateStorables->{'functionClassInstances'}}))
+				     &&
+				     grep {$_ eq "pointer"}  @{$declaration   ->{'attributes'     }}
+				    ) 
+				{
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					$assignments .= "nullify(destination%".$name.")\n";
+					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					    if ( $debugging );
+				    }
+				};
+				# Deep copy of HDF5 objects.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
+				    ) {
+					$deepCopyModules{'IO_HDF5'} = 1;
+					$assignments .= "!\$ call hdf5Access%set  ()\n";
+					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
+					    foreach ( @{$declaration->{'variables'}} );
+					$assignments .= "!\$ call hdf5Access%unset()\n";
+				}
+				# Deep copy of non-(class,pointer) functionClass objects.
+				if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+						$assignments .= "nullify(destination%".$name.")\n";
+						$assignments .= "if (associated(self%".$name.")) then\n";
+						$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+					    }
+					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+					    if ( $debugging );
+					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+						$assignments .= "end if\n";
+					    }
+					}
+				    }
+				}
+				# Deallocate FGSL interpolators.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*fgsl_interp\s*$/i
+				    ) {
+					$assignments .= "destination%".$_."=fgsl_interp()\n"
+					    foreach ( @{$declaration->{'variables'}} );
+				}
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*fgsl_interp_accel\s*$/i
+				    ) {
+					$assignments .= "destination%".$_."=fgsl_interp_accel()\n"
+					    foreach ( @{$declaration->{'variables'}} );
+				}
+				# Reinitialize OpenMP locks.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "integer"
+				     &&
+				     exists ($declaration->{'type'})
+				     &&
+				     defined($declaration->{'type'})
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*omp_lock_kind\s*$/i
+				    ) {
+					$assignments .= "!\$ call OMP_Init_Lock(destination\%".$_.")\n"
+					    foreach ( @{$declaration->{'variables'}} );
+				}
+				# Reinitialize OpenMP read/write locks.
+				if
+				    (
+				     $declaration->{'intrinsic'} eq "type"
+				     &&
+				     exists ($declaration->{'type'})
+				     &&
+				     defined($declaration->{'type'})
+				     &&
+				     $declaration->{'type'     } =~ m/^\s*ompReadWriteLock\s*$/i
+				    ) {
+					foreach ( @{$declaration->{'variables'}} ) {
+					    my @dimensions =
+						exists($declaration->{'attributes'}) 
+						?
+						map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}} 
+					        :
+						undef();	    
+					    if ( @dimensions ) {
+						my @rank = split(",",$dimensions[0]);
+						# Add loop index variables.
+						$rankMaximum = scalar(@rank)
+						    if ( scalar(@rank) > $rankMaximum );
+						for(my $i=1;$i<=scalar(@rank);++$i) {
+						    $assignments .= "!\$ do i".$i."=lbound(destination\%".$_.",dim=".$i."),ubound(destination\%".$_.",dim=".$i.")\n";
+						}
+						$assignments .= "!\$    call destination\%".$_."(".join(",",map {"i".$_} 1..scalar(@rank)).")%initialize()\n";
+						for(my $i=1;$i<=scalar(@rank);++$i) {
+						    $assignments .= "!\$ end do\n";
+						}
+					    } else {
+						# Scalar lock.
+						$assignments .= "!\$ call destination\%".$_."%initialize()\n";
+					    }
+					}
+				}		    
+			    }
+			}
+			$node = $node->{'sibling'};
+		    }
+		}
 		# Check that the type of the destination matches, and perform the copy. Reset the reference count to the copy.
 		$deepCopyCode .= "type is (".$nonAbstractClass->{'name'}.")\n";
 		$deepCopyCode .= "select type (destination)\n";
@@ -1426,6 +1612,209 @@ CODE
 				    push(@staticVariables,$variableName);
 				}
 			    }
+			}
+		    }
+		    # Add any variables declared in the functionClassType class.
+		    if ( defined($functionClassType) ) {
+			my $node = $functionClassType->{'node'}->{'firstChild'};
+			while ( $node ) {
+			    if ( $node->{'type'} eq "declaration" ) {			    
+				foreach my $declaration ( @{$node->{'declarations'}} ) {
+				    # Identify variable type.
+				    if ( $declaration->{'intrinsic'} eq "procedure" ) {
+					# Type-bound procedure - nothing to do.
+				    } elsif ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) {
+					# Look for pointers to functionClasses.
+					(my $type = $declaration->{'type'}) =~ s/\s//g;
+					if ( 
+					    $declaration->{'intrinsic'} eq "class"
+					    &&
+					    (grep {$_ eq "pointer"} @{$declaration   ->{'attributes'     }})
+					    &&
+					    (grep {$_ eq $type    } @{$stateStorables->{'functionClasses'}})
+					    ) {
+					    # Pointer to a functionClass object.
+					    foreach ( @{$declaration->{'variables'}} ) {
+						$labelUsed = 1;
+						(my $variableName = $_) =~ s/\s*=.*$//;
+						$outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
+						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
+						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
+						$outputCode .= "  end select\n";
+						$outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+						$outputCode .= " end if\n";
+						$inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+						$outputCode .= " call self%".$variableName."%stateStore  (stateFile,fgslStateFile,stateOperationID)\n";
+						$inputCode  .= " call self%".$variableName."%stateRestore(stateFile,fgslStateFile,stateOperationID)\n";
+						$stateFileUsed     = 1;
+						$fgslStateFileUsed = 1;
+					    }
+					} elsif (
+					    (
+					     (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
+					     ||
+					     (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
+					    )
+					    &&
+					    (! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'            }})				       
+					    ){
+					    # This is a non-pointer object which is explicitly stateStorable.
+					    # Validate: Currently we do not support store/restore of polymorphic functionClass objects.
+					    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): storing of polymorphic functionClass objects is not implemented")
+						if
+						(
+						 $declaration->{'intrinsic'} eq "class"
+						 &&
+						 (grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}})
+						);
+					    my $isFunctionClass = grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}};
+					    # Construct code to output.
+					    foreach ( @{$declaration->{'variables'}} ) {
+						(my $variableName = $_) =~ s/\s*=.*$//;
+						next
+						    if ( grep {lc($_) eq lc($variableName)} @excludes );
+						my $rank = 0;
+						if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
+						    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
+						    $rank        = ($dimensionDeclarator =~ tr/,//)+1;
+						    $rankMaximum = $rank
+							if ( $rank > $rankMaximum );
+						}
+						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+						    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
+						    $allocatablesFound  = 1;
+						    $dimensionalsFound  = 1
+							if ( $rank > 0 );
+						    $outputCode .= " if (allocated(self%".$variableName.")) then\n";
+						    $outputCode .= "  write (stateFile) .true.\n";
+						    $outputCode .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n"
+							if ( $rank > 0 );
+						    $inputCode  .= " read (stateFile) wasAllocated\n";
+						    $inputCode  .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+						    $inputCode  .= " if (wasAllocated) then\n";
+						    if ( $rank > 0 ) {
+							$inputCode  .= "  allocate(storedShape(".$rank."))\n";
+							$inputCode  .= "  read (stateFile) storedShape\n";
+							$inputCode  .= "  deallocate(storedShape)\n";
+						    }
+						    if ( $declaration->{'intrinsic'} eq "class" ) {
+							$inputCode  .= "  call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
+						    } else {
+							$inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+						    }
+						}
+						for(my $i=1;$i<=$rank;++$i) {
+						    $outputCode .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+						    $inputCode  .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+						}
+						my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
+						$labelUsed   = 1;
+						$outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+						if ( $declaration->{'intrinsic'} eq "class" ) {
+						    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
+						    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
+						    $outputCode .= "   write (label,'(i16)') sizeof(c__".$arrayElement.")\n";
+						    $outputCode .= "  end select\n";
+						} else {
+						    $outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						}
+						$outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName.$arrayElement."\" with size '//trim(adjustl(label))//' bytes')\n";
+						$outputCode .= " end if\n";
+						$inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName.$arrayElement."\"',verbosity=verbosityWorking)\n";
+						$inputCode  .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateRestore(stateFile,fgslStateFile".($isFunctionClass ? ",stateOperationID" : "").")\n";
+						$outputCode .= (" " x $rank)." call self%".$variableName.$arrayElement."%stateStore  (stateFile,fgslStateFile".($isFunctionClass ? ",stateOperationID" : ",storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.")).")\n";
+						for(my $i=1;$i<=$rank;++$i) {
+						    $outputCode .= (" " x ($rank+1-$i))."end do\n";
+						    $inputCode  .= (" " x ($rank+1-$i))."end do\n";
+						}
+						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+						    $inputCode  .= " end if\n";
+						    $outputCode .= " else\n";
+						    $outputCode .= "  write (stateFile) .false.\n";
+						    $outputCode .= " end if\n";
+						}
+						$stateFileUsed      = 1;
+						$fgslStateFileUsed  = 1;
+					    }
+					}
+				    } else {
+					# Intrinsic type.
+					if ( grep {$_ eq "pointer"} @{$declaration->{'attributes'}} ) {
+					    # Pointers are currently not handled.
+					} elsif ( exists($declaration->{'type'}) && defined($declaration->{'type'}) && $declaration->{'type'} =~ m/^\s*omp_lock_kind\s*/ ) {
+					    # Do not store OpenMP lock variables.
+					} elsif ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} ) {
+					    # For allocatable variables we must first store the shape so that they can be reallocated on restore.
+					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
+					    my $rank = ($dimensionDeclarator =~ tr/://);
+					    foreach my $variableName ( @{$declaration->{'variables'}} ) {
+						next
+						    if ( grep {lc($_) eq lc($variableName)} @excludes );
+						$allocatablesFound  = 1;
+						$dimensionalsFound  = 1;
+						$stateFileUsed      = 1;
+						$labelUsed          = 1;
+						$outputCode        .= " if (allocated(self%".$variableName.")) then\n";
+						$outputCode        .= "  if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
+						$outputCode        .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
+						$outputCode        .= "   call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
+						$outputCode        .= "  end if\n";
+						$outputCode        .= "  write (stateFile) .true.\n";
+						$outputCode        .= "  write (stateFile) shape(self%".$variableName.",kind=c_size_t)\n";
+						$outputCode        .= "  write (stateFile) self%".$variableName."\n";
+						$outputCode        .= " else\n";
+						$outputCode        .= "  write (stateFile) .false.\n";
+						$outputCode        .= " end if\n";
+						$inputCode         .= " read (stateFile) wasAllocated\n";
+						$inputCode         .= " if (allocated(self%".$variableName.")) deallocate(self%".$variableName.")\n";
+						$inputCode         .= " if (wasAllocated) then\n";
+						$inputCode         .= "  call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
+						$inputCode         .= "  allocate(storedShape(".$rank."))\n";
+						$inputCode         .= "  read (stateFile) storedShape\n";
+						$inputCode         .= "  allocate(self%".$variableName."(".join(",",map {"storedShape(".$_.")"} 1..$rank)."))\n";
+						$inputCode         .= "  deallocate(storedShape)\n";
+						$inputCode         .= "  read (stateFile) self%".$variableName."\n";
+						$inputCode         .= " end if\n";
+					    }
+					} else {
+					    # Statically-sized variable.
+					    foreach ( @{$declaration->{'variables'}} ) {
+						(my $variableName = $_) =~ s/\s*=.*$//;
+						next
+						    if ( grep {lc($_) eq lc($variableName)} @excludes );
+						my $store = 1;
+						if ( exists($class->{'stateStorable'}) && exists($class->{'stateStorable'}->{'restoreTo'}) ) {
+						    foreach ( &List::ExtraUtils::as_array($class->{'stateStorable'}->{'restoreTo'}) ) {
+							my @variables = split(/\s*,\s*/,$_->{'variables'});
+							if ( grep {lc($_) eq lc($variableName)} @variables ) {
+							    $store = 0;
+							    $inputCode .= " self%".$variableName."=".$_->{'state'}."\n";
+							}
+						    }
+						}
+						push(@staticVariables,$variableName)
+						    if ( $store );
+					    }
+					}
+				    }
+				    $hasCustomStateStore   = 1
+					if
+					(
+					 $declaration->{'intrinsic'} eq "procedure"
+					 &&
+					 $declaration->{'variables'}->[0] =~ m/^stateStore=>/
+					);
+				    $hasCustomStateRestore = 1
+					if
+					(
+					 $declaration->{'intrinsic'} eq "procedure"
+					 &&
+					 $declaration->{'variables'}->[0] =~ m/^stateRestore=>/
+					);
+				}
+			    }
+			    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 			}
 		    }
 		    # Add code to method.

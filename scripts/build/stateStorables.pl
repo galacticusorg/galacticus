@@ -36,6 +36,11 @@ foreach my $functionClassFileName ( &List::ExtraUtils::as_array($directiveLocati
 	}
     }   
 }
+# Find all files which contain functionClassType objects - these all support state store/restore.
+foreach my $functionClassFileName ( &List::ExtraUtils::as_array($directiveLocations->{'functionClassType'}->{'file'}) ) {
+    # Extract a functionClassType directives from this file.
+    push(@{$stateStorables->{'functionClassTypes'}},map {{name => $_->{'name'}, file => $functionClassFileName}} &Galacticus::Build::Directives::Extract_Directives($functionClassFileName,'functionClassType'));
+}
 # Find all files which contain stateStorable objects - these explicitly support state store/restore.
 foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocations->{'stateStorable'}->{'file'}) ) {
     # Parse the source of this file.
