@@ -26,7 +26,7 @@ module Interfaces_CAMB
   
 contains
 
-  subroutine Interface_CAMB_Initialize(cambPath,cambVersion)
+  subroutine Interface_CAMB_Initialize(cambPath,cambVersion,static)
     !% Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
     use ISO_Varying_String
     use Galacticus_Paths
@@ -35,8 +35,11 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    type   (varying_string), intent(  out) :: cambPath, cambVersion
-    integer                                :: status
+    type   (varying_string), intent(  out)           :: cambPath, cambVersion
+    logical                , intent(in   ), optional :: static
+    integer                                          :: status  , flagsLength
+    type   (varying_string)                          :: command
+    !# <optionalArgument name="static" defaultsTo=".false." />
 
     ! Set path and version
     cambPath   =galacticusPath(pathTypeDataDynamic)//"CAMB/"
@@ -56,10 +59,33 @@ contains
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
        call Galacticus_Display_Message("compiling CAMB code",verbosityWorking)
-       call System_Command_Do('cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1',status);
+       command='cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp'
+       if (static_) then
+          ! Include Galacticus compilation flags here - may be necessary for static linking.
+          call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
+          if (status  == 0) command=command//" "//flagsRetrieve(flagsLength)
+          command=command//" -static"
+       end if
+       command=command//'"/ Makefile; find . -name "*.f90" | xargs sed -r -i~ s/"error stop"/"error stop "/; make -j1 camb'
+       call System_Command_Do(char(command),status);
        if (status /= 0 .or. .not.File_Exists(cambPath//"camb")) call Galacticus_Error_Report("failed to build CAMB code"//{introspection:location})
     end if
     return
+
+  contains
+    
+    function flagsRetrieve(flagsLength)
+      !% Retrieve the compiler flags.
+      implicit none
+      type     (varying_string )                :: flagsRetrieve
+      integer                   , intent(in   ) :: flagsLength
+      character(len=flagsLength)                :: flags
+
+      call Get_Environment_Variable('GALACTICUS_FCFLAGS',value=flags)
+      flagsRetrieve=replace(flags,"/","\/",every=.true.)
+      return
+    end function flagsRetrieve
+
   end subroutine Interface_CAMB_Initialize
-  
+
 end module Interfaces_CAMB

@@ -59,7 +59,7 @@ contains
     !GCC$ attributes unused :: self
 
     call Galacticus_Display_Indent  ('Begin task: FSPS tool build')
-    call Interface_FSPS_Initialize(fspsPath,fspsVersion)
+    call Interface_FSPS_Initialize(fspsPath,fspsVersion,static=.true.)
     call Galacticus_DisplaY_Message('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: FSPS tool build')

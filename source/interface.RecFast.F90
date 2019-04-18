@@ -26,7 +26,7 @@ module Interfaces_RecFast
   
 contains
 
-  subroutine Interface_RecFast_Initialize(recfastPath,recfastVersion)
+  subroutine Interface_RecFast_Initialize(recfastPath,recfastVersion,static)
     !% Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
     use ISO_Varying_String
     use Galacticus_Paths
@@ -35,10 +35,13 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    type     (varying_string), intent(  out) :: recfastPath, recfastVersion
-    integer                                  :: status     , recFastUnit
-    character(len=32        )                :: line       , versionLabel
-
+    type     (varying_string), intent(  out)           :: recfastPath, recfastVersion
+    logical                  , intent(in   ), optional :: static
+    integer                                            :: status     , recFastUnit
+    character(len=32        )                          :: line       , versionLabel
+    type     (varying_string)                          :: command
+    !# <optionalArgument name="static" defaultsTo=".false." />
+    
     ! Set path.
     recfastPath   =galacticusPath(pathTypeDataDynamic)//"RecFast/"
     ! Download the code.
@@ -58,7 +61,9 @@ contains
     ! Build the code.
     if (.not.File_Exists(recfastPath//"recfast.exe")) then
        call Galacticus_Display_Message("compiling RecFast code....",verbosityWorking)
-       call System_Command_Do("cd "//recfastPath//"; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none")
+       command="cd "//recfastPath//"; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
+       if (static_) command=command//" -static"
+       call System_Command_Do(char(command))
        if (.not.File_Exists(recfastPath//"recfast.exe")) &
             & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location}) 
     end if
