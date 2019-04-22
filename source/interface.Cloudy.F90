@@ -44,22 +44,24 @@ contains
     cloudyVersion="c17.01"
     ! Specify Cloudy path.
     cloudyPath   =galacticusPath(pathTypeDataDynamic)//cloudyVersion
-    ! Download the Cloudy code.
-    if (.not.File_Exists(cloudyPath//".tar.gz")) then
-       call Galacticus_Display_Message("downloading Cloudy code....",verbosityWorking)
-       call System_Command_Do('wget "http://data.nublado.org/cloudy_releases/c17/'//cloudyVersion//'.tar.gz" -O '//cloudyPath//'.tar.gz',status)
-       if (status /= 0) call Galacticus_Error_Report("failed to download Cloudy code"//{introspection:location})
-    end if
-    ! Unpack and patch the code.
-    if (.not.File_Exists(cloudyPath)) then
-       call Galacticus_Display_Message("unpacking and patching Cloudy code....",verbosityWorking)
-       call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//cloudyPath//".tar.gz",status)
-       if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Galacticus_Error_Report("failed to unpack Cloudy code"//{introspection:location})
-       call System_Command_Do('sed -i~ -r s/"\\\$res\s+\.=\s+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
-       if (status /= 0                                  ) call Galacticus_Error_Report("failed to patch Cloudy code"//{introspection:location})
-    end if
-    ! Build the code.
+    ! Check for existance of executable - build if necessary.
     if (.not.File_Exists(cloudyPath//"/source/cloudy.exe")) then
+       ! Check for existance of source code - unpack and patch if necessary.
+       if (.not.File_Exists(cloudyPath)) then
+          ! Check for existance of tarball - download the Cloudy code if necessary.
+          if (.not.File_Exists(cloudyPath//".tar.gz")) then
+             call Galacticus_Display_Message("downloading Cloudy code....",verbosityWorking)
+             call System_Command_Do('wget "http://data.nublado.org/cloudy_releases/c17/'//cloudyVersion//'.tar.gz" -O '//cloudyPath//'.tar.gz',status)
+             if (status /= 0) call Galacticus_Error_Report("failed to download Cloudy code"//{introspection:location})
+          end if
+          ! Unpack and patch the code.
+          call Galacticus_Display_Message("unpacking and patching Cloudy code....",verbosityWorking)
+          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//cloudyPath//".tar.gz",status)
+          if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Galacticus_Error_Report("failed to unpack Cloudy code"//{introspection:location})
+          call System_Command_Do('sed -i~ -r s/"\\\$res\s+\.=\s+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
+          if (status /= 0                                  ) call Galacticus_Error_Report("failed to patch Cloudy code"//{introspection:location})
+       end if
+       ! Build the code.
        call Galacticus_Display_Message("compiling Cloudy code....",verbosityWorking)
        if (static_) then
           call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -r s/'^EXTRA\s*=.*'/'EXTRA = -static'/g Makefile")
