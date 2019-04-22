@@ -19,7 +19,8 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 classIteratedFunctions =>
 	     [
-	      \&Class_State
+	      \&Class_State  ,
+	      \&Class_Size_Of
 	     ]
      }
     );
@@ -45,6 +46,38 @@ sub Class_State {
 	     type       => $classTypeName                                           ,
 	     variables  => [ $code::class->{'name'}."Class" ]
 	 }
+	);
+}
+
+sub Class_Size_Of {
+    # Generate a function to return the size of the component implementation in bytes.
+    my $build            = shift();
+    $code::class         = shift();
+    $code::classTypeName = "nodeComponent".ucfirst($code::class->{'name'});
+    my $function =
+    {
+	type        => "integer(c_size_t)",
+	name        => $code::classTypeName."SizeOf",
+	description => "Return the size in bytes of a ".$code::classTypeName." component.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $code::classTypeName,
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     }
+	    ],
+	content     => $code::classTypeName."SizeOf=sizeof(self)\n"
+    };
+    # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{$code::classTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "sizeOf", 
+	}
 	);
 }
 

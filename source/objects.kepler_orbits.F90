@@ -322,11 +322,18 @@ module Kepler_Orbits
      !@     <type>\textcolor{red}{\textless coordinateCartesian}</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nonStaticSizeOf</method>
+     !@     <description>Returns the size of any non-static components of the type.</description>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: builder               => Kepler_Orbits_Builder
      procedure :: dump                  => Kepler_Orbits_Dump
      procedure :: dumpRaw               => Kepler_Orbits_Dump_Raw
      procedure :: readRaw               => Kepler_Orbits_Read_Raw
+     procedure :: nonStaticSizeOf       => Kepler_Orbits_Non_Static_Size_Of
      procedure :: reset                 => Kepler_Orbits_Reset
      procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
@@ -1169,5 +1176,17 @@ contains
     velocity                 =velocityRadialVector+velocityTangentialVector1+velocityTangentialVector2
     return
   end function Kepler_Orbits_Velocity
+
+  function Kepler_Orbits_Non_Static_Size_Of(self)
+    !% Return the size of any non-static components of the object.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    integer(c_size_t   )                :: Kepler_Orbits_Non_Static_Size_Of
+    class  (keplerOrbit), intent(in   ) :: self
+    !GCC$ attributes unused :: self
+    
+    Kepler_Orbits_Non_Static_Size_Of=0_c_size_t
+    return
+  end function Kepler_Orbits_Non_Static_Size_Of
   
 end module Kepler_Orbits

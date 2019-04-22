@@ -25,7 +25,7 @@
      type            (hdf5Object      )                  :: hdf5Group
      double precision                                    :: volumeWeight                  , initializedUntil
      type            (treeNode        ), pointer         :: baseNode             => null()
-     type            (mergerTree      ), pointer         :: nextTree             => null()
+     type            (mergerTree      ), pointer         :: nextTree             => null(), firstTree        => null()
      type            (universe        ), pointer         :: hostUniverse         => null()
      type            (treeEvent       ), pointer, public :: event
      type            (pseudoRandom    )                  :: randomNumberGenerator
@@ -76,6 +76,12 @@
      !@     <type>\doublezero</type>
      !@     <arguments></arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@    <method>sizeOf</method>
+     !@    <description>Return the size (in bytes) of a merger tree.</description>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t)\textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: destroy              => Merger_Tree_Destroy
      procedure :: getNode              => Merger_Tree_Node_Get
@@ -84,6 +90,7 @@
      procedure :: earliestTime         => Merger_Tree_Earliest_Time               
      procedure :: earliestTimeEvolving => Merger_Tree_Earliest_Time_Evolving
      procedure :: latestTime           => Merger_Tree_Latest_Time               
+     procedure :: sizeOf               => Merger_Tree_Size_Of
   end type mergerTree
 
   interface mergerTree

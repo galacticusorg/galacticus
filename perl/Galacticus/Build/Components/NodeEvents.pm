@@ -27,6 +27,7 @@ use Text::Template 'fill_in_string';
 	     ],
 	 functions =>
 	     [
+	      \&Node_Event_Non_Static_Size_Of         ,
 	      \&Node_Event_Serialize_Raw              ,
 	      \&Node_Event_Deserialize_Raw            ,
 	      \&Node_Event_Deserialize_Raw_Polymorphic
@@ -448,6 +449,37 @@ CODE
     push(
 	@{$build->{'functions'}},
 	$function
+	);
+}
+
+sub Node_Event_Non_Static_Size_Of {
+    # Return the size of the non-static parts of a nodeEvent object.
+    my $build = shift();
+    # Build the function.
+    my $function =
+    {
+	type        => "integer(c_size_t)",
+	name        => "nodeEventSizeOf",
+	description => "Compute the size of the non-static parts of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} object.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeEvent",
+		 variables  => [ "self" ],
+		 attributes => [ "intent(in   )" ]
+	     }
+	    ],
+	content    => "!GCC\$ attributes unused :: self\nnodeEventSizeOf=0_c_size_t\n"
+    };
+    # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{'nodeEvent'}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "nonStaticSizeOf", 
+	}
 	);
 }
 

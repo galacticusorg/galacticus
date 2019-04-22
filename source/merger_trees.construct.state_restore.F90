@@ -302,6 +302,8 @@ contains
        treeCurrent%baseNode => nodes(nodeArrayIndex)%node
        ! Ensure tree events are nullified.
        treeCurrent%event => null()
+       ! Set pointer to the first tree in the forest.
+       treeCurrent%firstTree => tree
        ! Move to the next tree.
        treeCurrent => treeCurrent%nextTree
     end do

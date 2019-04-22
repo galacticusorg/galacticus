@@ -17,35 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which records and outputs timing data for processing trees.
+!% Contains a module which records and outputs timing and memory usage data for processing trees.
 
 module Galacticus_Meta_Tree_Timing
   !% Records and outputs timing data for processing trees.
-  use Kind_Numbers
+  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  use            :: Kind_Numbers , only : kind_int8
   !$ use OMP_Lib
   implicit none
   private
-  public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
+  public :: Meta_Tree_Timing_Pre_Construction, Meta_Tree_Timing_Pre_Evolve, Meta_Tree_Timing_Post_Tree_Evolve, Meta_Tree_Timing_Post_Evolve, Meta_Tree_Timing_Output
 
   ! Flag indicating if the module is initialized.
   logical                                                :: metaTimingDataInitialized=.false.
 
   ! Flag indicating if timing data is to be collected.
-  logical                                                :: metaCollectTimingData
+  logical                                                :: metaCollectTimingData            , metaCollectMemoryUsageData
 
-  ! Record of processing times.
+  ! Record of processing times and memory usage.
   double precision                                       :: timePostEvolution                , timePreConstruction, &
        &                                                    timePreEvolution                 , treeMass
   integer         (kind_int8)                            :: treeID
+  integer         (c_size_t )                            :: memoryUsagePeak                  , treeNodeCount
   real                                                   :: time
-  !$omp threadprivate(timePreConstruction,timePreEvolution,timePostEvolution,treeMass,treeID)
+  !$omp threadprivate(timePreConstruction,timePreEvolution,timePostEvolution,treeMass,treeID,memoryUsagePeak,treeNodeCount)
   ! Arrays for storing timing.
   integer                    , parameter                 :: treeArrayIncreaseSize    =100
   integer                                                :: treesRecordedCount       =0
   double precision           , allocatable, dimension(:) :: treeConstructTimes               , treeEvolveTimes    , &
        &                                                    treeMasses
-  integer         (kind_int8), allocatable, dimension(:) :: treeIDs
-  
+  integer         (kind_int8), allocatable, dimension(:) :: treeIDs 
+  integer         (c_size_t ), allocatable, dimension(:) :: treeMemoryUsages                 , treeNodeCounts
+ 
 contains
 
   subroutine Meta_Tree_Timing_Initialize()
@@ -63,6 +66,14 @@ contains
           !#   <cardinality>1</cardinality>
           !#   <defaultValue>.false.</defaultValue>
           !#   <description>Specifies whether or not collect and output data on the time spent processing trees.</description>
+          !#   <source>globalParameters</source>
+          !#   <type>boolean</type>
+          !# </inputParameter>
+          !# <inputParameter>
+          !#   <name>metaCollectMemoryUsageData</name>
+          !#   <cardinality>1</cardinality>
+          !#   <defaultValue>.false.</defaultValue>
+          !#   <description>Specifies whether or not collect and output data on the memory used while processing trees.</description>
           !#   <source>globalParameters</source>
           !#   <type>boolean</type>
           !# </inputParameter>
@@ -94,6 +105,7 @@ contains
        !$ end if
        timePreEvolution =-1.0
        timePostEvolution=-1.0
+       memoryUsagePeak  =0_c_size_t
     end if
 
     return
@@ -104,11 +116,14 @@ contains
   !# </mergerTreePreEvolveTask>
   subroutine Meta_Tree_Timing_Pre_Evolve(tree)
     !% Record the CPU time prior to evolving {\normalfont \ttfamily tree}.
-    use Galacticus_Nodes, only : mergerTree, treeNode, nodeComponentBasic
+    use Galacticus_Nodes   , only : mergerTree              , treeNode, nodeComponentBasic
+    use Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
-    type (mergerTree        ), intent(in   ) :: tree
-    type (treeNode          ), pointer       :: node
-    class(nodeComponentBasic), pointer       :: basic
+    type (mergerTree               ), intent(in   ) :: tree
+    type (treeNode                 ), pointer       :: node
+    class(nodeComponentBasic       ), pointer       :: basic
+    type (treeNode                 ), pointer       :: nodeWork
+    type  (mergerTreeWalkerAllNodes)                :: treeWalker
 
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
@@ -126,21 +141,27 @@ contains
        basic    => node %basic   ()
        treeMass =  basic%mass    ()
        treeID   =  tree %index
+       ! Count nodes in the tree.
+       treeNodeCount=0_c_size_t
+       treeWalker   =mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+       do while (treeWalker%next(nodeWork))
+          treeNodeCount=treeNodeCount+1_c_size_t
+       end do
     end if
-
     return
   end subroutine Meta_Tree_Timing_Pre_Evolve
 
   !# <mergerTreePostEvolveTask>
-  !#   <unitName>Meta_Tree_Timing_Post_Evolve</unitName>
+  !#   <unitName>Meta_Tree_Timing_Post_Tree_Evolve</unitName>
   !# </mergerTreePostEvolveTask>
-  subroutine Meta_Tree_Timing_Post_Evolve()
+  subroutine Meta_Tree_Timing_Post_Tree_Evolve()
     !% Record the CPU time after evolving a tree.
     use Memory_Management
     implicit none
     double precision           , allocatable, dimension(:) :: treeConstructTimesTemporary, treeEvolveTimesTemporary, &
          &                                                    treeMassesTemporary
     integer         (kind_int8), allocatable, dimension(:) :: treeIDsTemporary
+    integer         (c_size_t ), allocatable, dimension(:) :: treeMemoryUsagesTemporary  , treeNodeCountsTemporary
     
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
@@ -163,23 +184,33 @@ contains
              call allocateArray(treeConstructTimes,[                 treeArrayIncreaseSize])
              call allocateArray(treeEvolveTimes   ,[                 treeArrayIncreaseSize])
              call allocateArray(treeIDs           ,[                 treeArrayIncreaseSize])
+             call allocateArray(treeMemoryUsages  ,[                 treeArrayIncreaseSize])
+             call allocateArray(treeNodeCounts    ,[                 treeArrayIncreaseSize])
           else if (treesRecordedCount >= size(treeMasses)) then
              call Move_Alloc(treeMasses        ,treeMassesTemporary        )
              call Move_Alloc(treeConstructTimes,treeConstructTimesTemporary)
              call Move_Alloc(treeEvolveTimes   ,treeEvolveTimesTemporary   )
              call Move_Alloc(treeIDs           ,treeIDsTemporary           )
+             call Move_Alloc(treeMemoryUsages  ,treeMemoryUsagesTemporary  )
+             call Move_Alloc(treeNodeCounts    ,treeNodeCountsTemporary  )
              call allocateArray(treeMasses        ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
              call allocateArray(treeConstructTimes,[size(treeMassesTemporary)+treeArrayIncreaseSize])
              call allocateArray(treeEvolveTimes   ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
              call allocateArray(treeIDs           ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+             call allocateArray(treeMemoryUsages  ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
+             call allocateArray(treeNodeCounts    ,[size(treeMassesTemporary)+treeArrayIncreaseSize])
              treeMasses        (1:size(treeMassesTemporary))=treeMassesTemporary
              treeConstructTimes(1:size(treeMassesTemporary))=treeConstructTimesTemporary
              treeEvolveTimes   (1:size(treeMassesTemporary))=treeEvolveTimesTemporary
              treeIDs           (1:size(treeMassesTemporary))=treeIDsTemporary
+             treeMemoryUsages  (1:size(treeMassesTemporary))=treeMemoryUsagesTemporary
+             treeNodeCounts    (1:size(treeMassesTemporary))=treeNodeCountsTemporary
              call deallocateArray(treeMassesTemporary        )
              call deallocateArray(treeConstructTimesTemporary)
              call deallocateArray(treeEvolveTimesTemporary   )
              call deallocateArray(treeIDsTemporary           )
+             call deallocateArray(treeMemoryUsagesTemporary  )
+             call deallocateArray(treeNodeCountsTemporary    )
           end if
           ! Store the timing data.
           treesRecordedCount=treesRecordedCount+1
@@ -187,10 +218,41 @@ contains
           treeConstructTimes(treesRecordedCount)=timePreEvolution -timePreConstruction
           treeEvolveTimes   (treesRecordedCount)=timePostEvolution-timePreEvolution
           treeIDs           (treesRecordedCount)=treeID
+          treeMemoryUsages  (treesRecordedCount)=memoryUsagePeak
+          treeNodeCounts    (treesRecordedCount)=treeNodeCount
           !$omp end critical (Meta_Tree_Timing_Pre_Construct_Record)
        end if
     end if
 
+    return
+  end subroutine Meta_Tree_Timing_Post_Tree_Evolve
+  
+  !# <postEvolveTask>                                                                                                                                                                                      
+  !#  <unitName>Meta_Tree_Timing_Post_Evolve</unitName>                                                                                                                                                       
+  !# </postEvolveTask>                                                                                                                                                                                     
+  subroutine Meta_Tree_Timing_Post_Evolve(node)
+    !% Record memory usage.
+    use Galacticus_Nodes   , only : treeNode                , mergerTree
+    use Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    implicit none
+    type   (treeNode                ), intent(inout), pointer :: node
+    type   (mergerTree              )               , pointer :: tree       , treeWork
+    type   (treeNode                )               , pointer :: nodeWork
+    integer(c_size_t                )                         :: memoryUsage
+    type   (mergerTreeWalkerAllNodes)                         :: treeWalker
+    
+    tree        => node%hostTree%firstTree
+    treeWork    => tree
+    treeWalker  =  mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+    memoryUsage = 0_c_size_t
+    do while (associated(treeWork))
+       memoryUsage =  memoryUsage+treeWork%sizeof  ()
+       treeWork    =>             treeWork%nextTree
+    end do
+    do while (treeWalker%next(nodeWork))
+       memoryUsage=memoryUsage+nodeWork%sizeOf()
+    end do
+    memoryUsagePeak=max(memoryUsagePeak,memoryUsage)
     return
   end subroutine Meta_Tree_Timing_Post_Evolve
 
@@ -221,6 +283,8 @@ contains
        call timingDataGroup%writeDataset(treeEvolveTimes   (1:treesRecordedCount),"treeEvolveTimes"   ,"Tree evolution time [s]"   ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(1.0d0    ,"unitsInSI")
        call metaDataDataset%close()
+       call timingDataGroup%writeDataset(treeMemoryUsages  (1:treesRecordedCount),"treeMemoryUsages"  ,"Tree memory usage [bytes]"                                 )
+       call timingDataGroup%writeDataset(treeNodeCounts    (1:treesRecordedCount),"treeNodeCounts"    ,"Tree node counts"                                          )
        call timingDataGroup%close()
        call metaDataGroup  %close()
        !$ call hdf5Access%unset()

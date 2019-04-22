@@ -164,6 +164,12 @@ module Chemical_Abundances_Structure
      !@     <type>\void</type>
      !@     <arguments>\intzero\ fileHandle\argin</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nonStaticSizeOf</method>
+     !@     <description>Returns the size of any non-static components of the type.</description>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: add     =>Chemical_Abundances_Add
      procedure :: subtract=>Chemical_Abundances_Subtract
@@ -173,6 +179,7 @@ module Chemical_Abundances_Structure
      generic                   :: operator(-)            => subtract
      generic                   :: operator(*)            => multiply
      generic                   :: operator(/)            => divide
+     procedure         :: nonStaticSizeOf=>Chemicals_Non_Static_Size_Of
      procedure, nopass :: serializeCount =>Chemicals_Property_Count
      procedure         :: serialize      =>Chemical_Abundances_Serialize
      procedure         :: deserialize    =>Chemical_Abundances_Deserialize
@@ -670,4 +677,19 @@ contains
     return
   end subroutine Chemical_Abundances_Serialize
 
+  function Chemicals_Non_Static_Size_Of(self)
+    !% Return the size of any non-static components of the object.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    integer(c_size_t          )                :: Chemicals_Non_Static_Size_Of
+    class  (chemicalAbundances), intent(in   ) :: self
+
+    if (allocated(self%chemicalValue)) then
+       Chemicals_Non_Static_Size_Of=sizeof(self%chemicalValue)
+    else
+       Chemicals_Non_Static_Size_Of=0_c_size_t
+    end if
+    return
+  end function Chemicals_Non_Static_Size_Of
+  
 end module Chemical_Abundances_Structure

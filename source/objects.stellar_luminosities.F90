@@ -221,6 +221,12 @@ module Stellar_Luminosities_Structure
      !@     <arguments>\textcolor{red}{\textless type(stellarLuminosities)\textgreater} templateLuminosities\argin</arguments>
      !@     <description>Truncate the number of stellar luminosities stored to match that in the given {\normalfont \ttfamily templateLuminosities}.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nonStaticSizeOf</method>
+     !@     <description>Returns the size of any non-static components of the type.</description>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure         :: add                   => Stellar_Luminosities_Add
      procedure         :: subtract              => Stellar_Luminosities_Subtract
@@ -230,6 +236,7 @@ module Stellar_Luminosities_Structure
      generic           :: operator(-)           => subtract
      generic           :: operator(*)           => multiply
      generic           :: operator(/)           => divide
+     procedure         :: nonStaticSizeOf       => Stellar_Luminosities_Non_Static_Size_Of
      procedure         :: isZero                => Stellar_Luminosities_Is_Zero
      procedure         :: destroy               => Stellar_Luminosities_Destroy
      procedure         :: reset                 => Stellar_Luminosities_Reset
@@ -1811,4 +1818,19 @@ contains
     return
   end subroutine sortByIndexPostprocessor
 
+  function Stellar_Luminosities_Non_Static_Size_Of(self)
+    !% Return the size of any non-static components of the object.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    integer(c_size_t           )                :: Stellar_Luminosities_Non_Static_Size_Of
+    class  (stellarLuminosities), intent(in   ) :: self
+
+    if (allocated(self%luminosityValue)) then
+       Stellar_Luminosities_Non_Static_Size_Of=sizeof(self%luminosityValue)
+    else
+       Stellar_Luminosities_Non_Static_Size_Of=0_c_size_t
+    end if
+    return
+  end function Stellar_Luminosities_Non_Static_Size_Of
+  
 end module Stellar_Luminosities_Structure

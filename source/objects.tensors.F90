@@ -188,34 +188,41 @@ module Tensors
      !@     <arguments>\textcolor{red}{\textless type(tensorRank2Dimension3Symmetric)\textgreater} tensor1</arguments>
      !@     <type>\doublezero</type>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nonStaticSizeOf</method>
+     !@     <description>Returns the size of any non-static components of the type.</description>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure         :: add            => Tensor_R2_D3_Sym_Add
-     procedure         :: subtract       => Tensor_R2_D3_Sym_Subtract
-     procedure         :: multiply       => Tensor_R2_D3_Sym_Scalar_Multiply
-     procedure         :: divide         => Tensor_R2_D3_Sym_Scalar_Divide
-     procedure         :: equality       => Tensor_R2_D3_Sym_Matrix_Equality
-     generic           :: operator(+)    => add
-     generic           :: operator(-)    => subtract
-     generic           :: operator(*)    => multiply
-     generic           :: operator(/)    => divide
-     generic           :: operator(==)   => equality
-     procedure         :: isZero         => Tensor_R2_D3_Sym_Is_Zero
-     procedure         :: destroy        => Tensor_R2_D3_Sym_Destroy
-     procedure         :: setToIdentity  => Tensor_R2_D3_Sym_Set_To_Identity
-     procedure         :: reset          => Tensor_R2_D3_Sym_Reset
-     procedure         :: builder        => Tensor_R2_D3_Sym_Builder
-     procedure         :: dump           => Tensor_R2_D3_Sym_Dump
-     procedure         :: dumpRaw        => Tensor_R2_D3_Sym_Dump_Raw
-     procedure         :: readRaw        => Tensor_R2_D3_Sym_Read_Raw
-     procedure         :: setToUnity     => Tensor_R2_D3_Sym_Set_To_Unity
-     procedure, nopass :: serializeCount => Tensor_R2_D3_Sym_Property_Count
-     procedure         :: serialize      => Tensor_R2_D3_Sym_Serialize
-     procedure         :: deserialize    => Tensor_R2_D3_Sym_Deserialize
-     procedure         :: increment      => Tensor_R2_D3_Sym_Increment
-     procedure         :: fromMatrix     => Tensor_R2_D3_Sym_From_Matrix
-     procedure         :: toMatrix       => Tensor_R2_D3_Sym_To_Matrix
-     procedure         :: contract       => Tensor_R2_D3_Sym_Contract
-     procedure         :: doubleContract => Tensor_R2_D3_Sym_Double_Contract
+     procedure         :: add             => Tensor_R2_D3_Sym_Add
+     procedure         :: subtract        => Tensor_R2_D3_Sym_Subtract
+     procedure         :: multiply        => Tensor_R2_D3_Sym_Scalar_Multiply
+     procedure         :: divide          => Tensor_R2_D3_Sym_Scalar_Divide
+     procedure         :: equality        => Tensor_R2_D3_Sym_Matrix_Equality
+     generic           :: operator(+)     => add
+     generic           :: operator(-)     => subtract
+     generic           :: operator(*)     => multiply
+     generic           :: operator(/)     => divide
+     generic           :: operator(==)    => equality
+     procedure         :: nonStaticSizeOf => Tensor_R2_D3_Sym_Non_Static_Size_Of
+     procedure         :: isZero          => Tensor_R2_D3_Sym_Is_Zero
+     procedure         :: destroy         => Tensor_R2_D3_Sym_Destroy
+     procedure         :: setToIdentity   => Tensor_R2_D3_Sym_Set_To_Identity
+     procedure         :: reset           => Tensor_R2_D3_Sym_Reset
+     procedure         :: builder         => Tensor_R2_D3_Sym_Builder
+     procedure         :: dump            => Tensor_R2_D3_Sym_Dump
+     procedure         :: dumpRaw         => Tensor_R2_D3_Sym_Dump_Raw
+     procedure         :: readRaw         => Tensor_R2_D3_Sym_Read_Raw
+     procedure         :: setToUnity      => Tensor_R2_D3_Sym_Set_To_Unity
+     procedure, nopass :: serializeCount  => Tensor_R2_D3_Sym_Property_Count
+     procedure         :: serialize       => Tensor_R2_D3_Sym_Serialize
+     procedure         :: deserialize     => Tensor_R2_D3_Sym_Deserialize
+     procedure         :: increment       => Tensor_R2_D3_Sym_Increment
+     procedure         :: fromMatrix      => Tensor_R2_D3_Sym_From_Matrix
+     procedure         :: toMatrix        => Tensor_R2_D3_Sym_To_Matrix
+     procedure         :: contract        => Tensor_R2_D3_Sym_Contract
+     procedure         :: doubleContract  => Tensor_R2_D3_Sym_Double_Contract
   end type tensorRank2Dimension3Symmetric
 
   ! Identity, unitary, and null tensors.
@@ -690,4 +697,16 @@ contains
     return
   end function Tensor_R2_D3_Sym_Matrix_Equality
 
+  function Tensor_R2_D3_Sym_Non_Static_Size_Of(self)
+    !% Return the size of any non-static components of the object.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    integer(c_size_t                      )                :: Tensor_R2_D3_Sym_Non_Static_Size_Of
+    class  (tensorRank2Dimension3Symmetric), intent(in   ) :: self
+    !GCC$ attributes unused :: self
+    
+    Tensor_R2_D3_Sym_Non_Static_Size_Of=0_c_size_t
+    return
+  end function Tensor_R2_D3_Sym_Non_Static_Size_Of
+  
 end module Tensors
