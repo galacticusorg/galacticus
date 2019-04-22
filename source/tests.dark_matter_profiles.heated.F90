@@ -29,7 +29,7 @@ program Test_Dark_Matter_Profiles_Heated
   !% enclosed mass in the final profile is simply $M(r) = M_\mathrm{v} r_\mathrm{i}(r)/r_\mathrm{v}$, from which the density of
   !% the final profile is found as $\rho(r) = (4 \pi r^2)^{-1} \mathrm{d} M(r) / \mathrm{d} r$.
   use Unit_Tests
-  use Galacticus_Nodes                , only : nodeComponentBasic        , nodeComponentSatellite, treeNode, nodeClassHierarchyInitialize, &
+  use Galacticus_Nodes                , only : nodeComponentBasic           , nodeComponentSatellite, treeNode, nodeClassHierarchyInitialize, &
        &                                       nodeClassHierarchyFinalize
   use Input_Parameters
   use ISO_Varying_String
@@ -38,6 +38,7 @@ program Test_Dark_Matter_Profiles_Heated
   use Dark_Matter_Halo_Scales
   use Numerical_Constants_Math
   use Numerical_Constants_Astronomical
+  use Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversFallThrough
   implicit none
   double precision                                , parameter    :: time                           =13.8d00
   double precision                                , parameter    :: massVirial                     = 1.0d10
@@ -68,10 +69,10 @@ program Test_Dark_Matter_Profiles_Heated
   call Unit_Tests_Begin_Group("Heated dark matter profiles")
   call nodeClassHierarchyInitialize(parameters)
   ! Create the dark matter profiles.
-  darkMatterHaloScale_            => darkMatterHaloScale           (                                                                                          )
-  darkMatterProfileHeatingTidal_  =  darkMatterProfileHeatingTidal (                                                                                          )
-  darkMatterProfileDMOIsothermal_ =  darkMatterProfileDMOIsothermal(                                       darkMatterHaloScale_                               )
-  darkMatterProfileDMOHeated_     =  darkMatterProfileDMOHeated    (.true.,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
+  darkMatterHaloScale_            => darkMatterHaloScale           (                                                                                                                 )
+  darkMatterProfileHeatingTidal_  =  darkMatterProfileHeatingTidal (                                                                                                                 )
+  darkMatterProfileDMOIsothermal_ =  darkMatterProfileDMOIsothermal(                                                              darkMatterHaloScale_                               )
+  darkMatterProfileDMOHeated_     =  darkMatterProfileDMOHeated    (nonAnalyticSolversFallThrough,darkMatterProfileDMOIsothermal_,darkMatterHaloScale_,darkMatterProfileHeatingTidal_)
   ! Set up the node.
   basic     => node%basic    (autoCreate=.true.)
   satellite => node%satellite(autoCreate=.true.)

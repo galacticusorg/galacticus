@@ -25,10 +25,11 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   !% Tests the calculation of dark matter halo radius enclosing a given mass.
   use ISO_Varying_String
   use Input_Parameters
-  use Galacticus_Nodes       , only : treeNode                           , nodeComponentBasic               , nodeComponentSatellite        , &
-       &                              nodeComponentDarkMatterProfile     , nodeClassHierarchyInitialize     , nodeClassHierarchyFinalize
-  use Node_Components        , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Uninitialize  , &
-       &                              Node_Components_Thread_Uninitialize
+  use Galacticus_Nodes                , only : treeNode                           , nodeComponentBasic               , nodeComponentSatellite        , &
+       &                                       nodeComponentDarkMatterProfile     , nodeClassHierarchyInitialize     , nodeClassHierarchyFinalize
+  use Node_Components                 , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Uninitialize  , &
+       &                                       Node_Components_Thread_Uninitialize
+  use Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversFallThrough
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profiles_DMO
   use Unit_Tests
@@ -78,11 +79,11 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   darkMatterProfileDMONFW_                  =  darkMatterProfileDMONFW                 (                                                                darkMatterHaloScale_      )
   darkMatterProfileDMOBurkert_              =  darkMatterProfileDMOBurkert             (                                                                darkMatterHaloScale_      )
   darkMatterProfileDMOTruncated_            =  darkMatterProfileDMOTruncated           (radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,                            &
-       &                                                                                unimplementedIsFatal           ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_      )
+       &                                                                                nonAnalyticSolversFallThrough  ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_      )
   darkMatterProfileDMOTruncatedExponential_ =  darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay          ,alpha                          ,beta                ,gamma, &
-       &                                                                                unimplementedIsFatal           ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_      )
+       &                                                                                nonAnalyticSolversFallThrough  ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_      )
   darkMatterProfileHeatingTidal_            =  darkMatterProfileHeatingTidal           (                                                                                          )
-  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (unimplementedIsFatal           ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_,       &
+  darkMatterProfileDMOHeated_               =  darkMatterProfileDMOHeated              (nonAnalyticSolversFallThrough  ,darkMatterProfileDMONFW_       ,darkMatterHaloScale_,       &
        &                                                                                darkMatterProfileHeatingTidal_                                                            )
   ! Set up the node.
   basic     => node%basic                 (autoCreate=.true.)
