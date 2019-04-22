@@ -44,22 +44,22 @@ contains
     
     ! Set path.
     recfastPath   =galacticusPath(pathTypeDataDynamic)//"RecFast/"
-    ! Download the code.
-    if (.not.File_Exists(recfastPath//"recfast.for")) then
-       call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
-       call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
-       if (.not.File_Exists(recfastPath//"recfast.for")) &
-            & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location}) 
-    end if
-    ! Patch the code.
-    if (.not.File_Exists(recfastPath//"patched")) then
-       call Galacticus_Display_Message("patching RecFast code....",verbosityWorking)
-       call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
-       if (status /= 0) call Galacticus_Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
-       call System_Command_Do("touch "//recfastPath//"patched")
-    end if
-    ! Build the code.
+    ! Build the code if the executable does not exist.
     if (.not.File_Exists(recfastPath//"recfast.exe")) then
+       ! Patch the code if not already patched.
+       if (.not.File_Exists(recfastPath//"patched")) then
+          ! Download the code if not already downloaded.
+          if (.not.File_Exists(recfastPath//"recfast.for")) then
+             call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
+             call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"RecFast; wget http://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
+             if (.not.File_Exists(recfastPath//"recfast.for")) &
+                  & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location}) 
+          end if
+          call Galacticus_Display_Message("patching RecFast code....",verbosityWorking)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
+          if (status /= 0) call Galacticus_Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
+          call System_Command_Do("touch "//recfastPath//"patched")
+       end if
        call Galacticus_Display_Message("compiling RecFast code....",verbosityWorking)
        command="cd "//recfastPath//"; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
        if (static_) command=command//" -static"
@@ -68,16 +68,26 @@ contains
             & call Galacticus_Error_Report("failed to build RecFast code"//{introspection:location}) 
     end if
     ! Determine the version.
-    recFastVersion="unknown"
-    open(newUnit=recFastUnit,file=char(recfastPath)//"recfast.for",status='old',form='formatted',ioStat=status)
-    do while (status == 0)
-       read (recFastUnit,'(a)',ioStat=status) line
-       if (line(1:2) == "CV" .and. line(4:11) == "Version:") then
-          read (line(13:),'(a)') versionLabel
-          recFastVersion=versionLabel
-       end if
-    end do
-    close(recFastUnit)
+    if (.not.File_Exists(recfastPath//"currentVersion")) then
+       recFastVersion="unknown"
+       open(newUnit=recFastUnit,file=char(recfastPath)//"recfast.for",status='old',form='formatted',ioStat=status)
+       do while (status == 0)
+          read (recFastUnit,'(a)',ioStat=status) line
+          if (line(1:2) == "CV" .and. line(4:11) == "Version:") then
+             read (line(13:),'(a)') versionLabel
+             recFastVersion=versionLabel
+          end if
+       end do
+       close(recFastUnit)
+       open(newUnit=recFastUnit,file=char(recfastPath)//"currentVersion",status='new',form='formatted')
+       write (recfastUnit,'(a)') char(recFastVersion)
+       close(recFastUnit)
+    else
+       open(newUnit=recFastUnit,file=char(recfastPath)//"currentVersion",status='old',form='formatted')
+       read (recfastUnit,'(a)') versionLabel
+       close(recFastUnit)
+       recFastVersion=versionLabel
+    end if
     return
   end subroutine Interface_RecFast_Initialize
 

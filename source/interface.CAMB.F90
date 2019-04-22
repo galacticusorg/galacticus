@@ -44,20 +44,20 @@ contains
     ! Set path and version
     cambPath   =galacticusPath(pathTypeDataDynamic)//"CAMB/"
     cambVersion="?"
-    ! Download CAMB if necessary.
-    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
-       call Galacticus_Display_Message("downloading CAMB code....",verbosityWorking)
-       call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
-       if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
-    end if
-    ! Unpack the code.
-    if (.not.File_Exists(cambPath)) then
-       call Galacticus_Display_Message("unpacking CAMB code....",verbosityWorking)
-       call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
-       if (status /= 0 .or. .not.File_Exists(cambPath)) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
-    end if
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
+       ! Unpack the code.
+       if (.not.File_Exists(cambPath)) then
+          ! Download CAMB if necessary.
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
+             call Galacticus_Display_Message("downloading CAMB code....",verbosityWorking)
+             call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
+             if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
+          end if
+          call Galacticus_Display_Message("unpacking CAMB code....",verbosityWorking)
+          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
+          if (status /= 0 .or. .not.File_Exists(cambPath)) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
+       end if
        call Galacticus_Display_Message("compiling CAMB code",verbosityWorking)
        command='cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp'
        if (static_) then
