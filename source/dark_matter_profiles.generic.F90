@@ -52,6 +52,12 @@ module Dark_Matter_Profiles_Generic
      !@     <description>Returns the density (in $M_\odot/$Mpc$^3$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>enclosedMassNumerical</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin</arguments>
+     !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>potentialNumerical</method>
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin,\textcolor{red}{\textless integer\textgreater} status\argout</arguments>
