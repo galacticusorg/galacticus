@@ -189,6 +189,12 @@ module Histories
      !@     <type>\void</type>
      !@     <arguments>(\doublezero\ time\argin, \doubleone\ append\argin | \textcolor{red}{\textless type(history)\textgreater} append\argin)</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nonStaticSizeOf</method>
+     !@     <description>Returns the size of any non-static components of the type.</description>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: add                   => History_Add
      procedure :: subtract              => History_Subtract
@@ -198,6 +204,7 @@ module Histories
      generic   :: operator(-)           => subtract
      generic   :: operator(/)           => divide
      generic   :: operator(*)           => multiply
+     procedure :: nonStaticSizeOf       => History_Non_Static_Size_Of
      procedure :: isZero                => History_Is_Zero
      procedure :: builder               => History_Builder
      procedure :: dump                  => History_Dump
@@ -304,22 +311,29 @@ module Histories
      !@     <type>\void</type>
      !@     <arguments>(\doublezero\ time\argin, \textcolor{red}{\textless integer(kind\_int8)(:)\textgreater} append\argin | \textcolor{red}{\textless type(longIntegerHistory)\textgreater} append\argin)</arguments>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nonStaticSizeOf</method>
+     !@     <description>Returns the size of any non-static components of the type.</description>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure :: builder       => History_Long_Integer_Builder
-     procedure :: dump          => History_Long_Integer_Dump
-     procedure :: dumpRaw       => History_Long_Integer_Dump_Raw
-     procedure :: readRaw       => History_Long_Integer_Read_Raw
-     procedure :: create        => History_Long_Integer_Create
-     procedure :: clone         => History_Long_Integer_Clone
-     procedure :: destroy       => History_Long_Integer_Destroy
-     procedure :: trim          => History_Long_Integer_Trim
-     procedure :: trimForward   => History_Long_Integer_Trim_Forward
-     procedure :: reset         => History_Long_Integer_Reset
-     procedure :: exists        => History_Long_Integer_Exists
-     procedure ::                  History_Long_Integer_Append_History
-     procedure ::                  History_Long_Integer_Append_Epoch
-     generic   :: append        => History_Long_Integer_Append_History, &
-          &                        History_Long_Integer_Append_Epoch
+     procedure :: builder         => History_Long_Integer_Builder
+     procedure :: dump            => History_Long_Integer_Dump
+     procedure :: dumpRaw         => History_Long_Integer_Dump_Raw
+     procedure :: readRaw         => History_Long_Integer_Read_Raw
+     procedure :: create          => History_Long_Integer_Create
+     procedure :: clone           => History_Long_Integer_Clone
+     procedure :: destroy         => History_Long_Integer_Destroy
+     procedure :: trim            => History_Long_Integer_Trim
+     procedure :: trimForward     => History_Long_Integer_Trim_Forward
+     procedure :: reset           => History_Long_Integer_Reset
+     procedure :: exists          => History_Long_Integer_Exists
+     procedure ::                    History_Long_Integer_Append_History
+     procedure ::                    History_Long_Integer_Append_Epoch
+     generic   :: append          => History_Long_Integer_Append_History, &
+          &                          History_Long_Integer_Append_Epoch
+     procedure :: nonStaticSizeOf => History_Long_Integer_Non_Static_Size_Of
   end type longIntegerHistory
 
   ! A null history object.
@@ -1511,4 +1525,34 @@ contains
     return
   end subroutine History_Timesteps
 
+  function History_Non_Static_Size_Of(self)
+    !% Return the size of any non-static components of the object.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    integer(c_size_t)                :: History_Non_Static_Size_Of
+    class  (history ), intent(in   ) :: self
+
+    if (allocated(self%time)) then
+       History_Non_Static_Size_Of=sizeof(self%time)+sizeof(self%data)
+    else
+       History_Non_Static_Size_Of=0_c_size_t
+    end if
+    return
+  end function History_Non_Static_Size_Of
+
+  function History_Long_Integer_Non_Static_Size_Of(self)
+    !% Return the size of any non-static components of the object.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    integer(c_size_t          )                :: History_Long_Integer_Non_Static_Size_Of
+    class  (longIntegerHistory), intent(in   ) :: self
+
+    if (allocated(self%time)) then
+       History_Long_Integer_Non_Static_Size_Of=sizeof(self%time)+sizeof(self%data)
+    else
+       History_Long_Integer_Non_Static_Size_Of=0_c_size_t
+    end if
+    return
+  end function History_Long_Integer_Non_Static_Size_Of
+    
 end module Histories

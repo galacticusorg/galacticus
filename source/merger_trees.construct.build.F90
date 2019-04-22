@@ -253,12 +253,13 @@ contains
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
        message=var_str('Storing state for tree #')//treeNumber
        call Galacticus_State_Store(message)
-        ! Initialize.
+       ! Initialize.
        tree%event            => null()
        tree%initializedUntil =  0.0d0
        call tree%properties%initialize()
        ! Create the base node.
-       tree%baseNode => treeNode(baseNodeIndex,tree)
+       tree%firstTree => tree
+       tree%baseNode  => treeNode(baseNodeIndex,tree)
        ! Get the basic component of the base node.
        basicBase     => tree%baseNode%basic(autoCreate=.true.)
        ! Assign a mass to it.

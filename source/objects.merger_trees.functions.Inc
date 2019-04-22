@@ -200,3 +200,18 @@ double precision function Merger_Tree_Latest_Time(self)
   end do
   return
 end function Merger_Tree_Latest_Time
+
+integer(c_size_t) function Merger_Tree_Size_Of(self)
+  !% Return the size (in bytes) of a merger tree.
+  implicit none
+  class(mergerTree), intent(in   ) :: self
+  type (treeEvent ), pointer       :: event
+
+  Merger_Tree_Size_Of=sizeof(self)
+  event => self%event
+  do while (associated(event))
+     Merger_Tree_Size_Of=Merger_Tree_Size_Of+sizeof(event)
+     event => event%next
+  end do
+  return
+end function Merger_Tree_Size_Of

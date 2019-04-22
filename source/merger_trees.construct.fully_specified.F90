@@ -118,6 +118,7 @@ contains
        ! Initialize the tree root to null.
        tree%index            =  1
        tree%initializedUntil =  0.0d0
+       tree%firstTree        => tree
        tree%baseNode         => null()
        tree%event            => null()
        call tree%properties%initialize()

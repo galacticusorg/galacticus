@@ -207,6 +207,12 @@ module Abundances_Structure
      !@     <arguments>\intzero\ integerProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} integerPropertyComments\arginout, \doubleone\ integerPropertyUnitsSI\arginout, \intzero\ doubleProperty\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyNames\arginout, \textcolor{red}{\textless char[*](:)\textgreater} doublePropertyComments\arginout, \doubleone\ doublePropertyUnitsSI\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
      !@     <description>Specify the names of abundance object properties for output.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>nonStaticSizeOf</method>
+     !@     <description>Returns the size of any non-static components of the type.</description>
+     !@     <type>\textcolor{red}{\textless integer(c\_size\_t) \textgreater}</type>
+     !@     <arguments></arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      procedure :: add     =>Abundances_Add
      procedure :: subtract=>Abundances_Subtract
@@ -216,6 +222,7 @@ module Abundances_Structure
      generic                   :: operator(-)            => subtract
      generic                   :: operator(*)            => multiply
      generic                   :: operator(/)            => divide
+     procedure         :: nonStaticSizeOf       =>Abundances_Non_Static_Size_Of
      procedure         :: isZero                =>Abundances_Is_Zero
      procedure         :: destroy               =>Abundances_Destroy
      procedure         :: reset                 =>Abundances_Reset
@@ -1015,4 +1022,19 @@ contains
     return
   end subroutine Abundances_Output_Names
 
+  function Abundances_Non_Static_Size_Of(self)
+    !% Return the size of any non-static components of the object.
+    use, intrinsic :: ISO_C_Binding, only : c_size_t
+    implicit none
+    integer(c_size_t  )                :: Abundances_Non_Static_Size_Of
+    class  (abundances), intent(in   ) :: self
+
+    if (allocated(self%elementalValue)) then
+       Abundances_Non_Static_Size_Of=sizeof(self%elementalValue)
+    else
+       Abundances_Non_Static_Size_Of=0_c_size_t
+    end if
+    return
+  end function Abundances_Non_Static_Size_Of
+  
 end module Abundances_Structure

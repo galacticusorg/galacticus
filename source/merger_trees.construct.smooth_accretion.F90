@@ -144,9 +144,10 @@ contains
        ! Give the tree an index.
        tree%index=1
        ! Create the base node.
-       indexNode     =  1
-       tree%baseNode => treeNode               (indexNode,tree   )
-       basicBase     => tree    %baseNode%basic(autoCreate=.true.)
+       indexNode      =  1
+       tree%firstTree => tree
+       tree%baseNode  => treeNode               (indexNode,tree   )
+       basicBase      => tree    %baseNode%basic(autoCreate=.true.)
        ! Assign an arbitrary weight to the tree.
        tree%volumeWeight     =  1.0
        tree%event            => null()

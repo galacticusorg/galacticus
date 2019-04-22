@@ -1800,6 +1800,7 @@ contains
                    treeCurrent => treeCurrent%nextTree
                 end do
                 ! Assign this node as the base node of the current tree.
+                treeCurrent   %firstTree        => tree
                 treeCurrent   %baseNode         => nodeList(iIsolatedNode)%node
                 if (self%treeIndexToRootNodeIndex) then
                    treeCurrent%index            =  nodes(iNode        )%nodeIndex
