@@ -113,10 +113,10 @@
   end interface excursionSetFirstCrossingFarahi
 
   ! Parameters controlling tabulation range and granularity.
-  integer                         , parameter :: farahiVarianceNumberPerUnityProbability=1000
-  integer                         , parameter :: farahiTimeNumberPerDecade              =  10    , farahiVarianceNumberPerDecade=400    , &
-       &                                         farahiVarianceNumberPerUnit            =  40
-  double precision                , parameter :: farahiRateRedshiftMaximum              =  30.0d0, farahiRateRedshiftMinimum    =  0.0d0
+  integer                         , parameter :: farahiVarianceNumberPerUnitProbability=1000
+  integer                         , parameter :: farahiTimeNumberPerDecade             =  10    , farahiVarianceNumberPerDecade=400    , &
+       &                                         farahiVarianceNumberPerUnit           =  40
+  double precision                , parameter :: farahiRateRedshiftMaximum             =  30.0d0, farahiRateRedshiftMinimum    =  0.0d0
 
   ! Lock used for file access.
   type            (lockDescriptor)            :: farahiFileLock
@@ -237,12 +237,12 @@ contains
     type            (treeNode                       ), intent(inout)  :: node
     double precision                                 , dimension(0:1) :: hTime                        , hVariance
     double precision                                 , parameter      :: varianceTableTolerance=1.0d-6
-    class           (excursionSetBarrierClass       ), allocatable    :: excursionSetBarrier_
+    class           (excursionSetBarrierClass       ), pointer        :: excursionSetBarrier_
     logical                                                           :: makeTable
-    integer         (c_size_t                       )                 :: iTime                        , iVariance
-    integer                                                           :: i                            , j             , &
-         &                                                               jTime                        , jVariance     , &
-         &                                                               loopCount                    , loopCountTotal
+    integer         (c_size_t                       )                 :: iTime                        , iVariance     , &
+         &                                                               loopCount                    , loopCountTotal, &
+         &                                                               i                            , j             , &
+         &                                                               jTime                        , jVariance
     double precision                                                  :: sigma1f
     character       (len=6                          )                 :: label
     type            (varying_string                 )                 :: message
@@ -271,7 +271,6 @@ contains
        ! If coordinating under MPI then only the rank-0 process locks the file.
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          ! Construct the table of variance on which we will solve for the first crossing distribution.
           if (self%useFile.and..not.locked) then
              call File_Lock(char(self%fileName),farahiFileLock)
              locked=.true.
@@ -279,11 +278,12 @@ contains
 #ifdef USEMPI
        end if
 #endif
+       ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnityProbability))
+       self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnitProbability))
        if (self%tableInitialized) then
           self%timeMinimum=min(      self%timeMinimum                                          ,0.5d0*time)
           self%timeMaximum=max(      self%timeMaximum                                          ,2.0d0*time)
@@ -318,18 +318,18 @@ contains
 #endif
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-          loopCountTotal=(self%timeTableCount/mpiSelf%count()+1)*((self%varianceTableCount-1)*self%varianceTableCount)/2
+          loopCountTotal=(int(self%timeTableCount,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t)*(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
        else
 #endif
-          loopCountTotal= self%timeTableCount                   *((self%varianceTableCount-1)*self%varianceTableCount)/2
+          loopCountTotal= int(self%timeTableCount,kind=c_size_t)                                               *(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
 #ifdef USEMPI
        end if
 #endif
        loopCount=0
 #ifdef USEMPI
-       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
+       if (self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
 #endif
-       !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_) if (.not.mpiSelf%isActive())
+       !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
@@ -399,6 +399,7 @@ contains
           self%firstCrossingProbabilityTable(self%varianceTableCount,iTime)=0.0d0
        end do
        !$omp end do
+       !# <objectDestructor name="excursionSetBarrier_"/>
        !$omp end parallel
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
@@ -570,11 +571,14 @@ contains
     double precision                                 , parameter                   :: varianceTolerance         =1.0d-6
     real            (kind=kind_quad                 ), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
          &                                                                            varianceTableRateQuad
-    class           (excursionSetBarrierClass       ), allocatable                 :: excursionSetBarrier_
+    class           (excursionSetBarrierClass       ), pointer                     :: excursionSetBarrier_
+#ifdef USEMPI
+    integer                                                                        :: taskCount
+#endif
     logical                                                                        :: makeTable
+    integer         (c_size_t                       )                              :: loopCount                        , loopCountTotal
     integer                                                                        :: i                                , iTime                    , &
-         &                                                                            iVariance                        , j                        , &
-         &                                                                            loopCount                        , loopCountTotal
+         &                                                                            iVariance                        , j
     double precision                                                               :: timeProgenitor                   , varianceMinimumRate
     character       (len=6                          )                              :: label
     type            (varying_string                 )                              :: message
@@ -582,9 +586,6 @@ contains
          &                                                                            sigma1f                          , varianceTableStepRate    , &
          &                                                                            barrier
     logical                                                                        :: locked
-#ifdef USEMPI
-    integer                                                                        :: taskCount
-#endif
     
     ! Determine if we need to make the table.
     ! Read tables from file if possible.
@@ -647,7 +648,7 @@ contains
             &                                -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
             &                               )**2                                                                                                                 &
             &                             )
-       deallocate(excursionSetBarrier_)
+       !# <objectDestructor name="excursionSetBarrier_"/>
        self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
        self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(farahiVarianceNumberPerDecade))+1
        self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(farahiVarianceNumberPerUnit))
@@ -687,22 +688,22 @@ contains
 #endif
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-          loopCountTotal=((self%timeTableCountRate*(self%varianceTableCountRateBase+1))/mpiSelf%count()+1)
+          loopCountTotal=int(self%timeTableCountRate,kind=c_size_t)*int(self%varianceTableCountRateBase+1,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t
        else
 #endif
-          loopCountTotal= (self%timeTableCountRate*(self%varianceTableCountRateBase+1))          
+          loopCountTotal=int(self%timeTableCountRate,kind=c_size_t)*int(self%varianceTableCountRateBase+1,kind=c_size_t)
 #ifdef USEMPI
        end if
 #endif
        loopCount=0
 #ifdef USEMPI
-       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+       if (self%coordinatedMPI_) then
           self%firstCrossingTableRate=0.0d0
           self%nonCrossingTableRate  =0.0d0
        end if
        taskCount=-1
 #endif
-       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_) if (.not.mpiSelf%isActive())
+       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
@@ -724,7 +725,7 @@ contains
              end if
 #endif
              !$omp atomic
-             loopCount=loopCount+1
+             loopCount=loopCount+1_c_size_t
              ! For zero variance, the rate is initialized to zero.
              firstCrossingTableRateQuad(0)=0.0d0
              ! Compute the step in variance across this first grid cell.
@@ -819,6 +820,7 @@ contains
                &                                 /self%timeStepFractional
        end do
        !$omp end do
+       !# <objectDestructor name="excursionSetBarrier_"/>
        !$omp end parallel
        ! Deallocate work arrays.
        deallocate(varianceTableRateBaseQuad )
