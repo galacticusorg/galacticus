@@ -132,7 +132,7 @@ contains
          &                                                                   Delta
 
     ! Validate input.
-    if (calculationType == calculationDeltaCrit .and. .not.present(linearGrowth_)) call Galacticus_Error_Report('linearGrowth_ object must be provided for calcualtion of critical overdensity'//{introspection:location})
+    if (calculationType == calculationDeltaCrit .and. .not.present(linearGrowth_)) call Galacticus_Error_Report('linearGrowth_ object must be provided for calculation of critical overdensity'//{introspection:location})
     ! Find minimum and maximum times to tabulate.
     if (allocated(deltaTable)) then
        ! Use currently tabulated range as the starting point.
@@ -165,7 +165,7 @@ contains
     type is (table1DLogarithmicLinear)
        ! Create the table.
        call deltaTable%create(deltaTableTimeMinimum,deltaTableTimeMaximum,deltaTableNumberPoints)
-       ! Solve ODE to get corresponding overdensities.
+       ! Solve ODE to get corresponding overdensities.       
        do iTime=1,deltaTableNumberPoints
           tNow=deltaTable%x(iTime)
 
