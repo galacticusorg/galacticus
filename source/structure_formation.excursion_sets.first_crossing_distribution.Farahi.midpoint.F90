@@ -126,7 +126,7 @@ contains
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnityProbability))
+       self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnitProbability))
        if (self%tableInitialized) then
           self%timeMinimum=min(self%timeMinimum,0.5d0*time)
           self%timeMaximum=max(self%timeMaximum,2.0d0*time)
