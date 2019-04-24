@@ -22,10 +22,10 @@
   </accretionHaloMethod>
   <accretionRateThinDiskMaximum value="0.30d0"/>
   <accretionRateThinDiskMinimum value="0.01d0"/>
-  <darkMatterProfileDMOMethod value="adiabaticGnedin2004">
+  <darkMatterProfileMethod value="adiabaticGnedin2004">
     <A value="0.8"/>
     <omega value="0.77"/>
-  </darkMatterProfileDMOMethod>
+  </darkMatterProfileMethod>
 
   <galacticDynamicsBarInstabilityMethod value="efstathiou1982">
   <stabilityThresholdGaseous value="0.9"/>

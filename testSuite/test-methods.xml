@@ -53,7 +53,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <darkMatterProfileDMOMethod value="darkMatterOnly"/>
+    <darkMatterProfileMethod value="darkMatterOnly"/>
     <galacticStructureRadiusSolverMethod value="equilibrium">
       <galacticStructureRadiiInitialMethod value="gnedin2004" parameterLevel="top"/>
     </galacticStructureRadiusSolverMethod>
