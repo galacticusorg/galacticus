@@ -141,10 +141,10 @@
 
   <!-- Galactic structure solver options -->
   <galacticStructureRadiusSolverMethod value="equilibrium"/>
-  <darkMatterProfileDMOMethod value="adiabaticGnedin2004">
+  <darkMatterProfileMethod value="adiabaticGnedin2004">
     <A value="0.73"/>
     <omega value="0.7"/>
-  </darkMatterProfileDMOMethod>
+  </darkMatterProfileMethod>
 
   <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
