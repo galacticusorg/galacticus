@@ -28,6 +28,7 @@
      !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
      private
    contains
+     procedure :: probability => farahiMidpointProbability
   end type excursionSetFirstCrossingFarahiMidpoint
   
   interface excursionSetFirstCrossingFarahiMidpoint
