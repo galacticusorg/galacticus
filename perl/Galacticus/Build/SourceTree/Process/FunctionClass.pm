@@ -190,15 +190,14 @@ sub Process_FunctionClass {
 		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self','node') )
 		};
 	    }
-	    # Add auto-hook function if required.
+	    # Add auto-hook function.
 	    $methods{'autoHook'} = 
 	    {
 		description => "Insert any event hooks required by this object.",
 		type        => "void",
 		pass        => "yes",
 		code        => "!GCC\$ attributes unused :: self\n\n! Nothing to do by default.\n"
-	    }
-	    if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );	    
+	    };
 	    # Add "descriptor" method.
 	    my $descriptorCode;
 	    my %descriptorModules = ( "Input_Parameters" => 1 );
@@ -816,6 +815,7 @@ CODE
 					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
+					$assignments .= "call destination%".$name."%autoHook()\n";
 				    }
 				};
 				# Deep copy of HDF5 objects.
@@ -844,6 +844,7 @@ CODE
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
+					    $assignments .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments .= "end if\n";
 					    }
@@ -953,6 +954,7 @@ CODE
 				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 				$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 				    if ( $debugging );
+			       	$assignments .= "call destination%".$name."%autoHook()\n";
 			    }
 		    }
 		    # Deep copy of HDF5 objects.
@@ -979,6 +981,7 @@ CODE
 			    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 			    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 				if ( $debugging );
+			    $assignments .= "call destination%".$name."%autoHook()\n";
 			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 				$assignments .= "end if\n";
 			    }
@@ -1030,6 +1033,7 @@ CODE
 					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 					$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
+					$assignments .= "call destination%".$name."%autoHook()\n";
 				    }
 				};
 				# Deep copy of HDF5 objects.
@@ -1058,6 +1062,7 @@ CODE
 					    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
 					    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
 					    if ( $debugging );
+				   	    $assignments .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments .= "end if\n";
 					    }
