@@ -55,7 +55,7 @@ CONDORLINKER =
 MODULETYPE ?= GCC-f95-on-LINUX
 
 # Fortran compiler flags:
-FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
+FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
 # Fortran77 compiler flags:
 F77FLAGS = ${GALACTICUS_F77FLAGS} -DBUILDPATH=\'$(BUILDPATH)\'
 # Error checking flags
@@ -143,36 +143,20 @@ vpath %.F90 source
 $(BUILDPATH)/%.p.F90 : source/%.F90 $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
 	./scripts/build/preprocess.pl source/$*.F90 $(BUILDPATH)/$*.p.F90
 $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
-	@mlist=`cat $(BUILDPATH)/$*.m` ; \
-	for mod in $$mlist ; \
-	do \
-	 if [ -f $$mod ] ; then \
-	  mv $$mod $$mod~; \
-	 fi \
-	done
+	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.p.F90 -o $(BUILDPATH)/$*.o $(FCFLAGS) 2>&1 | ./scripts/build/postprocess.pl $(BUILDPATH)/$*.p.F90
 	@mlist=`cat $(BUILDPATH)/$*.m` ; \
 	for mod in $$mlist ; \
 	do \
-	 if [ -f $$mod~ ] ; then \
-	  file $$mod | grep -q ASCII ; \
-	  if [ $$? -eq 0 ]; then \
-	   if perl -w ./scripts/build/compareModuleFiles.pl -compiler $(MODULETYPE) $$mod $$mod~ ; then \
-	    mv $$mod~ $$mod ; \
-	   else \
-	    rm $$mod~ ; \
-	   fi \
-	 else \
-	   gunzip -c $$mod > $$mod.gu ; \
-	   gunzip -c $$mod~ > $$mod~.gu ; \
-	   if perl -w ./scripts/build/compareModuleFiles.pl -compiler $(MODULETYPE) $$mod.gu $$mod~.gu ; then \
-	    mv $$mod~ $$mod ; \
-	   else \
-	    rm $$mod~ ; \
-	   fi ; \
-	   rm $$mod.gu $$mod~.gu ; \
-          fi \
-	 fi \
+         if [ -f $$mod ] ; then \
+	  if cmp -s $$mod $(BUILDPATH)/moduleBuild/`basename $$mod`; then \
+	   rm $(BUILDPATH)/moduleBuild/`basename $$mod`; \
+	  else \
+	   mv $(BUILDPATH)/moduleBuild/`basename $$mod` $(BUILDPATH); \
+	  fi \
+         else \
+	  mv $(BUILDPATH)/moduleBuild/`basename $$mod` $(BUILDPATH); \
+         fi \
 	done
 
 # Rules for building HDF5 C interoperability types data file.
@@ -180,6 +164,7 @@ $(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hd
 	$(BUILDPATH)/hdf5FCInterop.exe  >  $(BUILDPATH)/hdf5FCInterop.dat
 	$(BUILDPATH)/hdf5FCInteropC.exe >> $(BUILDPATH)/hdf5FCInterop.dat
 $(BUILDPATH)/hdf5FCInterop.exe  : source/hdf5FCInterop.F90
+	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) source/hdf5FCInterop.F90 -o $(BUILDPATH)/hdf5FCInterop.exe $(FCFLAGS)
 $(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
 	$(CCOMPILER) source/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
@@ -197,6 +182,7 @@ $(BUILDPATH)/flock_config.h : source/flock_config.c
 -include $(BUILDPATH)/Makefile_Config_FFTW3
 $(BUILDPATH)/Makefile_Config_FFTW3: source/fftw3_config.F90
 	@mkdir -p $(BUILDPATH)
+	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c source/fftw3_config.F90 -o $(BUILDPATH)/fftw3_config.o $(FCFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 echo "FCFLAGS += -DFFTW3AVAIL"   > $(BUILDPATH)/Makefile_Config_FFTW3 ; \
@@ -270,19 +256,32 @@ source/FFTlog/fftlog.f:
 	echo $(BUILDPATH)/FFTlog/fftlog.o  > $(BUILDPATH)/FFTlog/fftlog.d
 
 $(BUILDPATH)/FFTlog/%.o: ./source/FFTlog/%.f Makefile
+	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/FFTlog/$*.o $(F77FLAGS) -Wno-argument-mismatch -std=legacy
 
 # Object (*.o) files are built by compiling Fortran (*.f) source files.
 vpath %.f source
 $(BUILDPATH)/%.o : %.f $(BUILDPATH)/%.d $(BUILDPATH)/%.fl Makefile
+	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/$*.o $(F77FLAGS)
 
 # Special rules required for building some sources (unfortunate, but necessary....)
 # bivar.F90 doesn't like to be compiled with any optimization:
 $(BUILDPATH)/Bivar/bivar.o : ./source/Bivar/bivar.F90 Makefile
+	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/Bivar/bivar.o $(FCFLAGS_NOOPT)
+	@if [ -f $(BUILDPATH)/bivar.mod ] ; then \
+	 if cmp -s $(BUILDPATH)/bivar.mod $(BUILDPATH)/moduleBuild/bivar.mod; then \
+	  rm $(BUILDPATH)/moduleBuild/bivar.mod; \
+	 else \
+	  mv $(BUILDPATH)/moduleBuild/bivar.mod $(BUILDPATH); \
+	 fi \
+        else \
+	 mv $(BUILDPATH)/moduleBuild/bivar.mod $(BUILDPATH); \
+        fi \
 # pfq.new.f
 $(BUILDPATH)/pFq/pfq.new.o : ./source/pFq/pfq.new.f Makefile
+	@mkdir -p $(BUILDPATH)/moduleBuild
 	$(FCCOMPILER) -c $< -o $(BUILDPATH)/pFq/pfq.new.o $(FCFLAGS)
 
 # Rule for running *.Inc files through the preprocessor. We strip out single quote characters in comment lines to avoid spurious
@@ -443,9 +442,9 @@ $(BUILDPATH)/galacticus.output.build.environment.inc:
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.hg.patch $(BUILDPATH)/galacticus.hg.bundle
 $(BUILDPATH)/galacticus.hg.patch:
-	hg diff > $(BUILDPATH)/galacticus.hg.patch | true
+	hg diff > $(BUILDPATH)/galacticus.hg.patch || echo > unknown $(BUILDPATH)/galacticus.hg.patch
 $(BUILDPATH)/galacticus.hg.bundle:
-	hg bundle -t none $(BUILDPATH)/galacticus.hg.bundle https://bitbucket.org/galacticusdev/galacticus | true
+	hg bundle -t none $(BUILDPATH)/galacticus.hg.bundle https://bitbucket.org/galacticusdev/galacticus || echo unknown > $(BUILDPATH)/galacticus.hg.bundle
 
 # Rules for cleaning up.
 clean: tidy
