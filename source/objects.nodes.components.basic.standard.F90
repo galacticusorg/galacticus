@@ -136,8 +136,8 @@ contains
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: childNode          , nodeParent
-    class           (nodeComponentBasic)               , pointer :: childBasicComponent, basicParent, basic
-    double precision                                             :: deltaTime          , massUnresolved      , progenitorMassTotal
+    class           (nodeComponentBasic)               , pointer :: childBasicComponent, basicParent   , basic
+    double precision                                             :: deltaTime          , massUnresolved, progenitorMassTotal
 
     ! Get the basic component.
     basic => node%basic()
@@ -168,7 +168,7 @@ contains
              ! Get the growth rate of the child.
              call basic%accretionRateSet(childBasicComponent%accretionRate())
              call basic%massTargetSet   (basic              %mass         ())
-          else
+         else
              ! Parentless node has no child - set a zero growth rate.
              call basic%accretionRateSet(0.0d0                              )
              call basic%massTargetSet   (basic              %mass         ())
@@ -264,8 +264,9 @@ contains
            message=message//"  parent is at time: "//label//" Gyr"
            call Galacticus_Error_Report(message//{introspection:location})
         end if
-        ! Adjust the mass to that of the parent node.
+        ! Adjust the mass and target to that of the parent node.
         call basic%massSet         (basicParent%mass         ())
+        call basic%massTargetSet   (basicParent%massTarget   ())
         ! Adjust the accretion rate to that of the parent node.
         call basic%accretionRateSet(basicParent%accretionRate())
      end select
