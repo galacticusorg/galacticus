@@ -232,21 +232,22 @@ contains
     use Error_Functions
     use MPI_Utilities
     implicit none
-    class           (excursionSetFirstCrossingFarahi), intent(inout)  :: self
-    double precision                                 , intent(in   )  :: variance                     , time
-    type            (treeNode                       ), intent(inout)  :: node
-    double precision                                 , dimension(0:1) :: hTime                        , hVariance
-    double precision                                 , parameter      :: varianceTableTolerance=1.0d-6
-    class           (excursionSetBarrierClass       ), pointer        :: excursionSetBarrier_
-    logical                                                           :: makeTable
-    integer         (c_size_t                       )                 :: iTime                        , iVariance     , &
-         &                                                               loopCount                    , loopCountTotal, &
-         &                                                               i                            , j             , &
-         &                                                               jTime                        , jVariance
-    double precision                                                  :: sigma1f
-    character       (len=6                          )                 :: label
-    type            (varying_string                 )                 :: message
-    logical                                                           :: locked
+    class           (excursionSetFirstCrossingFarahi), intent(inout)                 :: self
+    double precision                                 , intent(in   )                 :: variance                     , time
+    type            (treeNode                       ), intent(inout)                 :: node
+    double precision                                 ,                dimension(0:1) :: hTime                        , hVariance
+    double precision                                 , parameter                     :: varianceTableTolerance=1.0d-6
+    class           (excursionSetBarrierClass       ), pointer                       :: excursionSetBarrier_
+    double precision                                 , allocatable  , dimension( : ) :: barrierTable
+    logical                                                                          :: makeTable
+    integer         (c_size_t                       )                                :: iTime                        , iVariance     , &
+         &                                                                              loopCount                    , loopCountTotal, &
+         &                                                                              i                            , j             , &
+         &                                                                              jTime                        , jVariance
+    double precision                                                                 :: sigma1f
+    character       (len=6                          )                                :: label
+    type            (varying_string                 )                                :: message
+    logical                                                                          :: locked
 
     ! Read tables from file if possible.
     locked=.false.
@@ -329,27 +330,32 @@ contains
 #ifdef USEMPI
        if (self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
 #endif
-       !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+       !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_,barrierTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       call allocateArray(barrierTable,[1+self%varianceTableCount],lowerBounds=[0])
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
 #ifdef USEMPI
           if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
 #endif
+          ! Construct the barrier table.
+          do i=0,self%varianceTableCount
+             barrierTable(i)=excursionSetBarrier_%barrier(self%varianceTable(i),self%timeTable(iTime),node,rateCompute=.false.)
+          end do
           self%firstCrossingProbabilityTable(0,iTime)=0.0d0
-          self%firstCrossingProbabilityTable(1,iTime)=                                                                                                                                          &
-               &                                 real(                                                                                                                                          &
-               &                                        +2.0_kind_quad                                                                                                                          &
-               &                                      *(                                                                                                                                        &
-               &                                        +1.0_kind_quad                                                                                                                          &
-               &                                        -erfApproximate(                                                                                                                        &
-               &                                                        +excursionSetBarrier_%barrier(                   self%varianceTable(1),self%timeTable(iTime),node,rateCompute=.false.)  &
-               &                                                        /                             sqrt(2.0_kind_quad*self%varianceTable(1)                                               )  &
-               &                                                       )                                                                                                                        &
-               &                                       )                                                                                                                                        &
-               &                                      /self%varianceTableStep                                                                                                                 , &
-               &                                      kind=kind_dble                                                                                                                            &
+          self%firstCrossingProbabilityTable(1,iTime)=                                                              &
+               &                                 real(                                                              &
+               &                                        +2.0_kind_quad                                              &
+               &                                      *(                                                            &
+               &                                        +1.0_kind_quad                                              &
+               &                                        -erfApproximate(                                            &
+               &                                                        +barrierTable(1)                            &
+               &                                                        /sqrt(2.0_kind_quad*self%varianceTable(1))  &
+               &                                                       )                                            &
+               &                                       )                                                            &
+               &                                      /self%varianceTableStep                                     , &
+               &                                      kind=kind_dble                                                &
                &                                     )
           do i=2,self%varianceTableCount
 #ifdef USEMPI
@@ -363,36 +369,36 @@ contains
              loopCount=loopCount+(i-1)
              sigma1f  =0.0d0
              do j=1,i-1
-                sigma1f=+sigma1f                                                                                                                     &
-                     &  +self%firstCrossingProbabilityTable(j,iTime)                                                                                 &
-                     &  *real(                                                                                                                       &
-                     &        +1.0_kind_quad                                                                                                         &
-                     &        -erfApproximate(                                                                                                       &
-                     &                        +(                                                                                                     &
-                     &                          +excursionSetBarrier_%barrier(self%varianceTable(i),self%timeTable(iTime),node,rateCompute=.false.)  &
-                     &                          -excursionSetBarrier_%barrier(self%varianceTable(j),self%timeTable(iTime),node,rateCompute=.false.)  &
-                     &                         )                                                                                                     &
-                     &                        /sqrt(2.0_kind_quad*(self%varianceTable(i)-self%varianceTable(j)))                                     &
-                     &                       )                                                                                                     , &
-                     &        kind=kind_dble                                                                                                         &
+                sigma1f=+sigma1f                                                                                  &
+                     &  +self%firstCrossingProbabilityTable(j,iTime)                                              &
+                     &  *real(                                                                                    &
+                     &        +1.0_kind_quad                                                                      &
+                     &        -erfApproximate(                                                                    &
+                     &                        +(                                                                  &
+                     &                           +barrierTable(i)                                                 &
+                     &                           -barrierTable(j)                                                 &
+                     &                         )                                                                  &
+                     &                        /sqrt(2.0_kind_quad*(self%varianceTable(i)-self%varianceTable(j)))  &
+                     &                       )                                                                  , &
+                     &        kind=kind_dble                                                                      &
                      &       )
              end do
-             self%firstCrossingProbabilityTable(i,iTime)=+real(                                                                                                                                               &
-                  &                                            +max(                                                                                                                                          &
-                  &                                                 +0.0_kind_quad,                                                                                                                           &
-                  &                                                 +2.0_kind_quad                                                                                                                            &
-                  &                                                 *(                                                                                                                                        &
-                  &                                                   +1.0_kind_quad                                                                                                                          &
-                  &                                                   -erfApproximate(                                                                                                                        &
-                  &                                                                   +excursionSetBarrier_%barrier(                   self%varianceTable(i),self%timeTable(iTime),node,rateCompute=.false.)  &
-                  &                                                                   /                             sqrt(2.0_kind_quad*self%varianceTable(i)                                               )  &
-                  &                                                                  )                                                                                                                        &
-                  &                                                  )                                                                                                                                        &
-                  &                                                 /self%varianceTableStep                                                                                                                   &
-                  &                                                 -2.0_kind_quad                                                                                                                            &
-                  &                                                 *sigma1f                                                                                                                                  &
-                  &                                                )                                                                                                                                        , &
-                  &                                            kind=kind_dble                                                                                                                                 &
+             self%firstCrossingProbabilityTable(i,iTime)=+real(                                                                   &
+                  &                                            +max(                                                              &
+                  &                                                 +0.0_kind_quad,                                               &
+                  &                                                 +2.0_kind_quad                                                &
+                  &                                                 *(                                                            &
+                  &                                                   +1.0_kind_quad                                              &
+                  &                                                   -erfApproximate(                                            &
+                  &                                                                   +barrierTable(i)                            &
+                  &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))  &
+                  &                                                                  )                                            &
+                  &                                                  )                                                            &
+                  &                                                 /self%varianceTableStep                                       &
+                  &                                                 -2.0_kind_quad                                                &
+                  &                                                 *sigma1f                                                      &
+                  &                                                )                                                            , &
+                  &                                            kind=kind_dble                                                     &
                   &                                           )
           end do
           ! Force the probability at maximum variance to zero.
@@ -400,6 +406,7 @@ contains
        end do
        !$omp end do
        !# <objectDestructor name="excursionSetBarrier_"/>
+       call deallocateArray(barrierTable)
        !$omp end parallel
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
@@ -570,7 +577,7 @@ contains
     double precision                                 , parameter                   :: varianceMinimumDefault    =1.0d-2
     double precision                                 , parameter                   :: varianceTolerance         =1.0d-6
     real            (kind=kind_quad                 ), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
-         &                                                                            varianceTableRateQuad
+         &                                                                            varianceTableRateQuad            , barrierTableRateQuad
     class           (excursionSetBarrierClass       ), pointer                     :: excursionSetBarrier_
 #ifdef USEMPI
     integer                                                                        :: taskCount
@@ -703,9 +710,10 @@ contains
        end if
        taskCount=-1
 #endif
-       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,barrierTableRateQuad) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       call allocateArray(barrierTableRateQuad,[1+self%varianceTableCountRate],lowerBounds=[0])
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCountRate
           if (.not.allocated(firstCrossingTableRateQuad)) allocate(firstCrossingTableRateQuad(0:self%varianceTableCountRate))
@@ -724,6 +732,10 @@ contains
 #ifdef USEMPI
              end if
 #endif
+             ! Construct the barrier table.
+             do i=0,self%varianceTableCountRate
+                barrierTableRateQuad(i)=excursionSetBarrier_%barrier(real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),timeProgenitor,node,rateCompute=.true.)
+             end do
              !$omp atomic
              loopCount=loopCount+1_c_size_t
              ! For zero variance, the rate is initialized to zero.
@@ -736,41 +748,40 @@ contains
              if (varianceTableRateQuad(1)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                 firstCrossingTableRateQuad(1)= 0.0d0
              else
-                firstCrossingTableRateQuad(1)=+2.0_kind_quad                                                                                                                                                                             &
-                     &                        *(                                                                                                                                                                                         &
-                     &                          +1.0_kind_quad                                                                                                                                                                           &
-                     &                          -erfApproximate(                                                                                                                                                                         &
-                     &                                          +(                                                                                                                                                                       &
-                     &                                            +real(excursionSetBarrier_%barrier(real(+varianceTableRateQuad(1)+varianceTableRateBaseQuad(iVariance),kind=8),timeProgenitor,node,rateCompute=.true.),kind=kind_quad) &
-                     &                                            -barrier                                                                                                                                                               &
-                     &                                           )                                                                                                                                                                       &
-                     &                                          /sqrt(2.0_kind_quad*varianceTableRateQuad(1))                                                                                                                            &
-                     &                                         )                                                                                                                                                                         &
-                     &                         )                                                                                                                                                                                         &
+                firstCrossingTableRateQuad(1)=+2.0_kind_quad                                                  &
+                     &                        *(                                                              &
+                     &                          +1.0_kind_quad                                                &
+                     &                          -erfApproximate(                                              &
+                     &                                          +(                                            &
+                     &                                            +barrierTableRateQuad(1)                    &
+                     &                                            -barrier                                    &
+                     &                                           )                                            &
+                     &                                          /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
+                     &                                         )                                              &
+                     &                         )                                                              &
                      &                        /varianceTableStepRate
              end if
              do i=2,self%varianceTableCountRate
                 if (varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                    firstCrossingTableRateQuad(i)=0.0d0
                 else
-                   effectiveBarrierInitial=+real(excursionSetBarrier_%barrier(real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),timeProgenitor,node,rateCompute=.true.),kind=kind_quad) &
-                        &                  -barrier
+                   effectiveBarrierInitial=+barrierTableRateQuad(i)-barrier
                    sigma1f                =+0.0d0
                    do j=1,i-1
                       varianceTableStepRate=(varianceTableRateQuad(j+1)-varianceTableRateQuad(j-1))/2.0_kind_quad
-                      sigma1f=+sigma1f                                                                                                                                                                                   &
-                           &  +firstCrossingTableRateQuad(j)                                                                                                                                                             &
-                           &  *varianceTableStepRate                                                                                                                                                                     &
-                           &  *(                                                                                                                                                                                         &
-                           &    +1.0_kind_quad                                                                                                                                                                           &
-                           &    -erfApproximate(                                                                                                                                                                         &
-                           &                    +(                                                                                                                                                                       &
-                           &                      +effectiveBarrierInitial                                                                                                                                               &
-                           &                      -real(excursionSetBarrier_%barrier(real(+varianceTableRateQuad(j)+varianceTableRateBaseQuad(iVariance),kind=8),timeProgenitor,node,rateCompute=.true.),kind=kind_quad) &
-                           &                      +barrier                                                                                                                                                               &
-                           &                     )                                                                                                                                                                       &
-                           &                    /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceTableRateQuad(j)))                                                                                                 &
-                           &                   )                                                                                                                                                                         &
+                      sigma1f=+sigma1f                                                                                   &
+                           &  +firstCrossingTableRateQuad(j)                                                             &
+                           &  *varianceTableStepRate                                                                     &
+                           &  *(                                                                                         &
+                           &    +1.0_kind_quad                                                                           &
+                           &    -erfApproximate(                                                                         &
+                           &                    +(                                                                       &
+                           &                      +effectiveBarrierInitial                                               &
+                           &                      -barrierTableRateQuad(j)                                               &
+                           &                      +barrier                                                               &
+                           &                     )                                                                       &
+                           &                    /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceTableRateQuad(j))) &
+                           &                   )                                                                         &
                            &   )
                    end do
                    varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
@@ -821,6 +832,7 @@ contains
        end do
        !$omp end do
        !# <objectDestructor name="excursionSetBarrier_"/>
+       call deallocateArray(barrierTableRateQuad)
        !$omp end parallel
        ! Deallocate work arrays.
        deallocate(varianceTableRateBaseQuad )
