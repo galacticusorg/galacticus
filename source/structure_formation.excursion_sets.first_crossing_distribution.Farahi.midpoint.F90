@@ -79,12 +79,12 @@ contains
     double precision                                                        , dimension(0:1) :: hTime                        , hVariance
     double precision                                         , parameter                     :: varianceTableTolerance=1.0d-6
     double precision                                         , allocatable  , dimension( : ) :: varianceMidTable
-    class           (excursionSetBarrierClass               ), allocatable                   :: excursionSetBarrier_
+    class           (excursionSetBarrierClass               ), pointer                       :: excursionSetBarrier_
     logical                                                                                  :: makeTable
-    integer         (c_size_t                               )                                :: iTime                        , iVariance
-    integer                                                                                  :: i                            , j             , &
-         &                                                                                      jTime                        , jVariance     , &
-         &                                                                                      loopCount                    , loopCountTotal
+    integer         (c_size_t                               )                                :: iTime                        , iVariance     , &
+         &                                                                                      loopCount                    , loopCountTotal, &
+         &                                                                                      i                            , j             , &
+         &                                                                                      jTime                        , jVariance
     double precision                                                                         :: sigma1f
     real            (kind=kind_quad                         )                                :: integralKernel                        
     character       (len =6                                 )                                :: label
@@ -114,7 +114,6 @@ contains
        ! If coordinating under MPI then only the rank-0 process locks the file.
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          ! Construct the table of variance on which we will solve for the first crossing distribution.
           if (self%useFile.and..not.locked) then
              call File_Lock(char(self%fileName),farahiFileLock)
              locked=.true.
@@ -122,17 +121,18 @@ contains
 #ifdef USEMPI
        end if
 #endif
+       ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
        if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
        self%varianceMaximum   =max(self%varianceMaximum,variance)
        self%varianceTableCount=int(self%varianceMaximum*dble(farahiVarianceNumberPerUnitProbability))
        if (self%tableInitialized) then
-          self%timeMinimum=min(self%timeMinimum,0.5d0*time)
-          self%timeMaximum=max(self%timeMaximum,2.0d0*time)
+          self%timeMinimum=min(      self%timeMinimum                                          ,0.5d0*time)
+          self%timeMaximum=max(      self%timeMaximum                                          ,2.0d0*time)
        else
-          self%timeMinimum=                     0.5d0*time
-          self%timeMaximum=                     2.0d0*time
+          self%timeMinimum=                                                                     0.5d0*time
+          self%timeMaximum=max(2.0d0*self%cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0),2.0d0*time)
        end if
        self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(farahiTimeNumberPerDecade))+1)
        call allocateArray(self%varianceTable                ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
@@ -167,18 +167,18 @@ contains
 #endif
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-          loopCountTotal=(self%timeTableCount/mpiSelf%count()+1)*((self%varianceTableCount-1)*self%varianceTableCount)/2
+          loopCountTotal=(int(self%timeTableCount,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t)*(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
        else
 #endif
-          loopCountTotal= self%timeTableCount                   *((self%varianceTableCount-1)*self%varianceTableCount)/2
+          loopCountTotal= int(self%timeTableCount,kind=c_size_t)                                               *(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
 #ifdef USEMPI
        end if
 #endif
-       loopCount     =0
+       loopCount=0
 #ifdef USEMPI
-       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
+       if (self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
 #endif
-       !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_) if (.not.mpiSelf%isActive())
+       !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
        !$omp do schedule(dynamic)
@@ -269,6 +269,7 @@ contains
           self%firstCrossingProbabilityTable(self%varianceTableCount,iTime)=0.0d0
        end do
        !$omp end do
+       !# <objectDestructor name="excursionSetBarrier_"/>
        !$omp end parallel       
        ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
        ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
