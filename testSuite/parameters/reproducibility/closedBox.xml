@@ -65,7 +65,7 @@
   <hotHaloMassDistributionMethod value="null"/>
 
   <!-- Galactic structure options -->
-  <galacticStructureRadiusSolverMethod value="fixed"/>
+  <galacticStructureSolverMethod value="fixed"/>
 
   <!-- Star formation rate -->
   <starFormationTimescaleDisksMethod value="fixed">

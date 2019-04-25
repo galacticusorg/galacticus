@@ -173,11 +173,17 @@ contains
        message=message//node%index()//'] is being merged'
        call Galacticus_Display_Message(message)
     end if
-    ! Allow arbitrary functions to process the merger.
+    ! Allow arbitrary functions to process the merger. (Note that the eventHook is after the old-style include directive here as
+    ! we want galactic structure solvers to be calledafter any node component functions. Once node component functions move to
+    ! hooking to the satelliteMergerTask event we will need to introduce a mechanism to specify dependencies in the event hook
+    ! call order.)    
     !# <include directive="satelliteMergerTask" type="functionCall" functionType="void">
     !#  <functionArgs>node</functionArgs>
     include 'merger_trees.evolve.timesteps.satellite.inc'
     !# </include>
+    !# <eventHook name="satelliteMerger">
+    !#  <callWith>node</callWith>
+    !# </eventHook>
     ! Any mergees of the merging node must become mergees of its merge target.
     mergee => node%firstMergee
     do while (associated(mergee))

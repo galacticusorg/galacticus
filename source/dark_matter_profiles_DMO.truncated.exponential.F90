@@ -95,7 +95,7 @@ contains
 
     !# <inputParameter>
     !#   <name>nonAnalyticSolver</name>
-    !#   <defaultValue>var_str('darkMatterOnly')</defaultValue>
+    !#   <defaultValue>var_str('fallThrough')</defaultValue>
     !#   <source>parameters</source>
     !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
     !#   <type>string</type>

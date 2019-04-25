@@ -146,7 +146,7 @@
   </outputTimesMethod>
 
   <coolingRadiusMethod value="isothermal"/>
-  <galacticStructureRadiusSolverMethod value="fixed"/>
+  <galacticStructureSolverMethod value="fixed"/>
   <mergerTreeConstructorMethod value="read">
     <presetMergerTimes value="true"/>
     <treeIndexToRootNodeIndex value="true"/>

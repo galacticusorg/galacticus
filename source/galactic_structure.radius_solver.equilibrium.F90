@@ -17,328 +17,376 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an equilibrium galactic radii solver.
+  !% Implementation of a ``equilibrium'' solver for galactic structure.
+  
+  use Dark_Matter_Profiles    , only : darkMatterProfile   , darkMatterProfileClass
+  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-module Galactic_Structure_Radii_Equilibrium
-  !% Implements an equilibrium galactic radii solver.
-  use Galactic_Structure_Radius_Solver_Procedures
-  implicit none
-  private
-  public :: Galactic_Structure_Radii_Equilibrium_Initialize
+  !# <galacticStructureSolver name="galacticStructureSolverEquilibrium" autoHook="yes">
+  !#  <description>An ``equilibrium'' solver for galactic structure.</description>
+  !# </galacticStructureSolver>
+  type, extends(galacticStructureSolverClass) :: galacticStructureSolverEquilibrium
+     !% Implementation of a ``equilibrium'' solver for galactic structure.
+     private
+     logical                                              :: includeBaryonGravity , useFormationHalo
+     double precision                                     :: solutionTolerance
+     class           (darkMatterProfileClass   ), pointer :: darkMatterProfile_
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+   contains
+     final     ::             equilibriumDestructor
+     procedure :: solve    => equilibriumSolve
+     procedure :: revert   => equilibriumRevert
+     procedure :: autoHook => equilibriumAutoHook
+  end type galacticStructureSolverEquilibrium
 
-  ! Parameter controlling the accuracy of the solutions sought.
-  double precision                                      :: equilibriumStructureSolutionTolerance
+  interface galacticStructureSolverEquilibrium
+     !% Constructors for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
+     module procedure equilibriumConstructorParameters
+     module procedure equilibriumConstructorInternal
+  end interface galacticStructureSolverEquilibrium
 
-  ! Module variables used to communicate current state of radius solver.
-  integer                                               :: activeComponentCount                              , iterationCount
-  double precision                                      :: fitMeasure
-  type            (treeNode), pointer                   :: haloNode
-  double precision          , allocatable, dimension(:) :: radiusStored                                      , velocityStored
-  logical                                               :: revertStructure                           =.false.
-  !$omp threadprivate(iterationCount,activeComponentCount,fitMeasure,haloNode,radiusStored,velocityStored,revertStructure)
-  ! Options controlling the solver.
-  logical                                               :: equilibriumStructureIncludeBaryonGravity        , equilibriumStructureUseFormationHalo
-
+  ! Module-scope variables used to communicate current state of radius solver.
+  integer                                               :: equilibriumActiveComponentCount        , equilibriumIterationCount
+  double precision                                      :: equilibriumFitMeasure
+  type            (treeNode), pointer                   :: equilibriumHaloNode
+  double precision          , allocatable, dimension(:) :: equilibriumRadiusStored                , equilibriumVelocityStored
+  logical                                               :: equilibriumRevertStructure     =.false.
+  !$omp threadprivate(equilibriumIterationCount,equilibriumActiveComponentCount,equilibriumFitMeasure,equilibriumHaloNode,equilibriumRadiusStored,equilibriumVelocityStored,equilibriumRevertStructure)
+ 
 contains
-
-  !# <galacticStructureRadiusSolverMethod>
-  !#  <unitName>Galactic_Structure_Radii_Equilibrium_Initialize</unitName>
-  !# </galacticStructureRadiusSolverMethod>
-  subroutine Galactic_Structure_Radii_Equilibrium_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
-    !% Initializes the ``equilibrium'' galactic radii solver module.
-    use Input_Parameters
-    use ISO_Varying_String
+  
+  function equilibriumConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class which takes a
+    !% parameter set as input.
+    use Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type     (varying_string                             ), intent(in   )          :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Equilibrium ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
-    procedure(Galactic_Structure_Radii_Revert_Equilibrium), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
-
-    if (galacticStructureRadiusSolverMethod == 'equilibrium') then
-       Galactic_Structure_Radii_Solve_Do  => Galactic_Structure_Radii_Solve_Equilibrium
-       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Equilibrium
-       ! Get parameters of the model.
-       !# <inputParameter>
-       !#   <name>equilibriumStructureIncludeBaryonGravity</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>.true.</defaultValue>
-       !#   <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in equilibriumally contracted dark matter halos.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>boolean</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>equilibriumStructureUseFormationHalo</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>boolean</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>equilibriumStructureSolutionTolerance</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>1.0d-2</defaultValue>
-       !#   <description>Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-    end if
+    type            (galacticStructureSolverEquilibrium)                :: self
+    type            (inputParameters                   ), intent(inout) :: parameters
+    class           (darkMatterProfileClass            ), pointer       :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
+    logical                                                             :: useFormationHalo        , includeBaryonGravity
+    double precision                                                    :: solutionTolerance
+    
+    !# <inputParameter>
+    !#   <name>includeBaryonGravity</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>Specifies whether or not gravity from baryons is included when solving for sizes of galactic components in equilibriumally contracted dark matter halos.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>useFormationHalo</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>solutionTolerance</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>1.0d-2</defaultValue>
+    !#   <description>Maximum allowed mean fractional error in the radii of all components when seeking equilibrium solutions for galactic structure.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterProfile"    name="darkMatterProfile_"    source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    self=galacticStructureSolverEquilibrium(useFormationHalo,includeBaryonGravity,solutionTolerance,darkMatterProfile_,darkMatterProfileDMO_)
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterProfile_"   />
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
     return
-  end subroutine Galactic_Structure_Radii_Equilibrium_Initialize
+  end function equilibriumConstructorParameters
 
-  subroutine Galactic_Structure_Radii_Solve_Equilibrium(node)
-    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``equilibrium'' method.
-    use Galacticus_Error
+  function equilibriumConstructorInternal(useFormationHalo,includeBaryonGravity,solutionTolerance,darkMatterProfile_,darkMatterProfileDMO_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
+    implicit none
+    type            (galacticStructureSolverEquilibrium)                        :: self
+    logical                                             , intent(in   )         :: useFormationHalo     , includeBaryonGravity
+    double precision                                    , intent(in   )         :: solutionTolerance
+    class           (darkMatterProfileClass            ), intent(in   ), target :: darkMatterProfile_
+    class           (darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
+    !# <constructorAssign variables="useFormationHalo, includeBaryonGravity, solutionTolerance, *darkMatterProfile_, *darkMatterProfileDMO_"/>
+
+    return
+  end function equilibriumConstructorInternal
+
+  subroutine equilibriumAutoHook(self)
+    !% Attach to various event hooks.
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    implicit none
+    class(galacticStructureSolverEquilibrium), intent(inout) :: self
+
+    call   preDerivativeEvent%attach(self,equilibriumSolveHook,bindToOpenMPThread=.true.)
+    call      postEvolveEvent%attach(self,equilibriumSolveHook,bindToOpenMPThread=.true.)
+    call satelliteMergerEvent%attach(self,equilibriumSolveHook,bindToOpenMPThread=.true.)
+    call   nodePromotionEvent%attach(self,equilibriumSolveHook,bindToOpenMPThread=.true.)
+    return
+  end subroutine equilibriumAutoHook
+
+  subroutine equilibriumDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily equilibrium} galactic structure solver class.
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    implicit none
+    type(galacticStructureSolverEquilibrium), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterProfile_"   />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    call   preDerivativeEvent%detach(self,equilibriumSolveHook)
+    call      postEvolveEvent%detach(self,equilibriumSolveHook)
+    call satelliteMergerEvent%detach(self,equilibriumSolveHook)
+    call   nodePromotionEvent%detach(self,equilibriumSolveHook)
+    return
+  end subroutine equilibriumDestructor
+
+  subroutine equilibriumSolveHook(self,node)
+    !% Hookable wrapper around the solver.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(*       ), intent(inout)         :: self
+    type (treeNode), intent(inout), target :: node
+
+    select type (self)
+    type is (galacticStructureSolverEquilibrium)
+       call self%solve(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine equilibriumSolveHook
+  
+  subroutine equilibriumSolve(self,node)
+    !% Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
+    !% proportion to specific angular momentum.
+    use Galacticus_Error  , only : Galacticus_Error_Report
     use Galacticus_Display
-    use Galacticus_Nodes    , only : treeNode
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode                  ), intent(inout), target :: node
-    integer                                     , parameter             :: iterationMaximum                =  100
-    procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get                      => null(), Velocity_Get => null()
-    procedure       (Radius_Solver_Set_Template), pointer               :: Radius_Set                      => null(), Velocity_Set => null()
-    !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    logical                                     , parameter             :: specificAngularMomentumRequired =  .true.
-    logical                                                             :: componentActive
-    double precision                                                    :: specificAngularMomentum
+    class           (galacticStructureSolverEquilibrium), intent(inout)         :: self
+    type            (treeNode                          ), intent(inout), target :: node
+    logical                                             , parameter             :: specificAngularMomentumRequired=.true.
+    integer                                             , parameter             :: iterationMaximum               =  100
+    procedure       (solverGet                         ), pointer               :: radiusGet                              , velocityGet
+    procedure       (solverSet                         ), pointer               :: radiusSet                              , velocitySet
+    logical                                                                     :: componentActive
+    double precision                                                            :: specificAngularMomentum
 
-    ! Check that the galaxy is physical plausible. If not, do not try to solve for its structure.
+    ! Check that the galaxy is physical plausible. In this equilibrium solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
-    if (node%isPhysicallyPlausible) then
+     if (node%isPhysicallyPlausible) then
        ! Initialize the solver state.
-       iterationCount=0
-       fitMeasure    =2.0d0*equilibriumStructureSolutionTolerance
-
+       equilibriumIterationCount=0
+       equilibriumFitMeasure    =2.0d0*self%solutionTolerance
        ! Determine which node to use for halo properties.
-       if (equilibriumStructureUseFormationHalo) then
+       if (self%useFormationHalo) then
           if (.not.associated(node%formationNode)) call Galacticus_Error_Report('no formation node exists'//{introspection:location})
-          haloNode => node%formationNode
+          equilibriumHaloNode => node%formationNode
        else
-          haloNode => node
+          equilibriumHaloNode => node
        end if
-
        ! Begin iteration to find a converged solution.
-       do while (iterationCount <= 2 .or. ( fitMeasure > equilibriumStructureSolutionTolerance .and. iterationCount < iterationMaximum ) )
-          iterationCount      =iterationCount+1
-          activeComponentCount=0
-          if (iterationCount > 1) fitMeasure=0.0d0
+       do while (equilibriumIterationCount <= 2 .or. ( equilibriumFitMeasure > self%solutionTolerance .and. equilibriumIterationCount < iterationMaximum ) )
+          equilibriumIterationCount      =equilibriumIterationCount+1
+          equilibriumActiveComponentCount=0
+          if (equilibriumIterationCount > 1) equilibriumFitMeasure=0.0d0
           include 'galactic_structure.radius_solver.tasks.inc'
           ! Check that we have some active components.
-          if (activeComponentCount == 0) then
-             fitMeasure=0.0d0
+          if (equilibriumActiveComponentCount == 0) then
+             equilibriumFitMeasure=0.0d0
              exit
           else
              ! Normalize the fit measure by the number of active components.
-             fitMeasure=fitMeasure/dble(activeComponentCount)
+             equilibriumFitMeasure=equilibriumFitMeasure/dble(equilibriumActiveComponentCount)
           end if
        end do
        ! Check that we found a converged solution.
-       if (fitMeasure > equilibriumStructureSolutionTolerance) then
+       if (equilibriumFitMeasure > self%solutionTolerance) then
           call Galacticus_Display_Message('dumping node for which radii are currently being sought')
           call node%serializeASCII()
           call Galacticus_Error_Report('failed to find converged solution'//{introspection:location})
        end if
     end if
     ! Unset structure reversion flag.
-    revertStructure=.false.
+    equilibriumRevertStructure=.false.
     return
-  end subroutine Galactic_Structure_Radii_Solve_Equilibrium
 
-  subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    !% Solve for the equilibrium radius of the given component.
-    use Dark_Matter_Profiles_DMO
-    use Dark_Matter_Profiles
-    use Numerical_Constants_Physical
-    use Galactic_Structure_Rotation_Curves
-    use Galactic_Structure_Options
-    use Galacticus_Error
-    use ISO_Varying_String
-    use String_Handling
-    use Memory_Management
-    use Galacticus_Display
-    implicit none
-    type            (treeNode                  ), intent(inout)                     :: node
-    double precision                            , intent(in   )                     :: specificAngularMomentum
-    procedure       (Radius_Solver_Get_Template), intent(in   ) , pointer           :: Radius_Get                          , Velocity_Get
-    procedure       (Radius_Solver_Set_Template), intent(in   ) , pointer           :: Radius_Set                          , Velocity_Set
-    class           (darkMatterProfileDMOClass )                , pointer           :: darkMatterProfileDMO_
-    class           (darkMatterProfileClass    )                , pointer           :: darkMatterProfile_
-    double precision                            , dimension(:,:), allocatable, save :: radiusHistory
-    !$omp threadprivate(radiusHistory)
-    double precision                            , dimension(:,:), allocatable       :: radiusHistoryTemporary
-    double precision                            , dimension(:  ), allocatable       :: radiusStoredTmp                     , velocityStoredTmp
-    integer                                     , dimension(1  ), parameter         :: storeIncrement                 =[10]
-    integer                                     , parameter                         :: iterationsForBisectionMinimum  = 10
-    integer                                     , parameter                         :: activeComponentMaximumIncrement=  2
-    integer                                                                         :: activeComponentMaximumCurrent
-    character       (len=14                    )                                    :: label
-    type            (varying_string            )                                    :: message
-    double precision                                                                :: baryonicVelocitySquared             , darkMatterMassFinal, &
-         &                                                                             darkMatterVelocitySquared               , &
-         &                                                                             radius                              , radiusNew          , &
-         &                                                                             velocity
+  contains
 
-    ! Get required objects.
-    darkMatterProfileDMO_ => darkMatterProfileDMO()
-    ! Count the number of active comonents.
-    activeComponentCount=activeComponentCount+1
+    subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
+      !% Solve for the equilibrium radius of the given component.
+      use Numerical_Constants_Physical
+      use Galactic_Structure_Rotation_Curves
+      use Galactic_Structure_Options
+      use Galacticus_Error
+      use ISO_Varying_String
+      use String_Handling
+      use Memory_Management
+      use Galacticus_Display
+      implicit none
+      type            (treeNode          ), intent(inout)                     :: node
+      double precision                    , intent(in   )                     :: specificAngularMomentum
+      procedure       (solverGet         ), intent(in   ) , pointer           :: radiusGet                           , velocityGet
+      procedure       (solverSet         ), intent(in   ) , pointer           :: radiusSet                           , velocitySet
+      double precision                    , dimension(:,:), allocatable, save :: radiusHistory
+      !$omp threadprivate(radiusHistory)
+      double precision                    , dimension(:,:), allocatable       :: radiusHistoryTemporary
+      double precision                    , dimension(:  ), allocatable       :: equilibriumRadiusStoredTmp          , equilibriumVelocityStoredTmp
+      integer                             , dimension(1  ), parameter         :: storeIncrement                 =[10]
+      integer                             , parameter                         :: iterationsForBisectionMinimum  = 10
+      integer                             , parameter                         :: activeComponentMaximumIncrement=  2
+      integer                                                                 :: activeComponentMaximumCurrent
+      character       (len=14            )                                    :: label
+      type            (varying_string    )                                    :: message
+      double precision                                                        :: baryonicVelocitySquared             , darkMatterMassFinal         , &
+           &                                                                     darkMatterVelocitySquared           , velocity                    , &
+           &                                                                     radius                              , radiusNew
 
-    if (iterationCount == 1) then       
-       ! If structure is to be reverted, do so now.
-       if (revertStructure.and.allocated(radiusStored)) then
-          call   Radius_Set(node,  radiusStored(activeComponentCount))
-          call Velocity_Set(node,velocityStored(activeComponentCount))
-       end if
-       ! On first iteration, see if we have a previous radius set for this component.
-       radius=Radius_Get(node)
-       if (radius <= 0.0d0) then
-          ! No previous radius was set, so make a simple estimate of sizes of all components ignoring equilibrium contraction and self-gravity.
+      ! Count the number of active comonents.
+      equilibriumActiveComponentCount=equilibriumActiveComponentCount+1
+      if (equilibriumIterationCount == 1) then       
+         ! If structure is to be reverted, do so now.
+         if (equilibriumRevertStructure.and.allocated(equilibriumRadiusStored)) then
+            call   radiusSet(node,  equilibriumRadiusStored(equilibriumActiveComponentCount))
+            call velocitySet(node,equilibriumVelocityStored(equilibriumActiveComponentCount))
+         end if
+         ! On first iteration, see if we have a previous radius set for this component.
+         radius=radiusGet(node)
+         if (radius <= 0.0d0) then
+            ! No previous radius was set, so make a simple estimate of sizes of all components ignoring equilibrium contraction and self-gravity.
+            ! Find the radius in the dark matter profile with the required specific angular momentum
+            radius  =self%darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(equilibriumHaloNode,specificAngularMomentum)
+            ! Find the velocity at this radius.
+            velocity=self%darkMatterProfileDMO_%circularVelocity                 (equilibriumHaloNode,radius                 )
+         else
+            ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
+            velocity=velocityGet(node)
+         end if
+         ! If structure is not being reverted, store the new values of radius and velocity.
+         if (.not.equilibriumRevertStructure .and. equilibriumIterationCount == 1) then
+            ! Store these quantities.
+            if (.not.allocated(equilibriumRadiusStored)) then
+               call allocateArray(  equilibriumRadiusStored,storeIncrement)
+               call allocateArray(equilibriumVelocityStored,storeIncrement)
+               equilibriumRadiusStored  =0.0d0
+               equilibriumVelocityStored=0.0d0
+            else if (equilibriumActiveComponentCount > size(equilibriumRadiusStored)) then
+               call move_alloc     (  equilibriumRadiusStored,        equilibriumRadiusStoredTmp                )
+               call move_alloc     (equilibriumVelocityStored,      equilibriumVelocityStoredTmp                )
+               call allocateArray  (  equilibriumRadiusStored,shape(  equilibriumRadiusStoredTmp)+storeIncrement)
+               call allocateArray  (equilibriumVelocityStored,shape(equilibriumVelocityStoredTmp)+storeIncrement)
+               equilibriumRadiusStored  (                        1:size(  equilibriumRadiusStoredTmp))=  equilibriumRadiusStoredTmp
+               equilibriumVelocityStored(                        1:size(equilibriumVelocityStoredTmp))=equilibriumVelocityStoredTmp
+               equilibriumRadiusStored  (size(  equilibriumRadiusStoredTmp)+1:size(  equilibriumRadiusStored   ))=0.0d0
+               equilibriumVelocityStored(size(equilibriumVelocityStoredTmp)+1:size(equilibriumVelocityStored   ))=0.0d0
+               call deallocateArray(  equilibriumRadiusStoredTmp)
+               call deallocateArray(equilibriumVelocityStoredTmp)
+            end if
+            equilibriumRadiusStored  (equilibriumActiveComponentCount)=radius
+            equilibriumVelocityStored(equilibriumActiveComponentCount)=velocity
+         end if
+      else
+         ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
+         if (specificAngularMomentum <= 0.0d0) return
+         ! Get current radius of the component.
+         radius                   =radiusGet(node)
+         ! Find the enclosed mass in the dark matter halo.
+         darkMatterMassFinal      =self%darkMatterProfile_%enclosedMass(equilibriumHaloNode,radius)
+         ! Compute dark matter contribution to rotation curve.
+         darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
+         ! Compute baryonic contribution to rotation curve.
+         if (self%includeBaryonGravity) then
+            baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(node,radius,massType=massTypeBaryonic)**2
+         else
+            baryonicVelocitySquared=0.0d0
+         end if
+         ! Compute new estimate of velocity.
+         velocity=sqrt(darkMatterVelocitySquared+baryonicVelocitySquared)
+         ! Compute new estimate of radius.
+         if (radius > 0.0d0) then
+            radiusNew=sqrt(specificAngularMomentum/velocity*radius)
+         else
+            radiusNew=     specificAngularMomentum/velocity
+         endif
+         ! Ensure that the radius history array is sufficiently sized.
+         if (.not.allocated(radiusHistory)) then
+            call allocateArray(radiusHistory,[2,equilibriumActiveComponentCount+activeComponentMaximumIncrement])
+            radiusHistory=-1.0d0
+         else if (size(radiusHistory,dim=2) < equilibriumActiveComponentCount) then
+            activeComponentMaximumCurrent=size(radiusHistory,dim=2)
+            call Move_Alloc(radiusHistory,radiusHistoryTemporary)
+            call allocateArray(radiusHistory,[2,equilibriumActiveComponentCount+activeComponentMaximumIncrement])
+            radiusHistory(:,                              1:                                activeComponentMaximumCurrent  )=radiusHistoryTemporary
+            radiusHistory(:,activeComponentMaximumCurrent+1:equilibriumActiveComponentCount+activeComponentMaximumIncrement)=-1.0d0
+            call deallocateArray(radiusHistoryTemporary)
+         end if
+         ! Detect oscillations in the radius solver. Only do this after a few bisection iterations have passed as we don't want to
+         ! declare a true oscillation until the solver has had time to "burn in".
+         if (equilibriumIterationCount == 1) radiusHistory=-1.0d0
+         if     (                                                                                                                                                                                                          &
+              &             equilibriumIterationCount                                                                                                                                    >  iterationsForBisectionMinimum  &
+              &  .and. all( radiusHistory(:,equilibriumActiveComponentCount)                                                                                                             >= 0.0d0                        ) &
+              &  .and.     (radiusHistory(2,equilibriumActiveComponentCount)-radiusHistory(1,equilibriumActiveComponentCount))*(radiusHistory(1,equilibriumActiveComponentCount)-radius) <  0.0d0                          &
+              & ) then
+            ! An oscillation has been detected - attempt to break out of it. The following heuristic has been found to work quite
+            ! well - we bisect previous solutions in the oscillating sequence in a variety of different ways
+            ! (arithmetic/geometric and using the current+previous or two previous solutions), alternating the bisection method
+            ! sequentially. There's no guarantee that this will work in every situation however.
+            select case (mod(equilibriumIterationCount,4))
+            case (0)
+               radius=sqrt  (radius                                          *radiusHistory(1,equilibriumActiveComponentCount))
+            case (1)
+               radius=0.5d0*(radius                                          +radiusHistory(1,equilibriumActiveComponentCount))
+            case (2)
+               radius=sqrt  (radiusHistory(1,equilibriumActiveComponentCount)*radiusHistory(2,equilibriumActiveComponentCount))
+            case (3)
+               radius=0.5d0*(radiusHistory(1,equilibriumActiveComponentCount)+radiusHistory(2,equilibriumActiveComponentCount))
+            end select
+            radiusHistory(:,equilibriumActiveComponentCount)=-1.0d0
+         end if
+         radiusHistory(2,equilibriumActiveComponentCount)=radiusHistory(1,equilibriumActiveComponentCount)
+         radiusHistory(1,equilibriumActiveComponentCount)=radius
+         ! Compute a fit measure.
+         if (radius > 0.0d0 .and. radiusNew > 0.0d0) equilibriumFitMeasure=equilibriumFitMeasure+abs(log(radiusNew/radius))
+         ! Set radius to new radius.
+         radius=radiusNew
+         ! Catch unphysical states.
+         if (radius <= 0.0d0) then
+            if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
+            call node%serializeASCII()
+            message='radius has reached zero for node '
+            message=message//node%index()//' - report follows:'//char(10)
+            write (label,'(e12.6)') specificAngularMomentum
+            message=message//'  specific angular momentum:    '//label//char(10)
+            write (label,'(e12.6)') velocity
+            message=message//'  rotation velocity:            '//label//char(10)
+            write (label,'(e12.6)') sqrt(darkMatterVelocitySquared)
+            message=message//'   -> dark matter contribution: '//label//char(10)
+            write (label,'(e12.6)') sqrt(baryonicVelocitySquared  )
+            message=message//'   -> baryonic contribution:    '//label
+            call Galacticus_Error_Report(message//{introspection:location})
+         end if
+      end if
+      ! Set the component size to new radius and velocity.
+      call   radiusSet(node,radius  )
+      call velocitySet(node,velocity)
+      return
+    end subroutine radiusSolve
 
-          ! Find the radius in the dark matter profile with the required specific angular momentum
-          radius=darkMatterProfileDMO_%radiusFromSpecificAngularMomentum(haloNode,specificAngularMomentum)
+  end subroutine equilibriumSolve
 
-          ! Find the velocity at this radius.
-          velocity=darkMatterProfileDMO_%circularVelocity(haloNode,radius)
-       else
-          ! A previous radius was set, so use it, and the previous circular velocity, as the initial guess.
-          velocity=Velocity_Get(node)
-       end if
-       ! If structure is not being reverted, store the new values of radius and velocity.
-       if (.not.revertStructure .and. iterationCount == 1) then
-          ! Store these quantities.
-          if (.not.allocated(radiusStored)) then
-             call allocateArray(  radiusStored,storeIncrement)
-             call allocateArray(velocityStored,storeIncrement)
-             radiusStored  =0.0d0
-             velocityStored=0.0d0
-          else if (activeComponentCount > size(radiusStored)) then
-             call move_alloc     (  radiusStored,        radiusStoredTmp                )
-             call move_alloc     (velocityStored,      velocityStoredTmp                )
-             call allocateArray  (  radiusStored,shape(  radiusStoredTmp)+storeIncrement)
-             call allocateArray  (velocityStored,shape(velocityStoredTmp)+storeIncrement)
-             radiusStored  (                        1:size(  radiusStoredTmp))=  radiusStoredTmp
-             velocityStored(                        1:size(velocityStoredTmp))=velocityStoredTmp
-             radiusStored  (size(  radiusStoredTmp)+1:size(  radiusStored   ))=0.0d0
-             velocityStored(size(velocityStoredTmp)+1:size(velocityStored   ))=0.0d0
-             call deallocateArray(  radiusStoredTmp)
-             call deallocateArray(velocityStoredTmp)
-          end if
-          radiusStored  (activeComponentCount)=radius
-          velocityStored(activeComponentCount)=velocity
-       end if
-
-    else
-       ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
-       if (specificAngularMomentum <= 0.0d0) return
-
-       ! Get current radius of the component.
-       radius=Radius_Get(node)
-
-       ! Find the enclosed mass in the dark matter halo.
-       darkMatterProfile_  => darkMatterProfile              (               )
-       darkMatterMassFinal =  darkMatterProfile_%enclosedMass(haloNode,radius)
-       
-       ! Compute dark matter contribution to rotation curve.
-       darkMatterVelocitySquared=gravitationalConstantGalacticus*darkMatterMassFinal/radius
-
-       ! Compute baryonic contribution to rotation curve.
-       if (equilibriumStructureIncludeBaryonGravity) then
-          baryonicVelocitySquared=Galactic_Structure_Rotation_Curve(node,radius,massType=massTypeBaryonic)**2
-       else
-          baryonicVelocitySquared=0.0d0
-       end if
-
-       ! Compute new estimate of velocity.
-       velocity=sqrt(darkMatterVelocitySquared+baryonicVelocitySquared)
-
-       ! Compute new estimate of radius.
-       if (radius > 0.0d0) then
-          radiusNew=sqrt(specificAngularMomentum/velocity*radius)
-       else
-          radiusNew=     specificAngularMomentum/velocity
-       endif
-       
-       ! Ensure that the radius history array is sufficiently sized.
-       if (.not.allocated(radiusHistory)) then
-          call allocateArray(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
-          radiusHistory=-1.0d0
-       else if (size(radiusHistory,dim=2) < activeComponentCount) then
-          activeComponentMaximumCurrent=size(radiusHistory,dim=2)
-          call Move_Alloc(radiusHistory,radiusHistoryTemporary)
-          call allocateArray(radiusHistory,[2,activeComponentCount+activeComponentMaximumIncrement])
-          radiusHistory(:,                              1:                     activeComponentMaximumCurrent  )=radiusHistoryTemporary
-          radiusHistory(:,activeComponentMaximumCurrent+1:activeComponentCount+activeComponentMaximumIncrement)=-1.0d0
-          call deallocateArray(radiusHistoryTemporary)
-       end if
-       ! Detect oscillations in the radius solver. Only do this after a few bisection iterations have passed as we don't want to
-       ! declare a true oscillation until the solver has had time to "burn in".
-       if (iterationCount == 1) radiusHistory=-1.0d0
-       if     (                                                                                                                                                                        &
-            &             iterationCount                                                                                                              > iterationsForBisectionMinimum  &
-            &  .and. all( radiusHistory(:,activeComponentCount)                                                                                       >= 0.0d0                       ) &
-            &  .and.     (radiusHistory(2,activeComponentCount)-radiusHistory(1,activeComponentCount))*(radiusHistory(1,activeComponentCount)-radius) <  0.0d0                         &
-            & ) then
-          ! An oscillation has been detected - attempt to break out of it. The following heuristic has been found to work quite
-          ! well - we bisect previous solutions in the oscillating sequence in a variety of different ways
-          ! (arithmetic/geometric and using the current+previous or two previous solutions), alternating the bisection method
-          ! sequentially. There's no guarantee that this will work in every situation however.
-          select case (mod(iterationCount,4))
-          case (0)
-             radius=sqrt  (radius                               *radiusHistory(1,activeComponentCount))
-          case (1)
-             radius=0.5d0*(radius                               +radiusHistory(1,activeComponentCount))
-          case (2)
-             radius=sqrt  (radiusHistory(1,activeComponentCount)*radiusHistory(2,activeComponentCount))
-          case (3)
-             radius=0.5d0*(radiusHistory(1,activeComponentCount)+radiusHistory(2,activeComponentCount))
-          end select
-          radiusHistory(:,activeComponentCount)=-1.0d0
-       end if
-       radiusHistory(2,activeComponentCount)=radiusHistory(1,activeComponentCount)
-       radiusHistory(1,activeComponentCount)=radius
-
-       ! Compute a fit measure.
-       if (radius > 0.0d0 .and. radiusNew > 0.0d0) fitMeasure=fitMeasure+abs(log(radiusNew/radius))
-
-       ! Set radius to new radius.
-       radius=radiusNew
-
-       ! Catch unphysical states.
-       if (radius <= 0.0d0) then
-          if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
-          call node%serializeASCII()
-          message='radius has reached zero for node '
-          message=message//node%index()//' - report follows:'//char(10)
-          write (label,'(e12.6)') specificAngularMomentum
-          message=message//'  specific angular momentum:    '//label//char(10)
-          write (label,'(e12.6)') velocity
-          message=message//'  rotation velocity:            '//label//char(10)
-          write (label,'(e12.6)') sqrt(darkMatterVelocitySquared)
-          message=message//'   -> dark matter contribution: '//label//char(10)
-          write (label,'(e12.6)') sqrt(baryonicVelocitySquared  )
-          message=message//'   -> baryonic contribution:    '//label
-          call Galacticus_Error_Report(message//{introspection:location})
-       end if
-
-    end if
-
-    ! Set the component size to new radius and velocity.
-    call   Radius_Set(node,radius  )
-    call Velocity_Set(node,velocity)
-     return
-  end subroutine Solve_For_Radius
-
-  subroutine Galactic_Structure_Radii_Revert_Equilibrium(node)
+  subroutine equilibriumRevert(self,node)
     !% Revert radii for the equilibrium galactic structure solve.
     implicit none
-    type(treeNode), intent(inout), target :: node
-    !GCC$ attributes unused :: node
+    class(galacticStructureSolverEquilibrium), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
 
     ! Simply record that reversion should be performed on the next call to the solver.
-    revertStructure=.true.
+    equilibriumRevertStructure=.true.
     return
-  end subroutine Galactic_Structure_Radii_Revert_Equilibrium
-
-end module Galactic_Structure_Radii_Equilibrium
+  end subroutine equilibriumRevert

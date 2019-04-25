@@ -67,9 +67,12 @@
     <diskVerySimpleSurfaceDensityThreshold value="130295433397.88165"/>
     <diskVerySimpleSurfaceDensityVelocityExponent value="-0.98483665317102953"/>
     <diskVerySimpleUseAnalyticSolver value="true"/>
-    <galacticStructureRadiiFixedFactor value="0.29610738271059550"/>
-    <galacticStructureRadiiFixedRadius value="turnaround"/>
-    <galacticStructureRadiusSolverMethod value="fixed"/>
+    <galacticStructureRadiusSolverMethod value="fixed">
+    <factor value="0.29610738271059550"/>
+    <radiusFixed value="turnaround"/>
+  </galacticStructureRadiusSolverMethod>
+
+  <galacticStructureSolverMethod value="fixed"/>
     <gravitationalLensingMethod value="takahashi2011"/>
     <haloMassFunctionMethod value="simpleSystematic">
       <alpha value="-0.131667664610245"/>

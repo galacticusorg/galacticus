@@ -17,10 +17,10 @@
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
-  <darkMatterProfileMethod value="adiabaticGnedin2004">
+  <darkMatterProfileDMOMethod value="adiabaticGnedin2004">
     <omega value="0.77"/>
     <A value="0.8"/>
-  </darkMatterProfileMethod>
+  </darkMatterProfileDMOMethod>
 
   <starFormationTimescaleDisksMethod value="dynamicalTime">
     <efficiency value="0.01"/>
@@ -183,7 +183,7 @@
   <coolingRadiusMethod value="simple"/>
   <randomSpinResetMassFactor value="2"/>
   <blackHoleBinaryMergersMethod value="rezzolla2008"/>
-  <galacticStructureRadiusSolverMethod value="equilibrium"/>
+  <galacticStructureSolverMethod value="equilibrium"/>
   <mergerTreeConstructorMethod value="build">
       <treeBeginAt value="1"/>
       <redshiftBase value="0"/>

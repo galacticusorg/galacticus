@@ -117,7 +117,7 @@ my @tests =
 		  name              => "spheroid radius"          ,
 		  output            => 1                          ,
 		  property          => "spheroidRadius"           ,
-		  values            => pdl ( 0.00360702132699066 ),
+		  values            => pdl ( 0.00360666999691727 ),
 		  toleranceRelative => 1.4e-5
 	      },
 	      {
@@ -130,9 +130,9 @@ my @tests =
 	      {
 		  name              => "rotation curve"                                                        ,
 		  output            => 1                                                                       ,
-		  expression        => "%[rotationCurve:spheroidRadius:all:all:loaded:1.0]/%[spheroidVelocity]",
+		  expression        => "%[rotationCurve:spheroidRadius:all:all:1.0]/%[spheroidVelocity]",
 		  values            => pdl ( 1.0 )                                                             ,
-		  toleranceRelative => 1.2e-5
+		  toleranceRelative => 1.0e-4
 	      },
 	      {
 		  # The adiabatic contraction calculation solves the following system:
@@ -140,7 +140,7 @@ my @tests =
 		  # where:
 		  #  * Mₜ(r) is the total mass of the node (assuming baryons trace dark matter) within radius r;
 		  #  * r₀ is the initial radius in the dark matter halo;
-		  #  * r₀ is the final radius in the dark matter halo;
+		  #  * r₁ is the final radius in the dark matter halo;
 		  #  * f₀ is the initial mass fraction distributed as the dark matter;
 		  #  * f₁ is the final mass fraction distributed as the dark matter;
 		  #  * Mᵦ is the mass of baryons within r₁.
@@ -153,24 +153,24 @@ my @tests =
 		  #  √f₀ Vᵥ r₀/V₁/r₁ = 1.		  
 		  # Finally, r₀ = rᵥ Mₜ(r₁)/Mᵥ, and Mₜ(r₁) f₁ = Vᵪ₁² r₁/G where Vᵪ₁² is the dark matter contrbution to the
 		  # final rotation curve.  In this calculation, f₁=(0.3-0.05)/0.3=0.833333, and f₀=f₁+10¹⁰/10¹²=0.8433333, 
-		  name              => "initial specific angular momentum"              ,
-		  output            => 1                                                ,
+		  name              => "initial specific angular momentum"       ,
+		  output            => 1                                         ,
 		  expression        =>
-		      "+sqrt(0.84333333)"                                               .
-		      "*%[nodeVirialVelocity]"                                          .
-		      "/%[spheroidVelocity]"                                            .
-		      "*("                                                              .
-		      "  +%[nodeVirialRadius]"                                          .
-		      "  *("                                                            .
-		      "    +%[rotationCurve:spheroidRadius:darkHalo:dark:loaded:1.0]**2".
-		      "    *%[spheroidRadius]"                                          .
-		      "    /$gravitationalConstant"                                     .
-		      "    /0.83333333"                                                 .
-		      "   )"                                                            .
-		      "  /%[basicMass]"                                                 .
+		      "+sqrt(0.84333333)"                                        .
+		      "*%[nodeVirialVelocity]"                                   .
+		      "/%[spheroidVelocity]"                                     .
+		      "*("                                                       .
+		      "  +%[nodeVirialRadius]"                                   .
+		      "  *("                                                     .
+		      "    +%[rotationCurve:spheroidRadius:darkHalo:dark:1.0]**2".
+		      "    *%[spheroidRadius]"                                   .
+		      "    /$gravitationalConstant"                              .
+		      "    /0.83333333"                                          .
+		      "   )"                                                     .
+		      "  /%[basicMass]"                                          .
 		      " )".
-		      "/%[spheroidRadius]"                                              ,
-		  values            => pdl ( 1.0 )                                      ,
+		      "/%[spheroidRadius]"                                       ,
+		  values            => pdl ( 1.0 )                               ,
 		  toleranceRelative => 3.0e-3
 	      }
 	     ]

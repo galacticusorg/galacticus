@@ -67,10 +67,14 @@
 
   <!-- Adiabatic contraction solver -->
   <darkMatterProfileMethod value="adiabaticGnedin2004">
-    <A value="1.0"/>
+    <A     value="1.0"/>
     <omega value="1.0"/>
   </darkMatterProfileMethod>
 
+  <galacticusStructureSolver value="equilibrium">
+    <solutionTolerance value="1.0e-2"/>
+  </galacticusStructureSolver>
+  
   <!-- Numerical tolerances -->
   <odeToleranceAbsolute value="0.01"/>
   <odeToleranceRelative value="0.01"/>

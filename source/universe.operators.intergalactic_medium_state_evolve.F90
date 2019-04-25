@@ -190,10 +190,10 @@ contains
     use            :: Memory_Management
     use            :: Numerical_Ranges
     use            :: Intergalactic_Medium_Filtering_Masses
-    use           ::  Numerical_Constants_Math
-    use           ::  Numerical_Constants_Units
-    use           ::  Numerical_Constants_Atomic
-    use           ::  Numerical_Constants_Astronomical
+    use            :: Numerical_Constants_Math
+    use            :: Numerical_Constants_Units
+    use            :: Numerical_Constants_Atomic
+    use            :: Numerical_Constants_Astronomical
     use            :: Numerical_Comparison
     use            :: Galacticus_Error
     implicit none
