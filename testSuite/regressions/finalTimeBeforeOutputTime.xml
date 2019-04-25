@@ -141,7 +141,7 @@
   <coolingRadiusMethod value="isothermal"/>
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <galacticStructureRadiusSolverMethod value="fixed"/>
+  <galacticStructureSolverMethod value="fixed"/>
   <virialOrbitMethod value="fixed">
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>

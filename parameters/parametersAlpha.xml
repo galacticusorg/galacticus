@@ -96,7 +96,7 @@
   <starveSatellites value="true"/>
 
   <!-- Galactic structure solver options -->
-  <galacticStructureRadiusSolverMethod value="fixed"/>
+  <galacticStructureSolverMethod value="fixed"/>
 
   <!-- Galactic disk dynamics options -->
   <galacticDynamicsBarInstabilityMethod value="stable"/>

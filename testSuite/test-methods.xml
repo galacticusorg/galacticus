@@ -54,12 +54,12 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <darkMatterProfileMethod value="darkMatterOnly"/>
-    <galacticStructureRadiusSolverMethod value="equilibrium">
+    <galacticStructureSolverMethod value="equilibrium">
       <galacticStructureRadiiInitialMethod value="gnedin2004" parameterLevel="top"/>
-    </galacticStructureRadiusSolverMethod>
-    <galacticStructureRadiusSolverMethod value="simple"/>
-    <galacticStructureRadiusSolverMethod value="linear"/>
-    <galacticStructureRadiusSolverMethod value="fixed"/>
+    </galacticStructureSolverMethod>
+    <galacticStructureSolverMethod value="simple"/>
+    <galacticStructureSolverMethod value="linear"/>
+    <galacticStructureSolverMethod value="fixed"/>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>

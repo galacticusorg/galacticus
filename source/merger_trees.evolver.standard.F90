@@ -19,11 +19,12 @@
 
   !% Implements the standard class for evolving merger trees.
 
-  use Galacticus_Nodes     , only : treeNode
-  use Kind_Numbers         , only : kind_int8
-  use Cosmology_Functions  , only : cosmologyFunctions      , cosmologyFunctionsClass
-  use Merger_Tree_Timesteps, only : mergerTreeEvolveTimestep, mergerTreeEvolveTimestepClass
-
+  use Galacticus_Nodes          , only : treeNode
+  use Kind_Numbers              , only : kind_int8
+  use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
+  use Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep, mergerTreeEvolveTimestepClass
+  use Galactic_Structure_Solvers, only : galacticStructureSolver , galacticStructureSolverClass
+  
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
      type   (deadlockList  ), pointer :: next     => null()
@@ -40,6 +41,7 @@
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (mergerTreeEvolveTimestepClass), pointer :: mergerTreeEvolveTimestep_ => null()
+     class           (galacticStructureSolverClass ), pointer :: galacticStructureSolver_  => null()
      logical                                                  :: allTreesExistAtFinalTime           , dumpTreeStructure
      double precision                                         :: timestepHostAbsolute               , timestepHostRelative
      type            (deadlockList                 ), pointer :: deadlockHeadNode          => null()
@@ -88,6 +90,7 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (mergerTreeEvolveTimestepClass), pointer       :: mergerTreeEvolveTimestep_
+    class           (galacticStructureSolverClass ), pointer       :: galacticStructureSolver_
     logical                                                        :: allTreesExistAtFinalTime , dumpTreeStructure
     double precision                                               :: timestepHostRelative     , timestepHostAbsolute
     
@@ -124,24 +127,29 @@ contains
     !#   <source>parameters</source>
     !#   <type>real</type>
     !# </inputParameter>
+    ! A galacticStructureSolver is built here. Even though this is not called explicitly by this mergerTreeEvolver, the
+    ! galacticStructureSolver is expected to hook itself to any events which will trigger a change in galactic structure.
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_" source="parameters"/>
-    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeEvolveTimestep_)
+    !# <objectBuilder class="galacticStructureSolver"  name="galacticStructureSolver_"  source="parameters"/>
+    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeEvolveTimestep_,galacticStructureSolver_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="mergerTreeEvolveTimestep_"/>
+    !# <objectDestructor name="galacticStructureSolver_" />
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeEvolveTimestep_) result(self)
+  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeEvolveTimestep_,galacticStructureSolver_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     implicit none
     type            (mergerTreeEvolverStandard    )                        :: self
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class           (mergerTreeEvolveTimestepClass), intent(in   ), target :: mergerTreeEvolveTimestep_
+    class           (galacticStructureSolverClass ), intent(in   ), target :: galacticStructureSolver_
     logical                                        , intent(in   )         :: allTreesExistAtFinalTime , dumpTreeStructure
     double precision                               , intent(in   )         :: timestepHostRelative     , timestepHostAbsolute
-    !# <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, *cosmologyFunctions_, *mergerTreeEvolveTimestep_"/>
+    !# <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, *cosmologyFunctions_, *mergerTreeEvolveTimestep_, *galacticStructureSolver_"/>
 
     self%deadlockHeadNode => null()
     return
@@ -154,6 +162,7 @@ contains
 
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%mergerTreeEvolveTimestep_"/>
+    !# <objectDestructor name="self%galacticStructureSolver_" />
     return
   end subroutine standardDestructor
 

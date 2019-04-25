@@ -113,6 +113,7 @@ contains
     !% Initializes the tree evolving routines by reading in parameters
     use Input_Parameters
     use Galacticus_Error
+    implicit none
     type(varying_string) :: odeAlgorithm, odeAlgorithmNonJacobian, odeLatentIntegratorType
 
     ! Initialize if necessary.
@@ -610,6 +611,9 @@ contains
        !#  <functionArgs>node</functionArgs>
        include 'objects.tree_node.post_evolve.inc'
        !# </include>
+       !# <eventHook name="postEvolve">
+       !#  <callWith>node</callWith>
+       !# </eventHook>
     end if
     
     return
@@ -631,18 +635,19 @@ contains
 
   subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,evaluate,integrands)
     !% A set of integrands for unit tests.
-    use Galacticus_Nodes        , only : rateComputeState
-    use Galactic_Structure_Radii, only : Galactic_Structure_Radii_Revert
+    use Galacticus_Nodes          , only : rateComputeState
+    use Galactic_Structure_Solvers, only : galacticStructureSolver, galacticStructureSolverClass
     implicit none
-    integer                        , intent(in   )                                              :: propertyCountActive       , propertyCountInactive
-    double precision               , intent(in   ), dimension(                              : ) :: time
-    double precision               , intent(in   ), dimension(propertyCountActive  ,size(time)) :: propertyValues
-    logical                        , intent(inout), dimension(                              : ) :: evaluate
-    double precision               , intent(  out), dimension(propertyCountInactive,size(time)) :: integrands
-    logical                        , parameter                                                  :: odeConverged       =.true.
-    procedure       (interruptTask), pointer                                                    :: functionInterrupt
-    logical                                                                                     :: interrupt
-    integer                                                                                     :: iTime
+    integer                                       , intent(in   )                                              :: propertyCountActive             , propertyCountInactive
+    double precision                              , intent(in   ), dimension(                              : ) :: time
+    double precision                              , intent(in   ), dimension(propertyCountActive  ,size(time)) :: propertyValues
+    logical                                       , intent(inout), dimension(                              : ) :: evaluate
+    double precision                              , intent(  out), dimension(propertyCountInactive,size(time)) :: integrands
+    logical                                       , parameter                                                  :: odeConverged             =.true.
+    procedure       (interruptTask               ), pointer                                                    :: functionInterrupt
+    class           (galacticStructureSolverClass), pointer                                                    :: galacticStructureSolver_
+    logical                                                                                                    :: interrupt
+    integer                                                                                                    :: iTime
     ! "evaluate" array is currently not used. It indicates which integrands must be evaluated, and which can (optionally) be
     ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
     ! significant speed up appears to be small based on profiling. This will be model-depdendent though, so this decision can be
@@ -662,7 +667,8 @@ contains
           ! Set derivatives to zero initially.
           call activeNode%odeStepRatesInitialize()
           ! Compute derivatives.
-          call Galactic_Structure_Radii_Revert(activeNode                                                                )
+          galacticStructureSolver_ => galacticStructureSolver()
+          call galacticStructureSolver_%revert(activeNode                                                                )
           call Tree_Node_Compute_Derivatives  (activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeIntegrator)      
           ! Serialize rates into integrand array.
           call activeNode%serializeRates(integrands(:,iTime),propertyTypeIntegrator)
@@ -759,22 +765,23 @@ contains
   integer function Tree_Node_ODEs_Jacobian(time,propertyValues0,derivativeRatesValues,derivativeRatesTime)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
-    use Galactic_Structure_Radii
+    use Galactic_Structure_Solvers, only : galacticStructureSolver, galacticStructureSolverClass
     use Numerical_Comparison
     use Galacticus_Error
     use FGSL                    , only : FGSL_Success
     implicit none
-    double precision                                                                   , intent(in   ) :: time
-    double precision               , dimension(:                                      ), intent(in   ) :: propertyValues0
-    double precision               , dimension(:                                      ), intent(  out) :: derivativeRatesValues        , derivativeRatesTime
-    double precision               , dimension(propertyCountActive                    )                :: propertyRates0               , propertyRates1     , &
-         &                                                                                                propertyValues1
-    double precision               , dimension(propertyCountActive,propertyCountActive)                :: jacobian
-    procedure       (interruptTask), pointer                                                           :: functionInterrupt
-    double precision               , parameter                                                         :: deltaTiny            =1.0d-10
-    logical                                                                                            :: interrupt                    , odeConverged
-    integer                                                                                            :: i
-    double precision                                                                                   :: propertyValueDelta
+    double precision                                                                                  , intent(in   ) :: time
+    double precision                              , dimension(:                                      ), intent(in   ) :: propertyValues0
+    double precision                              , dimension(:                                      ), intent(  out) :: derivativeRatesValues           , derivativeRatesTime
+    double precision                              , dimension(propertyCountActive                    )                :: propertyRates0                  , propertyRates1     , &
+         &                                                                                                               propertyValues1
+    double precision                              , dimension(propertyCountActive,propertyCountActive)                :: jacobian
+    procedure       (interruptTask               ), pointer                                                           :: functionInterrupt
+    double precision                              , parameter                                                         :: deltaTiny               =1.0d-10
+    class           (galacticStructureSolverClass), pointer                                                           :: galacticStructureSolver_
+    logical                                                                                                           :: interrupt                       , odeConverged
+    integer                                                                                                           :: i
+    double precision                                                                                                  :: propertyValueDelta
     
     ! Return success by default.
     Tree_Node_ODEs_Jacobian=FGSL_Success
@@ -795,6 +802,7 @@ contains
           jacobian(1:propertyCountActive,1:propertyCountActive)=0.0d0
        else
           ! Iterate over parameters, computing Jacobian using finite differences.
+          galacticStructureSolver_ => galacticStructureSolver()
           do i=1,propertyCountActive
              ! To compute the finite difference we make a small perturbation in one parameter. If the parameter is non-zero, use a
              ! small, fractional perturbation. For parameters with zero value, use a perturbation equal to the absolute tolerance
@@ -812,7 +820,7 @@ contains
                   &                 +propertyValueDelta
              call activeNode%deserializeValues     (propertyValues1,propertyTypeODE                                         )
              call activeNode%odeStepRatesInitialize(                                                                        )
-             call Galactic_Structure_Radii_Revert  (activeNode                                                              )
+             call galacticStructureSolver_%revert  (activeNode                                                              )
              call Tree_Node_Compute_Derivatives    (activeNode     ,odeConverged,interrupt,functionInterrupt,propertyTypeODE)
              call activeNode%serializeRates        (propertyRates1                                          ,propertyTypeODE)
              jacobian(i,:)=+(                  &
@@ -831,9 +839,6 @@ contains
   subroutine Tree_Node_Compute_Derivatives(node,odeConverged,interrupt,functionInterruptReturn,propertyType)
     !% Call routines to set alls derivatives for {\normalfont \ttfamily node}.
     use Galacticus_Calculations_Resets
-    !# <include directive="preDerivativeTask" type="moduleUse">
-    include 'objects.merger_trees.prederivative.tasks.modules.inc'
-    !# </include>
     !# <include directive="rateComputeTask" type="moduleUse">
     include 'objects.node.component.derivatives.modules.inc'
     !# </include>
@@ -850,11 +855,10 @@ contains
     functionInterrupt => null()
     ! Call component routines to indicate that derivative calculation is commencing.
     call Galacticus_Calculations_Reset(node)
-    ! Call routines to perform any pre-derivative calculations.
-    !# <include directive="preDerivativeTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
-    include 'objects.merger_trees.prederivative.tasks.inc'
-    !# </include>
+    ! Trigger an event to perform any pre-derivative calculations.
+    !# <eventHook name="preDerivative">
+    !#  <callWith>node</callWith>
+    !# </eventHook>
     ! Do not attempt to compute derivatives for nodes which are not solvable.    
     if (.not.node%isSolvable) return   
     ! Call component routines to compute derivatives.
@@ -1027,11 +1031,17 @@ contains
        call Galacticus_Display_Message(message,verbosityInfo)
     end if
 
-    ! Perform any processing necessary before this halo is promoted.
+    ! Perform any processing necessary before this halo is promoted. (Note that the eventHook is after the old-style include
+    ! directive here as we want galactic structure solvers to be calledafter any node component functions. Once node component
+    ! functions move to hooking to the nodePromotionTask event we will need to introduce a mechanism to specify dependencies in
+    ! the event hook call order.)    
     !# <include directive="nodePromotionTask" type="functionCall" functionType="void">
     !#  <functionArgs>node</functionArgs>
     include 'objects.tree_node.promote.inc'
     !# </include>
+    !# <eventHook name="nodePromotion">
+    !#  <callWith>node</callWith>
+    !# </eventHook>
     ! Copy timestep to the parent.
     call parentNode%timeStepSet(node%timeStep())
     ! Move the components of node to the parent.

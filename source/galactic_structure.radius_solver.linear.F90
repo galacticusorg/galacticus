@@ -17,92 +17,155 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a ``linear'' galactic radii solver (no adiabatic contraction
-!% and no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).
+  !% Implementation of a ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
+  !% proportion to specific angular momentum).
+  
+  use Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
-module Galactic_Structure_Radii_Linear
-  !% Implements a ``linear'' galactic radii solver (no adiabatic contraction and no self-gravity
-  !% of baryons, and size simply scales in proportion to specific angular momentum).
-  use Galactic_Structure_Radius_Solver_Procedures
-  implicit none
-  private
-  public :: Galactic_Structure_Radii_Linear_Initialize
+  !# <galacticStructureSolver name="galacticStructureSolverLinear" autoHook="yes">
+  !#  <description>A ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
+  !# </galacticStructureSolver>
+  type, extends(galacticStructureSolverClass) :: galacticStructureSolverLinear
+     !% Implementation of a ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
+     !% proportion to specific angular momentum).
+     private
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+   contains
+     final     ::             linearDestructor
+     procedure :: solve    => linearSolve
+     procedure :: revert   => linearRevert
+     procedure :: autoHook => linearAutoHook
+  end type galacticStructureSolverLinear
+
+  interface galacticStructureSolverLinear
+     !% Constructors for the {\normalfont \ttfamily linear} galactic structure solver class.
+     module procedure linearConstructorParameters
+     module procedure linearConstructorInternal
+  end interface galacticStructureSolverLinear
 
 contains
 
-  !# <galacticStructureRadiusSolverMethod>
-  !#  <unitName>Galactic_Structure_Radii_Linear_Initialize</unitName>
-  !# </galacticStructureRadiusSolverMethod>
-  subroutine Galactic_Structure_Radii_Linear_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
-    !% Initializes the ``linear'' galactic radii solver module.
-    use ISO_Varying_String
+  function linearConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily linear} galactic structure solver class which takes a
+    !% parameter set as input.
+    use Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type     (varying_string                        ), intent(in   )          :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Linear ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
-    procedure(Galactic_Structure_Radii_Revert_Linear), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
+    type   (galacticStructureSolverLinear)                :: self
+    type   (inputParameters              ), intent(inout) :: parameters
+    class  (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
 
-    if (galacticStructureRadiusSolverMethod == 'linear') then
-       Galactic_Structure_Radii_Solve_Do => Galactic_Structure_Radii_Solve_Linear
-       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Linear
-    end if
+    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    self=galacticStructureSolverLinear(darkMatterHaloScale_)
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
-  end subroutine Galactic_Structure_Radii_Linear_Initialize
+  end function linearConstructorParameters
 
-  subroutine Galactic_Structure_Radii_Solve_Linear(node)
-    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``linear'' method.
+  function linearConstructorInternal(darkMatterHaloScale_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily linear} galactic structure solver class.
+    implicit none
+    type   (galacticStructureSolverLinear)                        :: self
+    class  (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
+    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+   
+    return
+  end function linearConstructorInternal
+
+  subroutine linearAutoHook(self)
+    !% Attach to various event hooks.
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    implicit none
+    class(galacticStructureSolverLinear), intent(inout) :: self
+
+    call   preDerivativeEvent%attach(self,linearSolveHook,bindToOpenMPThread=.true.)
+    call      postEvolveEvent%attach(self,linearSolveHook,bindToOpenMPThread=.true.)
+    call satelliteMergerEvent%attach(self,linearSolveHook,bindToOpenMPThread=.true.)
+    call   nodePromotionEvent%attach(self,linearSolveHook,bindToOpenMPThread=.true.)
+    return
+  end subroutine linearAutoHook
+
+  subroutine linearDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily linear} galactic structure solver class.
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    implicit none
+    type(galacticStructureSolverLinear), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    call   preDerivativeEvent%detach(self,linearSolveHook)
+    call      postEvolveEvent%detach(self,linearSolveHook)
+    call satelliteMergerEvent%detach(self,linearSolveHook)
+    call   nodePromotionEvent%detach(self,linearSolveHook)
+    return
+  end subroutine linearDestructor
+
+  subroutine linearSolveHook(self,node)
+    !% Hookable wrapper around the solver.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(*       ), intent(inout)         :: self
+    type (treeNode), intent(inout), target :: node
+
+    select type (self)
+    type is (galacticStructureSolverLinear)
+       call self%solve(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine linearSolveHook
+  
+  subroutine linearSolve(self,node)
+    !% Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
+    !% proportion to specific angular momentum.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode                  ), intent(inout), target  :: node
-    procedure       (Radius_Solver_Get_Template)               , pointer :: Radius_Get             =>null(), Velocity_Get=>null()
-    procedure       (Radius_Solver_Set_Template)               , pointer :: Radius_Set             =>null(), Velocity_Set=>null()
-    !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    logical                                     , parameter              :: specificAngularMomentumRequired=.true.
-    logical                                                              :: componentActive
-    double precision                                                     :: specificAngularMomentum
+    class           (galacticStructureSolverLinear), intent(inout)         :: self
+    type            (treeNode                     ), intent(inout), target :: node
+    logical                                        , parameter             :: specificAngularMomentumRequired=.true.
+    procedure       (solverGet                    ), pointer               :: radiusGet                             , velocityGet
+    procedure       (solverSet                    ), pointer               :: radiusSet                             , velocitySet
+    logical                                                                :: componentActive
+    double precision                                                       :: specificAngularMomentum
 
     ! Check that the galaxy is physical plausible. In this linear solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
     include 'galactic_structure.radius_solver.tasks.inc'
-
     return
-  end subroutine Galactic_Structure_Radii_Solve_Linear
 
-  subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    !% Solve for the equilibrium radius of the given component.
-    use Dark_Matter_Halo_Scales
-    implicit none
-    type            (treeNode                  ), intent(inout), target  :: node
-    double precision                            , intent(in   )          :: specificAngularMomentum
-    procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
-    procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
-    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
-    double precision                                                     :: radius                 , velocity
-    !GCC$ attributes unused :: Radius_Get, Velocity_Get
+  contains
     
-    ! Return immediately if the specific angular momentum is zero.
-    if (specificAngularMomentum <= 0.0d0) return
+    subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
+      !% Solve for the equilibrium radius of the given component.
+      implicit none
+      type            (treeNode ), intent(inout)          :: node
+      double precision           , intent(in   )          :: specificAngularMomentum
+      procedure       (solverGet), intent(in   ), pointer :: radiusGet              , velocityGet
+      procedure       (solverSet), intent(in   ), pointer :: radiusSet              , velocitySet
+      double precision                                    :: radius                 , velocity
+      !GCC$ attributes unused :: radiusGet, velocityGet
 
-    ! Find the radius of the component, assuming radius scales linearly with angular momentum.
-    darkMatterHaloScale_ => darkMatterHaloScale()
-    velocity=darkMatterHaloScale_%virialVelocity(node)
-    radius  =specificAngularMomentum/velocity
+      ! Return immediately if the specific angular momentum is zero.
+      if (specificAngularMomentum <= 0.0d0) return
+      ! Find the radius of the component, assuming radius scales linearly with angular momentum.
+      velocity=self%darkMatterHaloScale_%virialVelocity(node)
+      radius  =specificAngularMomentum/velocity
+      ! Set the component size to new radius and velocity.
+      call radiusSet  (node,radius  )
+      call velocitySet(node,velocity)
+      return
+    end subroutine radiusSolve
 
-    ! Set the component size to new radius and velocity.
-    call Radius_Set  (node,radius  )
-    call Velocity_Set(node,velocity)
-    return
-  end subroutine Solve_For_Radius
+  end subroutine linearSolve
 
-  subroutine Galactic_Structure_Radii_Revert_Linear(node)
+  subroutine linearRevert(self,node)
     !% Revert radii for the linear galactic structure solve. Not necessary for this algorithm.
     implicit none
-    type(treeNode), intent(inout), target :: node
-    !GCC$ attributes unused :: node
+    class(galacticStructureSolverLinear), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
     
     return
-  end subroutine Galactic_Structure_Radii_Revert_Linear
-
-end module Galactic_Structure_Radii_Linear
+  end subroutine linearRevert

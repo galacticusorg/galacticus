@@ -174,7 +174,7 @@
   </mergerMassMovementsMethod>
   <!-- Galactic structure options -->
   <!-- Since this model is dark matter-only there will be no adiabatic contraction of dark matter halos. Therefore, use a static solver for initial radii in dark matter halos. -->
-  <galacticStructureRadiusSolverMethod value="simple"/>
+  <galacticStructureSolverMethod value="simple"/>
   <darkMatterProfileMethod value="darkMatterOnly"/>
   
   <!-- Numerical tolerances -->

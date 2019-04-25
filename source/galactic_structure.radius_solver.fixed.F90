@@ -17,153 +17,220 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a ``fixed'' galactic radii solver in which sizes are always equal to
-!% the halo virial or turnaround radius multiplied by its spin parameter and a multiplicative constant.
+  !% Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
+  !% proportion to specific angular momentum).
+  
+  use Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
+  use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-module Galactic_Structure_Radii_Fixed
-  !% Implements a ``fixed'' galactic radii solver in which sizes are always equal to
-  !% the halo virial or turnaround radius multiplied by its spin parameter and a multiplicative constant.
-  use Galactic_Structure_Radius_Solver_Procedures
-  implicit none
-  private
-  public :: Galactic_Structure_Radii_Fixed_Initialize
+  !# <galacticStructureSolver name="galacticStructureSolverFixed" autoHook="yes">
+  !#  <description>A ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
+  !# </galacticStructureSolver>
+  type, extends(galacticStructureSolverClass) :: galacticStructureSolverFixed
+     !% Implementation of a ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in
+     !% proportion to specific angular momentum).
+     private
+     double precision                                     :: factor
+     integer                                              :: radiusFixed
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+   contains
+     final     ::             fixedDestructor
+     procedure :: solve    => fixedSolve
+     procedure :: revert   => fixedRevert
+     procedure :: autoHook => fixedAutoHook
+  end type galacticStructureSolverFixed
 
-  ! The ratio of galaxy size to the product of spin parameter and virial radius.
-  double precision            :: galacticStructureRadiiFixedFactor
+  interface galacticStructureSolverFixed
+     !% Constructors for the {\normalfont \ttfamily fixed} galactic structure solver class.
+     module procedure fixedConstructorParameters
+     module procedure fixedConstructorInternal
+  end interface galacticStructureSolverFixed
 
-  ! Radius option.
-  integer                     :: galacticStructureRadiiFixedRadius
-  integer         , parameter :: galacticStructureRadiiFixedRadiusVirial    =0
-  integer         , parameter :: galacticStructureRadiiFixedRadiusTurnaround=1
+  !# <enumeration>
+  !#  <name>radiusFixed</name>
+  !#  <description>Enumerates the possible definitions of radius used by the ``fixed'' galactic structure solver.</description>
+  !#  <encodeFunction>yes</encodeFunction>
+  !#  <validator>yes</validator>
+  !#  <visibility>public</visibility>
+  !#  <entry label="virial"    />
+  !#  <entry label="turnaround"/>
+  !# </enumeration>
 
 contains
-
-  !# <galacticStructureRadiusSolverMethod>
-  !#  <unitName>Galactic_Structure_Radii_Fixed_Initialize</unitName>
-  !# </galacticStructureRadiusSolverMethod>
-  subroutine Galactic_Structure_Radii_Fixed_Initialize(galacticStructureRadiusSolverMethod,Galactic_Structure_Radii_Solve_Do,Galactic_Structure_Radii_Revert_Do)
-    !% Initializes the ``fixed'' galactic radii solver module.
-    use ISO_Varying_String
-    use Input_Parameters
-    use Galacticus_Nodes, only : defaultBasicComponent
-    use Galacticus_Error
+  
+  function fixedConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily fixed} galactic structure solver class which takes a
+    !% parameter set as input.
+    use Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type     (varying_string                       ), intent(in   )          :: galacticStructureRadiusSolverMethod
-    procedure(Galactic_Structure_Radii_Solve_Fixed ), intent(inout), pointer :: Galactic_Structure_Radii_Solve_Do
-    procedure(Galactic_Structure_Radii_Revert_Fixed), intent(inout), pointer :: Galactic_Structure_Radii_Revert_Do
-    type     (varying_string                       )                         :: galacticStructureRadiiFixedRadiusText
+    type            (galacticStructureSolverFixed)                :: self
+    type            (inputParameters             ), intent(inout) :: parameters
+    class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMO_
+    double precision                                              :: factor
+    type            (varying_string              )                :: radiusFixed
+    
+    !# <inputParameter>
+    !#   <name>factor</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultSource>\citep{mo_formation_1998}</defaultSource>
+    !#   <defaultValue>sqrt(0.5d0)</defaultValue>
+    !#   <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
+    !#   <source>parameters</source>
+    !#   <type>real</type>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>radiusFixed</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>var_str('virial')</defaultValue>
+    !#   <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
+    !#   <source>parameters</source>
+    !#   <type>string</type>
+    !# </inputParameter>
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    self=galacticStructureSolverFixed(factor,enumerationRadiusFixedEncode(char(radiusFixed),includesPrefix=.false.),darkMatterHaloScale_,darkMatterProfileDMO_)
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="darkMatterHaloScale_" />
+    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    return
+  end function fixedConstructorParameters
 
-    if (galacticStructureRadiusSolverMethod == 'fixed') then
-       Galactic_Structure_Radii_Solve_Do  => Galactic_Structure_Radii_Solve_Fixed
-       Galactic_Structure_Radii_Revert_Do => Galactic_Structure_Radii_Revert_Fixed
-       !# <inputParameter>
-       !#   <name>galacticStructureRadiiFixedFactor</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultSource>\citep{mo_formation_1998}</defaultSource>
-       !#   <defaultValue>sqrt(0.5d0)</defaultValue>
-       !#   <description>The ratio of galaxy radius to $\lambda r_\mathrm{vir}$ in the ``fixed'' galactic structure radius solver algorithm.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>real</type>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>galacticStructureRadiiFixedRadius</name>
-       !#   <cardinality>1</cardinality>
-       !#   <defaultValue>var_str('virial')</defaultValue>
-       !#   <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
-       !#   <source>globalParameters</source>
-       !#   <type>string</type>
-       !#   <variable>galacticStructureRadiiFixedRadiusText</variable>
-       !# </inputParameter>
-       select case (char(galacticStructureRadiiFixedRadiusText))
-       case ('virial'    )
-          galacticStructureRadiiFixedRadius=galacticStructureRadiiFixedRadiusVirial
-       case ('turnaround')
-          galacticStructureRadiiFixedRadius=galacticStructureRadiiFixedRadiusTurnaround
-          if (.not.defaultBasicComponent%radiusTurnaroundIsGettable())                                                         &
-               & call Galacticus_Error_Report                                                                                  &
-               &   (                                                                                                           &
-               &    'the "radiusTurnaround" property of the basic component must be gettable.'                              // &
-               &    Galacticus_Component_List(                                                                                 &
-               &                              'basic'                                                                        , &
-               &                                defaultBasicComponent%radiusTurnaroundAttributeMatch(requireGettable=.true.)   &
-               &                             )                                                                              // &
-               &    {introspection:location}                                                                                   &
-               &   )
-        case default
-          call Galacticus_Error_Report('[galacticStructureRadiiFixedRadius] must be either "virial" or "turnaround"'//{introspection:location})
-       end select
+  function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
+    use Galacticus_Error, only : Galacticus_Error_Report, Galacticus_Component_List
+    use Galacticus_Nodes, only : defaultBasicComponent
+    implicit none
+    type            (galacticStructureSolverFixed)                        :: self
+    double precision                              , intent(in   )         :: factor
+    integer                                       , intent(in   )         :: radiusFixed
+    class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
+    class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
+    !# <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+
+    if (.not.enumerationRadiusFixedIsValid(radiusFixed)) call Galacticus_Error_Report('invalid radiusFixed'//{introspection:location})
+    if (radiusFixed == radiusFixedTurnaround) then
+       if (.not.defaultBasicComponent%radiusTurnaroundIsGettable())                                                         &
+            & call Galacticus_Error_Report                                                                                  &
+            &   (                                                                                                           &
+            &    'the "radiusTurnaround" property of the basic component must be gettable.'                              // &
+            &    Galacticus_Component_List(                                                                                 &
+            &                              'basic'                                                                        , &
+            &                                defaultBasicComponent%radiusTurnaroundAttributeMatch(requireGettable=.true.)   &
+            &                             )                                                                              // &
+            &    {introspection:location}                                                                                   &
+            &   )
     end if
     return
-  end subroutine Galactic_Structure_Radii_Fixed_Initialize
+  end function fixedConstructorInternal
 
-  subroutine Galactic_Structure_Radii_Solve_Fixed(node)
-    !% Find the radii of galactic components in {\normalfont \ttfamily node} using the ``fixed'' method.
+  subroutine fixedAutoHook(self)
+    !% Attach to various event hooks.
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    implicit none
+    class(galacticStructureSolverFixed), intent(inout) :: self
+
+    call   preDerivativeEvent%attach(self,fixedSolveHook,bindToOpenMPThread=.true.)
+    call      postEvolveEvent%attach(self,fixedSolveHook,bindToOpenMPThread=.true.)
+    call satelliteMergerEvent%attach(self,fixedSolveHook,bindToOpenMPThread=.true.)
+    call   nodePromotionEvent%attach(self,fixedSolveHook,bindToOpenMPThread=.true.)
+    return
+  end subroutine fixedAutoHook
+
+  subroutine fixedDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    implicit none
+    type(galacticStructureSolverFixed), intent(inout) :: self
+
+    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    call   preDerivativeEvent%detach(self,fixedSolveHook)
+    call      postEvolveEvent%detach(self,fixedSolveHook)
+    call satelliteMergerEvent%detach(self,fixedSolveHook)
+    call   nodePromotionEvent%detach(self,fixedSolveHook)
+    return
+  end subroutine fixedDestructor
+
+  subroutine fixedSolveHook(self,node)
+    !% Hookable wrapper around the solver.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(*       ), intent(inout)         :: self
+    type (treeNode), intent(inout), target :: node
+
+    select type (self)
+    type is (galacticStructureSolverFixed)
+       call self%solve(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine fixedSolveHook
+  
+  subroutine fixedSolve(self,node)
+    !% Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in
+    !% proportion to specific angular momentum.
     include 'galactic_structure.radius_solver.tasks.modules.inc'
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
-    type            (treeNode                  ), intent(inout), target :: node
-    procedure       (Radius_Solver_Get_Template), pointer               :: Radius_Get                     => null(), Velocity_Get => null()
-    procedure       (Radius_Solver_Set_Template), pointer               :: Radius_Set                     => null(), Velocity_Set => null()
-    !$omp threadprivate(Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    logical                                     , parameter             :: specificAngularMomentumRequired=  .false.
-    logical                                                             :: componentActive
-    double precision                                                    :: specificAngularMomentum
+    class           (galacticStructureSolverFixed), intent(inout)         :: self
+    type            (treeNode                    ), intent(inout), target :: node
+    logical                                       , parameter             :: specificAngularMomentumRequired=.false.
+    procedure       (solverGet                   ), pointer               :: radiusGet                              , velocityGet
+    procedure       (solverSet                   ), pointer               :: radiusSet                              , velocitySet
+    logical                                                               :: componentActive
+    double precision                                                      :: specificAngularMomentum
 
-    ! Determine if the node is physically plausible.
+    ! Check that the galaxy is physical plausible. In this fixed solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
     include 'galactic_structure.radius_solver.plausible.inc'
     if (.not.node%isPhysicallyPlausible) return
-    
-    ! Solve for radii.
     include 'galactic_structure.radius_solver.tasks.inc'
-
     return
-  end subroutine Galactic_Structure_Radii_Solve_Fixed
 
-  subroutine Solve_For_Radius(node,specificAngularMomentum,Radius_Get,Radius_Set,Velocity_Get,Velocity_Set)
-    !% Solve for the equilibrium radius of the given component.
-    use Dark_Matter_Halo_Scales
-    use Dark_Matter_Profiles_DMO
-    use Galacticus_Nodes       , only : treeNode, nodeComponentSpin, nodeComponentBasic
-    implicit none
-    type            (treeNode                  ), intent(inout)          :: node
-    double precision                            , intent(in   )          :: specificAngularMomentum
-    procedure       (Radius_Solver_Get_Template), intent(in   ), pointer :: Radius_Get             , Velocity_Get
-    procedure       (Radius_Solver_Set_Template), intent(in   ), pointer :: Radius_Set             , Velocity_Set
-    class           (nodeComponentSpin         )               , pointer :: thisSpinComponent
-    class           (nodeComponentBasic        )               , pointer :: basic
-    class           (darkMatterHaloScaleClass  )               , pointer :: darkMatterHaloScale_
-    class           (darkMatterProfileDMOClass    )               , pointer :: darkMatterProfileDMO_
-    double precision                                                     :: radius                 , velocity
-    !GCC$ attributes unused :: Radius_Get, Velocity_Get, specificAngularMomentum
+  contains
     
-    ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
-    thisSpinComponent    => node%spin      ()
-    select case (galacticStructureRadiiFixedRadius)
-    case (galacticStructureRadiiFixedRadiusVirial    )
-       darkMatterHaloScale_ => darkMatterHaloScale                         (    )
-       velocity             =  darkMatterHaloScale_%virialVelocity         (node)
-       radius               =  darkMatterHaloScale_%virialRadius           (node)*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
-    case (galacticStructureRadiiFixedRadiusTurnaround)
-       darkMatterProfileDMO_   => darkMatterProfileDMO                           (    )
-       basic                => node                %basic                  (    )
-       velocity             =  darkMatterProfileDMO_  %circularVelocityMaximum(node)
-       radius               =  basic               %radiusTurnaround       (    )*thisSpinComponent%spin()*galacticStructureRadiiFixedFactor
-    end select
-    ! Set the component size to new radius and velocity.
-    call Radius_Set  (node,radius  )
-    call Velocity_Set(node,velocity)
-    return
-  end subroutine Solve_For_Radius
+    subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
+      !% Solve for the equilibrium radius of the given component.
+      use Galacticus_Nodes, only : treeNode, nodeComponentSpin, nodeComponentBasic
+      implicit none
+      type            (treeNode          ), intent(inout)          :: node
+      double precision                    , intent(in   )          :: specificAngularMomentum
+      procedure       (solverGet         ), intent(in   ), pointer :: radiusGet              , velocityGet
+      procedure       (solverSet         ), intent(in   ), pointer :: radiusSet              , velocitySet
+      class           (nodeComponentSpin )               , pointer :: spin
+      class           (nodeComponentBasic)               , pointer :: basic
+      double precision                                             :: radius                 , velocity
+      !GCC$ attributes unused :: radiusGet, velocityGet, specificAngularMomentum
 
-  subroutine Galactic_Structure_Radii_Revert_Fixed(node)
+      ! Find the radius of the component, assuming radius is a fixed fraction of radius times spin parameter.
+      spin => node%spin()
+      select case (self%radiusFixed)
+      case (radiusFixedVirial    )
+         velocity             =  self %darkMatterHaloScale_ %virialVelocity         (node)
+         radius               =  self %darkMatterHaloScale_ %virialRadius           (node)*spin%spin()*self%factor
+      case (radiusFixedTurnaround)
+         basic                => node                       %basic                  (    )
+         velocity             =  self %darkMatterProfileDMO_%circularVelocityMaximum(node)
+         radius               =  basic                      %radiusTurnaround       (    )*spin%spin()*self%factor
+      end select
+      ! Set the component size to new radius and velocity.
+      call radiusSet  (node,radius  )
+      call velocitySet(node,velocity)    
+      return
+    end subroutine radiusSolve
+
+  end subroutine fixedSolve
+
+  subroutine fixedRevert(self,node)
     !% Revert radii for the fixed galactic structure solve. Not necessary for this algorithm.
     implicit none
-    type(treeNode), intent(inout), target :: node
-    !GCC$ attributes unused :: node
-    
-    return
-  end subroutine Galactic_Structure_Radii_Revert_Fixed
+    class(galacticStructureSolverFixed), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
+    !GCC$ attributes unused :: self, node
 
-end module Galactic_Structure_Radii_Fixed
+    return
+  end subroutine fixedRevert

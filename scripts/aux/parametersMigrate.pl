@@ -611,11 +611,18 @@ my @translations =
 	     "timestepHostAbsolute"                                      => "mergerTreeEvolverMethod.standard.--timestepHostAbsolute"                               ,
 	     "mergerTreeOutput"                                          => "mergerTreeOutputterMethod"	                                                            ,
 	     "hotHaloOutflowReturnRate"                                  => "hotHaloOutflowReincorporationMethod.haloDynamicalTime.--multiplier"                    ,
-	     "equilibriumStructureIncludeBaryonGravity"                  => "equilibriumStructureIncludeBaryonGravity"                                              ,
-	     "equilibriumStructureUseFormationHalo"                      => "equilibriumStructureUseFormationHalo"                                                  ,
-	     "equilibriumStructureSolutionTolerance"                     => "equilibriumStructureSolutionTolerance"
+	     "adiabaticContractionIncludeBaryonGravity"                  => "equilibriumStructureIncludeBaryonGravity"                                              ,
+	     "adiabaticContractionUseFormationHalo"                      => "equilibriumStructureUseFormationHalo"                                                  ,
+	     "adiabaticContractionSolutionTolerance"                     => "equilibriumStructureSolutionTolerance"                                                 ,
+	     "galacticStructureRadiusSolverMethod"                       => "galacticStructureSolverMethod"                                                         ,
+	     "simpleRadiusSolverUseFormationHalo"                        => "galacticStructureRadiusSolverMethod.simple.--useFormationHalo"                         ,
+	     "galacticStructureRadiiFixedFactor"                         => "galacticStructureRadiusSolverMethod.fixed.--factor"                                    ,
+	     "galacticStructureRadiiFixedRadius"                         => "galacticStructureRadiusSolverMethod.fixed.--radiusFixed"                               ,
+	     "equilibriumStructureIncludeBaryonGravity"                  => "galacticStructureRadiusSolverMethod.equilibrium.--includeBaryonGravity"                ,
+	     "equilibriumStructureUseFormationHalo"                      => "galacticStructureRadiusSolverMethod.equilibrium.--useFormationHalo"                    ,
+	     "equilibriumStructureSolutionTolerance"                     => "galacticStructureRadiusSolverMethod.equilibrium.--solutionTolerance"
 	 },
-	 values        =>
+		 values        =>
 	 {
 	     atomicCollisionalIonizationMethod                =>
 	     {

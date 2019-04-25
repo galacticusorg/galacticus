@@ -140,11 +140,11 @@
   <satelliteTidalFieldMethod value="null"/>
 
   <!-- Galactic structure solver options -->
-  <galacticStructureRadiusSolverMethod value="equilibrium"/>
-  <darkMatterProfileMethod value="adiabaticGnedin2004">
+  <galacticStructureSolverMethod value="equilibrium"/>
+  <darkMatterProfileDMOMethod value="adiabaticGnedin2004">
     <A value="0.73"/>
     <omega value="0.7"/>
-  </darkMatterProfileMethod>
+  </darkMatterProfileDMOMethod>
 
   <spheroidAngularMomentumAtScaleRadius value="0.5"/>
 
