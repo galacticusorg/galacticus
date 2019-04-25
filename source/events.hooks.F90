@@ -21,13 +21,17 @@
 
 module Events_Hooks
   !% Handles hooking of object function class into events.
+  !$ use OMP_Lib
   private
   public :: hook, hookUnspecified
 
   type :: hook
      !% Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
-     class(*   ), pointer :: object_ => null()
-     class(hook), pointer :: next
+     class  (*   ), pointer                   :: object_      => null()
+     class  (hook), pointer                   :: next         => null()
+     logical                                  :: openMPBound
+     integer                                  :: openMPLevel
+     integer      , dimension(:), allocatable :: openMPThread
   end type hook
 
   type, extends(hook) :: hookUnspecified
@@ -38,9 +42,11 @@ module Events_Hooks
   type :: eventHook
      !% Class used to define a set of hooked function calls for a given event.
      private
-     integer                :: count_ =  0
-     class  (hook), pointer :: first_ => null()
-  contains
+     integer                            :: count_       =  0
+     !$ integer(omp_lock_kind)          :: lock_
+     !$ logical                         :: initialized_ =  .false.
+     class     (hook         ), pointer :: first_       => null()
+   contains
      !@ <objectMethods>
      !@   <object>eventHook</object>
      !@   <objectMethod>
@@ -55,9 +61,17 @@ module Events_Hooks
      !@     <arguments>\textcolor{red}{\textless *type(hook)\textgreater}</arguments>
      !@     <description>Return a pointer to the first hook into this event.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>initialize</method>
+     !@     <type></type>
+     !@     <arguments></arguments>
+     !@     <description>Initialize the event.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     procedure           :: count  => eventHookCount
-     procedure           :: first  => eventHookFirst
+     final     ::               eventHookDestructor
+     procedure :: count      => eventHookCount
+     procedure :: first      => eventHookFirst
+     procedure :: initialize => eventHookInitialize
   end type eventHook
   
   type, extends(eventHook) :: eventHookUnspecified
@@ -72,22 +86,56 @@ module Events_Hooks
      !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
      !@     <description>Attach a hook to the event.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>detach</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
+     !@     <description>Detach a hook from the event.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
       procedure :: attach => eventHookUnspecifiedAttach
+      procedure :: detach => eventHookUnspecifiedDetach
   end type eventHookUnspecified
 
   !# <eventHookManager/>
   
 contains
 
-  subroutine eventHookUnspecifiedAttach(self,object_,function_)
-    !% Attach an object to an event hook.
-    implicit none
-    class    (eventHookUnspecified), intent(inout)          :: self
-    class    (*                   ), intent(in   ), target  :: object_
-    procedure(                    )                         :: function_
-    class    (hook                )               , pointer :: hook_
+  subroutine eventHookInitialize(self)
+    !% Initialize the OpenMP lock in an event object.
+    class(eventHook), intent(inout) :: self
 
+    !$ if (.not.self%initialized_) then
+    !$   call OMP_Init_Lock(self%lock_)
+    !$   self%initialized_=.true.
+    !$ end if
+    return
+  end subroutine eventHookInitialize
+  
+  subroutine eventHookDestructor(self)
+    !% Destructor for event hook class.
+    type(eventHook), intent(inout) :: self
+
+    !$ if (self%initialized_) call OMP_Destroy_Lock(self%lock_)
+    return
+  end subroutine eventHookDestructor
+  
+  subroutine eventHookUnspecifiedAttach(self,object_,function_,bindToOpenMPThread)
+    !% Attach an object to an event hook.
+    !$ use OMP_Lib
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class    (eventHookUnspecified), intent(inout)           :: self
+    class    (*                   ), intent(in   ), target   :: object_
+    logical                        , intent(in   ), optional :: bindToOpenMPThread
+    procedure(                    )                          :: function_
+    class    (hook                )               , pointer  :: hook_
+    integer                                                  :: i
+    !# <optionalArgument name="bindToOpenMPThread" defaultsTo=".false." />
+
+    ! Lock the object.
+    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ call OMP_Set_Lock(self%lock_)
     ! Allocate the next entry in our list of hooks.
     if (associated(self%first_)) then
        hook_ => self%first_
@@ -103,30 +151,86 @@ contains
     ! Create the new hook.
     select type (hook_)
     type is (hookUnspecified)
-       hook_%object_   => object_
-       hook_%function_ => function_
+       hook_%object_     => object_
+       hook_%function_   => function_
+       hook_%openMPBound =  bindToOpenMPThread_
+       if (hook_%openMPBound) then
+          hook_%openMPLevel=OMP_Get_Level()
+          allocate(hook_%openMPThread(0:hook_%openMPLevel))
+          do i=0,hook_%openMPLevel
+             hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+          end do
+       end if
     end select
     ! Increment the count of hooks into this event.
     self%count_=self%count_+1
+    !$ call OMP_Unset_Lock(self%lock_)
     return
   end subroutine eventHookUnspecifiedAttach
 
+  subroutine eventHookUnspecifiedDetach(self,object_,function_)
+    !% Attach an object to an event hook.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class    (eventHookUnspecified), intent(inout)          :: self
+    class    (*                   ), intent(in   ), target  :: object_
+    procedure(                    )                         :: function_
+    class    (hook                )               , pointer :: hook_    , hookPrevious_
+    
+    ! Lock the object.
+    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ call OMP_Set_Lock(self%lock_)
+    if (associated(self%first_)) then
+       hookPrevious_ => null()
+       hook_         => self%first_
+       do while (associated(hook_))
+          select type (hook_)
+          type is (hookUnspecified)
+             if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
+                self%count_=self%count_-1
+                if (associated(hookPrevious_)) then
+                   hookPrevious_%next   => hook_%next
+                else
+                   self         %first_ => hook_%next
+                end if
+                deallocate(hook_)
+                !$ call OMP_Unset_Lock(self%lock_)
+                return
+             end if
+          end select
+          hookPrevious_ => hook_
+          hook_         => hook_%next
+       end do
+    end if
+    call Galacticus_Error_Report('object/function not attached to this event'//{introspection:location})
+    !$ call OMP_Unset_Lock(self%lock_)
+    return
+  end subroutine eventHookUnspecifiedDetach
+
   integer function eventHookCount(self)
     !% Return a count of the number of hooks into this event.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class(eventHook), intent(in   ):: self
+    class(eventHook), intent(inout):: self
 
+    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ call OMP_Set_Lock(self%lock_)
     eventHookCount=self%count_
+    !$ call OMP_Unset_Lock(self%lock_)
     return
   end function eventHookCount
 
   function eventHookFirst(self)
     !% Return a pointer to the first hook into this event.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(hook     ), pointer      :: eventHookFirst
-    class(eventHook), intent(in   ):: self
+    class(eventHook), intent(inout):: self
 
+    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ call OMP_Set_Lock(self%lock_)
     eventHookFirst => self%first_
+    !$ call OMP_Unset_Lock(self%lock_)
     return
   end function eventHookFirst
   

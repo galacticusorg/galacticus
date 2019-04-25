@@ -35,6 +35,7 @@ program Galacticus
   use Galacticus_Error_Wait
   use System_Limits
   use Galacticus_Function_Classes_Destroys
+  use Events_Hooks
 #ifdef USEMPI
   use MPI
   use MPI_Utilities
@@ -68,6 +69,8 @@ program Galacticus
   call parameters%markGlobal()
   ! Tell OpenMP that nested parallelism is allowed.
   !$ call OMP_Set_Nested(.true.)
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   ! Establish global functions.
   call Functions_Global_Set()
   ! Set verbosity.

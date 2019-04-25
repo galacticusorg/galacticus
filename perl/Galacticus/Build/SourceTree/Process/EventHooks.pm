@@ -70,8 +70,15 @@ type, extends(eventHook) :: eventHook{$interfaceType}
   !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
   !@     <description>Attach a hook to the event.</description>
   !@   </objectMethod>
+  !@   <objectMethod>
+  !@     <method>detach</method>
+  !@     <type>\void</type>
+  !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
+  !@     <description>Detach a hook from the event.</description>
+  !@   </objectMethod>
   !@ </objectMethods>
   procedure :: attach => eventHook{$interfaceType}Attach
+  procedure :: detach => eventHook{$interfaceType}Detach
 end type eventHook{$interfaceType}
 
 abstract interface
@@ -81,14 +88,27 @@ abstract interface
  end subroutine interface{$interfaceType}
 end interface
 CODE
+		    $code::location = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 		    my $attacher = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine eventHook{$interfaceType}Attach(self,object_,function_)
+subroutine eventHook{$interfaceType}Attach(self,object_,function_,bindToOpenMPThread)
+  !$ use OMP_Lib
+  use Galacticus_Error, only : Galacticus_Error_Report
   implicit none
-  class    (eventHook{$interfaceType}), intent(inout)          :: self
-  class    (*                        ), intent(in   ), target  :: object_
-  procedure(interface{$interfaceType})                         :: function_
-  class    (hook                     )               , pointer :: hook_
+  class    (eventHook{$interfaceType}), intent(inout)           :: self
+  class    (*                        ), intent(in   ), target   :: object_
+  logical                             , intent(in   ), optional :: bindToOpenMPThread
+  procedure(interface{$interfaceType})                          :: function_
+  class    (hook                     )               , pointer  :: hook_
+  integer                                                       :: i
+  logical                                                       :: bindToOpenMPThread_
 
+  !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
+  !$ call OMP_Set_Lock(self%lock_)
+  if (present(bindToOpenMPThread)) then
+     bindToOpenMPThread_=bindToOpenMPThread
+  else
+     bindToOpenMPThread_=.false.
+  end if
   if (associated(self%first_)) then
      hook_ => self%first_
      do while (associated(hook_%next))
@@ -104,12 +124,21 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_)
   type is (hook{$interfaceType})
      hook_%object_   => object_
      hook_%function_ => function_
+     hook_%openMPBound =  bindToOpenMPThread_
+     if (hook_%openMPBound) then
+        hook_%openMPLevel=OMP_Get_Level()
+        allocate(hook_%openMPThread(0:hook_%openMPLevel))
+        do i=0,hook_%openMPLevel
+           hook_%openMPThread(i)=OMP_Get_Ancestor_Thread_Num(i)
+        end do
+     end if
   end select
   self%count_=self%count_+1
+  !$ call OMP_Unset_Lock(self%lock_)
   return
 end subroutine eventHook{$interfaceType}Attach
 CODE
-		    my $newNode   =
+		    my $attacherNode   =
 		    {
 			type       => "code",
 			content    => $attacher,
@@ -117,10 +146,57 @@ CODE
 			source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
 			line       => 1
 		    };
-		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$newNode]);
+		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$attacherNode]);
+		    my $detacher = fill_in_string(<<'CODE', PACKAGE => 'code');
+subroutine eventHook{$interfaceType}Detach(self,object_,function_)
+  use Galacticus_Error, only : Galacticus_Error_Report
+  implicit none
+  class    (eventHook{$interfaceType}), intent(inout)          :: self
+  class    (*                        ), intent(in   ), target  :: object_
+  procedure(interface{$interfaceType})                         :: function_
+  class    (hook                     )               , pointer :: hook_    , hookPrevious_
+
+  !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
+  !$ call OMP_Set_Lock(self%lock_)
+  if (associated(self%first_)) then
+     hookPrevious_ => null()
+     hook_         => self%first_
+     do while (associated(hook_))
+        select type (hook_)
+        type is (hook{$interfaceType})
+           if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
+             self%count_=self%count_-1
+             if (associated(hookPrevious_)) then
+               hookPrevious_%next   => hook_%next
+             else
+               self         %first_ => hook_%next
+             end if
+             deallocate(hook_)
+             !$ call OMP_Unset_Lock(self%lock_)
+             return
+           end if
+        end select
+        hookPrevious_ => hook_
+        hook_         => hook_%next
+     end do
+  end if
+  !$ call OMP_Unset_Lock(self%lock_)
+  call Galacticus_Error_Report('object/function not attached to this event'//{$location})
+  return
+end subroutine eventHook{$interfaceType}Detach
+CODE
+		    my $detacherNode   =
+		    {
+			type       => "code",
+			content    => $detacher,
+			firstChild => undef(),
+			source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
+			line       => 1
+		    };
+		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$detacherNode]);
 		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
 		}
-		 $hookObject .= "type(eventHook".$code::interfaceType."), public :: ".$hook->{'name'}."Event\n";
+		$hookObject .= "type(eventHook".$code::interfaceType."), public :: ".$hook->{'name'}."Event\n";
 		my $newNode   =
 		{
 		    type       => "code",
@@ -131,6 +207,28 @@ CODE
 		};
 		&Galacticus::Build::SourceTree::InsertAfterNode($node,[$newNode]);
 	    }
+            # Build a function to initialize all event hooks.
+            my $initializor = fill_in_string(<<'CODE', PACKAGE => 'code');
+subroutine eventsHooksInitialize()
+   implicit none
+CODE
+            foreach my $hook ( @hooks ) {
+		$initializor .= "   call ".$hook->{'name'}."Event%initialize()\n";
+            }
+            $initializor .= fill_in_string(<<'CODE', PACKAGE => 'code');
+   return
+end subroutine eventsHooksInitialize
+CODE
+            my $initializorNode   =
+            {
+		type       => "code",
+		content    => $initializor,
+		firstChild => undef(),
+                source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
+                line       => 1
+	    };
+            &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$initializorNode]);
+            &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"eventsHooksInitialize","public");
 	}
 	# Handle eventHook directives by creating code to call any hooked functions.
 	if ( $node->{'type'} eq "eventHook" && ! $node->{'directive'}->{'processed'} ) {
@@ -145,6 +243,12 @@ CODE
 		    {
 			intrinsic => 0,
 			all       => 1
+		    },
+		    OMP_Lib =>
+		    {
+			intrinsic => 0,
+			all       => 1,
+			openMP    => 1
 		    }
 		}
 	    };
@@ -153,10 +257,18 @@ CODE
 	    my @declarations =
 		(
 		 {
-		     intrinsic  => "class"       ,
+		     intrinsic  => "class"      ,
 		     type       => "hook"       ,
 		     variables  => [ "hook_"   ],
 		     attributes => [ "pointer" ]
+		 },
+                 {
+		     intrinsic  => "logical"            ,
+		     variables  => [ "functionActive_" ]
+		 },
+                 {
+		     intrinsic  => "integer"      ,
+		     variables  => [ "ompLevel_" ]
 		 }
 		);
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
@@ -169,7 +281,20 @@ hook_ => {$eventName}Event%first()
 do while (associated(hook_))
    select type (hook_)
    type is (hook{$interfaceType})
-     call hook_%function_(hook_%object_{$callWith})
+     functionActive_=.true.
+     if (hook_%openMPBound) then
+        if (hook_%openMPLevel == OMP_Get_Level()) then
+           do ompLevel_=0,hook_%openMPLevel
+              if (hook_%openMPThread(ompLevel_) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
+                 functionActive_=.false.
+                 exit
+              end if
+           end do
+        else
+           functionActive_=.false.
+        end if
+     end if
+     if (functionActive_) call hook_%function_(hook_%object_{$callWith})
    end select
    hook_ => hook_%next
 end do
