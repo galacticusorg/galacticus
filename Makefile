@@ -51,9 +51,6 @@ endif
 CONDORLINKER = 
 #CONDORLINKER = condor_compile
 
-# Module type (used for checking if module interfaces have changed):
-MODULETYPE ?= GCC-f95-on-LINUX
-
 # Fortran compiler flags:
 FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
 # Fortran77 compiler flags:
@@ -127,6 +124,9 @@ endif
 
 # List of additional Makefiles which contain dependency information
 MAKE_DEPS = $(BUILDPATH)/Makefile_Module_Dependencies $(BUILDPATH)/Makefile_Use_Dependencies $(BUILDPATH)/Makefile_Include_Dependencies
+
+# List of files which must always be checked for update.
+UPDATE_DEPS = $(BUILDPATH)/allocatableArrays.xml.up
 
 # Get versions of build tools.
 FCCOMPILER_VERSION = `$(FCCOMPILER) -v 2>&1`
@@ -343,6 +343,10 @@ $(BUILDPATH)/%.d : ./source/%.cpp
 	 touch $*.h; \
 	fi
 
+# Rules for making update (".up") files if now explicit rule is given.
+%.up :
+	touch $*.up
+
 # Library files (*.fl) are created as empty files by default. Normally this rule is overruled by a specific set of rules in the
 # Makefile_Use_Dependencies file, but this acts as a fallback rule.
 $(BUILDPATH)/%.fl : ./source/%.F90
@@ -378,7 +382,7 @@ $(BUILDPATH)/%.m : ./source/%.F90
 
 # Executables (*.exe) are built by linking together all of the object files (*.o) specified in the associated dependency (*.d)
 # file.
-%.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS)
+%.exe: $(BUILDPATH)/%.o $(BUILDPATH)/%.d `cat $(BUILDPATH)/$*.d` $(MAKE_DEPS) $(UPDATE_DEPS)
 	./scripts/build/parameterDependencies.pl `pwd` $*.exe
 	$(FCCOMPILER) -c $(BUILDPATH)/$*.parameters.F90 -o $(BUILDPATH)/$*.parameters.o $(FCFLAGS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
@@ -403,8 +407,9 @@ $(BUILDPATH)/%.m : ./source/%.F90
 -include $(BUILDPATH)/Makefile_Use_Dependencies
 
 # Rules for memory management routines.
-$(BUILDPATH)/allocatableArrays.xml: ./scripts/build/allocatableArrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
+$(BUILDPATH)/allocatableArrays.xml.up: ./scripts/build/allocatableArrays.pl source/*.[fF]90 $(wildcard source/*.Inc)
 	./scripts/build/allocatableArrays.pl `pwd`
+$(BUILDPATH)/allocatableArrays.xml: | $(BUILDPATH)/allocatableArrays.xml.up
 
 $(BUILDPATH)/utility.memory_management.preContain.inc: ./scripts/build/memoryManagementFunctions.pl $(BUILDPATH)/allocatableArrays.xml
 	./scripts/build/memoryManagementFunctions.pl
@@ -429,7 +434,6 @@ $(BUILDPATH)/galacticus.output.build.environment.inc:
 	@echo FCCOMPILER=\"$(FCCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo CCOMPILER=\"$(CCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo CPPCOMPILER=\"$(CPPCOMPILER)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
-	@echo MODULETYPE=\"$(MODULETYPE)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo FCFLAGS=\"$(FCFLAGS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo FCFLAGS_NOOPT=\"$(FCFLAGS_NOOPT)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc
 	@echo CFLAGS=\"$(CFLAGS)\" >> $(BUILDPATH)/galacticus.output.build.environment.inc

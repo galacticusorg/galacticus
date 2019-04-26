@@ -114,8 +114,9 @@ foreach my $directive ( keys(%{$includeDirectives}) ) {
     # Output the Makefile rule. Add an explicit dependence on "hdf5FCInterop.dat" to ensure that HDF5 type interoperability is
     # determined before attempting to build the file. Similarly add explicit dependence on "openMPCriticalSections.xml" so that
     # OpenMP critical sections can be referenced by name.
-    print $directivesMakefile $fileName.": ".$ENV{'BUILDPATH'}."/".$directive.".xml ".join(" ",@extraDependencies)." \$(BUILDPATH)/hdf5FCInterop.dat \$(BUILDPATH)/openMPCriticalSections.xml\n";
+    print $directivesMakefile $fileName.".up: ".$ENV{'BUILDPATH'}."/".$directive.".xml ".join(" ",@extraDependencies)." \$(BUILDPATH)/hdf5FCInterop.dat \$(BUILDPATH)/openMPCriticalSections.xml\n";
     print $directivesMakefile "\t./scripts/build/buildCode.pl ".$installDirectoryName." ".$ENV{'BUILDPATH'}."/".$directive.".xml\n";
+    print $directivesMakefile $fileName.": | ".$fileName.".up\n";
     print $directivesMakefile "\n";
     # Output the directive itself.
     open(my $directiveFile,">".$ENV{'BUILDPATH'}."/".$directive.".xml.tmp");
@@ -127,10 +128,10 @@ foreach my $directive ( keys(%{$includeDirectives}) ) {
 # source files incorporated into them via the source tree preprocessor.
 foreach my $directiveName ( keys(%{$functionClasses}) ) {
     print $directivesMakefile $functionClasses->{$directiveName}.": ".join(" ",keys(%{$nonIncludeDirectives->{$directiveName}->{'files'}}))."\n\n";
-    # Include explicit dependencies for Makefile_Use_Dependencies to ensure that module dependencies get rebuilt
-    # after these directive include files are constructed.
-    print $directivesMakefile $ENV{'BUILDPATH'}."/Makefile_Use_Dependencies: ".join(" ",map {(my $fileName = $includeDirectives->{$_}->{'fileName'}) =~ s/\.inc$/\.Inc/; $fileName} keys(%{$includeDirectives}))."\n\n";
 }
+# Include explicit dependencies for Makefile_Use_Dependencies to ensure that module dependencies get rebuilt
+# after these directive include files are constructed.
+print $directivesMakefile $ENV{'BUILDPATH'}."/Makefile_Use_Dependencies: ".join(" ",map {(my $fileName = $includeDirectives->{$_}->{'fileName'}) =~ s/\.inc$/\.Inc/; $fileName} keys(%{$includeDirectives}))."\n\n";
 # Include a rule for including Makefile_Component_Includes. This has to go here since Makefile_Component_Includes depends on
 # objects.nodes.components.Inc for which Makefile_Directive contains the build rule.
 print $directivesMakefile "-include ".$ENV{'BUILDPATH'}."/Makefile_Component_Includes\n";
