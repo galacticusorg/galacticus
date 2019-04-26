@@ -217,6 +217,10 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		# Locate explicit dependencies.
 		push(@dependenciesExplicit,split(" ",$2))
 		    if ( $line =~ m/^\s*(\!|\/\/):\s*(.*)$/ );
+		# Locate programs - this require a dependency on the "ISO_Varying_String" module for auto-generated allowed parameter names.
+		push(@modulesUsed,$workDirectoryName."iso_varying_string.mod")
+		    if ( $line =~ m/^\s*program\s/i );
+		# Locate explicit dependencies.
 		# Locate any modules provided by this file (we do not need to include an explicit dependence on any modules which
 		# are self-provided).
 		$modulesProvided{$1.".mod"} = 1
