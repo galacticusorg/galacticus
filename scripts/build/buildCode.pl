@@ -10,6 +10,7 @@ use Fcntl qw(SEEK_SET);
 use UNIVERSAL;
 use Fortran::Utils;
 use List::ExtraUtils;
+use File::Changes;
 use Galacticus::Build::Hooks;
 use Galacticus::Build::ModuleUse;
 use Galacticus::Build::MethodNames;
@@ -62,7 +63,7 @@ foreach my $fileName ( @fileNamesToScan ) {
 	# Pop a file from the stack and move back to the previous position.
 	my $fileProcess = pop(@fileStack);
 	open(my $file,$fileProcess->{'name'}) 
-	    or die "buildCode.pl: can not open input file: #!";
+	    or die "buildCode.pl: can not open input file: ".$fileProcess->{'name'};
 	seek($file,$fileProcess->{'position'},SEEK_SET) 
 	    unless ( $fileProcess->{'position'} == -1 );
 	# Read the file until end of file is reached.
@@ -151,7 +152,7 @@ die("buildCode.pl: failed to find a function to generate '".$build->{'type'}."' 
     unless ( exists($Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}) );
 &{$Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}->{'generate'}}($build);
 # Generate output. For Fortran source we run the code through the processor first. Otherwise it is simply output.
-open(my $outputFile,">",$build->{'fileName'});
+open(my $outputFile,">",$build->{'fileName'}.".tmp");
 # Parse Fortran files, simply output other files.
 print $outputFile 
     $build->{'fileName'} =~ m/\.Inc$/
@@ -164,4 +165,5 @@ print $outputFile
     :
     $build->{'content'};
 close($outputFile);
+&File::Changes::Update($build->{'fileName'},$build->{'fileName'}.".tmp", proveUpdate => "yes");
 exit;

@@ -87,6 +87,6 @@ my $xmlOutput = new XML::Simple (NoAttr=>1, RootName=>"allocatables");
 open(outHndl,">".$ENV{'BUILDPATH'}."/allocatableArrays.xml.tmp");
 print outHndl $xmlOutput->XMLout($allocatables);
 close(outHndl);
-&File::Changes::Update($ENV{'BUILDPATH'}."/allocatableArrays.xml",$ENV{'BUILDPATH'}."/allocatableArrays.xml.tmp");
+&File::Changes::Update($ENV{'BUILDPATH'}."/allocatableArrays.xml",$ENV{'BUILDPATH'}."/allocatableArrays.xml.tmp", proveUpdate => "yes");
 
 exit;

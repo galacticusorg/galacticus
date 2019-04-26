@@ -6,7 +6,6 @@ use warnings;
 use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
-use DateTime;
 use Data::Dumper;
 use Scalar::Util 'reftype';
 use Galacticus::Build::Hooks;
@@ -135,15 +134,9 @@ sub Function_Calls_Generate_Output {
     die("Galacticus::Build::FunctionCall::Function_Calls_Parse_Directive: no directive present")
 	unless ( exists($buildData->{'directive'}) );
 
-    # Generate a timestamp.
-    my $dt = DateTime->now->set_time_zone('local');
-    (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
-    my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
-
     # Add a header.
     $buildData->{'content'}  = "! Generated automatically by Galacticus::Build::FunctionCall\n";
     $buildData->{'content'} .= "!  From: ".$buildData->{'fileName'}."\n";
-    $buildData->{'content'} .= "!  Time: ".$now."\n";
 
     # Perform the dependency sort.
     &Galacticus::Build::Dependencies::Dependency_Sort($buildData->{'functionCall'},$buildData);

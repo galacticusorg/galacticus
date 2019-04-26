@@ -6,7 +6,6 @@ use warnings;
 use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
-use DateTime;
 use Data::Dumper;
 use Galacticus::Build::Hooks;
 use List::ExtraUtils;
@@ -43,15 +42,9 @@ sub FunctionGlobal_Establish_Generate_Output {
     die("Galacticus::Build::FunctionGlobal::FunctionGlobal_Establish_Parse_Directive: no fileName present"      )
 	unless ( exists($buildData->{'fileName'}) );
 
-    # Generate a timestamp.
-    my $dt = DateTime->now->set_time_zone('local');
-    (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
-    my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
-
     # Add a header.
     $buildData->{'content'}  = "! Generated automatically by Galacticus::Build::FunctionGlobal\n";
     $buildData->{'content'} .= "!  From: ".$buildData->{'fileName'}."\n";
-    $buildData->{'content'} .= "!  Time: ".$now."\n";
 
     # Output pointer assignments.
     foreach ( keys(%{$buildData->{'functionGlobals'}}) ) {
@@ -66,14 +59,9 @@ sub FunctionGlobal_Pointers_Generate_Output {
     # Assert that we have a file name.
     die("Galacticus::Build::FunctionGlobal::FunctionGlobal_Pointers_Parse_Directive: no fileName present"      )
 	unless ( exists($buildData->{'fileName'}) );
-    # Generate a timestamp.
-    my $dt = DateTime->now->set_time_zone('local');
-    (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
-    my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
     # Add a header.
     $buildData->{'content'}  = "! Generated automatically by Galacticus::Build::FunctionGlobal\n";
     $buildData->{'content'} .= "!  From: ".$buildData->{'fileName'}."\n";
-    $buildData->{'content'} .= "!  Time: ".$now."\n";
     # Output pointer definitions.
     foreach ( keys(%{$buildData->{'functionGlobals'}}) ) {
 	$buildData->{'content'} .= "procedure(".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null), pointer :: ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_ => ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null\n";

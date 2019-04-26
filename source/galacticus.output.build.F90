@@ -61,8 +61,8 @@ contains
          &                                                 CPPCOMPILER_VERSION          , CPPFLAGS          , &
          &                                                 FCCOMPILER                   , FCCOMPILER_VERSION, &
          &                                                 FCFLAGS                      , FCFLAGS_NOOPT     , &
-         &                                                 LIBS                         , MODULETYPE        , &
-         &                                                 PREPROCESSOR                 , versionString
+         &                                                 LIBS                         , PREPROCESSOR      , &
+         &                                                 versionString
 
     ! Include build environment definitions.
     include 'galacticus.output.build.environment.inc' ! NO_USES
@@ -96,7 +96,6 @@ contains
     Galacticus_Build_String=Galacticus_Build_String//":PREPROCESSOR["       //PREPROCESSOR       //"]"
     Galacticus_Build_String=Galacticus_Build_String//":CCOMPILER["          //CCOMPILER          //"]"
     Galacticus_Build_String=Galacticus_Build_String//":CPPCOMPILER["        //CPPCOMPILER        //"]"
-    Galacticus_Build_String=Galacticus_Build_String//":MODULETYPE["         //MODULETYPE         //"]"
     Galacticus_Build_String=Galacticus_Build_String//":FCFLAGS["            //FCFLAGS            //"]"
     Galacticus_Build_String=Galacticus_Build_String//":FCFLAGS_NOOPT["      //FCFLAGS_NOOPT      //"]"
     Galacticus_Build_String=Galacticus_Build_String//":CFLAGS["             //CFLAGS             //"]"
@@ -134,8 +133,8 @@ contains
          &                                                 CPPCOMPILER_VERSION          , CPPFLAGS          , &
          &                                                 FCCOMPILER                   , FCCOMPILER_VERSION, &
          &                                                 FCFLAGS                      , FCFLAGS_NOOPT     , &
-         &                                                 LIBS                         , MODULETYPE        , &
-         &                                                 PREPROCESSOR                 , versionString
+         &                                                 LIBS                         , PREPROCESSOR      , &
+         &                                                 versionString
 
     ! Include build environment definitions.
     include 'galacticus.output.build.environment.inc' ! NO_USES
@@ -176,7 +175,6 @@ contains
     call buildGroup%writeAttribute(PREPROCESSOR       ,'make_PREPROCESSOR       ')
     call buildGroup%writeAttribute(CCOMPILER          ,'make_CCOMPILER          ')
     call buildGroup%writeAttribute(CPPCOMPILER        ,'make_CPPCOMPILER        ')
-    call buildGroup%writeAttribute(MODULETYPE         ,'make_MODULETYPE         ')
     call buildGroup%writeAttribute(FCFLAGS            ,'make_FCFLAGS            ')
     call buildGroup%writeAttribute(FCFLAGS_NOOPT      ,'make_FCFLAGS_NOOPT      ')
     call buildGroup%writeAttribute(CFLAGS             ,'make_CFLAGS             ')

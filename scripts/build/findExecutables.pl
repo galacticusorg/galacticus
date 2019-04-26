@@ -49,7 +49,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    push(@executableNames,$make::fileNameRoot.".exe")
 		unless ( $excludeFromMakeAll == 1 );
 	    print $outputFile fill_in_string(<<'MAKE', PACKAGE => 'make');
-{$fileNameRoot}.exe: {$workDirectoryName.$fileNameRoot}.o {$workDirectoryName.$fileNameRoot}.d $(MAKE_DEPS)
+{$fileNameRoot}.exe: {$workDirectoryName.$fileNameRoot}.o {$workDirectoryName.$fileNameRoot}.d $(MAKE_DEPS) $(UPDATE_DEPS)
 	./scripts/build/parameterDependencies.pl `pwd` {$fileNameRoot}.exe
 	$(FCCOMPILER) -c {$workDirectoryName.$fileNameRoot}.parameters.F90 -o {$workDirectoryName.$fileNameRoot}.parameters.o $(FCFLAGS)
 	$(FCCOMPILER) `cat {$workDirectoryName.$fileNameRoot}.d` {$workDirectoryName.$fileNameRoot}.parameters.o -o {$fileNameRoot}.exe$(SUFFIX) $(FCFLAGS) `./scripts/build/libraryDependencies.pl {$fileNameRoot}.exe $(FCFLAGS)`

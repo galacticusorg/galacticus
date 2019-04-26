@@ -6,7 +6,6 @@ use warnings;
 use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
-use DateTime;
 use Data::Dumper;
 use Galacticus::Build::Hooks;
 
@@ -45,15 +44,9 @@ sub MethodNames_Generate_Output {
     die("Galacticus::Build::MethodNames::MethodNames_Generate_Output: no fileName present"      )
 	unless ( exists($buildData->{'fileName'}) );
 
-    # Generate a timestamp.
-    my $dt = DateTime->now->set_time_zone('local');
-    (my $tz = $dt->format_cldr("ZZZ")) =~ s/(\d{2})(\d{2})/$1:$2/;
-    my $now = $dt->ymd."T".$dt->hms.".".$dt->format_cldr("SSS").$tz;
-
     # Add a header.
     $buildData->{'content'}  = "! Generated automatically by Galacticus::Build::MethodNames\n";
     $buildData->{'content'} .= "!  From: ".$buildData->{'fileName'}."\n";
-    $buildData->{'content'} .= "!  Time: ".$now."\n";
 
     # Begin the function.
     $buildData->{'content'} .= "subroutine ".$buildData->{'methodNamesFunction'}."(inputMethod)\n";

@@ -6,7 +6,6 @@ use warnings;
 use utf8;
 use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
-use DateTime;
 use Data::Dumper;
 use Text::Table;
 use Text::Template 'fill_in_string';
