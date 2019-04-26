@@ -67,15 +67,20 @@ sub Parse_ModuleUses {
 		} else {
 		    $rawCode      .= $rawLine;
 		}
-		# Handle preprocessor lines.
+		# Handle preprocessor lines. Note that for #else and #endif directives we check that we have elements in the
+		# stack. Since we process this on a node-by-node basis it's possible that the matching #if directive was in a
+		# previous node, so isn't caught. Ideally we need to do a better job of parsing the preprocessor directives by
+		# walking through sibling nodes when necessary.
 		push(@preprocessorStack,{name => $1, invert => 0})
 		    if ( $processedLine =~ m/^#ifdef\s+([A-Z0-9]+)/ );
 		push(@preprocessorStack,{name => $1, invert => 1})
 		    if ( $processedLine =~ m/^#ifndef\s+([A-Z0-9]+)/ );
 		pop(@preprocessorStack)
-		    if ( $processedLine =~ m/^#endif/ );
-		if ( $processedLine =~ m/^#else/ ) {
+		    if ( $processedLine =~ m/^#endif/ && scalar(@preprocessorStack) > 0 );
+		if ( $processedLine =~ m/^#else/ && scalar(@preprocessorStack) > 0 ) {
 		    my $descriptor = pop(@preprocessorStack);
+		    die("Galacticus::Build::SourceTree::Parse::ModuleUses::Parse_ModuleUses(): invert is not defined in file '".$node->{'source'}."' in node at line ".$node->{'line'})
+			unless ( exists($descriptor->{'invert'}) && defined($descriptor->{'invert'}) );
 		    $descriptor->{'invert'} = 1-$descriptor->{'invert'};
 		    push(@preprocessorStack,$descriptor);
 		}
