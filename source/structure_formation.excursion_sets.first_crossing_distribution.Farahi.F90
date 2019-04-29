@@ -239,6 +239,7 @@ contains
     double precision                                 , parameter                     :: varianceTableTolerance=1.0d-6
     class           (excursionSetBarrierClass       ), pointer                       :: excursionSetBarrier_
     double precision                                 , allocatable  , dimension( : ) :: barrierTable
+    double precision                                                                 :: barrierTest
     logical                                                                          :: makeTable
     integer         (c_size_t                       )                                :: iTime                        , iVariance     , &
          &                                                                              loopCount                    , loopCountTotal, &
@@ -330,6 +331,10 @@ contains
 #ifdef USEMPI
        if (self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
 #endif
+       ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
+       ! is initialized and covers the whole range we are intereseted in.
+       barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
+       barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
        !$omp parallel private(iTime,i,j,sigma1f,excursionSetBarrier_,barrierTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
@@ -578,6 +583,7 @@ contains
     double precision                                 , parameter                   :: varianceTolerance         =1.0d-6
     real            (kind=kind_quad                 ), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
          &                                                                            varianceTableRateQuad            , barrierTableRateQuad
+    double precision                                                               :: barrierRateTest
     class           (excursionSetBarrierClass       ), pointer                     :: excursionSetBarrier_
 #ifdef USEMPI
     integer                                                                        :: taskCount
@@ -710,6 +716,10 @@ contains
        end if
        taskCount=-1
 #endif
+       ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
+       ! is initialized and covers the whole range we are intereseted in.
+       barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
+       barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
        !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,barrierTableRateQuad) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
