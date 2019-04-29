@@ -18,10 +18,10 @@
   <coolingTimeMethod value="simple">
     <degreesOfFreedom value="3.0"/>
   </coolingTimeMethod>
-  <darkMatterProfileDMOMethod value="adiabaticGnedin2004">
+  <darkMatterProfileMethod value="adiabaticGnedin2004">
     <omega value="0.77"/>
     <A value="0.8"/>
-  </darkMatterProfileDMOMethod>
+  </darkMatterProfileMethod>
 
   <starFormationTimescaleDisksMethod value="dynamicalTime">
     <efficiency value="0.01"/>
