@@ -271,7 +271,8 @@ contains
          &                                                                                ratioLuminosityHeliumToHydrogen                         , ratioLuminosityOxygenToHydrogen, &
          &                                                                                countHIIRegion                                          , densitySurfaceGas              , &
          &                                                                                massClouds                                              , densitySurfaceClouds           , &
-         &                                                                                depthOpticalDiffuse                                     , densitySurfaceMetals
+         &                                                                                depthOpticalDiffuse                                     , densitySurfaceMetals           , &
+         &                                                                                ionizingFluxMultiplier
     logical                                                         , dimension(  2  ) :: isPhysical
     integer         (c_size_t                                      ), dimension(0:1,5) :: interpolateIndex
     double precision                                                , dimension(0:1,5) :: interpolateFactor
@@ -375,6 +376,49 @@ contains
        luminosityLymanContinuum       =+luminosityLymanContinuum &
             &                          -log10(countHIIRegion)
     end where
+    ! Truncate properties to table bounds where necessary to avoid unphysical extrapolations.
+    !
+    !! Hydrogen density and H-ionizing flux are truncated at both the lower and upper extent
+    !! of the tabulated range. The assumption is that the table covers the plausible
+    !! physical range for these values. In the case of H-ionizing flux, if we truncate the
+    !! value we must then apply a multiplicative correction to the line luminosity to ensure
+    !! that we correctly account for all ionizing photons produced.
+    !!
+    !! For metallicity and the He/H and O/H ionizing flux ratios we truncate only at the
+    !! upper extent of the tabulated range. The table is assumed to be tabulated up to the
+    !! maximum physically plausible extent for these quantities. Extrapolation to lower
+    !! values should be reasonably robust (and the table is assumed to extend to
+    !! sufficiently low values that the consequences of extrapolation are unlikely to be
+    !! observationally relevant anyway).
+    where     (luminosityLymanContinuum        < self%ionizingFluxHydrogen        (                                     1 ))
+       ionizingFluxMultiplier         =10.0d0**(                                                            &
+            &                                   -self%ionizingFluxHydrogen(                             1 ) &
+            &                                   +luminosityLymanContinuum                                   &
+            &                                  )
+       luminosityLymanContinuum       =self%ionizingFluxHydrogen(                                             1 )
+    elsewhere (luminosityLymanContinuum        < self%ionizingFluxHydrogen        (size(self%ionizingFluxHydrogen        )))
+       ionizingFluxMultiplier         =10.0d0**(                                                            &
+            &                                   -self%ionizingFluxHydrogen(size(self%ionizingFluxHydrogen)) &
+            &                                   +luminosityLymanContinuum                                   &
+            &                                  )
+       luminosityLymanContinuum       =self%ionizingFluxHydrogen        (size(self%ionizingFluxHydrogen        ))
+    elsewhere
+       ionizingFluxMultiplier=1.0d0
+    end where
+    where     (densityHydrogen                 < self%densityHydrogen             (                                     1 ))
+       densityHydrogen                =self%densityHydrogen             (                                     1 )
+    elsewhere (densityHydrogen                < self%densityHydrogen              (size(self%densityHydrogen             )))
+       densityHydrogen                =self%densityHydrogen             (size(self%densityHydrogen             ))
+    end where
+    where     (metallicityGas                  > self%metallicity                 (size(self%metallicity                 )))
+       metallicityGas                 =self%metallicity                 (size(self%metallicity                 ))
+    end where
+    where     (ratioLuminosityHeliumToHydrogen > self%ionizingFluxHeliumToHydrogen(size(self%ionizingFluxHeliumToHydrogen)))
+       ratioLuminosityHeliumToHydrogen=self%ionizingFluxHeliumToHydrogen(size(self%ionizingFluxHeliumToHydrogen))
+    end where
+    where     (ratioLuminosityOxygenToHydrogen > self%ionizingFluxOxygenToHydrogen(size(self%ionizingFluxOxygenToHydrogen))) 
+       ratioLuminosityOxygenToHydrogen=self%ionizingFluxOxygenToHydrogen(size(self%ionizingFluxOxygenToHydrogen))
+    end where
     ! Perform dust calculation if necessary.
     if (self%depthOpticalISMCoefficient > 0.0d0) then
        where (isPhysical)
@@ -442,6 +486,7 @@ contains
           ! Compute the final luminosity in ergs s⁻¹.
           lmnstyEmssnLineExtract=+        lmnstyEmssnLineExtract                                                                              &
                &                 +10.0d0**luminosityLinePerHIIRegion                                                                          &
+               &                 *        ionizingFluxMultiplier                                                                      (component)  &
                &                 *        countHIIRegion                                                                         (component)  &
                &                 *exp(                                                                                                        &
                &                      -stellarSpectraDustAttenuation_%attenuation(                                                            &
