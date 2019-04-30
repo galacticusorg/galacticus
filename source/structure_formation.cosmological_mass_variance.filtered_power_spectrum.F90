@@ -56,16 +56,19 @@
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     class           (cosmologyParametersClass               ), pointer     :: cosmologyParameters_ => null()
-     class           (powerSpectrumPrimordialTransferredClass), pointer     :: powerSpectrumPrimordialTransferred_ => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer     :: powerSpectrumWindowFunction_ => null()
-     type            (powerSpectrumWindowFunctionTopHat      ), pointer     :: powerSpectrumWindowFunctionTopHat_ => null()
-     logical                                                                :: initialized
-     double precision                                                       :: tolerance                          , toleranceTopHat   , &
-          &                                                                    sigma8Value                        , sigmaNormalization, &
-          &                                                                    massMinimum                        , massMaximum
-     class           (table1DLinearCSpline                   ), allocatable :: rootVarianceTable
-     logical                                                                :: monotonicInterpolation
+     class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_ => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null()
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_ => null()
+     type            (powerSpectrumWindowFunctionTopHat      ), pointer                   :: powerSpectrumWindowFunctionTopHat_ => null()
+     logical                                                                              :: initialized
+     double precision                                                                     :: tolerance                          , toleranceTopHat   , &
+          &                                                                                  sigma8Value                        , sigmaNormalization, &
+          &                                                                                  massMinimum                        , massMaximum
+     class           (table1DLinearCSpline                   ), allocatable               :: rootVarianceTable
+     ! Unique values in the variance table and their corresponding indices.
+     double precision                                         , allocatable, dimension(:) :: rootVarianceUniqueTable
+     integer                                                  , allocatable, dimension(:) :: rootVarianceUniqueIndexTable
+     logical                                                                              :: monotonicInterpolation
    contains
      !@ <objectMethods>
      !@   <object>cosmologicalMassVarianceFilteredPower</object>
@@ -188,6 +191,8 @@ contains
     !# <objectDestructor name="self%powerSpectrumWindowFunction_"       />
     !# <objectDestructor name="self%powerSpectrumWindowFunctionTopHat_" />
     if (self%initialized) call self%rootVarianceTable%destroy()
+    if (allocated(self%rootVarianceUniqueTable     )) deallocate(self%rootVarianceUniqueTable     ) 
+    if (allocated(self%rootVarianceUniqueIndexTable)) deallocate(self%rootVarianceUniqueIndexTable) 
     return
   end subroutine filteredPowerDestructor
 
@@ -288,7 +293,8 @@ contains
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: rootVariance
     double precision                                                       :: h
-    integer                                                                :: i
+    integer                                                                :: i            , iBoundLeft, &
+         &                                                                    iBoundRight
     
     ! If the requested root-variance is below the lowest value tabulated, attempt to tabulate to higher mass (lower
     ! root-variance).
@@ -301,10 +307,17 @@ contains
        filteredPowerMass=self%rootVarianceTable%x(1)
     else
        ! Find the largest mass corresponding to this sigma.
-       i=self%rootVarianceTable%size()
-       do while (i > 1 .and. self%rootVarianceTable%y(i-1) < rootVariance)
-          i=i-1
+       iBoundLeft =1
+       iBoundRight=size(self%rootVarianceUniqueTable)
+       do while (iBoundLeft+1 < iBoundRight)
+          i=int((iBoundLeft+iBoundRight)/2)
+          if (self%rootVarianceUniqueTable(i) < rootVariance) then
+             iBoundRight=i
+          else
+             iBoundLeft =i
+          end if
        end do
+       i                =self%rootVarianceUniqueIndexTable(iBoundRight)
        h                =+(     rootVariance            -self%rootVarianceTable%y(i)) &
             &            /(self%rootVarianceTable%y(i-1)-self%rootVarianceTable%y(i))
        filteredPowerMass=exp(                                              &
@@ -320,16 +333,18 @@ contains
     use Numerical_Constants_Math
     use Galacticus_Error
     implicit none
-    class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)           :: self
-    double precision                                         , intent(in   ), optional :: mass
+    class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)               :: self
+    double precision                                         , intent(in   ), optional     :: mass
     ! Radius for σ(M) normalization in Mpc/h.
-    double precision                                         , parameter               :: radiusNormalization                =8.0d0
-    integer                                                                            :: i                                        , rootVarianceTableCount
-    double precision                                                                   :: sigma                                    , smoothingMass         , &
-         &                                                                                massMinimum
-    logical                                                                            :: remakeTable
-    type            (varying_string                         )                          :: message
-    character       (len=12                                 )                          :: label
+    double precision                                         , parameter                   :: radiusNormalization                =8.0d0
+    integer                                                                                :: i                                        , rootVarianceTableCount , &
+         &                                                                                    j                                        , rootVarianceUniqueCount      
+    double precision                                                                       :: sigma                                    , smoothingMass          , &
+         &                                                                                    massMinimum
+    logical                                                  , allocatable  , dimension(:) :: rootVarianceIsUnique
+    logical                                                                                :: remakeTable
+    type            (varying_string                         )                              :: message
+    character       (len=12                                 )                              :: label
 
     ! Check if we need to recompute our table.
     if (self%initialized) then
@@ -378,12 +393,16 @@ contains
           call self%rootVarianceTable%destroy()
           deallocate(self%rootVarianceTable)
        end if
+       if (allocated(self%rootVarianceUniqueTable     )) deallocate(self%rootVarianceUniqueTable     )
+       if (allocated(self%rootVarianceUniqueIndexTable)) deallocate(self%rootVarianceUniqueIndexTable)
        if (self%monotonicInterpolation) then
           allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable)
        else
           allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable)
        end if
        call self%rootVarianceTable%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
+       allocate(rootVarianceIsUnique(rootVarianceTableCount))
+       rootVarianceIsUnique=.true.
        ! Compute σ(M) at each tabulated point.
        massMinimum=-1.0d0
        do i=1,rootVarianceTableCount
@@ -392,12 +411,28 @@ contains
                &        *self%sigmaNormalization
           ! Enforce monotonicity.
           if (i > 1) then
-             if (sigma >= self%rootVarianceTable%y(i-1)) massMinimum=smoothingMass
+             if (sigma >= self%rootVarianceTable%y(i-1)) then
+                massMinimum            =smoothingMass
+                rootVarianceIsUnique(i)=.false.
+             end if
              sigma=min(sigma,self%rootVarianceTable%y(i-1))
           end if
           ! Store the value.
           call self%rootVarianceTable%populate(sigma,i,computeSpline=(i == rootVarianceTableCount))
        end do
+       ! Find unique values in the variance table.
+       rootVarianceUniqueCount=count(rootVarianceIsUnique)
+       allocate(self%rootVarianceUniqueTable     (rootVarianceUniqueCount))
+       allocate(self%rootVarianceUniqueIndexTable(rootVarianceUniqueCount))
+       j=1
+       do i=1,rootVarianceTableCount
+          if (rootVarianceIsUnique(i)) then
+             self%rootVarianceUniqueTable     (j)=self%rootVarianceTable%y(i)
+             self%rootVarianceUniqueIndexTable(j)=i
+             j                                   =j+1
+          end if
+       end do
+       deallocate(rootVarianceIsUnique)
        ! Warn if σ(M) has no increase below some mass scale.
        if (massMinimum > 0.0d0) then
           write (label,'(e12.6)') massMinimum
