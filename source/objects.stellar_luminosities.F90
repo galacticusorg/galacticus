@@ -1193,19 +1193,18 @@ contains
     call Galacticus_Error_Report(message//{introspection:location})
     return
   end function Stellar_Luminosities_Index_From_Properties
-
   
-  subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,SPS_,imfIndex)
+  subroutine Stellar_Luminosities_SED_Top_Hat_Step(wavelengthCentral,filterWidth,wavelengthMinimum,wavelengthMaximum,observedWidth,redshift,stellarPopulationSpectra_,imfIndex)
     !% Given a top hat filter central wavelength and filter width, determine the position and width of the next top hat filter in the array.
     use Stellar_Population_Spectra
     implicit none 
-    double precision,                        intent(inout)                              :: wavelengthCentral,filterWidth
-    double precision,                        intent(in)                                 :: wavelengthMinimum,wavelengthMaximum,observedWidth,     &
-         &                                                                                 redshift
-    class   (stellarPopulationSpectraClass), intent(in)  , pointer                      :: SPS_
-    double precision                                                                    :: restWavelengthMinimum,restWavelengthMaximum,restWidth, &
-         &                                                                                 wavelengthLowerEdge,tabulatedWidth 
-    integer                                , intent(in)                                 :: imfIndex           
+    double precision                               , intent(inout)          :: wavelengthCentral        , filterWidth
+    double precision                               , intent(in   )          :: wavelengthMinimum        , wavelengthMaximum    , observedWidth, &
+         &                                                                     redshift
+    class           (stellarPopulationSpectraClass), intent(in   ), pointer :: stellarPopulationSpectra_
+    double precision                                                        :: restWavelengthMinimum    , restWavelengthMaximum, restWidth    , &
+         &                                                                     wavelengthLowerEdge      , tabulatedWidth 
+    integer                                        , intent(in   )          :: imfIndex           
     ! Determine rest-frame wavelength extent
     restWavelengthMinimum = wavelengthMinimum/(1.0d0+redshift)
     restWavelengthMaximum = wavelengthMaximum/(1.0d0+redshift)
@@ -1213,7 +1212,7 @@ contains
     ! Move to lower edge of next filter
     wavelengthLowerEdge = wavelengthCentral + filterWidth/2.0d0
     ! Get wavelength interval in SPS models at lower edge wavelength
-    tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthLowerEdge)
+    tabulatedWidth = stellarPopulationSpectra_%wavelengthInterval(imfIndex,wavelengthLowerEdge)
     ! Determine where the new filter is: (i) inside the observed wavelength range, (ii) inside the rest wavelength range, 
     ! or (iii) inbetween the observed and rest wavelength ranges.    
     if(wavelengthLowerEdge.lt.restWavelengthMaximum)then
@@ -1229,12 +1228,12 @@ contains
        ! Option (iii): between rest-frame and observed-frame wavelength ranges.
        wavelengthCentral = wavelengthMinimum
        filterWidth = observedWidth
-       tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthCentral)
+       tabulatedWidth = stellarPopulationSpectra_%wavelengthInterval(imfIndex,wavelengthCentral)
        if(tabulatedWidth.gt.observedWidth) filterWidth = tabulatedWidth
        ! If the gap between the rest-frame and observed-frame ranges is small, check to avoid overlap of filters.
        if(wavelengthCentral-filterWidth/2.0d0.lt.wavelengthLowerEdge)then
           ! Overlap possible. Adjust filter position.                                                                                                                                                           
-          tabulatedWidth = SPS_%wavelengthInterval(imfIndex,wavelengthLowerEdge)
+          tabulatedWidth = stellarPopulationSpectra_%wavelengthInterval(imfIndex,wavelengthLowerEdge)
           filterWidth = observedWidth
           if(tabulatedWidth.gt.observedWidth) filterWidth = tabulatedWidth
           wavelengthCentral = wavelengthLowerEdge + filterWidth/2.0d0
@@ -1242,7 +1241,6 @@ contains
     end if
   end subroutine Stellar_Luminosities_SED_Top_Hat_Step
   
-
   subroutine Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet)
     !% Modify the input list of luminosities for special cases.
     use, intrinsic :: ISO_C_Binding
@@ -1254,31 +1252,31 @@ contains
     use Star_Formation_IMF
     use Stellar_Population_Spectra
     implicit none
-    integer                                  , intent(inout), allocatable, dimension(:) :: luminosityMap
-    type            (varying_string         ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
-         &                                                                                 luminosityType           , luminosityPostprocessSet
-    double precision                         , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
-    integer         (c_size_t               )                                           :: j                        , outputCount                , &
-         &                                                                                 i                        , newFilterCount             , &
-                                                                                           k
-    integer                                                 , allocatable, dimension(:) :: luminosityMapTmp
-    type            (varying_string         )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
-         &                                                                                 luminosityTypeTmp        , luminosityPostprocessSetTmp
-    type            (varying_string         )                            , dimension(5) :: specialFilterWords
-    double precision                                        , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
-    class           (stellarPopulationSpectraClass)         , pointer                   :: stellarPopulationSpectra_
-    class           (cosmologyFunctionsClass), pointer                                  :: cosmologyFunctions_
-    character       (len=32                 )                                           :: redshiftLabel            , word                     , &
-         &                                                                                 wavelengthCentralLabel   , resolutionLabel          , &
-         &                                                                                 imfLabel
-    character       (len=256                )                                           :: newFilterName            , lineName
-    double precision                                                                    :: outputRedshift           , resolution               , &
-         &                                                                                 wavelengthMinimum        , wavelengthMaximum        , &
-         &                                                                                 restWavelengthMinimum    , restWavelengthMaximum    , &
-         &                                                                                 wavelengthRatio          , wavelengthCentral        , &
-         &                                                                                 observedWidth            , restWidth                , &
-         &                                                                                 tabulatedWidth           , filterWidth
-    integer                                                                             :: imfIndex
+    integer                                        , intent(inout), allocatable, dimension(:) :: luminosityMap
+    type            (varying_string               ), intent(inout), allocatable, dimension(:) :: luminosityRedshiftText   , luminosityFilter           , &
+         &                                                                                       luminosityType           , luminosityPostprocessSet
+    double precision                               , intent(inout), allocatable, dimension(:) :: luminosityRedshift       , luminosityBandRedshift
+    integer         (c_size_t                     )                                           :: j                        , outputCount                , &
+         &                                                                                       i                        , newFilterCount             , &
+                                                                                                 k
+    integer                                                       , allocatable, dimension(:) :: luminosityMapTmp
+    type            (varying_string               )               , allocatable, dimension(:) :: luminosityRedshiftTextTmp, luminosityFilterTmp        , &
+         &                                                                                       luminosityTypeTmp        , luminosityPostprocessSetTmp
+    type            (varying_string               )                            , dimension(5) :: specialFilterWords
+    double precision                                              , allocatable, dimension(:) :: luminosityRedshiftTmp    , luminosityBandRedshiftTmp
+    class           (stellarPopulationSpectraClass), pointer                                  :: stellarPopulationSpectra_
+    class           (cosmologyFunctionsClass      ), pointer                                  :: cosmologyFunctions_
+    character       (len=32                       )                                           :: redshiftLabel            , word                     , &
+         &                                                                                       wavelengthCentralLabel   , resolutionLabel          , &
+         &                                                                                       imfLabel
+    character       (len=256                      )                                           :: newFilterName            , lineName
+    double precision                                                                          :: outputRedshift           , resolution               , &
+         &                                                                                       wavelengthMinimum        , wavelengthMaximum        , &
+         &                                                                                       restWavelengthMinimum    , restWavelengthMaximum    , &
+         &                                                                                       wavelengthRatio          , wavelengthCentral        , &
+         &                                                                                       observedWidth            , restWidth                , &
+         &                                                                                       tabulatedWidth           , filterWidth
+    integer                                                                                   :: imfIndex
     ! Get cosmology functions.
     cosmologyFunctions_ => cosmologyFunctions()
     ! Get number of output redshifts.
@@ -1326,6 +1324,34 @@ contains
           call deallocateArray(luminosityMapTmp           )
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
+       end if
+       ! Alias for filters required for emission line calculations.
+       if (luminosityFilter(i) == "emissionLineFilters") then
+          call Stellar_Luminosities_Expand_Filter_Set( &
+               & i                          ,          &
+               & 2_c_size_t                 ,          &
+               & luminosityMap              ,          &
+               & luminosityRedshiftText     ,          &
+               & luminosityFilter           ,          &
+               & luminosityType             ,          &
+               & luminosityPostprocessSet   ,          &
+               & luminosityRedshift         ,          &
+               & luminosityBandRedshift     ,          &
+               & luminosityMapTmp           ,          &
+               & luminosityRedshiftTextTmp  ,          &
+               & luminosityFilterTmp        ,          &
+               & luminosityTypeTmp          ,          &
+               & luminosityPostprocessSetTmp,          &
+               & luminosityRedshiftTmp      ,          &
+               & luminosityBandRedshiftTmp             &
+               &                                     )
+             ! Create new filters.
+             luminosityRedshiftText   (i:i+2)=luminosityRedshiftTextTmp  (i)
+             luminosityRedshift       (i:i+2)=luminosityRedshiftTmp      (i)
+             luminosityBandRedshift   (i:i+2)=luminosityBandRedshiftTmp  (i)
+             luminosityPostprocessSet (i:i+2)=luminosityPostprocessSetTmp(i)
+             luminosityFilter         (i:i+2)=[var_str("Lyc" ),var_str("HeliumContinuum"),var_str("OxygenContinuum")]
+             luminosityType           (i:i+2)=[        "rest" ,        "rest"            ,        "rest"            ]
        end if
        ! Arrays of top-hat filters.
        if (extract(luminosityFilter(i),1,27) == "fixedResolutionTopHatArray_") then
