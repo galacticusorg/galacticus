@@ -1328,6 +1328,34 @@ contains
           call deallocateArray(luminosityRedshiftTmp      )
           call deallocateArray(luminosityBandRedshiftTmp  )
        end if
+       ! Alias for filters required for emission line calculations.
+       if (luminosityFilter(i) == "emissionLineFilters") then
+          call Stellar_Luminosities_Expand_Filter_Set( &
+               & i                          ,          &
+               & 2_c_size_t                 ,          &
+               & luminosityMap              ,          &
+               & luminosityRedshiftText     ,          &
+               & luminosityFilter           ,          &
+               & luminosityType             ,          &
+               & luminosityPostprocessSet   ,          &
+               & luminosityRedshift         ,          &
+               & luminosityBandRedshift     ,          &
+               & luminosityMapTmp           ,          &
+               & luminosityRedshiftTextTmp  ,          &
+               & luminosityFilterTmp        ,          &
+               & luminosityTypeTmp          ,          &
+               & luminosityPostprocessSetTmp,          &
+               & luminosityRedshiftTmp      ,          &
+               & luminosityBandRedshiftTmp             &
+               &                                     )
+             ! Create new filters.
+             luminosityRedshiftText   (i:i+2)=luminosityRedshiftTextTmp  (i)
+             luminosityRedshift       (i:i+2)=luminosityRedshiftTmp      (i)
+             luminosityBandRedshift   (i:i+2)=luminosityBandRedshiftTmp  (i)
+             luminosityPostprocessSet (i:i+2)=luminosityPostprocessSetTmp(i)
+             luminosityFilter         (i:i+2)=[var_str("Lyc" ),var_str("HeliumContinuum"),var_str("OxygenContinuum")]
+             luminosityType           (i:i+2)=[        "rest" ,        "rest"            ,        "rest"            ]
+       end if
        ! Arrays of top-hat filters.
        if (extract(luminosityFilter(i),1,27) == "fixedResolutionTopHatArray_") then
           call String_Split_Words(specialFilterWords,char(luminosityFilter(i)),separator="_")
