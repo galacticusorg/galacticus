@@ -405,6 +405,9 @@ contains
 
     call Galacticus_Display_Indent('Begin task: merger tree evolution')
 
+    ! Set status to success by default.
+    if (present(status)) status=errorStatusSuccess
+    
     ! Initialize a lock used for controling tree initialization.
     !$ call OMP_Init_Lock(initializationLock)
 
