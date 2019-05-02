@@ -287,93 +287,95 @@ contains
           endif
        end do
        ! Resolve dependencies in derived parameters.
-       do i=1,size(modelParametersInactive_)
-          select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
-          class is (modelParameterDerived)
-             self%modelParametersInactive_(i)%definition=modelParameter_%definition()
-             self%modelParametersInactive_(i)%resolved  =.false.
-          end select
-       end do
-       firstIteration      =.true.
-       dependenciesResolved=.false.
-       do while (.not.dependenciesResolved)
-          dependenciesResolved=.true.
-          dependenciesUpdated =.false.
+       if (size(modelParametersInactive_) > 0) then
           do i=1,size(modelParametersInactive_)
              select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
-             class is (modelParameterDerived)
-                if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) then
-                   ! The expression contains dependencies on other variables. Substitute the actual values where possible.
-                   !! For active parameters we only need to consider substitution on the first iteration (since they are fully defined immediately).
-                   if (firstIteration) then
-                      do j=1,size(modelParametersActive_)
-                         if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersActive_  (j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
-                         self%modelParametersInactive_(i)%definition=replace(                                                                     &
-                              &                                                    self% modelParametersInactive_(i)%definition                 , &
-                              &                                                    "%["//modelParametersActive_  (j)%modelParameter_%name()//"]", &
-                              &                                                    self% modelParametersActive_  (j)%parameter_     %get ()     , &
-                              &                                              every=.true.                                                         &
-                              &                                             )
-                      end do
-                   end if
-                   !! For inactive parameters we must consider them each iteration as they become resolved.
-                   do j=1,size(modelParametersInactive_)
-                      if (i /= j .and. self%modelParametersInactive_(j)%resolved) then
-                         if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersInactive_(j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
-                         self%modelParametersInactive_(i)%definition=replace(                                                                     &
-                              &                                                    self% modelParametersInactive_(i)%definition                 , &
-                              &                                                    "%["//modelParametersInactive_(j)%modelParameter_%name()//"]", &
-                              &                                                    self% modelParametersInactive_(j)%parameter_     %get ()     , &
-                              &                                              every=.true.                                                         &
-                              &                                             )
-                      end if
-                   end do
-                end if
-                if (index(self%modelParametersInactive_(i)%definition,"%[") == 0) then
-                   ! No dependencies remain, the expression can be evaluated.
-                   self%modelParametersInactive_(i)%resolved=.true.
-#ifdef MATHEVALAVAIL
-                   evaluator   =Evaluator_Create_(char(self%modelParametersInactive_(i)%definition))
-                   valueDerived=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
-                   call Evaluator_Destroy_(evaluator)
-#else
-                   call Galacticus_Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
-#endif
-                   if (self%modelParametersInactive_(i)%indexElement == 0) then
-                      ! Simply overwrite the parameter.
-                      call self%modelParametersInactive_(i)%parameter_%set(valueDerived)
-                   else
-                      ! Overwrite only the indexed parameter in the list.
-                      parameterText =self%modelParametersInactive_(i)%parameter_%get()
-                      parameterCount=String_Count_Words(char(parameterText))
-                      allocate(parameterNames(parameterCount))
-                      call String_Split_Words(parameterNames,char(parameterText))
-                      write (valueText,'(e24.16)') valueDerived
-                      parameterNames(self%modelParametersInactive_(i)%indexElement)=trim(valueText)
-                      call self%modelParametersInactive_(i)%parameter_%set(String_Join(parameterNames," "))
-                      deallocate(parameterNames)
-                   end if
-                else
-                   dependenciesResolved=.false.
-                end if
-             class default
-                call Galacticus_Error_Report('support for this parameter type is not implemented'//{introspection:location})
+                class is (modelParameterDerived)
+                self%modelParametersInactive_(i)%definition=modelParameter_%definition()
+                self%modelParametersInactive_(i)%resolved  =.false.
              end select
           end do
-          if (.not.dependenciesUpdated) then
-             call Galacticus_Verbosity_Level_Set(verbosityStandard)
-             call Galacticus_Display_Indent('unresolved parameters')
+          firstIteration      =.true.
+          dependenciesResolved=.false.
+          do while (.not.dependenciesResolved)
+             dependenciesResolved=.true.
+             dependenciesUpdated =.false.
              do i=1,size(modelParametersInactive_)
                 select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
                    class is (modelParameterDerived)
-                   if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) call Galacticus_Display_Message(modelParametersInactive_(i)%modelParameter_%name()//" : "//self%modelParametersInactive_(i)%definition)
+                   if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) then
+                      ! The expression contains dependencies on other variables. Substitute the actual values where possible.
+                      !! For active parameters we only need to consider substitution on the first iteration (since they are fully defined immediately).
+                      if (firstIteration) then
+                         do j=1,size(modelParametersActive_)
+                            if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersActive_  (j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
+                            self%modelParametersInactive_(i)%definition=replace(                                                                     &
+                                 &                                                    self% modelParametersInactive_(i)%definition                 , &
+                                 &                                                    "%["//modelParametersActive_  (j)%modelParameter_%name()//"]", &
+                                 &                                                    self% modelParametersActive_  (j)%parameter_     %get ()     , &
+                                 &                                              every=.true.                                                         &
+                                 &                                             )
+                         end do
+                      end if
+                      !! For inactive parameters we must consider them each iteration as they become resolved.
+                      do j=1,size(modelParametersInactive_)
+                         if (i /= j .and. self%modelParametersInactive_(j)%resolved) then
+                            if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersInactive_(j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
+                            self%modelParametersInactive_(i)%definition=replace(                                                                     &
+                                 &                                                    self% modelParametersInactive_(i)%definition                 , &
+                                 &                                                    "%["//modelParametersInactive_(j)%modelParameter_%name()//"]", &
+                                 &                                                    self% modelParametersInactive_(j)%parameter_     %get ()     , &
+                                 &                                              every=.true.                                                         &
+                                 &                                             )
+                         end if
+                      end do
+                   end if
+                   if (index(self%modelParametersInactive_(i)%definition,"%[") == 0) then
+                      ! No dependencies remain, the expression can be evaluated.
+                      self%modelParametersInactive_(i)%resolved=.true.
+#ifdef MATHEVALAVAIL
+                      evaluator   =Evaluator_Create_(char(self%modelParametersInactive_(i)%definition))
+                      valueDerived=Evaluator_Evaluate_(evaluator,0,"",0.0d0)
+                      call Evaluator_Destroy_(evaluator)
+#else
+                      call Galacticus_Error_Report('derived parameters require libmatheval, but it is not installed'//{introspection:location})
+#endif
+                      if (self%modelParametersInactive_(i)%indexElement == 0) then
+                         ! Simply overwrite the parameter.
+                         call self%modelParametersInactive_(i)%parameter_%set(valueDerived)
+                      else
+                         ! Overwrite only the indexed parameter in the list.
+                         parameterText =self%modelParametersInactive_(i)%parameter_%get()
+                         parameterCount=String_Count_Words(char(parameterText))
+                         allocate(parameterNames(parameterCount))
+                         call String_Split_Words(parameterNames,char(parameterText))
+                         write (valueText,'(e24.16)') valueDerived
+                         parameterNames(self%modelParametersInactive_(i)%indexElement)=trim(valueText)
+                         call self%modelParametersInactive_(i)%parameter_%set(String_Join(parameterNames," "))
+                         deallocate(parameterNames)
+                      end if
+                   else
+                      dependenciesResolved=.false.
+                   end if
+                   class default
+                   call Galacticus_Error_Report('support for this parameter type is not implemented'//{introspection:location})
                 end select
              end do
-             call Galacticus_Display_Unindent('unresolved parameters')
-             call Galacticus_Error_Report('can not resolve parameter dependencies'//{introspection:location})
-          end if
-          firstIteration=.false.
-       end do
+             if (.not.dependenciesUpdated) then
+                call Galacticus_Verbosity_Level_Set(verbosityStandard)
+                call Galacticus_Display_Indent('unresolved parameters')
+                do i=1,size(modelParametersInactive_)
+                   select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
+                      class is (modelParameterDerived)
+                      if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) call Galacticus_Display_Message(modelParametersInactive_(i)%modelParameter_%name()//" : "//self%modelParametersInactive_(i)%definition)
+                   end select
+                end do
+                call Galacticus_Display_Unindent('unresolved parameters')
+                call Galacticus_Error_Report('can not resolve parameter dependencies'//{introspection:location})
+             end if
+             firstIteration=.false.
+          end do
+       end if
        ! Build the task and outputter objects.
        call Tasks_Evolve_Forest_Construct_(self%parametersModel,self%task_)
        !# <objectBuilder class="outputAnalysis" name="self%outputAnalysis_" source="self%parametersModel"/>
