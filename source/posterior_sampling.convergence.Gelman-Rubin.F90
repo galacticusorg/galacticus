@@ -499,9 +499,9 @@ contains
     character(len=25                               )                :: label
 
     if (size(self%correctedHatR) > 1) then
-       write (label   ,'(a       )') '(a,f5.2)'
-    else
        write (label   ,'(a,i4.4,a)') '(a,f5.2,',size(self%correctedHatR)-1,'(", ",f5.2))'
+    else
+       write (label   ,'(a       )') '(a,f5.2)'
     end if
     write    (fileUnit,label       ) 'Gelman-Rubin covergence ̂R: ',self%correctedHatR
     write    (label   ,'(a,i4.4,a)') '(a,l1,'  ,size(self%chainMask    )-1,'(", ",l1))'
