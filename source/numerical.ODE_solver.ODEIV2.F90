@@ -57,12 +57,18 @@ module ODEIV2_Solver
      end subroutine integrandTemplate
   end interface
 
-  ! ODE function.
-  procedure(     odesTemplate), pointer :: currentODEs
-  procedure( jacobianTemplate), pointer :: currentJacobian
-  procedure(integrandTemplate), pointer :: currentIntegrands
-  integer  (c_size_t         )          :: currentODENumber , currentIntegrandsNumber    
-  !$omp threadprivate(currentODEs,currentJacobian,currentIntegrands,currentODENumber,currentIntegrandsNumber)
+  type :: odeiv2ODEsList
+     !% Type used to maintain a list of ODEs when ODE solving is performed recursively.
+     procedure(     odesTemplate), pointer, nopass :: ODEs
+     procedure( jacobianTemplate), pointer, nopass :: jacobian
+     procedure(integrandTemplate), pointer, nopass :: integrands
+     integer  (c_size_t         )                  :: ODENumber , integrandsNumber    
+  end type odeiv2ODEsList
+  
+  ! List of currently active root ODE systems.
+  integer                                            :: currentODEsIndex=0
+  type   (odeiv2ODEsList), allocatable, dimension(:) :: currentODEs
+  !$omp threadprivate(currentODEs,currentODEsIndex)
   
 contains
 
@@ -92,21 +98,19 @@ contains
     type            (c_funptr                    ), intent(in   ), optional               :: postStep
     type            (c_funptr                    ), intent(in   ), optional               :: Error_Analyzer
     procedure       (odesTemplate                )                                        :: odes
-    procedure       (odesTemplate                ), pointer                               :: previousODEs
     procedure       (jacobianTemplate            ), optional                              :: jacobian
-    procedure       (jacobianTemplate            ), pointer                               :: previousJacobian
     integer                                       , parameter                             :: genericFailureCountMaximum=10
     procedure       (integrandTemplate           ), optional                              :: integrands
-    procedure       (integrandTemplate           ), pointer                               :: previousIntegrands
     integer                                       , intent(in   ), optional               :: zCount
     double precision                              , intent(inout), optional, dimension(:) :: z
     class            (integratorMultiVectorized1D), intent(inout), optional               :: integrator_
     logical                                       , intent(in   ), optional               :: integratorErrorTolerate
     double precision                              , dimension(:) , allocatable            :: z0
+    type            (odeiv2ODEsList              ), dimension(:), allocatable             :: currentODEsTmp
     double precision                                                                      :: y0(yCount)
     double precision                              , parameter                             :: dydtScaleUniform          =0.0d0, yScaleUniform=1.0d0
+    integer                                       , parameter                             :: odesIncrement             =3
     integer                                                                               :: status
-    integer         (kind=c_size_t               )                                        :: previousODENumber               , previousIntegrandsNumber
     double precision                                                                      :: h                               , x                       , &
          &                                                                                   x1Internal                      , xStepBegin
     logical                                                                               :: forwardEvolve                   , resetActual
@@ -116,22 +120,35 @@ contains
     type            (c_funptr                    )                                        :: latentIntegrator_               , postStep_               , &
          &                                                                                   Error_Analyzer_
     !# <optionalArgument name="integratorErrorTolerate" defaultsTo=".false." />
-    
-    ! Store the current ODE function (and jacobian, integrands, and system size) so that we can restore it on exit. This allows the ODE
-    ! function to be called recursively.
-    previousODEs        => currentODEs
-    previousODENumber   =  currentODENumber
-    currentODEs         => ODEs
-    currentODENumber    =  yCount
+
+    ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
+    currentODEsIndex=currentODEsIndex+1
+    if (allocated(currentODEs)) then
+       if (size(currentODEs) < currentODEsIndex) then
+          call move_alloc(currentODEs,currentODEsTmp)
+          allocate(currentODEs(size(currentODEsTmp)+odesIncrement))
+          currentODEs(1:size(currentODEsTmp))=currentODEsTmp
+          deallocate(currentODEsTmp)
+       end if
+    else
+       allocate(currentODEs(odesIncrement))
+    end if
+    currentODEs(currentODEsIndex)%ODEs      => ODEs
+    currentODEs(currentODEsIndex)%ODENumber =  yCount
     if (present(jacobian)) then
-       previousJacobian => currentJacobian
-       currentJacobian  => jacobian
+       currentODEs(currentODEsIndex)%jacobian => jacobian
+    else
+       currentODEs(currentODEsIndex)%jacobian => null()
     end if
     if (present(integrands)) then
-       previousIntegrands       => currentIntegrands
-       previousIntegrandsNumber =  currentIntegrandsNumber
-       currentIntegrands        => integrands
-       currentIntegrandsNumber  =  zCount
+       currentODEs(currentODEsIndex)%integrands       => integrands
+       currentODEs(currentODEsIndex)%integrandsNumber =  zCount
+    else
+       currentODEs(currentODEsIndex)%integrands       => null()
+       currentODEs(currentODEsIndex)%integrandsNumber =  0
+    end if
+    ! Set initial values of integrands.
+    if (present(integrands)) then       
        allocate(z0(zCount))
        z0=z
     end if
@@ -148,9 +165,9 @@ contains
        h=(x1-x0)
        if (present(stepSize).and.stepSize > 0.0d0) h=min(stepSize,h)
        if (present(jacobian)) then
-          odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODENumber,parameterPointer,jacobianWrapperIV2)
+          odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODEs(currentODEsIndex)%ODENumber,parameterPointer,jacobianWrapperIV2)
        else
-          odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODENumber,parameterPointer                   )
+          odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODEs(currentODEsIndex)%ODENumber,parameterPointer                   )
        end if
        ! Select the algorithm to use.
        if (present(algorithm)) then
@@ -209,6 +226,8 @@ contains
           if (present(odeStatus)) then
              x0=x
              odeStatus=status
+             ! Restore state.
+             currentODEsIndex=currentODEsIndex-1
              return
           end if
           message='ODE integration failed with status '
@@ -232,6 +251,8 @@ contains
           if (present(odeStatus)) then
              x0=x
              odeStatus=status
+             ! Restore state.
+             currentODEsIndex=currentODEsIndex-1
              return
           end if
           message='ODE integration failed with status '
@@ -242,14 +263,8 @@ contains
     ! Return the new value of x.
     x0=x
     if (present(odeStatus)) odeStatus=status
-    ! Restore the previous OODEs.
-    currentODEs                                => previousODEs
-    currentODENumber                           =  previousODENumber
-    if (present(jacobian  )) currentJacobian   => previousJacobian
-    if (present(integrands)) then
-       currentIntegrands       => previousIntegrands
-       currentIntegrandsNumber =  previousIntegrandsNumber
-    end if
+    ! Restore state.
+    currentODEsIndex=currentODEsIndex-1
     return
 
   contains
@@ -288,10 +303,10 @@ contains
       
       ! Evaluate the active parameters.
       do i=1,size(x)         
-         call FODEIV2_Driver_MSBDFActive_Context(odeDriver,currentODENumber,x(i),y(:,i))
+         call FODEIV2_Driver_MSBDFActive_Context(odeDriver,currentODEs(currentODEsIndex)%ODENumber,x(i),y(:,i))
       end do
       ! Call the integrand function.
-      call currentIntegrands(yCount,nz,x,y,e,dzdx)
+      call currentODEs(currentODEsIndex)%integrands(yCount,nz,x,y,e,dzdx)
       return
     end subroutine integrandsWrapper
     
@@ -308,7 +323,7 @@ contains
     type   (     c_ptr   ), value                       :: parameterPointer
     !GCC$ attributes unused :: parameterPointer
     
-    odesWrapperIV2=currentODEs(x,y(1:currentODENumber),dydx(1:currentODENumber))
+    odesWrapperIV2=currentODEs(currentODEsIndex)%ODes(x,y(1:currentODEs(currentODEsIndex)%ODENumber),dydx(1:currentODEs(currentODEsIndex)%ODENumber))
     return
   end function odesWrapperIV2
     
@@ -323,7 +338,7 @@ contains
     type   (     c_ptr   ), value                       :: parameterPointer
     !GCC$ attributes unused :: parameterPointer
     
-    jacobianWrapperIV2=currentJacobian(x,y(1:currentODENumber),dfdy(1:currentODENumber**2),dfdx(1:currentODENumber))
+    jacobianWrapperIV2=currentODEs(currentODEsIndex)%jacobian(x,y(1:currentODEs(currentODEsIndex)%ODENumber),dfdy(1:currentODEs(currentODEsIndex)%ODENumber**2),dfdx(1:currentODEs(currentODEsIndex)%ODENumber))
     return
   end function jacobianWrapperIV2
     
