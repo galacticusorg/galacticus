@@ -80,7 +80,7 @@
      !@   <objectMethod>
      !@     <method>varianceRange</method>
      !@     <type>\doubleone</type>
-     !@     <arguments>\doublezero\ rangeMinimum\argin, \doublezero\ rangeMaximum\argin, \intzero\ rangeNumber, \doublezero\ ratioAtMaximum</arguments>
+     !@     <arguments>\doublezero\ rangeMinimum\argin, \doublezero\ rangeMaximum\argin, \intzero\ rangeNumber, \doublezero\ exponent</arguments>
      !@     <description>Build a range of variances at which to tabulate the excursion set solutions.</description>
      !@   </objectMethod>
      !@   <objectMethod>
@@ -672,7 +672,7 @@ contains
        call allocateArray(self%nonCrossingTableRate  ,[                              1+self%varianceTableCountRateBase,self%timeTableCountRate],lowerBounds=[  0,1])
        ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
        self%varianceTableRate    (0                                )=0.0d0
-       self%varianceTableRate    (1:self%varianceTableCountRate    )=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%varianceTableCountRate      ,ratioAtMaximum=10.0d0    )
+       self%varianceTableRate    (1:self%varianceTableCountRate    )=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%varianceTableCountRate      ,exponent =1.0d0          )
        self%varianceTableRateBase(0:self%varianceTableCountRateBase)=Make_Range        (0.0d0              ,self%varianceMaximumRate,self%varianceTableCountRateBase+1,rangeType=rangeTypeLinear)
        ! Allocate temporary arrays used in quad-precision solver for barrier crossing rates.
        allocate(varianceTableRateQuad     (0:self%varianceTableCountRate    ))
@@ -749,14 +749,14 @@ contains
              !$omp atomic
              loopCount=loopCount+1_c_size_t
              ! For zero variance, the rate is initialized to zero.
-             firstCrossingTableRateQuad(0)=0.0d0
+             firstCrossingTableRateQuad(0)=0.0_kind_quad
              ! Compute the step in variance across this first grid cell.
              varianceTableStepRate=varianceTableRateQuad(1)-varianceTableRateQuad(0)
              ! Compute the barrier for the descendent.
              barrier=real(excursionSetBarrier_%barrier(real(varianceTableRateBaseQuad(iVariance),kind=8),self%timeTableRate(iTime),node,rateCompute=.true.),kind=kind_quad)
              ! Compute the first crossing distribution at the first grid cell.
              if (varianceTableRateQuad(1)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
-                firstCrossingTableRateQuad(1)= 0.0d0
+                firstCrossingTableRateQuad(1)= 0.0_kind_quad
              else
                 firstCrossingTableRateQuad(1)=+2.0_kind_quad                                                  &
                      &                        *(                                                              &
@@ -773,10 +773,10 @@ contains
              end if
              do i=2,self%varianceTableCountRate
                 if (varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
-                   firstCrossingTableRateQuad(i)=0.0d0
+                   firstCrossingTableRateQuad(i)=0.0_kind_quad
                 else
                    effectiveBarrierInitial=+barrierTableRateQuad(i)-barrier
-                   sigma1f                =+0.0d0
+                   sigma1f                =+0.0_kind_quad
                    do j=1,i-1
                       varianceTableStepRate=(varianceTableRateQuad(j+1)-varianceTableRateQuad(j-1))/2.0_kind_quad
                       sigma1f=+sigma1f                                                                                   &
@@ -1054,23 +1054,39 @@ contains
     return
   end subroutine farahiFileWrite
 
-  function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,ratioAtMaximum) result (rangeValues)
-    !% Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont \ttfamily rangeMaximum} using {\normalfont \ttfamily rangeNumber} points with spacing that
-    !% varies from logarithmic to linear spacing with the transition point controlled by {\normalfont \ttfamily ratioAtMaximum}.
+  function farahiVarianceRange(self,rangeMinimum,rangeMaximum,rangeNumber,exponent) result (rangeValues)
+    !% Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont \ttfamily rangeMaximum} using
+    !% {\normalfont \ttfamily rangeNumber} points with spacing that varies from logarithmic to linear spacing with the transition
+    !% point controlled by {\normalfont \ttfamily exponent}. Specifically, suppose we have $N=${\normalfont \ttfamily rangeNumber}
+    !% points in the range, from $S_\mathrm{min}=${\normalfont \ttfamily rangeMinimum} to $S_\mathrm{max}=${\normalfont \ttfamily
+    !% rangeMaximum}. We define $f_i=(i-1)/(N-1)$ where $i$ runs from $1$ to $N$. We then define:
+    !% \begin{equation}
+    !%  f_i = { \int_{S_\mathrm{min}}^{S_i} x^{n_i} \mathrm{d} x \over \int_{S_\mathrm{min}}^{S_\mathrm{max}} x^{n_i} \mathrm{d} x},
+    !% \end{equation}
+    !% and solve for $S_i$ to find the $i^\mathrm{th}$ range value. If $n_i=0$ then this will give $S_i$ linearly spaced between
+    !% $S_\mathrm{min}$ and $S_\mathrm{max}$, while if $n_i=-1$ this will give $S_i$ logarithmically spaced between
+    !% $S_\mathrm{min}$ and $S_\mathrm{max}$. Therefore, if we make $n_i$ vary from $-1$ to $0$ at $i$ ranges from $1$ to $N$ we
+    !% will get a smooth transition from logarithmic to linear spacing. We choose to use $n_i=-1+f_i^\alpha$ where
+    !% $\alpha=${\normalfont \ttfamily exponent} is a supplied argument.
     implicit none
     class           (excursionSetFirstCrossingFarahi), intent(inout)          :: self
-    double precision                                 , intent(in   )          :: rangeMaximum  , rangeMinimum    , &
-         &                                                                       ratioAtMaximum
+    double precision                                 , intent(in   )          :: rangeMaximum , rangeMinimum    , &
+         &                                                                       exponent
     integer                                          , intent(in   )          :: rangeNumber
     double precision                                 , dimension(rangeNumber) :: rangeValues
     integer                                                                   :: iRange
-    double precision                                                          :: rangeLinear   , rangeLogarithmic
+    double precision                                                          :: fractionRange, integrandExponent
     !GCC$ attributes unused :: self
 
     do iRange=1,rangeNumber
-       rangeLinear        =        rangeMinimum +   (rangeMaximum-rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1)
-       rangeLogarithmic   =exp(log(rangeMinimum)+log(rangeMaximum/rangeMinimum)*dble(iRange-1)/dble(rangeNumber-1))
-       rangeValues(iRange)=(1.0d0+1.0d0/ratioAtMaximum)/(1.0d0/rangeLinear+1.0d0/rangeLogarithmic/ratioAtMaximum)
+       fractionRange    =dble(iRange-1)/dble(rangeNumber-1)
+       integrandExponent=-1.0d0+fractionRange**exponent
+       if (integrandExponent == -1.0d0) then
+          rangeValues(iRange)=exp(log(rangeMinimum)                          +log(rangeMaximum                           /rangeMinimum                           )*fractionRange)
+       else
+          rangeValues(iRange)=   (    rangeMinimum**(1.0d0+integrandExponent)+   (rangeMaximum**(1.0d0+integrandExponent)-rangeMinimum**(1.0d0+integrandExponent))*fractionRange)**(1.00/(1.0d0+integrandExponent))
+       end if       
     end do
     return
   end function farahiVarianceRange
+
