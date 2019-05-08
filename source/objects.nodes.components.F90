@@ -70,17 +70,9 @@ contains
   
   subroutine Node_Components_Uninitialize()
     !% Perform uninitialization tasks for node components.
-    !# <include directive="nodeComponentUninitializationTask" type="moduleUse">
-    include 'node_components.uninitialize.moduleUse.inc'
-    !# </include>
     implicit none
 
     initializationCount=initializationCount-1
-    if (initializationCount == 0) then
-       !# <include directive="nodeComponentUninitializationTask" type="functionCall" functionType="void">
-       include 'node_components.uninitialize.inc'
-       !# </include>
-    end if
     return
   end subroutine Node_Components_Uninitialize
   
