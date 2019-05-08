@@ -332,9 +332,6 @@ contains
     !# <include directive="mergerTreePostEvolveTask" type="moduleUse">
     include 'galacticus.tasks.evolve_tree.postEvolveTask.moduleUse.inc'
     !# </include>
-    !# <include directive="universePreEvolveTask" type="moduleUse" functionType="void">
-    include 'galacticus.tasks.evolve_tree.universePreEvolveTask.moduleUse.inc'
-    !# </include>
     !# <include directive="universePostEvolveTask" type="moduleUse" functionType="void">
     include 'galacticus.tasks.evolve_tree.universePostEvolveTask.moduleUse.inc'
     !# </include>
@@ -457,10 +454,6 @@ contains
     ! Allow events to be attached to the universe.
     !$omp master
     self%universeWaiting%event => null()
-    !# <include directive="universePreEvolveTask" type="functionCall" functionType="void">
-    !#  <functionArgs>self%universeWaiting</functionArgs>
-    include 'galacticus.tasks.evolve_tree.universePreEvolveTask.inc'
-    !# </include>
     !# <eventHook name="universePreEvolve">
     !#  <callWith>self%universeWaiting</callWith>
     !# </eventHook>
