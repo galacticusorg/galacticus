@@ -35,9 +35,13 @@ contains
     use Galacticus_Display
     use Galacticus_Error
     implicit none
-    type   (varying_string), intent(  out)           :: cloudyPath, cloudyVersion
-    logical                , intent(in   ), optional :: static
-    integer                                          :: status
+    type     (varying_string), intent(  out)           :: cloudyPath   , cloudyVersion
+    logical                  , intent(in   ), optional :: static
+    integer                                            :: status       , statusEnvironment, &
+         &                                                statusPath
+    character(len=3         )                          :: staticDefault
+    character(len=1024      )                          :: compilerPath
+    type     (varying_string)                          :: command
     !# <optionalArgument name="static" defaultsTo=".false." />
 
     ! Specify Cloudy version.
@@ -63,12 +67,24 @@ contains
        end if
        ! Build the code.
        call Galacticus_Display_Message("compiling Cloudy code....",verbosityWorking)
+       if (.not.present(static)) then
+          call Get_Environment_Variable('CLOUDY_STATIC_BUILD',staticDefault,status=statusEnvironment)
+          if (statusEnvironment <= 0) static_=staticDefault == "yes"
+       end if
        if (static_) then
           call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -r s/'^EXTRA\s*=.*'/'EXTRA = -static'/g Makefile")
        else
           call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -r s/'^EXTRA\s*=.*'/'EXTRA ='/g Makefile")
        end if
-       call System_Command_Do("cd "//cloudyPath//"/source; chmod u=wrx configure.sh capabilities.pl; make",status)
+       command="cd "//cloudyPath//"/source; chmod u=wrx configure.sh capabilities.pl;"
+       call Get_Environment_Variable('CLOUDY_COMPILER_PATH',compilerPath,status=statusPath)
+       if      (statusPath == -1) then
+          call Galacticus_Error_Report("can not read Cloudy compiler path environment variable"//{introspection:location})
+       else if (statusPath ==  0) then
+          command=command//"export PATH="//trim(compilerPath)//":$PATH; "
+       end if
+       command=command//" make"
+       call System_Command_Do(char(command),status)
        if (status /= 0 .or. .not.File_Exists(cloudyPath//"/source/cloudy.exe")) call Galacticus_Error_Report("failed to build Cloudy code"//{introspection:location})
     end if
     ! Append backslash to path before returning.
