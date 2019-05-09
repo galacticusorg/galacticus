@@ -85,6 +85,8 @@ foreach my $dataset ( @datasets ) {
     my $equal = all($storeDataset == $retrieveDataset);
     unless ( $equal == 1 ) {
 	print "FAILED: dataset '".$dataset."' changed after state retrieve\n";
+	print "   before --> ".$storeDataset   ."\n";
+	print "   after  --> ".$retrieveDataset."\n";
 	$failed = 1;
     }
 }
