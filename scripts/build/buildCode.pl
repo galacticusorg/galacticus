@@ -11,6 +11,7 @@ use UNIVERSAL;
 use Fortran::Utils;
 use List::ExtraUtils;
 use File::Changes;
+use Storable;
 use Galacticus::Build::Hooks;
 use Galacticus::Build::ModuleUse;
 use Galacticus::Build::MethodNames;
@@ -36,6 +37,14 @@ my $xml                 = new XML::Simple;
 my $locations           = -e $ENV{'BUILDPATH'}."/directiveLocations.xml" ? $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml") : undef();
 # Process the XML file.
 my $build               = $xml->XMLin($xmlFile, KeyAttr => []);
+# Initialize structure to hold record of directives from each source file.
+my $directivesPerFile;
+my $havePerFile = -e $build->{'fileName'}.".blob";
+my $updateTime;
+if ( $havePerFile ) {
+    $directivesPerFile = retrieve($build->{'fileName'}.".blob");
+    $updateTime        = -M       $build->{'fileName'}.".blob" ;
+}
 # Initialize to be not inside any module.
 $build->{'moduleName'}   = "";
 # Find files to scan.
@@ -58,6 +67,16 @@ foreach my $fileName ( @fileNamesToScan ) {
     $build->{'codeType'       } = $fileName =~ m/\.c(pp)??$/ ? "c" : "fortran";
     # Add the file name to the stack of file names to process.
     my @fileStack = ( { name => $fileName, position => -1 } );
+    (my $fileIdentifier = $fileName) =~ s/\//_/g;
+    $fileIdentifier =~ s/^\._??//;
+    # Check if file is updated. If it is not, skip processing it. If it is, remove previous record of directives and rescan.
+    if ( $havePerFile && exists($directivesPerFile->{$fileIdentifier}) ) {
+	next
+	    unless ( grep {-M $_ < $updateTime} &List::ExtraUtils::as_array($directivesPerFile->{$fileIdentifier}->{'files'}) );
+    }
+    delete($directivesPerFile->{$fileIdentifier})
+    	    if ( $havePerFile && exists($directivesPerFile->{$fileIdentifier}) );
+    push(@{$directivesPerFile->{$fileIdentifier}->{'files'}},$fileName);
     # Process files until none remain.
     while ( scalar(@fileStack) > 0 ) {	
 	# Pop a file from the stack and move back to the previous position.
@@ -116,22 +135,17 @@ foreach my $fileName ( @fileNamesToScan ) {
 		}
 		# Check if this directive matches that which we are currently processing.
 		if ( $xmlTag eq $build->{'directive'} ) {
-		    $build->{'currentDocument'} = eval{$xml->XMLin($xmlCode, ForceArray => ["data","property","binding"])};
+		    my $directive;
+		    $directive->{'fileName'  } = $fileName;
+		    $directive->{'xmlCode'   } = $xmlCode;
+		    $directive->{$_          } = $build->{$_}
+		        foreach ( "moduleName", "currentFileName", "codeType" );
+		    $directive->{'directive' } = eval{$xml->XMLin($xmlCode, ForceArray => ["data","property","binding"])};
 		    die("buildCode.pl: failed in ".$fileProcess->{'name'}." at line ".$lineNumber." with message:\n".$@)
 			if ( $@ );
+		    push(@{$directivesPerFile->{$fileIdentifier}->{'directives'}},$directive);
 		    print Dumper($build->{'currentDocument'})
 			if ( $verbosity == 1 );
-		    # Load large modules needed for this action type.
-		    if ( ! $componentsLoaded && $build->{'type'} eq "component" ) {
-			require Galacticus::Build::Components;
-			$componentsLoaded = 1;
-		    }
-		    # Validate and parse this directive using the appropriate handler.
-		    die("buildCode.pl: failed to find a function to parse '".$build->{'type'}."' action")
-			unless ( exists($Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}) );
-		    &{$Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}->{'validate'}}($xmlCode,$fileName)
-			if ( exists($Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}->{'validate'}) );
-		    &{$Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}->{'parse'   }}($build            );
 		}
 	    }
 	    # If an include file was found, push the current file back onto the stack, followed by the include file, and finish
@@ -141,10 +155,32 @@ foreach my $fileName ( @fileNamesToScan ) {
 	    if ( defined($includeFile) && -e $includeFile ) {
 		$fileProcess->{'position'} = tell($file);
 		push(@fileStack,$fileProcess,{name => $includeFile, position => -1});
+		push(@{$directivesPerFile->{$fileIdentifier}->{'files'}},$includeFile);
 		last;
 	    }
 	}
 	close($file);
+    }
+}
+# Output the per file directives.
+store($directivesPerFile,$build->{'fileName'}.".blob");
+# Load large modules needed for this action type.
+if ( ! $componentsLoaded && $build->{'type'} eq "component" ) {
+    require Galacticus::Build::Components;
+    $componentsLoaded = 1;
+}
+# Validate and parse all directives.
+foreach my $fileIdentifier ( keys(%{$directivesPerFile}) ) {
+    foreach my $directive ( &List::ExtraUtils::as_array($directivesPerFile->{$fileIdentifier}->{'directives'}) ) {
+	$build->{'currentDocument'} = $directive->{'directive' };
+	$build->{$_               } = $directive->{$_          }
+	    foreach ( "moduleName", "currentFileName", "codeType" );
+	# Validate and parse this directive using the appropriate handler.
+	die("buildCode.pl: failed to find a function to parse '".$build->{'type'}."' action")
+	    unless ( exists($Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}) );
+	&{$Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}->{'validate'}}($directive->{'xmlCode'},$directive->{'fileName'})
+	    if ( exists($Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}->{'validate'}) );
+	&{$Galacticus::Build::Hooks::moduleHooks{$build->{'type'}}->{'parse'   }}($build                                          );	
     }
 }
 # Call the relevant function to generate content for this action.

@@ -8,6 +8,7 @@ use Galacticus::Build::Directives;
 use Galacticus::Build::SourceTree;
 use List::ExtraUtils;
 use Data::Dumper;
+use Storable;
 
 # Builds a list of classes which support store/restore of their state.
 # Andrew Benson (10-April-2018)
@@ -20,29 +21,59 @@ my $installDirectoryName = $ARGV[0];
 my $xml                  = new XML::Simple();
 # Parse the directive locations file.
 my $directiveLocations   = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
-# Initialize a structure for output of classes.
-my $stateStorables;
+# Initialize data structure to hold per-file information.
+my $storablesPerFile;
+my $havePerFile = -e $ENV{'BUILDPATH'}."/stateStorables.blob";
+my $updateTime;
+if ( $havePerFile ) {
+    $storablesPerFile = retrieve($ENV{'BUILDPATH'}."/stateStorables.blob");
+    $updateTime       = -M       $ENV{'BUILDPATH'}."/stateStorables.blob" ;
+}
 # Find all files which contain functionClass objects - these all support state store/restore.
 foreach my $functionClassFileName ( &List::ExtraUtils::as_array($directiveLocations->{'functionClass'}->{'file'}) ) {
+    (my $fileIdentifier = $functionClassFileName) =~ s/\//_/g;
+    $fileIdentifier =~ s/^\._??//;
     # Extract a functionClass directives from this file.
-    foreach my $functionClass ( &Galacticus::Build::Directives::Extract_Directives($functionClassFileName,'functionClass') ) {
-	push(@{$stateStorables->{'functionClasses'}},$functionClass->{'name'}."Class");
+    unless ( $havePerFile && exists($storablesPerFile->{$fileIdentifier}) && -M $functionClassFileName > $updateTime  ) {
+	delete($storablesPerFile->{$fileIdentifier});
+	foreach my $functionClass ( &Galacticus::Build::Directives::Extract_Directives($functionClassFileName,'functionClass') ) {
+	    push(@{$storablesPerFile->{$fileIdentifier}->{'functionClasses'        }},$functionClass->{'name'}."Class");
+	    push(@{$storablesPerFile->{$fileIdentifier}->{'functionClassDirectives'}},$functionClass->{'name'}        );
+	}
+    }
+    # Iterate over functionClasses in this file.
+    foreach my $functionClassName ( @{$storablesPerFile->{$fileIdentifier}->{'functionClassDirectives'}} ) {
 	# Find all files which contain instances of this functionClass.
-	foreach my $instanceFileName ( &List::ExtraUtils::as_array($directiveLocations->{$functionClass->{'name'}}->{'file'}) ) {
+	foreach my $instanceFileName ( &List::ExtraUtils::as_array($directiveLocations->{$functionClassName}->{'file'}) ) {
+	    (my $instanceFileIdentifier = $instanceFileName) =~ s/\//_/g;
+	    $instanceFileIdentifier =~ s/^\._??//;
+	    next
+		if ( $havePerFile && exists($storablesPerFile->{$instanceFileIdentifier}) && -M $instanceFileName > $updateTime  );
+	    delete($storablesPerFile->{$instanceFileIdentifier});
 	    # Extract the relevant directives from this file.
-	    foreach my $instance ( &Galacticus::Build::Directives::Extract_Directives($instanceFileName,$functionClass->{'name'}) ) {
-		push(@{$stateStorables->{'functionClassInstances'}},$instance->{'name'});
+	    foreach my $instance ( &Galacticus::Build::Directives::Extract_Directives($instanceFileName,$functionClassName) ) {
+		push(@{$storablesPerFile->{$instanceFileIdentifier}->{'functionClassInstances'}},$instance->{'name'});
 	    }
 	}
     }   
 }
 # Find all files which contain functionClassType objects - these all support state store/restore.
 foreach my $functionClassFileName ( &List::ExtraUtils::as_array($directiveLocations->{'functionClassType'}->{'file'}) ) {
+    (my $fileIdentifier = $functionClassFileName) =~ s/\//_/g;
+    $fileIdentifier =~ s/^\._??//;
+    next
+	if ( $havePerFile && exists($storablesPerFile->{$fileIdentifier}) && -M $functionClassFileName > $updateTime  );
+    delete($storablesPerFile->{$fileIdentifier});
     # Extract a functionClassType directives from this file.
-    push(@{$stateStorables->{'functionClassTypes'}},map {{name => $_->{'name'}, file => $functionClassFileName}} &Galacticus::Build::Directives::Extract_Directives($functionClassFileName,'functionClassType'));
+    push(@{$storablesPerFile->{$fileIdentifier}->{'functionClassTypes'}},map {{name => $_->{'name'}, file => $functionClassFileName}} &Galacticus::Build::Directives::Extract_Directives($functionClassFileName,'functionClassType'));
 }
 # Find all files which contain stateStorable objects - these explicitly support state store/restore.
 foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocations->{'stateStorable'}->{'file'}) ) {
+    (my $fileIdentifier = $stateStorableFileName) =~ s/\//_/g;
+    $fileIdentifier =~ s/^\._??//;
+    next
+	if ( $havePerFile && exists($storablesPerFile->{$fileIdentifier}) && -M $stateStorableFileName > $updateTime  );
+    delete($storablesPerFile->{$fileIdentifier});
     # Parse the source of this file.
     my $tree = &Galacticus::Build::SourceTree::ParseFile($stateStorableFileName);
     # Walk the tree.
@@ -88,18 +119,22 @@ foreach my $stateStorableFileName ( &List::ExtraUtils::as_array($directiveLocati
 		}
 		$parentClassName = $classes{$parentClassName}->{'extends'};
 	    }
-	    push(@{$stateStorables->{'stateStorables'}},{type => $className, class => $directive->{'class'}})
+	    push(@{$storablesPerFile->{$fileIdentifier}->{'stateStorables'}},{type => $className, class => $directive->{'class'}})
 		if ( $matches );
 	}
     }
 }
 # Sort results.
-@{$stateStorables->{'functionClasses'       }} = sort                                 @{$stateStorables->{'functionClasses'       }};
-@{$stateStorables->{'functionClassInstances'}} = sort                                 @{$stateStorables->{'functionClassInstances'}};
-@{$stateStorables->{'stateStorables'        }} = sort {$a->{'type'} cmp $b->{'type'}} @{$stateStorables->{'stateStorables'        }};
+my $stateStorables;
+@{$stateStorables->{'functionClasses'       }} = sort                                 map {exists($storablesPerFile->{$_}->{'functionClasses'       }) ? @{$storablesPerFile->{$_}->{'functionClasses'       }} : ()} keys(%{$storablesPerFile});
+@{$stateStorables->{'functionClassTypes'    }} = sort                                 map {exists($storablesPerFile->{$_}->{'functionClassTypes'    }) ? @{$storablesPerFile->{$_}->{'functionClassTypes'    }} : ()} keys(%{$storablesPerFile});
+@{$stateStorables->{'functionClassInstances'}} = sort                                 map {exists($storablesPerFile->{$_}->{'functionClassInstances'}) ? @{$storablesPerFile->{$_}->{'functionClassInstances'}} : ()} keys(%{$storablesPerFile});
+@{$stateStorables->{'stateStorables'        }} = sort {$a->{'type'} cmp $b->{'type'}} map {exists($storablesPerFile->{$_}->{'stateStorables'        }) ? @{$storablesPerFile->{$_}->{'stateStorables'        }} : ()} keys(%{$storablesPerFile});
 # Output the results.
 open(my $outputFile,">".$ENV{'BUILDPATH'}."/stateStorables.xml");
 print $outputFile $xml->XMLout($stateStorables, RootName => "storables");
 close($outputFile);
+# Output the per file module use data.
+store($storablesPerFile,$ENV{'BUILDPATH'}."/stateStorables.blob");
 
-exit;
+exit 0;
