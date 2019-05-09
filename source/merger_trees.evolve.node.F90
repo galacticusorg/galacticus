@@ -21,7 +21,8 @@
 
 module Merger_Trees_Evolve_Node
   !% Implements evolution of a single node in a merger tree.
-  use Galacticus_Nodes  , only : treeNode, interruptTask
+  use Galacticus_Nodes          , only : treeNode                    , interruptTask
+  use Galactic_Structure_Solvers, only : galacticStructureSolverClass
   use Kind_Numbers
   use ISO_Varying_String
   use FODEIV2
@@ -42,6 +43,9 @@ module Merger_Trees_Evolve_Node
   double precision                                            :: odeToleranceAbsolute               , odeToleranceRelative           , &
        &                                                         odeJacobianStepSizeRelative
 
+  ! Galactic structure solver passed to our evolver function.
+  class           (galacticStructureSolverClass), pointer     :: galacticStructureSolver_
+  
   ! Options for latent variable integrator.
   !# <enumeration>
   !#  <name>latentIntegratorType</name>
@@ -252,7 +256,7 @@ contains
     return
   end subroutine Tree_Node_Evolve_Initialize
 
-  subroutine Tree_Node_Evolve(thisTree,node,timeEnd,interrupted,functionInterrupt,status)
+  subroutine Tree_Node_Evolve(thisTree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,status)
     !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
     use Galacticus_Nodes               , only : nodeComponentBasic  , mergerTree      , propertyTypeAll , propertyTypeActive, &
          &                                      propertyTypeInactive, rateComputeState, propertyTypeNone
@@ -283,23 +287,24 @@ contains
     class           (mergerTree                  )             , intent(inout)          :: thisTree
     type            (treeNode                    )             , intent(inout), pointer :: node
     double precision                                           , intent(in   )          :: timeEnd
-    logical                                                    , intent(  out)          :: interrupted
+    logical                                                    , intent(  out)          :: interrupted    
     procedure       (interruptTask               )             , intent(  out), pointer :: functionInterrupt
+    class           (galacticStructureSolverClass)             , intent(in   ), target  :: galacticStructureSolver__
     integer                                       , optional   , intent(  out)          :: status
     class           (nodeComponentBasic          )                            , pointer :: basicComponent
-    integer                                       , save                                :: propertyCountPrevious=-1
+    integer                                       , save                                :: propertyCountPrevious    =-1
     !$omp threadprivate(propertyCountPrevious)
     class          (integratorMultiVectorized1D  ), allocatable                         :: integrator_
-    logical                                                                             :: solvedAnalytically      , solvedNumerically, &
+    logical                                                                             :: solvedAnalytically          , solvedNumerically, &
          &                                                                                 jacobianSolver
-    double precision                                                                    :: timeStart               , stepSize         , &
+    double precision                                                                    :: timeStart                    , stepSize         , &
          &                                                                                 timeStartSaved
-    integer                                                                             :: lengthMaximum           , i                , &
+    integer                                                                             :: lengthMaximum                , i                , &
          &                                                                                 odeStatus
     integer         (kind_int8                   )                                      :: systemClockCount
-    type            (varying_string              )                                      :: message                 , line
+    type            (varying_string              )                                      :: message                      , line
     character       (len =12                     )                                      :: label
-    type            (c_funptr                    )                                      :: Error_Analyzer          , postStep
+    type            (c_funptr                    )                                      :: Error_Analyzer               , postStep
 
     ! Set status to success.
     if (present(status)) status=errorStatusSuccess
@@ -318,6 +323,10 @@ contains
     timeStart=basicComponent%time()
     timeStartSaved   =timeStart
 
+    ! Set a module-scope pointer to the galactic structure solver. We do this to ensure that the solver we act on here is the same
+    ! one as used by the calling function (which will therefore be called by various event hook triggers).
+    galacticStructureSolver_ => galacticStructureSolver__
+    
     ! Ensure calculations are reset for this new step.
     call Galacticus_Calculations_Reset(node)
     
@@ -636,18 +645,16 @@ contains
   subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,evaluate,integrands)
     !% A set of integrands for unit tests.
     use Galacticus_Nodes          , only : rateComputeState
-    use Galactic_Structure_Solvers, only : galacticStructureSolver, galacticStructureSolverClass
     implicit none
-    integer                                       , intent(in   )                                              :: propertyCountActive             , propertyCountInactive
-    double precision                              , intent(in   ), dimension(                              : ) :: time
-    double precision                              , intent(in   ), dimension(propertyCountActive  ,size(time)) :: propertyValues
-    logical                                       , intent(inout), dimension(                              : ) :: evaluate
-    double precision                              , intent(  out), dimension(propertyCountInactive,size(time)) :: integrands
-    logical                                       , parameter                                                  :: odeConverged             =.true.
-    procedure       (interruptTask               ), pointer                                                    :: functionInterrupt
-    class           (galacticStructureSolverClass), pointer                                                    :: galacticStructureSolver_
-    logical                                                                                                    :: interrupt
-    integer                                                                                                    :: iTime
+    integer                        , intent(in   )                                              :: propertyCountActive             , propertyCountInactive
+    double precision               , intent(in   ), dimension(                              : ) :: time
+    double precision               , intent(in   ), dimension(propertyCountActive  ,size(time)) :: propertyValues
+    logical                        , intent(inout), dimension(                              : ) :: evaluate
+    double precision               , intent(  out), dimension(propertyCountInactive,size(time)) :: integrands
+    logical                        , parameter                                                  :: odeConverged             =.true.
+    procedure       (interruptTask), pointer                                                    :: functionInterrupt
+    logical                                                                                     :: interrupt
+    integer                                                                                     :: iTime
     ! "evaluate" array is currently not used. It indicates which integrands must be evaluated, and which can (optionally) be
     ! ignored as they have already converged to the required tolerance. It is currently not used because the potential for
     ! significant speed up appears to be small based on profiling. This will be model-depdendent though, so this decision can be
@@ -667,7 +674,6 @@ contains
           ! Set derivatives to zero initially.
           call activeNode%odeStepRatesInitialize()
           ! Compute derivatives.
-          galacticStructureSolver_ => galacticStructureSolver()
           call galacticStructureSolver_%revert(activeNode                                                                )
           call Tree_Node_Compute_Derivatives  (activeNode,odeConverged,interrupt,functionInterrupt,propertyTypeIntegrator)      
           ! Serialize rates into integrand array.
@@ -765,23 +771,21 @@ contains
   integer function Tree_Node_ODEs_Jacobian(time,propertyValues0,derivativeRatesValues,derivativeRatesTime)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
-    use Galactic_Structure_Solvers, only : galacticStructureSolver, galacticStructureSolverClass
     use Numerical_Comparison
     use Galacticus_Error
     use FGSL                    , only : FGSL_Success
     implicit none
-    double precision                                                                                  , intent(in   ) :: time
-    double precision                              , dimension(:                                      ), intent(in   ) :: propertyValues0
-    double precision                              , dimension(:                                      ), intent(  out) :: derivativeRatesValues           , derivativeRatesTime
-    double precision                              , dimension(propertyCountActive                    )                :: propertyRates0                  , propertyRates1     , &
-         &                                                                                                               propertyValues1
-    double precision                              , dimension(propertyCountActive,propertyCountActive)                :: jacobian
-    procedure       (interruptTask               ), pointer                                                           :: functionInterrupt
-    double precision                              , parameter                                                         :: deltaTiny               =1.0d-10
-    class           (galacticStructureSolverClass), pointer                                                           :: galacticStructureSolver_
-    logical                                                                                                           :: interrupt                       , odeConverged
-    integer                                                                                                           :: i
-    double precision                                                                                                  :: propertyValueDelta
+    double precision                                                                   , intent(in   ) :: time
+    double precision               , dimension(:                                      ), intent(in   ) :: propertyValues0
+    double precision               , dimension(:                                      ), intent(  out) :: derivativeRatesValues        , derivativeRatesTime
+    double precision               , dimension(propertyCountActive                    )                :: propertyRates0               , propertyRates1     , &
+         &                                                                                                propertyValues1
+    double precision               , dimension(propertyCountActive,propertyCountActive)                :: jacobian
+    procedure       (interruptTask), pointer                                                           :: functionInterrupt
+    double precision               , parameter                                                         :: deltaTiny            =1.0d-10
+    logical                                                                                            :: interrupt                    , odeConverged
+    integer                                                                                            :: i
+    double precision                                                                                   :: propertyValueDelta
     
     ! Return success by default.
     Tree_Node_ODEs_Jacobian=FGSL_Success
@@ -802,7 +806,6 @@ contains
           jacobian(1:propertyCountActive,1:propertyCountActive)=0.0d0
        else
           ! Iterate over parameters, computing Jacobian using finite differences.
-          galacticStructureSolver_ => galacticStructureSolver()
           do i=1,propertyCountActive
              ! To compute the finite difference we make a small perturbation in one parameter. If the parameter is non-zero, use a
              ! small, fractional perturbation. For parameters with zero value, use a perturbation equal to the absolute tolerance

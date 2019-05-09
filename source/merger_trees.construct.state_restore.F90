@@ -21,32 +21,32 @@
 
   public :: mergerTreeStateStore, mergerTreeStateFromFile
   
-  !# <mergerTreeConstructor name="mergerTreeConstructorStateRestore">
+  !# <mergerTreeConstructor name="mergerTreeConstructorStateRestored">
   !#  <description>Merger tree constructor class which constructs a merger tree by restoring state from file.</description>
   !# </mergerTreeConstructor>
-  type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorStateRestore
+  type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorStateRestored
      !% A class implementing merger tree construction via restoring state from file.
      private
      type(varying_string) :: fileName
    contains
-     procedure :: construct => stateRestoreConstruct
-  end type mergerTreeConstructorStateRestore
+     procedure :: construct => stateRestoredConstruct
+  end type mergerTreeConstructorStateRestored
 
-  interface mergerTreeConstructorStateRestore
-     !% Constructors for the {\normalfont \ttfamily stateRestore} merger tree constructor class.
-     module procedure stateRestoreConstructorParameters
-     module procedure stateRestoreConstructorInternal
-  end interface mergerTreeConstructorStateRestore
+  interface mergerTreeConstructorStateRestored
+     !% Constructors for the {\normalfont \ttfamily stateRestored} merger tree constructor class.
+     module procedure stateRestoredConstructorParameters
+     module procedure stateRestoredConstructorInternal
+  end interface mergerTreeConstructorStateRestored
 
 contains
   
-  function stateRestoreConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily stateRestore} merger tree operator class which takes a parameter set as input.
+  function stateRestoredConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(mergerTreeConstructorStateRestore)                :: self
-    type(inputParameters                  ), intent(inout) :: parameters
-    type(varying_string                   )                :: fileName
+    type(mergerTreeConstructorStateRestored)                :: self
+    type(inputParameters                   ), intent(inout) :: parameters
+    type(varying_string                    )                :: fileName
 
     !# <inputParameter>
     !#   <name>fileName</name>
@@ -56,35 +56,35 @@ contains
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>
-    self=mergerTreeConstructorStateRestore(fileName)
+    self=mergerTreeConstructorStateRestored(fileName)
     !# <inputParametersValidate source="parameters"/>
     return
-  end function stateRestoreConstructorParameters
+  end function stateRestoredConstructorParameters
 
-  function stateRestoreConstructorInternal(fileName) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily stateRestore} merger tree operator class.
+  function stateRestoredConstructorInternal(fileName) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class.
     implicit none
-    type(mergerTreeConstructorStateRestore)                :: self
-    type(varying_string                   ), intent(in   ) :: fileName
+    type(mergerTreeConstructorStateRestored)                :: self
+    type(varying_string                    ), intent(in   ) :: fileName
     !# <constructorAssign variables="fileName"/>
 
     return    
-  end function stateRestoreConstructorInternal
+  end function stateRestoredConstructorInternal
   
-  function stateRestoreConstruct(self,treeNumber) result(tree)
+  function stateRestoredConstruct(self,treeNumber) result(tree)
     !% Restores the state of a merger tree from file.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Nodes, only : mergerTree
-    use               Galacticus_State
+    use               Functions_Global, only : Galacticus_State_Retrieve_
     implicit none
-    type   (mergerTree                       ), pointer       :: tree
-    class  (mergerTreeConstructorStateRestore), intent(inout) :: self
-    integer(c_size_t                         ), intent(in   ) :: treeNumber
+    type   (mergerTree                        ), pointer       :: tree
+    class  (mergerTreeConstructorStateRestored), intent(inout) :: self
+    integer(c_size_t                          ), intent(in   ) :: treeNumber
 
     ! Only one tree to construct.
     if (treeNumber == 1_c_size_t) then
        ! Retrieve stored internal state if possible.
-       call Galacticus_State_Retrieve()
+       call Galacticus_State_Retrieve_()
        ! Read the tree(s).
        allocate(tree)
        call mergerTreeStateFromFile(tree,char(self%fileName))
@@ -92,12 +92,12 @@ contains
        nullify(tree)
     end if
     return
-  end function stateRestoreConstruct
+  end function stateRestoredConstruct
 
   subroutine mergerTreeStateStore(tree,storeFile,snapshot,append)
     !% Store the complete internal state of a merger tree to file.
     use, intrinsic :: ISO_C_Binding
-    use               Galacticus_State
+    use               Functions_Global, only : Galacticus_State_Store_
     use               Galacticus_Error
     use               Merger_Tree_Walkers
     use               Kind_Numbers
@@ -120,7 +120,7 @@ contains
     !# <optionalArgument name="append"   defaultsTo=".true." />
 
     ! Store internal state.
-    if (snapshot_) call Galacticus_State_Store()
+    if (snapshot_) call Galacticus_State_Store_()
     ! Open an output file. (Append to the old file if the file name has not changed.)
     !$omp critical (mergerTreeStateStore)
     if (append_ .and. trim(storeFile) == storeFilePrevious) then

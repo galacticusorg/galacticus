@@ -28,7 +28,6 @@ module Tasks
   !#  <descriptiveName>Tasks</descriptiveName>
   !#  <description>Class providing generak tasks to be performed by \glc.</description>
   !#  <default>evolveForests</default>
-  !#  <stateful>no</stateful>
   !#  <functionClassDestroy>no</functionClassDestroy>
   !#  <method name="perform" >
   !#   <description>Perform the task.</description>

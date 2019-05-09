@@ -30,7 +30,6 @@ module Merger_Trees_Evolve
   !#  <descriptiveName>Merger Tree Evolvers</descriptiveName>
   !#  <description>Class providing evolvers for merger trees.</description>
   !#  <default>standard</default>
-  !#  <stateful>yes</stateful>
   !#  <method name="evolve" >
   !#   <description>Evolve a merger tree.</description>
   !#   <type>void</type>
