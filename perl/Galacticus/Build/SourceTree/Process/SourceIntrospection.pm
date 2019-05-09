@@ -43,6 +43,8 @@ sub Process_Source_Introspection {
     my $depth = 0;    
     while ( $node ) {
 	if ( $node->{'type'} eq "code" ) {
+	    die("Galacticus::Build::SourceTree::Process::SourceIntrospection::Process_Source_Introspection(): content does not exist")
+		unless ( exists($node->{'content'}) && defined($node->{'content'}) );
 	    my $newCode;
 	    open(my $code,"<",\$node->{'content'});
 	    while ( my $line = <$code> ) {
