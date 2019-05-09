@@ -97,7 +97,8 @@ sub FunctionGlobal_Pointers_Generate_Output {
 	foreach ( &List::ExtraUtils::as_array($buildData->{'functionGlobals'}->{$_}->{'arguments'}) ) {
 	    $buildData->{'content'} .= "  ".$_."\n";
 	}
-	$buildData->{'content'} .= "  !GCC\$ attributes unused :: ".join(",",@names)."\n";
+	$buildData->{'content'} .= "  !GCC\$ attributes unused :: ".join(",",@names)."\n"
+	    unless ( scalar(@names) == 0 );
 	if ( $buildData->{'functionGlobals'}->{$_}->{'type'} eq "double precision" ) {
 	    $buildData->{'content'} .= "  ".$buildData->{'functionGlobals'}->{$_}->{'name'}."_Null=0.0d0\n";
 	} elsif ( $buildData->{'functionGlobals'}->{$_}->{'type'} =~ m/,\s*pointer/ ) {
