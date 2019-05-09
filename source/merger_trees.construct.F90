@@ -30,7 +30,6 @@ module Merger_Tree_Construction
   !#  <descriptiveName>Merger Tree Constructors</descriptiveName>
   !#  <description>Class providing merger tree constructors.</description>
   !#  <default>build</default>
-  !#  <stateful value="no"/>
   !#  <method name="construct" >
   !#   <description>Construct the merger tree corresponding to the given {\normalfont \ttfamily treeNumber}.</description>
   !#   <type>type(mergerTree), pointer</type>

@@ -38,9 +38,16 @@
 
   !# <mergerTreeOutputter name="mergerTreeOutputterStandard">
   !#  <description>The standard merger tree outputter.</description>
+  !#  <stateStorable>
+  !#   <restoreTo variables="outputsGroupOpened" state=".false."/>
+  !#   <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount   , integerBufferCount"                                                                             state="0"                          />
+  !#   <restoreTo variables="doublePropertyCount, integerPropertyCount"                                                                                                                                                    state="-1"                         />
+  !#   <restoreTo variables="integerBufferSize  , doubleBufferSize"                                                                                                                                                        state="standardBufferSizeIncrement"/>
+  !#   <exclude   variables="integerBuffer      , doubleBuffer           , doublePropertyNames     , integerPropertyNames, doublePropertyComments, integerPropertyComments, doublePropertyUnitsSI, integerPropertyUnitsSI"                                    />
+  !#  </stateStorable>
   !# </mergerTreeOutputter>
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterStandard
-     !% Implementation of the standars merger tree outputter.
+     !% Implementation of the standard merger tree outputter.
      private
      logical                                                                     :: outputReferences
      type            (hdf5Object                  )                              :: outputsGroup

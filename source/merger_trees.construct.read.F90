@@ -961,7 +961,7 @@ contains
     !% Construct a merger tree by reading its definition from file.
     use Galacticus_Nodes       , only : treeNodeList            , defaultDarkMatterProfileComponent, defaultSpinComponent, defaultSatelliteComponent, &
          &                              defaultPositionComponent
-    use Galacticus_State
+    use Functions_Global       , only : Galacticus_State_Store_ , Galacticus_State_Retrieve_
     use Merger_Tree_State_Store
     use Galacticus_Error
     use String_Handling
@@ -998,7 +998,7 @@ contains
     ! Snapshot the state of the next tree to read.
     treeStateStoreSequence=treeNumber
     ! Retrieve stored internal state if possible.
-    call Galacticus_State_Retrieve()
+    call Galacticus_State_Retrieve_()
     ! Recover the state of the next tree to read.
     treeNumberInternal=treeStateStoreSequence
     ! Determine if we have any split forests to return.
@@ -1032,7 +1032,7 @@ contains
        ! Store internal state.
        message='Storing state for tree #'
        message=message//treeStateStoreSequence
-       call Galacticus_State_Store(message)          
+       call Galacticus_State_Store_(message)          
        ! Check if the size of this forest exceeds the maximum allowed.
        if     (                                                                                    &
             &   .not.returnSplitForest                                                             &

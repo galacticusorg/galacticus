@@ -449,7 +449,7 @@ contains
                             ! Update record of earliest time in the tree.
                             earliestTimeInTree=min(earliestTimeInTree,timeEndThisNode)
                             ! Evolve the node to the next interrupt event, or the end time.
-                            call Tree_Node_Evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,status)
+                            call Tree_Node_Evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,self%galacticStructureSolver_,status)
                             if (present(status) .and. status /= errorStatusSuccess) return
                          end if
                          ! Check for interrupt.

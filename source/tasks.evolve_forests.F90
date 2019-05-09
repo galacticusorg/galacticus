@@ -49,15 +49,15 @@
      integer                                                :: evolveSingleForestSections
      double precision                                       :: evolveSingleForestMassMinimum
      ! Tree universes used while processing all trees.
-     type            (universe                   ), pointer :: universeWaiting               => null(), universeProcessed => null()
+     type            (universe                   ), pointer :: universeWaiting               => null(), universeProcessed       => null()
      ! Objects used in tree processing.
-     class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_        => null()
-     class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_           => null()
+     class           (mergerTreeConstructorClass ), pointer :: mergerTreeConstructor_        => null(), mergerTreeConstructor__ => null()
+     class           (mergerTreeOperatorClass    ), pointer :: mergerTreeOperator_           => null(), mergerTreeOperator__    => null()
+     class           (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_            => null(), mergerTreeEvolver__     => null()
+     class           (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_          => null(), mergerTreeOutputter__   => null()
      class           (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_       => null()
      class           (outputTimesClass           ), pointer :: outputTimes_                  => null()
      class           (universeOperatorClass      ), pointer :: universeOperator_             => null()
-     class           (mergerTreeEvolverClass     ), pointer :: mergerTreeEvolver_            => null()
-     class           (mergerTreeOutputterClass   ), pointer :: mergerTreeOutputter_          => null()
      ! Pointer to the parameters for this task.
      type            (inputParameters            )          :: parameters
    contains
@@ -284,6 +284,13 @@ contains
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
+    ! Initialize pointers to the active objects. During OpenMP parallel sections thread-local deep-copies of these "self%*_"
+    ! objects are made. At that point we reset these "self%*__" pointers to point to those thread-local copies so that they get
+    ! included in any state store/restore operations.
+    self%mergerTreeConstructor__ => self%mergerTreeConstructor_
+    self%mergerTreeOperator__    => self%mergerTreeOperator_
+    self%mergerTreeEvolver__     => self%mergerTreeEvolver_
+    self%mergerTreeOutputter__   => self%mergerTreeOutputter_
     return
   end function evolveForestsConstructorInternal
 
@@ -449,6 +456,12 @@ contains
     !# <deepCopy source="self%mergerTreeOutputter_"   destination="mergerTreeOutputter_"  />
     !# <deepCopy source="self%mergerTreeConstructor_" destination="mergerTreeConstructor_"/>
     !# <deepCopy source="self%mergerTreeOperator_"    destination="mergerTreeOperator_"   />
+    !$omp single
+    self%mergerTreeConstructor__ => mergerTreeConstructor_
+    self%mergerTreeOperator__    => mergerTreeOperator_
+    self%mergerTreeEvolver__     => mergerTreeEvolver_
+    self%mergerTreeOutputter__   => mergerTreeOutputter_
+    !$omp end single
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)    
     ! Allow events to be attached to the universe.
@@ -966,6 +979,12 @@ contains
     !# <objectDestructor name="mergerTreeEvolver_"    />
     !# <objectDestructor name="mergerTreeConstructor_"/>
     !# <objectDestructor name="mergerTreeOperator_"   />
+    !$omp single
+    self%mergerTreeConstructor__ => self%mergerTreeConstructor_
+    self%mergerTreeOperator__    => self%mergerTreeOperator_
+    self%mergerTreeEvolver__     => self%mergerTreeEvolver_
+    self%mergerTreeOutputter__   => self%mergerTreeOutputter_
+    !$omp end single
     !$omp end parallel
 
     ! Finalize outputs.

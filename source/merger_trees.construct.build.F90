@@ -200,7 +200,7 @@ contains
   function buildConstruct(self,treeNumber) result(tree)
     !% Build a merger tree.
     use    Galacticus_Nodes        , only : nodeComponentBasic
-    use    Galacticus_State
+    use    Functions_Global        , only : Galacticus_State_Store_ , Galacticus_State_Retrieve_
     use    Kind_Numbers
     use    String_Handling
     use    Merger_Tree_State_Store
@@ -221,7 +221,7 @@ contains
     ! Prepare to store/restore internal state.
     treeStateStoreSequence=-1_c_size_t
     ! Retrieve stored internal state if possible.
-    call Galacticus_State_Retrieve()
+    call Galacticus_State_Retrieve_()
     if (treeStateStoreSequence > 0_c_size_t) then
        if (self%processDescending) then
           self%treeNumberOffset=self%treeCount-treeStateStoreSequence
@@ -252,7 +252,7 @@ contains
        ! Store the internal state.
        if (treeStateStoreSequence == -1_c_size_t) treeStateStoreSequence=treeNumber
        message=var_str('Storing state for tree #')//treeNumber
-       call Galacticus_State_Store(message)
+       call Galacticus_State_Store_(message)
        ! Initialize.
        tree%event            => null()
        tree%initializedUntil =  0.0d0

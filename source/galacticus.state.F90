@@ -47,6 +47,12 @@ module Galacticus_State
   
 contains
 
+  !# <functionGlobal>
+  !#  <unitName>Galacticus_State_Store</unitName>
+  !#  <type>void</type>
+  !#  <module>ISO_Varying_String, only : varying_string</module>
+  !#  <arguments>type(varying_string) , intent(in   ), optional :: logMessage</arguments>
+  !# </functionGlobal>
   subroutine Galacticus_State_Store(logMessage)
     !% Store the internal state.
     !$ use OMP_Lib        , only : omp_in_parallel, omp_get_thread_num
@@ -113,6 +119,10 @@ contains
     return
   end subroutine Galacticus_State_Store
 
+  !# <functionGlobal>
+  !#  <unitName>Galacticus_State_Retrieve</unitName>
+  !#  <type>void</type>
+  !# </functionGlobal>
   subroutine Galacticus_State_Retrieve
     !% Retrieve the interal state.
     !$ use OMP_Lib        , only : omp_in_parallel, omp_get_thread_num

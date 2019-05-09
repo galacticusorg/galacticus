@@ -644,6 +644,10 @@ my @translations =
 	     {
 		 "Rezzolla2008"      => "rezzolla2008"
 	     },
+	     mergerTreeConstructorMethod                      =>
+	     {
+		 "stateRestore"      => "stateRestored"
+	     },
 	     mergerTreeOutput =>
 	     {
 		 ""                  => "standard"
