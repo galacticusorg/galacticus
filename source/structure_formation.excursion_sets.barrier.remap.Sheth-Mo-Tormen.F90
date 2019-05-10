@@ -26,7 +26,7 @@
      !% An excursion set barrier class which remaps another class using the \cite{sheth_ellipsoidal_2001} ellipsoidal collapse parameterization.
      private
      class           (excursionSetBarrierClass), pointer :: excursionSetBarrier_ => null()
-     double precision                                    :: a                   , b, &
+     double precision                                    :: a                             , b, &
           &                                                 c
      integer                                             :: applyTo
      type            (varying_string          )          :: applyToText
@@ -120,6 +120,7 @@ contains
     type(excursionSetBarrierRemapShethMoTormen), intent(inout) :: self
     
     !# <objectDestructor name="self%excursionSetBarrier_"/>
+    call self%applyToText%destroy()
     return
   end subroutine remapShethMoTormenDestructor
 
