@@ -699,12 +699,15 @@ contains
        if (self%outputParametersTemporary) then
           ! Close and remove the temporary parameters file.
           fileNameTemporary=self%outputParametersContainer%name()
-          call self%outputParameters         %close()
-          call self%outputParametersContainer%close()
+          call self%outputParameters         %close  ()
+          call self%outputParametersContainer%close  ()
+          call self%outputParameters         %destroy()
+          call self%outputParametersContainer%destroy()
           call File_Remove(char(fileNameTemporary))
        else
           ! Simply close our parameters group.
-          call self%outputParameters%close()
+          call self%outputParameters%close  ()
+          call self%outputParameters%destroy()
        end if
     end if
     !$ call hdf5Access%unset()

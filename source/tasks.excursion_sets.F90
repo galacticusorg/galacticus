@@ -220,6 +220,7 @@ contains
     !# <objectDestructor name="self%excursionSetBarrier_"      />
     !# <objectDestructor name="self%excursionSetFirstCrossing_"/>
     !# <objectDestructor name="self%powerSpectrum_"            />
+    call self%outputGroup%destroy()
     call Node_Components_Uninitialize()
     return
   end subroutine excursionSetsDestructor
