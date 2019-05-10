@@ -214,11 +214,17 @@ contains
 
   subroutine farahiDestructor(self)
     !% Destructor for the Farahi excursion set first crossing class.    
+    use Numerical_Interpolation, only : Interpolate_Done
     implicit none
     type(excursionSetFirstCrossingFarahi), intent(inout) :: self
-
+    
     !# <objectDestructor name="self%cosmologyFunctions_"  />
     !# <objectDestructor name="self%excursionSetBarrier_" />
+    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVariance        ,reset=self%interpolationResetVariance        )
+    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTime            ,reset=self%interpolationResetTime            )
+    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRate    ,reset=self%interpolationResetVarianceRate    )
+    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorVarianceRateBase,reset=self%interpolationResetVarianceRateBase)
+    call Interpolate_Done(interpolationAccelerator=self%interpolationAcceleratorTimeRate        ,reset=self%interpolationResetTimeRate        )
     return
   end subroutine farahiDestructor
 
