@@ -92,31 +92,34 @@ contains
     use            :: Input_Parameters
     use            :: String_Handling
     implicit none
-    integer                                                    , intent(in   ), dimension(:    ) :: filterIndex                           , luminosityIndex
-    double precision                                           , intent(in   ), dimension(:    ) :: redshift
-    type            (stellarPopulationSpectraPostprocessorList), intent(in   ), dimension(:    ) :: stellarPopulationSpectraPostprocessor_
-    class           (stellarPopulationClass                   ), intent(inout)                   :: stellarPopulation_
-    type            (luminosityTable                          ), allocatable  , dimension(:    ) :: luminosityTablesTemporary
-    double precision                                           , allocatable  , dimension(:,:,:) :: luminosityTemporary
-    logical                                                    , allocatable  , dimension(:    ) :: isTabulatedTemporary
-    double precision                                                          , dimension(2    ) :: wavelengthRange
-    type            (lockDescriptor                           )                                  :: lockFileDescriptor
-    class           (stellarPopulationSpectraClass            ), pointer                         :: stellarPopulationSpectra_
-    integer         (c_size_t                                 )                                  :: iAge                                  , iLuminosity           , &
-         &                                                                                          iMetallicity                          , jLuminosity           , &
-         &                                                                                          populationID
-    integer                                                                                      :: loopCountMaximum                      , loopCount             , &
-         &                                                                                          errorStatus                           , luminosityIndexMaximum
-    logical                                                                                      :: computeTable                          , calculateLuminosity
-    double precision                                                                             :: toleranceRelative                     , normalization
-    type            (fgsl_function                            )                                  :: integrandFunction
-    type            (fgsl_integration_workspace               )                                  :: integrationWorkspace
-    type            (varying_string                           )                                  :: message                               , luminositiesFileName  , &
-         &                                                                                          descriptorString
-    character       (len=16                                   )                                  :: datasetName                           , redshiftLabel         , &
-         &                                                                                          label
-    type            (hdf5Object                               )                                  :: luminositiesFile
-    type            (inputParameters                          )                                  :: descriptor
+    integer                                                     , intent(in   ), dimension(:    ) :: filterIndex                                   , luminosityIndex
+    double precision                                            , intent(in   ), dimension(:    ) :: redshift
+    type            (stellarPopulationSpectraPostprocessorList ), intent(in   ), dimension(:    ) :: stellarPopulationSpectraPostprocessor_
+    class           (stellarPopulationClass                    ), intent(inout)                   :: stellarPopulation_
+    type            (luminosityTable                           ), allocatable  , dimension(:    ) :: luminosityTablesTemporary
+    double precision                                            , allocatable  , dimension(:,:,:) :: luminosityTemporary
+    logical                                                     , allocatable  , dimension(:    ) :: isTabulatedTemporary
+    double precision                                                           , dimension(2    ) :: wavelengthRange
+    type            (lockDescriptor                            )                                  :: lockFileDescriptor
+    class           (stellarPopulationSpectraClass             ), pointer                         :: stellarPopulationSpectra_
+    class           (stellarPopulationSpectraPostprocessorClass), pointer                         :: stellarPopulationSpectraPostprocessorPrevious_
+    integer         (c_size_t                                  )                                  :: iAge                                          , iLuminosity                          , &
+         &                                                                                           iMetallicity                                  , jLuminosity                          , &
+         &                                                                                           populationID
+    integer                                                                                       :: loopCountMaximum                              , loopCount                            , &
+         &                                                                                           errorStatus                                   , luminosityIndexMaximum
+    logical                                                                                       :: computeTable                                  , calculateLuminosity                  , &
+         &                                                                                           stellarPopulationHashedDescriptorComputed
+    double precision                                                                              :: toleranceRelative                             , normalization
+    type            (fgsl_function                             )                                  :: integrandFunction
+    type            (fgsl_integration_workspace                )                                  :: integrationWorkspace
+    type            (varying_string                            )                                  :: message                                       , luminositiesFileName                 , &
+         &                                                                                           descriptorString                              , stellarPopulationHashedDescriptor    , &
+         &                                                                                           postprocessorHashedDescriptor
+    character       (len=16                                    )                                  :: datasetName                                   , redshiftLabel                        , &
+         &                                                                                           label
+    type            (hdf5Object                                )                                  :: luminositiesFile
+    type            (inputParameters                           )                                  :: descriptor
 
     ! Determine if we have created space for this population yet.
     if (.not.moduleInitialized) then
@@ -209,8 +212,10 @@ contains
        luminosityIndexMaximum=maxval(luminosityIndex)    
        if (.not.allocated(luminosityTables(populationID)%isTabulated) .or. luminosityTables(populationID)%isTabulatedMaximum < luminosityIndexMaximum) then
           call File_Lock_Initialize(lockFileDescriptor)
-          stellarPopulationSpectra_ => stellarPopulation_%spectra()
-          luminosityIndexMaximum    =  maxval(luminosityIndex)
+          stellarPopulationSpectra_                      => stellarPopulation_%spectra()
+          luminosityIndexMaximum                         =  maxval(luminosityIndex)
+          stellarPopulationHashedDescriptorComputed      =  .false.
+          stellarPopulationSpectraPostprocessorPrevious_ => null()
           do iLuminosity=1,size(luminosityIndex)
              if (allocated(luminosityTables(populationID)%isTabulated)) then
                 if (size(luminosityTables(populationID)%isTabulated) >= luminosityIndex(iLuminosity)) then
@@ -253,13 +258,21 @@ contains
                 calculateLuminosity=.true.
                 if (stellarPopulationLuminosityStoreToFile) then
                    ! Construct name of the file to which this would be stored.
-                   luminositiesFileName=stellarPopulationLuminosityStoreDirectory                                                                                                                // &
-                        &               "/stellarLuminosities::filter:"                                                                                                                          // &
-                        &               Filter_Name                                                                                                (                    filterIndex(iLuminosity))// &
-                        &               "::postprocessor:"                                                                                                                                       // &
-                        &               stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_%hashedDescriptor(includeSourceDigest=.true.                  )// &
-                        &               "::population:"                                                                                                                                          // &
-                        &               stellarPopulation_                                                                        %hashedDescriptor(includeSourceDigest=.true.                  )// &
+                   if (.not.stellarPopulationHashedDescriptorComputed) then
+                      stellarPopulationHashedDescriptor        =stellarPopulation_%hashedDescriptor(includeSourceDigest=.true.)
+                      stellarPopulationHashedDescriptorComputed=.true.
+                   end if
+                   if (.not.associated(stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_,stellarPopulationSpectraPostprocessorPrevious_)) then
+                      postprocessorHashedDescriptor                  =  stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_%hashedDescriptor(includeSourceDigest=.true.)
+                      stellarPopulationSpectraPostprocessorPrevious_ => stellarPopulationSpectraPostprocessor_(iLuminosity)%stellarPopulationSpectraPostprocessor_
+                   end if
+                   luminositiesFileName=stellarPopulationLuminosityStoreDirectory // &
+                        &               "/stellarLuminosities::filter:"           // &
+                        &               Filter_Name(filterIndex(iLuminosity))     // &
+                        &               "::postprocessor:"                        // &
+                        &               postprocessorHashedDescriptor             // &
+                        &               "::population:"                           // &
+                        &               stellarPopulationHashedDescriptor         // &
                         &               ".hdf5"
                    if (File_Exists(luminositiesFileName)) then
                       ! Construct the dataset name.
