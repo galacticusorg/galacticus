@@ -37,7 +37,6 @@ foreach my $deepCopyActionsFileName ( &List::ExtraUtils::as_array($directiveLoca
     $fileIdentifier =~ s/^\._??//;
     next
 	if ( $havePerFile && exists($actionsPerFile->{$fileIdentifier}) && -M $deepCopyActionsFileName > $updateTime  );
-    print $deepCopyActionsFileName."\n";
     delete($actionsPerFile->{$fileIdentifier});
     # Parse the source of this file.
     my $tree = &Galacticus::Build::SourceTree::ParseFile($deepCopyActionsFileName);
