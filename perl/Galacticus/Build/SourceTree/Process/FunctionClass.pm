@@ -28,6 +28,8 @@ sub Process_FunctionClass {
     my $directiveLocations;
     # Initialize state storables database.
     my $stateStorables;
+    # Initialize deep copy actions database.
+    my $deepCopyActions;
     # Determine if debugging output is required.
     my $debugging = exists($ENV{'GALACTICUS_OBJECTS_DEBUG'}) && $ENV{'GALACTICUS_OBJECTS_DEBUG'} eq "yes";
     # Walk the tree, looking for code blocks.
@@ -47,6 +49,9 @@ sub Process_FunctionClass {
 	    # Get state storables database if we do not have it.
 	    $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
 		unless ( $stateStorables );
+	    # Get state storables database if we do not have it.
+	    $deepCopyActions = $xml->XMLin($ENV{'BUILDPATH'}."/deepCopyActions.xml")
+		unless ( $deepCopyActions );
 	    # Find methods.
 	    my %methods;
 	    if ( exists($directive->{'method'}) ) {
@@ -793,7 +798,7 @@ CODE
 			    foreach my $declaration ( @{$node->{'declarations'}} ) {
 				# Deep copy of functionClass objects.
 				(my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
-				    if ( $declaration->{'intrinsic'} eq "class" );
+				    if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
 				if
 				    (
 				     $declaration->{'intrinsic'} eq "class"
@@ -813,6 +818,20 @@ CODE
 					$assignments .= "call destination%".$name."%autoHook()\n";
 				    }
 				};
+				# Deep copy of objects with explicit deep copy actions.
+				if
+				    (
+				     (
+				      $declaration->{'intrinsic'} eq "class"
+				      ||
+				      $declaration->{'intrinsic'} eq "type"
+				     )
+				     &&
+				     (grep {$_->{'type'} eq $type} @{$deepCopyActions->{'deepCopyActions'}})
+				    ) {
+					$assignments .= "call destination%".$_."%deepCopyActions()\n"
+					    foreach ( @{$declaration->{'variables'}} );
+				}
 				# Deep copy of HDF5 objects.
 				if
 				    (
@@ -934,6 +953,8 @@ CODE
 		    next
 			unless ( defined($declarationSource) );
 		    my $declaration = &Fortran::Utils::Unformat_Variables($declarationSource);
+		    (my $type = $declaration->{'type'}) =~ s/(^\s*|\s*$)//g
+			if ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" );
 		    if
 			(
 			 $declaration->{'intrinsic'} eq "class"
@@ -951,6 +972,20 @@ CODE
 				    if ( $debugging );
 			       	$assignments .= "call destination%".$name."%autoHook()\n";
 			    }
+		    }
+		    # Deep copy of objects with explicit deep copy actions.
+		    if
+			(
+			 (
+			  $declaration->{'intrinsic'} eq "class"
+			  ||
+			  $declaration->{'intrinsic'} eq "type"
+			 )
+			 &&
+			 (grep {$_->{'type'} eq $type} @{$deepCopyActions->{'deepCopyActions'}})
+			) {
+			    $assignments .= "call destination%".$_."%deepCopyActions()\n"
+				foreach ( @{$declaration->{'variables'}} );
 		    }
 		    # Deep copy of HDF5 objects.
 		    if

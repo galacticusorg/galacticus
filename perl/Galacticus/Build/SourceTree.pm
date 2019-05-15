@@ -20,6 +20,7 @@ use Galacticus::Build::SourceTree::Process::InputParameter;
 use Galacticus::Build::SourceTree::Process::InputParametersValidate;
 use Galacticus::Build::SourceTree::Process::FunctionClass;
 use Galacticus::Build::SourceTree::Process::StateStorable;
+use Galacticus::Build::SourceTree::Process::DeepCopyActions;
 use Galacticus::Build::SourceTree::Process::OptionalArgument;
 use Galacticus::Build::SourceTree::Process::Generics;
 use Galacticus::Build::SourceTree::Process::SourceDigest;
