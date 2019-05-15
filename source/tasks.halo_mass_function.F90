@@ -91,13 +91,26 @@ contains
     class           (transferFunctionClass            ), pointer       :: transferFunction_
     class           (outputTimesClass                 ), pointer       :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
+    type            (inputParameters                  ), pointer       :: parametersRoot
     type            (varying_string                   )                :: outputGroup
     double precision                                                   :: haloMassMinimum              , haloMassMaximum
     integer                                                            :: pointsPerDecade
 
-    call nodeClassHierarchyInitialize     (parameters)
-    call Node_Components_Initialize       (parameters)
-    call Node_Components_Thread_Initialize(parameters)
+    ! Ensure the nodes objects are initialized.
+    if (associated(parameters%parent)) then
+       parametersRoot => parameters%parent
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       call nodeClassHierarchyInitialize     (parametersRoot)
+       call Node_Components_Initialize       (parametersRoot)
+       call Node_Components_Thread_Initialize(parametersRoot)
+    else
+       parametersRoot => null()
+       call nodeClassHierarchyInitialize     (parameters    )
+       call Node_Components_Initialize       (parameters    )
+       call Node_Components_Thread_Initialize(parameters    )
+    end if
     !# <inputParameter>
     !#   <name>haloMassMinimum</name>
     !#   <cardinality>1</cardinality>

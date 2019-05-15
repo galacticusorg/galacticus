@@ -63,12 +63,25 @@ contains
     class           (darkMatterProfileClass           ), pointer       :: darkMatterProfile_
     class           (conditionalMassFunctionClass     ), pointer       :: conditionalMassFunction_
     class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
+    type            (inputParameters                  ), pointer       :: parametersRoot
     double precision                                                   :: massMinimum                  , massMaximum
     type            (varying_string                   )                :: galaxyCatalogFileName        , haloCatalogFileName
 
-    call nodeClassHierarchyInitialize     (parameters)
-    call Node_Components_Initialize       (parameters)
-    call Node_Components_Thread_Initialize(parameters)
+    ! Ensure the nodes objects are initialized.
+    if (associated(parameters%parent)) then
+       parametersRoot => parameters%parent
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       call nodeClassHierarchyInitialize     (parametersRoot)
+       call Node_Components_Initialize       (parametersRoot)
+       call Node_Components_Thread_Initialize(parametersRoot)
+    else
+       parametersRoot => null()
+       call nodeClassHierarchyInitialize     (parameters    )
+       call Node_Components_Initialize       (parameters    )
+       call Node_Components_Thread_Initialize(parameters    )
+    end if
     !# <inputParameter>
     !#   <name>haloCatalogFileName</name>
     !#   <cardinality>1</cardinality>
