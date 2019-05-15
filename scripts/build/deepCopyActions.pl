@@ -8,6 +8,7 @@ use Galacticus::Build::Directives;
 use Galacticus::Build::SourceTree;
 use List::ExtraUtils;
 use Data::Dumper;
+use Storable;
 
 # Builds a list of classes which support actions during deep copy.
 # Andrew Benson (15-May-2019)
@@ -22,8 +23,22 @@ my $xml                  = new XML::Simple();
 my $directiveLocations   = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
 # Initialize a structure for output of classes.
 my $deepCopyActions;
+# Initialize data structure to hold per-file information.
+my $actionsPerFile;
+my $havePerFile = -e $ENV{'BUILDPATH'}."/deepCopyActions.blob";
+my $updateTime;
+if ( $havePerFile ) {
+    $actionsPerFile = retrieve($ENV{'BUILDPATH'}."/deepCopyActions.blob");
+    $updateTime       = -M       $ENV{'BUILDPATH'}."/deepCopyActions.blob" ;
+}
 # Find all files which contain deepCopyActions objects - these explicitly support state store/restore.
 foreach my $deepCopyActionsFileName ( &List::ExtraUtils::as_array($directiveLocations->{'deepCopyActions'}->{'file'}) ) {
+    (my $fileIdentifier = $deepCopyActionsFileName) =~ s/\//_/g;
+    $fileIdentifier =~ s/^\._??//;
+    next
+	if ( $havePerFile && exists($actionsPerFile->{$fileIdentifier}) && -M $deepCopyActionsFileName > $updateTime  );
+    print $deepCopyActionsFileName."\n";
+    delete($actionsPerFile->{$fileIdentifier});
     # Parse the source of this file.
     my $tree = &Galacticus::Build::SourceTree::ParseFile($deepCopyActionsFileName);
     # Walk the tree.
@@ -69,16 +84,18 @@ foreach my $deepCopyActionsFileName ( &List::ExtraUtils::as_array($directiveLoca
 		}
 		$parentClassName = $classes{$parentClassName}->{'extends'};
 	    }
-	    push(@{$deepCopyActions->{'deepCopyActions'}},{type => $className, class => $directive->{'class'}})
+	    push(@{$actionsPerFile->{$fileIdentifier}->{'deepCopyActions'}},{type => $className, class => $directive->{'class'}})
 		if ( $matches );
 	}
     }
 }
 # Sort results.
-@{$deepCopyActions->{'deepCopyActions'}} = sort {$a->{'type'} cmp $b->{'type'}} @{$deepCopyActions->{'deepCopyActions'}};
+@{$deepCopyActions->{'deepCopyActions'}} = sort {$a->{'type'} cmp $b->{'type'}} map {exists($actionsPerFile->{$_}->{'deepCopyActions'}) ? @{$actionsPerFile->{$_}->{'deepCopyActions'}} : ()} keys(%{$actionsPerFile});
 # Output the results.
 open(my $outputFile,">".$ENV{'BUILDPATH'}."/deepCopyActions.xml");
 print $outputFile $xml->XMLout($deepCopyActions, RootName => "deepCopyActions");
 close($outputFile);
+# Output the per file deep copy actions data.
+store($actionsPerFile,$ENV{'BUILDPATH'}."/deepCopyActions.blob");
 
 exit;
