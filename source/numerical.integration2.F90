@@ -267,6 +267,7 @@ module Numerical_Integration2
      !@     <description>Set tolerances to use in this integrator.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                  integratorMultiDestructor
      procedure :: tolerancesSet => tolerancesSetGeneric
   end type integratorMulti
 
@@ -1424,8 +1425,19 @@ contains
     vectorizedCompositeTrapezoidalEvaluate1D=integrand
     return
   end function vectorizedCompositeTrapezoidalEvaluate1D
- 
+
   ! Generic functions.
+
+  subroutine integratorMultiDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily integratorMulti} class.
+    use Memory_Management
+    implicit none
+    type(integratorMulti), intent(inout) :: self
+
+    if (allocated(self%toleranceAbsolute)) call deallocateArray(self%toleranceAbsolute)
+    if (allocated(self%toleranceRelative)) call deallocateArray(self%toleranceRelative)
+    return
+  end subroutine integratorMultiDestructor
 
   subroutine tolerancesSetGeneric(self,toleranceAbsolute,toleranceRelative)
     !% Initialize the tolerances for multi-integrand numerical integrators.
@@ -1452,6 +1464,8 @@ contains
     else
        toleranceCount=size(toleranceRelative)
     end if
+    if (allocated(self%toleranceAbsolute)) call deallocateArray(self%toleranceAbsolute)
+    if (allocated(self%toleranceRelative)) call deallocateArray(self%toleranceRelative)
     call allocateArray(self%toleranceAbsolute,[toleranceCount])
     call allocateArray(self%toleranceRelative,[toleranceCount])
     self%toleranceAbsolute=0.0d0
@@ -1659,7 +1673,7 @@ contains
          &                                                                                                            newInterval2     , current      , &
          &                                                                                                            previous         , newInterval
     integer         (c_size_t)                                                                                     :: iInterval        , intervalCount
-
+    
     ! If the interval has zero size, return a zero result.
     if (a == b) then
        integral=0.0d0
@@ -2091,6 +2105,12 @@ contains
           end do
           current => head          
           do while (associated(current))
+             message="a/b : f(a)/f(b) ="
+             write (label,'(e32.12)') current%a
+             message=message//" "  //label
+             write (label,'(e32.12)') current%b
+             message=message//"/"  //label
+             call Galacticus_Display_Message(message)
              do i=1,size(current%fa)
                 message="  (i="
                 write (label,'(i12)') i             
@@ -2148,7 +2168,7 @@ contains
             &     abs(error) < self%toleranceAbsolute               &
             &    .or.                                               &
             &     abs(error) < self%toleranceRelative*abs(integral)
-       if (.not.all(converged) .and. any(converged .neqv. convergedPrevious).and.intervalCount > 1_c_size_t) then
+       if (.not.all(converged) .and. any(converged .neqv. convergedPrevious) .and. intervalCount > 1_c_size_t) then
           ! One or more integrals have converged. We must resort the linked list of intervals to ensure that it is in order of
           ! descending error measure.
           errorScale=max(                                      &
@@ -2207,7 +2227,7 @@ contains
           if (.not.associated(current%next)) then
              ! End of stack reached. Check if new interval goes before or after the final stack entry.
              if (maxval(current%error/errorScale,mask=.not.converged) > errorMaximum) then
-                ! New intervals goes at the end of the stack.
+                ! New interval goes at the end of the stack.
                 current%next => newInterval1
              else
                 ! New interval goes before the final interval.
