@@ -49,6 +49,7 @@ contains
     type   (taskPosteriorSample           )                :: self
     type   (inputParameters               ), intent(inout) :: parameters
     class  (posteriorSampleSimulationClass), pointer       :: posteriorSampleSimulation_
+    type   (inputParameters               ), pointer       :: parametersRoot
     logical                                                :: initializeNodeClassHierarchy
 
     !# <inputParameter>
@@ -60,8 +61,18 @@ contains
     !#   <type>boolean</type>
     !# </inputParameter>
     if (initializeNodeClassHierarchy) then
-       call nodeClassHierarchyInitialize(parameters)
-       call Node_Components_Initialize  (parameters)
+       if (associated(parameters%parent)) then
+          parametersRoot => parameters%parent
+          do while (associated(parametersRoot%parent))
+             parametersRoot => parametersRoot%parent
+          end do
+          call nodeClassHierarchyInitialize(parametersRoot)
+          call Node_Components_Initialize  (parametersRoot)
+       else
+          parametersRoot => null()
+          call nodeClassHierarchyInitialize(parameters    )
+          call Node_Components_Initialize  (parameters    )
+       end if
     end if
     !# <objectBuilder class="posteriorSampleSimulation" name="posteriorSampleSimulation_" source="parameters"/>
     self=taskPosteriorSample(posteriorSampleSimulation_)
