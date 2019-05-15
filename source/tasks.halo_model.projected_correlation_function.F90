@@ -55,6 +55,7 @@ contains
     type            (taskHaloModelProjectedCorrelationFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (conditionalMassFunctionClass             ), pointer       :: conditionalMassFunction_
+    type            (inputParameters                          ), pointer       :: parametersRoot
     double precision                                                           :: separationMinimum       , separationMaximum, &
          &                                                                        massMinimum             , massMaximum      , &
          &                                                                        massHaloMinimum         , massHaloMaximum  , &
@@ -63,9 +64,21 @@ contains
     logical                                                                    :: halfIntegral
     type            (varying_string                           )                :: outputGroup
 
-    call nodeClassHierarchyInitialize     (parameters)
-    call Node_Components_Initialize       (parameters)
-    call Node_Components_Thread_Initialize(parameters)
+    ! Ensure the nodes objects are initialized.
+    if (associated(parameters%parent)) then
+       parametersRoot => parameters%parent
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       call nodeClassHierarchyInitialize     (parametersRoot)
+       call Node_Components_Initialize       (parametersRoot)
+       call Node_Components_Thread_Initialize(parametersRoot)
+    else
+       parametersRoot => null()
+       call nodeClassHierarchyInitialize     (parameters    )
+       call Node_Components_Initialize       (parameters    )
+       call Node_Components_Thread_Initialize(parameters    )
+    end if
     !# <inputParameter>
     !#   <name>separationMinimum</name>
     !#   <cardinality>1</cardinality>
