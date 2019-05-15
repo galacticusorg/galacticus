@@ -71,14 +71,26 @@ contains
     class           (excursionSetBarrierClass      ), pointer       :: excursionSetBarrier_
     class           (excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
     class           (powerSpectrumClass            ), pointer       :: powerSpectrum_
+    type            (inputParameters               ), pointer       :: parametersRoot
     integer                                                         :: massesPerDecade           , timesPerDecade
     double precision                                                :: massMaximum               , massMinimum    , &
          &                                                             timeMinimum               , timeMaximum    , &
          &                                                             redshiftMinimum           , redshiftMaximum
     type            (varying_string                )                :: outputGroup
 
-    call nodeClassHierarchyInitialize(parameters)
-    call Node_Components_Initialize  (parameters)
+    ! Ensure the nodes objects are initialized.
+    if (associated(parameters%parent)) then
+       parametersRoot => parameters%parent
+       do while (associated(parametersRoot%parent))
+          parametersRoot => parametersRoot%parent
+       end do
+       call nodeClassHierarchyInitialize(parametersRoot)
+       call Node_Components_Initialize  (parametersRoot)
+    else
+       parametersRoot => null()
+       call nodeClassHierarchyInitialize(parameters    )
+       call Node_Components_Initialize  (parameters    )
+    end if
     !# <inputParameter>
     !#   <name>massMinimum</name>
     !#   <cardinality>1</cardinality>
