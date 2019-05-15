@@ -47,6 +47,16 @@ module Tables
   !#   <restoreTo variables="resetX, resetY" state=".true."/>
   !#  </table2DLinLinLin>  
   !# </stateStorable>
+  
+  !# <deepCopyActions class="table">
+  !#  <table1DGeneric>
+  !#   <setTo variables="reset" state=".true."/>
+  !#  </table1DGeneric>
+  !#  <table2DLinLinLin>
+  !#   <setTo variables="resetX, resetY" state=".true."/>
+  !#  </table2DLinLinLin>  
+  !# </deepCopyActions>
+  
   type, abstract :: table
      !% Basic table type.
    contains
