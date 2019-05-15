@@ -71,7 +71,6 @@ contains
        end if
        call nodeClassHierarchyInitialize(parametersRoot)
        call Node_Components_Initialize  (parametersRoot)
-       end if
     end if
     !# <objectBuilder class="posteriorSampleSimulation" name="posteriorSampleSimulation_" source="parameters"/>
     self=taskPosteriorSample(posteriorSampleSimulation_)
