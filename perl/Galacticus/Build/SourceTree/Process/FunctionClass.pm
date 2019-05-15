@@ -551,8 +551,10 @@ sub Process_FunctionClass {
 	    # Add a "hashedDescriptor" method.
 	    $code::directiveName = $directive->{'name'};
 	    my $hashedDescriptorCode = fill_in_string(<<'CODE', PACKAGE => 'code');
-type(inputParameters) :: descriptor
-type(varying_string ) :: descriptorString
+type(inputParameters)       :: descriptor
+type(varying_string )       :: descriptorString
+type(varying_string ), save :: descriptorStringPrevious, hashedDescriptorPrevious
+!$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
 descriptor=inputParameters()
 ! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
 call setLiveNodeLists(descriptor%document,.false.)
@@ -581,7 +583,11 @@ CODE
 	    $hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
 end select
 end if
-{$directiveName}HashedDescriptor=Hash_MD5(descriptorString)
+if (descriptorString /= descriptorStringPrevious) then
+   descriptorStringPrevious=         descriptorString
+   hashedDescriptorPrevious=Hash_MD5(descriptorString)
+end if
+{$directiveName}HashedDescriptor=hashedDescriptorPrevious
 CODE
 	    $methods{'hashedDescriptor'} = 
 	    {
@@ -829,8 +835,23 @@ CODE
 				     &&
 				     (grep {$_->{'type'} eq $type} @{$deepCopyActions->{'deepCopyActions'}})
 				    ) {
-					$assignments .= "call destination%".$_."%deepCopyActions()\n"
-					    foreach ( @{$declaration->{'variables'}} );
+					my $rank = 0;
+					if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
+					    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
+					    $rank        = ($dimensionDeclarator =~ tr/,//)+1;
+					    $rankMaximum = $rank
+						if ( $rank > $rankMaximum );
+					}
+					foreach my $variableName ( @{$declaration->{'variables'}} ) {
+					    for(my $i=1;$i<=$rank;++$i) {
+						$assignments .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+					    }
+					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
+					    $assignments .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
+					    for(my $i=1;$i<=$rank;++$i) {
+						    $assignments .= (" " x ($rank+1-$i))."end do\n";
+					    }					    
+					}
 				}
 				# Deep copy of HDF5 objects.
 				if
@@ -984,8 +1005,23 @@ CODE
 			 &&
 			 (grep {$_->{'type'} eq $type} @{$deepCopyActions->{'deepCopyActions'}})
 			) {
-			    $assignments .= "call destination%".$_."%deepCopyActions()\n"
-				foreach ( @{$declaration->{'variables'}} );
+			    my $rank = 0;
+			    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
+				my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
+				$rank        = ($dimensionDeclarator =~ tr/,//)+1;
+				$rankMaximum = $rank
+				    if ( $rank > $rankMaximum );
+			    }
+			    foreach my $variableName ( @{$declaration->{'variables'}} ) {
+				for(my $i=1;$i<=$rank;++$i) {
+				    $assignments .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+				}
+				my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
+				$assignments .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
+				for(my $i=1;$i<=$rank;++$i) {
+					$assignments .= (" " x ($rank+1-$i))."end do\n";
+				}					    
+			    }
 		    }
 		    # Deep copy of HDF5 objects.
 		    if
@@ -1192,7 +1228,7 @@ CODE
             # Reset the state operation ID if necessary.
             $deepCopyCode .= "destination%stateOperationID=0_c_size_t\n";
             # Insert any iterator variables needed.
-            $deepCopyCode = "!\$ integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
+            $deepCopyCode = "integer :: ".join(",",map {"i".$_} 1..$rankMaximum)."\n".$deepCopyCode
                 if ( $rankMaximum > 0 );
 	    $methods{'deepCopy'} = 
 	    {
