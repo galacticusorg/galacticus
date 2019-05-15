@@ -44,7 +44,7 @@
      class           (virialDensityContrastClass), pointer                                                  :: virialDensityContrast_ => null()
      type            (table1DGeneric            )                                                           :: densityContrast
      double precision                            , dimension(tinker2008ParameterMin:tinker2008ParameterMax) :: parameters
-     double precision                                                                                       :: alphaDensityContrast  , timeParameters, &
+     double precision                                                                                       :: alphaDensityContrast            , timeParameters, &
           &                                                                                                    massParameters
    contains
      !@ <objectMethods>
