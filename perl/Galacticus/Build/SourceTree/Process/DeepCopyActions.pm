@@ -52,7 +52,7 @@ sub Process_DeepCopyActions {
 		     extends  => $extends,
 		     abstract => $abstract
 		};
-	    } else {
+	    } elsif ( $node->{'opener'} !~ /\{/ ) { # Ignore types that use generics as this module does not currently support them.
 		die("Galacticus::Build::SourceTree::Process::DeepCopyActions::Process_DeepCopyActions: unable to parse type definition opener");
 	    }
 	}
@@ -125,6 +125,7 @@ CODE
     !@     <arguments></arguments>
     !@     <description>Perform actions needed for deep copy of this object.</description>
     !@   </objectMethod>
+    !@  </objectMethods>
     procedure :: deepCopyActions => {$className}DeepCopyActions
 CODE
 	my $binding =
