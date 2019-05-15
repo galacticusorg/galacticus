@@ -533,7 +533,7 @@ contains
     if (luminosityCount > 0) then
        do i=0,luminosityCount-1
           luminosity => item(luminosityList,i)
-          call extractDataContent(luminosity,self%luminosityValue(i))
+          call extractDataContent(luminosity,self%luminosityValue(i+1))
        end do
     end if
     return
