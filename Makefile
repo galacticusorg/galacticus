@@ -474,6 +474,7 @@ $(BUILDPATH)/Makefile_Directives: ./scripts/build/codeDirectivesParse.pl source/
 	@mkdir -p $(BUILDPATH)
 	./scripts/build/codeDirectivesParse.pl `pwd`
 	./scripts/build/stateStorables.pl `pwd`
+	./scripts/build/deepCopyActions.pl `pwd`
 
 $(BUILDPATH)/Makefile_Include_Dependencies: ./scripts/build/includeDependencies.pl source/*.[fF]90 $(wildcard source/*.h) source/*.c $(wildcard source/*.cpp)
 	@mkdir -p $(BUILDPATH)
