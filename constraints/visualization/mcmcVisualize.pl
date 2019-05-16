@@ -366,12 +366,24 @@ foreach my $fileRoot ( @fileRoots ) {
 	    my $indexX   = $x->($selected)->qsorti();
 	    my $indexY   = $y->($selected)->qsorti()
 		if ( $dimensions == 2 );
-	    push(@spanLowerX,$x->($selected)->($indexX)->(( 0))->sclr());
-	    push(@spanLowerY,$y->($selected)->($indexY)->(( 0))->sclr())
-		if ( $dimensions == 2 );
-	    push(@spanUpperX,$x->($selected)->($indexX)->((-1))->sclr());
-	    push(@spanUpperY,$y->($selected)->($indexY)->((-1))->sclr())
-		if ( $dimensions == 2 );
+	    my $lowerX = $x->($selected)->($indexX)->(( 0));
+	    my $upperX = $x->($selected)->($indexX)->((-1));
+	    if ( $xScale eq "logarithm" ) {
+		$lowerX .= exp($lowerX);
+		$upperX .= exp($upperX);
+	    }
+	    push(@spanLowerX,$lowerX->sclr());
+	    push(@spanUpperX,$upperX->sclr());
+	    if ( $dimensions == 2 ) {
+		my $lowerY = $y->($selected)->($indexY)->(( 0));
+		my $upperY = $y->($selected)->($indexY)->((-1));
+		if ( $yScale eq "logarithm" ) {
+		    $lowerY .= exp($lowerY);
+		    $upperY .= exp($upperY);
+		}
+		push(@spanLowerY,$lowerY->sclr());
+		push(@spanUpperY,$upperY->sclr());
+	    }
 	} else {
 	    push(@spanLowerX,"undef");
 	    push(@spanLowerY,"undef");
