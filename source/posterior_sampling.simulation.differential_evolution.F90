@@ -557,13 +557,13 @@ contains
 
     accept=.false.
     do while (.not.accept)
-       differentialEvolutionChainSelect=min(                                                         &
-            &                               int(                                                     &
-            &                                   +dble(mpiSelf%count())                               &
+       differentialEvolutionChainSelect=min(                                                                &
+            &                               int(                                                            &
+            &                                   +dble(mpiSelf%count())                                      &
             &                                   *randomNumberGenerator%uniformSample(mpiRankOffset=.true.)  &
-            &                                  )                                                   , &
-            &                               +mpiSelf%count()                                         &
-            &                               -1                                                       &
+            &                                  )                                                          , &
+            &                               +mpiSelf%count()                                                &
+            &                               -1                                                              &
             &                              )
        accept=.true.
        if (.not.self%sampleOutliers.and.self%isConverged)                                           &
