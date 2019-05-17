@@ -39,7 +39,8 @@ module Node_Component_Disk_Standard
        &    Node_Component_Disk_Standard_Satellite_Merging            , Node_Component_Disk_Standard_Calculation_Reset  , &
        &    Node_Component_Disk_Standard_State_Store                  , Node_Component_Disk_Standard_State_Retrieve     , &
        &    Node_Component_Disk_Standard_Thread_Initialize            , Node_Component_Disk_Standard_Inactive           , &
-       &    Node_Component_Disk_Standard_Post_Step                    , Node_Component_Disk_Standard_Thread_Uninitialize 
+       &    Node_Component_Disk_Standard_Post_Step                    , Node_Component_Disk_Standard_Thread_Uninitialize, &
+       &    Node_Component_Disk_Standard_Final_State
 
   !# <component>
   !#  <class>disk</class>
@@ -58,6 +59,18 @@ module Node_Component_Disk_Standard
   !#     <rank>0</rank>
   !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the standard disk."/>
+  !#   </property>
+  !#   <property>
+  !#     <name>massStellarFormed</name>
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#   </property>
+  !#   <property>
+  !#     <name>fractionMassRetained</name>
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
   !#   </property>
   !#   <property>
   !#     <name>abundancesStellar</name>
@@ -162,25 +175,29 @@ module Node_Component_Disk_Standard
   integer                                     :: abundancesCount
 
   ! Parameters controlling the physical implementation.
-  double precision                            :: diskMassToleranceAbsolute                   , diskOutflowTimescaleMinimum          , &
+  double precision                            :: diskMassToleranceAbsolute                         , diskOutflowTimescaleMinimum          , &
        &                                         diskStructureSolverRadius
-  logical                                     :: diskNegativeAngularMomentumAllowed          , diskRadiusSolverCole2000Method       , &
-       &                                         diskStarFormationInSatellites               , diskLuminositiesStellarInactive
+  logical                                     :: diskNegativeAngularMomentumAllowed                , diskRadiusSolverCole2000Method       , &
+       &                                         diskStarFormationInSatellites                     , diskLuminositiesStellarInactive
 
   ! History of trial radii used to check for oscillations in the solution when solving for the structure of the disk.
   integer                                     :: radiusSolverIteration
-  double precision                            :: radiusHistory                     (2)
+  double precision, dimension(2)              :: radiusHistory
   !$omp threadprivate(radiusHistory,radiusSolverIteration)
   ! The largest and smallest angular momentum, in units of that of a circular orbit at the virial radius, considered to be physically plausible for a disk.
-  double precision, parameter                 :: angularMomentumMaximum               =1.0d1
-  double precision, parameter                 :: angularMomentumMinimum               =1.0d-6
+  double precision, parameter                 :: angularMomentumMaximum                    =1.0d+1
+  double precision, parameter                 :: angularMomentumMinimum                    =1.0d-6
 
   ! Disk structural parameters.
-  double precision                            :: diskStructureSolverSpecificAngularMomentum  , diskRadiusSolverFlatVsSphericalFactor
+  double precision                            :: diskStructureSolverSpecificAngularMomentum        , diskRadiusSolverFlatVsSphericalFactor
   !$omp threadprivate(diskStructureSolverSpecificAngularMomentum,diskRadiusSolverFlatVsSphericalFactor)
 
   ! Pipe attachment status.
-  logical                                     :: pipesAttached                        =.false.
+  logical                                     :: pipesAttached                             =.false.
+
+  ! Module-scope record of final state during an ODE evolution step.
+  double precision                            :: fractionMassRetainedInitial                       , fractionMassRetainedFinal
+  !$omp threadprivate(fractionMassRetainedInitial,fractionMassRetainedFinal)
   
 contains
 
@@ -392,9 +409,13 @@ contains
     disk => node%disk()
     ! Check if an standard disk component exists.
     select type (disk)
-       class is (nodeComponentDiskStandard)
-          ! Initialize the disk
+    class is (nodeComponentDiskStandard)
+       ! Initialize the disk
        call Node_Component_Disk_Standard_Create(node)
+       ! Initialize the mass transferred fraction to unity. The value is arbitrary as only ratios of this quantity are used, but
+       ! must be non-zero.
+       call disk%fractionMassRetainedSet(1.0d0)
+       fractionMassRetainedFinal=1.0d0
     end select
     return
   end subroutine Node_Component_Disk_Standard_Pre_Evolve
@@ -650,6 +671,30 @@ contains
     return
   end subroutine Node_Component_Disk_Standard_Create
 
+  !# <finalStateTask>
+  !#  <unitName>Node_Component_Disk_Standard_Final_State</unitName>
+  !# </finalStateTask>
+  subroutine Node_Component_Disk_Standard_Final_State(node)
+    !% Record the final state of the disk at the end of the timestep prior to begin evaluation of integrals for inactive
+    !% properties.
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk, nodeComponentDiskStandard
+    implicit none
+    type (treeNode         ), intent(inout), pointer :: node
+    class(nodeComponentDisk)               , pointer :: disk
+    
+    disk => node%disk()
+    select type (disk)
+    class is (nodeComponentDiskStandard)
+       if (diskLuminositiesStellarInactive) then
+          ! The retained mass fraction at the start of this step is just the fraction at the end of the previous step. Then update
+          ! the retained fraction at the end of the current step.
+          fractionMassRetainedInitial=               fractionMassRetainedFinal
+          fractionMassRetainedFinal  =max(0.0d0,disk%fractionMassRetained     ())
+       end if
+    end select
+    return
+  end subroutine Node_Component_Disk_Standard_Final_State
+
   !# <rateComputeTask>
   !#  <unitName>Node_Component_Disk_Standard_Rate_Compute</unitName>
   !# </rateComputeTask>
@@ -661,9 +706,10 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
-    use Galacticus_Nodes                          , only : treeNode            , nodeComponentDisk   , nodeComponentDiskStandard, nodeComponentSpheroid, &
-         &                                                 nodeComponentHotHalo, interruptTask       , defaultDiskComponent     , propertyTypeActive   , &
-         &                                                 propertyTypeAll     , propertyTypeInactive
+    use Galacticus_Error                          , only : Galacticus_Error_Report
+    use Galacticus_Nodes                          , only : treeNode               , nodeComponentDisk   , nodeComponentDiskStandard, nodeComponentSpheroid, &
+         &                                                 nodeComponentHotHalo   , interruptTask       , defaultDiskComponent     , propertyTypeActive   , &
+         &                                                 propertyTypeAll        , propertyTypeInactive
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(in   )          :: odeConverged
@@ -686,7 +732,8 @@ contains
          &                                                             massLossRate                , massOutflowRate           , &
          &                                                             massOutflowRateFromHalo     , massOutflowRateToHotHalo  , &
          &                                                             outflowToHotHaloFraction    , starFormationRate         , &
-         &                                                             stellarMassRate             , transferRate
+         &                                                             stellarMassRate             , transferRate              , &
+         &                                                             fractionMassRetainedRate    , fractionMassRetained
     type            (history              )                         :: historyTransferRate         , stellarHistoryRate
     type            (stellarLuminosities  ), save                   :: luminositiesStellarRates    , luminositiesTransferRate
     logical                                                         :: luminositiesCompute
@@ -713,7 +760,15 @@ contains
           return
        end if
        ! Compute the star formation rate.
-       starFormationRate=disk%starFormationRate()
+       if (propertyType == propertyTypeInactive) then
+          starFormationRate=disk%massStellarFormedRateGet()          
+       else
+          ! During active property solution, integrate the star formation rate so that we will have a solution for the total mass
+          ! of stars formed as a function of time. This differs from the stellar mass due to recycling, and possibly transfer of
+          ! stellar mass to other components.
+          starFormationRate=disk%starFormationRate()
+          call disk%massStellarFormedRate(starFormationRate)
+       end if
        ! Get the available fuel mass.
        fuelMass         =disk%massGas          ()
        ! Find the metallicity of the fuel supply.
@@ -737,7 +792,41 @@ contains
           call disk%abundancesStellarRate(stellarAbundancesRates)
           call disk%    abundancesGasRate(   fuelAbundancesRates)
        end if
-       if (luminositiesCompute) call disk%luminositiesStellarRate(luminositiesStellarRates)
+       if (luminositiesCompute) then
+          ! For inactive property calculations we must check if any mass (and, therefore, light) is being transferred to the
+          ! spheroid component. If it is, our integrand must account for this mass transfer. The fractions of mass retained and
+          ! transferred are determined from the "fractionMassRetained" property which is computed during differential evolution.
+          if (propertyType == propertyTypeInactive .and. fractionMassRetainedFinal < fractionMassRetainedInitial) then
+             spheroid => node%spheroid()
+             ! Determine the fraction of mass (and light) formed at this time which will be retained in the disk at the final time in the step.
+             if (fractionMassRetainedFinal == 0.0d0) then
+                ! The retained fraction reached zero by the end of the step, so no mass is retained.
+                fractionMassRetained    =                                                                   0.0d0
+             else
+                ! Limit the retained fraction to unity (to avoid any rounding errors).
+                fractionMassRetained    =min(fractionMassRetainedFinal         /disk%fractionMassRetained(),1.0d0)
+             end if
+             ! Determine the rate at which mass (and light) that was pre-existing at the start of this timestep is being transferred.
+             if (fractionMassRetainedInitial == 0.0d0) then
+                ! The initial retained fraction was zero, so there should be no light to transfer - set a transfer rate of zero.
+                fractionMassRetainedRate=                                                                   0.0d0
+             else
+                ! Limit the transfer rate of pre-existing light to be negative - it is not possible to transfer light *to* the
+                ! disk, so any positive value here can arise only via rounding errors.
+                fractionMassRetainedRate=min(disk%fractionMassRetainedRateGet()/fractionMassRetainedInitial,0.0d0)
+             end if
+             ! Find the rate of transfer of pre-existing light.
+             luminositiesTransferRate=disk%luminositiesStellar()*fractionMassRetainedRate
+             ! Evaluate the integrand for the disk, and the corresponding one for the spheroid to account for the transfer of light.
+             call    disk %luminositiesStellarRate(luminositiesStellarRates*       fractionMassRetained +luminositiesTransferRate                             )
+             call spheroid%luminositiesStellarRate(luminositiesStellarRates*(1.0d0-fractionMassRetained)-luminositiesTransferRate,interrupt,interruptProcedure)
+          else
+             ! In this case we do not need to account for transfer of light to the spheroid because either:
+             !  a) there is none, or;
+             !  b) we are solving for luminosities as active properties in which case transfer to the spheroid is handled directly in the ODE.
+             call     disk%luminositiesStellarRate(luminositiesStellarRates                                                                                    )
+          end if
+       end if
        if (propertyType == propertyTypeInactive) return       
        ! Record the star formation history.
        stellarHistoryRate=disk%starFormationHistory()
@@ -793,36 +882,40 @@ contains
           ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
           ! case as the disk radius may be unphysical also.
           barInstabilityTimescale=-1.0d0
-       end if
-       
-       ! Negative timescale indicates no bar instability.      
+       end if  
+       ! Negative timescale indicates no bar instability.
        if (barInstabilityTimescale >= 0.0d0) then
           ! Disk is unstable, so compute rates at which material is transferred to the spheroid.
           spheroid => node%spheroid()
           ! Gas mass.
-          transferRate            =max(         0.0d0         ,disk    %massGas                (                         ))/barInstabilityTimescale
-          call                                      disk    %massGasRate            (-           transferRate                              )
-          call                                      spheroid%massGasRate            (+           transferRate ,interrupt,interruptProcedure)
+          transferRate               =max(         0.0d0         ,disk    %massGas             (                         ))/barInstabilityTimescale
+          call                                      disk    %massGasRate             (-           transferRate                              )
+          call                                      spheroid%massGasRate             (+           transferRate ,interrupt,interruptProcedure)
+          ! Fraction of stellar mass transferred.
+          transferRate               =max(         0.0d0         ,disk    %fractionMassRetained(                         ))/barInstabilityTimescale
+          call                                      disk    %fractionMassRetainedRate(-           transferRate                              )
           ! Stellar mass.
-          transferRate            =max(         0.0d0         ,disk    %massStellar            (                         ))/barInstabilityTimescale
-          call                                      disk    %massStellarRate        (-           transferRate                              )
-          call                                      spheroid%massStellarRate        (+           transferRate ,interrupt,interruptProcedure)
+          transferRate               =max(         0.0d0         ,disk    %massStellar         (                         ))/barInstabilityTimescale
+          call                                      disk    %massStellarRate         (-           transferRate                              )
+          call                                      spheroid%massStellarRate         (+           transferRate ,interrupt,interruptProcedure)
           ! Angular momentum.
-          transferRate            =max(         0.0d0         ,disk    %angularMomentum        (                         ))/barInstabilityTimescale
-          call                                      disk    %angularMomentumRate    (-           transferRate                              )
-          call                                      spheroid%angularMomentumRate    (+           transferRate ,interrupt,interruptProcedure)
+          transferRate               =max(         0.0d0         ,disk    %angularMomentum     (                         ))/barInstabilityTimescale
+          call                                      disk    %angularMomentumRate     (-           transferRate                              )
+          call                                      spheroid%angularMomentumRate     (+           transferRate ,interrupt,interruptProcedure)
           ! Gas abundances.
-          fuelAbundancesRates     =max(zeroAbundances         ,disk    %abundancesGas          (                         ))/barInstabilityTimescale
-          call                                      disk    %abundancesGasRate      (-     fuelAbundancesRates                             )
-          call                                      spheroid%abundancesGasRate      (+     fuelAbundancesRates,interrupt,interruptProcedure)
+          fuelAbundancesRates        =max(zeroAbundances         ,disk    %abundancesGas       (                         ))/barInstabilityTimescale
+          call                                      disk    %abundancesGasRate       (-     fuelAbundancesRates                             )
+          call                                      spheroid%abundancesGasRate       (+     fuelAbundancesRates,interrupt,interruptProcedure)
           ! Stellar abundances.
-          stellarAbundancesRates  =max(zeroAbundances         ,disk    %abundancesStellar      (                         ))/barInstabilityTimescale
-          call                                      disk    %abundancesStellarRate  (-  stellarAbundancesRates                             )
-          call                                      spheroid%abundancesStellarRate  (+  stellarAbundancesRates,interrupt,interruptProcedure)
+          stellarAbundancesRates     =max(zeroAbundances         ,disk    %abundancesStellar   (                         ))/barInstabilityTimescale
+          call                                      disk    %abundancesStellarRate   (-  stellarAbundancesRates                             )
+          call                                      spheroid%abundancesStellarRate   (+  stellarAbundancesRates,interrupt,interruptProcedure)
           ! Stellar luminosities.
-          luminositiesTransferRate=max(zeroStellarLuminosities,disk    %luminositiesStellar    (                         ))/barInstabilityTimescale
-          call                                      disk    %luminositiesStellarRate(-luminositiesTransferRate                             )
-          call                                      spheroid%luminositiesStellarRate(+luminositiesTransferRate,interrupt,interruptProcedure)
+          if (.not.diskLuminositiesStellarInactive .or. propertyType /= propertyTypeInactive) then
+             luminositiesTransferRate=max(zeroStellarLuminosities,disk    %luminositiesStellar (                         ))/barInstabilityTimescale
+             call                                   disk    %luminositiesStellarRate (-luminositiesTransferRate                             )
+             call                                   spheroid%luminositiesStellarRate (+luminositiesTransferRate,interrupt,interruptProcedure)
+          end if
           ! Stellar properties history.
           historyTransferRate=disk%stellarPropertiesHistory()
           if (historyTransferRate%exists()) then
@@ -840,7 +933,11 @@ contains
           end if
           call historyTransferRate%destroy()
           ! Additional external torque.
-          if (spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) .and. spheroid%radius() < darkMatterHaloScale_%virialRadius(node)) then
+          if     (                                                                                                                                                            &
+               &   spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*darkMatterHaloScale_%virialRadius(node)*darkMatterHaloScale_%virialVelocity(node) &
+               &  .and.                                                                                                                                                       &
+               &   spheroid%radius         () <                                             darkMatterHaloScale_%virialRadius(node)                                           &
+               & ) then
              call spheroid%angularMomentumRate(+barInstabilitySpecificTorque*(spheroid%massGas()+spheroid%massStellar()),interrupt,interruptProcedure)
           end if
        end if
@@ -850,12 +947,12 @@ contains
           massLossRate=ramPressureStrippingDisks_%rateMassLoss(node)
           if (massLossRate > 0.0d0) then
              hotHalo => node%hotHalo()
-             call    disk%                  massGasRate(-massLossRate                                                                       )
+             call    disk%                  massGasRate(-massLossRate                                                           )
              call    disk%          angularMomentumRate(-massLossRate*disk%angularMomentum()/(disk%massGas()+disk%massStellar()))
-             call    disk%            abundancesGasRate(-massLossRate*disk%abundancesGas  ()/ disk%massGas()                        )
-             call hotHalo%           outflowingMassRate(+massLossRate                                                                       )
+             call    disk%            abundancesGasRate(-massLossRate*disk%abundancesGas  ()/ disk%massGas()                    )
+             call hotHalo%           outflowingMassRate(+massLossRate                                                           )
              call hotHalo%outflowingAngularMomentumRate(+massLossRate*disk%angularMomentum()/(disk%massGas()+disk%massStellar()))
-             call hotHalo%outflowingAbundancesRate     (+massLossRate*disk%abundancesGas  ()/ disk%massGas()                        )
+             call hotHalo%outflowingAbundancesRate     (+massLossRate*disk%abundancesGas  ()/ disk%massGas()                    )
           end if
        end if
 
@@ -867,25 +964,33 @@ contains
              fractionGas    =  min(1.0d0,max(0.0d0,disk%massGas()/(disk%massGas()+disk%massStellar())))
              fractionStellar=  1.0d0-fractionGas
              if (fractionGas     > 0.0d0 .and. disk%massGas    () > 0.0d0) then
-                call    disk%                  massGasRate(-fractionGas    *massLossRate                                                                         )
-                call    disk%            abundancesGasRate(-fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                        )
-                call hotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                                         )
-                call hotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                        )
+                call    disk%                  massGasRate(-fractionGas    *massLossRate                                                             )
+                call    disk%            abundancesGasRate(-fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                    )
+                call hotHalo%           outflowingMassRate(+fractionGas    *massLossRate                                                             )
+                call hotHalo%outflowingAbundancesRate     (+fractionGas    *massLossRate*disk%abundancesGas    ()/ disk%massGas()                    )
                 call hotHalo%outflowingAngularMomentumRate(+fractionGas    *massLossRate*disk%angularMomentum  ()/(disk%massGas()+disk%massStellar()))
              end if
              if (fractionStellar > 0.0d0 .and. disk%massStellar() > 0.0d0) then
-                call    disk%              massStellarRate(-fractionStellar*massLossRate                                                                         )
-                call    disk%        abundancesStellarRate(-fractionStellar*massLossRate*disk%abundancesStellar()/                    disk%massStellar() )
+                ! If luminosities are being treated as inactive properties this is an error - they appear on the right-hand side
+                ! of the following ODE terms so are not inactive. (An approach similar to what is used for transfer of
+                ! luminosities to the spheroid by bar instabilities could work here.)
+                if (propertyType == propertyTypeActive .and. diskLuminositiesStellarInactive) call Galacticus_Error_Report('tidal mass loss not supported for inactive luminosity calculation'//{introspection:location})
+                ! Stellar mass and metals.
+                call    disk%              massStellarRate(-fractionStellar*massLossRate                                                             )
+                call    disk%        abundancesStellarRate(-fractionStellar*massLossRate*disk%abundancesStellar()/                disk%massStellar() )
+                ! Stellar luminosities.
+                luminositiesTransferRate=max(zeroStellarLuminosities,disk%luminositiesStellar())
+                call    disk%      luminositiesStellarRate(-fractionStellar*massLossRate*luminositiesTransferRate/                disk%massStellar() )
                 ! Stellar properties history.
                 historyTransferRate=disk%stellarPropertiesHistory()         
                 if (historyTransferRate%exists()) then
-                   call disk%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    disk%massStellar() )
+                   call disk%stellarPropertiesHistoryRate (-fractionStellar*massLossRate*historyTransferRate     /                disk%massStellar() )
                 end if
                 call historyTransferRate%destroy()
                 ! Star formation history.
                 historyTransferRate=disk%starFormationHistory()
                 if (historyTransferRate%exists()) then
-                   call disk    %starFormationHistoryRate (-fractionStellar*massLossRate*historyTransferRate         /                    disk%massStellar() )
+                   call disk    %starFormationHistoryRate (-fractionStellar*massLossRate*historyTransferRate     /                disk%massStellar() )
                 end if
              end if
              call       disk%          angularMomentumRate(-                massLossRate*disk%angularMomentum  ()/(disk%massGas()+disk%massStellar()))
@@ -915,6 +1020,7 @@ contains
     class           (nodeComponentSpheroid           )               , pointer :: spheroid
     double precision                                  , parameter              :: massMinimum                   =1.0d+00
     double precision                                  , parameter              :: angularMomentumMinimum        =1.0d-1
+    double precision                                  , parameter              :: fractionTolerance             =1.0d-4
     double precision                                  , parameter              :: luminosityMinimum             =1.0d0
     double precision                                                           :: angularMomentum                      , mass
     type            (history                         )                         :: stellarPopulationHistoryScales
@@ -936,8 +1042,11 @@ contains
             &              +abs(disk%massGas    ()) &
             &              +abs(disk%massStellar()) &
             &             )
-       call disk%massGasScale        (max(           mass,           massMinimum))
-       call disk%massStellarScale    (max(           mass,           massMinimum))
+       call disk%massGasScale                    (max(mass,massMinimum      ))
+       call disk%massStellarScale                (max(mass,massMinimum      ))
+       call disk%massStellarFormedScale          (max(mass,massMinimum      ))
+       ! Set the scale for the retained stellar mass fraction.
+       call disk%fractionMassRetainedScale(fractionTolerance*disk%fractionMassRetained())
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
           ! Set scale for abundances.

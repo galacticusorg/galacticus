@@ -524,12 +524,14 @@ The standard galactic disk implementation defines the following properties:
 \begin{description}
  \item [{\normalfont \ttfamily massGas}] The mass of gas in the disk: $M_\mathrm{disk, gas}$ [{\normalfont \ttfamily diskMassGas}].
  \item [{\normalfont \ttfamily abundancesGas}] The mass of elements in the gaseous disk: $M_{Z, \mathrm{disk, gas}}$ [{\normalfont \ttfamily diskAbundancesGas\{abundanceName\}}].
- \item [{\normalfont \ttfamily massStellar}] The mass of stars in the disk: $M_\mathrm{disk, stars}$ [{\normalfont \ttfamily diskMassStellars}].
+ \item [{\normalfont \ttfamily massStellar}] The mass of stars in the disk: $M_\mathrm{disk, stars}$ [{\normalfont \ttfamily diskMassStellar}].
  \item [{\normalfont \ttfamily abundancesStellar}] The mass of elements in the stellar disk: $M_{Z, \mathrm{disk, stars}}$ [{\normalfont \ttfamily diskAbundancesStellar\{abundanceName\}}].
  \item [{\normalfont \ttfamily luminositiesStellar}] The luminosities (in multiple bands) of the stellar disk: $L_\mathrm{disk, stars}$ [{\normalfont \ttfamily diskLuminositiesStellar\{luminosityName\}}].
  \item [{\normalfont \ttfamily angularMomentum}] The angular momentum of the disk, $J_\mathrm{disk}$ [{\normalfont \ttfamily diskAngularMomentum}].
  \item [{\normalfont \ttfamily radius}] The radial scale length of the disk, $R_\mathrm{disk}$ [{\normalfont \ttfamily diskRadius}].
  \item [{\normalfont \ttfamily velocity}] The circular velocity of the disk at $R_\mathrm{disk}$, $V_\mathrm{disk}$ [{\normalfont \ttfamily diskVelocity}].
+ \item [{\normalfont \ttfamily massStellarFormed}] The total mass of stars ever formed in the disk: $M_\mathrm{disk, stars, formed}$ .
+ \item [{\normalfont \ttfamily fractionMassRetained}] The fraction of mass retained in the disk as a result of transfer processes in which the transfer is proportional to the current mass: $f_\mathrm{retained}$.
 \end{description}
 
 \subsubsection{Initialization}
@@ -543,9 +545,10 @@ In the standard galactic disk implementation the gas mass evolves as:
  \dot{M}_\mathrm{disk, gas} = \dot{M}_\mathrm{cooling} - \dot{M}_\mathrm{outflow, disk} - \dot{M}_\mathrm{stars, disk} - {M_\mathrm{disk, gas}\over \tau_\mathrm{bar}} - \dot{M}_\mathrm{ram pressure} - {M_\mathrm{disk, gas} \over M_\mathrm{disk, gas} + M_\mathrm{disk, stars}} \dot{M}_\mathrm{tidal},
 \end{equation}
 where the rate of change of stellar mass is
-\begin{equation}
- \dot{M}_\mathrm{stars, disk} = \Psi - \dot{R} - {M_\mathrm{stars,disk} \over \tau_\mathrm{bar}} - {M_\mathrm{disk, stars} \over M_\mathrm{disk, gas} + M_\mathrm{disk, stars}} \dot{M}_\mathrm{tidal},
-\end{equation}
+\begin{eqnarray}
+  \dot{M}_\mathrm{stars, disk} &=& \Psi - \dot{R} - {M_\mathrm{stars,disk} \over \tau_\mathrm{bar}} - {M_\mathrm{disk, stars} \over M_\mathrm{disk, gas} + M_\mathrm{disk, stars}} \dot{M}_\mathrm{tidal}, \\
+  \dot{M}_\mathrm{stars, disk, formed } &=& \Psi,
+\end{eqnarray}
 with
 \begin{equation}
  \Psi = {M_\mathrm{disk, gas} \over \tau_\mathrm{disk, star~formation}}
@@ -564,6 +567,24 @@ where $\dot{y}$ is the rate of element yield from stars and $\dot{R}_Z$ is the r
  \dot{J}_\mathrm{disk} = \dot{J}_\mathrm{cooling} - \left[ \dot{M}_\mathrm{outflow, disk} + {M_\mathrm{disk, gas}  + M_\mathrm{disk, stars} \over \tau_\mathrm{bar}} + \dot{M}_\mathrm{ram pressure} + \dot{M}_\mathrm{tidal}\right] {J_\mathrm{disk} \over M_\mathrm{disk, gas}}.
 \end{equation}
 The outflow rate, $\dot{M}_\mathrm{outflow, disk}$, is computed for the current star formation rate and gas properties by the stellar properties subsystem (see \S\ref{sec:StellarPopulationProperties}) and prescriptions for expulsive and non-expulsive supernova feedback (see \S\ref{sec:sneExpulsiveFeedback} and \S\ref{sec:sneFeedback} respectively), but is not allowed to exceed $M_\mathrm{gas, disk}/ \alpha_\mathrm{outflow minimum, disk} \tau_\mathrm{disk, dynamical}$, where $\tau_\mathrm{disk, dynamical}=R_\mathrm{disk}/V_\mathrm{disk}$ is the dynamical time of the disk and $\alpha_\mathrm{outflow minimum, disk}=${\normalfont \ttfamily [diskOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the disk. This limit prevents the disk being depleted on arbitrarily short timescales. The non-expulsive \gls{component} of the outflow is piped to the hot halo component.  The ram pressure and tidal mass loss rates, $\dot{M}_\mathrm{ram pressure}$ and $\dot{M}_\mathrm{tidal}$, are computed using the selected methods (see \S\ref{sec:RamPressureMassLossRates} and \S\ref{sec:TidalMassLossRates} respectively).
+Finally, stellar luminosities evolve according to:
+\begin{equation}
+\dot{L}_\mathrm{disk, stars} = \Psi \mathcal{L}_\lambda(t_0-t,Z_\mathrm{gas})  - {L_\mathrm{disk, stars} \over \tau_\mathrm{bar}} - {L_\mathrm{disk, stars} \over M_\mathrm{disk, gas} + M_\mathrm{disk, stars}} \dot{M}_\mathrm{tidal},
+\end{equation}
+where $\mathcal{L}_\lambda(t,Z)$ is the luminosity-to-mass ratio in the relevant band for a stellar population of age $t$ and metallicity $Z$. The fraction of mass retained in the disk, $f_\mathrm{retained}$, is given by:
+\begin{equation}
+  \dot{f}_\mathrm{retained} = - {f_\mathrm{retained} \over \tau_\mathrm{bar}},
+\end{equation}
+where the initial value of $f_\mathrm{retained}$ is arbitrary as we will be interested only in ratios of the quantity.
+
+\subsubsection{Integral Evolution}
+
+The standard disk component supports solving for the stellar luminosities as inactive variables, if the parameter {\normalfont \ttfamily [diskLuminositiesStellarInactive]}$=${\normalfont \ttfamily true}. Across a timestep $t_i$ to $t_{i+1}$ the change in luminosity can be written as the following integral:
+\begin{eqnarray}
+\Delta L_\mathrm{disk, stars} &=& \int_{t_{i}}^{t_{i+1}} \mathrm{d}t \Psi \mathcal{L}_\lambda(t_0-t,Z_\mathrm{gas}) {f_\mathrm{retained}(t_{i+1}) \over f_\mathrm{retained}(t)}  + L_\mathrm{disk, stars}(t_i) {\dot{f}_\mathrm{retained}(t) \over f_\mathrm{retained}(t_{i})}, \\
+\Delta L_\mathrm{spheroid, stars} &=& \int_{t_{i}}^{t_{i+1}} \mathrm{d}t  \Psi \mathcal{L}_\lambda(t_0-t,Z_\mathrm{gas}) \left( 1 - {f_\mathrm{retained}(t_{i+1}) \over f_\mathrm{retained}(t)} \right) - L_\mathrm{disk, stars}(t_i) {\dot{f}_\mathrm{retained}(t) \over f_\mathrm{retained}(t_{i})}. \\
+\end{eqnarray}
+The first term in the integral for disk stellar luminosity is just the usual production of starlight due to star formation, reduced by a factor $f_\mathrm{retained}(t_{i+1}) / f_\mathrm{retained}(t)$ to account for that which will be retained in the disk at the end of the timestep. The second term accounts for transfer of starlight produced at $t<t_i$, since it integrates to $L_\mathrm{disk, stars}(t_i) (f_\mathrm{retained}(t_{i+1}) / f_\mathrm{retained}(t_{i}) - 1)$ which is the change in the starlight of the disk over the timestep. The functions $f_\mathrm{retained}(t)$ and $M_\mathrm{stars, disk, formed}(t)$ have already been solved for during the differential evolution phase. Therefore, $f_\mathrm{retained}(t)$ and $\dot{f}_\mathrm{retained}(t)$ are available for this calculation. Furthermore, we can make the replacement $\Psi = \dot{M}_\mathrm{stars, disk, formed}(t)$ in the above, allowing us to avoid recomputing $\Psi$ directly in these integral. The integral for the spheroid component simply reflects that starlight not retained in the disk is transferred to the spheroid.
 
 \subsubsection{Event Evolution}
 
@@ -660,6 +681,7 @@ I_n = \int_0^\infty \rho(r) r^n \mathrm{d}r,
 and $\rho(r)$ is the spheroid density profile, which is appropriate for a flat rotation curve. In some cases (e.g. the Hernquist profile) one or both of $I_2$ and $I_3$ can be infinite. In such cases {\normalfont \ttfamily [spheroidAngularMomentumAtScaleRadius]} $=0.5$ is assumed by default. If a finite truncation radius is assumed, or a different rotation curve is assumed, this ratio may be finite. The {\normalfont \ttfamily [spheroidAngularMomentumAtScaleRadius]} parameter allows control over these assumptions.
  \item [{\normalfont \ttfamily radius}] The radial scale length of the spheroid, $r_\mathrm{spheroid}$ [{\normalfont \ttfamily spheroidRadius}].
  \item [{\normalfont \ttfamily velocity}] The circular velocity of the spheroid at $r_\mathrm{spheroid}$, $V_\mathrm{spheroid}$ [{\normalfont \ttfamily spheroidVelocity}].
+ \item [{\normalfont \ttfamily massStellarFormed}] The total mass of stars ever formed in the spheroid: $M_\mathrm{spheroid, stars, formed}$.
 \end{description}
 and the following pipes:
 \begin{description}
@@ -678,9 +700,10 @@ In the standard galactic spheroid implementation the gas mass evolves as\footnot
  \dot{M}_\mathrm{spheroid, gas} = - \dot{M}_\mathrm{outflow, spheroid} - \dot{M}_\mathrm{stars, spheroid} - \dot{M}_\mathrm{ram pressure} - {M_\mathrm{spheroid, gas} \over M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars}} \dot{M}_\mathrm{tidal},
 \end{equation}
 where the rate of change of stellar mass is
-\begin{equation}
- \dot{M}_\mathrm{stars, spheroid} = \Psi - \dot{R} - {M_\mathrm{spheroid, stars} \over M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars}} \dot{M}_\mathrm{tidal},
-\end{equation}
+\begin{eqnarray}
+ \dot{M}_\mathrm{stars, spheroid} &=& \Psi - \dot{R} - {M_\mathrm{spheroid, stars} \over M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars}} \dot{M}_\mathrm{tidal}, \\
+ \dot{M}_\mathrm{stars, disk, formed } &=& \Psi,
+\end{eqnarray}
 with
 \begin{equation}
  \Psi = {M_\mathrm{spheroid, gas} \over \tau_\mathrm{spheroid, star~formation}}
@@ -704,6 +727,20 @@ The outflow rate, $\dot{M}_\mathrm{outflow, spheroid}$, is computed for the curr
  \dot{M}_\mathrm{outflow, spheroid} = \beta_\mathrm{spheroid, energy} {\dot{E}_\mathrm{gas, spheroid} \over V_\mathrm{spheroid}^2}
 \end{equation}
 where $\beta_\mathrm{spheroid, energy}=${\normalfont \ttfamily [spheroidEnergeticOutflowMassRate]} is an input parameter, and $\dot{E}_\mathrm{gas,spheroid}$ is any input energy sent through the {\normalfont \ttfamily Tree\_Node\_Spheroid\_Gas\_Energy\_Input} pipe, but is not allowed to exceed $M_\mathrm{gas, spheroid}/ \alpha_\mathrm{outflow minimum, spheroid} \tau_\mathrm{spheroid, dynamical}$, where $\tau_\mathrm{spheroid, dynamical}=R_\mathrm{spheroid}/V_\mathrm{spheroid}$ is the dynamical time of the spheroid and $\alpha_\mathrm{outflow minimum, spheroid}=${\normalfont \ttfamily [spheroidOutflowTimescaleMinimum]} is the shortest timescale (in units of the dynamical timescale) on which gas can be removed from the spheroid. This limit prevents the spheroid being depleted on arbitrarily short timescales. The non-expulsive \gls{component} of the outflow is piped to the hot halo component. The ram pressure and tidal mass loss rates, $\dot{M}_\mathrm{ram pressure}$ and $\dot{M}_\mathrm{tidal}$, are computed using the selected methods (see \S\ref{sec:RamPressureMassLossRates} and \S\ref{sec:TidalMassLossRates} respectively). The final term in \ref{eq:SpheroidStandardAngularMomentumEvolution} accounts for tidal heating of the spheroid due to the tidal field, $\mathcal{T}$.
+
+Finally, stellar luminosities evolve according to:
+\begin{equation}
+\dot{L}_\mathrm{spheroid, stars} = \Psi \mathcal{L}_\lambda(t_0-t,Z_\mathrm{gas}) - {L_\mathrm{spheroid, stars} \over M_\mathrm{spheroid, gas} + M_\mathrm{spheroid, stars}} \dot{M}_\mathrm{tidal},
+\end{equation}
+where $\mathcal{L}_\lambda(t,Z)$ is the luminosity-to-mass ratio in the relevant band for a stellar population of age $t$ and metallicity $Z$.
+
+\subsubsection{Integral Evolution}
+
+The standard spheroid component supports solving for the stellar luminosities as inactive variables, if the parameter {\normalfont \ttfamily [spheroidLuminositiesStellarInactive]}$=${\normalfont \ttfamily true}. Across a timestep $t_i$ to $t_{i+1}$ the change in luminosity can be written as the following integral:
+\begin{equation}
+\Delta L_\mathrm{spheroid, stars} = \int_{t_{i}}^{t_{i+1}} \mathrm{d}t \Psi \mathcal{L}_\lambda(t_0-t,Z_\mathrm{gas}),
+\end{equation}
+which is just the usual production of starlight due to star formation. As the function $M_\mathrm{stars, spheroid, formed}(t)$ has already been solved for during the differential evolution phase we can make the replacement $\Psi = \dot{M}_\mathrm{stars, disk, formed}(t)$ in the above, allowing us to avoid recomputing $\Psi$ directly in these integral.
 
 \subsubsection{Event Evolution}
 

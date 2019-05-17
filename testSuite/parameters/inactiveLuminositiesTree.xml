@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Benchmarking model for luminosity calculations -->
+<!-- 09-May-2019                                    -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>2.81</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <spin>0.035</spin>
+    </spin>
+    <disk>
+      <massStellar>0.0</massStellar>
+      <massGas>1.0e12</massGas>
+      <angularMomentum>1.0e12</angularMomentum>
+      <abundancesStellar>
+	<metals>0.0</metals>
+      </abundancesStellar>
+      <abundancesGas>
+	<metals>6.3e9</metals>
+      </abundancesGas>
+    </disk>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>13.81</time>
+      <mass>1.0e12</mass>
+    </basic>
+    <spin>
+      <spin>0.035</spin>
+    </spin>
+  </node>
+</tree>

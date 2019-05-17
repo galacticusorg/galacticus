@@ -319,9 +319,9 @@ contains
 
     ! Determine the end time for this node - either the specified end time, or the time associated with the parent node, whichever
     ! occurs first.
-    basicComponent => node%basic()
-    timeStart=basicComponent%time()
-    timeStartSaved   =timeStart
+    basicComponent => node          %basic    ()
+    timeStart      =  basicComponent%time     ()
+    timeStartSaved =                 timeStart
 
     ! Set a module-scope pointer to the galactic structure solver. We do this to ensure that the solver we act on here is the same
     ! one as used by the calling function (which will therefore be called by various event hook triggers).
@@ -535,7 +535,8 @@ contains
                         &            integratorErrorTolerate=.true.                                         , &
                         &            zCount                 =propertyCountInactive                          , &
                         &            z                      =propertyValuesInactive(1:propertyCountInactive), &
-                        &            integrands             =Tree_Node_Integrands                             &
+                        &            integrands             =Tree_Node_Integrands                           , &
+                        &            finalState             =Tree_Node_Final_State                            &
                         &           )
                 else
                    call ODEIV2_Solve(                                                                         &
@@ -642,13 +643,14 @@ contains
     return
   end function Tree_Node_Is_Accurate
 
-  subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,evaluate,integrands)
+  subroutine Tree_Node_Integrands(propertyCountActive,propertyCountInactive,time,propertyValues,propertyRates,inactivePropertyInitialValues,evaluate,integrands)
     !% A set of integrands for unit tests.
-    use Galacticus_Nodes          , only : rateComputeState
+    use Galacticus_Nodes, only : rateComputeState, propertyTypeInactive
     implicit none
     integer                        , intent(in   )                                              :: propertyCountActive             , propertyCountInactive
     double precision               , intent(in   ), dimension(                              : ) :: time
-    double precision               , intent(in   ), dimension(propertyCountActive  ,size(time)) :: propertyValues
+    double precision               , intent(in   ), dimension(propertyCountActive  ,size(time)) :: propertyValues                  , propertyRates
+    double precision               , intent(in   ), dimension(propertyCountInactive           ) :: inactivePropertyInitialValues
     logical                        , intent(inout), dimension(                              : ) :: evaluate
     double precision               , intent(  out), dimension(propertyCountInactive,size(time)) :: integrands
     logical                        , parameter                                                  :: odeConverged             =.true.
@@ -666,7 +668,9 @@ contains
     ! Iterate over times.
     do iTime=1,size(time)
        ! Deserialize the active values.
-       call activeNode%deserializeValues(propertyValues(1:propertyCountActive,iTime),propertyTypeODE)
+       call activeNode%deserializeValues(propertyValues               (1:propertyCountActive  ,iTime),propertyTypeODE     )
+       call activeNode%deserializeRates (propertyRates                (1:propertyCountActive  ,iTime),propertyTypeODE     )
+       call activeNode%deserializeValues(inactivePropertyInitialValues(1:propertyCountInactive      ),propertyTypeInactive)
        ! If past the time of the first interrupt, integrands are set to zero. Otherwise, evaluate integrands.
        if (interruptFirstFound .and. time(iTime) >= timeInterruptFirst) then
           integrands(:,iTime)=0.0d0
@@ -685,6 +689,23 @@ contains
     return
   end subroutine Tree_Node_Integrands
 
+  subroutine Tree_Node_Final_State(propertyCountActive,propertyValues)
+    !% Perform any actions based on the final state of the ODE step.
+    !# <include directive="finalStateTask" type="moduleUse">
+    include 'objects.tree_node.final_state.modules.inc'
+    !# </include>
+    implicit none
+    integer         , intent(in   )                                 :: propertyCountActive
+    double precision, intent(in   ), dimension(propertyCountActive) :: propertyValues
+    
+    call activeNode%deserializeValues(propertyValues(1:propertyCountActive),propertyTypeODE)
+    !# <include directive="finalStateTask" type="functionCall" functionType="void">
+    !#  <functionArgs>activeNode</functionArgs>
+    include 'objects.tree_node.final_state.inc'
+    !# </include>
+    return
+  end subroutine Tree_Node_Final_State
+  
   integer function Tree_Node_ODEs(time,y,dydt)
     !% Function which evaluates the set of ODEs for the evolution of a specific node.
     use ODE_Solver_Error_Codes
@@ -860,7 +881,7 @@ contains
     call Galacticus_Calculations_Reset(node)
     ! Trigger an event to perform any pre-derivative calculations.
     !# <eventHook name="preDerivative">
-    !#  <callWith>node</callWith>
+    !#  <callWith>node,propertyType</callWith>
     !# </eventHook>
     ! Do not attempt to compute derivatives for nodes which are not solvable.    
     if (.not.node%isSolvable) return   
