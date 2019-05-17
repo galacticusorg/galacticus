@@ -131,10 +131,10 @@ contains
     implicit none
     class(galacticStructureSolverFixed), intent(inout) :: self
 
-    call   preDerivativeEvent%attach(self,fixedSolveHook,bindToOpenMPThread=.true.)
-    call      postEvolveEvent%attach(self,fixedSolveHook,bindToOpenMPThread=.true.)
-    call satelliteMergerEvent%attach(self,fixedSolveHook,bindToOpenMPThread=.true.)
-    call   nodePromotionEvent%attach(self,fixedSolveHook,bindToOpenMPThread=.true.)
+    call   preDerivativeEvent%attach(self,fixedSolvePreDeriativeHook,bindToOpenMPThread=.true.)
+    call      postEvolveEvent%attach(self,fixedSolveHook            ,bindToOpenMPThread=.true.)
+    call satelliteMergerEvent%attach(self,fixedSolveHook            ,bindToOpenMPThread=.true.)
+    call   nodePromotionEvent%attach(self,fixedSolveHook            ,bindToOpenMPThread=.true.)
     return
   end subroutine fixedAutoHook
 
@@ -146,10 +146,10 @@ contains
 
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
-    call   preDerivativeEvent%detach(self,fixedSolveHook)
-    call      postEvolveEvent%detach(self,fixedSolveHook)
-    call satelliteMergerEvent%detach(self,fixedSolveHook)
-    call   nodePromotionEvent%detach(self,fixedSolveHook)
+    call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
+    call      postEvolveEvent%detach(self,fixedSolveHook            )
+    call satelliteMergerEvent%detach(self,fixedSolveHook            )
+    call   nodePromotionEvent%detach(self,fixedSolveHook            )
     return
   end subroutine fixedDestructor
 
@@ -168,6 +168,24 @@ contains
     end select
     return
   end subroutine fixedSolveHook
+  
+  subroutine fixedSolvePreDeriativeHook(self,node,propertyType)
+    !% Hookable wrapper around the solver.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (*       ), intent(inout)         :: self
+    type   (treeNode), intent(inout), target :: node
+    integer          , intent(in   )         :: propertyType
+    !GCC$ attributes unused :: propertyType
+
+    select type (self)
+    type is (galacticStructureSolverFixed)
+       call self%solve(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine fixedSolvePreDeriativeHook
   
   subroutine fixedSolve(self,node)
     !% Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in

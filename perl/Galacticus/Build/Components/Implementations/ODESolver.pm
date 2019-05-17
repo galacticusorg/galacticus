@@ -686,7 +686,7 @@ sub Implementation_ODE_Rate_Variables {
 	    intrinsic  => "double precision",
 	    attributes => [ "allocatable", "dimension(:)" ],
 	    ompPrivate => 1,
-	    variables  => [ "nodeScales", "nodeRates" ]
+	    variables  => [ "nodeScales", "nodeRates", "nodeRatesActives" ]
 	},
 	{
 	    intrinsic  => "logical",

@@ -20,6 +20,7 @@ use Text::Template 'fill_in_string';
 	 propertyIteratedFunctions =>
 	     [
 	      \&Build_Count_Functions           ,
+	      \&Build_Rate_Get_Functions        ,
 	      \&Build_Rate_Functions            ,
 	      \&Build_Generic_Rate_Functions    ,
 	      \&Build_Auto_Create_Rate_Functions,
@@ -83,6 +84,124 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => $code::property->{'name'}."Count"
+	}
+	);  
+}
+
+sub Build_Rate_Get_Functions {
+    # Build rate getting functions for non-virtual, evolvable properties.
+    my $build       = shift();
+    my $class       = shift();
+    my $member      = shift();
+    $code::property = shift();
+    # Skip this property if it is not evolvable, or is virtual.
+    return
+	if
+	(
+	    $code::property->{'attributes' }->{'isVirtual'  }
+	 ||
+	  ! $code::property->{'attributes' }->{'isEvolvable'}
+	);
+    # Determine the return type of the function.
+    (my $functionTypeDescriptor) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($code::property->{'data'});
+    my $functionType = 
+	                                                                    $functionTypeDescriptor->{'intrinsic' }            .
+	(exists($functionTypeDescriptor->{'type'      }) ? "(" .            $functionTypeDescriptor->{'type'      }  .")" : "").
+	(exists($functionTypeDescriptor->{'attributes'}) ? ", ".join(", ",@{$functionTypeDescriptor->{'attributes'}})     : "");
+    # Build the function.
+    my $implementationTypeName = "nodeComponent".ucfirst($class->{'name'}).ucfirst($member->{'name'});
+    my $function =
+    {
+	type        => $functionType." => propertyRate",
+	name        => $class->{'name'}.ucfirst($member->{'name'}).ucfirst($code::property->{'name'})."RateGet",
+	description => "Get the rate of change of the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property of an {\\normalfont \\ttfamily ".$member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	modules     =>
+	    [
+	     "Galacticus_Error"
+	    ],
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $implementationTypeName,
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "offset" ]
+	     }
+	    ]
+    };
+    # Add a count variable if necessary.
+    push(
+	@{$function->{'variables'}},
+	{
+	    intrinsic  => "integer",
+	    variables  => [ "count" ]
+	}				
+	)
+	if (
+	    ( 
+	      &isIntrinsic($code::property->{'data'}->{'type'})
+	      &&
+	                   $code::property->{'data'}->{'rank'} > 0
+	    )
+	    ||
+	    ! &isIntrinsic($code::property->{'data'}->{'type'})   
+	);
+    # Determine which arguments are unused.
+    @code::argumentsUnused = ( );
+    push(@code::argumentsUnused,"self")
+	if ( &isIntrinsic($code::property->{'data'}->{'type'}) );
+    # Build the function.
+    if ( scalar(@code::argumentsUnused) > 0 ) {
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: {join(",",@argumentsUnused)}
+CODE
+    }
+    $code::offsetNameAll      = &offsetName('all'     ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offsetNameInactive = &offsetName('inactive',$class->{'name'}.ucfirst($member->{'name'}),$code::property->{'name'});
+    $code::offset = fill_in_string(<<'CODE', PACKAGE => 'code');
+if (rateComputeState == propertyTypeInactive) then
+ if (nodeInactives({$offsetNameAll})) call Galacticus_Error_Report('rates are gettable only for active variables'//\{introspection:location\})
+ offset={$offsetNameActive}
+else
+ offset=0
+ call Galacticus_Error_Report('rates are gettable only during inactive variable integration'//\{introspection:location\})
+end if
+CODE
+    if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
+	if ( $code::property->{'data'}->{'rank'} == 0 ) {
+	    $function->{'content'} .= $code::offset;
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+propertyRate=nodeRatesActives(offset)
+CODE
+	} else {
+	    $function->{'content'} .= $code::offset;
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+count=size(self%{$property->{'name'}}Data)
+propertyRate=nodeRatesActives(offset:offset+count-1)
+CODE
+	}
+    } else {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+count=self%{$property->{'name'}}Data%serializeCount()
+if (count > 0) then
+{$offset}
+   propertyRate=self%{$property->{'name'}}Data
+   call propertyRate%deserialize(nodeRatesActives(offset:offset+count-1))
+end if
+CODE
+    }
+    # Insert a type-binding for this function into the relevant type.
+    push(
+	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => $code::property->{'name'}."RateGet"
 	}
 	);  
 }

@@ -84,14 +84,15 @@ contains
     return
   end function Jacobian_Set_2
 
-  subroutine Integrands_Set_2(ny,nz,x,y,e,dzdx)
+  subroutine Integrands_Set_2(ny,nz,x,y,dydx,z0,e,dzdx)
     !% A set of integrands for unit tests.
     integer         , intent(in   )                        :: ny  , nz
     double precision, intent(in   ), dimension(        : ) :: x
-    double precision, intent(in   ), dimension(ny,size(x)) :: y
+    double precision, intent(in   ), dimension(ny,size(x)) :: y   , dydx
+    double precision, intent(in   ), dimension(nz        ) :: z0
     logical         , intent(inout), dimension(        : ) :: e
     double precision, intent(  out), dimension(nz,size(x)) :: dzdx
-    !GCC$ attributes unused :: x
+    !GCC$ attributes unused :: x, dydx, z0
     
     if (e(1)) dzdx(1,:)=1.0d0/sqrt(1.0d0+y(1,:)**2)   
     if (e(2)) dzdx(2,:)=1.0d0/sqrt(1.0d0+y(2,:)**2)

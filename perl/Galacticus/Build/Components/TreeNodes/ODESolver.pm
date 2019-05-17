@@ -24,6 +24,7 @@ use Galacticus::Build::Components::DataTypes;
 	      \&Tree_Node_ODE_Serialize_Values  ,
 	      \&Tree_Node_ODE_Deserialize_Values,
 	      \&Tree_Node_ODE_Serialize_Rates   ,
+	      \&Tree_Node_ODE_Deserialize_Rates ,
 	      \&Tree_Node_ODE_Serialize_Scales  ,
 	      \&Tree_Node_ODE_Serialize_Inactive,
 	      \&Tree_Node_ODE_Name_From_Index   ,
@@ -363,6 +364,57 @@ CODE
 	);
 }
 
+sub Tree_Node_ODE_Deserialize_Rates {
+    # Generate a function to deserialize rates of evolvable properties of a node from an array from the ODE solver.
+    my $build = shift();
+    # Define the function.
+    my $function =
+    {
+	type        => "void",
+	name        => "treeNodeDeserializeRatesToArray",
+	description => "Deserialize rates of evolvable properties of a node from an array.",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "dimension(:)", "intent(in   )" ],
+		 variables  => [ "array" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "propertyType" ],
+	     }
+	    ]
+    };    
+    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self
+select case (propertyType)
+case (propertyTypeAll     )
+ nodeRatesActives(1:nodeSerializationCount        )=array(1:nodeSerializationCount        )
+case (propertyTypeActive  )
+ nodeRatesActives(1:nodeSerializationCountActive  )=array(1:nodeSerializationCountActive  )
+case (propertyTypeInactive)
+ nodeRatesActives(1:nodeSerializationCountInactive)=array(1:nodeSerializationCountInactive)
+end select
+CODE
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "deserializeRates"
+	}
+	);
+}
+
 sub Tree_Node_ODE_Serialize_Inactive {
     # Generate a function to serialize inactive status of evolvable properties of a node into an array for the ODE solver.
     my $build = shift();
@@ -504,16 +556,19 @@ CODE
     }
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (.not.allocated(nodeScales)) then
-   allocate  (nodeScales   (count))
-   allocate  (nodeRates    (count))
-   allocate  (nodeInactives(count))
+   allocate  (nodeScales      (count))
+   allocate  (nodeRates       (count))
+   allocate  (nodeRatesActives(count))
+   allocate  (nodeInactives   (count))
 else if (size(nodeScales) < count) then
-   deallocate(nodeScales          )
-   deallocate(nodeRates           )
-   deallocate(nodeInactives       )
-   allocate  (nodeScales   (count))
-   allocate  (nodeRates    (count))
-   allocate  (nodeInactives(count))
+   deallocate(nodeScales             )
+   deallocate(nodeRates              )
+   deallocate(nodeRatesActives       )
+   deallocate(nodeInactives          )
+   allocate  (nodeScales      (count))
+   allocate  (nodeRates       (count))
+   allocate  (nodeRatesActives(count))
+   allocate  (nodeInactives   (count))
 end if
 nodeSerializationCount         =count
 select case (propertyType)

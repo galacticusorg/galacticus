@@ -48,21 +48,31 @@ module ODEIV2_Solver
   
   ! Integrand interface.
   abstract interface
-     subroutine integrandTemplate(ny,nz,x,y,e,dzdx)
+     subroutine integrandTemplate(ny,nz,x,y,dydx,z0,e,dzdx)
        integer         , intent(in   )                        :: ny  , nz
        double precision, intent(in   ), dimension(        : ) :: x
-       double precision, intent(in   ), dimension(ny,size(x)) :: y
+       double precision, intent(in   ), dimension(ny,size(x)) :: y   , dydx
+       double precision, intent(in   ), dimension(nz        ) :: z0
        logical         , intent(inout), dimension(        : ) :: e
        double precision, intent(  out), dimension(nz,size(x)) :: dzdx
      end subroutine integrandTemplate
   end interface
 
+  ! Final state interface.
+  abstract interface
+     subroutine finalStateTemplate(ny,y)
+       integer         , intent(in   )                :: ny
+       double precision, intent(in   ), dimension(ny) :: y
+     end subroutine finalStateTemplate
+  end interface
+
   type :: odeiv2ODEsList
      !% Type used to maintain a list of ODEs when ODE solving is performed recursively.
-     procedure(     odesTemplate), pointer, nopass :: ODEs
-     procedure( jacobianTemplate), pointer, nopass :: jacobian
-     procedure(integrandTemplate), pointer, nopass :: integrands
-     integer  (c_size_t         )                  :: ODENumber , integrandsNumber    
+     procedure(      odesTemplate), pointer, nopass :: ODEs
+     procedure(  jacobianTemplate), pointer, nopass :: jacobian
+     procedure( integrandTemplate), pointer, nopass :: integrands
+     procedure(finalStateTemplate), pointer, nopass :: finalState
+     integer  (c_size_t          )                  :: ODENumber , integrandsNumber    
   end type odeiv2ODEsList
   
   ! List of currently active root ODE systems.
@@ -75,7 +85,7 @@ contains
   subroutine ODEIV2_Solve(                                                                             &
        &                  odeDriver,odeSystem,x0,x1,yCount,y,odes,toleranceAbsolute,toleranceRelative, &
        &                  postStep,Error_Analyzer                                                             , &
-       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,integrator_,integratorErrorTolerate  &
+       &                  yScale,errorHandler,algorithm,reset,odeStatus,stepSize,jacobian,zCount,z,integrands,finalState,integrator_,integratorErrorTolerate  &
        &                 )
     !% Interface to the \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library} \href{http://www.gnu.org/software/gsl/manual/html_node/Ordinary-Differential-Equations.html}{ODEIV2} differential equation solvers.
     use Galacticus_Error
@@ -101,6 +111,7 @@ contains
     procedure       (jacobianTemplate            ), optional                              :: jacobian
     integer                                       , parameter                             :: genericFailureCountMaximum=10
     procedure       (integrandTemplate           ), optional                              :: integrands
+    procedure       (finalStateTemplate          ), optional                              :: finalState
     integer                                       , intent(in   ), optional               :: zCount
     double precision                              , intent(inout), optional, dimension(:) :: z
     class            (integratorMultiVectorized1D), intent(inout), optional               :: integrator_
@@ -146,6 +157,11 @@ contains
     else
        currentODEs(currentODEsIndex)%integrands       => null()
        currentODEs(currentODEsIndex)%integrandsNumber =  0
+    end if
+    if (present(finalState)) then
+       currentODEs(currentODEsIndex)%finalState       => finalState
+    else
+       currentODEs(currentODEsIndex)%finalState       => null()
     end if
     ! Set initial values of integrands.
     if (present(integrands)) then       
@@ -274,9 +290,15 @@ contains
       use Galacticus_Error
       use Galacticus_Display
       implicit none
-      double precision, intent(in   ) :: x
-      integer                         :: status
+      double precision, intent(in   )     :: x
+      double precision, dimension(yCount) :: y
+      integer                             :: status
 
+      ! Call with the final state.
+      if (associated(currentODEs(currentODEsIndex)%finalState)) then
+         call FODEIV2_Driver_MSBDFActive_State(odeDriver,currentODEs(currentODEsIndex)%ODENumber,y)
+         call currentODEs(currentODEsIndex)%finalState(yCount,y)
+      end if
       ! Evaluate the integrals, and update the stored time ready for the next step.
       z         =+z                                         &
            &     +integrator_%evaluate(xStepBegin,x,status)
@@ -298,15 +320,15 @@ contains
       double precision, intent(in   ), dimension(            : ) :: x
       logical         , intent(inout), dimension(            : ) :: e
       double precision, intent(  out), dimension(nz    ,size(x)) :: dzdx
-      double precision               , dimension(yCount,size(x)) :: y
+      double precision               , dimension(yCount,size(x)) :: dydx, y
       integer                                                    :: i
       
       ! Evaluate the active parameters.
       do i=1,size(x)         
-         call FODEIV2_Driver_MSBDFActive_Context(odeDriver,currentODEs(currentODEsIndex)%ODENumber,x(i),y(:,i))
+         call FODEIV2_Driver_MSBDFActive_Context(odeDriver,currentODEs(currentODEsIndex)%ODENumber,x(i),y(:,i),dydx(:,i))
       end do
       ! Call the integrand function.
-      call currentODEs(currentODEsIndex)%integrands(yCount,nz,x,y,e,dzdx)
+      call currentODEs(currentODEsIndex)%integrands(yCount,nz,x,y,dydx,z,e,dzdx)
       return
     end subroutine integrandsWrapper
     
