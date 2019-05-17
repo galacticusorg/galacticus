@@ -63,6 +63,12 @@ module Node_Component_Spheroid_Standard
   !#     <output unitsInSI="massSolar" comment="Mass of stars in the standard spheroid."/>
   !#   </property>
   !#   <property>
+  !#     <name>massStellarFormed</name>
+  !#     <type>double</type>
+  !#     <rank>0</rank>
+  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+  !#   </property>
+  !#   <property>
   !#     <name>abundancesStellar</name>
   !#     <type>abundances</type>
   !#     <rank>0</rank>
@@ -406,7 +412,8 @@ contains
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)
     !% Trim histories attached to the spheroid.
     use FGSL                           , only : FGSL_Failure
-    use Galacticus_Nodes               , only : treeNode    , nodeComponentSpheroid, nodeComponentSpheroidStandard
+    use Galacticus_Nodes               , only : treeNode               , nodeComponentSpheroid, nodeComponentSpheroidStandard
+    use Galacticus_Error               , only : Galacticus_Error_Report
     use Galacticus_Display
     use String_Handling
     use ISO_Varying_String
@@ -416,15 +423,17 @@ contains
     type            (treeNode             ), intent(inout), pointer :: node
     integer                                , intent(inout)          :: status
     class           (nodeComponentSpheroid)               , pointer :: spheroid
-    double precision                       , save                   :: fractionalErrorMaximum=0.0d0
-    double precision                                                :: fractionalError             , specificAngularMomentum, &
+    double precision                       , parameter              :: angularMomentumTolerance=1.0d-2
+    double precision                       , parameter              :: massTolerance           =1.0d+0
+    double precision                       , save                   :: fractionalErrorMaximum  =0.0d+0
+    double precision                                                :: fractionalError                , specificAngularMomentum, &
          &                                                             spheroidMass
     character       (len=20               )                         :: valueString
     type            (varying_string       )                         :: message
 
     ! Get the spheroid component.
     spheroid => node%spheroid()
-    ! Check if an exponential spheroid component exists.
+    ! Check if an standard spheroid component exists.
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
        ! Trap negative gas masses.
@@ -622,6 +631,7 @@ contains
     use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
+    use Galacticus_Error                          , only : Galacticus_Error_Report
     use Galacticus_Nodes                          , only : treeNode                , nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentHotHalo, &
          &                                                 defaultSpheroidComponent, propertyTypeActive   , propertyTypeAll              , propertyTypeInactive
     implicit none
@@ -661,8 +671,16 @@ contains
             & .or. spheroid%radius         () <          radiusMinimum &
             & .or. spheroid%massGas        () <            massMinimum &
             & ) return
-       ! Find the star formation timescale.
-       starFormationRate=spheroid%starFormationRate()
+       ! Compute the star formation rate.
+       if (propertyType == propertyTypeInactive) then
+          starFormationRate=spheroid%massStellarFormedRateGet()          
+       else
+          ! During active property solution, integrate the star formation rate so that we will have a solution for the total mass
+          ! of stars formed as a function of time. This differs from the stellar mass due to recycling, and possibly transfer of
+          ! stellar mass to other components.
+          starFormationRate=spheroid%starFormationRate()
+          call spheroid%massStellarFormedRate(starFormationRate)
+       end if
        ! Get the available fuel mass.
        fuelMass         =spheroid%massGas          ()
        ! Find the metallicity of the fuel supply.
@@ -760,8 +778,14 @@ contains
                 call hotHalo %outflowingAngularMomentumRate  (+fractionGas    *massLossRate*spheroid%angularMomentum  ()/(spheroid%massGas()+spheroid%massStellar()))
              end if
              if (fractionStellar > 0.0d0 .and. spheroid%massStellar() > 0.0d0) then
+                ! If luminosities are being treated as inactive properties this is an error - they appear on the right-hand side
+                ! of the following ODE terms so are not inactive. (An approach similar to what is used for transfer of
+                ! luminosities to the spheroid by bar instabilities in the standard disk component could work here.)
+                if (propertyType == propertyTypeActive .and. spheroidLuminositiesStellarInactive) call Galacticus_Error_Report('tidal mass loss not supported for inactive luminosity calculation'//{introspection:location})
                 call spheroid%              massStellarRate  (-fractionStellar*massLossRate                                                                         )
                 call spheroid%        abundancesStellarRate  (-fractionStellar*massLossRate*spheroid%abundancesStellar()/                    spheroid%massStellar() )
+                luminositiesStellarRates=max(zeroStellarLuminosities,spheroid%luminositiesStellar())
+                call spheroid%      luminositiesStellarRate(-fractionStellar*massLossRate*luminositiesStellarRates      /                    spheroid%massStellar() )
                 ! Stellar properties history.
                 historyTransferRate=spheroid%stellarPropertiesHistory()         
                 if (historyTransferRate%exists()) then
@@ -905,15 +929,16 @@ contains
 
        ! Set scale for angular momentum.
        angularMomentum=abs(spheroid%angularMomentum())
-       call spheroid%angularMomentumScale(               max(angularMomentum,angularMomentumMinimum))
+       call spheroid%angularMomentumScale  (               max(angularMomentum,angularMomentumMinimum))
 
        ! Set scale for gas mass.
        mass           =abs(                        &
             &              +spheroid%massGas    () &
             &              +spheroid%massStellar() &
             &             )
-       call spheroid%        massGasScale(gasMassScaling*max(           mass,           massMinimum))
-       call spheroid%    massStellarScale(               max(           mass,           massMinimum))
+       call spheroid%          massGasScale(gasMassScaling*max(           mass,           massMinimum))
+       call spheroid%      massStellarScale(               max(           mass,           massMinimum))
+       call spheroid%massStellarFormedScale(               max(           mass,           massMinimum))
 
        ! Set scales for abundances if necessary.
        if (abundancesCount > 0) then
