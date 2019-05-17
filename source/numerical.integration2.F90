@@ -2139,29 +2139,26 @@ contains
        ! integrand at the midpoint by linear interpolation - which is consistent with the approximations of the trapezoidal
        ! integration rule.
        where (mustEvaluate)
-          newInterval1%error=abs(0.5d0*width*fm-0.25d0*current%integral)
-       elsewhere
-          newInterval1%error=                  +0.50d0*current%error
-          fm                =0.5d0*(fa+fb)
+          ! Set new intervals and errors, for integrands that were evaluated (any not evaulated are already converged so we do not
+          ! need to update them further). Error on second integral is identical to that on the first.
+          newInterval1%fa      =    fa
+          newInterval2%fb      =    fb
+          newInterval1%fb      = fm
+          newInterval2%fa      = fm
+          newInterval1%integral=(fm+fa)*0.5d0*width
+          newInterval2%integral=(fm+fb)*0.5d0*width
+          newInterval1%error   =abs(0.5d0*width*fm-0.25d0*current%integral)
+          newInterval2%error   =newInterval1%error
+          ! Updated integrals and error estimates.
+          integral =+integral              &
+               &    -current     %integral &
+               &    +newInterval1%integral &
+               &    +newInterval2%integral
+          error    =+error                 &
+               &    -current     %error    &
+               &    +newInterval1%error    &
+               &    +newInterval2%error
        end where
-       ! Set new intervals.
-       newInterval1%fa      =    fa
-       newInterval2%fb      =    fb
-       newInterval1%fb      = fm
-       newInterval2%fa      = fm
-       newInterval1%integral=(fm+fa)*0.5d0*width
-       newInterval2%integral=(fm+fb)*0.5d0*width
-       ! Error on second integral is identical to that on the first.
-       newInterval2%error=newInterval1%error
-       ! Updated integrals and error estimates.
-       integral =+integral              &
-            &    -current     %integral &
-            &    +newInterval1%integral &
-            &    +newInterval2%integral
-       error    =+error                 &
-            &    -current     %error    &
-            &    +newInterval1%error    &
-            &    +newInterval2%error
        ! Test for convergence.
        converged= converged                                         &
             &    .or.                                               &
@@ -2180,9 +2177,14 @@ contains
           allocate(listRank (intervalCount))
           newInterval => head
           do iInterval=1_c_size_t,intervalCount
-             list     (iInterval)%interval_ =>        newInterval
-             listValue(iInterval)           =  maxval(newInterval%error/errorScale,mask=.not.converged)
-             newInterval                    =>        newInterval%next
+             list     (iInterval)%interval_ => newInterval
+             newInterval                    => newInterval%next
+             ! We avoid use of maxval(,mask=) here (and instead determine the maximum error using a simple loop) because maxval()
+             ! evaluates all elements prior to applying the mask, so it wastes time in computing values that we will never need.
+             listValue(iInterval)=0.0d0
+             do i=1,self%integrandCount
+                if (.not.converged(i)) listValue(iInterval)=max(listValue(iInterval),list(iInterval)%interval_%error(i)/errorScale(i))
+             end do
           end do
           listRank    =  Sort_Index_Do(listValue)
           head        => list(listRank(intervalCount))%interval_
@@ -2208,13 +2210,22 @@ contains
           ! the absolute and relative tolerances) of non-converged integrals is descending.
           current       =>  head
           previous      =>  head
-          errorScale    =   max(                                    &
-               &              self%toleranceAbsolute              , &
-               &              self%toleranceRelative*abs(integral)  &
-               &             )
-          errorMaximum  =   max(0.0d0,maxval(newInterval1%error/errorScale,mask=.not.converged))
-          errorsMaximum =  +errorScale   &
-               &           *errorMaximum
+          ! Find the maximum scaled error across all non-converged integrands in our new interval.
+          errorMaximum=0.0d0
+          do i=1,self%integrandCount
+             if (converged(i)) then
+                errorScale(i)=1.0d0
+             else
+                errorScale(i)=max(                                            &
+                     &            self%toleranceAbsolute(i)                 , &
+                     &            self%toleranceRelative(i)*abs(integral(i))  &
+                     &           )              
+                errorMaximum =max(errorMaximum,newInterval1%error(i)/errorScale(i))
+             end if
+          end do
+          errorsMaximum=+errorScale   &
+                  &     *errorMaximum
+          ! Search for where to insert this interval in the list.
           do while (                                                                 &
                &      associated(                     current%next                 ) &
                &    .and.                                                            &
@@ -2226,7 +2237,7 @@ contains
           ! Check if we reached the end of the stack.
           if (.not.associated(current%next)) then
              ! End of stack reached. Check if new interval goes before or after the final stack entry.
-             if (maxval(current%error/errorScale,mask=.not.converged) > errorMaximum) then
+             if (any(.not.converged .and. current%error > errorsMaximum)) then
                 ! New interval goes at the end of the stack.
                 current%next => newInterval1
              else
