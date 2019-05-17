@@ -86,10 +86,10 @@ contains
     implicit none
     class(galacticStructureSolverSimple), intent(inout) :: self
 
-    call   preDerivativeEvent%attach(self,simpleSolveHook,bindToOpenMPThread=.true.)
-    call      postEvolveEvent%attach(self,simpleSolveHook,bindToOpenMPThread=.true.)
-    call satelliteMergerEvent%attach(self,simpleSolveHook,bindToOpenMPThread=.true.)
-    call   nodePromotionEvent%attach(self,simpleSolveHook,bindToOpenMPThread=.true.)
+    call   preDerivativeEvent%attach(self,simpleSolvePreDeriativeHook,bindToOpenMPThread=.true.)
+    call      postEvolveEvent%attach(self,simpleSolveHook            ,bindToOpenMPThread=.true.)
+    call satelliteMergerEvent%attach(self,simpleSolveHook            ,bindToOpenMPThread=.true.)
+    call   nodePromotionEvent%attach(self,simpleSolveHook            ,bindToOpenMPThread=.true.)
     return
   end subroutine simpleAutoHook
 
@@ -100,10 +100,10 @@ contains
     type(galacticStructureSolverSimple), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
-    call   preDerivativeEvent%detach(self,simpleSolveHook)
-    call      postEvolveEvent%detach(self,simpleSolveHook)
-    call satelliteMergerEvent%detach(self,simpleSolveHook)
-    call   nodePromotionEvent%detach(self,simpleSolveHook)
+    call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
+    call      postEvolveEvent%detach(self,simpleSolveHook            )
+    call satelliteMergerEvent%detach(self,simpleSolveHook            )
+    call   nodePromotionEvent%detach(self,simpleSolveHook            )
     return
   end subroutine simpleDestructor
 
@@ -122,6 +122,24 @@ contains
     end select
     return
   end subroutine simpleSolveHook
+  
+  subroutine simpleSolvePreDeriativeHook(self,node,propertyType)
+    !% Hookable wrapper around the solver.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (*       ), intent(inout)         :: self
+    type   (treeNode), intent(inout), target :: node
+    integer          , intent(in   )         :: propertyType
+    !GCC$ attributes unused :: propertyType
+
+    select type (self)
+    type is (galacticStructureSolverSimple)
+       call self%solve(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine simpleSolvePreDeriativeHook
   
   subroutine simpleSolve(self,node)
     !% Solve for the structure of galactic components.

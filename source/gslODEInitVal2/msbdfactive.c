@@ -1794,24 +1794,41 @@ msbdfactive_reset (void *vstate, size_t dim)
    interpolate. */
 
 void
-msbdfactive_context ( gsl_odeiv2_driver *d, const size_t dim, double t, double y[] )
+msbdfactive_context ( gsl_odeiv2_driver *d, const size_t dim, double t, double y[], double dydt[] )
 {
   msbdfactive_state_t *state = (msbdfactive_state_t *) d->s->state;
   double *const z = state->z;
   double const x = (t - state->tprev) / state->hprev[0] - 1.0;
-  size_t i, j, k;
+  size_t i, j;
   for(i=0;i<dim;++i)
     {
       y[i] = 0.0;
-      for(j=0;j<state->ord+1;++j)
-	{
-	  double p = z[j * dim + i];
-	  for(k=0;k<j;++k)
+      dydt[i] = 0.0;
+      for(j=state->ord+1;j>0;--j)
+      	{
+      	  y[i] = x*y[i]+z[(j-1) * dim + i];
+	  if (j > 1)
 	    {
-	      p *= x;
+	      dydt[i] = x*dydt[i]+(j-1)*z[(j-1) * dim + i];
 	    }
-	  y[i] += p;
-	}
+      	}
+      dydt[i] /= state->hprev[0];
+    }
+}
+
+/* Evaluates the interpolating polynomial at the current time */
+/* Andrew Benson; 13-May-2019 */
+/* As in msbdfactive_context() we use the Nordseick matrix. Since the time variable, x, is defined to be zero at the current time the current state is just given by the j=0 elements of the matrix */
+
+void
+msbdfactive_state ( gsl_odeiv2_driver *d, const size_t dim, double y[] )
+{
+  msbdfactive_state_t *state = (msbdfactive_state_t *) d->s->state;
+  double *const z = state->z;
+  size_t i;
+  for(i=0;i<dim;++i)
+    {
+      y[i] = z[i];	 
     }
 }
 

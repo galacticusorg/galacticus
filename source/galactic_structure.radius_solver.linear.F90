@@ -77,10 +77,10 @@ contains
     implicit none
     class(galacticStructureSolverLinear), intent(inout) :: self
 
-    call   preDerivativeEvent%attach(self,linearSolveHook,bindToOpenMPThread=.true.)
-    call      postEvolveEvent%attach(self,linearSolveHook,bindToOpenMPThread=.true.)
-    call satelliteMergerEvent%attach(self,linearSolveHook,bindToOpenMPThread=.true.)
-    call   nodePromotionEvent%attach(self,linearSolveHook,bindToOpenMPThread=.true.)
+    call   preDerivativeEvent%attach(self,linearSolvePreDeriativeHook,bindToOpenMPThread=.true.)
+    call      postEvolveEvent%attach(self,linearSolveHook            ,bindToOpenMPThread=.true.)
+    call satelliteMergerEvent%attach(self,linearSolveHook            ,bindToOpenMPThread=.true.)
+    call   nodePromotionEvent%attach(self,linearSolveHook            ,bindToOpenMPThread=.true.)
     return
   end subroutine linearAutoHook
 
@@ -91,10 +91,10 @@ contains
     type(galacticStructureSolverLinear), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    call   preDerivativeEvent%detach(self,linearSolveHook)
-    call      postEvolveEvent%detach(self,linearSolveHook)
-    call satelliteMergerEvent%detach(self,linearSolveHook)
-    call   nodePromotionEvent%detach(self,linearSolveHook)
+    call   preDerivativeEvent%detach(self,linearSolvePreDeriativeHook)
+    call      postEvolveEvent%detach(self,linearSolveHook            )
+    call satelliteMergerEvent%detach(self,linearSolveHook            )
+    call   nodePromotionEvent%detach(self,linearSolveHook            )
     return
   end subroutine linearDestructor
 
@@ -113,6 +113,24 @@ contains
     end select
     return
   end subroutine linearSolveHook
+  
+  subroutine linearSolvePreDeriativeHook(self,node,propertyType)
+    !% Hookable wrapper around the solver.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class  (*       ), intent(inout)         :: self
+    type   (treeNode), intent(inout), target :: node
+    integer          , intent(in   )         :: propertyType
+    !GCC$ attributes unused :: propertyType
+    
+    select type (self)
+    type is (galacticStructureSolverLinear)
+       call self%solve(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine linearSolvePreDeriativeHook
   
   subroutine linearSolve(self,node)
     !% Solve for the structure of galactic components assuming no self-gravity of baryons, and that size simply scales in

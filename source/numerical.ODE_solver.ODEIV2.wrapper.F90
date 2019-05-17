@@ -37,7 +37,8 @@ module fodeiv2
        fodeiv2_driver_alloc_y_new, fodeiv2_driver_alloc_yp_new, &
        fodeiv2_driver_alloc_scaled_new,  fodeiv2_driver_set_hmin, &
        fodeiv2_driver_set_hmax, fodeiv2_driver_set_nmax, fodeiv2_driver_status, &
-       fodeiv2_driver_errors, fodeiv2_driver_h, fodeiv2_driver_msbdfactive_context
+       fodeiv2_driver_errors, fodeiv2_driver_h, fodeiv2_driver_msbdfactive_context, &
+       fodeiv2_driver_msbdfactive_state
 
   ! Specify an explicit dependence on the C utilities, the Multi-Step Backward Differentiation Formula with Active/Inactive
   ! variables, and LU decomposition with Active/Inactive variables object files.
@@ -102,13 +103,19 @@ module fodeiv2
        import
        type   (c_ptr        ), value         :: d
      end subroutine gsl_odeiv2_driver_init_errors
-     subroutine msbdfactive_context(d,dim,t,y) bind(c)
+     subroutine msbdfactive_context(d,dim,t,y,dydt) bind(c)
        import
        type   (c_ptr        ), value :: d
        integer(kind=c_size_t), value :: dim
        real   (kind=c_double), value :: t
-       real   (kind=c_double), dimension(*), intent(inout) :: y
+       real   (kind=c_double), dimension(*), intent(inout) :: y, dydt
      end subroutine msbdfactive_context
+     subroutine msbdfactive_state(d,dim,y) bind(c)
+       import
+       type   (c_ptr        ), value :: d
+       integer(kind=c_size_t), value :: dim
+       real   (kind=c_double), dimension(*), intent(inout) :: y
+     end subroutine msbdfactive_state
      function gsl_odeiv2_step_alloc(t, dim) bind(c)
        import
        type   (c_ptr        ), value :: t
@@ -386,13 +393,19 @@ contains
     real(kind=c_double), intent(inout) :: yerr(:)
     call gsl_odeiv2_driver_errors(d%odeiv2_driver,yerr)
   end subroutine fodeiv2_driver_errors
-  subroutine fodeiv2_driver_msbdfactive_context(d,dim,t,y)
+  subroutine fodeiv2_driver_msbdfactive_context(d,dim,t,y,dydt)
     type   (fodeiv2_driver), intent(inout) :: d
     integer(kind=c_size_t), intent(in) :: dim
     real   (kind=c_double), intent(in) :: t
-    real(kind=c_double), intent(inout) :: y(:)
-    call msbdfactive_context(d%odeiv2_driver,dim,t,y)
+    real(kind=c_double), intent(inout) :: y(:),dydt(:)
+    call msbdfactive_context(d%odeiv2_driver,dim,t,y,dydt)
   end subroutine fodeiv2_driver_msbdfactive_context
+  subroutine fodeiv2_driver_msbdfactive_state(d,dim,y)
+    type   (fodeiv2_driver), intent(inout) :: d
+    integer(kind=c_size_t), intent(in) :: dim
+    real(kind=c_double), intent(inout) :: y(:)
+    call msbdfactive_state(d%odeiv2_driver,dim,y)
+  end subroutine fodeiv2_driver_msbdfactive_state
   function fodeiv2_step_alloc(t, dim)
     type   (fodeiv2_step_type), intent(in   ) :: t
     integer(kind=fgsl_size_t ), intent(in   ) :: dim

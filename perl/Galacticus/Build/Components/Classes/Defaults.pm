@@ -19,8 +19,9 @@ use Text::Template 'fill_in_string';
      {
 	 classIteratedFunctions =>
 	     [
-	      \&Class_Property_Is_Gettable,
-	      \&Class_Property_Default
+	      \&Class_Property_Is_Gettable ,
+	      \&Class_Property_Default     ,
+	      \&Class_Property_Rate_Default
 	     ]
      }
     );
@@ -197,6 +198,78 @@ CODE
 		type        => "procedure", 
 		descriptor  => $function,
 		name        => $code::property->{'name'}
+	    }
+	);
+    }
+}
+
+sub Class_Property_Rate_Default {
+    # Build functions that return the class default (0) rate for properties.
+    my $build       = shift();
+    $code::class    = shift();
+    # Iterate over properties.
+    foreach $code::property ( &List::ExtraUtils::hashList(&Class_Members_By_Property($code::class)) ) {
+	# Build the function.
+	(my $functionTypeDescriptor, $code::functionTypeLabel) = &Galacticus::Build::Components::DataTypes::dataObjectDefinition($code::property->{'property'}->{'data'});
+	my $function =
+	{
+	    type        => 
+		$functionTypeDescriptor->{'intrinsic'}.
+		(
+		      exists(       $functionTypeDescriptor->{'type'      } )
+		 ?
+		             "(" .  $functionTypeDescriptor->{'type'      }  .")"
+		 :
+		 ""
+		).
+		(
+		      exists(       $functionTypeDescriptor->{'attributes'} )
+		 ? 
+		 ", ".join  (", ",@{$functionTypeDescriptor->{'attributes'}}) 
+		 :
+		 ""
+		).
+		" => classDefault",
+	    name        => $code::class->{'name'}.ucfirst($code::property->{'name'})."RateGet",
+	    description => "Returns a zero rate for the {\\normalfont \\ttfamily ".$code::property->{'name'}."} property for the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component class.",
+	    variables =>
+		[
+		 {
+		     intrinsic  => "class",
+		     type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		     attributes => [ "intent(inout)" ],
+		     variables   => [ "self" ]
+		 }
+		]
+	};
+	# Generate the function code.
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+!GCC$ attributes unused :: self
+CODE
+	# Insert code to return zero values.
+	if ( $code::property->{'property'}->{'data'}->{'rank'} == 0 ) {
+	    if ( &isIntrinsic($code::property->{'property'}->{'data'}->{'type'}) ) {
+		%code::intrinsicNulls = %intrinsicNulls;
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+classDefault={$intrinsicNulls{$property->{'property'}->{'data'}->{'type'}}}
+CODE
+	    } else {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+call classDefault%reset()
+CODE
+	    }
+	} else {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    classDefault=null{$functionTypeLabel.$property->{'property'}->{'data'}->{'rank'}}d
+CODE
+	}
+	# Insert a type-binding for this function into the treeNode type.
+	push(
+	    @{$build->{'types'}->{'nodeComponent'.ucfirst($code::class->{'name'})}->{'boundFunctions'}},
+	    {
+		type        => "procedure", 
+		descriptor  => $function,
+		name        => $code::property->{'name'}."RateGet"
 	    }
 	);
     }
