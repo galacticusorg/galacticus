@@ -672,8 +672,10 @@ contains
     call destroy(self%document)
     !$omp end critical (FoX_DOM_Access)
     nullify(self%document)
-    call self%parameters%destroy()
-    deallocate(self%parameters)
+    if (associated(self%parameters)) then
+       call self%parameters%destroy()
+       deallocate(self%parameters)
+    end if
     call inputParametersFinalize(self)
     return
   end subroutine inputParametersDestroy
