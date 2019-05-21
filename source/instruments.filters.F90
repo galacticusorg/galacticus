@@ -287,19 +287,21 @@ contains
     filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
          &                                                    /sum(                                        filterResponses(filterIndex)%response)
     ! Store the filter effective wavelength to the output file.
-    call hdf5Access%set()    
-    filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
-    firstFilter =.not.filtersGroup%hasDataset('name')
-    word        =filterResponses(filterIndex)%name
-    call filtersGroup%writeDataset([word                                            ],'name'               ,'Filter name.'                       ,appendTo=.true.                        )
-    call filtersGroup%writeDataset([filterResponses(filterIndex)%wavelengthEffective],'wavelengthEffective','Effective wavelength of filter [Å].',appendTo=.true.,datasetReturned=dataset)
-    if (firstFilter) then
-       call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
-       call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
+    if (galacticusOutputFileIsOpen) then
+       call hdf5Access%set()
+       filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
+       firstFilter =.not.filtersGroup%hasDataset('name')
+       word        =filterResponses(filterIndex)%name
+       call filtersGroup%writeDataset([word                                            ],'name'               ,'Filter name.'                       ,appendTo=.true.                        )
+       call filtersGroup%writeDataset([filterResponses(filterIndex)%wavelengthEffective],'wavelengthEffective','Effective wavelength of filter [Å].',appendTo=.true.,datasetReturned=dataset)
+       if (firstFilter) then
+          call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
+          call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
+       end if
+       call dataset     %close()
+       call filtersGroup%close()
+       call hdf5Access%unset()
     end if
-    call dataset     %close()
-    call filtersGroup%close()
-    call hdf5Access%unset()    
     return
   end subroutine Filter_Response_Load
 
