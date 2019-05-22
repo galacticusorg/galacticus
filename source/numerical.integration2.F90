@@ -45,7 +45,7 @@ module Numerical_Integration2
      private
      integer                                                    :: depth
      double precision                                           ::  a   ,  b
-     double precision               , dimension(:), allocatable :: fa   , fb      , &
+     double precision               , dimension(:), allocatable :: fa   , fb       , &
           &                                                        error, integral
      type            (intervalMulti), pointer                   :: next
   end type intervalMulti
@@ -1987,34 +1987,45 @@ contains
     use               Galacticus_Display
     implicit none
     class           (integratorMultiVectorizedCompositeTrapezoidal1D), intent(inout)                                :: self
-    double precision                                                 , intent(in   )                                :: a                , b
+    double precision                                                 , intent(in   )                                :: a                                      , b
     integer                                                          , intent(  out)                   , optional   :: status
-    double precision                                                 , dimension(self%integrandCount  )             :: integral         , error        , &
-         &                                                                                                             errorScale       , errorsMaximum
-    logical                                                          , dimension(self%integrandCount  )             :: converged        , mustEvaluate, &
+    integer         (c_size_t                                       ), parameter                                    :: intervalListSizeInitial  =1000_c_size_t, bisectionIntegrandsMinimum=8_c_size_t, &
+         &                                                                                                             bisectionIntervalsMaximum=6000_c_size_t
+    double precision                                                 , dimension(self%integrandCount  )             :: integral                               , error                                , &
+         &                                                                                                             errorScale                             , errorsMaximum
+    logical                                                          , dimension(self%integrandCount  )             :: converged                              , mustEvaluate                         , &
          &                                                                                                             convergedPrevious
     double precision                                                 , dimension(                    2)             :: xUnion
     double precision                                                 , dimension(self%integrandCount,2)             :: fUnion
-    double precision                                                 , dimension(self%integrandCount  )             :: fa               , fb           , &
+    double precision                                                 , dimension(self%integrandCount  )             :: fa                                     , fb                                   , &
          &                                                                                                             fm
-    double precision                                                                                                :: midpoint         , width        , &
-         &                                                                                                             errorMaximum
     type            (intervalMultiList                              ), dimension(:)                   , allocatable :: list
     double precision                                                 , dimension(:)                   , allocatable :: listValue
     integer         (c_size_t                                       ), dimension(:)                   , allocatable :: listRank
-    type            (intervalMulti                                  ), pointer                                      :: head             , newInterval1 , &
-         &                                                                                                             newInterval2     , current      , &
-         &                                                                                                             previous         , newInterval
-    integer         (c_size_t                                       )                                               :: iInterval        , intervalCount, &
-         &                                                                                                             i
+    type            (intervalMulti                                  ), pointer                                      :: head                                   , newInterval1                         , &
+         &                                                                                                             newInterval2                           , current                              , &
+         &                                                                                                             previous                               , newInterval                          , &
+         &                                                                                                             lastInsertCurrent                      , lastInsertPrevious                   , &
+         &                                                                                                             searchStart                            , searchEnd                            , &
+         &                                                                                                             searchMidpoint
+    double precision                                                                                                :: midpoint                               , width                                , &
+         &                                                                                                             errorMaximum
+    integer         (c_size_t                                       )                                               :: iInterval                              , intervalCount                        , &
+         &                                                                                                             i                                      , indexStart                           , &
+         &                                                                                                             indexEnd                               , indexMidpoint
     type            (varying_string                                 )                                               :: message
     character       (len=32                                         )                                               :: label
-
+    !$GLC attributes initialized :: previous
+    
     ! If the interval has zero size, return a zero result.
     if (a == b) then
        integral=0.0d0
        return
     end if
+    ! Create list of intervals.
+    allocate(list     (intervalListSizeInitial))
+    allocate(listValue(intervalListSizeInitial))
+    allocate(listRank (intervalListSizeInitial))
     ! Create our first estimate of the integral, using a single interval.
     intervalCount=1_c_size_t
     allocate(head                              )
@@ -2022,10 +2033,11 @@ contains
     allocate(head%fb      (self%integrandCount))
     allocate(head%integral(self%integrandCount))
     allocate(head%error   (self%integrandCount))
-    head%a       =  a
-    head%b       =  b    
-    head%next    => null()
-    mustEvaluate =  .true.
+    lastInsertCurrent => null()
+    head%next         => null()
+    head%a            =  a
+    head%b            =  b    
+    mustEvaluate      =  .true.
     xUnion=[head%a,head%b]
     call self%integrand(self%integrandCount,xUnion,mustEvaluate,fUnion)
     head%fa      =fUnion(:,1)
@@ -2044,11 +2056,12 @@ contains
     ! Iterate until convergence is reached.
     do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum)
        ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
-       current  => head      ! Pop the head from the list.
-       head     => head%next
-       intervalCount=intervalCount-1_c_size_t
-       width    =  (current%b-current%a)/2.0d0
-       midpoint =  (current%b+current%a)/2.0d0
+       current       => head      ! Pop the head from the list.
+       head          => head%next
+       intervalCount =  intervalCount-1_c_size_t
+       width         =  (current%b-current%a)/2.0d0
+       midpoint      =  (current%b+current%a)/2.0d0
+       if (associated(lastInsertCurrent,current)) lastInsertCurrent => null()
        ! Evaluate the function at the endpoints and midpoints of the current interval. For endpoints, reuse stored values.
        fa       =  current%fa
        fb       =  current%fb
@@ -2172,9 +2185,14 @@ contains
                &         self%toleranceAbsolute              , &
                &         self%toleranceRelative*abs(integral)  &
                &        )
-          allocate(list     (intervalCount))
-          allocate(listValue(intervalCount))
-          allocate(listRank (intervalCount))
+          if (intervalCount > size(list)) then
+             deallocate(list                      )
+             deallocate(listValue                 )
+             deallocate(listRank                  )
+             allocate  (list     (2*intervalCount))
+             allocate  (listValue(2*intervalCount))
+             allocate  (listRank (2*intervalCount))
+          end if
           newInterval => head
           do iInterval=1_c_size_t,intervalCount
              list     (iInterval)%interval_ => newInterval
@@ -2186,17 +2204,14 @@ contains
                 if (.not.converged(i)) listValue(iInterval)=max(listValue(iInterval),list(iInterval)%interval_%error(i)/errorScale(i))
              end do
           end do
-          listRank    =  Sort_Index_Do(listValue)
+          listRank(1_c_size_t:intervalCount)    =  Sort_Index_Do(listValue(1_c_size_t:intervalCount))
           head        => list(listRank(intervalCount))%interval_
           newInterval => head
           do iInterval=2_c_size_t,intervalCount
              newInterval%next => list(listRank(intervalCount+1_c_size_t-iInterval))%interval_
              newInterval      => newInterval%next
-          end do
+          end do          
           newInterval%next => null()
-          deallocate(list     )
-          deallocate(listValue)
-          deallocate(listRank )
        end if
        ! Destroy the old interval.
        deallocate(current)
@@ -2208,8 +2223,6 @@ contains
           ! Stack is not empty. Perform an insertion sort to insert our new subinterval into the sorted stack. The sorting is
           ! such that the stack is ordered with the interval for which the scaled error (i.e. error divided by the larger of
           ! the absolute and relative tolerances) of non-converged integrals is descending.
-          current       =>  head
-          previous      =>  head
           ! Find the maximum scaled error across all non-converged integrands in our new interval.
           errorMaximum=0.0d0
           do i=1,self%integrandCount
@@ -2224,16 +2237,85 @@ contains
              end if
           end do
           errorsMaximum=+errorScale   &
-                  &     *errorMaximum
-          ! Search for where to insert this interval in the list.
-          do while (                                                                 &
-               &      associated(                     current%next                 ) &
-               &    .and.                                                            &
-               &      any       (.not.converged .and. current%error > errorsMaximum) &
-               &   )
-             previous => current
-             current  => current%next
-          end do
+               &        *errorMaximum
+          ! Search for where to insert this interval in the list. We check if the insertion should happen after the location of
+          ! the previous insertion. If it does, we begin searching from that point. This is often efficient as consecutively
+          ! evaluated intervals often have similar errors.
+          if (associated(lastInsertCurrent)) then
+             if (any(.not.converged .and. lastInsertCurrent%error > errorsMaximum)) then
+                current   => lastInsertCurrent
+                previous  => lastInsertPrevious
+             else               
+                current   => head
+                previous  => head
+             end if
+          else
+             current   => head
+             previous  => head
+          end if 
+          ! Determine whether to do a simple search through the list (stepping one interval at a time and checking the error
+          ! measure), or doing a bisection search. The simple search requires more evaluations of the error measure, but the
+          ! bisection search requires construction of an array of pointers to intervals. The optimal strategy depends on the
+          ! number of integrands and intervals in use. Heuristically the following condition seems to give reasonably good
+          ! performance.
+          if (self%integrandCount <= bisectionIntegrandsMinimum .and. intervalCount > bisectionIntervalsMaximum) then
+             ! Simple search.
+             do while (                                                                 &
+                  &      associated(                     current%next                 ) &
+                  &    .and.                                                            &
+                  &      any       (.not.converged .and. current%error > errorsMaximum) &
+                  &   )
+                previous => current
+                current  => current%next
+             end do          
+          else
+             ! Bisection search.
+             indexStart  = 1_c_size_t
+             searchStart => current
+             if (any(.not.converged .and. searchStart%error > errorsMaximum)) then
+                if (intervalCount > size(list)) then
+                   deallocate(list                      )
+                   deallocate(listValue                 )
+                   deallocate(listRank                  )
+                   allocate  (list     (2*intervalCount))
+                   allocate  (listValue(2*intervalCount))
+                   allocate  (listRank (2*intervalCount))
+                end if
+                indexEnd                 =  1_c_size_t
+                searchEnd                => current
+                list(indexEnd)%interval_ => head
+                do while (associated(searchEnd%next))
+                   indexEnd                 =  +indexEnd       &
+                        &                      +1_c_size_t
+                   previous                 =>  searchEnd
+                   searchEnd                =>  searchEnd%next
+                   list(indexEnd)%interval_ =>  searchEnd
+                end do
+                if (any(.not.converged .and. searchEnd%error > errorsMaximum)) then
+                   ! Insert at end of list.
+                   current => searchEnd
+                else
+                   ! Bisection search for insertion point.
+                   do while (indexEnd > indexStart+1_c_size_t)
+                      ! Find the midpoint.
+                      indexMidpoint  =  indexStart+(indexEnd-indexStart)/2_c_size_t
+                      searchMidPoint => list(indexMidpoint)%interval_
+                      if (any(.not.converged .and. searchMidpoint%error > errorsMaximum)) then
+                         indexStart  =  indexMidpoint
+                         searchStart => searchMidpoint
+                      else
+                         indexEnd    =  indexMidpoint
+                         searchEnd   => searchMidpoint
+                      end if
+                   end do
+                   current  => searchEnd
+                   previous => searchStart
+                end if
+             end if
+          end if
+          ! Record the insertion point for use next time.
+          lastInsertCurrent  => current
+          lastInsertPrevious => previous
           ! Check if we reached the end of the stack.
           if (.not.associated(current%next)) then
              ! End of stack reached. Check if new interval goes before or after the final stack entry.
@@ -2253,8 +2335,8 @@ contains
           else
              ! End of stack not reached. Insert new interval after the previous interval.
              if (associated(current,head)) then
-                newInterval2%next => head
-                head              => newInterval1
+                newInterval2%next     => head
+                head                  => newInterval1
              else
                 newInterval2%next => previous    %next
                 previous    %next => newInterval1
@@ -2273,6 +2355,10 @@ contains
        current  => current%next
        deallocate(previous)
     end do
+    ! Destroy the interval pointer list.
+    deallocate(list     )
+    deallocate(listValue)
+    deallocate(listRank )
     ! Report error if number of intervals was exceeded.
     if (present(status)) status=errorStatusSuccess
     if (intervalCount >= self%intervalsMaximum .and. .not.all(converged)) then
