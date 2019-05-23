@@ -35,6 +35,7 @@
      final     ::                sequenceDestructor
      procedure :: multiplier  => sequenceMultiplier
      procedure :: deepCopy    => sequenceDeepCopy
+     procedure :: descriptor  => sequenceDescriptor
   end type stellarPopulationSpectraPostprocessorSequence
 
   interface stellarPopulationSpectraPostprocessorSequence
@@ -154,3 +155,23 @@ contains
     end select
     return
   end subroutine sequenceDeepCopy
+
+  subroutine sequenceDescriptor(self,descriptor,includeMethod)
+    !% Return an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters
+    implicit none
+    class  (stellarPopulationSpectraPostprocessorSequence), intent(inout)           :: self
+    type   (inputParameters                              ), intent(inout)           :: descriptor
+    logical                                               , intent(in   ), optional :: includeMethod
+    type   (postprocessorList                            ), pointer                 :: postprocessor_
+    type   (inputParameters                              )                          :: parameters
+
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('stellarPopulationSpectraPostprocessorMethod','sequence')
+    parameters     =  descriptor%subparameters ('stellarPopulationSpectraPostprocessorMethod')
+    postprocessor_ => self      %postprocessors
+    do while (associated(postprocessor_))
+       call postprocessor_%postprocessor_%descriptor(parameters)
+       postprocessor_ => postprocessor_%next
+    end do
+    return
+  end subroutine sequenceDescriptor
