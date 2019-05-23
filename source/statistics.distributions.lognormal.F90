@@ -161,8 +161,8 @@ contains
   double precision function logNormalInverse(self,p)
     !% Return the inverse of a normal distribution.
     implicit none
-    class           (distributionFunction1DLogNormal), intent(inout) :: self
-    double precision                                 , intent(in   ) :: p
+    class           (distributionFunction1DLogNormal), intent(inout), target :: self
+    double precision                                 , intent(in   )         :: p
 
     logNormalInverse=exp(self%distributionFunction1DNormal%inverse(p))
     return

@@ -116,8 +116,8 @@ contains
     use Galacticus_Error
     use Numerical_Constants_Math
     implicit none
-    class           (distributionFunction1DCauchy), intent(inout) :: self
-    double precision                              , intent(in   ) :: p
+    class           (distributionFunction1DCauchy), intent(inout), target :: self
+    double precision                              , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
          & call Galacticus_Error_Report(                             &

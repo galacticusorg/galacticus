@@ -102,9 +102,9 @@ contains
     !% Return the inverse of a negative exponential distribution.
     use Galacticus_Error
     implicit none
-    class           (distributionFunction1DNegativeExponential), intent(inout) :: self
-    double precision                                           , intent(in   ) :: p
-    double precision                                           , parameter     :: pTiny=1.0d-6
+    class           (distributionFunction1DNegativeExponential), intent(inout), target :: self
+    double precision                                           , intent(in   )         :: p
+    double precision                                           , parameter             :: pTiny=1.0d-6
 
     if      (                                                    &
          &    p < 0.0d0                                          &
