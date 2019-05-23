@@ -272,15 +272,38 @@ sub parameterVectorApply {
 	&parameterValueSet($parameter,$valueIndex,$parameterValue)
 	    if ( grep {$modelParameter->{'name'}->{'value'} eq $_} @{$model->{'parameters'}} );
     }
+    # Find any derived parameters specified as options.
+    my @derivedParameters;
+    if ( exists($options{'derivedParameter'}) ) {	
+	foreach my $derivedParameter ( &List::ExtraUtils::as_array($options{'derivedParameter'}) ) {
+	    if ( $derivedParameter =~ m/(.*)=(.*)/ ) {
+		my $parameter = {
+		    value      => "derived",
+		    name       => {value => $1},
+		    definition => {value => $2}
+		};
+		push(@derivedParameters,$parameter);
+		(my $parameterDependent, my $valueIndexDependent) = &parameterFind($parameters,$parameter->{'name'}->{'value'});
+		my $valueDependent = &parameterValueGet($parameterDependent,$valueIndexDependent);
+		&parameterValueSet($parameterDependent,$valueIndexDependent,$parameter->{'definition'}->{'value'});
+	    } else {
+		die("Galacticus::Constraints::Parameters::parameterVectorApply(): Can not parse derived parameter definition '".$derivedParameter."'");
+	    }
+	}
+    }
     # Resolve any derived parameters.
     my $dependenciesResolved = 0;
     while ( ! $dependenciesResolved ) {
 	my $progress = 0;
 	$dependenciesResolved = 1;
-	foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}) ) {
+	foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}), @derivedParameters ) {
 	    # Skip parameters not applicable to this model.
 	    next
-		unless ( grep {$modelParameter->{'name'}->{'value'} eq $_} @{$model->{'parameters'}} );
+		unless (
+		    ( grep {$modelParameter->{'name'}->{'value'} eq $_                     }  @{$model->{'parameters'}} )
+		    ||  
+		    ( grep {$modelParameter->{'name'}->{'value'} eq $_->{'name'}->{'value'}}  @derivedParameters        )
+		);
 	    # Skip non-defined parameters.
 	    next
 		unless ( $modelParameter->{'value'} eq "derived" );
