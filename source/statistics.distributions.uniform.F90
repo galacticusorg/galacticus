@@ -131,8 +131,8 @@ contains
     !% Return the inverse of a uniform distribution.
     use Galacticus_Error
     implicit none
-    class           (distributionFunction1DUniform), intent(inout) :: self
-    double precision                               , intent(in   ) :: p
+    class           (distributionFunction1DUniform), intent(inout), target :: self
+    double precision                               , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
          & call Galacticus_Error_Report(                             &

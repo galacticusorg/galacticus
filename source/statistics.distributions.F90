@@ -44,6 +44,7 @@ module Statistics_Distributions
   !#  <method name="inverse" >
   !#    <type>double precision</type>
   !#    <pass>yes</pass>
+  !#    <selfTarget>yes</selfTarget>
   !#    <argument>double precision, intent(in   ) :: p</argument>
   !#    <description>Return the value of the independent variable corresponding to cumulative probability {\normalfont \ttfamily p}.</description>
   !#  </method>

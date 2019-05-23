@@ -97,8 +97,8 @@ contains
     use Galacticus_Error
     use FGSL            , only : FGSL_CDF_tDist_Pinv
     implicit none
-    class           (distributionFunction1DStudentT), intent(inout) :: self
-    double precision                                , intent(in   ) :: p
+    class           (distributionFunction1DStudentT), intent(inout), target :: self
+    double precision                                , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
          & call Galacticus_Error_Report(                             &

@@ -188,8 +188,8 @@ contains
     use Galacticus_Error
     use Gamma_Functions
     implicit none
-    class           (distributionFunction1DGamma), intent(inout) :: self
-    double precision                   , intent(in   ) :: p
+    class           (distributionFunction1DGamma), intent(inout), target :: self
+    double precision                             , intent(in   )         :: p
 
     if (p < 0.0d0 .or. p > 1.0d0)                                    &
          & call Galacticus_Error_Report(                             &
