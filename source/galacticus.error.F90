@@ -375,7 +375,6 @@ contains
     return
   end subroutine Galacticus_Signal_Handler_SIGBUS
 
-
   subroutine Galacticus_Signal_Handler_SIGILL()
     !% Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
     !$ use OMP_Lib
