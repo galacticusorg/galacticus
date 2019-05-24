@@ -213,7 +213,7 @@ contains
     ! Ensure that we have the mangle source.
     if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle")) then
        ! Clone the mangle repo.
-       call System_Command_Do("cd "//galacticusPath(pathTypeExec)//"aux; git clone https://github.com/mollyswanson/mangle.git",iStatus)
+       call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"mangle; git clone https://github.com/mollyswanson/mangle.git",iStatus)
        if (iStatus /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"mangle"            )) &
             & call Galacticus_Error_Report('failed to clone mangle repo'       //{introspection:location})
     end if
