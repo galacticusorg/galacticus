@@ -54,6 +54,7 @@ contains
   subroutine Meta_Tree_Timing_Initialize()
     !% Initialize the tree timing meta-data module.
     use Input_Parameters
+    use Galacticus_Error
     implicit none
 
     ! Check if module is initialized.
@@ -77,6 +78,7 @@ contains
           !#   <source>globalParameters</source>
           !#   <type>boolean</type>
           !# </inputParameter>
+          if (metaCollectMemoryUsageData .and. .not.metaCollectTimingData) call Galacticus_Error_Report('collection of memoru usage data requires collection of timing data also'//{introspection:location})
           ! Flag that module is initialized.
           metaTimingDataInitialized=.true.
        end if
@@ -119,11 +121,11 @@ contains
     use Galacticus_Nodes   , only : mergerTree              , treeNode, nodeComponentBasic
     use Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
-    type (mergerTree               ), intent(in   ) :: tree
-    type (treeNode                 ), pointer       :: node
-    class(nodeComponentBasic       ), pointer       :: basic
-    type (treeNode                 ), pointer       :: nodeWork
-    type  (mergerTreeWalkerAllNodes)                :: treeWalker
+    type (mergerTree              ), intent(in   ) :: tree
+    type (treeNode                ), pointer       :: node
+    class(nodeComponentBasic      ), pointer       :: basic
+    type (treeNode                ), pointer       :: nodeWork
+    type (mergerTreeWalkerAllNodes)                :: treeWalker
 
     ! Ensure the module is initialized.
     call Meta_Tree_Timing_Initialize()
@@ -241,18 +243,20 @@ contains
     integer(c_size_t                )                         :: memoryUsage
     type   (mergerTreeWalkerAllNodes)                         :: treeWalker
     
-    tree        => node%hostTree%firstTree
-    treeWork    => tree
-    treeWalker  =  mergerTreeWalkerAllNodes(tree,spanForest=.true.)
-    memoryUsage = 0_c_size_t
-    do while (associated(treeWork))
-       memoryUsage =  memoryUsage+treeWork%sizeof  ()
-       treeWork    =>             treeWork%nextTree
-    end do
-    do while (treeWalker%next(nodeWork))
-       memoryUsage=memoryUsage+nodeWork%sizeOf()
-    end do
-    memoryUsagePeak=max(memoryUsagePeak,memoryUsage)
+     if (metaCollectMemoryUsageData) then
+       tree        => node%hostTree%firstTree
+       treeWork    => tree
+       treeWalker  =  mergerTreeWalkerAllNodes(tree,spanForest=.true.)
+       memoryUsage = 0_c_size_t
+       do while (associated(treeWork))
+          memoryUsage =  memoryUsage+treeWork%sizeof  ()
+          treeWork    =>             treeWork%nextTree
+       end do
+       do while (treeWalker%next(nodeWork))
+          memoryUsage=memoryUsage+nodeWork%sizeOf()
+       end do
+       memoryUsagePeak=max(memoryUsagePeak,memoryUsage)
+    end if
     return
   end subroutine Meta_Tree_Timing_Post_Evolve
 
@@ -283,9 +287,11 @@ contains
        call timingDataGroup%writeDataset(treeEvolveTimes   (1:treesRecordedCount),"treeEvolveTimes"   ,"Tree evolution time [s]"   ,datasetReturned=metaDataDataset)
        call metaDataDataset%writeAttribute(1.0d0    ,"unitsInSI")
        call metaDataDataset%close()
-       call timingDataGroup%writeDataset(treeMemoryUsages  (1:treesRecordedCount),"treeMemoryUsages"  ,"Tree memory usage [bytes]"                                 )
-       call timingDataGroup%writeDataset(treeNodeCounts    (1:treesRecordedCount),"treeNodeCounts"    ,"Tree node counts"                                          )
-       call timingDataGroup%close()
+       if (metaCollectMemoryUsageData) then
+          call timingDataGroup%writeDataset(treeMemoryUsages  (1:treesRecordedCount),"treeMemoryUsages"  ,"Tree memory usage [bytes]"                                 )
+          call timingDataGroup%writeDataset(treeNodeCounts    (1:treesRecordedCount),"treeNodeCounts"    ,"Tree node counts"                                          )
+          call timingDataGroup%close()
+       end if
        call metaDataGroup  %close()
        !$ call hdf5Access%unset()
     end if
