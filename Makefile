@@ -446,7 +446,7 @@ $(BUILDPATH)/galacticus.output.build.environment.inc:
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.hg.patch $(BUILDPATH)/galacticus.hg.bundle
 $(BUILDPATH)/galacticus.hg.patch:
-	hg diff > $(BUILDPATH)/galacticus.hg.patch || echo > unknown $(BUILDPATH)/galacticus.hg.patch
+	hg diff > $(BUILDPATH)/galacticus.hg.patch || echo unknown > $(BUILDPATH)/galacticus.hg.patch
 $(BUILDPATH)/galacticus.hg.bundle:
 	hg bundle -t none $(BUILDPATH)/galacticus.hg.bundle https://bitbucket.org/galacticusdev/galacticus || echo unknown > $(BUILDPATH)/galacticus.hg.bundle
 
