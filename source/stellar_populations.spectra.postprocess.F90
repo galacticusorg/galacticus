@@ -37,6 +37,13 @@ module Stellar_Population_Spectra_Postprocess
   !#  </method>
   !# </functionClass>
   
+  type :: stellarPopulationSpectraPostprocessorList
+     !% Type used to build linked list of stellar population spectra postprocessors.
+     class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_
+   contains
+     final :: stellarPopulationSpectraPostprocessorListDestructor
+  end type stellarPopulationSpectraPostprocessorList
+  
   !# <functionClass>
   !#  <name>stellarPopulationSpectraPostprocessorBuilder</name>
   !#  <descriptiveName>Builder for postprocessors for stellar population spectra</descriptiveName>
@@ -49,13 +56,6 @@ module Stellar_Population_Spectra_Postprocess
   !#   <argument>type(varying_string), intent(in   ) :: descriptor</argument>
   !#  </method>
   !# </functionClass>
-  
-  type :: stellarPopulationSpectraPostprocessorList
-     !% Ttype used to build linked list of stellar population spectra postprocessors.
-     class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_
-   contains
-     final :: stellarPopulationSpectraPostprocessorListDestructor
-  end type stellarPopulationSpectraPostprocessorList
 
 contains
 
