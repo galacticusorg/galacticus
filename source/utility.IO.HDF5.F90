@@ -728,14 +728,15 @@ contains
                 message="unable to get name of open object in file object '"//thisObject%objectName//"'"
                 call Galacticus_Error_Report(message//{introspection:location})
              end if
+
              if (trim(objectName) /= "/") nonRootOpenObjectCount=nonRootOpenObjectCount+1
           end do
        end if
-       if (nonRootOpenObjectCount > 0) then          
+       if (nonRootOpenObjectCount > 0 .and. openObjectCount-nonRootOpenObjectCount == 1) then          
           message=""
           message=message//nonRootOpenObjectCount//" open object(s) remain in file object '"//thisObject%objectName//"'"
-          call Galacticus_Display_Indent('Problem closing HDF5 file',verbosityWarn)
-          call Galacticus_Display_Message(message,verbosityWarn)
+          call Galacticus_Display_Indent('Problem closing HDF5 file',verbositySilent)
+          call Galacticus_Display_Message(message,verbositySilent)
           do i=1,openObjectCount
              call h5iget_name_f(openObjectIDs(i),objectName,objectNameSizeMaximum,objectNameSize,errorCode)
              if (errorCode /= 0) then
@@ -744,9 +745,9 @@ contains
              end if
              message="Object: "//trim(objectName)//" ["
              message=message//openObjectIDs(i)//"]"
-             if (trim(objectName) /= "/") call Galacticus_Display_Message(message,verbosityWarn)
+             if (trim(objectName) /= "/") call Galacticus_Display_Message(message,verbositySilent)
           end do
-          call Galacticus_Display_Unindent('done',verbosityWarn)
+          call Galacticus_Display_Unindent('done',verbositySilent)
        end if
        call h5fclose_f(thisObject%objectID,errorCode)
        if (errorCode /= 0) then
