@@ -182,7 +182,8 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"     />
     !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     !$ call hdf5Access%set()
-    if (self%file%isOpen()) call self%file%close()
+    if (self%forestHalos%isOpen()) call self%forestHalos%close()
+    if (self%file       %isOpen()) call self%file      %close()
     !$ call hdf5Access%unset()
     return
   end subroutine galacticusDestructor
