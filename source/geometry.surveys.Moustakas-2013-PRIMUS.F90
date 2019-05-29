@@ -27,7 +27,8 @@
   !# </surveyGeometry>
   type, extends(surveyGeometryMangle) :: surveyGeometryMoustakas2013PRIMUS
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: binDistanceMinimum , binDistanceMaximum
+     double precision                                   :: binDistanceMinimum           , binDistanceMaximum, &
+          &                                                redshiftMinimum              , redshiftMaximum
    contains
      final     ::                              moustakas2013PRIMUSDestructor
      procedure :: fieldCount                => moustakas2013PRIMUSFieldCount
@@ -84,47 +85,46 @@ contains
     use Cosmology_Functions
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryMoustakas2013PRIMUS)                        :: self
-    integer                                            , intent(in   )         :: redshiftBin
-    class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
-    double precision                                                           :: redshiftMinimum    , redshiftMaximum
+    type   (surveyGeometryMoustakas2013PRIMUS)                        :: self
+    integer                                   , intent(in   )         :: redshiftBin
+    class  (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="*cosmologyFunctions_"/>
 
     ! Find distance limits for this redshift bin.
     select case (redshiftBin)
     case(0)
-       redshiftMinimum=0.00d0
-       redshiftMaximum=0.10d0
+       self%redshiftMinimum=0.00d0
+       self%redshiftMaximum=0.10d0
     case(1)
-       redshiftMinimum=0.20d0
-       redshiftMaximum=0.30d0
+       self%redshiftMinimum=0.20d0
+       self%redshiftMaximum=0.30d0
     case(2)
-       redshiftMinimum=0.30d0
-       redshiftMaximum=0.40d0
+       self%redshiftMinimum=0.30d0
+       self%redshiftMaximum=0.40d0
     case(3)
-       redshiftMinimum=0.40d0
-       redshiftMaximum=0.50d0
+       self%redshiftMinimum=0.40d0
+       self%redshiftMaximum=0.50d0
     case(4)
-       redshiftMinimum=0.50d0
-       redshiftMaximum=0.65d0
+       self%redshiftMinimum=0.50d0
+       self%redshiftMaximum=0.65d0
     case(5)
-       redshiftMinimum=0.65d0
-       redshiftMaximum=0.80d0
+       self%redshiftMinimum=0.65d0
+       self%redshiftMaximum=0.80d0
     case(6)
-       redshiftMinimum=0.80d0
-       redshiftMaximum=1.00d0
+       self%redshiftMinimum=0.80d0
+       self%redshiftMaximum=1.00d0
     case default
        call Galacticus_Error_Report('0≤redshiftBin≤6 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
          &                                                   output  =distanceTypeComoving, &
-         &                                                   redshift=redshiftMinimum       &
+         &                                                   redshift=self%redshiftMinimum  &
          &                                                  )
     self%binDistanceMaximum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
          &                                                   output  =distanceTypeComoving, &
-         &                                                   redshift=redshiftMaximum       &
+         &                                                   redshift=self%redshiftMaximum  &
          &                                                  )
     call self%initialize()
     return
@@ -174,7 +174,6 @@ contains
 
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
-    if (field < 1 .or. field > 5) call Galacticus_Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
     ! Find the limiting redshift for this mass completeness limits from Moustakas et al. (2013; Table 2). (See
     ! constraints/dataAnalysis/stellarMassFunctions_PRIMUS_z0_1/massRedshiftRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -204,12 +203,15 @@ contains
             &   +logarithmicMass*(-1.65556365363183000d0  &
             &   +logarithmicMass*(+0.10030052053225000d0) &
             &                                           )
+    case default
+       redshift=0.0d0
+       call Galacticus_Error_Report('1 ≤ field ≤ 5 required'//{introspection:location})
     end select
     ! Convert from redshift to comoving distance.
-    moustakas2013PRIMUSDistanceMaximum                                                     &
-         &=self%cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                  output  =distanceTypeComoving, &
-         &                                                  redshift=redshift              &
+    moustakas2013PRIMUSDistanceMaximum                                                                                             &
+         &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
+         &                                                  output  =distanceTypeComoving                                        , &
+         &                                                  redshift=max(min(redshift,self%redshiftMaximum),self%redshiftMinimum)  &
          &                                                 )
     ! Limit the maximum distance.
     moustakas2013PRIMUSDistanceMaximum=min(moustakas2013PRIMUSDistanceMaximum,self%binDistanceMaximum)
