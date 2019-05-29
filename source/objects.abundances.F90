@@ -196,6 +196,12 @@ module Abundances_Structure
      !@     <description>Store an abundances object in the output buffers.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>postOutput</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <description>Store an abundances object in the output buffers.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>outputCount</method>
      !@     <type>\void</type>
      !@     <arguments>\intzero\ integerPropertyCount\arginout, \intzero\ doublePropertyCount\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
@@ -243,6 +249,7 @@ module Abundances_Structure
      procedure         :: heliumMassFraction    =>Abundances_Helium_Mass_Fraction
      procedure         :: heliumNumberFraction  =>Abundances_Helium_Number_Fraction
      procedure         :: output                =>Abundances_Output
+     procedure         :: postOutput            =>Abundances_Post_Output
      procedure         :: outputCount           =>Abundances_Output_Count
      procedure         :: outputNames           =>Abundances_Output_Names
   end type abundances
@@ -979,6 +986,17 @@ contains
     end if
     return
   end subroutine Abundances_Output
+
+  subroutine Abundances_Post_Output(self,time)
+    !% Perform post-output processing of abundances objects.
+    use Multi_Counters
+    implicit none
+    class           (abundances), intent(in   ) :: self
+    double precision            , intent(in   ) :: time
+    !GCC$ attributes unused :: self, time
+    
+    return
+  end subroutine Abundances_Post_Output
 
   subroutine Abundances_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
     !% Increment the output count to account for an abundances object.

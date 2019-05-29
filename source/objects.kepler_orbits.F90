@@ -107,6 +107,12 @@ module Kepler_Orbits
      !@     <arguments>\intzero\ integerProperty\arginout, \intzero\ integerBufferCount\arginout, \inttwo\ integerBuffer\arginout, \intzero doubleProperty\arginout, \intzero\ doubleBufferCount\arginout, \doubletwo\ doubleBuffer\arginout, \doublezero\ time\argin, \intzero\ instance\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>postOutput</method>
+     !@     <description>Perform post-output processing of a {\normalfont \ttfamily keplerOrbit} object.</description>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>outputCount</method>
      !@     <description>Specify the count of a {\normalfont \ttfamily keplerOrbit} object for output.</description>
      !@     <type>\void</type>
@@ -338,6 +344,7 @@ module Kepler_Orbits
      procedure :: destroy               => Kepler_Orbits_Destroy
      procedure :: isDefined             => Kepler_Orbits_Is_Defined
      procedure :: output                => Kepler_Orbits_Output
+     procedure :: postOutput            => Kepler_Orbits_Post_Output
      procedure :: outputCount           => Kepler_Orbits_Output_Count
      procedure :: outputNames           => Kepler_Orbits_Output_Names
      procedure :: assertIsDefined       => Kepler_Orbits_Assert_Is_Defined
@@ -429,6 +436,16 @@ contains
     doubleProperty=doubleProperty+4
     return
   end subroutine Kepler_Orbits_Output
+
+  subroutine Kepler_Orbits_Post_Output(self,time)
+    !% Perform post-output processing of a {\normalfont \ttfamily keplerOrbit} object.
+    implicit none
+    class           (keplerOrbit), intent(inout) :: self
+    double precision             , intent(in   ) :: time
+    !GCC$ attributes unused :: self, time
+    
+    return
+  end subroutine Kepler_Orbits_Post_Output
 
   subroutine Kepler_Orbits_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
     !% Increment the output count to account for a {\normalfont \ttfamily keplerOrbit} object.

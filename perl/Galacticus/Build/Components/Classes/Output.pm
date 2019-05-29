@@ -20,9 +20,10 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 classIteratedFunctions =>
 	     [
-	      \&Class_Dump_ASCII,
+	      \&Class_Dump_ASCII  ,
 	      \&Class_Output_Count,
 	      \&Class_Output_Names,
+	      \&Class_Post_Output ,
 	      \&Class_Output
 	     ]
      }
@@ -466,6 +467,42 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => "output"
+	}
+	);
+}
+
+sub Class_Post_Output {
+    # Generate a function to perform post-output processing of a generic node component.
+    my $build    = shift();   
+    $code::class = shift();
+    my $function =
+    {
+	type        => "void",
+	name        => $code::class->{'name'}."PostOutput",
+	description => "Perform post-output processing of a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	content     => "!GCC\$ attributes unused :: self, time\n",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(in   )" ], 
+		 variables  => [ "time" ]
+	     }
+	    ]
+    };
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'nodeComponent'.ucfirst($code::class->{'name'})}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "postOutput"
 	}
 	);
 }
