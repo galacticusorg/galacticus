@@ -113,7 +113,7 @@ contains
             &                                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative              , &
             &                                  rangeExpandType              =rangeExpandMultiplicative                    &
             &                                 )
-       diskSizeInclntnAngle     =acos(self%inclinationTable%x(1))
+       diskSizeInclntnAngle =acos(self%inclinationTable%x(1))
        halfLightRadiusFaceOn=finder%find(rootGuess=1.0d0)
        call self%inclinationTable%populate(0.0d0,1)
        !$omp parallel do private (i,halfLightRadius) copyin (finder)
@@ -123,10 +123,11 @@ contains
           call self%inclinationTable%populate(log10(halfLightRadius/halfLightRadiusFaceOn),i)
        end do
        !$omp end parallel do
+       halfMassRadii=reshape(self%inclinationTable%ys(),[inclinationAngleCount])
        call hdf5Access%set()
        call File_Lock(char(fileName),lockFileDescriptor,lockIsShared=.false.)
        call file%openFile(char(fileName))
-       call file%writeDataset(self%inclinationTable%ys(),'halfMassRadii'    )
+       call file%writeDataset(halfMassRadii,'halfMassRadii')
        call file%close()
        call File_Unlock(lockFileDescriptor)
        call hdf5Access%unset()
