@@ -388,6 +388,13 @@ contains
        !  Convert the hydrogen ionizing luminosity to be per HII region.
        luminosityLymanContinuum       =+luminosityLymanContinuum &
             &                          -log10(countHIIRegion)
+    elsewhere
+       ! For non-physical components set the properties to zero. This avoids attempts to use uninitialized values in what follows.
+       luminosityLymanContinuum       =0.0d0
+       densityHydrogen                =0.0d0
+       metallicityGas                 =0.0d0
+       ratioLuminosityHeliumToHydrogen=0.0d0
+       ratioLuminosityOxygenToHydrogen=0.0d0
     end where
     ! Truncate properties to table bounds where necessary to avoid unphysical extrapolations.
     !
