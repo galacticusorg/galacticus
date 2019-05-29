@@ -212,8 +212,16 @@ contains
             &                   -distanceModelMinimum**3                                                   &
             &                  )
     end do
-    correctionFactor   =+volumeModel      &
-         &              /volumeData
+    if (volumeData > 0.0d0) then
+       correctionFactor=+volumeModel      &
+            &           /volumeData
+    else if (volumeModel <= 0.0d0) then
+       ! Both model and data have zero volume - the galaxy is not within the survey limits, so the factor applied here is arbitrary.
+       correctionFactor=1.0d0
+    else
+       correctionFactor=1.0d0
+       call Galacticus_Error_Report('model volume is non-zero, but data volume is zero'//{introspection:location})
+    end if
     ! Multiply by the correction factor.
     csmlgyVolumeOperate=+weightValue      &
          &              *correctionFactor
