@@ -101,8 +101,9 @@ contains
     type            (normalizerList                                    ), pointer                     :: normalizerSequence                               , normalizer_
     type            (propertyOperatorList                              ), pointer                     :: propertyOperatorSequence                         , weightPropertyOperatorSequence
     type            (galacticFilterStellarMass                         ), pointer                     :: galacticFilter_
-    double precision                                                    , allocatable, dimension(:  ) :: colors
-    double precision                                                    , allocatable, dimension(:,:) :: outputWeight
+    double precision                                                    , allocatable, dimension(:  ) :: colors                                           , functionValueTarget                                , &
+         &                                                                                               functionErrorTarget
+    double precision                                                    , allocatable, dimension(:,:) :: outputWeight                                    , functionCovarianceTarget
     integer                                                             , parameter                   :: covarianceBinomialBinsPerDecade         =2
     double precision                                                    , parameter                   :: covarianceBinomialMassHaloMinimum       =3.00d+11, covarianceBinomialMassHaloMaximum    =1.0d15
     double precision                                                    , parameter                   :: redshiftBand                            =1.00d-01
@@ -112,7 +113,9 @@ contains
     integer         (c_size_t                                          )                              :: iBin                                             , bufferCount
     type            (hdf5Object                                        )                              :: dataFile                                         , distribution
     double precision                                                                                  :: magnitudeMinimum                                 , magnitudeMaximum
-    character       (len=16                                            )                              :: distributionName
+    character       (len=16                                            )                              :: distributionName                                 , magnitudeMinimumLabel                               , &
+         &                                                                                               magnitudeMaximumLabel
+    type            (varying_string                                    )                              :: description
     !# <constructorAssign variables="distributionNumber, *cosmologyFunctions_"/>
 
     ! Validate input.
@@ -120,31 +123,48 @@ contains
     ! Construct colors matched to those used by Baldry et al. (2004). Also read magnitude range.
     write (distributionName,'(a,i2.2)') 'distribution',distributionNumber
     !$ call hdf5Access%set()
-    call dataFile    %openFile     (char(galacticusPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.          )
+    call dataFile    %openFile     (char(galacticusPath(pathTypeDataStatic)//'observations/galaxyColors/colorDistributionsBaldry2004.hdf5'),readOnly=.true.             )
     distribution=dataFile%openGroup(distributionName)
-    call distribution%readDataset  (                                         'color'                                                       ,         colors          )
-    call distribution%readAttribute(                                         'magnitudeMinimum'                                            ,         magnitudeMinimum)
-    call distribution%readAttribute(                                         'magnitudeMaximum'                                            ,         magnitudeMaximum)
-    call distribution%close        (                                                                                                                                 )
-    call dataFile    %close        (                                                                                                                                 )
+    call distribution%readDataset  (                                         'color'                                                       ,         colors             )
+    call distribution%readDataset  (                                         'distribution'                                                ,         functionValueTarget)
+    call distribution%readDataset  (                                         'distributionError'                                           ,         functionErrorTarget)
+    call distribution%readAttribute(                                         'magnitudeMinimum'                                            ,         magnitudeMinimum   )
+    call distribution%readAttribute(                                         'magnitudeMaximum'                                            ,         magnitudeMaximum   )
+    call distribution%close        (                                                                                                                                    )
+    call dataFile    %close        (                                                                                                                                    )
     !$ call hdf5Access%unset()
     self %binCount=size(colors)
-    ! Create cosmological model in which data were analyzed.
+   allocate(functionCovarianceTarget(self%binCount,self%binCount))
+    functionCovarianceTarget=0.0d0
+    do iBin=1,self%binCount
+       ! Negative values indicate upper limits, which mean no galaxies were observed in the given bin.
+       functionValueTarget     (iBin     )=max(0.0d0,functionValueTarget(iBin))
+       functionCovarianceTarget(iBin,iBin)=          functionErrorTarget(iBin) **2
+    end do
+     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )
-    cosmologyParametersData=cosmologyParametersSimple     (                            &
-         &                                                 OmegaMatter    = 0.30000d0, &
-         &                                                 OmegaDarkEnergy= 0.70000d0, &
-         &                                                 HubbleConstant =70.00000d0, &
-         &                                                 temperatureCMB = 2.72548d0, &
-         &                                                 OmegaBaryon    = 0.04550d0  &
-         &                                                )
-    cosmologyFunctionsData =cosmologyFunctionsMatterLambda(                            &
-         &                                                 cosmologyParametersData     &
-         &                                                )
+    !# <referenceConstruct object="cosmologyParametersData">
+    !#  <constructor>
+    !#   cosmologyParametersSimple     (                            &amp;
+    !#     &amp;                        OmegaMatter    = 0.30000d0, &amp;
+    !#     &amp;                        OmegaDarkEnergy= 0.70000d0, &amp;
+    !#     &amp;                        HubbleConstant =70.00000d0, &amp;
+    !#     &amp;                        temperatureCMB = 2.72548d0, &amp;
+    !#     &amp;                        OmegaBaryon    = 0.04550d0  &amp;
+    !#     &amp;                       )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct object="cosmologyFunctionsData">
+    !#  <constructor>
+    !#   cosmologyFunctionsMatterLambda(                            &amp;
+    !#     &amp;                        cosmologyParametersData     &amp;
+    !#     &amp;                       )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build the SDSS survey geometry of Baldry et al. (2004) with their imposed redshift limits.
     allocate(surveyGeometry_)
-    surveyGeometry_=surveyGeometryMonteroDorta2009SDSS(band='r',redshiftMinimum=4.0d-3,redshiftMaximum=8.0d-2,cosmologyFunctions_=cosmologyFunctions_)
+    !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryMonteroDorta2009SDSS(band='r',redshiftMinimum=4.0d-3,redshiftMaximum=8.0d-2,cosmologyFunctions_=cosmologyFunctions_)"/>
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     do iBin=1,self%binCount
@@ -153,59 +173,63 @@ contains
     ! Create stellar luminosity property extractors.
     allocate(outputAnalysisPropertyExtractorBandR_           )
     allocate(outputAnalysisPropertyExtractorBandU_           )
-    outputAnalysisPropertyExtractorBandR_           =outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_r','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
-    outputAnalysisPropertyExtractorBandU_           =outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_u','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
+    !# <referenceConstruct object="outputAnalysisPropertyExtractorBandR_"            constructor="outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_r','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    !# <referenceConstruct object="outputAnalysisPropertyExtractorBandU_"            constructor="outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_u','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     ! Create a ratio property extractor.
     allocate(outputAnalysisPropertyExtractorRatio_        )
-    outputAnalysisPropertyExtractorRatio_           =outputAnalysisPropertyExtractorRatio              (outputAnalysisPropertyExtractorBandU_,outputAnalysisPropertyExtractorBandR_                                                          )
+    !# <referenceConstruct object="outputAnalysisPropertyExtractorRatio_"            constructor="outputAnalysisPropertyExtractorRatio              (outputAnalysisPropertyExtractorBandU_,outputAnalysisPropertyExtractorBandR_                                                          )"/>
     ! Creat magnitude, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                                                              )
-    outputAnalysisPropertyOperatorMagnitude_        =outputAnalysisPropertyOperatorMagnitude()
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                                                              )"/>
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorMagnitude_"         constructor="outputAnalysisPropertyOperatorMagnitude()"/>
     allocate(weightPropertyOperatorSequence                  )
     allocate(weightPropertyOperatorSequence%next             )
     weightPropertyOperatorSequence     %operator_ => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     weightPropertyOperatorSequence%next%operator_ => outputAnalysisPropertyOperatorMagnitude_
     allocate(outputAnalysisWeightPropertyOperatorSequence_   )
-    outputAnalysisWeightPropertyOperatorSequence_   =outputAnalysisPropertyOperatorSequence            (weightPropertyOperatorSequence                                                                                                       )
+    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSequence_"    constructor="outputAnalysisPropertyOperatorSequence            (weightPropertyOperatorSequence                                                                                                       )"/>
     ! Create a normal-weight weight operator.
     allocate(outputAnalysisWeightOperator_                   )
-    outputAnalysisWeightOperator_                   =outputAnalysisWeightOperatorNormal                (magnitudeMinimum,magnitudeMaximum,magnitudeErrorR,outputAnalysisPropertyExtractorBandR_,outputAnalysisWeightPropertyOperatorSequence_)
+    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorNormal                (magnitudeMinimum,magnitudeMaximum,magnitudeErrorR,outputAnalysisPropertyExtractorBandR_,outputAnalysisWeightPropertyOperatorSequence_)"/>
     ! Create random error distribution operator.
     allocate(outputAnalysisDistributionOperator_             )
-    outputAnalysisDistributionOperator_             =outputAnalysisDistributionOperatorRandomErrorFixed(sqrt(magnitudeErrorR**2+magnitudeErrorU**2))
+    !# <referenceConstruct object="outputAnalysisDistributionOperator_"              constructor="outputAnalysisDistributionOperatorRandomErrorFixed(sqrt(magnitudeErrorR**2+magnitudeErrorU**2))"/>
     ! Create identity operator.
     allocate(outputAnalysisPropertyOperatorIdentity_         )
-    outputAnalysisPropertyOperatorIdentity_         =outputAnalysisPropertyOperatorIdentity            (                                                                                                                                     )
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorIdentity_"          constructor="outputAnalysisPropertyOperatorIdentity            (                                                                                                                                     )"/>
     ! Create a filter to select galaxies above some minimum stellar mass.
     allocate(galacticFilter_                                 )
-    galacticFilter_                                 =galacticFilterStellarMass                         (massStellarMinimum                                                                                                                   )
+    !# <referenceConstruct object="galacticFilter_"                                  constructor="galacticFilterStellarMass                         (massStellarMinimum                                                                                                                   )"/>
     ! Create a distribution normalizer which normalizes to bin width and unitarity.
     allocate(normalizerSequence)
     normalizer_ => normalizerSequence
     allocate(outputAnalysisDistributionNormalizerUnitarity :: normalizer_%normalizer_)
     select type (normalizer_ => normalizer_%normalizer_)
     type is (outputAnalysisDistributionNormalizerUnitarity)
-       normalizer_=outputAnalysisDistributionNormalizerUnitarity ()
+       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerUnitarity ()"/>
     end select
     allocate(normalizer_%next)
     normalizer_ => normalizer_%next
     allocate(outputAnalysisDistributionNormalizerBinWidth  :: normalizer_%normalizer_)
     select type (normalizer_ => normalizer_%normalizer_)
     type is (outputAnalysisDistributionNormalizerBinWidth )
-       normalizer_=outputAnalysisDistributionNormalizerBinWidth  ()
+       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
     end select
     allocate(outputAnalysisDistributionNormalizer_)
-    outputAnalysisDistributionNormalizer_           =outputAnalysisDistributionNormalizerSequence      (normalizerSequence                                                                                                                   )
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizer_"            constructor="outputAnalysisDistributionNormalizerSequence      (normalizerSequence                                                                                                                   )"/>
     ! Determine number of buffer bins.
     bufferCount=int(3.0d0*(colors(2)-colors(1))/sqrt(magnitudeErrorR**2+magnitudeErrorU**2),kind=c_size_t)+1_c_size_t
     ! Construct the object.
     write (distributionName,'(i2.2)') distributionNumber
+    description="Distribution of SDSS u-r color; "
+    write (magnitudeMinimumLabel,'(f6.2)') magnitudeMinimum
+    write (magnitudeMaximumLabel,'(f6.2)') magnitudeMaximum
+    description=description//"$"//trim(adjustl(magnitudeMinimumLabel))//" < r < "//trim(adjustl(magnitudeMaximumLabel))//"$"
     self%outputAnalysisVolumeFunction1D=                                                            &
          & outputAnalysisVolumeFunction1D(                                                          &
          &                                var_str('colorDistributionSDSS')//trim(distributionName), &
-         &                                var_str('Distribution of SDSS u-r color'               ), &
+         &                                description                                             , &
          &                                var_str('color'                                        ), &
          &                                var_str('Color at the bin center'                      ), &
          &                                var_str('dimensionless'                                ), &
@@ -228,25 +252,32 @@ contains
          &                                outputAnalysisCovarianceModelPoisson                    , &
          &                                covarianceBinomialBinsPerDecade                         , &
          &                                covarianceBinomialMassHaloMinimum                       , &
-         &                                covarianceBinomialMassHaloMaximum                         &
+         &                                covarianceBinomialMassHaloMaximum                       , &
+         &                                var_str('$u-r$'                        )                , &
+         &                                var_str('$\mathrm{d}p/\mathrm{d}(u-r)$')                , &
+         &                                .false.                                                 , &
+         &                                .false.                                                 , &
+         &                                var_str('Baldry et al. (2004)')                         , &
+         &                                functionValueTarget                                     , &
+         &                                functionCovarianceTarget                                  &
          &                               )
     ! Clean up.
-    nullify(outputAnalysisWeightPropertyOperatorSequence_   )
-    nullify(outputAnalysisPropertyOperatorMagnitude_        )
-    nullify(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    nullify(outputAnalysisPropertyOperatorIdentity_         )
-    nullify(outputAnalysisDistributionNormalizer_           )
-    nullify(outputAnalysisDistributionOperator_             )
-    nullify(outputAnalysisPropertyExtractorBandR_           )
-    nullify(outputAnalysisPropertyExtractorBandU_           )
-    nullify(outputAnalysisPropertyExtractorRatio_           )
-    nullify(outputAnalysisWeightOperator_                   )
-    nullify(propertyOperatorSequence                        )
-    nullify(weightPropertyOperatorSequence                  )
-    nullify(normalizerSequence                              )
-    nullify(galacticFilter_                                 )
-    nullify(cosmologyParametersData                         )
-    nullify(cosmologyFunctionsData                          )
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSequence_"   />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorMagnitude_"        />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
+    !# <objectDestructor name="outputAnalysisPropertyExtractorBandR_"           />
+    !# <objectDestructor name="outputAnalysisPropertyExtractorBandU_"           />
+    !# <objectDestructor name="outputAnalysisPropertyExtractorRatio_"           />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    !# <objectDestructor name="galacticFilter_"                                 />
+    !# <objectDestructor name="cosmologyParametersData"                         />
+    !# <objectDestructor name="cosmologyFunctionsData"                          />
+    nullify(propertyOperatorSequence      )
+    nullify(weightPropertyOperatorSequence)
+    nullify(normalizerSequence            )
     return
   end function colorDistributionSDSSConstructorInternal
 
