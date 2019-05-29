@@ -25,6 +25,11 @@
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMorphologicalFractionGAMAMoffett2016
      !% A morphological fraction output analysis class.
      private
+     double precision, allocatable, dimension(:) :: countAllTarget          , countEarlyTarget        , &
+          &                                         functionErrorLowerTarget, functionErrorUpperTarget
+   contains
+     procedure :: finalize      => morphologicalFractionGAMAMoffett2016Finalize
+     procedure :: logLikelihood => morphologicalFractionGAMAMoffett2016LogLikelihood
   end type outputAnalysisMorphologicalFractionGAMAMoffett2016
 
   interface outputAnalysisMorphologicalFractionGAMAMoffett2016
@@ -128,17 +133,18 @@ contains
     use Cosmology_Parameters
     use Cosmology_Functions
     use Numerical_Constants_Astronomical
+    use Statistics_Distributions              , only : distributionFunction1DBeta
     implicit none
     type            (outputAnalysisMorphologicalFractionGAMAMoffett2016   )                                :: self
-    double precision                                                       , intent(in   )                 :: ratioEarlyType                                          , ratioEarlyTypeError                     , &
-         &                                                                                                    randomErrorMinimum                                      , randomErrorMaximum
-    double precision                                                       , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                    , randomErrorPolynomialCoefficient
+    double precision                                                       , intent(in   )                 :: ratioEarlyType                                                         , ratioEarlyTypeError                     , &
+         &                                                                                                    randomErrorMinimum                                                     , randomErrorMaximum
+    double precision                                                       , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient                                   , randomErrorPolynomialCoefficient
     class           (cosmologyFunctionsClass                              ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                     ), intent(inout), target         :: outputTimes_
     integer                                                                , parameter                     :: covarianceBinomialBinsPerDecade                 =10
-    double precision                                                       , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.0d08, covarianceBinomialMassHaloMaximum=1.0d16
-    double precision                                                       , allocatable  , dimension(:  ) :: masses
-    double precision                                                       , allocatable  , dimension(:,:) :: outputWeight
+    double precision                                                       , parameter                     :: covarianceBinomialMassHaloMinimum               = 1.000d08             , covarianceBinomialMassHaloMaximum=1.0d16
+    double precision                                                       , allocatable  , dimension(:  ) :: masses                                                                 , functionValueTarget
+    double precision                                                       , allocatable  , dimension(:,:) :: outputWeight                                                           , functionCovarianceTarget
     type            (galacticFilterStellarMass                            ), pointer                       :: galacticFilter_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml  ), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisWeightOperatorIdentity                 ), pointer                       :: outputAnalysisWeightOperator_
@@ -153,22 +159,81 @@ contains
     type            (cosmologyParametersSimple                            ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                       ), pointer                       :: cosmologyFunctionsData
     type            (propertyOperatorList                                 ), pointer                       :: propertyOperators_
-    double precision                                                       , parameter                     :: errorPolynomialZeroPoint                        =11.3d00
+    logical                                                                , parameter                     :: likelihoodNormalize                             =.false.
+    double precision                                                       , parameter                     :: errorPolynomialZeroPoint                        =11.300d00
+    double precision                                                       , parameter                     :: confidenceLevel                                 = 0.683d00 ! 1-sigma confidence level
+    double precision                                                       , parameter                     :: alpha                                           = 1.0d0-confidenceLevel
     integer         (c_size_t                                             ), parameter                     :: bufferCount                                     =10
-    integer         (c_size_t                                             )                                :: iBin                                                    , binCount
+    type            (distributionFunction1DBeta                           )                                :: betaDistributionLower                                                  , betaDistributionUpper
+    integer         (c_size_t                                             )                                :: iBin                                                                   , binCount
     type            (surveyGeometryBaldry2012GAMA                         )                                :: surveyGeometry_
     type            (hdf5Object                                           )                                :: dataFile
-
+    double precision                                                                                       :: probit,sqrtArg
+    
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.)
-    call dataFile%readDataset("mass"                                                                                  ,         masses)
-    call dataFile%close      (                                                                                                        )
+    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/morphology/earlyTypeFractionGAMA.hdf5",readOnly=.true.               )
+    call dataFile%readDataset("mass"                                                                                        ,         masses               )
+    call dataFile%readDataset("countEarly"                                                                                  ,         self%countEarlyTarget)
+    call dataFile%readDataset("countAll"                                                                                    ,         self%countAllTarget  )
+    call dataFile%close      (                                                                                                                             )
     !$ call hdf5Access%unset()
-    ! Construct survey geometry.
-    surveyGeometry_=surveyGeometryBaldry2012GAMA(cosmologyFunctions_)
-    ! Compute weights that apply to each output redshift.
     binCount=size(masses,kind=c_size_t)
+    ! Compute confidence intervals on data. In each mass bin the quantity of interest is the probability, p, of a galaxy being
+    ! early type. Since the observations look at N galaxies in the bin, and find k early types, we therefore expect k to be
+    ! binomially distributed. Our estimate of p is just the fraction of galaxies observed that are early types. To get confidence
+    ! intervals on this we need to find confidence intervals of the binomial distribution probability, p. Here we follow the
+    ! Clopper-Pearson interval method
+    ! (https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Clopper–Pearson_interval) which determines the
+    ! confidence interval using the beta distribution.
+    allocate(     functionValueTarget     (binCount         ))
+    allocate(self%functionErrorLowerTarget(binCount         ))
+    allocate(self%functionErrorUpperTarget(binCount         ))
+    allocate(     functionCovarianceTarget(binCount,binCount))
+    functionCovarianceTarget=0.0d0
+    do iBin=1,binCount
+       functionValueTarget          (iBin)=+self%countEarlyTarget(iBin) &
+            &                              /self%countAllTarget  (iBin)
+       if (self%countAllTarget(iBin) < 100.0d0) then
+          ! Use the Clopper-Pearson interval: Clopper, C.; Pearson, E. S. (1934), Biometrika. 26: 04–413. doi:10.1093/biomet/26.4.404 ;
+          ! https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Clopper%E2%80%93Pearson_interval
+          betaDistributionLower              = distributionFunction1DBeta(self%countEarlyTarget(iBin)      ,self%countAllTarget(iBin)-self%countEarlyTarget(iBin)+1.0d0)
+          betaDistributionUpper              = distributionFunction1DBeta(self%countEarlyTarget(iBin)+1.0d0,self%countAllTarget(iBin)-self%countEarlyTarget(iBin)      )
+          if (self%countEarlyTarget(iBin) <= 0.0d0                    ) then
+             self%functionErrorLowerTarget(iBin)= 0.0d0
+          else
+             self%functionErrorLowerTarget(iBin)= betaDistributionLower%inverse(      0.5d0*alpha)
+          end if
+          if (self%countEarlyTarget(iBin) >= self%countAllTarget(iBin)) then
+             self%functionErrorUpperTarget(iBin)= 1.0d0
+          else
+             self%functionErrorUpperTarget(iBin)= betaDistributionUpper%inverse(1.0d0-0.5d0*alpha)
+          end if
+       else
+          ! Use Wilson score interval with continuity correction: Newcombe, R. G. (1998), Statistics in Medicine. 17 (8):
+          ! 857–872. doi:10.1002/(SICI)1097-0258(19980430)17:8<857::AID-SIM777>3.0.CO;2-E. ;
+          ! https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Wilson_score_interval_with_continuity_correction)
+          probit=1.0d0-alpha/2.0d0
+          sqrtArg=probit**2-1.0d0/self%countAllTarget(iBin)+4.0d0*self%countAllTarget(iBin)*functionValueTarget(iBin)*(1.0d0-functionValueTarget(iBin))+(4.0d0*functionValueTarget(iBin)-2.0d0)
+          if (sqrtArg >= 0.0d0) then
+             self%functionErrorLowerTarget(iBin)=max(0.0d0,(2*self%countAllTarget(iBin)*functionValueTarget(iBin)+probit**2-(probit*sqrt(sqrtArg)+1.0d0))/2.0d0/(self%countAllTarget(iBin)+probit**2))
+          else
+             self%functionErrorLowerTarget(iBin)=0.0d0
+          end if
+          sqrtArg=probit**2-1.0d0/self%countAllTarget(iBin)+4.0d0*self%countAllTarget(iBin)*functionValueTarget(iBin)*(1.0d0-functionValueTarget(iBin))-(4.0d0*functionValueTarget(iBin)-2.0d0)
+          if (sqrtArg >= 0.0d0) then
+             self%functionErrorUpperTarget(iBin)=min(1.0d0,(2*self%countAllTarget(iBin)*functionValueTarget(iBin)+probit**2+(probit*sqrt(sqrtArg)+1.0d0))/2.0d0/(self%countAllTarget(iBin)+probit**2))
+          else
+             self%functionErrorUpperTarget(iBin)=1.0d0
+          end if
+       end if
+       functionCovarianceTarget(iBin,iBin)=(0.5d0*(self%functionErrorUpperTarget(iBin)-self%functionErrorLowerTarget(iBin)))**2
+    end do
+    self%functionErrorLowerTarget=-self%functionErrorLowerTarget+functionValueTarget
+    self%functionErrorUpperTarget=+self%functionErrorUpperTarget-functionValueTarget
+    ! Construct survey geometry.
+    !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryBaldry2012GAMA(cosmologyFunctions_)"/>
+    ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[binCount,outputTimes_%count()])
     do iBin=1,binCount
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,masses(iBin))
@@ -176,63 +241,79 @@ contains
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )
-    cosmologyParametersData=cosmologyParametersSimple     (                            &
-         &                                                 OmegaMatter    = 0.30000d0, &
-         &                                                 OmegaDarkEnergy= 0.70000d0, &
-         &                                                 HubbleConstant =70.00000d0, &
-         &                                                 temperatureCMB = 2.72548d0, &
-         &                                                 OmegaBaryon    = 0.00000d0  &
-         &                                                )
-    cosmologyFunctionsData =cosmologyFunctionsMatterLambda(                            &
-         &                                                 cosmologyParametersData     &
-         &                                                )
+    !# <referenceConstruct object="cosmologyParametersData">
+    !#  <constructor>
+    !#   cosmologyParametersSimple     (                            &amp;
+    !#     &amp;                        OmegaMatter    = 0.30000d0, &amp;
+    !#     &amp;                        OmegaDarkEnergy= 0.70000d0, &amp;
+    !#     &amp;                        HubbleConstant =70.00000d0, &amp;
+    !#     &amp;                        temperatureCMB = 2.72548d0, &amp;
+    !#     &amp;                        OmegaBaryon    = 0.00000d0  &amp;
+    !#     &amp;                       )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct object="cosmologyFunctionsData">
+    !#  <constructor>
+    !#   cosmologyFunctionsMatterLambda(                            &amp;
+    !#     &amp;                        cosmologyParametersData     &amp;
+    !#     &amp;                       )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build a filter which select galaxies with stellar mass above some coarse lower limit suitable for this sample.
     allocate(galacticFilter_                                       )
-    galacticFilter_                                  =  galacticFilterStellarMass                           (massThreshold=1.0d8                                                       )
+    !# <referenceConstruct object="galacticFilter_"                                  constructor="galacticFilterStellarMass                           (massThreshold=1.0d8                                                       )"/>
      ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_                         )
-    outputAnalysisWeightOperator_                    =  outputAnalysisWeightOperatorIdentity                (                                                                          )
+    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity                (                                                                          )"/>
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_      )
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_ =  outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     (cosmologyFunctions_     ,cosmologyFunctionsData              ,outputTimes_)"/>
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_      )
-    outputAnalysisPropertyOperatorSystmtcPolynomial_ =  outputAnalysisPropertyOperatorSystmtcPolynomial     (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial     (errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient             )"/>
     allocate(outputAnalysisPropertyOperatorLog10_                  )
-    outputAnalysisPropertyOperatorLog10_                        =  outputAnalysisPropertyOperatorLog10      (                                                                          )
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10                 (                                                                          )"/>
     allocate(propertyOperators_                                    )
     allocate(propertyOperators_%next                               )
     allocate(propertyOperators_%next%next                          )
-    propertyOperators_          %operator_           => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
-    propertyOperators_%next     %operator_           => outputAnalysisPropertyOperatorLog10_
-    propertyOperators_%next%next%operator_           => outputAnalysisPropertyOperatorSystmtcPolynomial_
+    propertyOperators_          %operator_  => outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    propertyOperators_%next     %operator_  => outputAnalysisPropertyOperatorLog10_
+    propertyOperators_%next%next%operator_  => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                       )
-    outputAnalysisPropertyOperator_                  =  outputAnalysisPropertyOperatorSequence              (propertyOperators_                                                        )
+    !# <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence              (propertyOperators_                                                        )"/>
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_                   )
-    outputAnalysisDistributionOperator_              =  outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &
-         &                                                                                                   randomErrorMinimum              , &
-         &                                                                                                   randomErrorMaximum              , &
-         &                                                                                                   errorPolynomialZeroPoint        , &
-         &                                                                                                   randomErrorPolynomialCoefficient  &
-         &                                                                                                  )
+    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
+    !#  <constructor>
+    !#  outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
+    !#     &amp;                                             randomErrorMinimum              , &amp;
+    !#     &amp;                                             randomErrorMaximum              , &amp;
+    !#     &amp;                                             errorPolynomialZeroPoint        , &amp;
+    !#     &amp;                                             randomErrorPolynomialCoefficient  &amp;
+    !#     &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build a weight property operator.
     allocate(outputAnalysisWeightPropertyOperator_                 )
-    outputAnalysisWeightPropertyOperator_            =  outputAnalysisPropertyOperatorNormal                (                                  &
-         &                                                                                                   rangeLower  =ratioEarlyType     , &
-         &                                                                                                   rangeUpper  =1.0d0              , &
-         &                                                                                                   extentLower =0.0d0              , &
-         &                                                                                                   extentUpper =1.0d0              , &
-         &                                                                                                   rootVariance=ratioEarlyTypeError  &
-         &                                                                                                  )
+    !# <referenceConstruct object="outputAnalysisWeightPropertyOperator_">
+    !#  <constructor>
+    !#  outputAnalysisPropertyOperatorNormal                (                                  &amp;
+    !#     &amp;                                             rangeLower  =ratioEarlyType     , &amp;
+    !#     &amp;                                             rangeUpper  =1.0d0              , &amp;
+    !#     &amp;                                             extentLower =0.0d0              , &amp;
+    !#     &amp;                                             extentUpper =1.0d0              , &amp;
+    !#     &amp;                                             rootVariance=ratioEarlyTypeError  &amp;
+    !#     &amp;                                            )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
-    outputAnalysisPropertyUnoperator_                =  outputAnalysisPropertyOperatorAntiLog10             (                                                                          )
+    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10             (                                                                          )"/>
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisPropertyExtractor_                      )
-    outputAnalysisPropertyExtractor_                 =  outputAnalysisPropertyExtractorMassStellar          (                                                                          )
+    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorMassStellar          (                                                                          )"/>
     ! Create a morpology weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    outputAnalysisWeightPropertyExtractor_           =  outputAnalysisPropertyExtractorMassStellarMorphology(                                                                          )
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="outputAnalysisPropertyExtractorMassStellarMorphology(                                                                          )"/>
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                 &
          &                                                         var_str('morphologicalFractionGAMAMoffett2016'), &
@@ -260,23 +341,132 @@ contains
          &                                                         outputAnalysisCovarianceModelBinomial          , &
          &                                                         covarianceBinomialBinsPerDecade                , &
          &                                                         covarianceBinomialMassHaloMinimum              , &
-         &                                                         covarianceBinomialMassHaloMaximum                &
+         &                                                         covarianceBinomialMassHaloMaximum              , &
+         &                                                         likelihoodNormalize                            , &
+         &                                                         var_str('$M_\star/\mathrm{M}_\odot$')          , &
+         &                                                         var_str('$f_\mathrm{early}$'        )          , &
+         &                                                         .true.                                         , &
+         &                                                         .false.                                        , &
+         &                                                         var_str('Moffett et al. (2016)')               , &
+         &                                                         functionValueTarget                            , &
+         &                                                         functionCovarianceTarget                         &
          &                                                        )
     ! Clean up.
-    nullify(galacticFilter_                                 )
-    nullify(outputAnalysisDistributionOperator_             )
-    nullify(outputAnalysisWeightOperator_                   )
-    nullify(outputAnalysisPropertyOperator_                 )
-    nullify(outputAnalysisPropertyOperatorLog10_            )
-    nullify(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    nullify(outputAnalysisPropertyOperatorSystmtcPolynomial_)
-    nullify(outputAnalysisPropertyUnoperator_               )
-    nullify(outputAnalysisWeightPropertyOperator_           )
-    nullify(outputAnalysisWeightPropertyExtractor_          )
-    nullify(outputAnalysisPropertyExtractor_                )
-    nullify(cosmologyParametersData                         )
-    nullify(cosmologyFunctionsData                          )
-    nullify(propertyOperators_                              )
+    !# <objectDestructor name="galacticFilter_"                                 />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                 />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    !# <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
+    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
+    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="cosmologyParametersData"                         />
+    !# <objectDestructor name="cosmologyFunctionsData"                          />
+    nullify(propertyOperators_)
     return
   end function morphologicalFractionGAMAMoffett2016ConstructorInternal
 
+
+  double precision function morphologicalFractionGAMAMoffett2016LogLikelihood(self)
+    !% Return the log-likelihood of a morphologicalFractionGAMAMoffett2016 output analysis.
+    use Models_Likelihoods_Constants, only : logImpossible
+    implicit none
+    class  (outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
+    integer                                                                    :: i
+    
+    ! Finalize analysis.
+    call self%finalizeAnalysis()
+    ! Compute the log-likelihood. This assumes that the number of early types in each bin follows a binomial distribution. We do
+    ! not account for the variance in the model expectation here - doing so would require evaluating the likelihood of the
+    ! binomial distribution compounded with the distribution of the model mean. The distribution of the model mean could be
+    ! described by a beta distribution (since it too should follow a binomial [or maybe Poisson-binomial] distribution), and then
+    ! the compound distribution is the beta-binomial distribution. However, providing the model mean is determined with high
+    ! precision, neglecting the distribution of the model mean here shouldn't matter.
+    morphologicalFractionGAMAMoffett2016LogLikelihood=0.0d0
+    do i=1,size(self%countAllTarget)
+       if (self%countEarlyTarget(i) > 0.0d0) then
+          if (      +self%meanValue(i) > 0.0d0) then
+             morphologicalFractionGAMAMoffett2016LogLikelihood=+morphologicalFractionGAMAMoffett2016LogLikelihood                               &
+                  &                                            +                        self%countEarlyTarget(i) *log(      +self%meanValue(i))
+          else
+             morphologicalFractionGAMAMoffett2016LogLikelihood=+logImpossible
+             exit
+          end if
+       end if
+       if (self%countAllTarget(i)-self%countEarlyTarget(i) > 0.0d0) then
+          if (+1.0d0-self%meanValue(i) > 0.0d0) then
+             morphologicalFractionGAMAMoffett2016LogLikelihood=+morphologicalFractionGAMAMoffett2016LogLikelihood                               &
+                  &                                            +(self%countAllTarget(i)-self%countEarlyTarget(i))*log(+1.0d0-self%meanValue(i))
+          else
+             morphologicalFractionGAMAMoffett2016LogLikelihood=+logImpossible
+             exit
+          end if
+       end if
+    end do
+    return
+  end function morphologicalFractionGAMAMoffett2016LogLikelihood
+
+  subroutine morphologicalFractionGAMAMoffett2016Finalize(self)
+    !% Implement a {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis finalization.
+    use IO_HDF5
+    use Galacticus_HDF5
+    implicit none
+    class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
+    type (hdf5Object                                        )                :: analysesGroup, analysisGroup, &
+         &                                                                      dataset
+
+    ! Finalize the analysis.
+    call self%finalizeAnalysis()
+    ! Output the resulting mean function.
+    !$ call hdf5Access%set()
+    analysesGroup=galacticusOutputFile%openGroup('analyses'                         )
+    analysisGroup=analysesGroup       %openGroup(char(self%label),char(self%comment))
+    ! Write metadata describing this analysis.
+    call analysisGroup%writeAttribute(     char(self%   comment   )                    ,'description'                                                                                                   )
+    call analysisGroup%writeAttribute("function1D"                                     ,'type'                                                                                                          )
+    call analysisGroup%writeAttribute(     char(self%   xAxisLabel)                    ,'xAxisLabel'                                                                                                    )
+    call analysisGroup%writeAttribute(     char(self%   yAxisLabel)                    ,'yAxisLabel'                                                                                                    )
+    call analysisGroup%writeAttribute(          self%   xAxisIsLog                     ,'xAxisIsLog'                                                                                                    )
+    call analysisGroup%writeAttribute(          self%   yAxisIsLog                     ,'yAxisIsLog'                                                                                                    )
+    call analysisGroup%writeAttribute(     char(self%propertyLabel)                    ,'xDataset'                                                                                                      )
+    call analysisGroup%writeAttribute(     char(self%    meanLabel)                    ,'yDataset'                                                                                                      )
+    call analysisGroup%writeAttribute(     char(self%    meanLabel)//"Target"          ,'yDatasetTarget'                                                                                                )
+    call analysisGroup%writeAttribute(     char(self%    meanLabel)//"Covariance"      ,'yCovariance'                                                                                                   )
+    call analysisGroup%writeAttribute(     char(self%    meanLabel)//"ErrorLowerTarget",'yErrorLowerTarget'                                                                                             )
+    call analysisGroup%writeAttribute(     char(self%    meanLabel)//"ErrorUpperTarget",'yErrorUpperTarget'                                                                                             )
+    ! Write computed datasets.
+    call analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                    ,char(self%propertyComment)                 ,datasetReturned=dataset)
+    call dataset      %writeAttribute(     char(self%propertyUnits    )                ,'units'                                                                                                         )
+    call dataset      %writeAttribute(          self%propertyUnitsInSI                 ,'unitsInSI'                                                                                                     )
+    call dataset      %close         (                                                                                                                                                                  )
+    call analysisGroup%writeDataset  (          self%meanValue                         ,char(self%    meanLabel)                    ,char(self%    meanComment)                 ,datasetReturned=dataset)
+    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
+    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %close         (                                                                                                                                                                  )
+    call analysisGroup%writeDataset  (          self%meanCovariance                    ,char(self%    meanLabel)//"Covariance"      ,char(self%    meanComment)//" [covariance]",datasetReturned=dataset)
+    call dataset      %writeAttribute("["//char(self%    meanUnits    )//"]²"          ,'units'                                                                                                         )
+    call dataset      %writeAttribute(          self%    meanUnitsInSI   **2           ,'unitsInSI'                                                                                                     )
+    call dataset      %close         (                                                                                                                                                                  )
+    ! Include the log-likelihood and target dataset.
+    call analysisGroup%writeAttribute(          self%logLikelihood()                   ,'logLikelihood'                                                                                                 )
+    call analysisGroup%writeAttribute(     char(self%targetLabel      )                ,'targetLabel'                                                                                                   )
+    call analysisGroup%writeDataset  (          self%meanValueTarget                   ,char(self%    meanLabel)//"Target"          ,char(self%    meanComment)                 ,datasetReturned=dataset)
+    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
+    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %close         (                                                                                                                                                                  )
+    call analysisGroup%writeDataset  (          self%functionErrorLowerTarget          ,char(self%    meanLabel)//"ErrorLowerTarget",char(self%    meanComment)                 ,datasetReturned=dataset)
+    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
+    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %close         (                                                                                                                                                                  )
+    call analysisGroup%writeDataset  (          self%functionErrorUpperTarget          ,char(self%    meanLabel)//"ErrorUpperTarget",char(self%    meanComment)                 ,datasetReturned=dataset)
+    call dataset      %writeAttribute(     char(self%    meanUnits    )                ,'units'                                                                                                         )
+    call dataset      %writeAttribute(          self%meanUnitsInSI                     ,'unitsInSI'                                                                                                     )
+    call dataset      %close         (                                                                                                                                                                  )
+    call analysisGroup%close         (                                                                                                                                                                  )
+    call analysesGroup%close         (                                                                                                                                                                  )
+    !$ call hdf5Access%unset()      
+    return
+  end subroutine morphologicalFractionGAMAMoffett2016Finalize

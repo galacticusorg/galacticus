@@ -62,7 +62,8 @@ contains
     integer                                                                                :: covarianceBinomialBinsPerDecade
     double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
     type            (inputParameters                        )                              :: dataAnalysisParameters
-    type            (varying_string                         )                              :: label                              , comment
+    type            (varying_string                         )                              :: label                              , comment                          , &
+         &                                                                                    targetLabel
     
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
@@ -115,6 +116,15 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    if (parameters%isPresent('targetLabel')) then
+       !# <inputParameter>
+       !#   <name>targetLabel</name>
+       !#   <source>parameters</source>
+       !#   <description>Label for the target dataset.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+    end if
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
           !# <inputParameter>
@@ -153,6 +163,7 @@ contains
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"          />
     !# <conditionalCall>
     !#  <call>self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+    !#  <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
     !#  <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
     !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
     !# </conditionalCall>
@@ -185,6 +196,7 @@ contains
     integer                                                                                :: covarianceBinomialBinsPerDecade
     double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
     type            (hdf5Object                             )                              :: dataFile
+    type            (varying_string                         )                              :: targetLabel
     logical                                                                                :: haveTarget
     
     !$ call hdf5Access%set()
@@ -192,21 +204,23 @@ contains
     call dataFile%readDataset('mass'  ,masses         )
     haveTarget=dataFile%hasDataset('massFunctionObserved').and.dataFile%hasDataset('covariance')
     if (haveTarget) then
-       call dataFile%readDataset('massFunctionObserved',functionValueTarget     )
-       call dataFile%readDataset('covariance'          ,functionCovarianceTarget)
+       call dataFile%readAttribute('label'               ,targetLabel             )
+       call dataFile%readDataset  ('massFunctionObserved',functionValueTarget     )
+       call dataFile%readDataset  ('covariance'          ,functionCovarianceTarget)
     end if
     call dataFile%close      (                        )
     !$ call hdf5Access%unset()
     ! Construct the object.
     !# <conditionalCall>
     !#  <call>self=outputAnalysisMassFunctionStellar(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+    !#  <argument name="targetLabel"              value="targetLabel"              condition="haveTarget"/>
     !#  <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
     !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
     !# </conditionalCall>
     return
   end function massFunctionStellarConstructorFile
 
-  function massFunctionStellarConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,functionValueTarget,functionCovarianceTarget) result(self)
+  function massFunctionStellarConstructorInternal(label,comment,masses,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !% Constructor for the ``massFunctionStellar'' output analysis class which takes a parameter set as input.
     use ISO_Varying_String
     use Memory_Management
@@ -227,6 +241,7 @@ contains
     class           (outputTimesClass                               ), intent(in   ), target                   :: outputTimes_
     integer                                                          , intent(in   )                           :: covarianceBinomialBinsPerDecade
     double precision                                                 , intent(in   )                           :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
+    type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
     double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
     type            (outputAnalysisPropertyExtractorMassStellar     )               , pointer                  :: outputAnalysisPropertyExtractor_
@@ -252,14 +267,14 @@ contains
     end do
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisPropertyExtractor_)
-    outputAnalysisPropertyExtractor_                =outputAnalysisPropertyExtractorMassStellar     (                                                       )
+    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorMassStellar     (                                                       )"/>
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )
-    outputAnalysisPropertyOperatorLog10_            =outputAnalysisPropertyOperatorLog10            (                                                       )
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                       )"/>
     allocate(outputAnalysisPropertyOperatorAntiLog10_        )
-    outputAnalysisPropertyOperatorAntiLog10_        =outputAnalysisPropertyOperatorAntiLog10        (                                                       )
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                       )"/>
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_,cosmologyFunctionsData,outputTimes_)
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_,cosmologyFunctionsData,outputTimes_)"/>
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
        ! Existing property operator is a sequence operator - simply prepend our log10 and cosmological luminosity distance operators to it.
@@ -275,72 +290,77 @@ contains
        propertyOperatorSequence%next     %operator_ => outputAnalysisPropertyOperatorLog10_
        propertyOperatorSequence%next%next%operator_ => outputAnalysisPropertyOperator_
        allocate(outputAnalysisPropertyOperatorSequence_)
-       outputAnalysisPropertyOperatorSequence_=outputAnalysisPropertyOperatorSequence(propertyOperatorSequence)
+       !# <referenceConstruct object="outputAnalysisPropertyOperatorSequence_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperatorSequence)"/>
     end select
     ! Create a cosmological volume correction weight operator.
     allocate(outputAnalysisWeightOperator_)
-    outputAnalysisWeightOperator_=outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)
+    !# <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)"/>
     ! Create a bin width distribution normalizer.
     allocate(normalizerSequence)
     normalizer_ => normalizerSequence
     allocate(outputAnalysisDistributionNormalizerBinWidth   :: normalizer_%normalizer_)
     select type (normalizer_ => normalizer_%normalizer_)
     type is (outputAnalysisDistributionNormalizerBinWidth  )
-       normalizer_=outputAnalysisDistributionNormalizerBinWidth  ()
+       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
     end select
     allocate(normalizer_%next)
     normalizer_ => normalizer_%next
     allocate(outputAnalysisDistributionNormalizerLog10ToLog :: normalizer_%normalizer_)
     select type (normalizer_ => normalizer_%normalizer_)
     type is (outputAnalysisDistributionNormalizerLog10ToLog)
-       normalizer_=outputAnalysisDistributionNormalizerLog10ToLog()
+       !# <referenceConstruct object="normalizer_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
     end select
     allocate(outputAnalysisDistributionNormalizer_)
-    outputAnalysisDistributionNormalizer_=outputAnalysisDistributionNormalizerSequence(normalizerSequence)
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerSequence(normalizerSequence)"/>
     ! Compute the number of buffer bins to add to either side of the mass function - these are needed to ensure that, e.g.,
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidthLogarithmic/log10(masses(2)/masses(1)))+1,bufferCountMinimum)
     ! Construct the object. We convert masses to log10(masses) here.
-    self%outputAnalysisVolumeFunction1D=                                                                                    &
-         & outputAnalysisVolumeFunction1D(                                                                                  &
-         &                                                         'massFunctionStellar'//label                           , &
-         &                                                         comment                                                , &
-         &                                                         var_str('massStellar'                                 ), &
-         &                                                         var_str('Stellar mass at the bin center'              ), &
-         &                                                         var_str('M☉'                                         ), &
-         &                                                         massSolar                                              , &
-         &                                                         var_str('massFunction'                                ), &
-         &                                                         var_str('Stellar mass function averaged over each bin'), &
-         &                                                         var_str('ᵪMpc⁻³'                                      ), &
-         &                                                         megaParsec**(-3)                                       , &
-         &                                                         log10(masses)                                          , &
-         &                                                         bufferCount                                            , &
-         &                                                         outputWeight                                           , &
-         &                                                         outputAnalysisPropertyExtractor_                       , &
-         &                                                         outputAnalysisPropertyOperatorSequence_                , &
-         &                                                         outputAnalysisPropertyOperatorAntiLog10_               , &
-         &                                                         outputAnalysisWeightOperator_                          , &
-         &                                                         outputAnalysisDistributionOperator_                    , &
-         &                                                         outputAnalysisDistributionNormalizer_                  , &
-         &                                                         galacticFilter_                                        , &
-         &                                                         outputTimes_                                           , &
-         &                                                         outputAnalysisCovarianceModelBinomial                  , &
-         &                                                         covarianceBinomialBinsPerDecade                        , &
-         &                                                         covarianceBinomialMassHaloMinimum                      , &
-         &                                                         covarianceBinomialMassHaloMaximum                      , &
-         &                                functionValueTarget     =functionValueTarget                                    , &
-         &                                functionCovarianceTarget=functionCovarianceTarget                                 &
+    self%outputAnalysisVolumeFunction1D=                                                              &
+         & outputAnalysisVolumeFunction1D(                                                            &
+         &                                'massFunctionStellar'//label                              , &
+         &                                comment                                                   , &
+         &                                var_str('massStellar'                                    ), &
+         &                                var_str('Stellar mass at the bin center'                 ), &
+         &                                var_str('M☉'                                            ), &
+         &                                massSolar                                                 , &
+         &                                var_str('massFunction'                                   ), &
+         &                                var_str('Stellar mass function averaged over each bin '  ), &
+         &                                var_str('ᵪMpc⁻³'                                         ), &
+         &                                megaParsec**(-3)                                          , &
+         &                                log10(masses)                                             , &
+         &                                bufferCount                                               , &
+         &                                outputWeight                                              , &
+         &                                outputAnalysisPropertyExtractor_                          , &
+         &                                outputAnalysisPropertyOperatorSequence_                   , &
+         &                                outputAnalysisPropertyOperatorAntiLog10_                  , &
+         &                                outputAnalysisWeightOperator_                             , &
+         &                                outputAnalysisDistributionOperator_                       , &
+         &                                outputAnalysisDistributionNormalizer_                     , &
+         &                                galacticFilter_                                           , &
+         &                                outputTimes_                                              , &
+         &                                outputAnalysisCovarianceModelBinomial                     , &
+         &                                covarianceBinomialBinsPerDecade                           , &
+         &                                covarianceBinomialMassHaloMinimum                         , &
+         &                                covarianceBinomialMassHaloMaximum                         , &
+         &                                var_str('$\log_{10}(M_\star/\mathrm{M}_\odot)$'          ), &
+         &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\star$'), &
+         &                                .true.                                                    , &
+         &                                .true.                                                    , &
+         &                                targetLabel                                               , &
+         &                                functionValueTarget                                       , &
+         &                                functionCovarianceTarget                                    &
          &                               )
     ! Clean up.
-    nullify(outputAnalysisPropertyExtractor_                )
-    nullify(outputAnalysisPropertyOperatorLog10_            )
-    nullify(outputAnalysisPropertyOperatorAntiLog10_        )
-    nullify(outputAnalysisPropertyOperatorSequence_         )
-    nullify(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    nullify(outputAnalysisDistributionNormalizer_           )
-    nullify(outputAnalysisWeightOperator_                   )
-    nullify(propertyOperatorSequence                        )
-    nullify(normalizerSequence                              )
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    nullify(propertyOperatorSequence)
+    nullify(normalizerSequence      )
     return
   end function massFunctionStellarConstructorInternal
 

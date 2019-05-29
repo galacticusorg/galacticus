@@ -156,43 +156,59 @@ contains
 
     ! Build a filter which select galaxies with ISM mass 10⁴M☉ or greater.
     allocate(galacticFilter_)
-    galacticFilter_=galacticFilterISMMass(massThreshold=1.0d4)
+    !# <referenceConstruct object="galacticFilter_" constructor="galacticFilterISMMass(massThreshold=1.0d4)"/>
     ! Create cosmological model in which data were analyzed.
     allocate(cosmologyParametersData)
     allocate(cosmologyFunctionsData )
-    cosmologyParametersData=cosmologyParametersSimple     (                            &
-         &                                                 OmegaMatter    = 0.30000d0, &
-         &                                                 OmegaDarkEnergy= 0.70000d0, &
-         &                                                 HubbleConstant =70.00000d0, &
-         &                                                 temperatureCMB = 2.72548d0, &
-         &                                                 OmegaBaryon    = 0.04550d0  &
-         &                                                )
-    cosmologyFunctionsData =cosmologyFunctionsMatterLambda(                            &
-         &                                                 cosmologyParametersData     &
-         &                                                )
+    !# <referenceConstruct object="cosmologyParametersData">
+    !# <constructor>
+    !# cosmologyParametersSimple     (                            &amp;
+    !#     &amp;                      OmegaMatter    = 0.30000d0, &amp;
+    !#     &amp;                      OmegaDarkEnergy= 0.70000d0, &amp;
+    !#     &amp;                      HubbleConstant =70.00000d0, &amp;
+    !#     &amp;                      temperatureCMB = 2.72548d0, &amp;
+    !#     &amp;                      OmegaBaryon    = 0.04550d0  &amp;
+    !#     &amp;                     )
+    !#  </constructor>
+    !# </referenceConstruct>
+    !# <referenceConstruct object="cosmologyFunctionsData">
+    !# <constructor>
+    !# cosmologyFunctionsMatterLambda(                            &amp;
+    !#      &amp;                     cosmologyParametersData     &amp;
+    !#      &amp;                    )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build the ALFALFA survey geometry of Martin et al. (2010).
     allocate(surveyGeometry_)
-    surveyGeometry_=surveyGeometryMartin2010ALFALFA(cosmologyParameters_)
+    !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryMartin2010ALFALFA(cosmologyParameters_)"/>
     ! Create property operators.
     !! Systematic error model.
     allocate(outputAnalysisPropertyOperator_    )
-    outputAnalysisPropertyOperator_    =outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)
+    !# <referenceConstruct object="outputAnalysisPropertyOperator_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient)"/>
     ! Build a gravitational lensing distribution operator.
     allocate(outputAnalysisDistributionOperatorGrvtnlLnsng_)
-    outputAnalysisDistributionOperatorGrvtnlLnsng_        =  outputAnalysisDistributionOperatorGrvtnlLnsng       (                                    &
-         &                                                                                                        gravitationalLensing_             , &
-         &                                                                                                        outputTimes_                      , &
-         &                                                                                                        sizeSourceLensing                   &
-         &                                                                                                       )
+    !# <referenceConstruct object="outputAnalysisDistributionOperatorGrvtnlLnsng_">
+    !# <constructor>
+    !#   outputAnalysisDistributionOperatorGrvtnlLnsng(                                    &amp;
+    !#      &amp;                                      gravitationalLensing_             , &amp;
+    !#      &amp;                                      outputTimes_                      , &amp;
+    !#      &amp;                                      sizeSourceLensing                   &amp;
+    !#      &amp;                                     )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Construct sequence distribution operator.
     allocate(distributionOperatorSequence                )
     allocate(distributionOperatorSequence           %next)
     allocate(outputAnalysisDistributionOperator_     )
     distributionOperatorSequence            %operator_   => outputAnalysisDistributionOperatorRandomError_
     distributionOperatorSequence       %next%operator_   => outputAnalysisDistributionOperatorGrvtnlLnsng_
-    outputAnalysisDistributionOperator_                  =  outputAnalysisDistributionOperatorSequence          (                                     &
-         &                                                                                                       distributionOperatorSequence         &
-         &                                                                                                      )
+    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
+    !# <constructor>
+    !#   outputAnalysisDistributionOperatorSequence   (                                     &amp;
+    !#      &amp;                                      distributionOperatorSequence         &amp;
+    !#      &amp;                                     )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build the object.
     self%outputAnalysisMassFunctionHI=                                                                                                                &
          & outputAnalysisMassFunctionHI(                                                                                                              &
@@ -212,12 +228,12 @@ contains
          &                              covarianceBinomialMassHaloMaximum                                                                             &
          &                             )
     ! Clean up.
-    nullify(surveyGeometry_                               )
-    nullify(galacticFilter_                               )
-    nullify(cosmologyParametersData                       )
-    nullify(cosmologyFunctionsData                        )
-    nullify(outputAnalysisDistributionOperator_           )
-    nullify(outputAnalysisDistributionOperatorGrvtnlLnsng_)
-    nullify(distributionOperatorSequence                  )
+    !# <objectDestructor name="surveyGeometry_"                               />
+    !# <objectDestructor name="galacticFilter_"                               />
+    !# <objectDestructor name="cosmologyParametersData"                       />
+    !# <objectDestructor name="cosmologyFunctionsData"                        />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"           />
+    !# <objectDestructor name="outputAnalysisDistributionOperatorGrvtnlLnsng_"/>
+    nullify(distributionOperatorSequence)
     return
   end function massFunctionHIALFALFAMartin2010ConstructorInternal
