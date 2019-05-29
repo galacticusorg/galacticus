@@ -21,6 +21,7 @@ use Galacticus::Build::Components::DataTypes;
 	     [
 	      \&Tree_Node_Output_Count,
 	      \&Tree_Node_Output_Names,
+	      \&Tree_Node_Post_Output ,
 	      \&Tree_Node_Output
 	     ]
      }
@@ -237,6 +238,55 @@ CODE
 	    type        => "procedure", 
 	    descriptor  => $function,
 	    name        => "output"
+	}
+	);
+}
+
+sub Tree_Node_Post_Output {
+    # Generate a function to perform post-output processing of a tree node.
+    my $build = shift();   
+    my $function =
+    {
+	type        => "void",
+	name        => "treeNodePostOutput",
+	description => "Perform post-output processing of a {\\normalfont \\ttfamily treeNode}.",
+	content     => "",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "treeNode",
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(in   )" ], 
+		 variables  => [ "time" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
+	     }
+	    ]
+    };    
+    # Iterate over all component classes
+    foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated(self%component{ucfirst($class->{'name'})})) then
+  do i=1,size(self%component{ucfirst($class->{'name'})})
+    call self%component{ucfirst($class->{'name'})}(i)%postOutput(time)
+  end do
+end if
+CODE
+    }
+    # Insert a type-binding for this function into the treeNode type.
+    push(
+	@{$build->{'types'}->{'treeNode'}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "postOutput"
 	}
 	);
 }

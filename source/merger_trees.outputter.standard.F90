@@ -340,10 +340,7 @@ contains
                       end if
                       ! Populate the output buffers with properties. We first populate with any "extra" properites that may be
                       ! being computed, and then call the standard treeNode output method to populate with all "standard"
-                      ! properties. This order of operation is chosen because the treeNode output method will perform some clean
-                      ! up (e.g. removing stellar luminosities no longer needed after this output). These quantities may be
-                      ! required by the "extra" property calculations, thus requiring the extra property calculations to be
-                      ! carried out first.                      
+                      ! properties.                     
                       !# <include directive="mergerTreeOutputTask" type="functionCall" functionType="void">
                       !#  <functionArgs>node,integerProperty,self%integerBufferCount,self%integerBuffer,doubleProperty,self%doubleBufferCount,self%doubleBuffer,time,instance</functionArgs>
                       include 'galacticus.output.merger_tree.tasks.inc'
@@ -362,6 +359,8 @@ contains
                 !# <eventHook name="mergerTreeExtraOutput">
                 !#  <callWith>node,indexOutput,currentTree%index,nodePassesFilter</callWith>
                 !# </eventHook>
+                ! Do any post-output processing of the node. This may include clean-up of properties no longer needed for example.
+                call node%postOutput(time)                
              end if
           end do
           ! Finished output.
