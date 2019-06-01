@@ -62,6 +62,12 @@
      !@     <type>\void</type>
      !@     <description>Return the results of the mean function operator.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>finalizeAnalysis</method>
+     !@     <arguments></arguments>
+     !@     <type>\void</type>
+     !@     <description>Finalize analysis of the mean function operator.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                     meanFunction1DDestructor
      procedure :: analyze          => meanFunction1DAnalyze
