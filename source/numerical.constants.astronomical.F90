@@ -69,7 +69,12 @@ module Numerical_Constants_Astronomical
   double precision, parameter :: luminosityZeroPointAB   =(10.0d0**(-offsetAB/2.5d0))*4.0d0*Pi*((10.0d0*parsec*hecto)**2)*ergs
 
   ! Anglular conversions.
-  double precision, parameter :: hoursToRadians          =2.0d0*Pi/ 24.0d0
-  double precision, parameter :: degreesToRadians        =2.0d0*Pi/360.0d0
+  double precision, parameter :: arcminutesToDegrees     =  1.0d0   /  60.0d0
+  double precision, parameter :: arcsecondsToDegrees     =  1.0d0   /3600.0d0
+  double precision, parameter :: hoursToDegrees          =360.0d0   /  24.0d0
+  double precision, parameter :: minutesToDegrees        =360.0d0   /  24.0d0/  60.0d0
+  double precision, parameter :: secondsToDegrees        =360.0d0   /  24.0d0/3660.0d0
+  double precision, parameter :: hoursToRadians          =  2.0d0*Pi/  24.0d0
+  double precision, parameter :: degreesToRadians        =  2.0d0*Pi/ 360.0d0
 
 end module Numerical_Constants_Astronomical
