@@ -98,18 +98,20 @@ sub maximumPosteriorParameterVector {
 	    if ( exists($options{'includePrevious'}) && $options{'includePrevious'} eq "yes" && -e $chainFilePreviousName );
     }
     foreach my $chainFile ( @chainFiles ) {
+	my $step = 0;
 	open(iHndl,$chainFile);
 	while ( my $line = <iHndl> ) {
-	    unless ( $line =~ m/^\"/ ) {
-		$line =~ s/^\s*//;
-		$line =~ s/\s*$//;
-		my @columns = split(/\s+/,$line);
-		# Determine if state is accepted.
-		my $accept = 1;
-		if ( $accept == 1 && (! defined($maximumLikelihood) || $columns[4] > $maximumLikelihood ) ) {
-		    $maximumLikelihood           = $columns[4];
-		    @maximumLikelihoodParameters = @columns[6..$#columns];
-		}
+	    ++$step;
+	    $line =~ s/^\s*//;
+	    $line =~ s/\s*$//;
+	    my @columns = split(/\s+/,$line);
+	    # Determine if state is accepted.
+	    my $accept = 1;
+	    $accept = 0
+		if ( exists($options{'burnCount'}) && $step <= $options{'burnCount'} );
+	    if ( $accept == 1 && (! defined($maximumLikelihood) || $columns[4] > $maximumLikelihood ) ) {
+		$maximumLikelihood           = $columns[4];
+		@maximumLikelihoodParameters = @columns[6..$#columns];
 	    }
 	}
 	close(iHndl);
