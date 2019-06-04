@@ -25,8 +25,8 @@
   !#  <description>Implements survey geometries over the full sky.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryClass) :: surveyGeometryFullSky
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: limitDistanceMinimum, limitDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
+     double precision                                   :: limitDistanceMinimum          , limitDistanceMaximum
    contains
      final     ::                            fullSkyDestructor
      procedure :: distanceMinimum         => fullSkyDistanceMinimum
@@ -51,10 +51,10 @@ contains
     !% Default constructor for the full sky survey geometry.
     use Input_Parameters
     implicit none
-    type(surveyGeometryFullSky) :: self
-    type            (inputParameters              ), intent(inout) :: parameters
-    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
-    double precision                                               :: redshiftMinimum    , redshiftMaximum
+    type            (surveyGeometryFullSky  )                :: self
+    type            (inputParameters        ), intent(inout) :: parameters
+    class           (cosmologyFunctionsClass), pointer       :: cosmologyFunctions_
+    double precision                                         :: redshiftMinimum    , redshiftMaximum
 
     ! Check and read parameters.
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
@@ -248,7 +248,7 @@ contains
 
   double precision function fullSkyAngularPower(self,i,j,l)
     !% Return the angular power for the full sky.
-    use NUmerical_Constants_Math
+    use Numerical_Constants_Math
     implicit none
     class  (surveyGeometryFullSky), intent(inout) :: self
     integer                       , intent(in   ) :: i   , j, l
