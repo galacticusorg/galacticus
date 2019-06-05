@@ -112,7 +112,7 @@ contains
 
   function localGroupDBConstructorInternal() result(self)
     !% Constructor for the Local Group database class.
-    use FoX_DOM           , only : getElementsByTagName, getLength                        , getDomConfig, setParameter
+    use FoX_DOM           , only : getElementsByTagName, getLength
     use IO_XML            , only : XML_Parse           , XML_Get_First_Element_By_Tag_Name
     use Galacticus_Paths  , only : galacticusPath      , pathTypeDataStatic
     use ISO_Varying_String, only : char
@@ -121,7 +121,6 @@ contains
 
     self%database => XML_Parse(char(galacticusPath(pathTypeDataStatic))//"observations/localGroup/localGroupSatellites.xml")
     self%galaxies => getElementsByTagName(XML_Get_First_Element_By_Tag_Name(self%database,'galaxies'),'galaxy')
-    call setParameter(getDomConfig(self%database),'invalid-pretty-print',.true.)
     allocate(self%selected(0:getLength(self%galaxies)-1))
     self%selected=.false.
     return
