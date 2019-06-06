@@ -126,7 +126,8 @@ contains
     implicit none
     class  (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     integer                                                , intent(in   ) :: x
-
+    !GCC$ attributes unused :: self, x
+    
     negativeBinomialCumulative=0.0d0
     call Galacticus_Error_Report('cumulative distribution function is not implemented'//{introspection:location})
     return
@@ -138,6 +139,7 @@ contains
     implicit none
     class           (distributionFunctionDiscrete1DNegativeBinomial), intent(inout) :: self
     double precision                                                , intent(in   ) :: p
+    !GCC$ attributes unused :: self, p
     
     negativeBinomialInverse=0
     call Galacticus_Error_Report('inverse function is not implemented'//{introspection:location})
