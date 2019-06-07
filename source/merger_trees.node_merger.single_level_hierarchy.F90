@@ -61,7 +61,8 @@ contains
     type (treeNode                                )               , pointer :: nodeChild    , nodeParent, &
          &                                                                     nodeSatellite
     type (varying_string                          )                         :: message
-
+    !GCC$ attributes unused :: self
+    
     ! Get the parent node.
     nodeParent => node      %parent
     ! Uncouple node from the children of its parent.
