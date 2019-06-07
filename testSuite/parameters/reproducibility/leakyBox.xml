@@ -86,8 +86,11 @@
   </stellarPopulationMethod>
 
   <!-- Numerical tolerances -->
-  <odeToleranceAbsolute value="1.0e-6"/>
-  <odeToleranceRelative value="0.001"/>
+  <mergerTreeNodeEvolerMethod value="standard">
+    <odeToleranceAbsolute value="1.0e-6"/>
+    <odeToleranceRelative value="0.001"/>
+  </mergerTreeNodeEvolerMethod>
+
   <mergerTreeEvolverMethod value="standard">
     <timestepHostAbsolute value="1.000"/>
     <timestepHostRelative value="0.100"/>

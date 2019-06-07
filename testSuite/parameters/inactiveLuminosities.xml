@@ -6,14 +6,14 @@
   <version>0.9.4</version>
 
   <!-- Component selection -->
-  <treeNodeMethodBasic             value="standard"/>
-  <treeNodeMethodBlackHole         value="standard"/>
-  <treeNodeMethodDarkMatterProfile value="scale"   />
-  <treeNodeMethodDisk              value="standard"/>
-  <treeNodeMethodHotHalo           value="standard"/>
-  <treeNodeMethodSatellite         value="standard"/>
-  <treeNodeMethodSpheroid          value="standard"/>
-  <treeNodeMethodSpin              value="random"  />
+  <treeNodeMethodBasic value="standard"/>
+  <treeNodeMethodBlackHole value="standard"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
+  <treeNodeMethodDisk value="standard"/>
+  <treeNodeMethodHotHalo value="standard"/>
+  <treeNodeMethodSatellite value="standard"/>
+  <treeNodeMethodSpheroid value="standard"/>
+  <treeNodeMethodSpin value="random"/>
   <diskMassDistribution value="exponentialDisk">
     <dimensionless value="true"/>
   </diskMassDistribution>
@@ -24,11 +24,11 @@
   <!-- Cosmological parameters and options -->
   <cosmologyFunctionsMethod value="matterLambda"/>
   <cosmologyParametersMethod value="simple">
-    <HubbleConstant  value="67.36000"/>	<!-- Planck 2018; arXiv:1807.06211 -->
-    <OmegaMatter     value=" 0.31530"/>	<!-- Planck 2018; arXiv:1807.06211 -->
+    <HubbleConstant value="67.36000"/>	<!-- Planck 2018; arXiv:1807.06211 -->
+    <OmegaMatter value=" 0.31530"/>	<!-- Planck 2018; arXiv:1807.06211 -->
     <OmegaDarkEnergy value=" 0.68470"/>	<!-- Planck 2018; arXiv:1807.06211 -->
-    <OmegaBaryon     value=" 0.04930"/>	<!-- Planck 2018; arXiv:1807.06211 -->
-    <temperatureCMB  value=" 2.72548"/>
+    <OmegaBaryon value=" 0.04930"/>	<!-- Planck 2018; arXiv:1807.06211 -->
+    <temperatureCMB value=" 2.72548"/>
   </cosmologyParametersMethod>
 
   <!-- Power spectrum options -->
@@ -212,8 +212,13 @@
   <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
 
   <!-- Numerical tolerances -->
-  <odeToleranceAbsolute value="1.0e-6"/>
-  <odeToleranceRelative value="1.0e-6"/>
+  <mergerTreeNodeEvolerMethod value="standard">
+    <odeToleranceAbsolute value="1.0e-6"/>
+    <odeToleranceRelative value="1.0e-6"/>
+    <odeAlgorithm value="bdf"/>
+    <odeLatentIntegratorOrder value="15"/>
+  </mergerTreeNodeEvolerMethod>
+
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
   <mergerTreeEvolverMethod value="standard">
@@ -228,9 +233,7 @@
 
   <!-- ODE solver and luminosities -->
   <verbosityLevel value="2"/>
-  <odeAlgorithm value="BDF"/>
   <odeLatentIntegratorType value="trapezoidal"/>
-  <odeLatentIntegratorOrder value="15"/>
   <diskLuminositiesStellarInactive value="true"/>
   <spheroidLuminositiesStellarInactive value="true"/>
   <outputTimesMethod value="list">

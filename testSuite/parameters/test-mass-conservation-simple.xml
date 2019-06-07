@@ -67,10 +67,10 @@
     <diskVerySimpleSurfaceDensityThreshold value="130295433397.88165"/>
     <diskVerySimpleSurfaceDensityVelocityExponent value="-0.98483665317102953"/>
     <diskVerySimpleUseAnalyticSolver value="true"/>
-    <galacticStructureRadiusSolverMethod value="fixed">
+    <galacticStructureSolverMethod value="fixed">
     <factor value="0.29610738271059550"/>
     <radiusFixed value="turnaround"/>
-  </galacticStructureRadiusSolverMethod>
+  </galacticStructureSolverMethod>
 
   <galacticStructureSolverMethod value="fixed"/>
     <gravitationalLensingMethod value="takahashi2011"/>
@@ -137,10 +137,13 @@
     </mergerTreeBranchingProbabilityMethod>
     <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
     <nodeMergersMethod value="singleLevelHierarchy"/>
+    <mergerTreeNodeEvolerMethod value="standard">
     <odeAlgorithm value="Runge-Kutta-Second-Order"/>
     <odeToleranceAbsolute value="1.0e-3"/>
     <odeToleranceRelative value="0.1"/>
-    <outputTimesMethod value="list">
+  </mergerTreeNodeEvolerMethod>
+
+  <outputTimesMethod value="list">
     <redshifts value="0"/>
   </outputTimesMethod>
 

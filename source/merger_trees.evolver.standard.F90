@@ -24,11 +24,12 @@
   use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep, mergerTreeEvolveTimestepClass
   use Galactic_Structure_Solvers, only : galacticStructureSolver , galacticStructureSolverClass
+  use Merger_Trees_Evolve_Node  , only : mergerTreeNodeEvolver   , mergerTreeNodeEvolverClass
   
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
-     type   (deadlockList  ), pointer :: next     => null()
-     type   (treeNode      ), pointer :: nodeLock          , node
+     type   (deadlockList  ), pointer :: next      => null()
+     type   (treeNode      ), pointer :: nodeLock           , node
      integer(kind=kind_int8)          :: treeIndex
      type   (varying_string)          :: lockType
   end type deadlockList
@@ -42,6 +43,7 @@
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (mergerTreeEvolveTimestepClass), pointer :: mergerTreeEvolveTimestep_ => null()
      class           (galacticStructureSolverClass ), pointer :: galacticStructureSolver_  => null()
+     class           (mergerTreeNodeEvolverClass   ), pointer :: mergerTreeNodeEvolver_    => null()
      logical                                                  :: allTreesExistAtFinalTime           , dumpTreeStructure
      double precision                                         :: timestepHostAbsolute               , timestepHostRelative
      type            (deadlockList                 ), pointer :: deadlockHeadNode          => null()
@@ -91,6 +93,7 @@ contains
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (mergerTreeEvolveTimestepClass), pointer       :: mergerTreeEvolveTimestep_
     class           (galacticStructureSolverClass ), pointer       :: galacticStructureSolver_
+    class           (mergerTreeNodeEvolverClass   ), pointer       :: mergerTreeNodeEvolver_
     logical                                                        :: allTreesExistAtFinalTime , dumpTreeStructure
     double precision                                               :: timestepHostRelative     , timestepHostAbsolute
     
@@ -132,24 +135,27 @@ contains
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_" source="parameters"/>
     !# <objectBuilder class="galacticStructureSolver"  name="galacticStructureSolver_"  source="parameters"/>
-    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeEvolveTimestep_,galacticStructureSolver_)
+    !# <objectBuilder class="mergerTreeNodeEvolver"    name="mergerTreeNodeEvolver_"    source="parameters"/>
+    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,galacticStructureSolver_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="mergerTreeEvolveTimestep_"/>
+    !# <objectDestructor name="mergerTreeNodeEvolver_"   />
     !# <objectDestructor name="galacticStructureSolver_" />
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeEvolveTimestep_,galacticStructureSolver_) result(self)
+  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,galacticStructureSolver_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
     implicit none
     type            (mergerTreeEvolverStandard    )                        :: self
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class           (mergerTreeEvolveTimestepClass), intent(in   ), target :: mergerTreeEvolveTimestep_
     class           (galacticStructureSolverClass ), intent(in   ), target :: galacticStructureSolver_
+    class           (mergerTreeNodeEvolverClass   ), intent(in   ), target :: mergerTreeNodeEvolver_
     logical                                        , intent(in   )         :: allTreesExistAtFinalTime , dumpTreeStructure
     double precision                               , intent(in   )         :: timestepHostRelative     , timestepHostAbsolute
-    !# <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, *cosmologyFunctions_, *mergerTreeEvolveTimestep_, *galacticStructureSolver_"/>
+    !# <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *galacticStructureSolver_"/>
 
     self%deadlockHeadNode => null()
     return
@@ -163,10 +169,11 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"      />
     !# <objectDestructor name="self%mergerTreeEvolveTimestep_"/>
     !# <objectDestructor name="self%galacticStructureSolver_" />
+    !# <objectDestructor name="self%mergerTreeNodeEvolver_"   />
     return
   end subroutine standardDestructor
 
-  subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,initializationLock,status)
+  subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
     !$ use OMP_Lib
     use Galacticus_Nodes                  , only : nodeEvent                         , nodeComponentBasic, interruptTask, nodeEventBranchJumpInterTree, &
@@ -188,6 +195,7 @@ contains
     double precision                                                , intent(in   ) :: timeEnd
     logical                                                         , intent(  out) :: treeDidEvolve                     , suspendTree
     logical                                                         , intent(in   ) :: deadlockReporting
+    integer         (kind_int8                 ), optional          , intent(in   ) :: systemClockMaximum
     integer         (omp_lock_kind             ), optional          , intent(inout) :: initializationLock
     type            (treeNode                  )           , pointer                :: nodeLock                          , nodeNext         , &
          &                                                                             nodeParent                        , node
@@ -449,7 +457,7 @@ contains
                             ! Update record of earliest time in the tree.
                             earliestTimeInTree=min(earliestTimeInTree,timeEndThisNode)
                             ! Evolve the node to the next interrupt event, or the end time.
-                            call Tree_Node_Evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,self%galacticStructureSolver_,status)
+                            call self%mergerTreeNodeEvolver_%evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,self%galacticStructureSolver_,systemClockMaximum,status)
                             if (present(status) .and. status /= errorStatusSuccess) return
                          end if
                          ! Check for interrupt.
@@ -476,7 +484,7 @@ contains
                                ! event. Also record that the tree is not deadlocked, as we are changing the tree state.
                                if (.not.node%isSatellite()) then
                                   statusDeadlock=deadlockStatusIsNotDeadlocked
-                                  call Events_Node_Merger(node)
+                                  call self%mergerTreeNodeEvolver_%merge(node)
                                end if
                             case (.true.)
                                ! This is the major progenitor, so promote the node to its parent providing that the node has no
@@ -484,7 +492,7 @@ contains
                                ! parent halo. Also record that the tree is not deadlocked, as we are changing the tree state.
                                if (.not.associated(node%sibling).and..not.associated(node%event)) then
                                   statusDeadlock=deadlockStatusIsNotDeadlocked
-                                  call Tree_Node_Promote(node)
+                                  call self%mergerTreeNodeEvolver_%promote(node)
                                   ! As this is a node promotion, we want to attempt to continue evolving the same node. Mark the
                                   ! parent as the next node to evolve, and flag that our next node has been identified.
                                   nodeNext      => nodeParent                                  
@@ -796,7 +804,7 @@ contains
        message=message//' (time difference is '
        write (timeFormatted,'(e8.2)') basic%time()-evolveToTime
        message=message//trim(timeFormatted)
-       if (.not.Tree_Node_Is_Accurate(basic%time(),evolveToTime)) then
+       if (.not.self%mergerTreeNodeEvolver_%isAccurate(basic%time(),evolveToTime)) then
           ! End time is well before current time. This is an error. Call ourself with reporting switched on to generate a report
           ! on the time limits.
           message=message//' Gyr)'
