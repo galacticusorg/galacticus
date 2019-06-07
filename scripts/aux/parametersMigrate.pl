@@ -586,7 +586,7 @@ my @translations =
 	     "galacticStructureRadiusSolverInitialRadiusMethod"          => "galacticStructureRadiiInitialMethod"                                                   ,
 	     "adiabaticContractionGnedinA"                               => "galacticStructureRadiiInitialMethod.gnedin2004.--A"                                    ,
 	     "adiabaticContractionGnedinOmega"                           => "galacticStructureRadiiInitialMethod.gnedin2004.--omega"                                ,
-	     "darkMatterProfileMethod"                                   => "darkMatterProfileDMOMethod"                                                            ,
+#	     "darkMatterProfileMethod"                                   => "darkMatterProfileDMOMethod"                                                            ,
 	     "galacticStructureRadiiInitialMethod"                       => "darkMatterProfileMethod"                                                               ,
 	     "virialDensityContrastSphericalTopHatDarkEnergyFixEnergyAt" => "virialDensityContrastMethod.sphericalCollapseMatterDE.--energyFixedAt"                 ,
 	     "outputRedshifts"                                           => "outputTimesMethod.list.--redshifts"                                                    ,
@@ -620,10 +620,38 @@ my @translations =
 	     "galacticStructureRadiiFixedRadius"                         => "galacticStructureRadiusSolverMethod.fixed.--radiusFixed"                               ,
 	     "equilibriumStructureIncludeBaryonGravity"                  => "galacticStructureRadiusSolverMethod.equilibrium.--includeBaryonGravity"                ,
 	     "equilibriumStructureUseFormationHalo"                      => "galacticStructureRadiusSolverMethod.equilibrium.--useFormationHalo"                    ,
-	     "equilibriumStructureSolutionTolerance"                     => "galacticStructureRadiusSolverMethod.equilibrium.--solutionTolerance"
+	     "equilibriumStructureSolutionTolerance"                     => "galacticStructureRadiusSolverMethod.equilibrium.--solutionTolerance"                   ,
+	     "odeToleranceAbsolute"                                      => "mergerTreeNodeEvolerMethod.standard.--odeToleranceAbsolute"                            ,
+	     "odeToleranceRelative"                                      => "mergerTreeNodeEvolerMethod.standard.--odeToleranceRelative"                            ,
+	     "odeJacobianStepSizeRelative"                               => "mergerTreeNodeEvolerMethod.standard.--odeJacobianStepSizeRelative"                     ,
+	     "odeAlgorithm"                                              => "mergerTreeNodeEvolerMethod.standard.--odeAlgorithm"                                    ,
+	     "odeAlgorithmNonJacobian"                                   => "mergerTreeNodeEvolerMethod.standard.--odeAlgorithmNonJacobian"                         ,
+	     "odeLatentIntegratorOrder"                                  => "mergerTreeNodeEvolerMethod.standard.--odeLatentIntegratorOrder"                        ,
+	     "odeLatentIntegratorIntervalsMaximum"                       => "mergerTreeNodeEvolerMethod.standard.--odeLatentIntegratorIntervalsMaximum"             ,
+	     "profileOdeEvolver"                                         => "mergerTreeNodeEvolerMethod.standard.--profileOdeEvolver"
 	 },
-		 values        =>
-	 {
+	 values        =>
+         {
+	     odeAlgorithm =>
+	     {
+		 "Runge-Kutta-Cash-Karp"      => "rungeKuttaCashKarp"     ,
+		 "Runge-Kutta-Secon-Order"    => "rungeKuttaSeconOrder"   ,
+		 "Runge-Kutta"                => "rungeKutta"             ,
+		 "Runge-Kutta-Fehlberg"       => "rungeKuttaFehlberg"     ,
+		 "Runge-Kutta-Prince-Dormand" => "rungeKuttaPrinceDormand",
+		 "multistepAdams"             => "multistepAdams"         ,
+		 "Bulirsch-Stoer"             => "bulirschStoer"          ,
+		 "BDF"                        => "bdf"
+	     },
+	     odeAlgorithmNonJacobian =>
+	     {
+		 "Runge-Kutta-Cash-Karp"      => "rungeKuttaCashKarp"     ,
+		 "Runge-Kutta-Secon-Order"    => "rungeKuttaSeconOrder"   ,
+		 "Runge-Kutta"                => "rungeKutta"             ,
+		 "Runge-Kutta-Fehlberg"       => "rungeKuttaFehlberg"     ,
+		 "Runge-Kutta-Prince-Dormand" => "rungeKuttaPrinceDormand",
+		 "multistepAdams"             => "multistepAdams"
+	     },
 	     atomicCollisionalIonizationMethod                =>
 	     {
 		 "Verner"            => "verner1996"

@@ -67,7 +67,7 @@
 
   <!-- Adiabatic contraction solver -->
   <darkMatterProfileMethod value="adiabaticGnedin2004">
-    <A     value="1.0"/>
+    <A value="1.0"/>
     <omega value="1.0"/>
   </darkMatterProfileMethod>
 
@@ -76,8 +76,11 @@
   </galacticusStructureSolver>
   
   <!-- Numerical tolerances -->
-  <odeToleranceAbsolute value="0.01"/>
-  <odeToleranceRelative value="0.01"/>
+  <mergerTreeNodeEvolerMethod value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolerMethod>
+
   <mergerTreeEvolverMethod value="standard">
     <timestepHostAbsolute value="1.00"/>
     <timestepHostRelative value="0.10"/>
