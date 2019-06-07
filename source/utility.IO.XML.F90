@@ -383,6 +383,7 @@ contains
     ! Initialize the nodeList stack.
     allocate(stackList(stackExpandCount))
     ! Process the document.
+    allElements=.false.
     do while (stackCount > 0)
        ! Parse the document.
        nodeNew      => parseFile(char(filePath//stack(stackCount)%fileName    ),iostat=iostat)
