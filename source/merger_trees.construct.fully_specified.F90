@@ -19,16 +19,32 @@
 
   !% Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
 
+  use FoX_DOM
+
   !# <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
   !#  <description>Merger tree constructor class which constructs a merger tree given a full specification in XML.</description>
+  !#  <deepCopy>
+  !#    <increment variables="document%copyCount" atomic="yes"/>
+  !#  </deepCopy>
   !# </mergerTreeConstructor>
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFullySpecified
      !% A class implementing merger tree construction from a full specification of the tree in XML.
      private
-     type(varying_string) :: fileName
+     type   (varying_string   )          :: fileName
+     type   (documentContainer), pointer :: document  => null()
+     type   (nodeList         ), pointer :: trees     => null()
+     integer(c_size_t         )          :: treeCount
    contains
+     final     ::              fullySpecifiedDestructor
      procedure :: construct => fullySpecifiedConstruct
   end type mergerTreeConstructorFullySpecified
+
+  type :: documentContainer
+     !% A container for XML docoment.
+     private
+     type   (node             ), pointer :: doc       => null()
+     integer                             :: copyCount
+  end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
      !% Constructors for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
@@ -39,7 +55,7 @@
 contains
   
   function fullySpecifiedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    !% Constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class which takes a parameter set as input.
     use Input_Parameters
     implicit none
     type(mergerTreeConstructorFullySpecified)                :: self
@@ -59,14 +75,46 @@ contains
   end function fullySpecifiedConstructorParameters
 
   function fullySpecifiedConstructorInternal(fileName) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily augment} merger tree operator class.
+    !% Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
+    use Galacticus_Error
     implicit none
     type(mergerTreeConstructorFullySpecified)                :: self
     type(varying_string                     ), intent(in   ) :: fileName
+    integer                                                  :: ioErr
     !# <constructorAssign variables="fileName"/>
 
+    !$omp critical (FoX_DOM_Access)
+    if (.not.associated(self%document)) allocate(self%document)
+    ! Parse the merger tree file.
+    self%document%doc => parseFile(char(self%fileName),iostat=ioErr)
+    if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
+    self%document%copyCount = 1
+    ! Get the list of trees.
+    self%trees => getElementsByTagname(self%document%doc,"tree")
+    ! Count the number of trees.
+    self%treeCount=getLength(self%trees)
+    if (self%treeCount <= 0) call Galacticus_Error_Report('no trees were specified'//{introspection:location})
+    !$omp end critical (FoX_DOM_Access)
     return    
   end function fullySpecifiedConstructorInternal
+
+  subroutine fullySpecifiedDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
+    implicit none
+    type(mergerTreeConstructorFullySpecified), intent(inout) :: self
+
+    ! Reduce the count of document copies.
+    !$omp atomic
+    self%document%copyCount=self%document%copyCount-1
+    ! Destroy the XML document only if the count of document copies decreases to 0.
+    if (self%document%copyCount == 0) then
+       !$omp critical (FoX_DOM_Access)
+       call destroy(self%document%doc)
+       if (associated(self%document)) deallocate(self%document)
+       !$omp end critical (FoX_DOM_Access)
+    end if
+    return
+  end subroutine fullySpecifiedDestructor
   
   function fullySpecifiedConstruct(self,treeNumber) result(tree)
     !% Construct a fully-specified merger tree.
@@ -83,21 +131,19 @@ contains
     class           (mergerTreeConstructorFullySpecified), intent(inout)               :: self
     integer         (c_size_t                           ), intent(in   )               :: treeNumber
     type            (treeNodeList                       ), allocatable  , dimension(:) :: nodeArray
-    type            (node                               ), pointer                     :: doc          , nodeDefinition
+    type            (node                               ), pointer                     :: treeDefinition, nodeDefinition
     type            (nodeList                           ), pointer                     :: nodes
-    integer                                                                            :: i            , ioErr         , &
-         &                                                                                nodeCount
+    integer                                                                            :: i             , nodeCount
     integer         (kind_int8                          )                              :: indexValue
     double precision                                                                   :: uniformRandom
 
-    ! Only one tree to process.
-    if (treeNumber == 1_c_size_t) then
-       ! Parse the definition file.
+    ! Read one tree.
+    if (treeNumber > 0_c_size_t .and. treeNumber <= self%treeCount) then
        !$omp critical (FoX_DOM_Access)
-       doc => parseFile(char(self%fileName),iostat=ioErr)
-       if (ioErr /= 0) call Galacticus_Error_Report('unable to read or parse fully-specified merger tree file'//{introspection:location})
-       ! Get the list of nodes.
-       nodes => getElementsByTagname(doc,"node")
+       ! Select one tree.
+       treeDefinition => item(self%trees,int(treeNumber-1))
+       ! Get the list of nodes in this tree.
+       nodes => getElementsByTagname(treeDefinition,"node")
        nodeCount=getLength(nodes)
        if (nodeCount <= 0) call Galacticus_Error_Report('no nodes were specified'//{introspection:location})
        ! Create the tree.
@@ -116,7 +162,7 @@ contains
        end do
        !$omp end critical (FoX_DOM_Access)
        ! Initialize the tree root to null.
-       tree%index            =  1
+       tree%index            =  int(treeNumber)
        tree%initializedUntil =  0.0d0
        tree%firstTree        => tree
        tree%baseNode         => null()
@@ -147,7 +193,7 @@ contains
           !$omp end critical (FoX_DOM_Access)
           ! Assign the tree root node if this node has no parent.
           if (.not.associated(nodeArray(i)%node%parent)) then
-             if (associated(tree%baseNode)) call Galacticus_Error_Report('multiple trees are not supported'//{introspection:location})
+             if (associated(tree%baseNode)) call Galacticus_Error_Report('multiple root nodes found in the tree'//{introspection:location})
              tree%baseNode => nodeArray(i)%node
           end if
           ! Build components.
@@ -155,10 +201,6 @@ contains
           ! Dump the node.
           if (Galacticus_Verbosity_Level() > verbosityInfo) call nodeArray(i)%node%serializeASCII()
        end do
-       ! Finished - destroy the XML document.
-       !$omp critical (FoX_DOM_Access)
-       call destroy(doc)
-       !$omp end critical (FoX_DOM_Access)
        ! Finish writing report.
        call Galacticus_Display_Unindent('done',verbosityInfo)
        ! Destroy the node array.
