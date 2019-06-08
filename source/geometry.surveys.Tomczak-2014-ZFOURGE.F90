@@ -28,7 +28,8 @@
   type, extends(surveyGeometryMangle) :: surveyGeometryTomczak2014ZFOURGE
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      integer                                            :: redshiftBin
-     double precision                                   :: binDistanceMinimum, binDistanceMaximum
+     double precision                                   :: binDistanceMinimum           , binDistanceMaximum, &
+          &                                                redshiftMinimum              , redshiftMaximum
    contains
      final     ::                              tomczak2014ZFOURGEDestructor
      procedure :: fieldCount                => tomczak2014ZFOURGEFieldCount
@@ -83,50 +84,49 @@ contains
     use Galacticus_Error
     use Cosmology_Functions_Options
     implicit none
-    type            (surveyGeometryTomczak2014ZFOURGE)                        :: self
-    integer                                           , intent(in   )         :: redshiftBin
-    class           (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
-    double precision                                                          :: redshiftMinimum    , redshiftMaximum
+    type   (surveyGeometryTomczak2014ZFOURGE)                        :: self
+    integer                                  , intent(in   )         :: redshiftBin
+    class  (cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
     !# <constructorAssign variables="redshiftBin, *cosmologyFunctions_"/>
 
     ! Find distance limits for this redshift bin.
     select case (redshiftBin)
     case(0)
-       redshiftMinimum=0.20d0
-       redshiftMaximum=0.50d0
+       self%redshiftMinimum=0.20d0
+       self%redshiftMaximum=0.50d0
     case(1)
-       redshiftMinimum=0.50d0
-       redshiftMaximum=0.75d0
+       self%redshiftMinimum=0.50d0
+       self%redshiftMaximum=0.75d0
     case(2)
-       redshiftMinimum=0.75d0
-       redshiftMaximum=1.00d0
+       self%redshiftMinimum=0.75d0
+       self%redshiftMaximum=1.00d0
     case(3)
-       redshiftMinimum=1.00d0
-       redshiftMaximum=1.25d0
+       self%redshiftMinimum=1.00d0
+       self%redshiftMaximum=1.25d0
     case(4)
-       redshiftMinimum=1.25d0
-       redshiftMaximum=1.50d0
+       self%redshiftMinimum=1.25d0
+       self%redshiftMaximum=1.50d0
     case(5)
-       redshiftMinimum=1.50d0
-       redshiftMaximum=2.00d0
+       self%redshiftMinimum=1.50d0
+       self%redshiftMaximum=2.00d0
     case(6)
-       redshiftMinimum=2.00d0
-       redshiftMaximum=2.50d0
+       self%redshiftMinimum=2.00d0
+       self%redshiftMaximum=2.50d0
     case(7)
-       redshiftMinimum=2.50d0
-       redshiftMaximum=3.00d0
+       self%redshiftMinimum=2.50d0
+       self%redshiftMaximum=3.00d0
     case default
        call Galacticus_Error_Report('0≤redshiftBin≤7 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
          &                                                   output  =distanceTypeComoving, &
-         &                                                   redshift=redshiftMinimum       &
+         &                                                   redshift=self%redshiftMinimum  &
          &                                                  )
     self%binDistanceMaximum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
          &                                                   output  =distanceTypeComoving, &
-         &                                                   redshift=redshiftMaximum       &
+         &                                                   redshift=self%redshiftMaximum  &
          &                                                  )
     call self%initialize()
     return
@@ -176,7 +176,6 @@ contains
 
     ! Validate field.
     if (.not.present(field)) call Galacticus_Error_Report('field must be specified'//{introspection:location})
-    if (field < 1 .or. field > 2) call Galacticus_Error_Report('1 ≤ field ≤ 2 required'//{introspection:location})
     ! Find the limiting redshift for this mass. (See
     ! constraints/dataAnalysis/stellarMassFunctions_ZFOURGE_z0.2_2.5/massRedshiftRelation.pl for details.)
     logarithmicMass=log10(mass)
@@ -185,12 +184,15 @@ contains
        redshift=-114.659703302477d0+logarithmicMass*(45.9008293873578d0+logarithmicMass*(-6.16172903321726d0+logarithmicMass*(0.278223082977791d0)))
     case (2)
        redshift=-58.4827675323933d0+logarithmicMass*(20.2501133330335d0+logarithmicMass*(-2.35628286307041d0+logarithmicMass*(0.0927047000361006d0)))
+    case default
+       redshift=0.0d0
+       call Galacticus_Error_Report('1 ≤ field ≤ 2 required'//{introspection:location})
     end select
     ! Convert from redshift to comoving distance.
-    tomczak2014ZFOURGEDistanceMaximum                                                      &
-         &=self%cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                  output  =distanceTypeComoving, &
-         &                                                  redshift=redshift              &
+    tomczak2014ZFOURGEDistanceMaximum                                                                                              &
+         &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
+         &                                                  output  =distanceTypeComoving                                        , &
+         &                                                  redshift=min(max(redshift,self%redshiftMinimum),self%redshiftMaximum)  &
          &                                                 )
     ! Limit the maximum distance.
     tomczak2014ZFOURGEDistanceMaximum=min(tomczak2014ZFOURGEDistanceMaximum,self%binDistanceMaximum)

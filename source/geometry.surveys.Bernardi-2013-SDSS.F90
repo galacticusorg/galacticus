@@ -145,14 +145,16 @@ contains
          &      [                                                   &
          &       self%mangleDirectory()//"sdss_dr72safe0_res6d.pol" &
          &      ]
-    call File_Lock_Initialize(                     lock                     )
-    call File_Lock           (char(mangleFiles(1)),lock,lockIsShared=.false.)
     if (.not.File_Exists(mangleFiles(1))) then
-       call System_Command_Do("wget http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz -O - | gunzip -c > "//mangleFiles(1),status)
-       if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
-            & call Galacticus_Error_Report('failed to download mangle polygon file'//{introspection:location})
+       call File_Lock_Initialize(                     lock                     )
+       call File_Lock           (char(mangleFiles(1)),lock,lockIsShared=.false.)
+       if (.not.File_Exists(mangleFiles(1))) then
+          call System_Command_Do("wget http://space.mit.edu/~molly/mangle/download/data/sdss_dr72safe0_res6d.pol.gz -O - | gunzip -c > "//mangleFiles(1),status)
+          if (status /= 0 .or. .not.File_Exists(mangleFiles(1))) &
+               & call Galacticus_Error_Report('failed to download mangle polygon file'//{introspection:location})
+       end if
+       call File_Unlock         (                     lock                     )
     end if
-    call File_Unlock         (                     lock                     )
     return
   end subroutine bernardi2013SDSSMangleFiles
 
