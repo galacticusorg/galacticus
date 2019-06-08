@@ -2049,10 +2049,10 @@ contains
     ! Initialize current integral and error estimates, and flag that we're not converged.
     integral =head%integral
     error    =head%error
-    converged=                                                &
-         &  abs(error) < self%toleranceAbsolute               &
-         & .or.                                               &
-         &  abs(error) < self%toleranceRelative*abs(integral)
+    converged=                                                 &
+         &  abs(error) <= self%toleranceAbsolute               &
+         & .or.                                                &
+         &  abs(error) <= self%toleranceRelative*abs(integral)
     ! Iterate until convergence is reached.
     do while (.not.all(converged) .and. intervalCount < self%intervalsMaximum)
        ! Bisect the head interval. By construction, this will always be the interval with the largest absolute error.
@@ -2089,7 +2089,8 @@ contains
             &   midpoint==current%b &
             & ) then
           if (Galacticus_Verbosity_Level() < verbosityStandard) call Galacticus_Verbosity_Level_Set(verbosityStandard)
-          call Galacticus_Display_Indent('integration failure: current intervals')
+          call Galacticus_Display_Indent('integration failure:')
+          call Galacticus_Display_Indent('current intervals:')
           message="a/b/(b-a)       ="
           write (label,'(e32.12)') a
           message=message//" "  //label
@@ -2139,6 +2140,21 @@ contains
              current  => current%next
           end do
           call Galacticus_Display_Unindent('done')
+          call Galacticus_Display_Indent  ('current integrals:')
+          do i=1,size(current%fa)
+             message="integral : error  (i="
+             write (label,'(i12)') i             
+             message=message//adjustl(trim(label))//")"
+             write (label,'(e32.12)') integral (i)
+             message=message//" : "//label
+             write (label,'(e32.12)') error    (i)
+             message=message//"/"  //label
+             write (label,'(l1)'    ) converged(i)
+             message=message//" (converged="//adjustl(trim(label))//")"
+             call Galacticus_Display_Message(message)
+          end do
+          call Galacticus_Display_Unindent('done')
+          call Galacticus_Display_Unindent('done')
           call Galacticus_Error_Report("loss of precision in integration interval"//{introspection:location})
        end if
        ! Evaluate the function at the midpoint of the current interval.
@@ -2173,11 +2189,11 @@ contains
                &    +newInterval2%error
        end where
        ! Test for convergence.
-       converged= converged                                         &
-            &    .or.                                               &
-            &     abs(error) < self%toleranceAbsolute               &
-            &    .or.                                               &
-            &     abs(error) < self%toleranceRelative*abs(integral)
+       converged= converged                                          &
+            &    .or.                                                &
+            &     abs(error) <= self%toleranceAbsolute               &
+            &    .or.                                                &
+            &     abs(error) <= self%toleranceRelative*abs(integral)
        if (.not.all(converged) .and. any(converged .neqv. convergedPrevious) .and. intervalCount > 1_c_size_t) then
           ! One or more integrals have converged. We must resort the linked list of intervals to ensure that it is in order of
           ! descending error measure.
