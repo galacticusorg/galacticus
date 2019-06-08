@@ -259,7 +259,7 @@ contains
     ! Read tables from file if possible.
     locked=.false.
     if (self%useFile.and..not.self%tableInitialized) then
-       call File_Lock(char(self%fileName),farahiFileLock)
+       call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.true.)
        locked=.true.
        call self%fileRead()
     end if
@@ -280,7 +280,7 @@ contains
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
           if (self%useFile.and..not.locked) then
-             call File_Lock(char(self%fileName),farahiFileLock)
+             call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.false.)
              locked=.true.
           end if
 #ifdef USEMPI
@@ -610,7 +610,7 @@ contains
     ! Read tables from file if possible.
     locked=.false.
     if (self%useFile.and..not.self%tableInitializedRate) then
-       call File_Lock(char(self%fileName),farahiFileLock)
+       call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.true.)
        locked=.true.
        call self%fileRead()
     end if
@@ -631,7 +631,7 @@ contains
 #endif
           ! Construct the table of variance on which we will solve for the first crossing distribution.
           if (self%useFile.and..not.locked) then
-             call File_Lock(char(self%fileName),farahiFileLock)
+             call File_Lock(char(self%fileName),farahiFileLock,lockIsShared=.false.)
              locked=.true.
           end if
 #ifdef USEMPI
