@@ -102,7 +102,8 @@ contains
     type            (varying_string)             , dimension(11) :: words
     type            (varying_string)                             :: message
     character       (len=1024      )                             :: line
-    integer                                                      :: fileUnit, i, j
+    integer                                                      :: fileUnit  , i, &
+         &                                                          ioStatus  , j
 
     ! Open and parse the file.
     message='Reading mangle window from: '//trim(fileName)
@@ -113,18 +114,19 @@ contains
     message='found '
     message=message//self%polygonCount//' polygons'
     call Galacticus_Display_Message(message)
-    do i=1,3
-       read (fileUnit,*) 
-    end do
-    allocate(self%polygons       (self%polygonCount))
+     allocate(self%polygons       (self%polygonCount))
     allocate(solidAngle          (self%polygonCount))
     allocate(self%solidAngleIndex(self%polygonCount))
     ! Read each polygon.
     do i=1,self%polygonCount
        call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
-       read (fileUnit,'(a)') line
-       call String_Split_Words(words,line)
-       if (words(1) /= "polygon") call Galacticus_Error_Report('expected polygon'//{introspection:location})
+       ioStatus=0
+       do while (ioStatus == 0)
+          read (fileUnit,'(a)',iostat=ioStatus) line
+          if (ioStatus /= 0)  call Galacticus_Error_Report('end of file reached'//{introspection:location})
+          call String_Split_Words(words,line)
+          if (words(1) == "polygon") exit
+       end do
        line=words(4)       
        read (line,*) self%polygons(i)%capCount
        line=words(6)       
