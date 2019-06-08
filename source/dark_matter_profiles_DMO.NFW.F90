@@ -1037,27 +1037,34 @@ contains
 
   double precision function nfwProfileEnergy(self,concentration)
     !% Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration} using the methods of
-    !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A).
+    !% \citeauthor{cole_hierarchical_2000}~(\citeyear{cole_hierarchical_2000}; their Appendix~A), except for potential energy
+    !% which is computed using the result derived by \citeauthor{mo_formation_1998}~(\citeyear{mo_formation_1998}; eqn.~23).
     use Numerical_Constants_Math
     use Numerical_Integration
     implicit none
-    class           (darkMatterProfileDMONFW      ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW   ), intent(inout) :: self
     double precision                            , intent(in   ) :: concentration
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
-    double precision                                            :: jeansEquationIntegral  , kineticEnergy         , &
-         &                                                         kineticEnergyIntegral  , potentialEnergy       , &
-         &                                                         potentialEnergyIntegral, radiusMaximum         , &
-         &                                                         radiusMinimum          , concentrationParameter
+    double precision                                            :: jeansEquationIntegral , kineticEnergy  , &
+         &                                                         kineticEnergyIntegral , potentialEnergy, &
+         &                                                         radiusMinimum         , radiusMaximum  , &
+         &                                                         concentrationParameter
 
     ! Compute the potential energy.
-    radiusMinimum    =0.0d0
-    radiusMaximum    =concentration
-    concentrationParameter=concentration
-    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwPotentialEnergyIntegrand&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-    call Integrate_Done(integrandFunction,integrationWorkspace)
-    potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
+    potentialEnergy=-0.5d0                               &
+         &          *(                                   &
+         &            +1.0d0                             &
+         &            -1.0d0                             &
+         &            /         (1.0d0+concentration)**2 &
+         &            -2.0d0*log(1.0d0+concentration)    &
+         &            /         (1.0d0+concentration)    &
+         &           )                                   &
+         &          /(                                   &
+         &            +                concentration     &
+         &            /         (1.0d0+concentration)    &
+         &                  -log(1.0d0+concentration)    &
+         &           )                               **2
     ! Compute the velocity dispersion at the virial radius.
     radiusMinimum=concentration
     radiusMaximum=100.0d0*concentration
@@ -1078,15 +1085,6 @@ contains
     return
 
   contains
-    
-    double precision function nfwPotentialEnergyIntegrand(radius)
-      !% Integrand for NFW profile potential energy.
-      implicit none
-      double precision, intent(in   ) :: radius
-      
-      nfwPotentialEnergyIntegrand=(self%enclosedMassScaleFree(radius,concentrationParameter)/radius)**2
-      return
-    end function nfwPotentialEnergyIntegrand
     
     double precision function nfwKineticEnergyIntegrand(radius)
       !% Integrand for NFW profile kinetic energy.
