@@ -290,8 +290,8 @@ contains
        if (metaCollectMemoryUsageData) then
           call timingDataGroup%writeDataset(treeMemoryUsages  (1:treesRecordedCount),"treeMemoryUsages"  ,"Tree memory usage [bytes]"                                 )
           call timingDataGroup%writeDataset(treeNodeCounts    (1:treesRecordedCount),"treeNodeCounts"    ,"Tree node counts"                                          )
-          call timingDataGroup%close()
        end if
+       call timingDataGroup%close()
        call metaDataGroup  %close()
        !$ call hdf5Access%unset()
     end if
