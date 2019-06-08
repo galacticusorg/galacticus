@@ -13,7 +13,9 @@
   </cosmologyParametersMethod>
   <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.8228"/>
-  </cosmologicalMassVarianceMethod><accretionHaloMethod value="zero"/>
+  </cosmologicalMassVarianceMethod>
+
+  <accretionHaloMethod value="zero"/>
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
@@ -35,9 +37,15 @@
     <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
   </mergerTreeConstructorMethod>
   <nodeMergersMethod value="singleLevelHierarchy"/>
-  <odeToleranceAbsolute value="0.01"/>
-  <odeToleranceRelative value="0.01"/>
-  <outputRedshifts value="0.0"/>
+  <mergerTreeNodeEvolerMethod value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolerMethod>
+
+  <outputTimesMethod value="list">
+    <redshifts value="0.0"/>
+  </outputTimesMethod>
+
   <powerSpectrumPrimordialMethod value="powerLaw">
   <index value="0.96"/>
     <wavenumberReference value="1.0"/>

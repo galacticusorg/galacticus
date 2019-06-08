@@ -71,7 +71,11 @@
   <coolingTimeAvailableMethod value="whiteFrenk1991">
     <ageFactor value="0"/>
   </coolingTimeAvailableMethod>
-  <odeToleranceRelative value="0.01"/>
+  <mergerTreeNodeEvolerMethod value="standard">
+    <odeToleranceRelative value="0.01"/>
+    <odeToleranceAbsolute value="0.01"/>
+  </mergerTreeNodeEvolerMethod>
+
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
@@ -122,7 +126,6 @@
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
-  <odeToleranceAbsolute value="0.01"/>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
     <G0 value="+0.57"/>
     <gamma1 value="+0.38"/>

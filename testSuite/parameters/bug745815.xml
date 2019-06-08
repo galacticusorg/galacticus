@@ -104,8 +104,11 @@
   <mergerTreeConstructorMethod value="build"/>
   <mergerTreeStructureOutput value="false"/>
   <nodeMergersMethod value="single level hierarchy"/>
-  <odeToleranceAbsolute value="0.01"/>
-  <odeToleranceRelative value="0.01"/>
+  <mergerTreeNodeEvolerMethod value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolerMethod>
+
   <outputTimesMethod value="list">
     <redshifts value="0"/>
   </outputTimesMethod>

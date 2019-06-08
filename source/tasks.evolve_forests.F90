@@ -397,7 +397,7 @@ contains
          &                                                                              triggerFinish
     integer         (c_size_t                     )                                  :: iBranchAcceptedLast                       , treeCount
     integer         (omp_lock_kind                )                                  :: initializationLock
-    integer         (kind_int8                    )                                  :: systemClockRate
+    integer         (kind_int8                    )                                  :: systemClockRate                           , systemClockMaximum
     double precision                                                                 :: evolveToTimeForest
     !$omp threadprivate(node,basic,basicChild,timeBranchSplit,branchNew,branchNext,i,iBranch,branchAccept,massBranch,timeSectionForestBegin,forestSection,treeNumber)
     
@@ -684,8 +684,9 @@ contains
                               &                            )                                  , &
                               &                             treeDidEvolve                     , &
                               &                             suspendTree                       , &
-                              &                             deadlockReport                      &
-                                !$ &                            ,initializationLock                  &
+                              &                             deadlockReport                    , &
+                              &                             systemClockMaximum                  &
+                           !$ &                            ,initializationLock                  &
                               &                        )
                          !$omp critical (universeStatus)
                          if (treeDidEvolve) treesDidEvolve         =.true.
@@ -719,7 +720,7 @@ contains
              ! For single forest evolution, only the master thread should finalize evolution of the merger tree.
              singleForestFinalizeEvolution : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
                 ! Evolve the tree to the computed time.
-                call mergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,status=status)
+                call mergerTreeEvolver_%evolve(tree,evolveToTime,treeDidEvolve,suspendTree,deadlockReport,systemClockMaximum,status=status)
                 if (present(status) .and. status /= errorStatusSuccess) then
                    ! Tree evolution failed - abort further evolution and return the failure code.
                    treeIsFinished=.true.
