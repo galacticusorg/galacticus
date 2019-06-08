@@ -29,7 +29,7 @@
      integer                                     :: countTrials
      double precision, dimension(:), allocatable :: probabilityCumulative
    contains
-     procedure :: density    => binomialMass
+     procedure :: mass       => binomialMass
      procedure :: cumulative => binomialCumulative
      procedure :: inverse    => binomialInverse
      procedure :: minimum    => binomialMinimum
