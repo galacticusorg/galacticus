@@ -26,7 +26,8 @@
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryCaputi2011UKIDSSUDS
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: binDistanceMinimum , binDistanceMaximum
+     double precision                                   :: binDistanceMinimum           , binDistanceMaximum, &
+          &                                                redshiftMinimum              , redshiftMaximum
    contains
      final     ::                      caputi2011UKIDSSUDSDestructor
      procedure :: distanceMinimum   => caputi2011UKIDSSUDSDistanceMinimum
@@ -76,32 +77,31 @@ contains
     type            (surveyGeometryCaputi2011UKIDSSUDS)                        :: self
     integer                                            , intent(in   )         :: redshiftBin
     class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
-    double precision                                                           :: redshiftMinimum    , redshiftMaximum
     !# <constructorAssign variables="*cosmologyFunctions_"/>
 
     ! Find distance limits for this redshift bin.
     select case (redshiftBin)
     case(0)
-       redshiftMinimum=3.00d0
-       redshiftMaximum=3.50d0
+       self%redshiftMinimum=3.00d0
+       self%redshiftMaximum=3.50d0
     case(1)
-       redshiftMinimum=3.50d0
-       redshiftMaximum=4.25d0
+       self%redshiftMinimum=3.50d0
+       self%redshiftMaximum=4.25d0
     case(2)
-       redshiftMinimum=4.25d0
-       redshiftMaximum=5.00d0
+       self%redshiftMinimum=4.25d0
+       self%redshiftMaximum=5.00d0
     case default
        call Galacticus_Error_Report('0≤redshiftBin≤2 is required'//{introspection:location})
     end select
     self%binDistanceMinimum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
          &                                                   output  =distanceTypeComoving, &
-         &                                                   redshift=redshiftMinimum       &
+         &                                                   redshift=self%redshiftMinimum  &
          &                                                  )
     self%binDistanceMaximum                                                                 &
          & =self%cosmologyFunctions_%distanceComovingConvert(                               &
          &                                                   output  =distanceTypeComoving, &
-         &                                                   redshift=redshiftMaximum       &
+         &                                                   redshift=self%redshiftMaximum  &
          &                                                  )
     self%geometryInitialized=.false.
     return
@@ -146,10 +146,10 @@ contains
     logarithmicMass=log10(mass)
     redshift=-56.247426278132d0+logarithmicMass*(5.88091022342758d0)
     ! Convert from redshift to comoving distance.
-    caputi2011UKIDSSUDSDistanceMaximum                                                     &
-         &=self%cosmologyFunctions_%distanceComovingConvert(                               &
-         &                                                  output  =distanceTypeComoving, &
-         &                                                  redshift=redshift              &
+    caputi2011UKIDSSUDSDistanceMaximum                                                                                             &
+         &=self%cosmologyFunctions_%distanceComovingConvert(                                                                       &
+         &                                                  output  =distanceTypeComoving                                        , &
+         &                                                  redshift=min(max(redshift,self%redshiftMinimum),self%redshiftMaximum)  &
          &                                                 )
     ! Limit the maximum distance.
     caputi2011UKIDSSUDSDistanceMaximum=min(caputi2011UKIDSSUDSDistanceMaximum,self%binDistanceMaximum)
