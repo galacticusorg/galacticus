@@ -29,12 +29,12 @@ contains
 
   logical function Node_Subhalo_Promotion(event,node,deadlockStatus)
     !% Promotes a subhalo to be an isolated node.
-    use Galacticus_Nodes                   , only : treeNode, nodeEvent, nodeComponentBasic, nodeComponentMergingStatistics
+    use Galacticus_Nodes                   , only : treeNode                  , nodeEvent            , nodeComponentBasic, nodeComponentMergingStatistics
     use Merger_Trees_Evolve_Deadlock_Status
     use ISO_Varying_String
     use String_Handling
     use Galacticus_Display
-    use Merger_Trees_Evolve_Node
+    use Merger_Trees_Evolve_Node           , only : mergerTreeNodeEvolverClass, mergerTreeNodeEvolver
     !# <include directive="subhaloPromotionPostProcess" type="moduleUse">
     include 'events.subhalo_promotion.post_process.modules.inc'
     !# </include>
@@ -45,6 +45,7 @@ contains
     type     (treeNode                      )               , pointer :: nodePromotion
     class    (nodeComponentBasic            )               , pointer :: basicParent
     class    (nodeComponentMergingStatistics)               , pointer :: mergingStatistics
+    class    (mergerTreeNodeEvolverClass    )               , pointer :: mergerTreeNodeEvolver_
     type     (varying_string                )                         :: message
     character(len=12                        )                         :: label
     
@@ -82,7 +83,8 @@ contains
     include 'events.subhalo_promotion.postprocess.inc'
     !# </include>
     ! Promote the halo.
-    call Tree_Node_Promote(node)
+    mergerTreeNodeEvolver_ => mergerTreeNodeEvolver()
+    call mergerTreeNodeEvolver_%promote(node)
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     ! Record that the task was performed.

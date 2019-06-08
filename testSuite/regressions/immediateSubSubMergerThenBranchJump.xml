@@ -56,7 +56,11 @@
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
-  <odeToleranceRelative value="0.01"/>
+  <mergerTreeNodeEvolerMethod value="standard">
+    <odeToleranceRelative value="0.01"/>
+    <odeToleranceAbsolute value="0.01"/>
+  </mergerTreeNodeEvolerMethod>
+
   <intergalacticMediumStateMethod value="recFast"/>
   <mergerTreeBuildMassDistributionMethod value="stellarMassFunction">
     <massMaximum value="7.5857758e11"/>
@@ -105,7 +109,6 @@
     <neutrinoNumberEffective value="3.04"/>
     <neutrinoMassSummed value="0.0"/>
   </transferFunctionMethod>
-  <odeToleranceAbsolute value="0.01"/>
   <mergerTreeBranchingProbabilityMethod value="parkinsonColeHelly">
     <G0 value="+0.57"/>
     <gamma1 value="+0.38"/>
