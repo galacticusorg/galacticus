@@ -168,6 +168,12 @@ module Stellar_Luminosities_Structure
      !@     <description>Store a stellar luminosities object in the output buffers.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>postOutput</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <description>Store a stellar luminosities object in the output buffers.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>luminosityOutputCount</method>
      !@     <type>\intzero</type>
      !@     <arguments>\doublezero\ time\argin</arguments>
@@ -253,6 +259,7 @@ module Stellar_Luminosities_Structure
      procedure         :: deserialize           => Stellar_Luminosities_Deserialize
      procedure         :: increment             => Stellar_Luminosities_Increment
      procedure         :: output                => Stellar_Luminosities_Output
+     procedure         :: postOutput            => Stellar_Luminosities_Post_Output
      procedure, nopass :: luminosityOutputCount => Stellar_Luminosities_Output_Count_Get
      procedure         :: outputCount           => Stellar_Luminosities_Output_Count
      procedure         :: outputNames           => Stellar_Luminosities_Output_Names
@@ -941,9 +948,8 @@ contains
     integer         (kind=kind_int8     ), dimension(:,:), intent(inout) :: integerBuffer
     double precision                     , dimension(:,:), intent(inout) :: doubleBuffer
     type            (multiCounter       )                , intent(in   ) :: outputInstance
-    double precision                     , dimension(:  ), allocatable   :: luminosityTmp
-    integer                                                              :: i                , luminosityRemainingCount
-    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer
+    integer                                                              :: i
+    !GCC$ attributes unused :: integerProperty, integerBufferCount, integerBuffer, outputInstance
     
     ! Ensure module is initialized.
     call Stellar_Luminosities_Initialize()
@@ -954,28 +960,40 @@ contains
              doubleProperty=doubleProperty+1
           end if
        end do
-       ! Test if we can prune luminosities.
-       if (outputInstance%isFinal()) then
-          select case (luminosityOutputOption)
-          case (luminosityOutputOptionFuture,luminosityOutputOptionPresent)
-             ! Luminosities from this and earlier outputs no longer needed, so prune them. This is somewhat inefficient if there are
-             ! luminosities computed which do not correspond to any output. They will never be pruned and so will continue to use
-             ! memory and be evolved along with the galaxy. In principle such luminosities could be needed internally so we do not
-             ! remove them.
-             call Move_Alloc(self%luminosityValue,luminosityTmp)
-             luminosityRemainingCount=size(luminosityTmp)
-             do i=1,luminosityCount
-                if (Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionPresent)) &
-                     & luminosityRemainingCount=luminosityRemainingCount-1
-             end do
-             allocate(self%luminosityValue(luminosityRemainingCount))
-             self%luminosityValue=luminosityTmp(1:luminosityRemainingCount)
-             deallocate(luminosityTmp)
-          end select
-       end if
     end if
     return
   end subroutine Stellar_Luminosities_Output
+
+  subroutine Stellar_Luminosities_Post_Output(self,time)
+    !% Clean up a {\normalfont \ttfamily stellarLuminosities} object after output.
+    implicit none
+    class           (stellarLuminosities)                , intent(inout) :: self
+    double precision                                     , intent(in   ) :: time
+    double precision                     , dimension(:  ), allocatable   :: luminosityTmp
+    integer                                                              :: i            , luminosityRemainingCount
+
+    ! Ensure module is initialized.
+    call Stellar_Luminosities_Initialize()
+    if (luminosityCount > 0) then
+       select case (luminosityOutputOption)
+       case (luminosityOutputOptionFuture,luminosityOutputOptionPresent)
+          ! Luminosities from this and earlier outputs no longer needed, so prune them. This is somewhat inefficient if there are
+          ! luminosities computed which do not correspond to any output. They will never be pruned and so will continue to use
+          ! memory and be evolved along with the galaxy. In principle such luminosities could be needed internally so we do not
+          ! remove them.
+          call Move_Alloc(self%luminosityValue,luminosityTmp)
+          luminosityRemainingCount=size(luminosityTmp)
+          do i=1,luminosityCount
+             if (Stellar_Luminosities_Is_Output(i,time,luminosityOutputOptionPresent)) &
+                  & luminosityRemainingCount=luminosityRemainingCount-1
+          end do
+          allocate(self%luminosityValue(luminosityRemainingCount))
+          self%luminosityValue=luminosityTmp(1:luminosityRemainingCount)
+          deallocate(luminosityTmp)
+       end select
+    end if
+    return
+  end subroutine Stellar_Luminosities_Post_Output
 
   subroutine Stellar_Luminosities_Output_Count(self,integerPropertyCount,doublePropertyCount,time)
     !% Increment the output count to account for a {\normalfont \ttfamily stellarLuminosities} object.
@@ -1094,7 +1112,7 @@ contains
     
     ! Get the ages that this stellar population will have at the various output times.
     ages=luminosityCosmicTime-time
-
+       
     ! Get the luminosities for each requested band.
     massToLightRatio=Stellar_Population_Luminosity(                         &
          &                                         luminosityIndex        , &
