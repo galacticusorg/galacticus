@@ -29,11 +29,12 @@
      integer                                     :: countTrials
      double precision, dimension(:), allocatable :: probabilityCumulative
    contains
-     procedure :: mass       => binomialMass
-     procedure :: cumulative => binomialCumulative
-     procedure :: inverse    => binomialInverse
-     procedure :: minimum    => binomialMinimum
-     procedure :: maximum    => binomialMaximum
+     procedure :: massLogarithmic => binomialMassLogarithmic
+     procedure :: mass            => binomialMass
+     procedure :: cumulative      => binomialCumulative
+     procedure :: inverse         => binomialInverse
+     procedure :: minimum         => binomialMinimum
+     procedure :: maximum         => binomialMaximum
   end type distributionFunctionDiscrete1DBinomial
 
   interface distributionFunctionDiscrete1DBinomial
@@ -99,7 +100,7 @@ contains
   end function binomialConstructorInternal
 
   double precision function binomialMass(self,x)
-    !% Return the density of a binomial discrete distribution.
+    !% Return the mass of a binomial discrete distribution.
     use Galacticus_Error, only : Galacticus_Error_Report
     use Factorials      , only : Factorial
     implicit none
@@ -114,6 +115,16 @@ contains
          &       *(1.0d0-self%probabilitySuccess)**(self%countTrials-x)
     return
   end function binomialMass
+
+  double precision function binomialMassLogarithmic(self,x)
+    !% Return the logarithmic mass of a binomial discrete distribution.
+    implicit none
+    class  (distributionFunctionDiscrete1DBinomial), intent(inout) :: self
+    integer                                        , intent(in   ) :: x
+
+    binomialMassLogarithmic=log(self%mass(x))
+    return
+  end function binomialMassLogarithmic
 
   double precision function binomialCumulative(self,x)
     !% Return the cumulative probability of a binomial discrete distribution.
@@ -158,6 +169,6 @@ contains
     class(distributionFunctionDiscrete1DBinomial), intent(inout) :: self
     !GCC$ attributes unused :: self
 
-    binomialMaximum=huge(0)
+    binomialMaximum=self%countTrials
     return
   end function binomialMaximum

@@ -35,6 +35,12 @@ module Statistics_Distributions_Discrete
   !#    <argument>integer, intent(in   ) :: x</argument>
   !#    <description>Return the probability mass at {\normalfont \ttfamily x}.</description>
   !#  </method>
+  !#  <method name="massLogarithmic" >
+  !#    <type>double precision</type>
+  !#    <pass>yes</pass>
+  !#    <argument>integer, intent(in   ) :: x</argument>
+  !#    <description>Return the logarithm of the probability mass at {\normalfont \ttfamily x}.</description>
+  !#  </method>
   !#  <method name="cumulative" >
   !#    <type>double precision</type>
   !#    <pass>yes</pass>
