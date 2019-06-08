@@ -28,7 +28,7 @@ my $galacticusFile = new PDL::IO::HDF5($galacticusFileName);
 my $analysesGroup = $galacticusFile->group('analyses');
 my @analyses      =  $analysesGroup->groups();
 foreach my $analysisName ( @analyses ) {
-    # Extract all available attributes from this analysis.
+    print " -> ".$analysisName."\n";    # Extract all available attributes from this analysis.
     my $analysisGroup  = $analysesGroup->group($analysisName);
     my @attributeNames = $analysisGroup->attrs();
     my $attributes =
@@ -47,26 +47,67 @@ foreach my $analysisName ( @analyses ) {
     } elsif ( $attributes->{'type'} eq "function1D" ) {
     	# Simple 1D function - will be shown as an x-y scatter plot.
 	# Validate attributes.
-	my @datasetNames = ( 'xDataset', 'yDataset', 'yDatasetTarget', 'yCovariance', 'yCovarianceTarget' );
-	foreach my $attributeRequired ( @datasetNames ) {
-	    die("Error: attribute '".$attributeRequired."' is missing from analysis '".$analysisName."' but is required.")
-		unless ( grep {$_ eq $attributeRequired} keys(%{$attributes}) );
+	my @datasetNames =
+	    (
+	     {name => 'xDataset'         , required => 1},
+	     {name => 'yDataset'         , required => 1},
+	     {name => 'yDatasetTarget'   , required => 1},
+	     {name => 'yCovariance'      , required => 0},
+	     {name => 'yCovarianceTarget', required => 0},
+	     {name => 'yErrorLower'      , required => 0},
+	     {name => 'yErrorUpper'      , required => 0},
+	     {name => 'yErrorLowerTarget', required => 0},
+	     {name => 'yErrorUpperTarget', required => 0},
+	    );
+	foreach my $attribute ( @datasetNames ) {
+	    die("Error: attribute '".$attribute->{'name'}."' is missing from analysis '".$analysisName."' but is required.")
+		unless ( ! $attribute->{'required'} || grep {$_ eq $attribute->{'name'}} keys(%{$attributes}) );
 	}
 	# Read the datasets.
 	my $data;
-	foreach my $datasetName ( @datasetNames ) {
-	    (my $analysisDatasetName) = $analysisGroup->attrGet($datasetName);
-	    $data->{$datasetName} = $analysisGroup->dataset($analysisDatasetName)->get();
+	foreach my $dataset ( @datasetNames ) {
+	    if ( grep {$_ eq $dataset->{'name'}} keys(%{$attributes}) ) {
+		(my $analysisDatasetName) = $analysisGroup->attrGet($dataset->{'name'});
+		$data->{$dataset->{'name'}} = $analysisGroup->dataset($analysisDatasetName)->get();
+	    }
 	}
 	# Determine non-zero entries.
 	my $nonZero       = which( $data->{'yDataset'      } != 0.0)                                      ;
 	my $nonZeroTarget = which(                                      $data->{'yDatasetTarget'} != 0.0) ;
 	my $nonZeroBoth   = which(($data->{'yDataset'      } != 0.0) | ($data->{'yDatasetTarget'} != 0.0));
 	# Determine plot ranges.
-	my $yUpper       = $data->{'yDataset'      }+$data->{'yCovariance'      }->diagonal(0,1)->sqrt();
-	my $yLower       = $data->{'yDataset'      }-$data->{'yCovariance'      }->diagonal(0,1)->sqrt();
-	my $yUpperTarget = $data->{'yDatasetTarget'}+$data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
-	my $yLowerTarget = $data->{'yDatasetTarget'}-$data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
+	my $yErrorLower      ;
+	my $yErrorUpper      ;
+	my $yErrorLowerTarget;
+	my $yErrorUpperTarget;
+	if ( exists($data->{'yErrorLower'      }) ) {
+	    $yErrorLower       = $data->{'yErrorLower'      }                       ;
+	}
+	if ( exists($data->{'yErrorUpper'      }) ) {
+	    $yErrorUpper       = $data->{'yErrorUpper'      }                       ;
+	}
+	if ( exists($data->{'yCovariance'      }) ) {
+	    $yErrorUpper       = $data->{'yCovariance'      }->diagonal(0,1)->sqrt();
+	    $yErrorLower       = $data->{'yCovariance'      }->diagonal(0,1)->sqrt();
+	}
+	if ( exists($data->{'yErrorLowerTarget'}) ) {
+	    $yErrorLowerTarget = $data->{'yErrorLowerTarget'}                       ;
+	}
+	if ( exists($data->{'yErrorUpperTarget'}) ) {
+	    $yErrorUpperTarget = $data->{'yErrorUpperTarget'}                       ;
+	}
+	if ( exists($data->{'yCovarianceTarget'}) ) {
+	    $yErrorUpperTarget = $data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
+	    $yErrorLowerTarget = $data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
+	}
+	my $yLower       = $data->{'yDataset'      }->copy();
+	my $yUpper       = $data->{'yDataset'      }->copy();
+	my $yLowerTarget = $data->{'yDatasetTarget'}->copy();
+	my $yUpperTarget = $data->{'yDatasetTarget'}->copy();
+	$yLower       -= $yErrorLower       if ( defined($yErrorLower      ) );
+	$yUpper       += $yErrorUpper       if ( defined($yErrorUpper      ) );
+	$yLowerTarget -= $yErrorLowerTarget if ( defined($yErrorLowerTarget) );
+	$yUpperTarget += $yErrorUpperTarget if ( defined($yErrorUpperTarget) );
 	if ( $attributes->{'yAxisIsLog'} ) {
 	    my $negativeY                      = which($yLower       <= 0.0);
 	    my $negativeYTarget                = which($yLowerTarget <= 0.0);
@@ -130,7 +171,7 @@ foreach my $analysisName ( @analyses ) {
 	open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
 	print $gnuPlot "set terminal cairolatex pdf standalone color lw 2 size 4in,4in\n";
 	print $gnuPlot "set output '".$plotFileTeX."'\n";
-	print $gnuPlot "set title offset 0,-0.8 '".$attributes->{'description'}."'\n"
+	print $gnuPlot "set title offset 0,-0.8 '\\tiny ".$attributes->{'description'}."'\n"
 	    if ( exists($attributes->{'description'}) );
 	print $gnuPlot "set xlabel '".$attributes->{'xAxisLabel'}."'\n";
 	print $gnuPlot "set ylabel '".$attributes->{'yAxisLabel'}."'\n";
@@ -150,29 +191,42 @@ foreach my $analysisName ( @analyses ) {
 	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
 	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
 	print $gnuPlot "set pointsize ".$pointSize."\n";
-	&GnuPlot::PrettyPlots::Prepare_Dataset(
-	    \$plot,
-	    $data->{'xDataset'      }->($nonZeroTarget),
-	    $data->{'yDatasetTarget'}->($nonZeroTarget),
-	    errorDown  => $data->{'yCovarianceTarget'}->diagonal(0,1)->($nonZeroTarget)->sqrt(),
-	    errorUp    => $data->{'yCovarianceTarget'}->diagonal(0,1)->($nonZeroTarget)->sqrt(),
-	    style      => "point",
-	    symbol     => [6,7],
-	    weight     => [2,1],
-	    color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
-	    title      => $attributes->{'targetLabel'}
+	(my $targetLabel = $attributes->{'targetLabel'}) =~ s/&/\\&/g;
+	my %plotOptionsTarget =
+	    (
+	     style      => "point",
+	     symbol     => [6,7],
+	     weight     => [2,1],
+	     color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
+	     title      => "\\\\footnotesize ".$targetLabel
 	    );
+	$plotOptionsTarget{'errorDown'} = $yErrorLowerTarget
+	    if ( defined($yErrorLowerTarget) );
+	$plotOptionsTarget{'errorUp'  } = $yErrorUpperTarget
+	    if ( defined($yErrorUpperTarget) );
 	&GnuPlot::PrettyPlots::Prepare_Dataset(
-	    \$plot,
-	    $data->{'xDataset'}->($nonZero),
-	    $data->{'yDataset'}->($nonZero),
-	    errorDown  => $data->{'yCovariance'}->diagonal(0,1)->($nonZero)->sqrt(),
-	    errorUp    => $data->{'yCovariance'}->diagonal(0,1)->($nonZero)->sqrt(),
+		\$plot,
+		$data->{'xDataset'      }->($nonZeroTarget),
+		$data->{'yDatasetTarget'}->($nonZeroTarget),
+		%plotOptionsTarget
+	    );
+	my %plotOptions =
+	    (
 	    style      => "point",
 	    symbol     => [6,7],
 	    weight     => [2,1],
 	    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
-	    title      => "Galacticus"
+	    title      => "\\\\footnotesize Galacticus"
+	    );
+	$plotOptions{'errorDown'} = $yErrorLower
+	    if ( defined($yErrorLower) );
+	$plotOptions{'errorUp'  } = $yErrorUpper
+	    if ( defined($yErrorUpper) );
+	&GnuPlot::PrettyPlots::Prepare_Dataset(
+		\$plot,
+		$data->{'xDataset'}->($nonZero),
+		$data->{'yDataset'}->($nonZero),
+		%plotOptions
 	    );
 	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
 	close($gnuPlot);
