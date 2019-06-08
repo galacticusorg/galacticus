@@ -208,6 +208,7 @@ contains
        call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
        call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
        ! Evaluate this likelihood
+       timeEvaluate_=-1.0
        independentLikelihoodsEvaluate                             =  +independentLikelihoodsEvaluate                                                        &
             &                                                        +modelLikelihood_%modelLikelihood_%evaluate(                                           &
             &                                                                                                    modelLikelihood_%simulationState         , &
@@ -223,7 +224,7 @@ contains
             &                                                                                                                    )
        if (present(logLikelihoodVariance)) logLikelihoodVariance_ =  +logLikelihoodVariance_ &
             &                                                        +logLikelihoodVariance
-       timeEvaluate_                                              =  +timeEvaluate_          &
+       if (timeEvaluate_ >= 0.0d0        ) timeEvaluate_          =  +timeEvaluate_          &
             &                                                        +timeEvaluate
        modelLikelihood_                                           =>  modelLikelihood_%next
     end do
