@@ -47,21 +47,24 @@ contains
     !% Constructor for the ``luminosityFunction'' output analysis class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (outputAnalysisLuminosityFunction       )                             :: self
-    type            (inputParameters                        ), intent(inout)              :: parameters
-    class           (outputTimesClass                       ), pointer                    :: outputTimes_
-    class           (galacticFilterClass                    ), pointer                    :: galacticFilter_
-    class           (surveyGeometryClass                    ), pointer                    :: surveyGeometry_
-    class           (cosmologyFunctionsClass                ), pointer                    :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputAnalysisDistributionOperatorClass), pointer                    :: outputAnalysisDistributionOperator_
-    class           (outputAnalysisPropertyOperatorClass    ), pointer                    :: outputAnalysisPropertyOperator_
-    double precision                                         , dimension(:) , allocatable :: magnitudesAbsolute
-    integer                                                                               :: covarianceBinomialBinsPerDecade
-    double precision                                                                      :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum, &
-         &                                                                                   redshiftBand
-    type            (inputParameters                        )                             :: dataAnalysisParameters
-    type            (varying_string                         )                             :: label                              , comment                          , &
-         &                                                                                   filterName                         , filterType
+    type            (outputAnalysisLuminosityFunction       )                              :: self
+    type            (inputParameters                        ), intent(inout)               :: parameters
+    class           (outputTimesClass                       ), pointer                     :: outputTimes_
+    class           (galacticFilterClass                    ), pointer                     :: galacticFilter_
+    class           (surveyGeometryClass                    ), pointer                     :: surveyGeometry_
+    class           (cosmologyFunctionsClass                ), pointer                     :: cosmologyFunctions_                , cosmologyFunctionsData
+    class           (outputAnalysisDistributionOperatorClass), pointer                     :: outputAnalysisDistributionOperator_
+    class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_
+    double precision                                         , dimension(:  ), allocatable :: magnitudesAbsolute                 , functionValueTarget              , &
+         &                                                                                    functionCovarianceTarget1D
+    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
+    integer                                                                                :: covarianceBinomialBinsPerDecade
+    double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum, &
+         &                                                                                    redshiftBand
+    type            (inputParameters                        )                              :: dataAnalysisParameters
+    type            (varying_string                         )                              :: label                              , comment                          , &
+         &                                                                                    filterName                         , filterType                       , &
+         &                                                                                    targetLabel
 
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
@@ -114,6 +117,44 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    if (parameters%isPresent('targetLabel')) then
+       !# <inputParameter>
+       !#   <name>targetLabel</name>
+       !#   <source>parameters</source>
+       !#   <description>Label for the target dataset.</description>
+       !#   <type>real</type>
+       !#   <cardinality>0..1</cardinality>
+       !# </inputParameter>
+    end if
+    if (parameters%isPresent('functionValueTarget')) then
+       if (parameters%isPresent('functionCovarianceTarget')) then
+          !# <inputParameter>
+          !#   <name>functionValueTarget</name>
+          !#   <source>parameters</source>
+          !#   <description>The target function for likelihood calculations.</description>
+          !#   <type>real</type>
+          !#   <cardinality>0..1</cardinality>
+          !# </inputParameter> 
+          !# <inputParameter>
+          !#   <name>functionCovarianceTarget</name>
+          !#   <source>parameters</source>
+          !#   <variable>functionCovarianceTarget1D</variable>
+          !#   <description>The target function covariance for likelihood calculations.</description>
+          !#   <type>real</type>
+          !#   <cardinality>0..1</cardinality>
+          !# </inputParameter>
+          if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
+             allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
+             functionCovarianceTarget=reshape(functionCovarianceTarget1D,shape(functionCovarianceTarget))
+          else
+             call Galacticus_Error_Report('functionCovariance has wrong size'//{introspection:location})
+          end if
+       else
+          call Galacticus_Error_Report('functionCovariance must be specified if functionTarget is present'//{introspection:location})
+       end if
+    else
+       if (parameters%isPresent('functionCovariance')) call Galacticus_Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
+    end if
     !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                     source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"            />
     !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctionsData"              source="dataAnalysisParameters"/>
@@ -121,7 +162,12 @@ contains
     !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
     !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
     !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
-    self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,char(filterName),char(filterType),redshiftBand)
+    !# <conditionalCall>
+    !#  <call>self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,char(filterName),char(filterType),redshiftBand{conditions})</call>
+    !#  <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
+    !#  <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
+    !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+    !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="galacticFilter_"                    />
     !# <objectDestructor name="cosmologyFunctions_"                />
@@ -137,33 +183,55 @@ contains
     !% Constructor for the ``luminosityFunction'' output analysis class which reads bin information from a standard format file.
     use IO_HDF5
     implicit none
-    type            (outputAnalysisLuminosityFunction       )                             :: self
-    type            (varying_string                         ), intent(in   )              :: label                              , comment
-    character       (len=*                                  ), intent(in   )              :: fileName
-    class           (galacticFilterClass                    ), intent(in   ), target      :: galacticFilter_
-    class           (surveyGeometryClass                    ), intent(in   ), target      :: surveyGeometry_
-    class           (outputTimesClass                       ), intent(in   ), target      :: outputTimes_
-    class           (cosmologyFunctionsClass                ), intent(in   ), target      :: cosmologyFunctions_                , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass    ), intent(in   ), target      :: outputAnalysisPropertyOperator_
-    class           (outputAnalysisDistributionOperatorClass), intent(in   ), target      :: outputAnalysisDistributionOperator_
-    character       (len=*                                  ), intent(in   )              :: filterName                         , filterType
-    double precision                                         , intent(in   ), optional    :: redshiftBand
-    double precision                                         , dimension(:) , allocatable :: magnitudesAbsolute
-    integer                                                                               :: covarianceBinomialBinsPerDecade
-    double precision                                                                      :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
-    type            (hdf5Object                             )                             :: dataFile
+    type            (outputAnalysisLuminosityFunction       )                              :: self
+    type            (varying_string                         ), intent(in   )               :: label                              , comment
+    character       (len=*                                  ), intent(in   )               :: fileName
+    class           (galacticFilterClass                    ), intent(in   ) , target      :: galacticFilter_
+    class           (surveyGeometryClass                    ), intent(in   ) , target      :: surveyGeometry_
+    class           (outputTimesClass                       ), intent(in   ) , target      :: outputTimes_
+    class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
+    class           (outputAnalysisPropertyOperatorClass    ), intent(in   ) , target      :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
+    character       (len=*                                  ), intent(in   )               :: filterName                         , filterType
+    double precision                                         , intent(in   ) , optional    :: redshiftBand
+    double precision                                         , dimension(:  ), allocatable :: magnitudesAbsolute                 , functionValueTarget              , &
+         &                                                                                    functionErrorTarget
+    double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
+    integer                                                                                :: covarianceBinomialBinsPerDecade    , i
+    double precision                                                                       :: covarianceBinomialMassHaloMinimum  , covarianceBinomialMassHaloMaximum
+    type            (hdf5Object                             )                              :: dataFile
+    type            (varying_string                         )                              :: targetLabel
+    logical                                                                                :: haveTarget
     
     !$ call hdf5Access%set()
     call dataFile%openFile   (fileName           ,readOnly=.true.   )
     call dataFile%readDataset('magnitudeAbsolute',magnitudesAbsolute)
+    haveTarget=dataFile%hasDataset('luminosityFunction').and.dataFile%hasDataset('luminosityFunctionError')
+    if (haveTarget) then
+       call dataFile%readAttribute('label'                  ,targetLabel        )
+       call dataFile%readDataset  ('luminosityFunction'     ,functionValueTarget)
+       call dataFile%readDataset  ('luminosityFunctionError',functionErrorTarget)
+    end if
     call dataFile%close      (                                      )
     !$ call hdf5Access%unset()
+    if (haveTarget) then
+       allocate(functionCovarianceTarget(size(functionErrorTarget),size(functionErrorTarget)))
+       functionCovarianceTarget=0.0d0
+       do i=1,size(functionErrorTarget)
+          functionCovarianceTarget(i,i)=functionErrorTarget(i)**2
+       end do
+    end if
     ! Construct the object.
-    self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand)
+    !# <conditionalCall>
+    !#  <call>self=outputAnalysisLuminosityFunction(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand{conditions})</call>
+    !#  <argument name="targetLabel"              value="targetLabel"              condition="haveTarget"/>
+    !#  <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
+    !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
+    !# </conditionalCall>
     return
   end function luminosityFunctionConstructorFile
 
-  function luminosityFunctionConstructorInternal(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand) result(self)
+  function luminosityFunctionConstructorInternal(label,comment,magnitudesAbsolute,galacticFilter_,surveyGeometry_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,filterName,filterType,redshiftBand,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !% Constructor for the ``luminosityFunction'' output analysis class which takes a parameter set as input.
     use ISO_Varying_String
     use Memory_Management
@@ -173,31 +241,34 @@ contains
     use Output_Analyses_Options
     use Output_Analysis_Utilities
     implicit none
-    type            (outputAnalysisLuminosityFunction                )                                :: self
-    type            (varying_string                                  ), intent(in   )                 :: label                                                 , comment
-    double precision                                                  , intent(in   ), dimension(:  ) :: magnitudesAbsolute
-    class           (galacticFilterClass                             ), intent(in   ), target         :: galacticFilter_
-    class           (surveyGeometryClass                             ), intent(in   ), target         :: surveyGeometry_
-    class           (outputTimesClass                                ), intent(in   ), target         :: outputTimes_
-    class           (cosmologyFunctionsClass                         ), intent(in   ), target         :: cosmologyFunctions_                                   , cosmologyFunctionsData
-    class           (outputAnalysisPropertyOperatorClass             ), intent(in   ), target         :: outputAnalysisPropertyOperator_
-    class           (outputAnalysisDistributionOperatorClass         ), intent(in   ), target         :: outputAnalysisDistributionOperator_
-    integer                                                           , intent(in   )                 :: covarianceBinomialBinsPerDecade
-    double precision                                                  , intent(in   )                 :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
-    character       (len=*                                           ), intent(in   )                 :: filterName                                            , filterType
-    double precision                                                  , intent(in   ), optional       :: redshiftBand
-    type            (outputAnalysisPropertyExtractorLmnstyStllrCF2000)               , pointer        :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyOperatorMagnitude         )               , pointer        :: outputAnalysisPropertyOperatorMagnitude_
-    type            (outputAnalysisPropertyOperatorIdentity          )               , pointer        :: outputAnalysisPropertyOperatorIdentity_
-    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc )               , pointer        :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
-    type            (outputAnalysisPropertyOperatorSequence          )               , pointer        :: outputAnalysisPropertyOperatorSequence_
-    type            (outputAnalysisWeightOperatorCsmlgyVolume        )               , pointer        :: outputAnalysisWeightOperator_
-    type            (outputAnalysisDistributionNormalizerBinWidth    )               , pointer        :: outputAnalysisDistributionNormalizer_
-    type            (propertyOperatorList                            )               , pointer        :: propertyOperatorSequence
-    double precision                                                  , allocatable  , dimension(:,:) :: outputWeight
-    double precision                                                  , parameter                     :: bufferWidth                                     =7.5d0
-    integer         (c_size_t                                        ), parameter                     :: bufferCountMinimum                              =5
-    integer         (c_size_t                                        )                                :: iBin                                                  , bufferCount
+    type            (outputAnalysisLuminosityFunction                )                                          :: self
+    type            (varying_string                                  ), intent(in   )                           :: label                                                 , comment
+    double precision                                                  , intent(in   )          , dimension(:  ) :: magnitudesAbsolute
+    class           (galacticFilterClass                             ), intent(in   ), target                   :: galacticFilter_
+    class           (surveyGeometryClass                             ), intent(in   ), target                   :: surveyGeometry_
+    class           (outputTimesClass                                ), intent(in   ), target                   :: outputTimes_
+    class           (cosmologyFunctionsClass                         ), intent(in   ), target                   :: cosmologyFunctions_                                   , cosmologyFunctionsData
+    class           (outputAnalysisPropertyOperatorClass             ), intent(in   ), target                   :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisDistributionOperatorClass         ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
+    integer                                                           , intent(in   )                           :: covarianceBinomialBinsPerDecade
+    double precision                                                  , intent(in   )                           :: covarianceBinomialMassHaloMinimum                     , covarianceBinomialMassHaloMaximum
+    character       (len=*                                           ), intent(in   )                           :: filterName                                            , filterType
+    double precision                                                  , intent(in   ), optional                 :: redshiftBand
+    type            (varying_string                                  ), intent(in   ), optional                 :: targetLabel
+    double precision                                                  , intent(in   ), optional, dimension(:  ) :: functionValueTarget
+    double precision                                                  , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
+    type            (outputAnalysisPropertyExtractorLmnstyStllrCF2000)               , pointer                  :: outputAnalysisPropertyExtractor_
+    type            (outputAnalysisPropertyOperatorMagnitude         )               , pointer                  :: outputAnalysisPropertyOperatorMagnitude_
+    type            (outputAnalysisPropertyOperatorIdentity          )               , pointer                  :: outputAnalysisPropertyOperatorIdentity_
+    type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc )               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
+    type            (outputAnalysisPropertyOperatorSequence          )               , pointer                  :: outputAnalysisPropertyOperatorSequence_
+    type            (outputAnalysisWeightOperatorCsmlgyVolume        )               , pointer                  :: outputAnalysisWeightOperator_
+    type            (outputAnalysisDistributionNormalizerBinWidth    )               , pointer                  :: outputAnalysisDistributionNormalizer_
+    type            (propertyOperatorList                            )               , pointer                  :: propertyOperatorSequence
+    double precision                                                  , allocatable            , dimension(:,:) :: outputWeight
+    double precision                                                  , parameter                               :: bufferWidth                                     =7.5d0
+    integer         (c_size_t                                        ), parameter                               :: bufferCountMinimum                              =5
+    integer         (c_size_t                                        )                                          :: iBin                                                  , bufferCount
     !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData, *outputTimes_"/>
 
     ! Compute weights that apply to each output redshift.
@@ -208,20 +279,20 @@ contains
     end do
     ! Create a luminosity property extractor.
     allocate(outputAnalysisPropertyExtractor_)
-    outputAnalysisPropertyExtractor_                =outputAnalysisPropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)
+    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     ! Prepend magnitude and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
-    outputAnalysisPropertyOperatorMagnitude_        =outputAnalysisPropertyOperatorMagnitude         (                                                                                                  )
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorMagnitude_"         constructor="outputAnalysisPropertyOperatorMagnitude         (                                                                                                  )"/>
     allocate(outputAnalysisPropertyOperatorIdentity_         )
-    outputAnalysisPropertyOperatorIdentity_         =outputAnalysisPropertyOperatorIdentity          (                                                                                                  )
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorIdentity_"          constructor="outputAnalysisPropertyOperatorIdentity          (                                                                                                  )"/>
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_=outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                           )
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc (cosmologyFunctions_,cosmologyFunctionsData,outputTimes_                                           )"/>
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
        ! Existing property operator is a sequence operator - simply prepend our magnitude and cosmological luminosity distance operators to it.
        call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorMagnitude_        )
        call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-       outputAnalysisPropertyOperatorSequence_ => outputAnalysisPropertyOperator_
+       !# <referenceAcquire target="outputAnalysisPropertyOperatorSequence_" source="outputAnalysisPropertyOperator_"/>
     class default
        ! Existing operator is some other type - combine with our operators into a sequence operator.
        allocate(propertyOperatorSequence          )
@@ -231,55 +302,62 @@ contains
        propertyOperatorSequence%next     %operator_ => outputAnalysisPropertyOperatorMagnitude_
        propertyOperatorSequence%next%next%operator_ => outputAnalysisPropertyOperator_
        allocate(outputAnalysisPropertyOperatorSequence_)
-       outputAnalysisPropertyOperatorSequence_=outputAnalysisPropertyOperatorSequence(propertyOperatorSequence)
+       !# <referenceConstruct object="outputAnalysisPropertyOperatorSequence_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperatorSequence)"/>
     end select
     ! Create a cosmological volume correction weight operator.
     allocate(outputAnalysisWeightOperator_)
-    outputAnalysisWeightOperator_=outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)
+    !# <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctions_,cosmologyFunctionsData,surveyGeometry_)"/>
     ! Create a bin width distribution normalizer.
     allocate(outputAnalysisDistributionNormalizer_)
-    outputAnalysisDistributionNormalizer_=outputAnalysisDistributionNormalizerBinWidth()
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerBinWidth()"/>
     ! Compute the number of buffer bins to add to either side of the luminosity function - these are needed to ensure that, e.g.,
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidth/(magnitudesAbsolute(2)-magnitudesAbsolute(1)))+1,bufferCountMinimum)
     ! Construct the object.
-    self%outputAnalysisVolumeFunction1D=                                                         &
-         & outputAnalysisVolumeFunction1D(                                                       &
-         &                                'luminosityFunction'//label                          , &
-         &                                comment                                              , &
-         &                                var_str('magnitudeAbsolute'                         ), &
-         &                                var_str('absolute magnitude at the bin center'      ), &
-         &                                var_str(' '                                         ), &
-         &                                0.0d0                                                , &
-         &                                var_str('luminosityFunction'                        ), &
-         &                                var_str('luminosity function averaged over each bin'), &
-         &                                var_str('ᵪMpc⁻³'                                    ), &
-         &                                megaParsec**(-3)                                     , &
-         &                                magnitudesAbsolute                                   , &
-         &                                bufferCount                                          , &
-         &                                outputWeight                                         , &
-         &                                outputAnalysisPropertyExtractor_                     , &
-         &                                outputAnalysisPropertyOperatorSequence_              , &
-         &                                outputAnalysisPropertyOperatorIdentity_              , &
-         &                                outputAnalysisWeightOperator_                        , &
-         &                                outputAnalysisDistributionOperator_                  , &
-         &                                outputAnalysisDistributionNormalizer_                , &
-         &                                galacticFilter_                                      , &
-         &                                outputTimes_                                         , &
-         &                                outputAnalysisCovarianceModelBinomial                , &
-         &                                covarianceBinomialBinsPerDecade                      , &
-         &                                covarianceBinomialMassHaloMinimum                    , &
-         &                                covarianceBinomialMassHaloMaximum                      &
+    self%outputAnalysisVolumeFunction1D=                                                            &
+         & outputAnalysisVolumeFunction1D(                                                          &
+         &                                'luminosityFunction'//label                             , &
+         &                                comment                                                 , &
+         &                                var_str('magnitudeAbsolute'                            ), &
+         &                                var_str('absolute magnitude at the bin center'         ), &
+         &                                var_str(' '                                            ), &
+         &                                0.0d0                                                   , &
+         &                                var_str('luminosityFunction'                           ), &
+         &                                var_str('luminosity function averaged over each bin'   ), &
+         &                                var_str('ᵪMpc⁻³'                                       ), &
+         &                                megaParsec**(-3)                                        , &
+         &                                magnitudesAbsolute                                      , &
+         &                                bufferCount                                             , &
+         &                                outputWeight                                            , &
+         &                                outputAnalysisPropertyExtractor_                        , &
+         &                                outputAnalysisPropertyOperatorSequence_                 , &
+         &                                outputAnalysisPropertyOperatorIdentity_                 , &
+         &                                outputAnalysisWeightOperator_                           , &
+         &                                outputAnalysisDistributionOperator_                     , &
+         &                                outputAnalysisDistributionNormalizer_                   , &
+         &                                galacticFilter_                                         , &
+         &                                outputTimes_                                            , &
+         &                                outputAnalysisCovarianceModelBinomial                   , &
+         &                                covarianceBinomialBinsPerDecade                         , &
+         &                                covarianceBinomialMassHaloMinimum                       , &
+         &                                covarianceBinomialMassHaloMaximum                       , &
+         &                                var_str('$M$'                                          ), &
+         &                                var_str('$\mathrm{d}n/\mathrm{d}M$ [$_\chi$Mpc$^{-3}$]'), &
+         &                                .false.                                                 , &
+         &                                .true.                                                  , &
+         &                                targetLabel                                             , &
+         &                                functionValueTarget                                     , &
+         &                                functionCovarianceTarget                                  &
          &                               )
     ! Clean up.
-    nullify(outputAnalysisPropertyExtractor_                )
-    nullify(outputAnalysisPropertyOperatorMagnitude_        )
-    nullify(outputAnalysisPropertyOperatorIdentity_         )
-    nullify(outputAnalysisPropertyOperatorSequence_         )
-    nullify(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    nullify(outputAnalysisDistributionNormalizer_           )
-    nullify(outputAnalysisWeightOperator_                   )
-    nullify(propertyOperatorSequence                        )
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorMagnitude_"        />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
+    !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    nullify(propertyOperatorSequence)
     return
   end function luminosityFunctionConstructorInternal
 
