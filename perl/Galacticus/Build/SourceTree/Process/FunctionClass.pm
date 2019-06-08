@@ -798,6 +798,7 @@ CODE
 		    last
 			unless ( $node );
 		    # Search the node for declarations.
+		    my @ignore = exists($class->{'deepCopy'}->{'ignore'}) ? split(/\s*,\s*/,$class->{'deepCopy'}->{'ignore'}->{'variables'}) : ();
 		    $node = $node->{'firstChild'};
 		    while ( $node ) {
 			if ( $node->{'type'} eq "declaration" ) {
@@ -816,6 +817,8 @@ CODE
 				{
 				    foreach my $object ( @{$declaration->{'variables'}} ) {
 					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					next
+					    if ( grep {lc($_) eq lc($name)} @ignore );
 					$assignments .= "nullify(destination%".$name.")\n";
 					$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
 					$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
@@ -882,6 +885,23 @@ CODE
 					    $assignments .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments .= "end if\n";
+					    }
+					}
+				    }
+				}
+				# Perform any increments.
+				if ( exists($class->{'deepCopy'}->{'increment'}) ) {
+				    my @increments = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'increment'}->{'variables'});
+				    foreach ( @increments ) {
+					($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+				    }
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					(my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+					foreach my $increment ( @increments ) {
+					    if ( lc($increment->{'host'}) eq lc($name) ) {
+						$assignments .= "!\$omp atomic\n"
+						    if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
+						$assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
 					    }
 					}
 				    }
@@ -1050,6 +1070,23 @@ CODE
 			    $assignments .= "call destination%".$name."%autoHook()\n";
 			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 				$assignments .= "end if\n";
+			    }
+			}
+		    }
+		    # Perform any increments.
+		    if ( exists($class->{'deepCopy'}->{'increment'}) ) {
+			my @increments = map {{variable => $_}} split(/\s*,\s*/,$class->{'deepCopy'}->{'increment'}->{'variables'});
+			foreach ( @increments ) {
+			    ($_->{'host'} = $_->{'variable'}) =~ s/^([^%]+)%.+/$1/;
+			}
+			foreach my $object ( @{$declaration->{'variables'}} ) {
+			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+			    foreach my $increment ( @increments ) {
+				if ( lc($increment->{'host'}) eq lc($name) ) {
+				    $assignments .= "!\$omp atomic\n"
+					if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
+				    $assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
+				}
 			    }
 			}
 		    }
