@@ -23,7 +23,8 @@ use Galacticus::Build::Components::DataTypes;
 	 implementationIteratedFunctions =>
 	     [
 	      \&Implementation_Output_Count,
-	      \&Implementation_Output_Names
+	      \&Implementation_Output_Names,
+	      \&Implementation_Post_Output
 	     ]
      }
     );
@@ -350,6 +351,63 @@ CODE
 	    name        => "outputNames"
 	}
 	);
+}
+
+sub Implementation_Post_Output {
+    # Generate a function to perform post-output processing of a node component implementation.
+    my $build     = shift();   
+    $code::class  = shift();
+    $code::member = shift();
+    # Build the function.
+    my $function =
+    {
+	type        => "void",
+	name        => $code::class->{'name'}.ucfirst($code::member->{'name'})."PostOutput",
+	description => "Perform post-output processing for a {\\normalfont \\ttfamily ".$code::member->{'name'}."} implementation of the {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	content     => "",
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'}),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "double precision",
+		 attributes => [ "intent(in   )" ], 
+		 variables  => [ "time" ]
+	     }
+	    ]
+    };
+    # Perform post-output processing of any parent type.
+    if ( exists($code::member->{'extends'}) ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+call self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%postOutput(time)
+CODE
+    }
+    # Iterate over properties, performing post-processing.
+    foreach $code::property ( &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}, keyAs => 'name') ) {
+	# Skip properties with no output or which are defined in their parent implementation.
+	next
+	    unless ( exists($code::property->{'output'}) && ! $code::property->{'definedInParent'} );
+	# Detect whether intrinsic or not.
+	unless ( &isOutputIntrinsic($code::property->{'data'}->{'type'}) ) {
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+call self%{$property->{'name'}}Data%postOutput(time)
+CODE
+	}
+    }
+    # Insert a type-binding for this function into the node component class type if it has any content.
+    push(
+	@{$build->{'types'}->{'nodeComponent'.ucfirst($code::class->{'name'}).ucfirst($code::member->{'name'})}->{'boundFunctions'}},
+	{
+	    type        => "procedure", 
+	    descriptor  => $function,
+	    name        => "postOutput"
+	}
+	)
+	unless ( $function->{'content'} eq "" );
 }
 
 sub Implementation_Output_Common_Tasks {
