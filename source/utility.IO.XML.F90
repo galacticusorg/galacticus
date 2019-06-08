@@ -367,6 +367,7 @@ contains
          &                                                      i                  , countElements
     type     (varying_string  )                              :: filePath           , fileLeaf      , &
          &                                                      nameInsert
+    logical                                                  :: allElements
 
     ! Extract the path and leaf name to our document.
     filePath=File_Path(fileName)
@@ -392,9 +393,10 @@ contains
           nameInsert =  ""
        else
           if (XML_Path_Exists(nodeNew,char(stack(stackCount)%xPath))) then
-             nodeInsert => XML_Get_First_Element_By_Tag_Name(nodeNew,char(stack(stackCount)%xPath),directChildrenOnly=.true.)
-             nameInsert =  getNodeName  (nodeInsert)
-             nodeInsert => getParentNode(nodeInsert)
+             nodeInsert  => XML_Get_First_Element_By_Tag_Name(nodeNew,char(stack(stackCount)%xPath),directChildrenOnly=.true.)
+             nameInsert  =  getNodeName  (nodeInsert)
+             nodeInsert  => getParentNode(nodeInsert)
+             allElements =  extract(stack(stackCount)%xPath,len(stack(stackCount)%xPath),len(stack(stackCount)%xPath)) == "*"
           else
              call Galacticus_Error_Report("XPath '"//stack(stackCount)%xPath//"' not found"//{introspection:location})
           end if
@@ -414,14 +416,14 @@ contains
              countElements =  0
              nodeCurrent   => getFirstChild(nodeInsert)
              do while (associated(nodeCurrent))
-                if (getNodeName(nodeCurrent) == nameInsert) countElements=countElements+1
+                if ((allElements .and. getNodeType(nodeCurrent) == ELEMENT_NODE) .or. getNodeName(nodeCurrent) == nameInsert) countElements=countElements+1
                 nodeCurrent => getNextSibling(nodeCurrent)
              end do
              i           =  0
              nodeCurrent => getFirstChild(nodeInsert)
              do while (associated(nodeCurrent))
                 nodeNext => getNextSibling(nodeCurrent)
-                if ((getNodeType(nodeCurrent) /= ELEMENT_NODE .and. i > 0 .and. i < countElements) .or. getNodeName(nodeCurrent) == nameInsert) then
+                if ((getNodeType(nodeCurrent) /= ELEMENT_NODE .and. i > 0 .and. i < countElements) .or. (allElements .and. getNodeType(nodeCurrent) == ELEMENT_NODE) .or. getNodeName(nodeCurrent) == nameInsert) then
                    if (getNodeName(nodeCurrent) == nameInsert) i=i+1
                    nodeImported => importNode  (document,nodeCurrent,.true.)
                    nodeCurrent  => insertBefore(getParentNode(nodeXInclude),nodeImported,nodeXInclude)
