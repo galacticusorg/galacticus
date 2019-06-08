@@ -63,12 +63,13 @@
      !@     <description>Return the results of the mean function operator.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                  meanFunction1DDestructor
-     procedure :: analyze       => meanFunction1DAnalyze
-     procedure :: finalize      => meanFunction1DFinalize
-     procedure :: reduce        => meanFunction1DReduce
-     procedure :: results       => meanFunction1DResults
-     procedure :: logLikelihood => meanFunction1DLogLikelihood
+     final     ::                     meanFunction1DDestructor
+     procedure :: analyze          => meanFunction1DAnalyze
+     procedure :: finalize         => meanFunction1DFinalize
+     procedure :: finalizeAnalysis => meanFunction1DFinalizeAnalysis
+     procedure :: reduce           => meanFunction1DReduce
+     procedure :: results          => meanFunction1DResults
+     procedure :: logLikelihood    => meanFunction1DLogLikelihood
   end type outputAnalysisMeanFunction1D
 
   interface outputAnalysisMeanFunction1D
@@ -725,7 +726,7 @@ contains
          &                                                dataset
 
     ! Finalize the analysis.
-    call meanFunction1DFinalizeAnalysis(self)
+    call self%finalizeAnalysis()
     ! Output the resulting mean function.
     !$ call hdf5Access%set()
     analysesGroup=galacticusOutputFile%openGroup('analyses'                         )
@@ -783,7 +784,7 @@ contains
     double precision                              , allocatable, dimension(:,:), intent(inout), optional :: meanCovariance
 
     ! Finalize analysis.
-    call meanFunction1DFinalizeAnalysis(self)
+    call self%finalizeAnalysis()
     ! Return results.
     if (present(binCenter     )) then
        if (allocated(binCenter     )) call deallocateArray(binCenter     )
@@ -818,7 +819,7 @@ contains
     ! Check for existance of a target distribution.
     if (allocated(self%meanValueTarget)) then
        ! Finalize analysis.
-       call meanFunction1DFinalizeAnalysis(self)
+       call self%finalizeAnalysis()
        ! Allocate workspaces.
        allocate(meanCovarianceCombined(size(self%binCenter),size(self%binCenter)))
        allocate(meanValueDifference   (size(self%binCenter)                     ))
