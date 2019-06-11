@@ -73,10 +73,10 @@
   <treeNodeMethodBasic value="standard"/>
   <darkMatterProfileMinimumConcentration value="4"/>
   <coolingFunctionMethod value="atomicCIECloudy"/>
-  <mergerTreeNodeEvolerMethod value="standard">
+  <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceRelative value="0.01"/>
     <odeToleranceAbsolute value="0.01"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>

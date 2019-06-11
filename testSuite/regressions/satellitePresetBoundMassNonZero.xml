@@ -54,10 +54,10 @@
   <hotHaloMassDistributionCoreRadiusMethod value="virialFraction">
     <coreRadiusOverVirialRadius value="0.1"/>
   </hotHaloMassDistributionCoreRadiusMethod>
-  <mergerTreeNodeEvolerMethod value="standard">
+  <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceRelative value="0.01"/>
     <odeToleranceAbsolute value="0.01"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <intergalacticMediumStateMethod value="recFast"/>
   <mergerTreeBuildMassDistributionMethod value="stellarMassFunction">
