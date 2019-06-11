@@ -37,10 +37,10 @@
     <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee.hdf5"/>
   </mergerTreeConstructorMethod>
   <nodeMergersMethod value="singleLevelHierarchy"/>
-  <mergerTreeNodeEvolerMethod value="standard">
+  <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <outputTimesMethod value="list">
     <redshifts value="0.0"/>

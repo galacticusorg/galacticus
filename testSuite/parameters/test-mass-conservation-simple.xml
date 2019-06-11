@@ -137,11 +137,11 @@
     </mergerTreeBranchingProbabilityMethod>
     <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
     <nodeMergersMethod value="singleLevelHierarchy"/>
-    <mergerTreeNodeEvolerMethod value="standard">
+    <mergerTreeNodeEvolverMethod value="standard">
     <odeAlgorithm value="Runge-Kutta-Second-Order"/>
     <odeToleranceAbsolute value="1.0e-3"/>
     <odeToleranceRelative value="0.1"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <outputTimesMethod value="list">
     <redshifts value="0"/>

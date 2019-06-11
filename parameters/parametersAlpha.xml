@@ -140,11 +140,11 @@
   <mergerRemnantSizeMethod value="null"/>
 
   <!-- Numerical tolerances -->
-  <mergerTreeNodeEvolerMethod value="standard">
+  <mergerTreeNodeEvolverMethod value="standard">
     <odeAlgorithm value="Runge-Kutta-Second-Order"/>
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <mergerTreeEvolverMethod value="standard">

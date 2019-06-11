@@ -213,11 +213,11 @@
   <mergerRemnantSizeMethod value="null"/>
   
   <!-- Solvers and time-stepping -->
-  <mergerTreeNodeEvolerMethod value="standard">
+  <mergerTreeNodeEvolverMethod value="standard">
     <odeAlgorithm value="Runge-Kutta-Second-Order"/>
     <odeToleranceAbsolute value="1.0e-3"/>
     <odeToleranceRelative value="0.1"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <diskVerySimpleMassScaleAbsolute value="1.0e6"/>

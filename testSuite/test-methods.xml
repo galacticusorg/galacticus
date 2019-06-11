@@ -1606,10 +1606,10 @@
     <accretionHaloMethod value="zero"/>
     <hotHaloMassDistributionMethod value="null"/>
     <mergerRemnantSizeMethod value="null"/>
-    <mergerTreeNodeEvolerMethod value="standard">
+    <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <mergerTreeEvolverMethod value="standard">
     <timestepHostAbsolute value="1.00"/>
