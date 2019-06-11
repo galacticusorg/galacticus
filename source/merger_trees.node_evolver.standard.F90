@@ -279,16 +279,19 @@ contains
      ! Initialize
      self%propertyCountPrevious=-1
      self%propertyCountMaximum = 0
+     self%odeReset             =.true.
      self%timePrevious         =-1.0d0
      return
    end function standardConstructorInternal
 
   subroutine standardDestructor(self)
     !% Destructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+    use :: ODEIV2_Solver, only : ODEIV2_Solver_Free
     implicit none
     type(mergerTreeNodeEvolverStandard), intent(inout) :: self
 
     !# <objectDestructor name="self%mergerTreeNodeMerger_"/>
+    if (.not.self%odeReset) call ODEIV2_Solver_Free(self%ode2Driver,self%ode2System)
     return
   end subroutine standardDestructor
 
