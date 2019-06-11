@@ -186,6 +186,8 @@ contains
     implicit none
     type(mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
 
+    call self%subresolutionHypergeometric%destroy()
+    call self%upperBoundHypergeometric   %destroy()
     !# <objectDestructor name="self%cosmologicalMassVariance_" />
     return
   end subroutine parkinsonColeHellyDestructor
