@@ -155,6 +155,7 @@ contains
     logical                                                        :: instantaneousRecyclingApproximation
     double precision                                               :: massLongLived                      , ageEffective           , &
          &                                                            recycledFraction                   , metalYield
+    !$GLC attributes initialized :: self
     
     !# <inputParameter>
     !#   <name>instantaneousRecyclingApproximation</name>
@@ -259,9 +260,9 @@ contains
        self%metalYield       = huge(0.0d0)
     end if
     countElements=Abundances_Property_Count()
-    allocate(self%yield(countElements))
     self   %recycleFraction   =populationTable('recycledFraction'                ,standardIntegrandRecycledFraction,toleranceAbsolute=1.0d-3,toleranceRelative=1.0d-4)
     self   %energyOutput      =populationTable('energyOutput'                    ,standardIntegrandEnergyOutput    ,toleranceAbsolute=0.0d+0,toleranceRelative=1.0d-3)
+    allocate(self%yield(countElements))
     do i=1,countElements
        self%yield          (i)=populationTable('yield'//char(Abundances_Names(i)),standardIntegrandYield           ,toleranceAbsolute=1.0d-4,toleranceRelative=1.0d-5)
     end do
