@@ -130,7 +130,7 @@ while ( my $line = <STDIN> ) {
 	undef($functionName);
     }
     # Handle uninitialized variable attributes.
-    if ( $line =~ /^Warning: '([a-zA-Z0-9_]+)' may be used uninitialized in this function \[\-Wmaybe\-uninitialized\]/ ) {
+    if ( $line =~ /Warning: '([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*' may be used uninitialized in this function \[\-Wmaybe\-uninitialized\]/ ) {
 	$dropBuffer = 1
 	    if ( exists($initializedVariables{lc($1)}) );
     }
