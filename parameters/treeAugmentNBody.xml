@@ -84,10 +84,10 @@
   <mergerRemnantSizeMethod value="null"/>
 
   <!-- Numerical tolerances -->
-  <mergerTreeNodeEvolerMethod value="standard">
+  <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <!-- Output options -->
   <mergerTreeOutputterMethod value="standard">

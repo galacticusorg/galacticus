@@ -211,12 +211,12 @@
   <spheroidEnergeticOutflowMassRate value="1.0e-2"/>
 
   <!-- Numerical tolerances -->
-  <mergerTreeNodeEvolerMethod value="standard">
+  <mergerTreeNodeEvolverMethod value="standard">
     <odeToleranceAbsolute value="1.0e-6"/>
     <odeToleranceRelative value="1.0e-6"/>
     <odeAlgorithm value="bdf"/>
     <odeLatentIntegratorOrder value="15"/>
-  </mergerTreeNodeEvolerMethod>
+  </mergerTreeNodeEvolverMethod>
 
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
