@@ -621,14 +621,14 @@ my @translations =
 	     "equilibriumStructureIncludeBaryonGravity"                  => "galacticStructureRadiusSolverMethod.equilibrium.--includeBaryonGravity"                ,
 	     "equilibriumStructureUseFormationHalo"                      => "galacticStructureRadiusSolverMethod.equilibrium.--useFormationHalo"                    ,
 	     "equilibriumStructureSolutionTolerance"                     => "galacticStructureRadiusSolverMethod.equilibrium.--solutionTolerance"                   ,
-	     "odeToleranceAbsolute"                                      => "mergerTreeNodeEvolerMethod.standard.--odeToleranceAbsolute"                            ,
-	     "odeToleranceRelative"                                      => "mergerTreeNodeEvolerMethod.standard.--odeToleranceRelative"                            ,
-	     "odeJacobianStepSizeRelative"                               => "mergerTreeNodeEvolerMethod.standard.--odeJacobianStepSizeRelative"                     ,
-	     "odeAlgorithm"                                              => "mergerTreeNodeEvolerMethod.standard.--odeAlgorithm"                                    ,
-	     "odeAlgorithmNonJacobian"                                   => "mergerTreeNodeEvolerMethod.standard.--odeAlgorithmNonJacobian"                         ,
-	     "odeLatentIntegratorOrder"                                  => "mergerTreeNodeEvolerMethod.standard.--odeLatentIntegratorOrder"                        ,
-	     "odeLatentIntegratorIntervalsMaximum"                       => "mergerTreeNodeEvolerMethod.standard.--odeLatentIntegratorIntervalsMaximum"             ,
-	     "profileOdeEvolver"                                         => "mergerTreeNodeEvolerMethod.standard.--profileOdeEvolver"
+	     "odeToleranceAbsolute"                                      => "mergerTreeNodeEvolverMethod.standard.--odeToleranceAbsolute"                           ,
+	     "odeToleranceRelative"                                      => "mergerTreeNodeEvolverMethod.standard.--odeToleranceRelative"                           ,
+	     "odeJacobianStepSizeRelative"                               => "mergerTreeNodeEvolverMethod.standard.--odeJacobianStepSizeRelative"                    ,
+	     "odeAlgorithm"                                              => "mergerTreeNodeEvolverMethod.standard.--odeAlgorithm"                                   ,
+	     "odeAlgorithmNonJacobian"                                   => "mergerTreeNodeEvolverMethod.standard.--odeAlgorithmNonJacobian"                        ,
+	     "odeLatentIntegratorOrder"                                  => "mergerTreeNodeEvolverMethod.standard.--odeLatentIntegratorOrder"                       ,
+	     "odeLatentIntegratorIntervalsMaximum"                       => "mergerTreeNodeEvolverMethod.standard.--odeLatentIntegratorIntervalsMaximum"            ,
+	     "profileOdeEvolver"                                         => "mergerTreeNodeEvolverMethod.standard.--profileOdeEvolver"
 	 },
 	 values        =>
          {
