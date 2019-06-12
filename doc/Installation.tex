@@ -587,10 +587,10 @@ The following guidelines have been tested on a MacBook Pro, running Mac OS X V10
 
 \subsection{Update GNU compilers}
 
-It is likely that the default compiler is older than GCC v7.0.0 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\normalfont \ttfamily gcc}. For the case of MacPorts, this requires,
+It is likely that the default compiler is older than GCC v8.0.0 that is required to properly compile the code without any errors. Use a package manager to download as recent a version as possible of {\normalfont \ttfamily gcc}. For the case of MacPorts, this requires,
 
 \begin{verbatim}
-$ sudo port -v install gcc48 +gfortran
+$ sudo port -v install gcc8 +gfortran
 \end{verbatim}
 
 and reset the default version of {\normalfont \ttfamily gcc} compilers by first listing available options
@@ -599,10 +599,10 @@ and reset the default version of {\normalfont \ttfamily gcc} compilers by first 
 $ sudo port select --list gcc
 \end{verbatim}
 
-and then explicitly setting to {\normalfont \ttfamily mp-gcc48} by
+and then explicitly setting to {\normalfont \ttfamily mp-gcc8} by
 
 \begin{verbatim}
-$ sudo port select --set mp-gcc48
+$ sudo port select --set mp-gcc8
 \end{verbatim}
 
 \subsection{Installing HDF5, FoX and FGSL}
@@ -625,7 +625,7 @@ i.e. install libraries in the same branch as the MacPorts distributiuon. Then do
 $ sudo make clean; sudo make; sudo make check; sudo make install
 \end{verbatim}
 
-Similarly download FGSL from
+Similarly download version 0.9.4 of FGSL from
 
 \begin{verbatim}
 http://www.lrz.de/services/software/mathematik/gsl/fortran/
@@ -643,7 +643,7 @@ i.e. install libraries in the same branch as the MacPorts distributiuon. Then do
 $ sudo make clean; sudo make; sudo make install
 \end{verbatim}
 
-Finally download the latest version of HDF5, configure
+Finally download version 1.8.20 of HDF5, configure
 
 \begin{verbatim}
 $ sudo ./configure --enable-fortran --prefix=/opt/local
