@@ -155,7 +155,8 @@ contains
     logical                                                          , intent(inout), optional     :: forceAcceptance
     type            (posteriorSampleLikelihoodList                  ), pointer                     :: modelLikelihood_
     double precision                                                 , allocatable  , dimension(:) :: stateVector           , stateVectorMapped
-    double precision                                                                               :: logLikelihoodVariance_, timeEvaluate_
+    real                                                                                           :: timeEvaluate_ 
+    double precision                                                                               :: logLikelihoodVariance_
     integer                                                                                        :: i                     , j
     !GCC$ attributes unused :: forceAcceptance
 
@@ -164,8 +165,8 @@ contains
     stateVector                                                =  simulationState%get()
     independentLikelihoodsEvaluate                             =  0.0d0
     modelLikelihood_                                           => self%modelLikelihoods
-    timeEvaluate_                                              =  0.0d0
-    if (present(logLikelihoodVariance)) logLikelihoodVariance_ =  0.0d0
+    timeEvaluate                                               =  0.0
+    if (present(logLikelihoodVariance)) logLikelihoodVariance  =  0.0d0
     do while (associated(modelLikelihood_))
        if (.not.modelLikelihood_%parameterMapInitialized) then
           do i=1,size(modelLikelihood_%parameterMap)
@@ -219,12 +220,12 @@ contains
             &                                                                                                                     logLikelihoodCurrent    , &
             &                                                                                                                     logPriorCurrent         , &
             &                                                                                                                     logPriorProposed        , &
-            &                                                                                                                     timeEvaluate            , &
-            &                                                                                                                     logLikelihoodVariance     &
+            &                                                                                                                     timeEvaluate_           , &
+            &                                                                                                                     logLikelihoodVariance_    &
             &                                                                                                                    )
-       if (present(logLikelihoodVariance)) logLikelihoodVariance_ =  +logLikelihoodVariance_ &
+       if (present(logLikelihoodVariance)) logLikelihoodVariance  =  +logLikelihoodVariance_ &
             &                                                        +logLikelihoodVariance
-       if (timeEvaluate_ >= 0.0d0        ) timeEvaluate_          =  +timeEvaluate_          &
+       if (timeEvaluate_ >= 0.0d0        ) timeEvaluate           =  +timeEvaluate_          &
             &                                                        +timeEvaluate
        modelLikelihood_                                           =>  modelLikelihood_%next
     end do
