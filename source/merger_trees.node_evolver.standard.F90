@@ -28,6 +28,9 @@
   !#  <deepCopy>
   !#   <ignore variables="galacticStructureSolver_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <exclude variables="galacticStructureSolver_"/>
+  !#  </stateStorable>
   !# </mergerTreeNodeEvolver>
   type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
      !% Implementation of the standard merger tree node evolver.
