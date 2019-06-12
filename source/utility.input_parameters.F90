@@ -179,7 +179,7 @@ module Input_Parameters
      !@     <method>parametersGroupCopy</method>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless class(inputParameters)\textgreater} inputParameters\_\argin</arguments>
-     !@     <description>Open an output group for parameters in the given HDF5 object.</description>
+     !@     <description>Copy the HDF5 output group for parameters from another parameters object.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>validateName</method>
