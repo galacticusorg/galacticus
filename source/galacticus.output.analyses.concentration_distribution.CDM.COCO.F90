@@ -46,7 +46,7 @@ contains
     type            (outputAnalysisConcentrationDistributionCDMCOCO)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                       ), pointer       :: cosmologyFunctions_
-    class           (outputTimesClass                               ), pointer       :: outputTimes_
+    class           (outputTimesClass                              ), pointer       :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), pointer       :: nbodyHaloMassError_ 
     integer                                                                         :: distributionNumber
     double precision                                                                :: formationTimeRecent
@@ -70,9 +70,6 @@ contains
     !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
     self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,formationTimeRecent,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
-    nullify(cosmologyFunctions_)
-    nullify(nbodyHaloMassError_)
-    nullify(outputTimes_       )
     !# <objectDestructor name="cosmologyFunctions_"/>
     !# <objectDestructor name="outputTimes_"       />
     !# <objectDestructor name="nbodyHaloMassError_"/>
@@ -94,56 +91,73 @@ contains
     use Numerical_Comparison
     use Virial_Density_Contrast
     implicit none
-    type            (outputAnalysisConcentrationDistributionCDMCOCO  )                              :: self
-    class           (cosmologyFunctionsClass                         ), target     , intent(in   )  :: cosmologyFunctions_
-    class           (outputTimesClass                                ), target     , intent(inout)  :: outputTimes_
-    class           (nbodyHaloMassErrorClass                         ), target     , intent(in   )  :: nbodyHaloMassError_ 
-    integer                                                                        , intent(in   )  :: distributionNumber
-    double precision                                                               , intent(in   )  :: formationTimeRecent
-    type            (outputAnalysisPropertyExtractorConcentration    ), pointer                     :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyOperatorLog10             ), pointer                     :: outputAnalysisPropertyOperator_
-    type            (outputAnalysisPropertyOperatorAntiLog10         ), pointer                     :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisWeightOperatorNbodyMass           ), pointer                     :: outputAnalysisWeightOperator_
-    type            (outputAnalysisPropertyOperatorIdentity          ), pointer                     :: outputAnalysisWeightPropertyOperator_
-    type            (outputAnalysisPropertyExtractorMassHalo         ), pointer                     :: outputAnalysisWeightPropertyExtractor_
-    type            (outputAnalysisDistributionNormalizerSequence    ), pointer                     :: outputAnalysisDistributionNormalizer_
-    type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc), pointer                     :: outputAnalysisDistributionOperator_
-    type            (normalizerList                                  ), pointer                     :: normalizerSequence                                  , normalizer_
-    type            (galacticFilterHaloIsolated                      ), pointer                     :: galacticFilterHaloIsolated_
-    type            (galacticFilterFormationTime                     ), pointer                     :: galacticFilterFormationTime_
-    type            (galacticFilterAll                               ), pointer                     :: galacticFilter_
-    type            (filterList                                      ), pointer                     :: filters_
-    type            (virialDensityContrastFixed                      ), pointer                     :: virialDensityContrast_
-    double precision                                                  , allocatable, dimension(:  ) :: concentrations                                      , masses
-    double precision                                                  , allocatable, dimension(:,:) :: outputWeight
-    double precision                                                  , parameter                   :: massParticle                            = +1.612d+05
-    double precision                                                  , parameter                   :: haloDensityContrast                     = +2.000d+02
-    double precision                                                  , parameter   , dimension(3)  :: concentrationFitA                       =[                                                    &
-         &                                                                                                                                       -0.270d+00,                                         &
-         &                                                                                                                                       +1.780d+00,                                         &
-         &                                                                                                                                       -0.490d+00                                          &
-         &                                                                                                                                      ]
-    double precision                                                  , parameter                   :: concentrationFitB                       = -0.550d+00
-    integer                                                           , parameter                   :: covarianceBinomialBinsPerDecade         =  2
-    double precision                                                  , parameter                   :: covarianceBinomialMassHaloMinimum       = +3.000d+11, covarianceBinomialMassHaloMaximum=1.0d15
-    integer         (c_size_t                                        )                              :: iOutput                                             , bufferCount               
-    type            (hdf5Object                                      )                              :: dataFile
-    double precision                                                                                :: massMinimum                                         , massMaximum
-    character       (len=16                                          )                              :: distributionName
+    type            (outputAnalysisConcentrationDistributionCDMCOCO  )                                :: self
+    class           (cosmologyFunctionsClass                         ), target     , intent(in   )    :: cosmologyFunctions_
+    class           (outputTimesClass                                ), target     , intent(inout)    :: outputTimes_
+    class           (nbodyHaloMassErrorClass                         ), target     , intent(in   )    :: nbodyHaloMassError_ 
+    integer                                                                        , intent(in   )    :: distributionNumber
+    double precision                                                               , intent(in   )    :: formationTimeRecent
+    type            (outputAnalysisPropertyExtractorConcentration    ), pointer                       :: outputAnalysisPropertyExtractor_
+    type            (outputAnalysisPropertyOperatorLog10             ), pointer                       :: outputAnalysisPropertyOperator_
+    type            (outputAnalysisPropertyOperatorAntiLog10         ), pointer                       :: outputAnalysisPropertyUnoperator_
+    type            (outputAnalysisWeightOperatorNbodyMass           ), pointer                       :: outputAnalysisWeightOperator_
+    type            (outputAnalysisPropertyOperatorIdentity          ), pointer                       :: outputAnalysisWeightPropertyOperator_
+    type            (outputAnalysisPropertyExtractorMassHalo         ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (outputAnalysisDistributionNormalizerSequence    ), pointer                       :: outputAnalysisDistributionNormalizer_
+    type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc), pointer                       :: outputAnalysisDistributionOperator_
+    type            (outputAnalysisDistributionNormalizerUnitarity   ), pointer                       :: outputAnalysisDistributionNormalizerUnitarity_
+    type            (outputAnalysisDistributionNormalizerBinWidth    ), pointer                       :: outputAnalysisDistributionNormalizerBinWidth_
+    type            (outputAnalysisDistributionNormalizerLog10ToLog  ), pointer                       :: outputAnalysisDistributionNormalizerLog10ToLog_
+    type            (normalizerList                                  ), pointer                       :: normalizer_
+    type            (galacticFilterHaloIsolated                      ), pointer                       :: galacticFilterHaloIsolated_
+    type            (galacticFilterFormationTime                     ), pointer                       :: galacticFilterFormationTime_
+    type            (galacticFilterAll                               ), pointer                       :: galacticFilter_
+    type            (filterList                                      ), pointer                       :: filters_
+    type            (virialDensityContrastFixed                      ), pointer                       :: virialDensityContrast_
+    double precision                                                  , allocatable, dimension(:    ) :: concentrations                                      , masses                                  , &
+         &                                                                                               functionTarget
+    double precision                                                  , allocatable, dimension(:,:  ) :: outputWeight                                        , functionTargets                         , &
+         &                                                                                               functionCovarianceTarget
+    double precision                                                  , allocatable, dimension(:,:,:) :: functionCovarianceTargets
+    double precision                                                  , parameter                     :: massParticle                            = +1.612d+05
+    double precision                                                  , parameter                     :: haloDensityContrast                     = +2.000d+02
+    double precision                                                  , parameter   , dimension(3)    :: concentrationFitA                       =[                                                      &
+         &                                                                                                                                         -0.270d+00,                                           &
+         &                                                                                                                                         +1.780d+00,                                           &
+         &                                                                                                                                         -0.490d+00                                            &
+         &                                                                                                                                        ]
+    double precision                                                  , parameter                     :: concentrationFitB                       = -0.550d+00
+    integer                                                           , parameter                     :: covarianceBinomialBinsPerDecade         =  2
+    double precision                                                  , parameter                     :: covarianceBinomialMassHaloMinimum       = +3.000d+11, covarianceBinomialMassHaloMaximum=1.0d15
+    integer         (c_size_t                                        )                                :: iOutput                                             , bufferCount               
+    type            (hdf5Object                                      )                                :: dataFile
+    double precision                                                                                  :: massMinimum                                         , massMaximum
+    character       (len=16                                          )                                :: distributionName
+    character       (len= 5                                          )                                :: massMinimumLabel                                    , massMaximumLabel
     !# <constructorAssign variables="distributionNumber"/>
 
     ! Validate input.
-    if (distributionNumber < 1 .or. distributionNumber > 10) call Galacticus_Error_Report('distributionNumber ∈ [1..7] is required'//{introspection:location})
+    if (distributionNumber < 1 .or. distributionNumber > 7) call Galacticus_Error_Report('distributionNumber ∈ [1..7] is required'//{introspection:location})
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic)//'darkMatter/concentrationDistributionCocoCDM.hdf5'),readOnly=.true.        )
-    call dataFile%readDataset(                                         'concentration'                                    ,         concentrations)
-    call dataFile%readDataset(                                         'mass'                                             ,         masses        )
-    call dataFile%close      (                                                                                                                    )
+    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic)//'darkMatter/concentrationDistributionCocoCDM.hdf5'),readOnly=.true.                   )
+    call dataFile%readDataset(                                         'concentration'                                    ,         concentrations           )
+    call dataFile%readDataset(                                         'mass'                                             ,         masses                   )
+    call dataFile%readDataset(                                         'distribution'                                     ,         functionTargets          )
+    call dataFile%readDataset(                                         'distributionCovariance'                           ,         functionCovarianceTargets)
+    call dataFile%close      (                                                                                                                               )
     !$ call hdf5Access%unset()
+    allocate(functionTarget          (size(concentrations)                     ))
+    allocate(functionCovarianceTarget(size(concentrations),size(concentrations)))
+    functionTarget          =functionTargets          (  :,distributionNumber)
+    functionCovarianceTarget=functionCovarianceTargets(:,:,distributionNumber)
+    deallocate(functionTargets          )
+    deallocate(functionCovarianceTargets)
     self%binCount=size(concentrations)
     ! Determine minimum and maximum halo masses for this distribution.
     massMinimum=masses(distributionNumber)/sqrt(masses(2)/masses(1))
     massMaximum=masses(distributionNumber)*sqrt(masses(2)/masses(1))
+    write (massMinimumLabel,'(f5.2)') log10(massMinimum)
+    write (massMaximumLabel,'(f5.2)') log10(massMaximum)
     ! Compute weights that apply to each output redshift.
     call allocateArray(outputWeight,[self%binCount,outputTimes_%count()])
     outputWeight=0.0d0
@@ -156,129 +170,165 @@ contains
     allocate(galacticFilterFormationTime_     )
     allocate(filters_                         )
     allocate(filters_                    %next)
-    filters_                         %filter_ => galacticFilterHaloIsolated_
-    filters_                    %next%filter_ => galacticFilterFormationTime_
-    galacticFilterHaloIsolated_               =  galacticFilterHaloIsolated  (                   )
-    galacticFilterFormationTime_              =  galacticFilterFormationTime (formationTimeRecent)
-    galacticFilter_                           =  galacticFilterAll           (filters_           )
+    filters_     %filter_ => galacticFilterHaloIsolated_
+    filters_%next%filter_ => galacticFilterFormationTime_
+    !# <referenceConstruct object="galacticFilterHaloIsolated_"  constructor="galacticFilterHaloIsolated  (                   )"/>
+    !# <referenceConstruct object="galacticFilterFormationTime_" constructor="galacticFilterFormationTime (formationTimeRecent)"/>
+    !# <referenceConstruct object="galacticFilter_"              constructor="galacticFilterAll           (filters_           )"/>
     ! Create a distribution normalizer which normalizes to bin width and unitarity.
-    allocate(normalizerSequence)
-    normalizer_ => normalizerSequence
-    allocate(outputAnalysisDistributionNormalizerUnitarity  :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerUnitarity)
-       normalizer_=outputAnalysisDistributionNormalizerUnitarity ()
-    end select
-    allocate(normalizer_%next )
-    normalizer_ => normalizer_%next
-    allocate(outputAnalysisDistributionNormalizerBinWidth   :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerBinWidth )
-       normalizer_=outputAnalysisDistributionNormalizerBinWidth  ()
-    end select
-    allocate(normalizer_%next )
-    normalizer_ => normalizer_%next
-    allocate(outputAnalysisDistributionNormalizerLog10ToLog :: normalizer_%normalizer_)
-    select type (normalizer_ => normalizer_%normalizer_)
-    type is (outputAnalysisDistributionNormalizerLog10ToLog )
-       normalizer_=outputAnalysisDistributionNormalizerLog10ToLog()
-    end select
+    allocate(normalizer_          )
+    allocate(normalizer_%next     )
+    allocate(normalizer_%next%next)
+    allocate(outputAnalysisDistributionNormalizerUnitarity_)
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerUnitarity_"  constructor="outputAnalysisDistributionNormalizerUnitarity ()"/>
+    allocate(outputAnalysisDistributionNormalizerBinWidth_)
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"   constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
+    allocate(outputAnalysisDistributionNormalizerLog10ToLog_)
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizerLog10ToLog_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
+    normalizer_          %normalizer_ => outputAnalysisDistributionNormalizerUnitarity_
+    normalizer_%next     %normalizer_ => outputAnalysisDistributionNormalizerBinWidth_
+    normalizer_%next%next%normalizer_ => outputAnalysisDistributionNormalizerLog10ToLog_
     allocate(outputAnalysisDistributionNormalizer_ )
-    outputAnalysisDistributionNormalizer_ =outputAnalysisDistributionNormalizerSequence    (                                        &
-         &                                                                                  normalizerSequence                      &
-         &                                                                                 )
+    !# <referenceConstruct object="outputAnalysisDistributionNormalizer_">
+    !#  <constructor>
+    !#   outputAnalysisDistributionNormalizerSequence    (                                        &amp;
+    !#       &amp;                                        normalizer_                             &amp;
+    !#       &amp;                                       )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperator_       )
-    outputAnalysisPropertyOperator_       =outputAnalysisPropertyOperatorLog10             (                                        &
-         &                                                                                 )
+    !# <referenceConstruct object="outputAnalysisPropertyOperator_">
+    !#  <constructor>
+    !#   outputAnalysisPropertyOperatorLog10             (                                        &amp;
+    !#     &amp;                                         )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_     )
-    outputAnalysisPropertyUnoperator_     =outputAnalysisPropertyOperatorAntiLog10         (                                        &
-         &                                                                                 )
+    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_">
+    !#  <constructor>
+    !#   outputAnalysisPropertyOperatorAntiLog10         (                                        &amp;
+    !#     &amp;                                         )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Create a virial density contrast object matched to the defintion used by Ludlow et al. (2016).
     allocate(virialDensityContrast_                )
-    virialDensityContrast_                =virialDensityContrastFixed                      (                                        &
-         &                                                                                  haloDensityContrast                   , &
-         &                                                                                  fixedDensityTypeCritical              , &
-         &                                                                                  cosmologyFunctions_                     &
-         &                                                                                 )
+    !# <referenceConstruct object="virialDensityContrast_">
+    !#  <constructor>
+    !#   virialDensityContrastFixed                      (                                        &amp;
+    !#      &amp;                                         haloDensityContrast                   , &amp;
+    !#      &amp;                                         fixedDensityTypeCritical              , &amp;
+    !#      &amp;                                         cosmologyFunctions_                     &amp;
+    !#      &amp;                                        )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Create a concentration property extractor.
     allocate(outputAnalysisPropertyExtractor_      )
-    outputAnalysisPropertyExtractor_      =outputAnalysisPropertyExtractorConcentration    (                                        &
-         &                                                                                  virialDensityContrast_                  &
-         &                                                                                 )
+    !# <referenceConstruct object="outputAnalysisPropertyExtractor_">
+    !#  <constructor>
+    !#   outputAnalysisPropertyExtractorConcentration    (                                        &amp;
+    !#       &amp;                                        virialDensityContrast_                  &amp;
+    !#       &amp;                                       )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Create a halo mass property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_)
-    outputAnalysisWeightPropertyExtractor_=outputAnalysisPropertyExtractorMassHalo         (                                        &
-         &                                                                                  virialDensityContrast_                  &
-         &                                                                                 )
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">
+    !#  <constructor>
+    !#   outputAnalysisPropertyExtractorMassHalo         (                                        &amp;
+    !#      &amp;                                         virialDensityContrast_                  &amp;
+    !#      &amp;                                        )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Create an identity property operator.
     allocate(outputAnalysisWeightPropertyOperator_ )
-    outputAnalysisWeightPropertyOperator_ =outputAnalysisPropertyOperatorIdentity          (                                        &
-         &                                                                                 )
+    !# <referenceConstruct object="outputAnalysisWeightPropertyOperator_">
+    !#  <constructor>
+    !#   outputAnalysisPropertyOperatorIdentity          (                                        &amp;
+    !#     &amp;                                         )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build error distribution operator.
     allocate(outputAnalysisDistributionOperator_   )
-    outputAnalysisDistributionOperator_   =outputAnalysisDistributionOperatorRndmErrNbdyCnc(                                        &
-         &                                                                                  concentrationFitA                     , &
-         &                                                                                  concentrationFitB                     , &
-         &                                                                                  massParticle                          , &
-         &                                                                                  outputAnalysisWeightPropertyExtractor_  &
-         &                                                                                 )
+    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
+    !#  <constructor>
+    !#   outputAnalysisDistributionOperatorRndmErrNbdyCnc(                                        &amp;
+    !#      &amp;                                         concentrationFitA                     , &amp;
+    !#      &amp;                                         concentrationFitB                     , &amp;
+    !#      &amp;                                         massParticle                          , &amp;
+    !#      &amp;                                         outputAnalysisWeightPropertyExtractor_  &amp;
+    !#      &amp;                                        )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Build N-body mass distribution weight operator.
     allocate(outputAnalysisWeightOperator_         )
-    outputAnalysisWeightOperator_          =outputAnalysisWeightOperatorNbodyMass          (                                        &
-         &                                                                                  massMinimum                           , &
-         &                                                                                  massMaximum                           , &
-         &                                                                                  outputAnalysisWeightPropertyExtractor_, &
-         &                                                                                  outputAnalysisWeightPropertyOperator_ , &
-         &                                                                                  nbodyHaloMassError_                     &
-         &                                                                                 )
+    !# <referenceConstruct object="outputAnalysisWeightOperator_">
+    !#  <constructor>
+    !#   outputAnalysisWeightOperatorNbodyMass          (                                        &amp;
+    !#      &amp;                                        massMinimum                           , &amp;
+    !#      &amp;                                        massMaximum                           , &amp;
+    !#      &amp;                                        outputAnalysisWeightPropertyExtractor_, &amp;
+    !#      &amp;                                        outputAnalysisWeightPropertyOperator_ , &amp;
+    !#      &amp;                                        nbodyHaloMassError_                     &amp;
+    !#      &amp;                                       )
+    !#  </constructor>
+    !# </referenceConstruct>
     ! Determine number of buffer bins.
     bufferCount=0
     ! Construct the object.
     write (distributionName,'(i2.2)') distributionNumber
-    self%outputAnalysisVolumeFunction1D=                                                                       &
-         & outputAnalysisVolumeFunction1D(                                                                     &
-         &                                var_str('concentrationDistributionCDMCOCO')//trim(distributionName), &
-         &                                var_str('Distribution of concentration, c₂₀₀{crit}'               ), &
-         &                                var_str('concentration'                                           ), &
-         &                                var_str('Concentration at the bin center'                         ), &
-         &                                var_str('dimensionless'                                           ), &
-         &                                0.0d0                                                              , &
-         &                                var_str('concentrationFunction'                                   ), &
-         &                                var_str('Concentration distribution averaged over each bin'       ), &
-         &                                var_str('dimensionless'                                           ), &
-         &                                0.0d0                                                              , &
-         &                                log10(concentrations)                                              , &
-         &                                bufferCount                                                        , &
-         &                                outputWeight                                                       , &
-         &                                outputAnalysisPropertyExtractor_                                   , &
-         &                                outputAnalysisPropertyOperator_                                    , &
-         &                                outputAnalysisPropertyUnoperator_                                  , &
-         &                                outputAnalysisWeightOperator_                                      , &
-         &                                outputAnalysisDistributionOperator_                                , &
-         &                                outputAnalysisDistributionNormalizer_                              , &
-         &                                galacticFilter_                                                    , &
-         &                                outputTimes_                                                       , &
-         &                                outputAnalysisCovarianceModelPoisson                               , &
-         &                                covarianceBinomialBinsPerDecade                                    , &
-         &                                covarianceBinomialMassHaloMinimum                                  , &
-         &                                covarianceBinomialMassHaloMaximum                                    &
+    self%outputAnalysisVolumeFunction1D=                                                                                                                                               &
+         & outputAnalysisVolumeFunction1D(                                                                                                                                             &
+         &                                var_str('concentrationDistributionCDMCOCO')//trim(distributionName)                                                                        , &
+         &                                var_str('Concentration distribution for $')//massMinimumLabel//' \le \log_{10} M_\mathrm{200c}/\mathrm{M}_\odot < '//massMaximumLabel//'$' , &
+         &                                var_str('concentration'                                                                                                                   ), &
+         &                                var_str('Concentration at the bin center'                                                                                                 ), &
+         &                                var_str('dimensionless'                                                                                                                   ), &
+         &                                0.0d0                                                                                                                                      , &
+         &                                var_str('concentrationFunction'                                                                                                           ), &
+         &                                var_str('Concentration distribution averaged over each bin'                                                                               ), &
+         &                                var_str('dimensionless'                                                                                                                   ), &
+         &                                0.0d0                                                                                                                                      , &
+         &                                log10(concentrations)                                                                                                                      , &
+         &                                bufferCount                                                                                                                                , &
+         &                                outputWeight                                                                                                                               , &
+         &                                outputAnalysisPropertyExtractor_                                                                                                           , &
+         &                                outputAnalysisPropertyOperator_                                                                                                            , &
+         &                                outputAnalysisPropertyUnoperator_                                                                                                          , &
+         &                                outputAnalysisWeightOperator_                                                                                                              , &
+         &                                outputAnalysisDistributionOperator_                                                                                                        , &
+         &                                outputAnalysisDistributionNormalizer_                                                                                                      , &
+         &                                galacticFilter_                                                                                                                            , &
+         &                                outputTimes_                                                                                                                               , &
+         &                                outputAnalysisCovarianceModelPoisson                                                                                                       , &
+         &                                covarianceBinomialBinsPerDecade                                                                                                            , &
+         &                                covarianceBinomialMassHaloMinimum                                                                                                          , &
+         &                                covarianceBinomialMassHaloMaximum                                                                                                          , &
+         &                                var_str('$c_\mathrm{200c}$'                                                                                                               ), &
+         &                                var_str('$\mathrm{d}p/\mathrm{d}\log_{10}c_\mathrm{200c}$'                                                                                ), &
+         &                                .true.                                                                                                                                     , &
+         &                                .false.                                                                                                                                    , &
+         &                                var_str('Benson et al. (2019)'                                                                                                            ), &
+         &                                functionTarget                                                                                                                             , &
+         &                                functionCovarianceTarget                                                                                                                     &
          &                               )
-    ! Clean up.
-    nullify(outputAnalysisPropertyExtractor_      )
-    nullify(outputAnalysisPropertyOperator_       )
-    nullify(outputAnalysisPropertyUnoperator_     )
-    nullify(outputAnalysisWeightOperator_         )
-    nullify(outputAnalysisWeightPropertyOperator_ )
-    nullify(outputAnalysisWeightPropertyExtractor_)
-    nullify(outputAnalysisDistributionOperator_   )
-    nullify(outputAnalysisDistributionNormalizer_ )
-    nullify(normalizerSequence                    )
-    nullify(galacticFilterHaloIsolated_           )
-    nullify(galacticFilterFormationTime_          )
-    nullify(galacticFilter_                       )
-    nullify(filters_                              )
-    nullify(virialDensityContrast_                )
+    !# <objectDestructor name="galacticFilterHaloIsolated_"                    />
+    !# <objectDestructor name="galacticFilterFormationTime_"                   />
+    !# <objectDestructor name="galacticFilter_"                                />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"          />
+    !# <objectDestructor name="outputAnalysisPropertyOperator_"                />
+    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"              />
+    !# <objectDestructor name="virialDensityContrast_"                         />
+    !# <objectDestructor name="outputAnalysisPropertyExtractor_"               />
+    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"         />
+    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"          />
+    !# <objectDestructor name="outputAnalysisDistributionOperator_"            />
+    !# <objectDestructor name="outputAnalysisWeightOperator_"                  />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerUnitarity_" />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"  />
+    !# <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_"/>
+    nullify(normalizer_)
+    nullify(filters_   )
   return
   end function concentrationDistributionCDMCOCOConstructorInternal
