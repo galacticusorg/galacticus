@@ -220,20 +220,26 @@ contains
                &              /self%radiusFractionalDecay
        end if
        radiusDecay                                        =+self%radiusFractionalDecay*radiusVirial
-       multiplier_                                        =+(                     &
-            &                                                +radius              &
-            &                                                /radiusVirial        &
-            &                                               )**self%kappaPrevious &
-            &                                              *exp(                  &
-            &                                                   -(                &
-            &                                                     +radius         &
-            &                                                     -radiusVirial   &
-            &                                                     )               &
-            &                                                /     radiusDecay    &
-            &                                                )
+       multiplier_                                        =+self%darkMatterProfileDMO_%density(node,radiusVirial) &
+            &                                              /self%darkMatterProfileDMO_%density(node,radius      ) &
+            &                                              *(                                                     &
+            &                                                +radius                                              &
+            &                                                /radiusVirial                                        &
+            &                                               )**self%kappaPrevious                                 &
+            &                                              *exp(                                                  &
+            &                                                   -(                                                &
+            &                                                     +radius                                         &
+            &                                                     -radiusVirial                                   &
+            &                                                    )                                                &
+            &                                                   /  radiusDecay                                    &
+            &                                                  )
        if (present(multiplier        )) multiplier        =+multiplier_
-       if (present(multiplierGradient)) multiplierGradient=+self%kappaPrevious*multiplier_/radius      &
-            &                                              -                   multiplier_/radiusDecay
+       if (present(multiplierGradient)) multiplierGradient=+multiplier_                                                           &
+            &                                              *(                                                                     &
+            &                                                +self%kappaPrevious                                     /radius      &
+            &                                                -1.0d0                                                  /radiusDecay &
+            &                                                -self%darkMatterProfileDMO_%densityLogSlope(node,radius)/radius      &
+            &                                               )
     end if
     return
   end subroutine truncatedExponentialTruncationFunction
@@ -261,7 +267,7 @@ contains
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: radius
-    double precision                                               :: multiplier, multiplierGradient
+    double precision                                                          :: multiplier, multiplierGradient
     
     call self%truncationFunction(node,radius,multiplier=multiplier,multiplierGradient=multiplierGradient)
     if (multiplier > 0.0d0) then
