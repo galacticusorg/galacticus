@@ -243,7 +243,7 @@ contains
      select case (odeAlgorithm           )
      case (standardODEAlgorithmRungeKuttaCashKarp     )
         self%odeAlgorithm=Fodeiv2_Step_RKCK
-     case (standardODEAlgorithmRungeKuttaSeconOrder   )
+     case (standardODEAlgorithmRungeKuttaSecondOrder  )
         self%odeAlgorithm=Fodeiv2_Step_RK2
      case (standardODEAlgorithmRungeKutta             )
         self%odeAlgorithm=Fodeiv2_Step_RK4
@@ -266,7 +266,7 @@ contains
      select case (odeAlgorithmNonJacobian)
      case (standardODEAlgorithmRungeKuttaCashKarp     )
         self%odeAlgorithmNonJacobian=Fodeiv2_Step_RKCK
-     case (standardODEAlgorithmRungeKuttaSeconOrder   )
+     case (standardODEAlgorithmRungeKuttaSecondOrder  )
         self%odeAlgorithmNonJacobian=Fodeiv2_Step_RK2
      case (standardODEAlgorithmRungeKutta             )
         self%odeAlgorithmNonJacobian=Fodeiv2_Step_RK4
