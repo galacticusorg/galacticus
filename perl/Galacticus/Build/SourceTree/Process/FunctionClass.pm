@@ -1355,6 +1355,8 @@ CODE
 					foreach ( @{$declaration->{'variables'}} ) {
 					    $labelUsed = 1;
 					    (my $variableName = $_) =~ s/\s*=.*$//;
+					    next
+						if ( grep {lc($_) eq lc($variableName)} @excludes );
 					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
 					    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
