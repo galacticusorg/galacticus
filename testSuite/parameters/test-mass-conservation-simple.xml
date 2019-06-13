@@ -138,7 +138,7 @@
     <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
     <nodeMergersMethod value="singleLevelHierarchy"/>
     <mergerTreeNodeEvolverMethod value="standard">
-    <odeAlgorithm value="Runge-Kutta-Second-Order"/>
+    <odeAlgorithm value="rungeKuttaSecondOrder"/>
     <odeToleranceAbsolute value="1.0e-3"/>
     <odeToleranceRelative value="0.1"/>
   </mergerTreeNodeEvolverMethod>
