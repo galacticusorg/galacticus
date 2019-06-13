@@ -224,6 +224,7 @@ contains
          &                                  toleranceRelative=1.0d-6                &
          &                                 )
     call Integrate_Done(integrandFunction,integrationWorkspace)
+    return
 
   contains
 
@@ -233,7 +234,11 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
 
-      genericMassIntegrand=4.0d0*Pi*radius**2*self%density(node,radius)
+      if (radius > 0.0d0) then
+         genericMassIntegrand=4.0d0*Pi*radius**2*self%density(node,radius)
+      else
+         genericMassIntegrand=0.0d0
+      end if
       return
     end function genericMassIntegrand
 
@@ -308,9 +313,13 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    integrandPotential=-gravitationalConstantGalacticus                 &
-         &             *genericSelf%enclosedMass(genericNode,radius)    &
-         &             /                                     radius **2
+    if (radius > 0.0d0) then
+       integrandPotential=-gravitationalConstantGalacticus                 &
+            &             *genericSelf%enclosedMass(genericNode,radius)    &
+            &             /                                     radius **2
+    else
+       integrandPotential=0.0d0
+    end if
     return
   end function integrandPotential
 
@@ -372,8 +381,12 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
 
-      integrandRadialMoment=+                  radius **moment &
-           &                *self%density(node,radius)
+      if (radius > 0.0d0) then
+         integrandRadialMoment=+                  radius **moment &
+              &                *self%density(node,radius)
+      else
+         integrandRadialMoment=0.0d0
+      end if
       return
     end function integrandRadialMoment
 
@@ -440,12 +453,16 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
 
-      integrandFourierTransform=+4.0d0                     &
-           &                    *Pi                        &
-           &                    *               radius **2 &
-           &                    *sin(wavenumber*radius)    &
-           &                    /   (waveNumber*radius)    &
-           &                    *self%density(node,radius)
+      if (radius > 0.0d0) then
+         integrandFourierTransform=+4.0d0                     &
+              &                    *Pi                        &
+              &                    *               radius **2 &
+              &                    *sin(wavenumber*radius)    &
+              &                    /   (waveNumber*radius)    &
+              &                    *self%density(node,radius)
+      else
+         integrandFourierTransform=0.0d0
+      end if
       return
     end function integrandFourierTransform
 
@@ -522,10 +539,14 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
 
-      integrandEnergyPotential=(                                &
-           &                    +self%enclosedMass(node,radius) &
-           &                    /                       radius  &
-           &                   )**2
+      if (radius > 0.0d0) then
+         integrandEnergyPotential=(                                &
+              &                    +self%enclosedMass(node,radius) &
+              &                    /                       radius  &
+              &                   )**2
+      else
+         integrandEnergyPotential=0.0d0
+      end if
       return
     end function integrandEnergyPotential
 
@@ -534,9 +555,13 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
 
-      integrandEnergyKinetic=+self%enclosedMass(node,radius) &
-           &                 *self%density     (node,radius) &
-           &                 *                       radius
+      if (radius > 0.0d0) then
+         integrandEnergyKinetic=+self%enclosedMass(node,radius) &
+              &                 *self%density     (node,radius) &
+              &                 *                       radius
+      else
+         integrandEnergyKinetic=0.0d0
+      end if
       return
     end function integrandEnergyKinetic
 
@@ -545,9 +570,13 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
 
-      integrandPseudoPressure=+self%enclosedMass(node,radius)    &
-           &                  *self%density     (node,radius)    &
-           &                  /                       radius **2
+      if (radius > 0.0d0) then
+         integrandPseudoPressure=+self%enclosedMass(node,radius)    &
+              &                  *self%density     (node,radius)    &
+              &                  /                       radius **2
+      else
+         integrandPseudoPressure=0.0d0
+      end if
       return
     end function integrandPseudoPressure
 
