@@ -101,7 +101,7 @@
   !#  <description>Used to specify the type of ODE algorithm to use.</description>
   !#  <encodeFunction>yes</encodeFunction>
   !#  <entry label="rungeKuttaCashKarp"     />
-  !#  <entry label="rungeKuttaSeconOrder"   />
+  !#  <entry label="rungeKuttaSecondOrder"  />
   !#  <entry label="rungeKutta"             />
   !#  <entry label="rungeKuttaFehlberg"     />
   !#  <entry label="rungeKuttaPrinceDormand"/>

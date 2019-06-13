@@ -141,7 +141,7 @@
 
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolverMethod value="standard">
-    <odeAlgorithm value="Runge-Kutta-Second-Order"/>
+    <odeAlgorithm value="rungeKuttaSecondOrder"/>
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolverMethod>
