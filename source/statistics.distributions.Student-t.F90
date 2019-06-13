@@ -67,6 +67,7 @@ contains
     double precision                                , intent(in   ) :: degreesOfFreedom
     !# <constructorAssign variables="degreesOfFreedom"/>
     
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function studentTConstructorInternal
 

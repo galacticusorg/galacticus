@@ -116,6 +116,7 @@ contains
           self%distributionFunction1DNormal=distributionFunction1DNormal(meanNormal,varianceNormal                                                      )
        end if
     end if
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function logNormalConstructorInternal
 

@@ -81,6 +81,7 @@ contains
     double precision                            , intent(in   ) :: alpha, beta
     !# <constructorAssign variables="alpha, beta"/>
     
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function betaConstructorInternal
 

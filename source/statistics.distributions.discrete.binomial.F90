@@ -96,6 +96,7 @@ contains
     end do
     if (self%probabilityCumulative(countTrials) < 1.0-tolerance) call Galacticus_Error_Report('CDF(n) < 1'//{introspection:location})
     self%probabilityCumulative(countTrials)=1.0d0
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function binomialConstructorInternal
 
