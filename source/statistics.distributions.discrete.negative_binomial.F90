@@ -81,6 +81,7 @@ contains
 
     if (probabilitySuccess <  0.0d0 .or. probabilitySuccess > 1.0d0) call Galacticus_Error_Report('p ∈ [0,1]'//{introspection:location})
     if (countFailures      <= 0.0d0                                ) call Galacticus_Error_Report('r ∈ (0,∞]'//{introspection:location})
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function negativeBinomialConstructorInternal
 

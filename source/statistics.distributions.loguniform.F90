@@ -74,6 +74,7 @@ contains
     double precision                                  , intent(in   ) :: limitLower, limitUpper
     !# <constructorAssign variables="limitLower, limitUpper"/>
     
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function logUniformConstructorInternal
 

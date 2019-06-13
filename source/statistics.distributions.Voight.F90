@@ -123,6 +123,7 @@ contains
        self%limitUpper     =limitUpper
        self%cdfAtUpperLimit=cdfUpper
     end if
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function voightConstructorInternal
 

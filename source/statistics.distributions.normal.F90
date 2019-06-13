@@ -121,6 +121,7 @@ contains
        self%limitUpper     =+huge(0.0d0)
        self%cdfAtUpperLimit=      1.0d0
     end if
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function normalConstructorInternal
 
