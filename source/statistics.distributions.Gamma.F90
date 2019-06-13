@@ -116,6 +116,7 @@ contains
     end if
     self%limitLowerExists=present(limitLower)
     self%limitUpperExists=present(limitUpper)
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function gammaConstructorInternal
 

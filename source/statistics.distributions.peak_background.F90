@@ -104,6 +104,7 @@ contains
             &                )
     end do
     call self%cdf%reverse(self%cdfInverse)
+    self%randomNumberGenerator=pseudoRandom()
     return
 
   contains

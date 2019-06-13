@@ -86,6 +86,7 @@ contains
     double precision                              , intent(in   ) :: median, scale
     !# <constructorAssign variables="median, scale"/>
     
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function cauchyConstructorInternal
 

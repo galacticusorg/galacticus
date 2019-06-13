@@ -67,6 +67,7 @@ contains
     double precision                                           , intent(in   ) :: rate
     !# <constructorAssign variables="rate"/>
     
+    self%randomNumberGenerator=pseudoRandom()
     return
   end function negativeExponentialConstructorInternal
 
