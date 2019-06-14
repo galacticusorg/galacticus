@@ -34,9 +34,6 @@
           &                                                  beta                           , gamma
      integer                                              :: nonAnalyticSolver
 
-
-logical :: unimplementedIsFatal
-     
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8          )           :: lastUniqueID
      ! Stored values of computed quantities.
@@ -185,15 +182,12 @@ contains
 
   subroutine truncatedExponentialTruncationFunction(self,node,radius,multiplier,multiplierGradient)
     !% Return the scaled truncation radial coordinate, and the truncation multiplier.
-    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout)           :: self
     type            (treeNode                                ), intent(inout)           :: node
     double precision                                          , intent(in   )           :: radius
-    double precision                                          , intent(  out), optional :: multiplier       , multiplierGradient
-    class           (nodeComponentDarkMatterProfile          ), pointer                 :: darkMatterProfile
-    double precision                                                                    :: radiusVirial     , scaleRadius       , &
-         &                                                                                 concentration    , radiusDecay       , &
+    double precision                                          , intent(  out), optional :: multiplier  , multiplierGradient
+    double precision                                                                    :: radiusVirial, radiusDecay       , &
          &                                                                                 multiplier_
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -202,23 +196,7 @@ contains
        if (present(multiplier        )) multiplier        =+1.0d0
        if (present(multiplierGradient)) multiplierGradient=+0.0d0
     else
-       if (self%kappaPrevious == -huge(0.0d0)) then
-          darkMatterProfile =>  node             %darkMatterProfile(autoCreate=.true.)
-          scaleRadius       =   darkMatterProfile%scale            (                 )
-          concentration     =  +radiusVirial &
-               &               /scaleRadius
-          self%kappaPrevious= -(                           &
-               &                +self%gamma                &
-               &                +self%beta                 &
-               &                *concentration**self%alpha &
-               &               )                           &
-               &              /(                           &
-               &                +1.0d0                     &
-               &                +concentration**self%alpha &
-               &               )                           &
-               &              +1.0d0                       &
-               &              /self%radiusFractionalDecay
-       end if
+       if (self%kappaPrevious == -huge(0.0d0)) call recomputeKappa(self,node)
        radiusDecay                                        =+self%radiusFractionalDecay*radiusVirial
        multiplier_                                        =+self%darkMatterProfileDMO_%density(node,radiusVirial) &
             &                                              /self%darkMatterProfileDMO_%density(node,radius      ) &
@@ -243,6 +221,36 @@ contains
     end if
     return
   end subroutine truncatedExponentialTruncationFunction
+
+  subroutine recomputeKappa (self,node)
+    !% Recompute parameter kappa in the truncation funciton.
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    implicit none
+    class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
+    type            (treeNode                                ), intent(inout) :: node
+    class           (nodeComponentDarkMatterProfile          ), pointer       :: darkMatterProfile
+    double precision                                                          :: radiusVirial     , scaleRadius       , &
+         &                                                                       concentration
+
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    radiusVirial      =  self             %darkMatterHaloScale_%virialRadius(node             )
+    darkMatterProfile => node             %darkMatterProfile                (autoCreate=.true.)
+    scaleRadius       =  darkMatterProfile%scale                            (                 )
+    concentration     =  +radiusVirial                &
+         &               /scaleRadius
+    self%kappaPrevious=  -(                           &
+         &                 +self%gamma                &
+         &                 +self%beta                 &
+         &                 *concentration**self%alpha &
+         &                )                           &
+         &               /(                           &
+         &                 +1.0d0                     &
+         &                 +concentration**self%alpha &
+         &                )                           &
+         &               +1.0d0                       &
+         &               /self%radiusFractionalDecay
+    return
+  end subroutine recomputeKappa
 
   double precision function truncatedExponentialDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
@@ -338,19 +346,31 @@ contains
   double precision function truncatedExponentialEnclosedMass(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
+    use Numerical_Constants_Math, only : Pi
+    use FGSL                    , only : FGSL_SF_GAMMA_INC
     implicit none
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: radius
-    double precision                                                          :: radiusVirial
+    double precision                                                          :: radiusVirial, radiusDecay
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius <= radiusVirial) then   
-       truncatedExponentialEnclosedMass=self%darkMatterProfileDMO_%enclosedMass                    (node,radius             )
+    if (radius <= radiusVirial) then
+       truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radius      )
     else
-       truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,radiusVirial       ) &
-            &                           +self                      %enclosedMassDifferenceNumerical(node,radiusVirial,radius)
+       if (self%kappaPrevious == -huge(0.0d0)) call recomputeKappa(self,node)
+       radiusDecay                     =+self%radiusFractionalDecay*radiusVirial
+       truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radiusVirial)                      &
+            &                           +4.0d0*Pi                                                                        &
+            &                           *self%darkMatterProfileDMO_%density     (node,radiusVirial)                      &
+            &                           *radiusVirial**3                                                                 &
+            &                           *self%radiusFractionalDecay**(3.0d0+self%kappaPrevious)                          &
+            &                           *exp(1.0d0/self%radiusFractionalDecay)                                           &
+            &                           *(                                                                               &
+            &                             +FGSL_SF_GAMMA_INC(3.0d0+self%kappaPrevious,1.0d0 /self%radiusFractionalDecay) &
+            &                             -FGSL_SF_GAMMA_INC(3.0d0+self%kappaPrevious,radius/     radiusDecay          ) &
+            &                            )
     end if
     return
   end function truncatedExponentialEnclosedMass
