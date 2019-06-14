@@ -58,6 +58,12 @@ module Dark_Matter_Profiles_Generic
      !@     <description>Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>enclosedMassDifferenceNumerical</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout, \textcolor{red}{\textless double precision\textgreater} radiusLower\argin, \textcolor{red}{\textless double precision\textgreater} radiusUpper\argin</arguments>
+     !@     <description>Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>potentialNumerical</method>
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\argin,\textcolor{red}{\textless integer\textgreater} status\argout</arguments>
@@ -67,7 +73,7 @@ module Dark_Matter_Profiles_Generic
      !@     <method>potentialDifferenceNumerical</method>
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout, \textcolor{red}{\textless double precision\textgreater} radiusLower\argin, \textcolor{red}{\textless double precision\textgreater} radiusUpper\argin</arguments>
-     !@     <description>Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc) using a numerical calculation.</description>
+     !@     <description>Returns the gravitational potential difference (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} between the given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical calculation.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>circularVelocityNumerical</method>
@@ -152,6 +158,7 @@ module Dark_Matter_Profiles_Generic
      procedure(genericDensityInterface     ), deferred :: density
      procedure(genericEnclosedMassNumerical), deferred :: enclosedMass
      procedure                                         :: enclosedMassNumerical                      => genericEnclosedMassNumerical
+     procedure                                         :: enclosedMassDifferenceNumerical            => genericEnclosedMassDifferenceNumerical
      procedure                                         :: potentialNumerical                         => genericPotentialNumerical
      procedure                                         :: potentialDifferenceNumerical               => genericPotentialDifferenceNumerical
      procedure                                         :: circularVelocityNumerical                  => genericCircularVelocityNumerical
@@ -205,24 +212,37 @@ contains
   double precision function genericEnclosedMassNumerical(self,node,radius)
     !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
     !% units of Mpc).
+    implicit none
+    class           (darkMatterProfileGeneric  ), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: radius
+
+    genericEnclosedMassNumerical=self%enclosedMassDifferenceNumerical(node,0.0d0,radius)
+    return
+  end function genericEnclosedMassNumerical
+
+  double precision function genericEnclosedMassDifferenceNumerical(self,node,radiusLower,radiusUpper)
+    !% Returns the enclosed mass difference (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} between the
+    !% given {\normalfont \ttfamily radiusLower} and {\normalfont \ttfamily radiusUpper} (given in units of Mpc) using a numerical
+    !% calculation.
     use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration, only : Integrate    , Integrate_Done
     implicit none
     class           (darkMatterProfileGeneric  ), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
-    double precision                            , intent(in   ) :: radius
+    double precision                            , intent(in   ) :: radiusLower         , radiusUpper
     type            (fgsl_function             )                :: integrandFunction
     type            (fgsl_integration_workspace)                :: integrationWorkspace
     
-    genericEnclosedMassNumerical=+Integrate(                                        &
-         &                                                    0.0d0               , &
-         &                                                    radius              , &
-         &                                                    genericMassIntegrand, &
-         &                                                    integrandFunction   , &
-         &                                                    integrationWorkspace, &
-         &                                  toleranceAbsolute=0.0d+0              , &
-         &                                  toleranceRelative=1.0d-6                &
-         &                                 )
+    genericEnclosedMassDifferenceNumerical=+Integrate(                                        &
+         &                                                              radiusLower         , &
+         &                                                              radiusUpper         , &
+         &                                                              genericMassIntegrand, &
+         &                                                              integrandFunction   , &
+         &                                                              integrationWorkspace, &
+         &                                            toleranceAbsolute=0.0d+0              , &
+         &                                            toleranceRelative=1.0d-6                &
+         &                                           )
     call Integrate_Done(integrandFunction,integrationWorkspace)
     return
 
@@ -242,7 +262,7 @@ contains
       return
     end function genericMassIntegrand
 
-  end function genericEnclosedMassNumerical
+  end function genericEnclosedMassDifferenceNumerical
 
   double precision function genericPotentialNumerical(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont

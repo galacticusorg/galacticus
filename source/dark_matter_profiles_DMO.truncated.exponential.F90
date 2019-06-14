@@ -300,12 +300,17 @@ contains
   double precision function truncatedExponentialRadiusEnclosingMass(self,node,mass)
     !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
     !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class           (darkMatterProfileDMOTruncatedExponential), intent(inout), target :: self
-    type            (treeNode                                ), intent(inout), target :: node
-    double precision                                          , intent(in   )         :: mass
-    
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    class           (darkMatterProfileDMOTruncatedExponential), intent(inout), target  :: self
+    type            (treeNode                                ), intent(inout), target  :: node
+    double precision                                          , intent(in   )          :: mass
+    class           (nodeComponentBasic                      ),                pointer :: basic
+    double precision                                                                   :: massVirial
+
+    basic      => node %basic()
+    massVirial =  basic%mass ()
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. mass <= massVirial) then   
        truncatedExponentialRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
     else
        truncatedExponentialRadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
@@ -337,11 +342,15 @@ contains
     class           (darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type            (treeNode                                ), intent(inout) :: node
     double precision                                          , intent(in   ) :: radius
+    double precision                                                          :: radiusVirial
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
-       truncatedExponentialEnclosedMass=self%darkMatterProfileDMO_%enclosedMass         (node,radius)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius <= radiusVirial) then   
+       truncatedExponentialEnclosedMass=self%darkMatterProfileDMO_%enclosedMass                    (node,radius             )
     else
-       truncatedExponentialEnclosedMass=self                      %enclosedMassNumerical(node,radius)
+       truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,radiusVirial       ) &
+            &                           +self                      %enclosedMassDifferenceNumerical(node,radiusVirial,radius)
     end if
     return
   end function truncatedExponentialEnclosedMass
