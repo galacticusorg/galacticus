@@ -1,0 +1,106 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !# <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
+  !#  <description>An abstract output analysis property extractor class which provieds a tuple of floating point properties.</description>
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorTuple
+     !% A tuple property extractor.
+     private
+   contains
+     !@ <objectMethods>
+     !@  <object>nodePropertyExtractorTuple</object>
+     !@  <objectMethod>
+     !@   <method>elementCount</method>
+     !@   <description>Return the number of properties in the tuple.</description>
+     !@   <type>\intzero</type>
+     !@   <pass>yes</pass>
+     !@   <arguments></arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>extract</method>
+     !@   <description>Extract the properties from the given {\normalfont \ttfamily node}.</description>
+     !@   <type>\doubleone</type>
+     !@   <pass>yes</pass>
+     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin</arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>names</method>
+     !@   <description>Return the names of the properties extracted.</description>
+     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
+     !@   <pass>yes</pass>
+     !@   <arguments></arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>descriptions</method>
+     !@   <description>Return descriptions of the properties extracted.</description>
+     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
+     !@   <pass>yes</pass>
+     !@   <arguments></arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>unitsInSI</method>
+     !@   <description>Return the units of the properties extracted in the SI system.</description>
+     !@   <type>\doubleone</type>
+     !@   <pass>yes</pass>
+     !@   <arguments></arguments>
+     !@  </objectMethod>
+     !@ </objectMethods>
+     procedure(tupleElementCount), deferred :: elementCount
+     procedure(tupleExtract     ), deferred :: extract
+     procedure(tupleNames       ), deferred :: names
+     procedure(tupleNames       ), deferred :: descriptions
+     procedure(tupleUnitsInSI   ), deferred :: unitsInSI
+  end type nodePropertyExtractorTuple
+
+  abstract interface
+     function tupleExtract(self,node)
+       !% Interface for tuple property extraction.
+       import nodePropertyExtractorTuple, treeNode
+       double precision                                      , dimension(:) , allocatable :: tupleExtract
+       class           (nodePropertyExtractorTuple), intent(inout)              :: self
+       type            (treeNode                            ), intent(inout)              :: node
+     end function tupleExtract
+  end interface
+
+  abstract interface
+     function tupleNames(self)
+       !% Interface for tuple property names.
+       import varying_string, nodePropertyExtractorTuple
+       type (varying_string                      ), dimension(:) , allocatable :: tupleNames
+       class(nodePropertyExtractorTuple), intent(inout)              :: self
+     end function tupleNames
+  end interface
+
+  abstract interface
+     function tupleUnitsInSI(self)
+       !% Interface for tuple property units.
+       import nodePropertyExtractorTuple
+       double precision                                      , dimension(:) , allocatable :: tupleUnitsInSI
+       class           (nodePropertyExtractorTuple), intent(inout)              :: self
+     end function tupleUnitsInSI
+  end interface
+
+  abstract interface
+     integer function tupleElementCount(self)
+       !% Interface for tuple element count.
+       import nodePropertyExtractorTuple
+       class(nodePropertyExtractorTuple), intent(inout) :: self
+     end function tupleElementCount
+  end interface

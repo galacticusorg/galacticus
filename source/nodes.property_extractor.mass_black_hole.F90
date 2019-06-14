@@ -19,22 +19,25 @@
 
 !% Contains a module which implements a black hole mass output analysis property extractor class.
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMassBlackHole">
+  !# <nodePropertyExtractor name="nodePropertyExtractorMassBlackHole">
   !#  <description>An ISM mass output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorMassBlackHole
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBlackHole
      !% A black hole mass output analysis class.
      private
    contains
-     procedure :: extract  => massBlackHoleExtract
-     procedure :: type     => massBlackHoleType
-     procedure :: quantity => massBlackHoleQuantity
-  end type outputAnalysisPropertyExtractorMassBlackHole
+     procedure :: extract     => massBlackHoleExtract
+     procedure :: type        => massBlackHoleType
+     procedure :: quantity    => massBlackHoleQuantity
+     procedure :: name        => massBlackHoleName
+     procedure :: description => massBlackHoleDescription
+     procedure :: unitsInSI   => massBlackHoleUnitsInSI
+  end type nodePropertyExtractorMassBlackHole
 
-  interface outputAnalysisPropertyExtractorMassBlackHole
+  interface nodePropertyExtractorMassBlackHole
      !% Constructors for the ``massBlackHole'' output analysis class.
      module procedure massBlackHoleConstructorParameters
-  end interface outputAnalysisPropertyExtractorMassBlackHole
+  end interface nodePropertyExtractorMassBlackHole
 
 contains
 
@@ -42,11 +45,11 @@ contains
     !% Constructor for the ``massBlackHole'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(outputAnalysisPropertyExtractorMassBlackHole)                :: massBlackHoleConstructorParameters
-    type(inputParameters                             ), intent(inout) :: parameters
+    type(nodePropertyExtractorMassBlackHole)                :: massBlackHoleConstructorParameters
+    type(inputParameters                   ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
-    massBlackHoleConstructorParameters=outputAnalysisPropertyExtractorMassBlackHole()
+    massBlackHoleConstructorParameters=nodePropertyExtractorMassBlackHole()
     return
   end function massBlackHoleConstructorParameters
 
@@ -56,9 +59,9 @@ contains
     use Galactic_Structure_Options
     use Galacticus_Nodes                  , only : nodeComponentBlackHole
     implicit none
-    class(outputAnalysisPropertyExtractorMassBlackHole), intent(inout) :: self
-    type (treeNode                                    ), intent(inout) :: node
-    class(nodeComponentBlackHole                      ), pointer       :: blackHole
+    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
+    type (treeNode                          ), intent(inout) :: node
+    class(nodeComponentBlackHole            ), pointer       :: blackHole
     !GCC$ attributes unused :: self
 
     blackHole            => node     %blackHole()
@@ -70,7 +73,7 @@ contains
     !% Return the type of the stellar mass property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassBlackHole), intent(inout) :: self
+    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     massBlackHoleType=outputAnalysisPropertyTypeLinear
@@ -81,9 +84,42 @@ contains
     !% Return the class of the stellar luminosity property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassBlackHole), intent(inout) :: self
+    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     massBlackHoleQuantity=outputAnalysisPropertyQuantityMass
     return
   end function massBlackHoleQuantity
+
+  function massBlackHoleName(self)
+    !% Return the name of the massBlackHole property.
+    implicit none
+    type (varying_string                    )                :: massBlackHoleName
+    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massBlackHoleName=var_str('massBlackHole')
+    return
+  end function massBlackHoleName
+
+  function massBlackHoleDescription(self)
+    !% Return a description of the massBlackHole property.
+    implicit none
+    type (varying_string                    )                :: massBlackHoleDescription
+    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massBlackHoleDescription=var_str('The mass of the central black hole in each galaxy.')
+    return
+  end function massBlackHoleDescription
+
+  double precision function massBlackHoleUnitsInSI(self)
+    !% Return the units of the massBlackHole property in the SI system.
+    use Numerical_Constants_Astronomical, only : massSolar
+    implicit none
+    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massBlackHoleUnitsInSI=massSolar
+    return
+  end function massBlackHoleUnitsInSI

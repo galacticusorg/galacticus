@@ -22,7 +22,7 @@
   
   use, intrinsic :: ISO_C_Binding
   use               ISO_Varying_String
-  use               Output_Analysis_Property_Extractions
+  use               Node_Property_Extractors
   use               Output_Analysis_Property_Operators
   use               Output_Analysis_Weight_Operators
   use               Output_Analysis_Distribution_Operators
@@ -94,7 +94,7 @@ contains
     implicit none
     type            (outputAnalysisMeanFunction1D           )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
-    class           (outputAnalysisPropertyExtractorClass   ), pointer                     :: outputAnalysisPropertyExtractor_     , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass   ), pointer                     :: nodePropertyExtractor_     , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_     , &
          &                                                                                    outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass      ), pointer                     :: outputAnalysisWeightOperator_
@@ -119,8 +119,8 @@ contains
     logical                                                                                :: likelihoodNormalize                  , xAxisIsLog                            , &
          &                                                                                    yAxisIsLog
 
-    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"       source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
+    !# <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"       source="parameters"          />
+    !# <objectBuilder class="nodePropertyExtractor"      name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"        source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisWeightPropertyOperator_"  source="weightParameters"    />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"      source="unoperatorParameters"/>
@@ -360,7 +360,7 @@ contains
     !#        &amp;                        binCenter                                                                                    , &amp;
     !#        &amp;                        bufferCount                                                                                  , &amp;
     !#        &amp;                        reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &amp;
-    !#        &amp;                        outputAnalysisPropertyExtractor_                                                             , &amp;
+    !#        &amp;                        nodePropertyExtractor_                                                             , &amp;
     !#        &amp;                        outputAnalysisWeightPropertyExtractor_                                                       , &amp;
     !#        &amp;                        outputAnalysisPropertyOperator_                                                              , &amp;
     !#        &amp;                        outputAnalysisWeightPropertyOperator_                                                        , &amp;
@@ -386,7 +386,7 @@ contains
     !#  <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"      />
+    !# <objectDestructor name="nodePropertyExtractor_"      />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
     !# <objectDestructor name="outputAnalysisPropertyOperator_"       />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
@@ -398,7 +398,7 @@ contains
     return
   end function meanFunction1DConstructorParameters
 
-  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget) result (self)
+  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget) result (self)
     !% Constructor for the ``meanFunction1D'' output analysis class for internal use.
     use Memory_Management
     implicit none
@@ -415,7 +415,7 @@ contains
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                      , yAxisIsLog                                     , &
          &                                                                                                     likelihoodNormalize
-    class           (outputAnalysisPropertyExtractorClass        ), intent(inout), target                   :: outputAnalysisPropertyExtractor_                , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass        ), intent(inout), target                   :: nodePropertyExtractor_                , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_                 , outputAnalysisPropertyUnoperator_              , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperatorIn_
@@ -538,7 +538,7 @@ contains
     !#    &amp;                         binCenter                                      , &amp;
     !#    &amp;                         bufferCount                                    , &amp;
     !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         outputAnalysisPropertyExtractor_               , &amp;
+    !#    &amp;                         nodePropertyExtractor_               , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
     !#    &amp;                         outputAnalysisWeightOperatorUnweighted_        , &amp;
@@ -569,7 +569,7 @@ contains
     !#    &amp;                         binCenter                                      , &amp;
     !#    &amp;                         bufferCount                                    , &amp;
     !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         outputAnalysisPropertyExtractor_               , &amp;
+    !#    &amp;                         nodePropertyExtractor_               , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
     !#    &amp;                         outputAnalysisWeightOperatorWeighted_          , &amp;
@@ -600,7 +600,7 @@ contains
     !#    &amp;                         binCenter                                      , &amp;
     !#    &amp;                         bufferCount                                    , &amp;
     !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         outputAnalysisPropertyExtractor_               , &amp;
+    !#    &amp;                         nodePropertyExtractor_               , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
     !#    &amp;                         outputAnalysisWeightOperatorCross_             , &amp;

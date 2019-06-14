@@ -22,29 +22,33 @@
   use ISO_Varying_String
   use Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLuminosityStellar">
+  !# <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellar">
   !#  <description>A stellar luminosity output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLuminosityStellar
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLuminosityStellar
      !% A stellar luminosity output analysis property extractor class.
      private
-     type            (varying_string  )                            :: filterName      , filterType, &
-          &                                                           postprocessChain
+     type            (varying_string  )                            :: filterName                , filterType, &
+          &                                                           postprocessChain          , name_     , &
+          &                                                           description_
      double precision                                              :: redshiftBand
      integer                           , allocatable, dimension(:) :: luminosityIndex
-     class           (outputTimesClass), pointer                   :: outputTimes_ => null()
+     class           (outputTimesClass), pointer                   :: outputTimes_     => null()
    contains
-     final     ::             luminosityStellarDestructor
-     procedure :: extract  => luminosityStellarExtract
-     procedure :: type     => luminosityStellarType
-     procedure :: quantity => luminosityStellarQuantity
-  end type outputAnalysisPropertyExtractorLuminosityStellar
+     final     ::                luminosityStellarDestructor
+     procedure :: extract     => luminosityStellarExtract
+     procedure :: type        => luminosityStellarType
+     procedure :: quantity    => luminosityStellarQuantity
+     procedure :: name        => luminosityStellarName
+     procedure :: description => luminosityStellarDescription
+     procedure :: unitsInSI   => luminosityStellarUnitsInSI
+  end type nodePropertyExtractorLuminosityStellar
 
-  interface outputAnalysisPropertyExtractorLuminosityStellar
+  interface nodePropertyExtractorLuminosityStellar
      !% Constructors for the ``luminosityStellar'' output analysis class.
      module procedure luminosityStellarConstructorParameters
      module procedure luminosityStellarConstructorInternal
-  end interface outputAnalysisPropertyExtractorLuminosityStellar
+  end interface nodePropertyExtractorLuminosityStellar
 
 contains
 
@@ -52,13 +56,13 @@ contains
     !% Constructor for the ``luminosityStellar'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (outputAnalysisPropertyExtractorLuminosityStellar)                :: self
-    type            (inputParameters                                 ), intent(inout) :: parameters
-    class           (outputTimesClass                                ), pointer       :: outputTimes_
-    type            (varying_string                                  )                :: filterName           , filterType               , &
-         &                                                                               postprocessChain
-    double precision                                                                  :: redshiftBand
-    logical                                                                           :: redshiftBandIsPresent, postprocessChainIsPresent
+    type            (nodePropertyExtractorLuminosityStellar)                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    class           (outputTimesClass                      ), pointer       :: outputTimes_
+    type            (varying_string                        )                :: filterName           , filterType               , &
+         &                                                                     postprocessChain
+    double precision                                                        :: redshiftBand
+    logical                                                                 :: redshiftBandIsPresent, postprocessChainIsPresent
 
     redshiftBandIsPresent    =parameters%isPresent('redshiftBand'    )
     postprocessChainIsPresent=parameters%isPresent('postprocessChain')
@@ -97,15 +101,15 @@ contains
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     if (redshiftBandIsPresent) then
        if (postprocessChainIsPresent) then
-          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand,postprocessChain=char(postprocessChain))
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand,postprocessChain=char(postprocessChain))
        else
-          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand                                        )
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,redshiftBand=redshiftBand                                        )
        end if
     else
        if (postprocessChainIsPresent) then
-          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,                          postprocessChain=char(postprocessChain))
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_,                          postprocessChain=char(postprocessChain))
        else
-          self=outputAnalysisPropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_                                                                  )
+          self=nodePropertyExtractorLuminosityStellar(char(filterName),char(filterType),outputTimes_                                                                  )
        end if
     end if
     !# <inputParametersValidate source="parameters"/>
@@ -119,13 +123,14 @@ contains
     use               Stellar_Luminosities_Structure
     use               Memory_Management
     implicit none
-    type            (outputAnalysisPropertyExtractorLuminosityStellar)                                        :: self
-    character       (len=*                                           ), intent(in   )                         :: filterName      , filterType
-    class           (outputTimesClass                                ), intent(in   ), target                 :: outputTimes_
-    character       (len=*                                           ), intent(in   ), optional               :: postprocessChain
-    double precision                                                  , intent(in   ), optional               :: redshiftBand
-    logical                                                           , intent(in   ), dimension(:), optional :: outputMask
-    integer         (c_size_t                                        )                                        :: i
+    type            (nodePropertyExtractorLuminosityStellar)                                        :: self
+    character       (len=*                                 ), intent(in   )                         :: filterName      , filterType
+    class           (outputTimesClass                      ), intent(in   ), target                 :: outputTimes_
+    character       (len=*                                 ), intent(in   ), optional               :: postprocessChain
+    double precision                                        , intent(in   ), optional               :: redshiftBand
+    logical                                                 , intent(in   ), dimension(:), optional :: outputMask
+    integer         (c_size_t                              )                                        :: i
+    character       (len=7                                 )                                        :: label
     !# <constructorAssign variables="filterName, filterType, redshiftBand, postprocessChain, *outputTimes_"/>
 
     call allocateArray(self%luminosityIndex,[self%outputTimes_%count()])
@@ -136,6 +141,17 @@ contains
           self%luminosityIndex(i)=unitStellarLuminosities%index(filterName,filterType,self%outputTimes_%redshift(i),redshiftBand,postprocessChain)
        end if
     end do
+    self%name_       ="luminosityStellar:"//filterName//":"//filterType
+    self%description_="Total stellar luminosity luminosity in the "//filterType//"-frame "//filterName//" filter"
+    if (present(redshiftBand)) then
+       write (label,'(f7.3)') redshiftBand
+       self%name_       =self%name_        //":z"            //trim(adjustl(label))
+       self%description_=self%description_//" shifted to z="//trim(adjustl(label))
+    end if
+    if (present(postprocessChain)) then
+       self%name_       =self%name_                                //postprocessChain
+       self%description_=self%description_//" postprocessed with '"//postprocessChain//"'"
+    end if
     return
   end function luminosityStellarConstructorInternal
   
@@ -143,7 +159,7 @@ contains
     !% Destructor for the ``luminosityStellar'' output analysis property extractor class.
     use               Memory_Management
     implicit none
-    type(outputAnalysisPropertyExtractorLuminosityStellar), intent(inout) :: self
+    type(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
 
     !# <objectDestructor name="self%outputTimes_"/>
     return
@@ -156,10 +172,10 @@ contains
     use               Galactic_Structure_Options
     use               Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
-    class  (outputAnalysisPropertyExtractorLuminosityStellar), intent(inout) :: self
-    type   (treeNode                                        ), intent(inout) :: node
-    class  (nodeComponentBasic                              ), pointer       :: basic
-    integer(c_size_t                                        )                :: i
+    class  (nodePropertyExtractorLuminosityStellar), intent(inout) :: self
+    type   (treeNode                              ), intent(inout) :: node
+    class  (nodeComponentBasic                    ), pointer       :: basic
+    integer(c_size_t                              )                :: i
     
     basic                    =>                                  node %basic()
     i                        =  self%outputTimes_%index         (basic%time (),findClosest=.true.                                                                                              )
@@ -171,7 +187,7 @@ contains
     !% Return the type of the stellar luminosity property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorLuminosityStellar), intent(inout) :: self
+    class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     luminosityStellarType=outputAnalysisPropertyTypeLinear
@@ -182,9 +198,40 @@ contains
     !% Return the class of the stellar luminosity property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorLuminosityStellar), intent(inout) :: self
+    class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     luminosityStellarQuantity=outputAnalysisPropertyQuantityLuminosity
     return
   end function luminosityStellarQuantity
+
+  function luminosityStellarName(self)
+    !% Return the name of the luminosityStellar property.
+    implicit none
+    type (varying_string                        )                :: luminosityStellarName
+    class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
+
+    luminosityStellarName=self%name_
+    return
+  end function luminosityStellarName
+
+  function luminosityStellarDescription(self)
+    !% Return a description of the luminosityStellar property.
+    implicit none
+    type (varying_string                        )                :: luminosityStellarDescription
+    class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
+
+    luminosityStellarDescription=self%description_
+    return
+  end function luminosityStellarDescription
+  
+  double precision function luminosityStellarUnitsInSI(self)
+    !% Return the units of the luminosityStellar property in the SI system.
+    use Numerical_Constants_Astronomical, only : luminosityZeroPointAB
+    implicit none
+    class(nodePropertyExtractorLuminosityStellar), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    luminosityStellarUnitsInSI=luminosityZeroPointAB
+    return
+  end function luminosityStellarUnitsInSI

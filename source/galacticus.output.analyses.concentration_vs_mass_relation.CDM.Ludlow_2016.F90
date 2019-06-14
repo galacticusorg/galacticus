@@ -70,7 +70,7 @@ contains
     use Output_Times
     use Cosmology_Functions
     use Output_Analysis_Property_Operators
-    use Output_Analysis_Property_Extractions
+    use Node_Property_Extractors
     use Output_Analysis_Distribution_Operators
     use Output_Analysis_Weight_Operators
     use Output_Analysis_Utilities
@@ -99,8 +99,8 @@ contains
     type            (outputAnalysisWeightOperatorIdentity              ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorLog10               ), pointer                       :: outputAnalysisPropertyOperator_              , outputAnalysisWeightPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10           ), pointer                       :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisPropertyExtractorMassHalo           ), pointer                       :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyExtractorConcentration      ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo           ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorConcentration      ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (virialDensityContrastFixed                        ), pointer                       :: virialDensityContrast_
     integer         (c_size_t                                          )                                :: iOutput
     type            (hdf5Object                                        )                                :: dataFile
@@ -150,10 +150,10 @@ contains
     virialDensityContrast_                 =  virialDensityContrastFixed                        (200.0d0                ,fixedDensityTypeCritical,cosmologyFunctions_)
     ! Create a concentration weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_ )
-    outputAnalysisWeightPropertyExtractor_ =  outputAnalysisPropertyExtractorConcentration      (virialDensityContrast_                                              )
+    outputAnalysisWeightPropertyExtractor_ =  nodePropertyExtractorConcentration      (virialDensityContrast_                                              )
     ! Create a halo mass property extractor.
-    allocate(outputAnalysisPropertyExtractor_       )
-    outputAnalysisPropertyExtractor_       =  outputAnalysisPropertyExtractorMassHalo           (virialDensityContrast_                                              )
+    allocate(nodePropertyExtractor_       )
+    nodePropertyExtractor_       =  nodePropertyExtractorMassHalo           (virialDensityContrast_                                              )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                       &
          &                                                         var_str('concentrationHaloMassRelationCDMLudlow2016'), &
@@ -169,7 +169,7 @@ contains
          &                                                         massHaloLogarithmic                                  , &
          &                                                         5_c_size_t                                           , &
          &                                                         outputWeight                                         , &
-         &                                                         outputAnalysisPropertyExtractor_                     , &
+         &                                                         nodePropertyExtractor_                     , &
          &                                                         outputAnalysisWeightPropertyExtractor_               , &
          &                                                         outputAnalysisPropertyOperator_                      , &
          &                                                         outputAnalysisWeightPropertyOperator_                , &
@@ -194,7 +194,7 @@ contains
     nullify(outputAnalysisPropertyUnoperator_     )
     nullify(outputAnalysisWeightPropertyOperator_ )
     nullify(outputAnalysisWeightPropertyExtractor_)
-    nullify(outputAnalysisPropertyExtractor_      )
+    nullify(nodePropertyExtractor_      )
     nullify(virialDensityContrast_                )
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorInternal

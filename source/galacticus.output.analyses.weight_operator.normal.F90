@@ -19,7 +19,7 @@
 
 !% Contains a module which implements a weight operator class in which the weight is multiplied by an integral over a normal distribution.
 
-  use Output_Analysis_Property_Extractions
+  use Node_Property_Extractors
   use Output_Analysis_Property_Operators
 
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNormal">
@@ -28,7 +28,7 @@
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorNormal
      !% A high-pass filter weight operator class.
      private
-     class           (outputAnalysisPropertyExtractorClass), pointer :: outputAnalysisPropertyExtractor_ => null()
+     class           (nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
      class           (outputAnalysisPropertyOperatorClass ), pointer :: outputAnalysisPropertyOperator_ => null()
      double precision                                                :: rangeLower                      , rangeUpper, &
           &                                                             rootVariance_
@@ -61,7 +61,7 @@ contains
     implicit none
     type            (outputAnalysisWeightOperatorNormal  )                :: self
     type            (inputParameters                     ), intent(inout) :: parameters
-    class           (outputAnalysisPropertyExtractorClass), pointer       :: outputAnalysisPropertyExtractor_
+    class           (nodePropertyExtractorClass), pointer       :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass ), pointer       :: outputAnalysisPropertyOperator_
     double precision                                                      :: rangeLower                      , rangeUpper, &
          &                                                                   rootVariance_
@@ -89,34 +89,41 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"      source="parameters"          />
+    !# <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"      source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
-    self=outputAnalysisWeightOperatorNormal(rangeLower,rangeUpper,rootVariance_,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_)
+    self=outputAnalysisWeightOperatorNormal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="nodePropertyExtractor_"/>
     !# <objectDestructor name="outputAnalysisPropertyOperator_" />
     return
   end function normalConstructorParameters
 
-  function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
+  function normalConstructorInternal(rangeLower,rangeUpper,rootVariance_,nodePropertyExtractor_,outputAnalysisPropertyOperator_) result (self)
     !% Internal constructor for the ``normal'' output analysis distribution operator class.
     use Input_Parameters
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (outputAnalysisWeightOperatorNormal  )                        :: self
     double precision                                      , intent(in   )         :: rangeLower                      , rangeUpper, &
          &                                                                           rootVariance_
-    class           (outputAnalysisPropertyExtractorClass), intent(in   ), target :: outputAnalysisPropertyExtractor_
+    class           (nodePropertyExtractorClass), intent(in   ), target :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass ), intent(in   ), target :: outputAnalysisPropertyOperator_
-    !# <constructorAssign variables="rangeLower, rangeUpper, rootVariance_, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_"/>
-
+    !# <constructorAssign variables="rangeLower, rangeUpper, rootVariance_, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_"/>
+    
+    select type (nodePropertyExtractor_)
+    class is (nodePropertyExtractorScalar)
+       ! This is acceptable.
+    class default
+       call Galacticus_Error_Report('property extrator must be of scalar class'//{introspection:location})
+    end select
     return
   end function normalConstructorInternal
-
+  
   subroutine normalDestructor(self)
     !% Destructor for  the ``normal'' output analysis weight operator class.
     type(outputAnalysisWeightOperatorNormal), intent(inout) :: self
     
-    !# <objectDestructor name="self%outputAnalysisPropertyExtractor_" />
+    !# <objectDestructor name="self%nodePropertyExtractor_" />
     !# <objectDestructor name="self%outputAnalysisPropertyOperator_"  />
     return
   end subroutine normalDestructor
@@ -151,9 +158,14 @@ contains
     !GCC$ attributes unused :: propertyValue,propertyValueIntrinsic, propertyType, propertyQuantity
 
     ! Extract property and operate on it.
-    normalPropertyType =self%outputAnalysisPropertyExtractor_%type   (                                                       )
-    normalPropertyValue=self%outputAnalysisPropertyExtractor_%extract(                    node                               )
-    normalPropertyValue=self%outputAnalysisPropertyOperator_ %operate(normalPropertyValue,node,normalPropertyType,outputIndex)
+    normalPropertyType    =self%nodePropertyExtractor_%type   (                                                       )
+    select type (extractor_ => self%nodePropertyExtractor_)
+    class is (nodePropertyExtractorScalar)
+       normalPropertyValue=                           extractor_%extract(                    node                               )
+    class default
+       normalPropertyValue=+0.0d0
+    end select
+    normalPropertyValue   =self%outputAnalysisPropertyOperator_ %operate(normalPropertyValue,node,normalPropertyType,outputIndex)
     ! Multiply weight by integral over a normal distribution between given limits, using the property value as the mean.
     if     (                                     &
          &   normalPropertyValue == +huge(0.0d0) &

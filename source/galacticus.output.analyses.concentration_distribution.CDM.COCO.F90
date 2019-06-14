@@ -97,12 +97,12 @@ contains
     class           (nbodyHaloMassErrorClass                         ), target     , intent(in   )    :: nbodyHaloMassError_ 
     integer                                                                        , intent(in   )    :: distributionNumber
     double precision                                                               , intent(in   )    :: formationTimeRecent
-    type            (outputAnalysisPropertyExtractorConcentration    ), pointer                       :: outputAnalysisPropertyExtractor_
+    type            (nodePropertyExtractorConcentration    ), pointer                       :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10             ), pointer                       :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10         ), pointer                       :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisWeightOperatorNbodyMass           ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorIdentity          ), pointer                       :: outputAnalysisWeightPropertyOperator_
-    type            (outputAnalysisPropertyExtractorMassHalo         ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo         ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisDistributionNormalizerSequence    ), pointer                       :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisDistributionOperatorRndmErrNbdyCnc), pointer                       :: outputAnalysisDistributionOperator_
     type            (outputAnalysisDistributionNormalizerUnitarity   ), pointer                       :: outputAnalysisDistributionNormalizerUnitarity_
@@ -224,10 +224,10 @@ contains
     !#  </constructor>
     !# </referenceConstruct>
     ! Create a concentration property extractor.
-    allocate(outputAnalysisPropertyExtractor_      )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_">
+    allocate(nodePropertyExtractor_      )
+    !# <referenceConstruct object="nodePropertyExtractor_">
     !#  <constructor>
-    !#   outputAnalysisPropertyExtractorConcentration    (                                        &amp;
+    !#   nodePropertyExtractorConcentration    (                                        &amp;
     !#       &amp;                                        virialDensityContrast_                  &amp;
     !#       &amp;                                       )
     !#  </constructor>
@@ -236,7 +236,7 @@ contains
     allocate(outputAnalysisWeightPropertyExtractor_)
     !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">
     !#  <constructor>
-    !#   outputAnalysisPropertyExtractorMassHalo         (                                        &amp;
+    !#   nodePropertyExtractorMassHalo         (                                        &amp;
     !#      &amp;                                         virialDensityContrast_                  &amp;
     !#      &amp;                                        )
     !#  </constructor>
@@ -293,7 +293,7 @@ contains
          &                                log10(concentrations)                                                                                                                      , &
          &                                bufferCount                                                                                                                                , &
          &                                outputWeight                                                                                                                               , &
-         &                                outputAnalysisPropertyExtractor_                                                                                                           , &
+         &                                nodePropertyExtractor_                                                                                                           , &
          &                                outputAnalysisPropertyOperator_                                                                                                            , &
          &                                outputAnalysisPropertyUnoperator_                                                                                                          , &
          &                                outputAnalysisWeightOperator_                                                                                                              , &
@@ -320,7 +320,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyOperator_"                />
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"              />
     !# <objectDestructor name="virialDensityContrast_"                         />
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"               />
+    !# <objectDestructor name="nodePropertyExtractor_"               />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"         />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"          />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"            />

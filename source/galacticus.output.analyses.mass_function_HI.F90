@@ -252,7 +252,7 @@ contains
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
     double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (outputAnalysisPropertyExtractorMassISM         )               , pointer                  :: outputAnalysisPropertyExtractor_
+    type            (nodePropertyExtractorMassISM         )               , pointer                  :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorHIMass           )               , pointer                  :: outputAnalysisPropertyOperatorHIMass_
     type            (outputAnalysisPropertyOperatorLog10            )               , pointer                  :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
@@ -275,8 +275,8 @@ contains
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,outputTimes_,masses(iBin))
     end do
     ! Create a HI mass property extractor.
-    allocate(outputAnalysisPropertyExtractor_)
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorMassISM         (                                                                 )"/>
+    allocate(nodePropertyExtractor_)
+    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassISM         (                                                                 )"/>
     ! Prepend log10, cosmological luminosity distance, and HI mass property operators.
     allocate(outputAnalysisPropertyOperatorHIMass_           )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorHIMass_"            constructor="outputAnalysisPropertyOperatorHIMass           (outputAnalysisMolecularRatio_                                    )"/>
@@ -345,7 +345,7 @@ contains
          &                                log10(masses)                                                  , &
          &                                bufferCount                                                    , &
          &                                outputWeight                                                   , &
-         &                                outputAnalysisPropertyExtractor_                               , &
+         &                                nodePropertyExtractor_                               , &
          &                                outputAnalysisPropertyOperatorSequence_                        , &
          &                                outputAnalysisPropertyOperatorAntiLog10_                       , &
          &                                outputAnalysisWeightOperator_                                  , &
@@ -366,7 +366,7 @@ contains
          &                                functionCovarianceTarget                                         &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />

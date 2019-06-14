@@ -19,21 +19,24 @@
 
 !% Contains a module which implements a spin parameter output analysis property extractor class.
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorSpin">
+  !# <nodePropertyExtractor name="nodePropertyExtractorSpin">
   !#  <description>A spin parameter output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorSpin
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorSpin
      !% A spin parameter property extractor output analysis class.
      private
    contains
-     procedure :: extract  => spinExtract
-     procedure :: type     => spinType
-  end type outputAnalysisPropertyExtractorSpin
+     procedure :: extract     => spinExtract
+     procedure :: type        => spinType
+     procedure :: name        => spinName
+     procedure :: description => spinDescription
+     procedure :: unitsInSI   => spinUnitsInSI
+  end type nodePropertyExtractorSpin
 
-  interface outputAnalysisPropertyExtractorSpin
+  interface nodePropertyExtractorSpin
      !% Constructors for the ``spin'' output property extractor class.
      module procedure spinConstructorParameters
-  end interface outputAnalysisPropertyExtractorSpin
+  end interface nodePropertyExtractorSpin
 
 contains
 
@@ -41,12 +44,12 @@ contains
     !% Constructor for the ``spin'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (outputAnalysisPropertyExtractorSpin)                :: self
-    type (inputParameters                    ), intent(inout) :: parameters
+    type (nodePropertyExtractorSpin)                :: self
+    type (inputParameters          ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
     ! Build the object.
-    self=outputAnalysisPropertyExtractorSpin()
+    self=nodePropertyExtractorSpin()
     return
   end function spinConstructorParameters
 
@@ -54,9 +57,9 @@ contains
     !% Implement a spin output property extractor.
     use Galacticus_Nodes, only : nodeComponentSpin
     implicit none
-    class(outputAnalysisPropertyExtractorSpin), intent(inout) :: self
-    type (treeNode                           ), intent(inout) :: node
-    class(nodeComponentSpin                  ), pointer       :: spin
+    class(nodePropertyExtractorSpin), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node
+    class(nodeComponentSpin        ), pointer       :: spin
     !GCC$ attributes unused :: self
 
     spin        => node%spin()
@@ -68,9 +71,41 @@ contains
     !% Return the type of the spin parameter property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorSpin), intent(inout) :: self
+    class(nodePropertyExtractorSpin), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     spinType=outputAnalysisPropertyTypeLinear
     return
   end function spinType
+
+  function spinName(self)
+    !% Return the name of the spin property.
+    implicit none
+    type (varying_string           )                :: spinName
+    class(nodePropertyExtractorSpin), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    spinName=var_str('spinParameter')
+    return
+  end function spinName
+
+  function spinDescription(self)
+    !% Return a description of the spin property.
+    implicit none
+    type (varying_string           )                :: spinDescription
+    class(nodePropertyExtractorSpin), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    spinDescription=var_str('The spin parameter of the dark matter halos.')
+    return
+  end function spinDescription
+
+  double precision function spinUnitsInSI(self)
+    !% Return the units of the spin property in the SI system.
+    implicit none
+    class(nodePropertyExtractorSpin), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    spinUnitsInSI=0.0d0
+    return
+  end function spinUnitsInSI

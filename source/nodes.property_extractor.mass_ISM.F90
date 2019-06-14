@@ -19,22 +19,25 @@
 
 !% Contains a module which implements an ISM mass output analysis property extractor class.
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMassISM">
+  !# <nodePropertyExtractor name="nodePropertyExtractorMassISM">
   !#  <description>An ISM mass output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorMassISM
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassISM
      !% A stelalr mass output analysis class.
      private
    contains
-     procedure :: extract  => massISMExtract
-     procedure :: type     => massISMType
-     procedure :: quantity => massISMQuantity
-  end type outputAnalysisPropertyExtractorMassISM
+     procedure :: extract     => massISMExtract
+     procedure :: type        => massISMType
+     procedure :: quantity    => massISMQuantity
+     procedure :: name        => massISMName
+     procedure :: description => massISMDescription
+     procedure :: unitsInSI   => massISMUnitsInSI
+  end type nodePropertyExtractorMassISM
 
-  interface outputAnalysisPropertyExtractorMassISM
+  interface nodePropertyExtractorMassISM
      !% Constructors for the ``massISM'' output analysis class.
      module procedure massISMConstructorParameters
-  end interface outputAnalysisPropertyExtractorMassISM
+  end interface nodePropertyExtractorMassISM
 
 contains
 
@@ -42,11 +45,11 @@ contains
     !% Constructor for the ``massISM'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(outputAnalysisPropertyExtractorMassISM)                :: massISMConstructorParameters
-    type(inputParameters                      ), intent(inout) :: parameters
+    type(nodePropertyExtractorMassISM)                :: massISMConstructorParameters
+    type(inputParameters             ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
-    massISMConstructorParameters=outputAnalysisPropertyExtractorMassISM()
+    massISMConstructorParameters=nodePropertyExtractorMassISM()
     return
   end function massISMConstructorParameters
 
@@ -55,8 +58,8 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassISM), intent(inout) :: self
-    type (treeNode                              ), intent(inout) :: node
+    class(nodePropertyExtractorMassISM), intent(inout) :: self
+    type (treeNode                    ), intent(inout) :: node
     !GCC$ attributes unused :: self
 
     massISMExtract=+Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeDisk    ) &
@@ -68,7 +71,7 @@ contains
     !% Return the type of the stellar mass property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassISM), intent(inout) :: self
+    class(nodePropertyExtractorMassISM), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     massISMType=outputAnalysisPropertyTypeLinear
@@ -79,9 +82,42 @@ contains
     !% Return the class of the stellar luminosity property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassISM), intent(inout) :: self
+    class(nodePropertyExtractorMassISM), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     massISMQuantity=outputAnalysisPropertyQuantityMass
     return
   end function massISMQuantity
+
+  function massISMName(self)
+    !% Return the name of the massISM property.
+    implicit none
+    type (varying_string              )                :: massISMName
+    class(nodePropertyExtractorMassISM), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massISMName=var_str('massISM')
+    return
+  end function massISMName
+
+  function massISMDescription(self)
+    !% Return a description of the massISM property.
+    implicit none
+    type (varying_string              )                :: massISMDescription
+    class(nodePropertyExtractorMassISM), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massISMDescription=var_str('The mass of the interstellar medium in each galaxy.')
+    return
+  end function massISMDescription
+
+  double precision function massISMUnitsInSI(self)
+    !% Return the units of the massISM property in the SI system.
+    use Numerical_Constants_Astronomical, only : massSolar
+    implicit none
+    class(nodePropertyExtractorMassISM), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massISMUnitsInSI=massSolar
+    return
+  end function massISMUnitsInSI

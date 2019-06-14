@@ -244,7 +244,7 @@ contains
     type            (varying_string                                 ), intent(in   ), optional                 :: targetLabel
     double precision                                                 , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                 , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (outputAnalysisPropertyExtractorMassStellar     )               , pointer                  :: outputAnalysisPropertyExtractor_
+    type            (nodePropertyExtractorMassStellar     )               , pointer                  :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10            )               , pointer                  :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10        )               , pointer                  :: outputAnalysisPropertyOperatorAntiLog10_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc)               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
@@ -266,8 +266,8 @@ contains
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,masses(iBin))
     end do
     ! Create a stellar mass property extractor.
-    allocate(outputAnalysisPropertyExtractor_)
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorMassStellar     (                                                       )"/>
+    allocate(nodePropertyExtractor_)
+    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar     (                                                       )"/>
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                       )"/>
@@ -331,7 +331,7 @@ contains
          &                                log10(masses)                                             , &
          &                                bufferCount                                               , &
          &                                outputWeight                                              , &
-         &                                outputAnalysisPropertyExtractor_                          , &
+         &                                nodePropertyExtractor_                          , &
          &                                outputAnalysisPropertyOperatorSequence_                   , &
          &                                outputAnalysisPropertyOperatorAntiLog10_                  , &
          &                                outputAnalysisWeightOperator_                             , &
@@ -352,7 +352,7 @@ contains
          &                                functionCovarianceTarget                                    &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />

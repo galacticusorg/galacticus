@@ -23,7 +23,7 @@
   !$ use            OMP_Lib
   use, intrinsic :: ISO_C_Binding
   use               ISO_Varying_String
-  use               Output_Analysis_Property_Extractions
+  use               Node_Property_Extractors
   use               Output_Analysis_Property_Operators
   use               Output_Analysis_Weight_Operators
   use               Output_Analysis_Distribution_Operators
@@ -46,7 +46,7 @@
           &                                                                                      xAxisLabel                                     , yAxisLabel                                       , &
           &                                                                                      targetLabel
      double precision                                                                         :: propertyUnitsInSI                              , distributionUnitsInSI
-     class           (outputAnalysisPropertyExtractorClass     ), pointer                     :: outputAnalysisPropertyExtractor_      => null()
+     class           (nodePropertyExtractorClass     ), pointer                     :: nodePropertyExtractor_      => null()
      class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_       => null()                                                   , &
           &                                                                                      outputAnalysisPropertyUnoperator_     => null()
      class           (outputAnalysisWeightOperatorClass        ), pointer                     :: outputAnalysisWeightOperator_         => null()
@@ -102,7 +102,7 @@ contains
     implicit none
     type            (outputAnalysisVolumeFunction1D           )                              :: self
     type            (inputParameters                          ), intent(inout)               :: parameters
-    class           (outputAnalysisPropertyExtractorClass     ), pointer                     :: outputAnalysisPropertyExtractor_
+    class           (nodePropertyExtractorClass     ), pointer                     :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_
     class           (outputAnalysisWeightOperatorClass        ), pointer                     :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass  ), pointer                     :: outputAnalysisDistributionOperator_
@@ -126,7 +126,7 @@ contains
     logical                                                                                  :: xAxisIsLog                           , yAxisIsLog
     
     ! Check and read parameters.
-    !# <objectBuilder class="outputAnalysisPropertyExtractor"      name="outputAnalysisPropertyExtractor_"      source="parameters"          />
+    !# <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"      source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"       source="parameters"          />
     !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"     source="unoperatorParameters"/>
     !# <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"         source="parameters"          />
@@ -357,7 +357,7 @@ contains
     !#        &amp;                          binCenter                                                                                         , &amp;
     !#        &amp;                          bufferCount                                                                                       , &amp;
     !#        &amp;                          reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),self%outputTimes_%count()]), &amp;
-    !#        &amp;                          outputAnalysisPropertyExtractor_                                                                  , &amp;
+    !#        &amp;                          nodePropertyExtractor_                                                                  , &amp;
     !#        &amp;                          outputAnalysisPropertyOperator_                                                                   , &amp;
     !#        &amp;                          outputAnalysisPropertyUnoperator_                                                                 , &amp;
     !#        &amp;                          outputAnalysisWeightOperator_                                                                     , &amp;
@@ -381,7 +381,7 @@ contains
     !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
     !# </conditionalCall>
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"     />
+    !# <objectDestructor name="nodePropertyExtractor_"     />
     !# <objectDestructor name="outputAnalysisPropertyOperator_"      />
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
     !# <objectDestructor name="outputAnalysisWeightOperator_"        />
@@ -392,8 +392,9 @@ contains
     return
   end function volumeFunction1DConstructorParameters
 
-  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
+  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
     !% Constructor for the ``volumeFunction1D'' output analysis class for internal use.
+    use Galacticus_Error , only : Galacticus_Error_Report
     use Memory_Management
     implicit none
     type            (outputAnalysisVolumeFunction1D           )                                          :: self
@@ -408,7 +409,7 @@ contains
     double precision                                           , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                 ), intent(in   )                           :: bufferCount
     double precision                                           , intent(in   )          , dimension(:,:) :: outputWeight
-    class           (outputAnalysisPropertyExtractorClass     ), intent(in   ), target                   :: outputAnalysisPropertyExtractor_
+    class           (nodePropertyExtractorClass     ), intent(in   ), target                   :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass      ), intent(in   ), target                   :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_
     class           (outputAnalysisWeightOperatorClass        ), intent(in   ), target                   :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass  ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
@@ -421,8 +422,15 @@ contains
     double precision                                           , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                           , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
     integer         (c_size_t                                 )                                          :: i
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget"/>
 
+    ! Validate.
+    select type (nodePropertyExtractor_)
+    class is (nodePropertyExtractorScalar)
+       ! This is acceptable.
+    class default
+       call Galacticus_Error_Report('property extrator must be of scalar class'//{introspection:location})
+    end select
     ! Count bins.
     self%binCount     =size(binCenter,kind=c_size_t)
     self%binCountTotal=self%binCount+2*bufferCount
@@ -473,7 +481,7 @@ contains
     !% Destructor for  the ``volumeFunction1D'' output analysis class.
     type(outputAnalysisVolumeFunction1D), intent(inout) :: self
     
-    !# <objectDestructor name="self%outputAnalysisPropertyExtractor_"     />
+    !# <objectDestructor name="self%nodePropertyExtractor_"     />
     !# <objectDestructor name="self%outputAnalysisPropertyOperator_"      />
     !# <objectDestructor name="self%outputAnalysisPropertyUnoperator_"    />
     !# <objectDestructor name="self%outputAnalysisWeightOperator_"        />
@@ -510,10 +518,15 @@ contains
     allocate(distribution(-self%bufferCount+1:self%binCount+self%bufferCount              ))
     allocate(covariance  (                    self%binCount                 ,self%binCount))
     ! Extract the property from the node.
-    propertyType          =self%outputAnalysisPropertyExtractor_%type    (    )
-    propertyQuantity      =self%outputAnalysisPropertyExtractor_%quantity(    )
-    propertyValue         =self%outputAnalysisPropertyExtractor_%extract (node)
-    propertyValueIntrinsic=propertyValue
+    propertyType             =self%nodePropertyExtractor_%type    (    )
+    propertyQuantity         =self%nodePropertyExtractor_%quantity(    )
+    select type (extractor_ => self%nodePropertyExtractor_)
+    class is (nodePropertyExtractorScalar)
+       propertyValue         =                           extractor_%extract (node)
+    class default
+       propertyValue         =0.0d0
+    end select
+    propertyValueIntrinsic   =propertyValue
     ! Apply property operators.
     propertyValue=self%outputAnalysisPropertyOperator_%operate(propertyValue,node,propertyType,iOutput)
     ! Apply distribution operators.
