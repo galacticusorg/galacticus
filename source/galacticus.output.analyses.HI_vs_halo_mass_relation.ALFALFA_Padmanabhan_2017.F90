@@ -101,7 +101,7 @@ contains
     use Numerical_Ranges
     use Numerical_Comparison
     use Output_Analysis_Property_Operators
-    use Output_Analysis_Property_Extractions
+    use Node_Property_Extractors
     use Output_Analysis_Distribution_Operators
     use Output_Analysis_Weight_Operators
     use Output_Analysis_Utilities
@@ -144,8 +144,8 @@ contains
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial   ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorFilterHighPass      ), pointer                       :: outputAnalysisWeightPropertyOperatorFilterHighPass_
-    type            (outputAnalysisPropertyExtractorMassHalo           ), pointer                       :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyExtractorMassISM            ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo           ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassISM            ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (propertyOperatorList                              ), pointer                       :: propertyOperators_
     type            (cosmologyParametersSimple                         ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                       :: cosmologyFunctionsData
@@ -258,14 +258,14 @@ contains
     !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                  )"/>
     ! Create an HI mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorMassISM                (                                                                                  )"/>
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"                 constructor="nodePropertyExtractorMassISM                          (                                                                                  )"/>
     ! Create a halo mass weight property extractor. The virial density contrast is chosen to equal that expected for a
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in
     ! their original calibration of their halo mass function (as used by Padmanabhan & Refregier 2017).
     allocate(virialDensityContrast_                                )
     !# <referenceConstruct object="virialDensityContrast_"                                 constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_       ,percolationObjects_      )"/>
-    allocate(outputAnalysisPropertyExtractor_                      )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                       constructor="outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                                            )"/>
+    allocate(nodePropertyExtractor_                      )
+    !# <referenceConstruct object="nodePropertyExtractor_"                                 constructor="nodePropertyExtractorMassHalo                         (virialDensityContrast_                                                            )"/>
     ! Create a halo scale object from which to compute virial velocities. Padmanabhan & Refrigier use the Bryan & Norman (1998)
     ! virial density contrast definition. However (Padmanabhan, private communication), they assume it gives the density contrast
     ! relative to mean density, instead of critical density (as was used by Bryan & Norman). This means that virial velocities are
@@ -345,7 +345,7 @@ contains
          &                                                         massHaloLogarithmic                                   , &
          &                                                         0_c_size_t                                            , &
          &                                                         outputWeight                                          , &
-         &                                                         outputAnalysisPropertyExtractor_                      , &
+         &                                                         nodePropertyExtractor_                      , &
          &                                                         outputAnalysisWeightPropertyExtractor_                , &
          &                                                         outputAnalysisPropertyOperator_                       , &
          &                                                         outputAnalysisWeightPropertyOperator_                 , &
@@ -377,7 +377,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"                     />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"                 />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                />
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                      />
+    !# <objectDestructor name="nodePropertyExtractor_"                      />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorFilterHighPass_"   />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_"/>
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSystmtcPolynomial_"/>

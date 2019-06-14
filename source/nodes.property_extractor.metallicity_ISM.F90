@@ -19,23 +19,26 @@
 
 !% Contains a module which implements an ISM metallicity output analysis property extractor class.
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMetallicityISM">
+  !# <nodePropertyExtractor name="nodePropertyExtractorMetallicityISM">
   !#  <description>An ISM metallicity output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorMetallicityISM
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMetallicityISM
      !% An ISM metallicity output analysis property extractor class.
      private
      integer :: indexElement
    contains
-     procedure :: extract => metallicityISMExtract
-     procedure :: type    => metallicityISMType
-  end type outputAnalysisPropertyExtractorMetallicityISM
+     procedure :: extract     => metallicityISMExtract
+     procedure :: type        => metallicityISMType
+     procedure :: name        => metallicityISMName
+     procedure :: description => metallicityISMDescription
+     procedure :: unitsInSI   => metallicityISMUnitsInSI
+  end type nodePropertyExtractorMetallicityISM
 
-  interface outputAnalysisPropertyExtractorMetallicityISM
+  interface nodePropertyExtractorMetallicityISM
      !% Constructors for the ``metallicityISM'' output analysis class.
      module procedure metallicityISMConstructorParameters
      module procedure metallicityISMConstructorInternal
-  end interface outputAnalysisPropertyExtractorMetallicityISM
+  end interface nodePropertyExtractorMetallicityISM
 
 contains
 
@@ -44,10 +47,10 @@ contains
     use Input_Parameters
     use Abundances_Structure
     implicit none
-    type     (outputAnalysisPropertyExtractorMetallicityISM)                :: self
-    type     (inputParameters                              ), intent(inout) :: parameters
-    integer                                                                 :: indexElement
-    character(len=3                                        )                :: element
+    type     (nodePropertyExtractorMetallicityISM)                :: self
+    type     (inputParameters                    ), intent(inout) :: parameters
+    integer                                                       :: indexElement
+    character(len=3                              )                :: element
     
     !# <inputParameter>
     !#   <name>element</name>
@@ -57,7 +60,7 @@ contains
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
     indexElement=Abundances_Index_From_Name(element)
-    self=outputAnalysisPropertyExtractorMetallicityISM(indexElement)
+    self=nodePropertyExtractorMetallicityISM(indexElement)
     !# <inputParametersValidate source="parameters"/>
     return
   end function metallicityISMConstructorParameters
@@ -65,8 +68,8 @@ contains
   function metallicityISMConstructorInternal(indexElement) result(self)
     !% Internal constructor for the ``metallicityISM'' output analysis property extractor class.
     implicit none
-    type(outputAnalysisPropertyExtractorMetallicityISM)                :: self
-    integer                                            , intent(in   ) :: indexElement
+    type(nodePropertyExtractorMetallicityISM)                :: self
+    integer                                  , intent(in   ) :: indexElement
     !# <constructorAssign variables="indexElement"/>
 
     return
@@ -77,13 +80,13 @@ contains
     use Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid
     use Abundances_Structure
     implicit none
-    class           (outputAnalysisPropertyExtractorMetallicityISM), intent(inout)               :: self
-    type            (treeNode                                     ), intent(inout)               :: node
-    class           (nodeComponentDisk                            ), pointer                     :: disk
-    class           (nodeComponentSpheroid                        ), pointer                     :: spheroid
-    double precision                                               , allocatable  , dimension(:) :: massElementsDisk, massElementsSpheroid
-    type            (abundances                                   )                              :: abundancesDisk  , abundancesSpheroid
-    integer                                                                                      :: countElements
+    class           (nodePropertyExtractorMetallicityISM), intent(inout)               :: self
+    type            (treeNode                           ), intent(inout)               :: node
+    class           (nodeComponentDisk                  ), pointer                     :: disk
+    class           (nodeComponentSpheroid              ), pointer                     :: spheroid
+    double precision                                     , allocatable  , dimension(:) :: massElementsDisk, massElementsSpheroid
+    type            (abundances                         )                              :: abundancesDisk  , abundancesSpheroid
+    integer                                                                            :: countElements
     !GCC$ attributes unused :: self
 
     disk               => node    %disk         ()
@@ -114,9 +117,43 @@ contains
     !% Return the type of the stellar mass property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMetallicityISM), intent(inout) :: self
+    class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     metallicityISMType=outputAnalysisPropertyTypeLinear
     return
   end function metallicityISMType
+
+  function metallicityISMName(self)
+    !% Return the name of the metallicityISM property.
+    use Abundances_Structure, only : Abundances_Names
+    implicit none
+    type (varying_string                     )                :: metallicityISMName
+    class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    metallicityISMName=var_str('metallicityISM')//Abundances_Names(self%indexElement)
+    return
+  end function metallicityISMName
+
+  function metallicityISMDescription(self)
+    !% Return a description of the metallicityISM property.
+    use Abundances_Structure, only : Abundances_Names
+    implicit none
+    type (varying_string                     )                :: metallicityISMDescription
+    class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    metallicityISMDescription=var_str('The metallicity ')//Abundances_Names(self%indexElement)//'/H (by mass) of the interstellar medium.'
+    return
+  end function metallicityISMDescription
+
+  double precision function metallicityISMUnitsInSI(self)
+    !% Return the units of the metallicityISM property in the SI system.
+    implicit none
+    class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    metallicityISMUnitsInSI=0.0d0
+    return
+  end function metallicityISMUnitsInSI

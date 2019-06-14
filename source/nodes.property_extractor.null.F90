@@ -19,21 +19,21 @@
 
 !% Contains a module which implements a null output analysis class.
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorNull">
+  !# <nodePropertyExtractor name="nodePropertyExtractorNull">
   !#  <description>A null output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorNull
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorNull
      !% A null output analysis class.
      private
    contains
      procedure :: extract  => nullExtract
      procedure :: type     => nullType
-  end type outputAnalysisPropertyExtractorNull
+  end type nodePropertyExtractorNull
 
-  interface outputAnalysisPropertyExtractorNull
+  interface nodePropertyExtractorNull
      !% Constructors for the ``null'' output analysis class.
      module procedure nullConstructorParameters
-  end interface outputAnalysisPropertyExtractorNull
+  end interface nodePropertyExtractorNull
 
 contains
 
@@ -41,18 +41,18 @@ contains
     !% Constructor for the ``null'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(outputAnalysisPropertyExtractorNull)                :: nullConstructorParameters
+    type(nodePropertyExtractorNull)                :: nullConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
-    nullConstructorParameters=outputAnalysisPropertyExtractorNull()
+    nullConstructorParameters=nodePropertyExtractorNull()
     return
   end function nullConstructorParameters
 
   double precision function nullExtract(self,node)
     !% Implement a null output analysis.
     implicit none
-    class(outputAnalysisPropertyExtractorNull), intent(inout) :: self
+    class(nodePropertyExtractorNull), intent(inout) :: self
     type (treeNode                           ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
 
@@ -64,7 +64,7 @@ contains
     !% Return the type of the null property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorNull), intent(inout) :: self
+    class(nodePropertyExtractorNull), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     nullType=outputAnalysisPropertyTypeUnknown

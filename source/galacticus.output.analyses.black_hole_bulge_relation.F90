@@ -104,7 +104,7 @@ contains
     use Galacticus_Paths  
     use Output_Times
     use Output_Analysis_Property_Operators
-    use Output_Analysis_Property_Extractions
+    use Node_Property_Extractors
     use Output_Analysis_Distribution_Operators
     use Output_Analysis_Weight_Operators
     use Output_Analysis_Utilities
@@ -132,8 +132,8 @@ contains
     type            (outputAnalysisPropertyOperatorLog10                ), pointer                       :: outputAnalysisPropertyOperatorLog10_                    , outputAnalysisWeightPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorAntiLog10            ), pointer                       :: outputAnalysisPropertyUnoperator_
     type            (outputAnalysisPropertyOperatorMinMax               ), pointer                       :: outputAnalysisWeightPropertyOperatorMinMax_
-    type            (outputAnalysisPropertyExtractorMassStellarSpheroid ), pointer                       :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyExtractorMassBlackHole       ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassStellarSpheroid ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassBlackHole       ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc    ), pointer                       :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    ), pointer                       :: outputAnalysisPropertyOperatorSystmtcPolynomial_
     type            (cosmologyParametersSimple                          ), pointer                       :: cosmologyParametersData
@@ -235,11 +235,11 @@ contains
     allocate(outputAnalysisPropertyUnoperator_                     )
     !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10            (                                                                          )"/>
     ! Create a stellar mass property extractor.
-    allocate(outputAnalysisPropertyExtractor_                      )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorMassStellarSpheroid (                                                                          )"/>
+    allocate(nodePropertyExtractor_                      )
+    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellarSpheroid (                                                                          )"/>
     ! Create an ISM metallicity weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="outputAnalysisPropertyExtractorMassBlackHole       (                                                                          )"/>
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassBlackHole       (                                                                          )"/>
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                                   &
          &                                                         var_str('blackHoleBulgeRelation'                                ), &
@@ -255,7 +255,7 @@ contains
          &                                                         masses                                                           , &
          &                                                         bufferCount                                                      , &
          &                                                         outputWeight                                                     , &
-         &                                                         outputAnalysisPropertyExtractor_                                 , &
+         &                                                         nodePropertyExtractor_                                 , &
          &                                                         outputAnalysisWeightPropertyExtractor_                           , &
          &                                                         outputAnalysisPropertyOperator_                                  , &
          &                                                         outputAnalysisWeightPropertyOperator_                            , &
@@ -288,7 +288,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"           />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"          />
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                />
     !# <objectDestructor name="cosmologyParametersData"                         />
     !# <objectDestructor name="cosmologyFunctionsData"                          />
     nullify(propertyOperators_      )
