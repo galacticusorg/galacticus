@@ -44,6 +44,7 @@ contains
     use Cosmology_Functions
     use Input_Parameters
     use Output_Analysis_Molecular_Ratios
+    use Functions_Global                , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     implicit none
     type            (outputAnalysisHIVsHaloMassRelationPadmanabhan2017)                              :: self
     type            (inputParameters                                  ), intent(inout)               :: parameters
@@ -52,6 +53,7 @@ contains
     class           (outputTimesClass                                 ), pointer                     :: outputTimes_
     class           (cosmologyParametersClass                         ), pointer                     :: cosmologyParameters_
     class           (outputAnalysisMolecularRatioClass                ), pointer                     :: outputAnalysisMolecularRatio_
+    class           (*                                                ), pointer                     :: percolationObjects_
     integer         (c_size_t                                         )                              :: likelihoodBin
 
     ! Check and read parameters.
@@ -81,8 +83,8 @@ contains
     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
     !# <objectBuilder class="outputTimes"                  name="outputTimes_"                  source="parameters"/>
     !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters"/>
-    ! Build the object.
-    self=outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_)
+    percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
+    self                =  outputAnalysisHIVsHaloMassRelationPadmanabhan2017(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"         />
     !# <objectDestructor name="cosmologyFunctions_"          />
@@ -91,7 +93,7 @@ contains
     return
   end function hiVsHaloMassRelationPadmanabhan2017ConstructorParameters
 
-  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_) result (self)
+  function hiVsHaloMassRelationPadmanabhan2017ConstructorInternal(likelihoodBin,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputAnalysisMolecularRatio_,outputTimes_,percolationObjects_) result (self)
     !% Constructor for the ``hiVsHaloMassRelationPadmanabhan2017'' output analysis class for internal use.
     use ISO_Varying_String
     use Numerical_Constants_Astronomical
@@ -120,6 +122,7 @@ contains
     class           (cosmologyFunctionsClass                           ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                  ), intent(inout), target         :: outputTimes_
     class           (outputAnalysisMolecularRatioClass                 ), intent(in   ), target         :: outputAnalysisMolecularRatio_
+    class           (*                                                 ), intent(in   ), target         :: percolationObjects_
     integer         (c_size_t                                          ), parameter                     :: massHaloCount                                         =26
     double precision                                                    , parameter                     :: massHaloMinimum                                       = 1.0d10, massHaloMaximum                                     =1.0d15
     integer                                                             , parameter                     :: covarianceBinomialBinsPerDecade                       =10
@@ -260,7 +263,7 @@ contains
     ! friends-of-friends algorithm with linking length parameter b=0.2 since that is what was used by Sheth, Mo & Tormen (2001) in
     ! their original calibration of their halo mass function (as used by Padmanabhan & Refregier 2017).
     allocate(virialDensityContrast_                                )
-    !# <referenceConstruct object="virialDensityContrast_"                                 constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_                                 )"/>
+    !# <referenceConstruct object="virialDensityContrast_"                                 constructor="virialDensityContrastPercolation                      (0.2d0                        ,cosmologyFunctions_       ,percolationObjects_      )"/>
     allocate(outputAnalysisPropertyExtractor_                      )
     !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                       constructor="outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                                            )"/>
     ! Create a halo scale object from which to compute virial velocities. Padmanabhan & Refrigier use the Bryan & Norman (1998)
