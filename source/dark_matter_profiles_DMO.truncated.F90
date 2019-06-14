@@ -169,6 +169,7 @@ contains
          &                                                                      multiplierGradient
     double precision                                                         :: radiusVirial      , x_
 
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
     if      (radius <= radiusVirial*self%radiusFractionalTruncateMinimum) then
        if (present(x                 )) x                 =+0.0d0
@@ -254,8 +255,15 @@ contains
     class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
     type            (treeNode                     ), intent(inout), target :: node
     double precision                               , intent(in   )         :: mass
-    
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    double precision                                                       :: radiusVirial, radiusTruncateMinimum
+ 
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+    radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
+    if (self%enclosedMassTruncateMinimumPrevious < 0.0d0) then
+       self%enclosedMassTruncateMinimumPrevious=self%enclosedMass(node,radiusTruncateMinimum)
+    end if
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. mass <= self%enclosedMassTruncateMinimumPrevious) then   
        truncatedRadiusEnclosingMass=self%darkMatterProfileDMO_%radiusEnclosingMass         (node,mass)
     else
        truncatedRadiusEnclosingMass=self                      %radiusEnclosingMassNumerical(node,mass)
@@ -287,11 +295,16 @@ contains
     class           (darkMatterProfileDMOTruncated), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: radius
+    double precision                                               :: radiusVirial, radiusTruncateMinimum
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
-       truncatedEnclosedMass=self%darkMatterProfileDMO_%enclosedMass         (node,radius)
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+    radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius <= radiusTruncateMinimum) then 
+       truncatedEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,radius                      )
     else
-       truncatedEnclosedMass=self                      %enclosedMassNumerical(node,radius)
+       truncatedEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,radiusTruncateMinimum       ) &
+            &                +self                      %enclosedMassDifferenceNumerical(node,radiusTruncateMinimum,radius)
     end if
     return
   end function truncatedEnclosedMass
@@ -321,7 +334,7 @@ contains
     type            (treeNode                     ), intent(inout) :: node
     double precision                               , intent(in   ) :: radius
 
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        truncatedCircularVelocity=self%darkMatterProfileDMO_%circularVelocity         (node,radius)
     else
        truncatedCircularVelocity=self                      %circularVelocityNumerical(node,radius)
