@@ -173,14 +173,7 @@ sub Process_ObjectBuilder {
 	    $builderCode .= "            call ".$node->{'directive'}->{'name'}."%referenceCountIncrement()\n";
 	    $builderCode .= $debugMessage;
 	    $builderCode .= "         call parameterNode%objectSet(".$node->{'directive'}->{'name'}.")\n";
-	    $builderCode .= "         call ".$node->{'directive'}->{'name'}."%autoHook()\n"
-		if ( 
-		    grep 
-		    {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} 
-		    map
-		    {&Galacticus::Build::Directives::Extract_Directives($_,$node->{'directive'}->{'class'})}
-		    &List::ExtraUtils::as_array($directiveLocations->{$node->{'directive'}->{'class'}}->{'file'})
-		);
+	    $builderCode .= "         call ".$node->{'directive'}->{'name'}."%autoHook()\n";
 	    $builderCode .= "      end if\n";
 	    $builderCode .= $copyLoopClose;
 	    if ( $defaultName ) {
@@ -544,6 +537,7 @@ sub Process_ObjectBuilder {
 	    $constructor =~ s/[\s\n]+$//;
 	    my $constructCode  = (exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."=".$constructor."\n";
 	    $constructCode    .= "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."\%referenceCountIncrement()\n";
+	    $constructCode    .= "call ".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}."\%autoHook()\n";
  	    # If including debugging information push the target location to the debug stack.
 	    if ( $debugging ) {
 		my $objectLoc = "loc(".(exists($node->{'directive'}->{'owner'}) ? $node->{'directive'}->{'owner'}."%" : "").$node->{'directive'}->{'object'}.")";	
@@ -639,6 +633,7 @@ sub Process_ObjectBuilder {
 	if ( $node->{'type'} eq "deepCopy" && ! $node->{'directive'}->{'processed'} ) {
 	    # Generate source code for the deep copy.
 	    my $deepCopyCode  = "call ".$node->{'directive'}->{'source'}."%deepCopy(".$node->{'directive'}->{'destination'}.")\n";
+	    $deepCopyCode    .= "call ".$node->{'directive'}->{'destination'}."%autoHook()\n";
  	    # If including debugging information push the target location to the debug stack.
 	    if ( $debugging ) {
 		my $ownerName;
