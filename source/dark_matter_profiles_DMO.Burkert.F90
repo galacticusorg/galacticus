@@ -126,6 +126,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final                                             burkertDestructor
+     procedure :: autoHook                          => burkertAutoHook
      procedure :: calculationReset                  => burkertCalculationReset
      procedure :: density                           => burkertDensity
      procedure :: densityLogSlope                   => burkertDensityLogSlope
@@ -229,8 +230,19 @@ contains
     return
   end function burkertConstructorInternal
   
+  subroutine burkertAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(darkMatterProfileDMOBurkert), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,burkertCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine burkertAutoHook
+  
   subroutine burkertDestructor(self)
     !% Destructor for the {\normalfont \ttfamily burkert} dark matter halo profile class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOBurkert), intent(inout) :: self
 
@@ -253,6 +265,7 @@ contains
        call self%burkertConcentrationTable            %destroy()
     end if
     !# <objectDestructor name="self%darkMatterHaloScale_" />
+    call calculationResetEvent%detach(self,burkertCalculationReset)
     return
   end subroutine burkertDestructor
   
@@ -260,12 +273,11 @@ contains
     !% Reset the dark matter profile calculation.
     implicit none
     class(darkMatterProfileDMOBurkert), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
+    type (treeNode                   ), intent(inout) :: node
 
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
     self%lastUniqueID                           =node%uniqueID()
-    call self%darkMatterHaloScale_%calculationReset(node)
     return
   end subroutine burkertCalculationReset
 

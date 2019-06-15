@@ -21,7 +21,7 @@
 
   !% An implementation of the intergalactic medium state class for an internal model of instantaneous and full reionization.
 
-  !# <intergalacticMediumState name="intergalacticMediumStateInternal" autoHook="yes">
+  !# <intergalacticMediumState name="intergalacticMediumStateInternal">
   !#  <description>The state of the intergalactic medium is solved for internally.</description>
   !# </intergalacticMediumState>
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateInternal

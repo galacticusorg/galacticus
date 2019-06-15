@@ -22,7 +22,7 @@
   
   use Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
-  !# <galacticStructureSolver name="galacticStructureSolverLinear" autoHook="yes">
+  !# <galacticStructureSolver name="galacticStructureSolverLinear">
   !#  <description>A ``linear'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverLinear

@@ -183,7 +183,6 @@ contains
     call workBasic            %timeLastIsolatedSet(time   )
     call workDarkMatterProfile%scaleIsLimitedSet  (.false.)
     call Galacticus_Calculations_Reset(workNode)
-    call darkMatterProfileDMO_%calculationReset(workNode)
     ! Make an initial guess at the halo radius.
     radiusHalo=(mass/4.0d0/Pi/boundingDensity)**(1.0d0/3.0d0)
     ! Find the corresponding halo radius.
@@ -237,7 +236,6 @@ contains
        call workDarkMatterProfile%shapeSet(darkMatterProfileShape_%shape(workNode))
     end if
     call Galacticus_Calculations_Reset(workNode)
-    call darkMatterProfileDMO_%calculationReset(workNode)
     ! Compute density at the halo radius.
     densityHaloRadius=darkMatterProfileDMO_%density(workNode,haloRadiusTrial)
     ! Find difference from target density.

@@ -147,7 +147,6 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final                                                      einastoDestructor
-     procedure :: calculationReset                           => einastoCalculationReset
      procedure :: density                                    => einastoDensity
      procedure :: densityLogSlope                            => einastoDensityLogSlope
      procedure :: radialMoment                               => einastoRadialMoment
@@ -336,16 +335,6 @@ contains
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
   end subroutine einastoDestructor
-
-  subroutine einastoCalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
-    implicit none
-    class(darkMatterProfileDMOEinasto), intent(inout) :: self
-    type (treeNode                ), intent(inout) :: node
-
-    call self%darkMatterHaloScale_%calculationReset(node)
-    return
-  end subroutine einastoCalculationReset
 
   double precision function einastoDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given

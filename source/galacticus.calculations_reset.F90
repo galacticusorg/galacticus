@@ -31,22 +31,25 @@ contains
   !#  <unitName>Galacticus_Calculations_Reset</unitName>
   !#  <type>void</type>
   !#  <module>Galacticus_Nodes, only : treeNode</module>
-  !#  <arguments>type(treeNode) , intent(inout) :: thisNode</arguments>
+  !#  <arguments>type(treeNode) , intent(inout) :: node</arguments>
   !# </functionGlobal>
-  subroutine Galacticus_Calculations_Reset(thisNode)
+  subroutine Galacticus_Calculations_Reset(node)
     !% Calls any routines required to reset all calculation for a new or updated node.
     use Galacticus_Nodes, only : treeNode
     !# <include directive="calculationResetTask" type="moduleUse">
     include 'galacticus.calculation_reset.tasks.modules.inc'
     !# </include>
     implicit none
-    type(treeNode), intent(inout) :: thisNode
+    type(treeNode), intent(inout) :: node
 
     !# <include directive="calculationResetTask" type="functionCall" functionType="void">
-    !#  <functionArgs>thisNode</functionArgs>
+    !#  <functionArgs>node</functionArgs>
     include 'galacticus.calculation_reset.tasks.inc'
     !# </include>
-
+    
+    !# <eventHook name="calculationReset">
+    !#  <callWith>node</callWith>
+    !# </eventHook>    
     return
   end subroutine Galacticus_Calculations_Reset
 

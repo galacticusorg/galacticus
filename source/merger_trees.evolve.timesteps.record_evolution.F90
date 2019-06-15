@@ -24,7 +24,7 @@
   use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   use Output_Times       , only : outputTimes       , outputTimesClass
 
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution" autoHook="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepRecordEvolution">
   !#  <description>A merger tree evolution timestepping class which limits the step to the next epoch at which to record evolution of the main branch galaxy.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepRecordEvolution

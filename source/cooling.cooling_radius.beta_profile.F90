@@ -61,6 +61,7 @@
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      final     ::                     betaProfileDestructor
+     procedure :: autoHook         => betaProfileAutoHook
      procedure :: radius           => betaProfileRadius
      procedure :: radiusGrowthRate => betaProfileRadiusGrowthRate
      procedure :: calculationReset => betaProfileCalculationReset
@@ -177,8 +178,19 @@ contains
     return
   end function betaProfileConstructorInternal
   
+  subroutine betaProfileAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(coolingRadiusBetaProfile), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,betaProfileCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine betaProfileAutoHook
+  
   subroutine betaProfileDestructor(self)
     !% Destructor for the $\beta$-profile cooling radius class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingRadiusBetaProfile), intent(inout) :: self
 
@@ -189,7 +201,8 @@ contains
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
     !# <objectDestructor name="self%cosmologyFunctions_"       />
     !# <objectDestructor name="self%radiation"                 />
-   return
+    call calculationResetEvent%detach(self,betaProfileCalculationReset)
+    return
   end subroutine betaProfileDestructor
 
   subroutine betaProfileCalculationReset(self,node)
