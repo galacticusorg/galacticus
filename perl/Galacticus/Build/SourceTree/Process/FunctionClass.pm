@@ -2450,8 +2450,6 @@ CODE
 
 		$postContains->[0]->{'content'} .= "        !# <referenceConstruct ownerLoc=\"module:".$node->{'parent'}->{'name'}."\" object=\"".$directive->{'name'}."Default\" constructor=\"".$class->{'name'}."(subParameters)\" />\n";
 		$postContains->[0]->{'content'} .= "        end select\n";
-		$postContains->[0]->{'content'} .= "        call ".$directive->{'name'}."Default%autoHook()\n"
-		    if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );
 	    }
 	    $postContains->[0]->{'content'} .= "      case default\n";
 	    $postContains->[0]->{'content'} .= "         message='Unrecognized option for [".$directive->{'name'}."Method](='//".$directive->{'name'}."Method//'). Available options are:'\n";
@@ -2468,7 +2466,7 @@ CODE
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end subroutine ".$directive->{'name'}."Initialize\n\n";
 
-	    # Create initialization function for recursive constuction of the default object.
+	    # Create initialization function for recursive construction of the default object.
 	    if ( $allowRecursion ) {
 		$postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."RecursiveDefault()\n";
 		$postContains->[0]->{'content'} .= "      !% Construct a recursive copy of the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
@@ -2498,8 +2496,7 @@ CODE
 			$postContains->[0]->{'content'} .= "           call debugStackPop()\n"
 			    if ( $debugging );
 			$postContains->[0]->{'content'} .= "        end select\n";
-			$postContains->[0]->{'content'} .= "        call ".$directive->{'name'}."Default%autoHook()\n"
-			    if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );
+			$postContains->[0]->{'content'} .= "        call ".$directive->{'name'}."Default%autoHook()\n";
 		    } else {
 			push(@nonRecursiveTypes,$class->{'name'});
 		    }
