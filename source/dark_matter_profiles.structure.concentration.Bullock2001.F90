@@ -37,12 +37,12 @@
      class           (criticalOverdensityClass                          ), pointer :: criticalOverdensity_             => null()
      class           (cosmologicalMassVarianceClass                     ), pointer :: cosmologicalMassVariance_        => null()
      type            (virialDensityContrastSphericalCollapseMatterLambda), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileDMONFW                              ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type            (darkMatterProfileDMONFW                           ), pointer :: darkMatterProfileDMODefinition_  => null()
      double precision                                                              :: F                                         , K
    contains
-     final     ::                                bullock2001Destructor
-     procedure :: concentration               => bullock2001Concentration
-     procedure :: densityContrastDefinition   => bullock2001DensityContrastDefinition
+     final     ::                                   bullock2001Destructor
+     procedure :: concentration                  => bullock2001Concentration
+     procedure :: densityContrastDefinition      => bullock2001DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => bullock2001DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationBullock2001
   
