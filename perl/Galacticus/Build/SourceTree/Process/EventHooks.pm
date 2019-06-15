@@ -283,7 +283,7 @@ do while (associated(hook_))
    type is (hook{$interfaceType})
      functionActive_=.true.
      if (hook_%openMPBound) then
-        if (hook_%openMPLevel == OMP_Get_Level()) then
+        if (hook_%openMPLevel <= OMP_Get_Level()) then
            do ompLevel_=0,hook_%openMPLevel
               if (hook_%openMPThread(ompLevel_) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
                  functionActive_=.false.
