@@ -36,6 +36,7 @@
      integer         (kind_int8               )          :: lastUniqueID
    contains
      final     ::                     zentner2005Destructor
+     procedure :: autoHook         => zentner2005AutoHook
      procedure :: calculationReset => zentner2005CalculationReset
      procedure :: massLossRate     => zentner2005MassLossRate
   end type satelliteTidalStrippingZentner2005
@@ -90,12 +91,24 @@ contains
     return
   end function zentner2005ConstructorInternal
   
+  subroutine zentner2005AutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(satelliteTidalStrippingZentner2005), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,zentner2005CalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine zentner2005AutoHook
+  
   subroutine zentner2005Destructor(self)
     !% Destructor for the {\normalfont \ttfamily zentner2005} satellite tidal stripping class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(satelliteTidalStrippingZentner2005), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    call calculationResetEvent%detach(self,zentner2005CalculationReset)
     return
   end subroutine zentner2005Destructor
 

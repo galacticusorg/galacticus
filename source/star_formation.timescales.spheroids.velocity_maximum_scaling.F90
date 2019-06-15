@@ -41,6 +41,7 @@
      type            (fastExponentiator               ) :: velocityExponentiator        , expansionFactorExponentiator
    contains
      final     ::                     velocityMaxScalingDestructor
+     procedure :: autoHook         => velocityMaxScalingAutoHook
      procedure :: timescale        => velocityMaxScalingTimescale
      procedure :: calculationReset => velocityMaxScalingCalculationReset
   end type starFormationTimescaleSpheroidsVelocityMaxScaling
@@ -129,13 +130,25 @@ contains
     return
   end function velocityMaxScalingConstructorInternal
 
+  subroutine velocityMaxScalingAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(starFormationTimescaleSpheroidsVelocityMaxScaling), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine velocityMaxScalingAutoHook
+  
   subroutine velocityMaxScalingDestructor(self)
     !% Destructor for the {\normalfont \ttfamily velocityMaxScaling} timescale for star formation in spheroids class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationTimescaleSpheroidsVelocityMaxScaling), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%darkMatterProfileDMO_" />
+    call calculationResetEvent%detach(self,velocityMaxScalingCalculationReset)
     return
   end subroutine velocityMaxScalingDestructor
 

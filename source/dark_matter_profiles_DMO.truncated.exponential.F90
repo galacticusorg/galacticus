@@ -49,6 +49,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final                                             truncatedExponentialDestructor
+     procedure :: autoHook                          => truncatedExponentialAutoHook
      procedure :: calculationReset                  => truncatedExponentialCalculationReset
      procedure :: density                           => truncatedExponentialDensity
      procedure :: densityLogSlope                   => truncatedExponentialDensityLogSlope
@@ -157,13 +158,25 @@ contains
     return
   end function truncatedExponentialConstructorInternal
 
+  subroutine truncatedExponentialAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,truncatedExponentialCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine truncatedExponentialAutoHook
+  
   subroutine truncatedExponentialDestructor(self)
     !% Destructor for the {\normalfont \ttfamily exponentially truncated} dark matter halo profile class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     !# <objectDestructor name="self%darkMatterHaloScale_" />
+    call calculationResetEvent%detach(self,truncatedExponentialCalculationReset)
     return
   end subroutine truncatedExponentialDestructor
 
@@ -176,7 +189,6 @@ contains
     self%lastUniqueID               = node%uniqueID()
     self%kappaPrevious              =-huge(0.0d0)
     self%enclosingMassRadiusPrevious=-1.0d0
-    call self%darkMatterHaloScale_%calculationReset(node)
     return
   end subroutine truncatedExponentialCalculationReset 
 

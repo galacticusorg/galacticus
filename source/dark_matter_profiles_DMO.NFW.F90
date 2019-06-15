@@ -139,6 +139,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final                                             nfwDestructor
+     procedure :: autoHook                          => nfwAutoHook
      procedure :: calculationReset                  => nfwCalculationReset
      procedure :: density                           => nfwDensity
      procedure :: densityLogSlope                   => nfwDensityLogSlope
@@ -189,7 +190,7 @@ contains
     !% Constructor for the {\normalfont \ttfamily nfw} dark matter halo profile class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (darkMatterProfileDMONFW    )                :: self
+    type (darkMatterProfileDMONFW )                :: self
     type (inputParameters         ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
 
@@ -205,7 +206,7 @@ contains
     use Galacticus_Error
     use Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
-    type (darkMatterProfileDMONFW    )                        :: self
+    type (darkMatterProfileDMONFW )                        :: self
     class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
     
@@ -240,8 +241,19 @@ contains
     return
   end function nfwConstructorInternal
   
+  subroutine nfwAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(darkMatterProfileDMONFW), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,nfwCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine nfwAutoHook
+  
   subroutine nfwDestructor(self)
     !% Destructor for the {\normalfont \ttfamily nfw} dark matter halo profile class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMONFW), intent(inout) :: self
 
@@ -264,6 +276,7 @@ contains
        call self%nfwConcentrationTable            %destroy()
     end if
     !# <objectDestructor name="self%darkMatterHaloScale_" />
+    call calculationResetEvent%detach(self,nfwCalculationReset)
     return
   end subroutine nfwDestructor
   
@@ -271,7 +284,7 @@ contains
     !% Reset the dark matter profile calculation.
     implicit none
     class(darkMatterProfileDMONFW), intent(inout) :: self
-    type (treeNode            ), intent(inout) :: node
+    type (treeNode               ), intent(inout) :: node
 
     self%specificAngularMomentumScalingsComputed=.false.
     self%maximumVelocityComputed                =.false.
@@ -281,7 +294,6 @@ contains
     self%massScalePrevious                      =-1.0d0
     self%circularVelocityRadiusPrevious         =-1.0d0
     self%lastUniqueID                           =node%uniqueID()
-    call self%darkMatterHaloScale_%calculationReset(node)
     return
   end subroutine nfwCalculationReset
 

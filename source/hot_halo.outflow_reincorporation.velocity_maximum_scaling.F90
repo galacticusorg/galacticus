@@ -44,6 +44,7 @@
      type            (fastExponentiator               ) :: velocityExponentiator  , expansionFactorExponentiator
    contains
      final     ::                     velocityMaximumScalingDestructor
+     procedure :: autoHook         => velocityMaximumScalingAutoHook
      procedure :: calculationReset => velocityMaximumScalingCalculationReset
      procedure :: rate             => velocityMaximumScalingRate
   end type hotHaloOutflowReincorporationVelocityMaximumScaling
@@ -150,13 +151,25 @@ contains
     return
   end function velocityMaximumScalingConstructorInternal
 
+  subroutine velocityMaximumScalingAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,velocityMaximumScalingCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine velocityMaximumScalingAutoHook
+  
   subroutine velocityMaximumScalingDestructor(self)
     !% Destructor for the \glc\ format merger tree importer class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_"/>
     !# <objectDestructor name="self%darkMatterProfileDMO_" />
+    call calculationResetEvent%detach(self,velocityMaximumScalingCalculationReset)
     return
   end subroutine velocityMaximumScalingDestructor
 

@@ -46,6 +46,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final                                             truncatedDestructor
+     procedure :: autoHook                          => truncatedAutoHook
      procedure :: calculationReset                  => truncatedCalculationReset
      procedure :: density                           => truncatedDensity
      procedure :: densityLogSlope                   => truncatedDensityLogSlope
@@ -135,13 +136,25 @@ contains
     return
   end function truncatedConstructorInternal
 
+  subroutine truncatedAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(darkMatterProfileDMOTruncated), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,truncatedCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine truncatedAutoHook
+  
   subroutine truncatedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily truncated} dark matter halo profile class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOTruncated), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
     !# <objectDestructor name="self%darkMatterHaloScale_" />
+    call calculationResetEvent%detach(self,truncatedCalculationReset)
     return
   end subroutine truncatedDestructor
 
@@ -155,7 +168,6 @@ contains
     self%enclosingMassRadiusPrevious        =-1.0d0
     self%enclosedMassTruncateMinimumPrevious=-1.0d0
     self%enclosedMassTruncateMaximumPrevious=-1.0d0
-    call self%darkMatterHaloScale_%calculationReset(node)
     return
   end subroutine truncatedCalculationReset
 

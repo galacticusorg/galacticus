@@ -28,7 +28,7 @@
   use Stellar_Population_Selectors
   use Output_Times
 
-  !# <radiationField name="radiationFieldIntergalacticBackgroundInternal" autoHook="yes">
+  !# <radiationField name="radiationFieldIntergalacticBackgroundInternal">
   !#  <description>A radiation field class for intergalactic background light with properties computed internally.</description>
   !# </radiationField>
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundInternal

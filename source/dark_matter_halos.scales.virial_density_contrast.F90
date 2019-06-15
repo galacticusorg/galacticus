@@ -49,6 +49,8 @@
      type            (table1DLogarithmicLinear  )            :: meanDensityTable
    contains
      final     ::                                        virialDensityContrastDefinitionDestructor
+     procedure :: autoHook                            => virialDensityContrastDefinitionAutoHook
+     procedure :: calculationReset                    => virialDensityContrastDefinitionCalculationReset
      procedure :: dynamicalTimescale                  => virialDensityContrastDefinitionDynamicalTimescale
      procedure :: virialVelocity                      => virialDensityContrastDefinitionVirialVelocity
      procedure :: virialVelocityGrowthRate            => virialDensityContrastDefinitionVirialVelocityGrowthRate
@@ -58,7 +60,6 @@
      procedure :: virialRadiusGrowthRate              => virialDensityContrastDefinitionVirialRadiusGrowthRate
      procedure :: meanDensity                         => virialDensityContrastDefinitionMeanDensity
      procedure :: meanDensityGrowthRate               => virialDensityContrastDefinitionMeanDensityGrowthRate
-     procedure :: calculationReset                    => virialDensityContrastDefinitionCalculationReset
   end type darkMatterHaloScaleVirialDensityContrastDefinition
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
@@ -113,8 +114,19 @@ contains
     return
   end function virialDensityContrastDefinitionInternal
 
+  subroutine virialDensityContrastDefinitionAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,virialDensityContrastDefinitionCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine virialDensityContrastDefinitionAutoHook
+  
   subroutine virialDensityContrastDefinitionDestructor(self)
     !% Destructir for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
 
@@ -122,6 +134,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"   />
     !# <objectDestructor name="self%virialDensityContrast_"/>
     if (self%meanDensityTimeMinimum >= 0.0d0) call self%meanDensityTable%destroy()
+    call calculationResetEvent%detach(self,virialDensityContrastDefinitionCalculationReset)
     return
   end subroutine virialDensityContrastDefinitionDestructor
 
