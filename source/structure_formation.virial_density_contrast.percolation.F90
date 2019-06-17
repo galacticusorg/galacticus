@@ -283,7 +283,7 @@ contains
                 tableTime=self%densityContrastTable%y(iTime)
                 iCount=iCount+1
                 call Galacticus_Display_Counter(int(100.0d0*dble(iCount)/dble(self%densityContrastTableMassCount*self%densityContrastTableTimeCount)),isNew=(iCount==1),verbosity=verbosityWorking)
-                call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,percolationDensityContrastCurrent,self%percolationObjects_),iMass,iTime)
+                call self%densityContrastTable%populate(Virial_Density_Contrast_Percolation_Solver_(tableMass,tableTime,self%linkingLength,percolationDensityContrastCurrent,self%percolationObjects_,self),iMass,iTime)
              end do
           end do
           call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
