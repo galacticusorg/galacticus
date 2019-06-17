@@ -40,7 +40,8 @@
      !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
      !@     <description>Reset memoized calculations.</description>
      !@   </objectMethod>
-     !@ </objectMethods>                                                                                                                                                                                         final     ::                     extendedSchmidtDestructor
+     !@ </objectMethods>
+     final     ::                     extendedSchmidtDestructor
      procedure :: autoHook         => extendedSchmidtAutoHook
      procedure :: calculationReset => extendedSchmidtCalculationReset
      procedure :: rate             => extendedSchmidtRate
