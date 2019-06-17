@@ -42,6 +42,12 @@
      !@ <objectMethods>
      !@   <object>darkMatterProfileDMOTruncatedExponential</object>
      !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>truncationFunction</method>
      !@     <type>void</type>
      !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\arginout, \doublezero\ radius\argin, \doublezero\ [x]\argout, \doublezero\ [multiplier]\argout, \doublezero\ [multiplierGradient]\argout</arguments>

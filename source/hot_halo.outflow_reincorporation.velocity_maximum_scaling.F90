@@ -43,6 +43,15 @@
      ! Fast exponentiation tables for rapid computation of the outflow rate.
      type            (fastExponentiator               ) :: velocityExponentiator  , expansionFactorExponentiator
    contains
+     !@ <objectMethods>
+     !@   <object>hotHaloOutflowReincorporationVelocityMaximumScaling</object>
+     !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                     velocityMaximumScalingDestructor
      procedure :: autoHook         => velocityMaximumScalingAutoHook
      procedure :: calculationReset => velocityMaximumScalingCalculationReset

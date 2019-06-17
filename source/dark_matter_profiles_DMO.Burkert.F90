@@ -65,6 +65,12 @@
      !@ <objectMethods>
      !@   <object>darkMatterProfileDMOBurkert</object>
      !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>densityScaleFree</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>

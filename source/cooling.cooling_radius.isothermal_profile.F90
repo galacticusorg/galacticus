@@ -56,6 +56,15 @@
      logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
+     !@ <objectMethods>
+     !@   <object>coolingRadiusIsothermal</object>
+     !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                     isothermalDestructor
      procedure :: autoHook         => isothermalAutoHook
      procedure :: radius           => isothermalRadius

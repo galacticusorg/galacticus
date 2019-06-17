@@ -37,6 +37,12 @@
      !@ <objectMethods>
      !@   <object>accretionHaloColdMode</object>
      !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>chemicalMasses</method>
      !@     <type>\textcolor{red}{\textless type(chemicalAbundances)\textgreater}</type>
      !@     <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} *node\arginout, \doublezero massAccreted\argin, \intzero accretionMode\argin</arguments>

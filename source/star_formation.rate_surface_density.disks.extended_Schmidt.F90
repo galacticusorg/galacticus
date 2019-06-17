@@ -32,7 +32,15 @@
      double precision            :: normalization  , exponentGas         , &
           &                         exponentStars  , hydrogenMassFraction
    contains
-     final     ::                     extendedSchmidtDestructor
+     !@ <objectMethods>
+     !@   <object>starFormationRateSurfaceDensityDisksExtendedSchmidt</object>
+     !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>                                                                                                                                                                                         final     ::                     extendedSchmidtDestructor
      procedure :: autoHook         => extendedSchmidtAutoHook
      procedure :: calculationReset => extendedSchmidtCalculationReset
      procedure :: rate             => extendedSchmidtRate
