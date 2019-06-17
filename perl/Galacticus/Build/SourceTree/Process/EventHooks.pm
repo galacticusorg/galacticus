@@ -284,8 +284,8 @@ do while (associated(hook_))
      functionActive_=.true.
      if (hook_%openMPBound) then
         if (hook_%openMPLevel <= OMP_Get_Level()) then
-           do ompLevel_=0,hook_%openMPLevel
-              if (hook_%openMPThread(ompLevel_) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
+           do ompLevel_=0,OMP_Get_Level()
+              if (hook_%openMPThread(min(ompLevel_,hook_%openMPLevel)) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
                  functionActive_=.false.
                  exit
               end if
