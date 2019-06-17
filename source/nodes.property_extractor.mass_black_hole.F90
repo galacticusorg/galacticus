@@ -53,16 +53,17 @@ contains
     return
   end function massBlackHoleConstructorParameters
 
-  double precision function massBlackHoleExtract(self,node)
+  double precision function massBlackHoleExtract(self,node,instance)
     !% Implement a massBlackHole output analysis.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     use Galacticus_Nodes                  , only : nodeComponentBlackHole
     implicit none
-    class(nodePropertyExtractorMassBlackHole), intent(inout) :: self
-    type (treeNode                          ), intent(inout) :: node
-    class(nodeComponentBlackHole            ), pointer       :: blackHole
-    !GCC$ attributes unused :: self
+    class(nodePropertyExtractorMassBlackHole), intent(inout)           :: self
+    type (treeNode                          ), intent(inout)           :: node
+    type (multiCounter                      ), intent(inout), optional :: instance
+    class(nodeComponentBlackHole            ), pointer                 :: blackHole
+    !GCC$ attributes unused :: self, instance
 
     blackHole            => node     %blackHole()
     massBlackHoleExtract =  blackHole%mass     ()

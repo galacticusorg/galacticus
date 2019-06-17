@@ -75,19 +75,20 @@ contains
     return
   end function metallicityISMConstructorInternal
 
-  double precision function metallicityISMExtract(self,node)
+  double precision function metallicityISMExtract(self,node,instance)
     !% Extracts the metallicity (defined as the mass ratio of a specified element to hydrogen) in the ISM.
     use Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid
     use Abundances_Structure
     implicit none
     class           (nodePropertyExtractorMetallicityISM), intent(inout)               :: self
     type            (treeNode                           ), intent(inout)               :: node
+    type            (multiCounter                       ), intent(inout), optional     :: instance
     class           (nodeComponentDisk                  ), pointer                     :: disk
     class           (nodeComponentSpheroid              ), pointer                     :: spheroid
     double precision                                     , allocatable  , dimension(:) :: massElementsDisk, massElementsSpheroid
     type            (abundances                         )                              :: abundancesDisk  , abundancesSpheroid
     integer                                                                            :: countElements
-    !GCC$ attributes unused :: self
+    !GCC$ attributes unused :: self, instance
 
     disk               => node    %disk         ()
     spheroid           => node    %spheroid     ()

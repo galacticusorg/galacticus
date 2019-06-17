@@ -70,12 +70,13 @@
   end type nodePropertyExtractorTuple
 
   abstract interface
-     function tupleExtract(self,node)
+     function tupleExtract(self,node,instance)
        !% Interface for tuple property extraction.
-       import nodePropertyExtractorTuple, treeNode
-       double precision                                      , dimension(:) , allocatable :: tupleExtract
+       import nodePropertyExtractorTuple, treeNode, multiCounter
+       double precision                            , dimension(:) , allocatable :: tupleExtract
        class           (nodePropertyExtractorTuple), intent(inout)              :: self
-       type            (treeNode                            ), intent(inout)              :: node
+       type            (treeNode                  ), intent(inout)              :: node
+       type            (multiCounter              ), intent(inout), optional    :: instance
      end function tupleExtract
   end interface
 
@@ -83,7 +84,7 @@
      function tupleNames(self)
        !% Interface for tuple property names.
        import varying_string, nodePropertyExtractorTuple
-       type (varying_string                      ), dimension(:) , allocatable :: tupleNames
+       type (varying_string            ), dimension(:) , allocatable :: tupleNames
        class(nodePropertyExtractorTuple), intent(inout)              :: self
      end function tupleNames
   end interface
@@ -92,7 +93,7 @@
      function tupleUnitsInSI(self)
        !% Interface for tuple property units.
        import nodePropertyExtractorTuple
-       double precision                                      , dimension(:) , allocatable :: tupleUnitsInSI
+       double precision                            , dimension(:) , allocatable :: tupleUnitsInSI
        class           (nodePropertyExtractorTuple), intent(inout)              :: self
      end function tupleUnitsInSI
   end interface

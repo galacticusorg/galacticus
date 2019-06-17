@@ -84,16 +84,18 @@ contains
     return
   end subroutine concentrationDestructor
   
-  double precision function concentrationExtract(self,node)
+  double precision function concentrationExtract(self,node,instance)
     !% Implement a concentration output analysis.
     use Dark_Matter_Profile_Mass_Definitions
     use Galacticus_Nodes                    , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (nodePropertyExtractorConcentration), intent(inout) :: self
-    type            (treeNode                          ), intent(inout) :: node
-    class           (nodeComponentBasic                ), pointer       :: basic
-    class           (nodeComponentDarkMatterProfile    ), pointer       :: darkMatterProfile
-    double precision                                                    :: massHalo         , radiusHalo
+    class           (nodePropertyExtractorConcentration), intent(inout)           :: self
+    type            (treeNode                          ), intent(inout)           :: node
+    type            (multiCounter                      ), intent(inout), optional :: instance
+    class           (nodeComponentBasic                ), pointer                 :: basic
+    class           (nodeComponentDarkMatterProfile    ), pointer                 :: darkMatterProfile
+    double precision                                                              :: massHalo         , radiusHalo
+    !GCC$ attributes unused :: instance
 
     basic                =>  node%basic            ()
     darkMatterProfile    =>  node%darkMatterProfile()

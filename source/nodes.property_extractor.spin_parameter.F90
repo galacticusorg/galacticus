@@ -53,14 +53,15 @@ contains
     return
   end function spinConstructorParameters
 
-  double precision function spinExtract(self,node)
+  double precision function spinExtract(self,node,instance)
     !% Implement a spin output property extractor.
     use Galacticus_Nodes, only : nodeComponentSpin
     implicit none
-    class(nodePropertyExtractorSpin), intent(inout) :: self
-    type (treeNode                 ), intent(inout) :: node
-    class(nodeComponentSpin        ), pointer       :: spin
-    !GCC$ attributes unused :: self
+    class(nodePropertyExtractorSpin), intent(inout)           :: self
+    type (treeNode                 ), intent(inout)           :: node
+    type (multiCounter             ), intent(inout), optional :: instance
+    class(nodeComponentSpin        ), pointer                 :: spin
+    !GCC$ attributes unused :: self, instance
 
     spin        => node%spin()
     spinExtract =  spin%spin()

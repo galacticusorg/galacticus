@@ -54,6 +54,7 @@
      procedure :: names        => multiNames
      procedure :: descriptions => multiDescriptions
      procedure :: unitsInSI    => multiUnitsInSI
+     procedure :: addInstances => multiAddInstances
      procedure :: type         => multiType
      procedure :: deepCopy     => multiDeepCopy
   end type nodePropertyExtractorMulti
@@ -199,13 +200,14 @@ contains
     return
   end function multiElementCount
 
-  function multiExtract(self,node)
+  function multiExtract(self,node,instance)
     !% Implement a multi output extractor.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                            , dimension(:) , allocatable :: multiExtract
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
     type            (treeNode                  ), intent(inout)              :: node
+    type            (multiCounter              ), intent(inout), optional    :: instance
     type            (multiExtractorList        ), pointer                    :: extractor_
     integer                                                                  :: extractorCount
 
@@ -216,9 +218,9 @@ contains
        extractorCount=extractorCount+1
        select type (extractor__ => extractor_%extractor_)
        class is (nodePropertyExtractorScalar)
-          multiExtract(self%offsets(extractorCount)                                                                  )=extractor__%extract(node)
+          multiExtract(self%offsets(extractorCount)                                                                  )=extractor__%extract(node,instance)
         class is (nodePropertyExtractorTuple )
-          multiExtract(self%offsets(extractorCount):self%offsets(extractorCount)+self%elementCounts(extractorCount)-1)=extractor__%extract(node)
+          multiExtract(self%offsets(extractorCount):self%offsets(extractorCount)+self%elementCounts(extractorCount)-1)=extractor__%extract(node,instance)
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -226,6 +228,22 @@ contains
     end do
     return
   end function multiExtract
+
+  subroutine multiAddInstances(self,node,instance)
+    !% Implement adding of instances to a multi output extractor.
+    implicit none
+    class(nodePropertyExtractorMulti), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node
+    type (multiCounter              ), intent(inout) :: instance
+    type (multiExtractorList        ), pointer       :: extractor_
+
+    extractor_ => self%extractors
+    do while (associated(extractor_))
+       call extractor_%extractor_%addInstances(node,instance)
+       extractor_ => extractor_%next
+    end do
+    return
+  end subroutine multiAddInstances
 
   function multiNames(self)
     !% Return the names of the multiple properties.
