@@ -83,15 +83,17 @@ contains
     return
   end subroutine massHaloDestructor
   
-  double precision function massHaloExtract(self,node)
+  double precision function massHaloExtract(self,node,instance)
     !% Implement a massHalo output analysis.
     use Dark_Matter_Profile_Mass_Definitions
     use Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
-    class(nodePropertyExtractorMassHalo), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
-    class(nodeComponentBasic           ), pointer       :: basic
-    
+    class(nodePropertyExtractorMassHalo), intent(inout)           :: self
+    type (treeNode                     ), intent(inout)           :: node
+    type (multiCounter                 ), intent(inout), optional :: instance
+    class(nodeComponentBasic           ), pointer                 :: basic
+    !GCC$ attributes unused :: instance
+
     basic           => node%basic()
     massHaloExtract =  Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(basic%mass(),basic%time()))    
     return

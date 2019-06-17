@@ -53,14 +53,15 @@ contains
     return
   end function massStellarConstructorParameters
 
-  double precision function massStellarExtract(self,node)
+  double precision function massStellarExtract(self,node,instance)
     !% Implement a massStellar output analysis.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    class(nodePropertyExtractorMassStellar), intent(inout) :: self
-    type (treeNode                        ), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    class(nodePropertyExtractorMassStellar), intent(inout)           :: self
+    type (treeNode                        ), intent(inout)           :: node
+    type (multiCounter                    ), intent(inout), optional :: instance
+    !GCC$ attributes unused :: self, instance
 
     massStellarExtract=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar)
     return

@@ -50,24 +50,25 @@
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterStandard
      !% Implementation of the standard merger tree outputter.
      private
-     logical                                                                             :: outputReferences
-     type            (hdf5Object                          )                              :: outputsGroup
-     logical                                                                             :: outputsGroupOpened     
-     integer         (c_size_t                            )                              :: outputGroupsCount      
-     integer                                                                             :: doublePropertyCount                       , integerPropertyCount
-     integer                                                                             :: doublePropertiesWritten                   , integerPropertiesWritten
-     integer                                                                             :: doubleBufferCount                         , integerBufferCount
-     integer                                                                             :: integerBufferSize                         , doubleBufferSize
-     integer         (kind=kind_int8                      ), allocatable, dimension(:,:) :: integerBuffer
-     double precision                                      , allocatable, dimension(:,:) :: doubleBuffer
-     character       (len=standardNameLengthMax           ), allocatable, dimension(:  ) :: doublePropertyNames                       , integerPropertyNames
-     character       (len=standardCommentLengthMax        ), allocatable, dimension(:  ) :: doublePropertyComments                    , integerPropertyComments
-     double precision                                      , allocatable, dimension(:  ) :: doublePropertyUnitsSI                     , integerPropertyUnitsSI
-     type            (outputGroup                         ), allocatable, dimension(:  ) :: outputGroups
-     type            (varying_string                      ), allocatable, dimension(:  ) :: analyses
-     class           (galacticFilterClass                 ), pointer                     :: galacticFilter_                  => null()
-     class           (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_              => null()
-     class           (nodePropertyExtractorClass), pointer                     :: nodePropertyExtractor_ => null()
+     logical                                                                     :: outputReferences
+     type            (varying_string              )                              :: outputsGroupName
+     type            (hdf5Object                  )                              :: outputsGroup
+     logical                                                                     :: outputsGroupOpened     
+     integer         (c_size_t                    )                              :: outputGroupsCount      
+     integer                                                                     :: doublePropertyCount              , integerPropertyCount
+     integer                                                                     :: doublePropertiesWritten          , integerPropertiesWritten
+     integer                                                                     :: doubleBufferCount                , integerBufferCount
+     integer                                                                     :: integerBufferSize                , doubleBufferSize
+     integer         (kind=kind_int8              ), allocatable, dimension(:,:) :: integerBuffer
+     double precision                              , allocatable, dimension(:,:) :: doubleBuffer
+     character       (len=standardNameLengthMax   ), allocatable, dimension(:  ) :: doublePropertyNames              , integerPropertyNames
+     character       (len=standardCommentLengthMax), allocatable, dimension(:  ) :: doublePropertyComments           , integerPropertyComments
+     double precision                              , allocatable, dimension(:  ) :: doublePropertyUnitsSI            , integerPropertyUnitsSI
+     type            (outputGroup                 ), allocatable, dimension(:  ) :: outputGroups
+     type            (varying_string              ), allocatable, dimension(:  ) :: analyses
+     class           (galacticFilterClass         ), pointer                     :: galacticFilter_         => null()
+     class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_     => null()
+     class           (nodePropertyExtractorClass  ), pointer                     :: nodePropertyExtractor_  => null()
    contains
      !@ <objectMethods>
      !@  <object>mergerTreeOutputterStandard</object>
@@ -152,14 +153,23 @@ contains
     !% Constructor for the {\normalfont \ttfamily standard} merger tree outputter class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (mergerTreeOutputterStandard         )                              :: self
-    type   (inputParameters                     ), intent(inout)               :: parameters
-    type   (varying_string                      ), allocatable  , dimension(:) :: analyses
-    class  (galacticFilterClass                 ), pointer                     :: galacticFilter_
-    class  (cosmologyFunctionsClass             ), pointer                     :: cosmologyFunctions_
-    class  (nodePropertyExtractorClass), pointer                     :: nodePropertyExtractor_
-    logical                                                                    :: outputReferences
+    type   (mergerTreeOutputterStandard)                              :: self
+    type   (inputParameters            ), intent(inout)               :: parameters
+    type   (varying_string             ), allocatable  , dimension(:) :: analyses
+    class  (galacticFilterClass        ), pointer                     :: galacticFilter_
+    class  (cosmologyFunctionsClass    ), pointer                     :: cosmologyFunctions_
+    class  (nodePropertyExtractorClass ), pointer                     :: nodePropertyExtractor_
+    logical                                                           :: outputReferences
+    type   (varying_string             )                              :: outputsGroupName
     
+    !# <inputParameter>
+    !#   <name>outputsGroupName</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>var_str('Outputs')</defaultValue>
+    !#   <description>The name of the HDF5 group to which outputs will be written.</description>
+    !#   <type>string</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>outputReferences</name>
     !#   <source>parameters</source>
@@ -178,27 +188,28 @@ contains
        !#   <cardinality>1</cardinality>
        !# </inputParameter>
     end if
-    !# <objectBuilder class="galacticFilter"                  name="galacticFilter_"                  source="parameters"/>          
-    !# <objectBuilder class="cosmologyFunctions"              name="cosmologyFunctions_"              source="parameters"/>          
+    !# <objectBuilder class="galacticFilter"        name="galacticFilter_"                  source="parameters"/>          
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"/>          
     !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>          
-    self=mergerTreeOutputterStandard(outputReferences,analyses,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_)
-    !# <inputParametersValidate source="parameters"             />
-    !# <objectDestructor name="galacticFilter_"                 />
-    !# <objectDestructor name="cosmologyFunctions_"             />
+    self=mergerTreeOutputterStandard(outputsGroupName,outputReferences,analyses,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_)
+    !# <inputParametersValidate source="parameters"   />
+    !# <objectDestructor name="galacticFilter_"       />
+    !# <objectDestructor name="cosmologyFunctions_"   />
     !# <objectDestructor name="nodePropertyExtractor_"/>
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(outputReferences,analyses,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
+  function standardConstructorInternal(outputsGroupName,outputReferences,analyses,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree outputter class.
     implicit none
-    type   (mergerTreeOutputterStandard         )                              :: self
-    type   (varying_string                      ), intent(in   ), dimension(:) :: analyses
-    class  (galacticFilterClass                 ), intent(in   ), target       :: galacticFilter_
-    class  (cosmologyFunctionsClass             ), intent(in   ), target       :: cosmologyFunctions_
-    class  (nodePropertyExtractorClass), intent(in   ), target       :: nodePropertyExtractor_
-    logical                                      , intent(in   )               :: outputReferences
-    !# <constructorAssign variables="outputReferences, analyses, *galacticFilter_, *cosmologyFunctions_, *nodePropertyExtractor_"/>
+    type   (mergerTreeOutputterStandard)                              :: self
+    type   (varying_string             ), intent(in   )               :: outputsGroupName
+    type   (varying_string             ), intent(in   ), dimension(:) :: analyses
+    class  (galacticFilterClass        ), intent(in   ), target       :: galacticFilter_
+    class  (cosmologyFunctionsClass    ), intent(in   ), target       :: cosmologyFunctions_
+    class  (nodePropertyExtractorClass ), intent(in   ), target       :: nodePropertyExtractor_
+    logical                             , intent(in   )               :: outputReferences
+    !# <constructorAssign variables="outputsGroupName, outputReferences, analyses, *galacticFilter_, *cosmologyFunctions_, *nodePropertyExtractor_"/>
 
     self%outputsGroupOpened      =.false.
     self%outputGroupsCount       = 0
@@ -219,8 +230,8 @@ contains
     type(mergerTreeOutputterStandard), intent(inout) :: self
 
     call self%finalize()
-    !# <objectDestructor name="self%galacticFilter_"                 />
-    !# <objectDestructor name="self%cosmologyFunctions_"             />
+    !# <objectDestructor name="self%galacticFilter_"       />
+    !# <objectDestructor name="self%cosmologyFunctions_"   />
     !# <objectDestructor name="self%nodePropertyExtractor_"/>
     return
   end subroutine standardDestructor
@@ -229,20 +240,17 @@ contains
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Calculations_Resets
-    use               Galacticus_Nodes                    , only : mergerTree                        , treeNode                             , nodeComponentBasic
+    use               Galacticus_Nodes                  , only : mergerTree                , treeNode                  , nodeComponentBasic
     use               Input_Parameters
     use               Galacticus_Output_Merger_Tree_Data
     use               Multi_Counters
     use               Merger_Tree_Walkers
     use               Events_Hooks
     use               Galacticus_Error
-    use               IO_HDF5                             , only : hdf5Access
-    use               Node_Property_Extractors, only : nodePropertyExtractorNull, nodePropertyExtractorScalar, nodePropertyExtractorTuple
+    use               IO_HDF5                           , only : hdf5Access
+    use               Node_Property_Extractors          , only : nodePropertyExtractorNull, nodePropertyExtractorScalar, nodePropertyExtractorTuple
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
-    !# </include>
-    !# <include directive="mergerTreeOutputInstances" type="moduleUse">
-    include 'galacticus.output.merger_tree.instances.modules.inc'
     !# </include>
     !# <include directive="mergerTreeExtraOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
@@ -333,10 +341,7 @@ contains
                 if (nodePassesFilter) then
                    ! Initialize the instance counter.
                    instance=multiCounter([1_c_size_t])
-                   !# <include directive="mergerTreeOutputInstances" type="functionCall" functionType="void">
-                   !#  <functionArgs>node,indexOutput,instance</functionArgs>
-                   include 'galacticus.output.merger_tree.instances.inc'
-                   !# </include>
+                   call self%nodePropertyExtractor_%addInstances(node,instance)
                    do while (instance%increment())
                       if (self%integerPropertyCount > 0) then
                          integerProperty=0
@@ -360,14 +365,14 @@ contains
                          ! Null extractor - simply ignore.
                       class is (nodePropertyExtractorScalar)
                          ! Scalar property extractor - extract and store the value.
-                         self%doubleBuffer(self%doubleBufferCount,doubleProperty+1                                         )=extractor_     %extract     (node)
-                         doubleProperty                                                                                     =+doubleProperty                    &
+                         self%doubleBuffer(self%doubleBufferCount,doubleProperty+1                                         )=extractor_     %extract     (node,instance)
+                         doubleProperty                                                                                     =+doubleProperty                             &
                               &                                                                                              +1
                       class is (nodePropertyExtractorTuple)
                          ! Tuple property extractor - extract and store the values.
-                         self%doubleBuffer(self%doubleBufferCount,doubleProperty+1:doubleProperty+extractor_%elementCount())= extractor_    %extract     (node)
-                         doubleProperty                                                                                     =+doubleProperty                    &
-                              &                                                                                              +extractor_    %elementCount(    )
+                         self%doubleBuffer(self%doubleBufferCount,doubleProperty+1:doubleProperty+extractor_%elementCount())= extractor_    %extract     (node,instance)
+                         doubleProperty                                                                                     =+doubleProperty                             &
+                              &                                                                                              +extractor_    %elementCount(             )
                       class default
                          call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
                       end select                    
@@ -773,7 +778,7 @@ contains
     end if
     ! Make the enclosing group if it has not been created.
     if (.not.self%outputsGroupOpened) then
-       self%outputsGroup=galacticusOutputFile%openGroup('Outputs','Contains all outputs from Galacticus.')
+       self%outputsGroup=galacticusOutputFile%openGroup(char(self%outputsGroupName),'Contains all outputs from Galacticus.')
        self%outputsGroupOpened=.true.
     end if
     !$ call hdf5Access%unset()

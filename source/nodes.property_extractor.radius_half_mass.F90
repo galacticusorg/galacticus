@@ -54,14 +54,15 @@ contains
     return
   end function halfMassRadiusConstructorParameters
 
-  double precision function halfMassRadiusExtract(self,node)
+  double precision function halfMassRadiusExtract(self,node,instance)
     !% Implement a half-mass output analysis.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
-    type (treeNode                           ), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    class(nodePropertyExtractorHalfMassRadius), intent(inout)           :: self
+    type (treeNode                           ), intent(inout)           :: node
+    type (multiCounter                       ), intent(inout), optional :: instance
+    !GCC$ attributes unused :: self, instance
 
     halfMassRadiusExtract=Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=0.5d0,massType=massTypeStellar)
     return
