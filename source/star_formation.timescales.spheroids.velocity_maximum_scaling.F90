@@ -40,6 +40,15 @@
      integer         (kind_int8                       ) :: lastUniqueID
      type            (fastExponentiator               ) :: velocityExponentiator        , expansionFactorExponentiator
    contains
+     !@ <objectMethods>
+     !@   <object>starFormationTimescaleSpheroidsVelocityMaxScaling</object>
+     !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                     velocityMaxScalingDestructor
      procedure :: autoHook         => velocityMaxScalingAutoHook
      procedure :: timescale        => velocityMaxScalingTimescale

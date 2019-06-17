@@ -35,6 +35,15 @@
      logical                     :: factorsComputed
      double precision            :: surfaceDensityCriticalFactor, hydrogenMassFraction
    contains
+     !@ <objectMethods>
+     !@   <object>starFormationRateSurfaceDensityDisksKennicuttSchmidt</object>
+     !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>                                              
      final     ::                     kennicuttSchmidtDestructor
      procedure :: autoHook         => kennicuttSchmidtAutoHook
      procedure :: calculationReset => kennicuttSchmidtCalculationReset
