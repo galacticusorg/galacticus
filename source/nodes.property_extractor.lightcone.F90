@@ -29,10 +29,12 @@
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
      class           (geometryLightconeClass ), pointer                   :: geometryLightcone_
-     integer                                                              :: elementCount_
+     integer                                                              :: elementCount_           , redshiftObservedOffset   , &
+          &                                                                  angularCoordinatesOffset
      integer         (c_size_t               )                            :: instanceIndex
-     type            (varying_string         ), allocatable, dimension(:) :: names_             , descriptions_
+     type            (varying_string         ), allocatable, dimension(:) :: names_                  , descriptions_
      double precision                         , allocatable, dimension(:) :: unitsInSI_
+     logical                                                              :: includeObservedRedshift , includeAngularCoordinates
    contains
      final     ::                 lightconeDestructor
      procedure :: elementCount => lightconeElementCount
@@ -56,31 +58,57 @@ contains
     !% Constructor for the ``lightcone'' output extractor property extractor class which takes a parameter set as input.
     use Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nodePropertyExtractorLightcone)                :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
-    class(geometryLightconeClass        ), pointer       :: geometryLightcone_
+    type   (nodePropertyExtractorLightcone)                :: self
+    type   (inputParameters               ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    class  (geometryLightconeClass        ), pointer       :: geometryLightcone_
+    logical                                                :: includeObservedRedshift, includeAngularCoordinates
 
+    !# <inputParameter>
+    !#   <name>includeObservedRedshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true output the observed redshfit (i.e. including the effects of pecular velocities).</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>includeAngularCoordinates</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true output angular coordinates in the lightcone.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !# <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
-    self=nodePropertyExtractorLightcone(cosmologyFunctions_,geometryLightcone_)
+    self=nodePropertyExtractorLightcone(includeObservedRedshift,includeAngularCoordinates,cosmologyFunctions_,geometryLightcone_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     !# <objectDestructor name="geometryLightcone_" />
     return
   end function lightconeConstructorParameters
 
-  function lightconeConstructorInternal(cosmologyFunctions_,geometryLightcone_) result(self)
+  function lightconeConstructorInternal(includeObservedRedshift,includeAngularCoordinates,cosmologyFunctions_,geometryLightcone_) result(self)
     !% Internal constructor for the ``lightcone'' output extractor property extractor class.
     use Numerical_Constants_Prefixes    , only : kilo
     use Numerical_Constants_Astronomical, only : megaParsec, degreesToRadians    
     implicit none
-    type (nodePropertyExtractorLightcone)                        :: self
-    class(cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
-    class(geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
-    !# <constructorAssign variables="*cosmologyFunctions_, *geometryLightcone_"/>
+    type   (nodePropertyExtractorLightcone)                        :: self
+    logical                                , intent(in   )         :: includeObservedRedshift, includeAngularCoordinates
+    class  (cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
+    class  (geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
+    !# <constructorAssign variables="includeObservedRedshift, includeAngularCoordinates, *cosmologyFunctions_, *geometryLightcone_"/>
 
     self%elementCount_=8
+    if (includeObservedRedshift) then
+       self%redshiftObservedOffset  =self%elementCount_
+       self%elementCount_           =self%elementCount_+1
+    end if
+    if (includeAngularCoordinates) then
+       self%angularCoordinatesOffset=self%elementCount_
+       self%elementCount_           =self%elementCount_+2
+    end if
     allocate(self%names_       (self%elementCount_))
     allocate(self%descriptions_(self%elementCount_))
     allocate(self%unitsInSI_   (self%elementCount_))
@@ -102,12 +130,25 @@ contains
     self%names_       (6)='lightconeVelocityZ'
     self%descriptions_(6)='Velocity of galaxy in lightcone (2nd angular axis) [km/s].'
     self%unitsInSI_   (6)=kilo
-    self%names_       (7)='lightconeRedshift'
-    self%descriptions_(7)='Reshift of galaxy in lightcone.'
+    self%names_       (7)='lightconeRedshiftCosmological'
+    self%descriptions_(7)='Cosmological redshift of galaxy in lightcone (does not include the effects of line-of-sight peculiar velocity).'
     self%unitsInSI_   (7)=0.0d0
     self%names_       (8)='angularWeight'
     self%descriptions_(8)='Number of such galaxies per unit area [degrees⁻²].'
     self%unitsInSI_   (8)=degreesToRadians**2
+    if (includeObservedRedshift) then
+       self%names_       (self%redshiftObservedOffset  +1)='lightconeRedshiftObserved'
+       self%descriptions_(self%redshiftObservedOffset  +1)='Observed redshift of galaxy in lightcone (includes the effects of line-of-sight peculiar velocity).'
+       self%unitsInSI_   (self%redshiftObservedOffset  +1)=0.0d0
+    end if
+    if (includeAngularCoordinates) then
+       self%names_       (self%angularCoordinatesOffset+1)='lightconeAngularTheta'
+       self%descriptions_(self%angularCoordinatesOffset+1)='Angular distance from pole of coordinate system (i.e. θ in a spherical coordinate system) [radians]'
+       self%unitsInSI_   (self%angularCoordinatesOffset+1)=1.0d0
+       self%names_       (self%angularCoordinatesOffset+2)='lightconeAngularPhi'
+       self%descriptions_(self%angularCoordinatesOffset+2)='Angular distance around the pole of coordinate system (i.e. φ in a spherical coordinate system) [radians]'
+       self%unitsInSI_   (self%angularCoordinatesOffset+2)=1.0d0
+    end if
     return
   end function lightconeConstructorInternal
   
@@ -134,6 +175,8 @@ contains
     !% Implement a lightcone output extractor.
     use Vectors                         , only : Vector_Magnitude
     use Numerical_Constants_Astronomical, only : degreesToRadians
+    use Numerical_Constants_Physical    , only : speedLight
+    use Numerical_Constants_Prefixes    , only : kilo
     use Galacticus_Error                , only : Galacticus_Error_Report
     implicit none
     double precision                                , dimension(:) , allocatable :: lightconeExtract
@@ -158,6 +201,26 @@ contains
          &                                                                        )    &
          &                                                                       )
     lightconeExtract(8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
+    if (self%includeObservedRedshift) then
+       lightconeExtract(self%redshiftObservedOffset  +1)=+                                       lightconeExtract(7  )  &
+            &                                            +Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
+            &                                            /Vector_Magnitude(                      lightconeExtract(1:3)) &
+            &                                            *kilo                                                          &
+            &                                            /speedLight
+    end if
+    if (self%includeAngularCoordinates) then
+       lightconeExtract(self%angularCoordinatesOffset+1)=atan2(                              &
+            &                                                  sqrt(                         &
+            &                                                       +lightconeExtract(2)**2  &
+            &                                                       +lightconeExtract(3)**2  &
+            &                                                      )                       , &
+            &                                                        lightconeExtract(1)     &
+            &                                                  )
+       lightconeExtract(self%angularCoordinatesOffset+2)=atan2(                              &
+            &                                                        lightconeExtract(3)   , &
+            &                                                        lightconeExtract(2)     &
+            &                                                 )
+    end if
     return
   end function lightconeExtract
 
