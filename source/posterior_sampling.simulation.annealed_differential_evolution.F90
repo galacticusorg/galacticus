@@ -89,7 +89,7 @@ contains
     return
   end function annealedDifferentialEvolutionConstructorParameters
   
-  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,temperatureLevelCount,temperatureMaximum) result(self)
+  function annealedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,temperatureLevelCount,temperatureMaximum) result(self)
     !% Internal constructor for the ``annealedDifferentialEvolution'' simulation class.
     implicit none
     type            (posteriorSampleSimulationAnnealedDffrntlEvltn)                                      :: self
@@ -105,10 +105,11 @@ contains
          &                                                                                                  stateSwapCount                          , logFlushCount         ,   &
          &                                                                                                  reportCount                             , temperatureLevelCount
     character       (len=*                                        ), intent(in   )                       :: logFileRoot                             , interactionRoot
-    logical                                                        , intent(in   )                       :: sampleOutliers                          , appendLogs
+    logical                                                        , intent(in   )                       :: sampleOutliers                          , appendLogs            , &
+         &                                                                                                  loadBalance
     double precision                                               , intent(in   )                       :: temperatureMaximum
 
-    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs)
+    self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance)
     call self%initialize(temperatureLevelCount,temperatureMaximum)
     return
   end function annealedDifferentialEvolutionConstructorInternal
