@@ -375,7 +375,8 @@ contains
          &                                                                                                timeEvaluate          , timeEvaluatePrevious
     double precision                                                                                   :: logLikelihoodProposed , logPosteriorProposed         , &
          &                                                                                                logLikelihood         , logLikelihoodVariance        , &
-         &                                                                                                timeEvaluateInitial   , logLikelihoodVarianceProposed
+         &                                                                                                timeEvaluateInitial   , logLikelihoodVarianceProposed, &
+         &                                                                                                logPosteriorInitial   , logLikelihoodInitial
     type            (pseudoRandom                                  )                                   :: randomNumberGenerator
     type            (varying_string                                )                                   :: logFileName           , message                      , &
          &                                                                                                interactionFileName
@@ -399,17 +400,22 @@ contains
        call stateProposed%parameterCountSet(self%parameterCount)
     end select
     ! Initialize chain to some state vector.
-    call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial)
-    ! Evaluate the posterior in the initial state.
+    call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial,logLikelihoodInitial,logPosteriorInitial)
+    ! Evaluate the posterior in the initial state if it wasn't set.
     timeEvaluate        =-1.0
     timeEvaluatePrevious=real(timeEvaluateInitial)
     call CPU_Time(timePreEvaluate )
     call self%posterior(self%posteriorSampleState_,logImpossible,logImpossible,self%logPosterior,logLikelihood,logLikelihoodVariance,timeEvaluate,timeEvaluatePrevious,forceAcceptance)
     call CPU_Time(timePostEvaluate)
     if (timeEvaluate < 0.0) timeEvaluate=timePostEvaluate-timePreEvaluate
-    timeEvaluatePrevious=timeEvaluate     
+    timeEvaluatePrevious=timeEvaluate
     ! Check for impossible state.
     if (self%logPosterior <= logImpossible) call Galacticus_Error_Report('impossible initial state'//{introspection:location})
+    ! If the initializor returned a non-impossible likelihood, use it instead.
+    if (logLikelihoodInitial > logImpossible) then
+       logLikelihood    =logLikelihoodInitial
+       self%logPosterior=logPosteriorInitial
+    end if
     ! Begin stepping.
     logFileName=self%logFileRoot//'_'//mpiSelf%rankLabel()//'.log'
     if (self%appendLogs) then
@@ -417,7 +423,7 @@ contains
     else
        open(newunit=logFileUnit,file=char(logFileName),status='unknown',form='formatted'                  )
     end if
-    self%isConverged=.false. 
+    self%isConverged=.false.
     do while (                                                                                                   &
          &          self%posteriorSampleState_            %count(                          ) < self%stepsMaximum &
          &    .and.                                                                                              &

@@ -95,15 +95,17 @@ contains
     return
   end subroutine switchedDestructor
  
-  subroutine switchedInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious)
+  subroutine switchedInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
     use Galacticus_Error, only : Galacticus_Error_Report
+    use                          Models_Likelihoods_Constants
     implicit none
     class           (posteriorSampleStateInitializeSwitched), intent(inout)               :: self
     class           (posteriorSampleStateClass             ), intent(inout)               :: simulationState
     class           (posteriorSampleLikelihoodClass        ), intent(inout)               :: modelLikelihood
     type            (modelParameterList                    ), intent(in   ), dimension(:) :: modelParameters_
-    double precision                                        , intent(  out)               :: timeEvaluatePrevious
+    double precision                                        , intent(  out)               :: timeEvaluatePrevious, logLikelihood, &
+         &                                                                                   logPosterior
     class           (posteriorSampleStateInitializeClass   ), pointer                     :: stateInitializor_
     type            (varying_string                        ), allocatable  , dimension(:) :: modelParameterNames
     type            (posteriorSampleStateSimple            ), allocatable                 :: simulationState__
@@ -169,7 +171,7 @@ contains
           !# <deepCopy source="modelParameters_(j)%modelParameter_" destination="modelParameters__(i)%modelParameter_"/>
        end do
        ! Apply the initializor
-       call stateInitializor_%initialize(simulationState__,modelParameters__,modelLikelihood,timeEvaluatePrevious)       
+       call stateInitializor_%initialize(simulationState__,modelParameters__,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)       
        ! Combine states into the final state.
        stateVector__=simulationState__%get()
        do i=1,size(modelParameterNames)
@@ -190,5 +192,8 @@ contains
     deallocate(stateVector)
     ! We have no information about evaluation time.
     timeEvaluatePrevious=-1.0d0
+    ! We have no information about the likelihood of this state.
+    logLikelihood=logImpossible
+    logPosterior =logImpossible
     return
   end subroutine switchedInitialize

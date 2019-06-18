@@ -345,7 +345,7 @@ contains
     logPosterior=logImpossible
     do while (logPosterior <= logImpossible)
        ! Initialize particle to some state vector.
-       call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial)
+       call self%posteriorSampleStateInitialize_%initialize(self%posteriorSampleState_,self%modelParametersActive_,self%posteriorSampleLikelihood_,timeEvaluateInitial,logLikelihood,logPosterior)
        ! Evaluate the posterior in the initial state.
        timeEvaluate        =-1.0
        timeEvaluatePrevious=real(timeEvaluateInitial)
