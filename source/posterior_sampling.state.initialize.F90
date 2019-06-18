@@ -38,7 +38,7 @@ module Posterior_Sampling_State_Initialize
   !#   <argument>class           (posteriorSampleStateClass     ), intent(inout)               :: simulationState</argument>
   !#   <argument>type            (modelParameterList            ), intent(in   ), dimension(:) :: modelParameters_</argument>
   !#   <argument>class           (posteriorSampleLikelihoodClass), intent(inout)               :: modelLikelihood</argument>
-  !#   <argument>double precision                                , intent(  out)               :: timeEvaluatePrevious</argument>
+  !#   <argument>double precision                                , intent(  out)               :: timeEvaluatePrevious, logLikelihood, logPosterior</argument>
   !#  </method>
   !# </functionClass>
 
