@@ -48,20 +48,25 @@ contains
     return
   end function priorRandomConstructorParameters
 
-  subroutine priorRandomInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious)
+  subroutine priorRandomInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
+    use Models_Likelihoods_Constants
     implicit none
     class           (posteriorSampleStateInitializePriorRandom), intent(inout)                                    :: self
     class           (posteriorSampleStateClass                ), intent(inout)                                    :: simulationState
     class           (posteriorSampleLikelihoodClass           ), intent(inout)                                    :: modelLikelihood
     type            (modelParameterList                       ), intent(in   ), dimension(:                     ) :: modelParameters_
-    double precision                                           , intent(  out)                                    :: timeEvaluatePrevious
+    double precision                                           , intent(  out)                                    :: timeEvaluatePrevious, logLikelihood, &
+         &                                                                                                           logPosterior
     double precision                                                          , dimension(size(modelParameters_)) :: state
     integer                                                                                                       :: j
     !GCC$ attributes unused ::  self, modelLikelihood
 
     ! No knowledge of evaluation time.
     timeEvaluatePrevious=-1.0d0
+    ! We have no information about the likelihood of this state.
+    logLikelihood=logImpossible
+    logPosterior =logImpossible
     ! Initialize chain to some state vector.
     do j=1,simulationState%dimension()
        state(j)=modelParameters_(j)%modelParameter_%map        (  &

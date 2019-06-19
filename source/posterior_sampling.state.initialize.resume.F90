@@ -80,25 +80,28 @@ contains
     return
   end function resumeConstructorInternal
   
-  subroutine resumeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious)
+  subroutine resumeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
     use Posterior_Sampling_State
     use Models_Likelihoods_Constants
     use MPI_Utilities
     use String_Handling
     use Galacticus_Display
+    use Galacticus_Error            , only :  Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateInitializeResume), intent(inout)               :: self
     class           (posteriorSampleStateClass           ), intent(inout)               :: simulationState
     class           (posteriorSampleLikelihoodClass      ), intent(inout)               :: modelLikelihood
     type            (modelParameterList                  ), intent(in   ), dimension(:) :: modelParameters_
-    double precision                                      , intent(  out)               :: timeEvaluatePrevious
+    double precision                                      , intent(  out)               :: timeEvaluatePrevious, logLikelihood    , &
+         &                                                                                 logPosterior
     double precision                                      , allocatable  , dimension(:) :: stateVector         , stateVectorMapped
+    integer                                               , allocatable  , dimension(:) :: stateCounts
     type            (varying_string                      )                              :: logFileName         , message
     integer                                                                             :: stateCount          , mpiRank          , &
          &                                                                                 logFileUnit         , ioStatus         , &
          &                                                                                 i
-    double precision                                                                    :: logPosterior        , logLikelihood
+    double precision                                                                    :: logPosterior_       , logLikelihood_
     logical                                                                             :: converged           , first
     character       (len=12                )                                            :: labelValue          , labelMinimum     , &
          &                                                                                 labelMaximum
@@ -116,8 +119,8 @@ contains
             &                               mpiRank             , &
             &                               timeEvaluatePrevious, &
             &                               converged           , &
-            &                               logPosterior        , &
-            &                               logLikelihood       , &
+            &                               logPosterior_       , &
+            &                               logLikelihood_      , &
             &                               stateVector     
        if (ioStatus == 0) then
           ! Map the state.
@@ -126,15 +129,20 @@ contains
           end do
           ! Restore the state object.
           if (self%restoreState) then
-             call simulationState%restore(stateVectorMapped,first        )
-             call modelLikelihood%restore(stateVectorMapped,logLikelihood)
+             call simulationState%restore(stateVectorMapped,first         )
+             call modelLikelihood%restore(stateVectorMapped,logLikelihood_)
+             logLikelihood=logLikelihood_
+             logPosterior =logPosterior_
           end if
           first=.false.
        end if
     end do
-    close(logFileUnit)
+    close(logFileUnit)    
     ! Set the simulation state.
     call simulationState%update(stateVectorMapped,.false.,.false.)
+    ! Check that all chains reached the same state.
+    stateCounts=mpiSelf%gather(stateCount)
+    if (any(stateCounts /= stateCount)) call Galacticus_Error_Report('number of steps differs between chains'//{introspection:location})
     ! Check for out of range state.
     do i=1,simulationState%dimension()
        if (modelParameters_(i)%modelParameter_%logPrior(stateVector(i)) <= logImpossible) then

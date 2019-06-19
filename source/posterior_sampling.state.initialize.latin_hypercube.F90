@@ -69,18 +69,20 @@ contains
     return
   end function latinHypercubeConstructorInternal
 
-  subroutine latinHypercubeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious)
+  subroutine latinHypercubeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
     !% Initialize simulation state by drawing at random from the parameter priors.
     use, intrinsic :: ISO_C_Binding
     use               MPI_Utilities
     use               Pseudo_Random
     use               Sort
+    use               Models_Likelihoods_Constants
     implicit none
     class           (posteriorSampleStateInitializeLatinHypercube), intent(inout)                 :: self
     class           (posteriorSampleStateClass                   ), intent(inout)                 :: simulationState
     class           (posteriorSampleLikelihoodClass              ), intent(inout)                 :: modelLikelihood
     type            (modelParameterList                          ), intent(in   ), dimension(:  ) :: modelParameters_
-    double precision                                              , intent(  out)                 :: timeEvaluatePrevious
+    double precision                                              , intent(  out)                 :: timeEvaluatePrevious, logLikelihood , &
+         &                                                                                           logPosterior
     integer         (kind=c_size_t                               ), allocatable  , dimension(:  ) :: order
     double precision                                              , allocatable  , dimension(:  ) :: x                    , y
     double precision                                              , allocatable  , dimension(:,:) :: stateGrid            , stateGridBest
@@ -93,6 +95,9 @@ contains
 
     ! No knowledge of evaluation time.
     timeEvaluatePrevious=-1.0d0
+    ! We have no information about the likelihood of this state.
+    logLikelihood=logImpossible
+    logPosterior =logImpossible
     ! Generate random sequence.
     allocate(        x    (0:mpiSelf%count()-1                            ))
     allocate(        y    (0:mpiSelf%count()-1                            ))
