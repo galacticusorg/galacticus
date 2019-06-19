@@ -238,6 +238,7 @@ contains
        call modelLikelihood_%simulationState%update       (stateVectorMapped(1:size(modelLikelihood_%parameterMap)),logState=.false.,isConverged=.false.)
        call modelLikelihood_%simulationState%chainIndexSet(simulationState%chainIndex())
        ! Evaluate this likelihood
+       timeEvaluate_=-1.0
        logLikelihood                                             =+modelLikelihood_%modelLikelihood_%evaluate(                                           &
             &                                                                                                 modelLikelihood_%simulationState         , &
             &                                                                                                 modelLikelihood_%modelParametersActive_  , &
@@ -261,13 +262,12 @@ contains
        end if
        ! Accumulate the likelihood unless our local proposed prior is impossible (in which case we did not actually need to
        ! compute this likelihood, but were calling the evaluate method just to ensure MPI synchronization).
-       if (logPriorProposed_ > logImpossible)                                                              &
-            & independentLikelihoodsSequantialEvaluate          =+independentLikelihoodsSequantialEvaluate &
-            &                                                    +logLikelihood
-       if (present(logLikelihoodVariance)) logLikelihoodVariance=+logLikelihoodVariance                    &
-            &                                                    +logLikelihoodVariance_
-       timeEvaluate                                             =+timeEvaluate                             &
-            &                                                    +timeEvaluate_
+       if (logPriorProposed_ >  logImpossible) independentLikelihoodsSequantialEvaluate=+independentLikelihoodsSequantialEvaluate &
+            &                                                                           +logLikelihood
+       if (present(logLikelihoodVariance)    ) logLikelihoodVariance                   =+logLikelihoodVariance                    &
+            &                                                                           +logLikelihoodVariance_
+       if (timeEvaluate_     >= 0.0d0        ) timeEvaluate                            =+timeEvaluate                             &
+            &                                                                           +timeEvaluate_
        if (.not.(self%finalLikelihoodFullEvaluation.and.finalLikelihood)) then
           if (likelihoodCount > evaluateCounts(simulationState%chainIndex()) .or. self%restored) then                
              ! We have matched or exceeded the previous number of likelihoods evaluated. (Or this is the first evaulation after being restored.)      
