@@ -44,7 +44,8 @@ contains
 
   function spinDistributionBett2007ConstructorParameters(parameters) result (self)
     !% Constructor for the ``spinDistributionBett2007'' output analysis class which takes a parameter set as input.
-    use Input_Parameters
+    use Input_Parameters, only : inputParameter                                          , inputParameters
+    use Functions_Global, only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     implicit none
     type            (outputAnalysisSpinDistributionBett2007)                :: self
     type            (inputParameters                       ), intent(inout) :: parameters
@@ -53,8 +54,9 @@ contains
     class           (nbodyHaloMassErrorClass               ), pointer       :: nbodyHaloMassError_ 
     class           (haloMassFunctionClass                 ), pointer       :: haloMassFunction_            
     class           (darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_         
-    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass             ), pointer       :: darkMatterProfileDMO_
     class           (darkMatterProfileScaleRadiusClass     ), pointer       :: darkMatterProfileScaleRadius_
+    class           (*                                     ), pointer       :: percolationObjects_
     double precision                                                        :: timeRecent
     
     !# <inputParameter>
@@ -69,21 +71,22 @@ contains
     !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
     !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"            name="darkMatterProfileDMO_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
     !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    self=outputAnalysisSpinDistributionBett2007(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_)
+    percolationObjects_ => Virial_Density_Contrast_Percolation_Objects_Constructor_(parameters)
+    self                =  outputAnalysisSpinDistributionBett2007(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"          />
     !# <objectDestructor name="outputTimes_"                 />
     !# <objectDestructor name="nbodyHaloMassError_"          />
     !# <objectDestructor name="haloMassFunction_"            />
     !# <objectDestructor name="darkMatterHaloScale_"         />
-    !# <objectDestructor name="darkMatterProfileDMO_"           />
+    !# <objectDestructor name="darkMatterProfileDMO_"        />
     !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function spinDistributionBett2007ConstructorParameters
 
-  function spinDistributionBett2007ConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_) result(self)
+  function spinDistributionBett2007ConstructorInternal(timeRecent,cosmologyFunctions_,nbodyHaloMassError_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileScaleRadius_,outputTimes_,percolationObjects_) result(self)
     !% Internal constructor for the ``spinDistributionBett2007'' output analysis class.
     use ISO_Varying_String
     use Output_Times
@@ -103,8 +106,9 @@ contains
     class           (nbodyHaloMassErrorClass                          ), target     , intent(in   )  :: nbodyHaloMassError_ 
     class           (haloMassFunctionClass                            ), target     , intent(in   )  :: haloMassFunction_            
     class           (darkMatterHaloScaleClass                         ), target     , intent(in   )  :: darkMatterHaloScale_         
-    class           (darkMatterProfileDMOClass                           ), target     , intent(in   )  :: darkMatterProfileDMO_           
+    class           (darkMatterProfileDMOClass                        ), target     , intent(in   )  :: darkMatterProfileDMO_           
     class           (darkMatterProfileScaleRadiusClass                ), target     , intent(in   )  :: darkMatterProfileScaleRadius_           
+    class           (*                                                ), target     , intent(in   )  :: percolationObjects_
     type            (outputAnalysisPropertyExtractorSpin              ), pointer                     :: outputAnalysisPropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10              ), pointer                     :: outputAnalysisPropertyOperator_
     type            (outputAnalysisWeightOperatorIdentity             ), pointer                     :: outputAnalysisWeightOperator_
@@ -181,38 +185,38 @@ contains
     !#     &amp;                           nbodyHaloMassError_               =nbodyHaloMassError_                                      , &amp;
     !#     &amp;                           haloMassFunction_                 =haloMassFunction_                                        , &amp;
     !#     &amp;                           darkMatterHaloScale_              =darkMatterHaloScale_                                     , &amp;
-    !#     &amp;                           darkMatterProfileDMO_                =darkMatterProfileDMO_                                       , &amp;
+    !#     &amp;                           darkMatterProfileDMO_             =darkMatterProfileDMO_                                    , &amp;
     !#     &amp;                           darkMatterProfileScaleRadius_     =darkMatterProfileScaleRadius_                              &amp;
     !#     &amp;                          )
     !#  </constructor>
     !# </referenceConstruct>
     ! Create a spin parameter property extractor.
     allocate(outputAnalysisPropertyExtractor_        )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"         constructor="outputAnalysisPropertyExtractorSpin              (                                                                  )"/>
+    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"         constructor="outputAnalysisPropertyExtractorSpin              (                                                                                      )"/>
     ! Create a log10 property operator.
     allocate(outputAnalysisPropertyOperator_         )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_"          constructor="outputAnalysisPropertyOperatorLog10              (                                                                  )"/>
+    !# <referenceConstruct object="outputAnalysisPropertyOperator_"          constructor="outputAnalysisPropertyOperatorLog10              (                                                                                      )"/>
     ! Create an identity weight operator.
     allocate(outputAnalysisWeightOperator_           )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"            constructor="outputAnalysisWeightOperatorIdentity             (                                                                  )"/>
+    !# <referenceConstruct object="outputAnalysisWeightOperator_"            constructor="outputAnalysisWeightOperatorIdentity             (                                                                                      )"/>
     ! Create an N-body spin error distribution operator.
     allocate(outputAnalysisDistributionOperator_     )
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_"      constructor="outputAnalysisDistributionOperatorSpinNBodyErrors(haloSpinDistribution_                                             )"/>
+    !# <referenceConstruct object="outputAnalysisDistributionOperator_"      constructor="outputAnalysisDistributionOperatorSpinNBodyErrors(haloSpinDistribution_                                                                 )"/>
     ! Create anit-log10 operator.
     allocate(outputAnalysisPropertyOperatorAntiLog10_)
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_" constructor="outputAnalysisPropertyOperatorAntiLog10          (                                                                  )"/>
+    !# <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_" constructor="outputAnalysisPropertyOperatorAntiLog10          (                                                                                      )"/>
     ! Create a virial density contrast class to match the friends-of-friends halo definition used by Bett et al. (2007).
     allocate(virialDensityContrast_)
-    !# <referenceConstruct object="virialDensityContrast_"                   constructor="virialDensityContrastPercolation                 (0.2d0                                      ,cosmologyFunctions_   )"/>
+    !# <referenceConstruct object="virialDensityContrast_"                   constructor="virialDensityContrastPercolation                 (0.2d0                                      ,cosmologyFunctions_   ,percolationObjects_)"/>
     ! Create a filter to select isolated halos with no recent major merger.
     allocate(galacticFilterHaloIsolated_             )
-    !# <referenceConstruct object="galacticFilterHaloIsolated_"              constructor="galacticFilterHaloIsolated                       (                                                                  )"/>
+    !# <referenceConstruct object="galacticFilterHaloIsolated_"              constructor="galacticFilterHaloIsolated                       (                                                                                      )"/>
     allocate(galacticFilterHaloMass_                )
-    !# <referenceConstruct object="galacticFilterHaloMass_"                  constructor="galacticFilterHaloMass                           (countParticleMininum*massParticleMillennium,virialDensityContrast_)"/>
+    !# <referenceConstruct object="galacticFilterHaloMass_"                  constructor="galacticFilterHaloMass                           (countParticleMininum*massParticleMillennium,virialDensityContrast_                    )"/>
     allocate(galacticFilterNodeMajorMergerRecent_    )
-    !# <referenceConstruct object="galacticFilterNodeMajorMergerRecent_"     constructor="galacticFilterNodeMajorMergerRecent              (timeRecent                                                        )"/>
+    !# <referenceConstruct object="galacticFilterNodeMajorMergerRecent_"     constructor="galacticFilterNodeMajorMergerRecent              (timeRecent                                                                            )"/>
     allocate(galacticFilterNot_                      )
-    !# <referenceConstruct object="galacticFilterNot_"                       constructor="galacticFilterNot                                (galacticFilterNodeMajorMergerRecent_                              )"/>
+    !# <referenceConstruct object="galacticFilterNot_"                       constructor="galacticFilterNot                                (galacticFilterNodeMajorMergerRecent_                                                  )"/>
     allocate(filters_                                )
     filter_ => filters_
     filter_%filter_ => galacticFilterHaloIsolated_
@@ -223,7 +227,7 @@ contains
     filter_ => filter_%next
     filter_%filter_ => galacticFilterNot_
     allocate(galacticFilterAll_                      )
-    !# <referenceConstruct object="galacticFilterAll_"                       constructor="galacticFilterAll                                (filters_                                                          )"/>
+    !# <referenceConstruct object="galacticFilterAll_"                       constructor="galacticFilterAll                                (filters_                                                                              )"/>
     ! Create a distribution normalizer which normalizes to unit integral, and then to bin width.
     allocate(outputAnalysisDistributionNormalizerUnitarity_ )
     allocate(outputAnalysisDistributionNormalizerBinWidth_  )
