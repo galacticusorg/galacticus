@@ -254,7 +254,7 @@ CODE
 	    };
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$usesNode);
 	    # Insert required variables.
-	    my @declarations =
+	    my @declarationsPotential =
 		(
 		 {
 		     intrinsic  => "class"      ,
@@ -271,6 +271,11 @@ CODE
 		     variables  => [ "ompLevel_" ]
 		 }
 		);
+            my @declarations;
+            foreach my $declaration ( @declarationsPotential ) {
+		push(@declarations,$declaration)
+                    unless ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$declaration->{'variables'}->[0]) );
+            }
 	    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},\@declarations);
 	    # Create the code.
 	    $code::interfaceType = &interfaceTypeGet($node->{'directive'});
