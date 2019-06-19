@@ -38,6 +38,7 @@
      integer         (kind_int8                        ) :: lastUniqueID
    contains
      final     ::                     haloScalingDestructor
+     procedure :: autoHook         => haloScalingAutoHook
      procedure :: timescale        => haloScalingTimescale
      procedure :: calculationReset => haloScalingCalculationReset
   end type starFormationTimescaleDisksHaloScaling
@@ -122,13 +123,25 @@ contains
     return
   end function haloScalingConstructorInternal
 
+  subroutine haloScalingAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(starFormationTimescaleDisksHaloScaling), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,haloScalingCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine haloScalingAutoHook
+  
   subroutine haloScalingDestructor(self)
     !% Destructor for the {\normalfont \ttfamily haloScaling} timescale for star formation in disks class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationTimescaleDisksHaloScaling), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyFunctions_" />
     !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    call calculationResetEvent%detach(self,haloScalingCalculationReset)
     return
   end subroutine haloScalingDestructor
 

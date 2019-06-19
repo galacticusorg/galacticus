@@ -60,6 +60,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                          krumholz2009Destructor
+     procedure :: autoHook              => krumholz2009AutoHook
      procedure :: computeFactors        => krumholz2009ComputeFactors
      procedure :: surfaceDensityFactors => krumholz2009SurfaceDensityFactors
      procedure :: calculationReset      => krumholz2009CalculationReset
@@ -169,12 +170,24 @@ contains
     return
   end function krumholz2009ConstructorInternal
 
+  subroutine krumholz2009AutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,krumholz2009CalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine krumholz2009AutoHook
+  
   subroutine krumholz2009Destructor(self)
     !% Destructor for the {\normalfont \ttfamily krumholz2009} star formation surface density rate from disks class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
 
-    call self%molecularFraction%destroy()
+    call self                 %molecularFraction%destroy(                                 )
+    call calculationResetEvent%detach                   (self,krumholz2009CalculationReset)
     return
   end subroutine krumholz2009Destructor
 

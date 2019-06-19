@@ -22,7 +22,7 @@
   use Dark_Matter_Profiles    , only : darkMatterProfile   , darkMatterProfileClass
   use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <galacticStructureSolver name="galacticStructureSolverEquilibrium" autoHook="yes">
+  !# <galacticStructureSolver name="galacticStructureSolverEquilibrium">
   !#  <description>An ``equilibrium'' solver for galactic structure.</description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverEquilibrium

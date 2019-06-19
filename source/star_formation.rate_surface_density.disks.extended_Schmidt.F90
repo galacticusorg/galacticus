@@ -32,6 +32,8 @@
      double precision            :: normalization  , exponentGas         , &
           &                         exponentStars  , hydrogenMassFraction
    contains
+     final     ::                     extendedSchmidtDestructor
+     procedure :: autoHook         => extendedSchmidtAutoHook
      procedure :: calculationReset => extendedSchmidtCalculationReset
      procedure :: rate             => extendedSchmidtRate
   end type starFormationRateSurfaceDensityDisksExtendedSchmidt
@@ -106,6 +108,26 @@ contains
          &             *((1.0d0/mega**2)**self%exponentGas  )   ! Hydrogen fraction and unit conversion for gas.
     return
   end function extendedSchmidtConstructorInternal
+
+  subroutine extendedSchmidtAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,extendedSchmidtCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine extendedSchmidtAutoHook
+  
+  subroutine extendedSchmidtDestructor(self)
+    !% Destructor for the extendedSchmidt cooling radius class.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    type(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
+
+    call calculationResetEvent%detach(self,extendedSchmidtCalculationReset)
+    return
+  end subroutine extendedSchmidtDestructor
 
   subroutine extendedSchmidtCalculationReset(self,node)
     !% Reset the Kennicutt-Schmidt relation calculation.

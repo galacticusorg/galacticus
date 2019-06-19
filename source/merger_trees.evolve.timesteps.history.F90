@@ -22,7 +22,7 @@
   use FGSL               , only : fgsl_interp_accel
   use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory" autoHook="yes">
+  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory">
   !#  <description>A merger tree evolution timestepping class which limits the step the next epoch at which to store global history.</description>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHistory

@@ -89,6 +89,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final                                             adiabaticGnedin2004Destructor
+     procedure :: autoHook                          => adiabaticGnedin2004AutoHook
      procedure :: calculationReset                  => adiabaticGnedin2004CalculationReset
      procedure :: density                           => adiabaticGnedin2004Density
      procedure :: densityLogSlope                   => adiabaticGnedin2004DensityLogSlope
@@ -202,14 +203,26 @@ contains
     return
   end function adiabaticGnedin2004ConstructorInternal
 
+  subroutine adiabaticGnedin2004AutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,adiabaticGnedin2004CalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine adiabaticGnedin2004AutoHook
+  
   subroutine adiabaticGnedin2004Destructor(self)
     !% Destructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
     !# <objectDestructor name="self%cosmologyParameters_" />
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    call calculationResetEvent%detach(self,adiabaticGnedin2004CalculationReset)
     return
   end subroutine adiabaticGnedin2004Destructor
   
@@ -219,8 +232,6 @@ contains
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
 
-    ! Reset the dark matter only profile.
-    call self%darkMatterProfileDMO_%calculationReset(node)
     ! Reset calculations for this profile.
     self%lastUniqueID              =node%uniqueID()
     self%radiusPreviousIndex       = 0

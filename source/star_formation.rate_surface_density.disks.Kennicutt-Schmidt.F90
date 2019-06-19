@@ -35,6 +35,8 @@
      logical                     :: factorsComputed
      double precision            :: surfaceDensityCriticalFactor, hydrogenMassFraction
    contains
+     final     ::                     kennicuttSchmidtDestructor
+     procedure :: autoHook         => kennicuttSchmidtAutoHook
      procedure :: calculationReset => kennicuttSchmidtCalculationReset
      procedure :: rate             => kennicuttSchmidtRate
   end type starFormationRateSurfaceDensityDisksKennicuttSchmidt
@@ -139,6 +141,26 @@ contains
          &             *mega**(2.0d0-2.0d0*self%exponent)
     return
   end function kennicuttSchmidtConstructorInternal
+
+  subroutine kennicuttSchmidtAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,kennicuttSchmidtCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine kennicuttSchmidtAutoHook
+  
+  subroutine kennicuttSchmidtDestructor(self)
+    !% Destructor for the kennicuttSchmidt cooling radius class.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    type(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
+
+    call calculationResetEvent%detach(self,kennicuttSchmidtCalculationReset)
+    return
+  end subroutine kennicuttSchmidtDestructor
 
   subroutine kennicuttSchmidtCalculationReset(self,node)
     !% Reset the Kennicutt-Schmidt relation calculation.

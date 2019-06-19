@@ -50,6 +50,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final     ::                           coldModeDestructor
+     procedure :: autoHook               => coldModeAutoHook
      procedure :: calculationReset       => coldModeCalculationReset
      procedure :: accretionRate          => coldModeAccretionRate
      procedure :: accretedMass           => coldModeAccretedMass
@@ -130,12 +131,24 @@ contains
     return
   end function coldModeConstructorInternal
 
+  subroutine coldModeAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(accretionHaloColdMode), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,coldModeCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine coldModeAutoHook
+  
   subroutine coldModeDestructor(self)
     !% Destructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(accretionHaloColdMode), intent(inout) :: self
 
     !# <objectDestructor name="self%coolingFunction_"/>
+    call calculationResetEvent%detach(self,coldModeCalculationReset)
     return
   end subroutine coldModeDestructor
 

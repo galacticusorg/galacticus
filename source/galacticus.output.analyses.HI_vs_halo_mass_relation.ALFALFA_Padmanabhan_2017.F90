@@ -284,11 +284,10 @@ contains
     fractionHydrogenCosmic           =+cosmologyParametersData%OmegaBaryon() &
          &                            /cosmologyParametersData%OmegaMatter()
     massHILogarithmicCovarianceTarget=+0.0d0
-    velocity0Fit=10.0**log10Velocity0Fit
-    velocity1Fit=10.0**log10Velocity1Fit
+    velocity0Fit                     =+10.0d0**log10Velocity0Fit
+    velocity1Fit                     =+10.0d0**log10Velocity1Fit
     do iBin=1,massHaloCount
-       call basicWork              %massSet         (massHalo(iBin))
-       call darkMatterHaloScaleData%calculationReset(nodeWork      )
+       call basicWork%massSet(massHalo(iBin))
        ! Compute virial velocity, including the extra factor of Ωₘ^⅙ to correct for incorrect definition of virial density
        ! contrast used by Padmanabhan & Refrigier (2017).
        velocityVirial               =+darkMatterHaloScaleData%virialVelocity(nodeWork)                &

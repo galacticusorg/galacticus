@@ -54,6 +54,8 @@
      !@     <description>Returns the fraction of potential accretion onto a halo from the \gls{igm} which succeeded given the halo and filtering masses.</description>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                            naozBarkana2007Destructor
+     procedure :: autoHook                => naozBarkana2007AutoHook
      procedure :: calculationReset        => naozBarkana2007CalculationReset
      procedure :: branchHasBaryons        => naozBarkana2007BranchHasBaryons
      procedure :: accretionRate           => naozBarkana2007AccretionRate
@@ -127,6 +129,26 @@ contains
     return
   end function naozBarkana2007ConstructorInternal
 
+  subroutine naozBarkana2007AutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(accretionHaloNaozBarkana2007), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,naozBarkana2007CalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine naozBarkana2007AutoHook
+  
+  subroutine naozBarkana2007Destructor(self)
+    !% Destructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    type(accretionHaloNaozBarkana2007), intent(inout) :: self
+    
+    call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
+    return
+  end subroutine naozBarkana2007Destructor
+   
   subroutine naozBarkana2007CalculationReset(self,node)
     !% Reset the accretion rate calculation.
     implicit none

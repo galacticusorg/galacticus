@@ -36,6 +36,8 @@
           &                         massGas                  , hydrogenMassFraction               , &
           &                         massStellar
    contains
+     final     ::                     blitz2006Destructor
+     procedure :: autoHook         => blitz2006AutoHook
      procedure :: calculationReset => blitz2006CalculationReset
      procedure :: rate             => blitz2006Rate
   end type starFormationRateSurfaceDensityDisksBlitz2006
@@ -157,6 +159,26 @@ contains
     self%pressureCharacteristic             =self%pressureCharacteristic*boltzmannsConstant*((hecto*megaParsec)**3)/massSolar/kilo**2 ! Convert to M☉(km/s)²/Mpc.
     return
   end function blitz2006ConstructorInternal
+
+  subroutine blitz2006AutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,blitz2006CalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine blitz2006AutoHook
+  
+  subroutine blitz2006Destructor(self)
+    !% Destructor for the blitz2006 cooling radius class.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    type(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
+
+    call calculationResetEvent%detach(self,blitz2006CalculationReset)
+    return
+  end subroutine blitz2006Destructor
 
   subroutine blitz2006CalculationReset(self,node)
     !% Reset the Kennicutt-Schmidt relation calculation.

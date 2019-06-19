@@ -45,6 +45,7 @@
      !@   </objectMethod>
      !@ </objectMethods>
      final                                             heatedDestructor
+     procedure :: autoHook                          => heatedAutoHook
      procedure :: calculationReset                  => heatedCalculationReset
      procedure :: radiusInitial                     => heatedRadiusInitial
      procedure :: density                           => heatedDensity
@@ -128,14 +129,26 @@ contains
     return
   end function heatedConstructorInternal
 
+  subroutine heatedAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(darkMatterProfileDMOHeated), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,heatedCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine heatedAutoHook
+  
   subroutine heatedDestructor(self)
     !% Destructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOHeated), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterProfileDMO_"     />
     !# <objectDestructor name="self%darkMatterHaloScale_"      />
     !# <objectDestructor name="self%darkMatterProfileHeating_" />
+    call calculationResetEvent%detach(self,heatedCalculationReset)
     return
   end subroutine heatedDestructor
   
@@ -145,8 +158,6 @@ contains
     class(darkMatterProfileDMOHeated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
 
-    ! Reset the unheated profile.
-    call self%darkMatterProfileDMO_%calculationReset(node)
     ! Reset calculations for this profile.
     self%lastUniqueID       =node%uniqueID()
     self%radiusFinalPrevious=-huge(0.0d0)
@@ -290,11 +301,11 @@ contains
     use Root_Finder
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target  :: self
-    type            (treeNode               ), intent(inout), target  :: node
-    double precision                         , intent(in   )          :: radiusFinal
-    double precision                         , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
-    type            (rootFinder             ), save                   :: finder
-    double precision                                                  :: factorExpand
+    type            (treeNode                  ), intent(inout), target  :: node
+    double precision                            , intent(in   )          :: radiusFinal
+    double precision                            , parameter              :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    type            (rootFinder                ), save                   :: finder
+    double precision                                                     :: factorExpand
     !$omp threadprivate(finder)
 
     ! If profile is unheated, the initial radius equals the final radius.

@@ -23,7 +23,7 @@
   use Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
   use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <galacticStructureSolver name="galacticStructureSolverFixed" autoHook="yes">
+  !# <galacticStructureSolver name="galacticStructureSolverFixed">
   !#  <description>A ``fixed'' solver for galactic structure (no self-gravity of baryons, and size simply scales in proportion to specific angular momentum).</description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverFixed
