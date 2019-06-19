@@ -422,7 +422,8 @@ contains
     type            (varying_string                     )                            :: subhaloAngularMomentaMethodText
     double precision                                                                 :: presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, &
          &                                                                              presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
-
+    !$GLC attributes initialized :: self
+    
     fileCount=parameters%count('fileNames')
     allocate(fileNames(fileCount))
     !# <inputParameter>
