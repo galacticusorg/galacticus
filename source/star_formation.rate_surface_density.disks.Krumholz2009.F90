@@ -47,6 +47,12 @@
      !@ <objectMethods>
      !@   <object>starFormationRateSurfaceDensityDisksKrumholz2009</object>
      !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>computeFactors</method>
      !@     <arguments></arguments>
      !@     <type>\void</type>

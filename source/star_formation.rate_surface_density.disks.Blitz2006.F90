@@ -36,6 +36,15 @@
           &                         massGas                  , hydrogenMassFraction               , &
           &                         massStellar
    contains
+     !@ <objectMethods>
+     !@   <object>starFormationRateSurfaceDensityDisksBlitz2006</object>
+     !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>                                                                                                                                                                                   
      final     ::                     blitz2006Destructor
      procedure :: autoHook         => blitz2006AutoHook
      procedure :: calculationReset => blitz2006CalculationReset

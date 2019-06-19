@@ -37,7 +37,15 @@
      logical                                             :: timescaleComputed
      integer         (kind_int8                        ) :: lastUniqueID
    contains
-     final     ::                     haloScalingDestructor
+     !@ <objectMethods>
+     !@   <object>starFormationTimescaleDisksHaloScaling</object>
+     !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>                                                                                                                                                                                         final     ::                     haloScalingDestructor
      procedure :: autoHook         => haloScalingAutoHook
      procedure :: timescale        => haloScalingTimescale
      procedure :: calculationReset => haloScalingCalculationReset

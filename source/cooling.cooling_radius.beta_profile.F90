@@ -60,6 +60,15 @@
      logical                                                            :: radiusComputed                      , radiusGrowthRateComputed
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
+     !@ <objectMethods>
+     !@   <object>coolingRadiusBetaProfile</object>
+     !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
      final     ::                     betaProfileDestructor
      procedure :: autoHook         => betaProfileAutoHook
      procedure :: radius           => betaProfileRadius
