@@ -25,28 +25,30 @@
   use Cosmology_Functions
   use Virial_Density_Contrast
 
-  !# <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition">
+  !# <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition" recursive="yes">
   !#  <description>Dark matter halo scales derived from virial density contrasts.</description>
   !# </darkMatterHaloScale>
   type, extends(darkMatterHaloScaleClass) :: darkMatterHaloScaleVirialDensityContrastDefinition
      !% A dark matter halo scale contrast class using virial density contrasts.
      private
-     class           (cosmologyParametersClass  ), pointer   :: cosmologyParameters_       => null()
-     class           (cosmologyFunctionsClass   ), pointer   :: cosmologyFunctions_        => null()
-     class           (virialDensityContrastClass), pointer   :: virialDensityContrast_     => null()
+     logical                                                                       :: isRecursive
+     class           (darkMatterHaloScaleVirialDensityContrastDefinition), pointer :: recursiveSelf
+     class           (cosmologyParametersClass                          ), pointer :: cosmologyParameters_       => null()
+     class           (cosmologyFunctionsClass                           ), pointer :: cosmologyFunctions_        => null()
+     class           (virialDensityContrastClass                        ), pointer :: virialDensityContrast_     => null()
      ! Record of unique ID of node which we last computed results for.
-     integer         (kind=kind_int8            )            :: lastUniqueID
+     integer         (kind=kind_int8                                    )          :: lastUniqueID
      ! Record of whether or not halo scales have already been computed for this node.
-     logical                                                 :: dynamicalTimescaleComputed          , virialRadiusComputed            , &
-          &                                                     virialTemperatureComputed           , virialVelocityComputed
+     logical                                                                       :: dynamicalTimescaleComputed          , virialRadiusComputed            , &
+          &                                                                           virialTemperatureComputed           , virialVelocityComputed
      ! Stored values of halo scales.
-     double precision                                        :: dynamicalTimescaleStored            , virialRadiusStored              , &
-          &                                                     virialTemperatureStored             , virialVelocityStored            , &
-          &                                                     timePrevious                        , densityGrowthRatePrevious       , &
-          &                                                     massPrevious
+     double precision                                                              :: dynamicalTimescaleStored            , virialRadiusStored              , &
+          &                                                                           virialTemperatureStored             , virialVelocityStored            , &
+          &                                                                           timePrevious                        , densityGrowthRatePrevious       , &
+          &                                                                           massPrevious
      ! Table for fast lookup of the mean density of halos.
-     double precision                                        :: meanDensityTimeMaximum              , meanDensityTimeMinimum   =-1.0d0
-     type            (table1DLogarithmicLinear  )            :: meanDensityTable
+     double precision                                                              :: meanDensityTimeMaximum              , meanDensityTimeMinimum   =-1.0d0
+     type            (table1DLogarithmicLinear                          )          :: meanDensityTable
    contains
      !@ <objectMethods>
      !@   <object>darkMatterHaloScaleVirialDensityContrastDefinition</object>
@@ -69,6 +71,7 @@
      procedure :: virialRadiusGrowthRate              => virialDensityContrastDefinitionVirialRadiusGrowthRate
      procedure :: meanDensity                         => virialDensityContrastDefinitionMeanDensity
      procedure :: meanDensityGrowthRate               => virialDensityContrastDefinitionMeanDensityGrowthRate
+     procedure :: deepCopy                            => virialDensityContrastDefinitionDeepCopy
   end type darkMatterHaloScaleVirialDensityContrastDefinition
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
@@ -81,20 +84,22 @@
 
 contains
 
-  function virialDensityContrastDefinitionParameters(parameters) result(self)
+  function virialDensityContrastDefinitionParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
     !% Constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), target        :: self
-    type (inputParameters                                   ), intent(inout) :: parameters
-    class(cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
-    class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
-    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
+    type   (darkMatterHaloScaleVirialDensityContrastDefinition), target                  :: self
+    type   (inputParameters                                   ), intent(inout)           :: parameters
+    logical                                                    , intent(in   ), optional :: recursiveConstruct
+    class  (darkMatterHaloScaleClass                          ), intent(in   ), optional :: recursiveSelf
+    class  (cosmologyParametersClass                          ), pointer                 :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_
+    class  (virialDensityContrastClass                        ), pointer                 :: virialDensityContrast_
 
     !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
-    self=darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_)
+    self=darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,recursiveConstruct,recursiveSelf)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"  />
     !# <objectDestructor name="cosmologyFunctions_"   />
@@ -102,13 +107,17 @@ contains
     return
   end function virialDensityContrastDefinitionParameters
 
-  function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_) result(self)
+  function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,recursiveConstruct,recursiveSelf) result(self)
     !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type (darkMatterHaloScaleVirialDensityContrastDefinition)                        :: self
-    class(cosmologyParametersClass                          ), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
-    class(virialDensityContrastClass                        ), intent(in   ), target :: virialDensityContrast_
+    type   (darkMatterHaloScaleVirialDensityContrastDefinition)                                  :: self
+    class  (cosmologyParametersClass                          ), intent(in   ), target           :: cosmologyParameters_
+    class  (cosmologyFunctionsClass                           ), intent(in   ), target           :: cosmologyFunctions_
+    class  (virialDensityContrastClass                        ), intent(in   ), target           :: virialDensityContrast_
+    logical                                                    , intent(in   )        , optional :: recursiveConstruct
+    class  (darkMatterHaloScaleClass                          ), intent(in   ), target, optional :: recursiveSelf
+    !# <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_"/>
 
     self%lastUniqueID              =-1_kind_int8
@@ -120,6 +129,16 @@ contains
     self%meanDensityTimeMinimum    =-1.0d0
     self%timePrevious              =-1.0d0
     self%massPrevious              =-1.0d0
+    self%isRecursive               =recursiveConstruct_
+    if (recursiveConstruct_) then
+       if (.not.present(recursiveSelf)) call Galacticus_Error_Report('recursiveSelf not present'//{introspection:location})
+       select type (recursiveSelf)
+       class is (darkMatterHaloScaleVirialDensityContrastDefinition)
+          self%recursiveSelf => recursiveSelf
+       class default
+          call Galacticus_Error_Report('recursiveSelf is of incorrect class'//{introspection:location})
+       end select
+    end if
     return
   end function virialDensityContrastDefinitionInternal
 
@@ -168,6 +187,11 @@ contains
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionDynamicalTimescale=self%recursiveSelf%dynamicalTimescale(node)
+       return
+    end if
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if halo dynamical timescale is already computed. Compute and store if not.
@@ -191,6 +215,11 @@ contains
     type (treeNode                                          ), intent(inout) :: node
     class(nodeComponentBasic                                ), pointer       :: basic
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionVirialVelocity=self%recursiveSelf%virialVelocity(node)
+       return
+    end if
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if virial velocity is already computed. Compute and store if not.
@@ -216,6 +245,11 @@ contains
     type (treeNode                                          ), intent(inout) :: node
     class(nodeComponentBasic                                ), pointer       :: basic
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionVirialVelocityGrowthRate=self%recursiveSelf%virialVelocityGrowthRate(node)
+       return
+    end if
     ! Get the basic component.
     basic => node%basic()
     virialDensityContrastDefinitionVirialVelocityGrowthRate= &
@@ -238,6 +272,11 @@ contains
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionVirialTemperature=self%recursiveSelf%virialTemperature(node)
+       return
+    end if
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if virial temperature is already computed. Compute and store if not.
@@ -261,6 +300,11 @@ contains
     type (treeNode                                          ), intent(inout) :: node
     class(nodeComponentBasic                                ), pointer       :: basic
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionVirialRadius=self%recursiveSelf%virialRadius(node)
+       return
+    end if
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
     ! Check if virial radius is already computed. Compute and store if not.
@@ -285,6 +329,11 @@ contains
     type (treeNode                                          ), intent(inout) :: node
     !GCC$ attributes unused :: self, node
     
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionVirialRadiusGradientLogMass=self%recursiveSelf%virialRadiusGradientLogarithmicMass(node)
+       return
+    end if
     ! Halos at given epoch have fixed density, so radius always grows as the cube-root of mass.
     virialDensityContrastDefinitionVirialRadiusGradientLogMass=1.0d0/3.0d0
     return
@@ -298,6 +347,11 @@ contains
     type (treeNode                                          ), intent(inout) :: node
     class(nodeComponentBasic)                                , pointer       :: basic
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionVirialRadiusGrowthRate=self%recursiveSelf%virialRadiusGrowthRate(node)
+       return
+    end if
     ! Get the basic component.
     basic => node%basic()
     virialDensityContrastDefinitionVirialRadiusGrowthRate=(1.0d0/3.0d0)*self%virialRadius(node)&
@@ -316,6 +370,11 @@ contains
     integer                                                                             :: i    , meanDensityTablePoints
     double precision                                                                    :: time
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionMeanDensity=self%recursiveSelf%meanDensity(node)
+       return
+    end if
     ! Get the basic component.
     basic => node%basic()
     ! Get the time at which this halo was last an isolated halo.
@@ -368,6 +427,11 @@ contains
     class           (nodeComponentBasic                                ), pointer       :: basic
     double precision                                                                    :: expansionFactor, time
 
+    ! Use recursive self if necessary.
+    if (self%isRecursive) then
+       virialDensityContrastDefinitionMeanDensityGrowthRate=self%recursiveSelf%meanDensityGrowthRate(node)
+       return
+    end if
     if (node%isSatellite()) then
        ! Satellite halo is not growing, return zero rate.
        virialDensityContrastDefinitionMeanDensityGrowthRate=0.0d0
@@ -398,3 +462,74 @@ contains
     end if
     return
   end function virialDensityContrastDefinitionMeanDensityGrowthRate
+  
+  subroutine virialDensityContrastDefinitionDeepCopy(self,destination)
+    !% Perform a deep copy of the object.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    class(darkMatterHaloScaleClass                          ), intent(inout) :: destination
+
+    call self%darkMatterHaloScaleClass%deepCopy(destination)
+    select type (destination)
+    type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+       destination%isRecursive               =self%isRecursive
+       destination%lastUniqueID              =self%lastUniqueID
+       destination%dynamicalTimescaleComputed=self%dynamicalTimescaleComputed
+       destination%virialRadiusComputed      =self%virialRadiusComputed
+       destination%virialTemperatureComputed =self%virialTemperatureComputed
+       destination%virialVelocityComputed    =self%virialVelocityComputed
+       destination%dynamicalTimescaleStored  =self%dynamicalTimescaleStored
+       destination%virialRadiusStored        =self%virialRadiusStored
+       destination%virialTemperatureStored   =self%virialTemperatureStored
+       destination%virialVelocityStored      =self%virialVelocityStored
+       destination%timePrevious              =self%timePrevious
+       destination%densityGrowthRatePrevious =self%densityGrowthRatePrevious
+       destination%massPrevious              =self%massPrevious
+       destination%meanDensityTimeMaximum    =self%meanDensityTimeMaximum
+       destination%meanDensityTimeMinimum    =self%meanDensityTimeMinimum
+       destination%meanDensityTable          =self%meanDensityTable
+       if (self%isRecursive) then
+          if (associated(self%recursiveSelf%recursiveSelf)) then
+             ! If the parent self's recursiveSelf pointer is set, it indicates that it was deep-copied, and the pointer points to
+             ! that copy. In that case we set the parent self of our destination to that copy.
+             destination%recursiveSelf  => self%recursiveSelf%recursiveSelf
+          else
+             ! The parent self does not appear to have been deep-copied yet. Retain the same parent self pointer in our copy, but
+             ! indicate that we need to look for the new parent later.
+             destination%recursiveSelf  => self%recursiveSelf
+          end if
+       else
+          ! This is a parent of a recursively-constructed object. Record the location of our copy so that it can be used to set
+          ! the parent in deep copies of the child object.
+          call virialDensityContrastDefinitionDeepCopyAssign(self,destination)
+          destination%recursiveSelf     => null()
+       end if
+       nullify(destination%cosmologyParameters_)
+       allocate(destination%cosmologyParameters_,mold=self%cosmologyParameters_)
+       !# <deepCopy source="self%cosmologyParameters_" destination="destination%cosmologyParameters_"/>
+       nullify(destination%cosmologyFunctions_)
+       allocate(destination%cosmologyFunctions_,mold=self%cosmologyFunctions_)
+       !# <deepCopy source="self%cosmologyFunctions_" destination="destination%cosmologyFunctions_"/>
+       nullify(destination%virialDensityContrast_)
+       allocate(destination%virialDensityContrast_,mold=self%virialDensityContrast_)
+       !# <deepCopy source="self%virialDensityContrast_" destination="destination%virialDensityContrast_"/>
+       call destination%meanDensityTable%deepCopyActions()
+    class default
+       call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
+    end select
+    return
+  end subroutine virialDensityContrastDefinitionDeepCopy
+
+  subroutine virialDensityContrastDefinitionDeepCopyAssign(self,destination)
+    !% Perform pointer assignment during a deep copy of the object.
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)         :: self
+    class(darkMatterHaloScaleClass                          ), intent(inout), target :: destination
+
+    select type (destination)
+    type is (darkMatterHaloScaleVirialDensityContrastDefinition)
+       self%recursiveSelf => destination
+    end select
+    return
+  end subroutine virialDensityContrastDefinitionDeepCopyAssign
