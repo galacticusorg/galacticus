@@ -171,7 +171,9 @@ contains
          &                                                                                        i                     , j                       , &
          &                                                                                        instance              , indexElement            , &
          &                                                                                        verbosityLevel        , status
+#ifdef MATHEVALAVAIL
     integer         (kind_int8                                )                                :: evaluator
+#endif
     real                                                                                       :: timeBegin             , timeEnd
     double precision                                                                           :: logLikelihoodProposed , valueDerived
     type            (inputParameters                          )                                :: parameters_
