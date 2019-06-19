@@ -323,10 +323,10 @@ contains
        ! Compute the specific angular momentum of the disk at this structure solver radius in units of the mean specific angular
        ! momentum of the disk assuming a flat rotation curve.
        select type (diskMassDistribution)
-          class is (massDistributionCylindrical)
-             ! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
-             ! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
-             ! distribution (assuming a flat rotation curve).
+       class is (massDistributionCylindrical)
+          ! Determine the specific angular momentum at the size solver radius in units of the mean specific angular
+          ! momentum of the disk. This is equal to the ratio of the 1st to 2nd radial moments of the surface density
+          ! distribution (assuming a flat rotation curve).
           diskMassDistributionDensityMoment1=diskMassDistribution%surfaceDensityRadialMoment(1.0d0,isInfinite=surfaceDensityMoment1IsInfinite)
           diskMassDistributionDensityMoment2=diskMassDistribution%surfaceDensityRadialMoment(2.0d0,isInfinite=surfaceDensityMoment2IsInfinite)
           if (surfaceDensityMoment1IsInfinite.or.surfaceDensityMoment2IsInfinite) then
@@ -340,7 +340,7 @@ contains
                   &   /diskMassDistributionDensityMoment1 & 
                   &  )
           end if
-          class default
+       class default
           call Galacticus_Error_Report('only cylindrically symmetric mass distributions are allowed'//{introspection:location})
        end select
        ! If necessary, compute the specific angular momentum correction factor to account for the difference between rotation
