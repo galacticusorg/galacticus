@@ -113,7 +113,7 @@
     <redshifts value="0"/>
   </outputTimesMethod>
 
-  <outputVirialData value="false"/>
+  <nodePropertyExtractorMethod value="virialProperties"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="0.961"/>
     <wavenumberReference value="1.000"/>
