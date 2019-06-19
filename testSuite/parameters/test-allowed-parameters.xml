@@ -176,7 +176,7 @@
   
   <!-- Output options -->
   <outputTimestepHistory value="false"/>
-  <outputVirialData value="true"/>
+  <nodePropertyExtractorMethod value="virialProperties"/>
   <outputTimesMethod value="list">
     <redshifts value="0.0"/>
   </outputTimesMethod>

@@ -93,7 +93,7 @@
   </mergerTreeOutputterMethod>
   <outputRotationCurveData value="true"/>
   <outputRotationCurveRadii value="spheroidRadius:all:all:1.0 spheroidRadius:darkHalo:dark:1.0 spheroidRadius:spheroid:baryonic:1.0"/>
-  <outputVirialData value="true"/>
+  <nodePropertyExtractorMethod value="virialProperties"/>
 
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/adiabaticContraction.hdf5"/>
