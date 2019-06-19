@@ -175,7 +175,7 @@ contains
     return
   end subroutine lmnstyStllrChrltFll2000Destructor
  
-  double precision function lmnstyStllrChrltFll2000Extract(self,node)
+  double precision function lmnstyStllrChrltFll2000Extract(self,node,instance)
     !% Implement a stellar luminosity output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Nodes                , only : nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
@@ -186,40 +186,42 @@ contains
     use               Numerical_Constants_Prefixes
     use               Numerical_Constants_Math
     implicit none
-    class           (nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
-    type            (treeNode                              ), intent(inout) :: node
-    class           (nodeComponentBasic                    ), pointer       :: basic
-    class           (nodeComponentDisk                     ), pointer       :: disk
-    class           (nodeComponentSpheroid                 ), pointer       :: spheroid
-    double precision                                        , parameter     :: metallicityISMLocal      =+2.00d-02            ! Metallicity in the local ISM.
-    double precision                                        , parameter     :: AVToEBV                  =+3.10d+00            ! (A_V/E(B-V); Savage & Mathis 1979)
-    double precision                                        , parameter     :: NHToEBV                  =+5.80d+21            ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
-    double precision                                        , parameter     :: wavelengthZeroPoint      =+5.50d+03            ! Angstroms
-    double precision                                        , parameter     :: depthOpticalToMagnitudes =+2.50d+00          & ! Conversion factor from optical depth to magnitudes of extinction.
-         &                                                                                               *log10(            &
-         &                                                                                                      +exp(       &
-         &                                                                                                           +1.0d0 &
-         &                                                                                                          )       &
-         &                                                                                                     )
-    double precision                                        , parameter     :: depthOpticalNormalization=+AVToEBV                  &
-         &                                                                                               /NHToEBV                  &
-         &                                                                                               *hydrogenByMassSolar      &
-         &                                                                                               /atomicMassUnit*massSolar &
-         &                                                                                               /(                        &
-         &                                                                                                 +parsec                 &
-         &                                                                                                 *hecto                  &
-         &                                                                                               )**2                      &
-         &                                                                                               /metallicityISMLocal      &
-         &                                                                                               /depthOpticalToMagnitudes
-    integer         (c_size_t                              )                :: i
-    type            (stellarLuminosities                   )                :: luminositiesStellar
-    type            (abundances                            )                :: abundancesGas
-    double precision                                                        :: luminosityDisk                                     , luminosityDiskRecent        , &
-         &                                                                     luminositySpheroid                                 , luminositySpheroidRecent    , &
-         &                                                                     metallicityDisk                                    , metallicitySpheroid         , &
-         &                                                                     densitySurfaceMetalsDisk                           , densitySurfaceMetalsSpheroid, &
-         &                                                                     depthOpticalDiffuseDisk                            , depthOpticalDiffuseSpheroid , &
-         &                                                                     depthOpticalCloudsDisk                             , depthOpticalCloudsSpheroid
+    class           (nodePropertyExtractorLmnstyStllrCF2000), intent(inout)           :: self
+    type            (treeNode                              ), intent(inout)           :: node
+    type            (multiCounter                          ), intent(inout), optional :: instance
+    class           (nodeComponentBasic                    ), pointer                 :: basic
+    class           (nodeComponentDisk                     ), pointer                 :: disk
+    class           (nodeComponentSpheroid                 ), pointer                 :: spheroid
+    double precision                                        , parameter               :: metallicityISMLocal      =+2.00d-02            ! Metallicity in the local ISM.
+    double precision                                        , parameter               :: AVToEBV                  =+3.10d+00            ! (A_V/E(B-V); Savage & Mathis 1979)
+    double precision                                        , parameter               :: NHToEBV                  =+5.80d+21            ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
+    double precision                                        , parameter               :: wavelengthZeroPoint      =+5.50d+03            ! Angstroms
+    double precision                                        , parameter               :: depthOpticalToMagnitudes =+2.50d+00          & ! Conversion factor from optical depth to magnitudes of extinction.
+         &                                                                                                         *log10(            &
+         &                                                                                                                +exp(       &
+         &                                                                                                                     +1.0d0 &
+         &                                                                                                                    )       &
+         &                                                                                                               )
+    double precision                                        , parameter               :: depthOpticalNormalization=+AVToEBV                  &
+         &                                                                                                         /NHToEBV                  &
+         &                                                                                                         *hydrogenByMassSolar      &
+         &                                                                                                         /atomicMassUnit*massSolar &
+         &                                                                                                         /(                        &
+         &                                                                                                           +parsec                 &
+         &                                                                                                           *hecto                  &
+         &                                                                                                         )**2                      &
+         &                                                                                                         /metallicityISMLocal      &
+         &                                                                                                         /depthOpticalToMagnitudes
+    integer         (c_size_t                              )                          :: i
+    type            (stellarLuminosities                   )                          :: luminositiesStellar
+    type            (abundances                            )                          :: abundancesGas
+    double precision                                                                  :: luminosityDisk                                     , luminosityDiskRecent        , &
+         &                                                                               luminositySpheroid                                 , luminositySpheroidRecent    , &
+         &                                                                               metallicityDisk                                    , metallicitySpheroid         , &
+         &                                                                               densitySurfaceMetalsDisk                           , densitySurfaceMetalsSpheroid, &
+         &                                                                               depthOpticalDiffuseDisk                            , depthOpticalDiffuseSpheroid , &
+         &                                                                               depthOpticalCloudsDisk                             , depthOpticalCloudsSpheroid
+    !GCC$ attributes unused :: instance
 
     ! Extract luminosities and metallicities of disk and spheroid.
     basic                          =>                         node               %basic              (                             )

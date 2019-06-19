@@ -53,14 +53,15 @@ contains
     return
   end function massStellarSpheroidConstructorParameters
 
-  double precision function massStellarSpheroidExtract(self,node)
+  double precision function massStellarSpheroidExtract(self,node,instance)
     !% Implement a stellar mass-weighted morphology output analysis.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    class           (nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
-    type            (treeNode                                ), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    class           (nodePropertyExtractorMassStellarSpheroid), intent(inout)           :: self
+    type            (treeNode                                ), intent(inout)           :: node
+    type            (multiCounter                            ), intent(inout), optional :: instance
+    !GCC$ attributes unused :: self, instance
 
     massStellarSpheroidExtract=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeSpheroid)
     return

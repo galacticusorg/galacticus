@@ -53,14 +53,15 @@ contains
     return
   end function massISMConstructorParameters
 
-  double precision function massISMExtract(self,node)
+  double precision function massISMExtract(self,node,instance)
     !% Implement a massISM output analysis.
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    class(nodePropertyExtractorMassISM), intent(inout) :: self
-    type (treeNode                    ), intent(inout) :: node
-    !GCC$ attributes unused :: self
+    class(nodePropertyExtractorMassISM), intent(inout)           :: self
+    type (treeNode                    ), intent(inout)           :: node
+    type (multiCounter                ), intent(inout), optional :: instance
+    !GCC$ attributes unused :: self, instance
 
     massISMExtract=+Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeDisk    ) &
          &         +Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeSpheroid)

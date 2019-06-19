@@ -1,0 +1,233 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  use, intrinsic :: ISO_C_Binding      , only : c_size_t
+  use               Geometry_Lightcones, only : geometryLightcone , geometryLightconeClass
+  use               Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
+
+  !# <nodePropertyExtractor name="nodePropertyExtractorLightcone">
+  !#  <description>A lightcone output extractor property extractor class.</description>
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLightcone
+     !% A property extractor which extracts lightcone properties.
+     private
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
+     class           (geometryLightconeClass ), pointer                   :: geometryLightcone_
+     integer                                                              :: elementCount_
+     integer         (c_size_t               )                            :: instanceIndex
+     type            (varying_string         ), allocatable, dimension(:) :: names_             , descriptions_
+     double precision                         , allocatable, dimension(:) :: unitsInSI_
+   contains
+     final     ::                 lightconeDestructor
+     procedure :: elementCount => lightconeElementCount
+     procedure :: extract      => lightconeExtract
+     procedure :: names        => lightconeNames
+     procedure :: descriptions => lightconeDescriptions
+     procedure :: unitsInSI    => lightconeUnitsInSI
+     procedure :: addInstances => lightconeAddInstances
+     procedure :: type         => lightconeType
+  end type nodePropertyExtractorLightcone
+
+  interface nodePropertyExtractorLightcone
+     !% Constructors for the ``lightcone'' output extractor class.
+     module procedure lightconeConstructorParameters
+     module procedure lightconeConstructorInternal
+  end interface nodePropertyExtractorLightcone
+
+contains
+
+  function lightconeConstructorParameters(parameters) result(self)
+    !% Constructor for the ``lightcone'' output extractor property extractor class which takes a parameter set as input.
+    use Input_Parameters, only : inputParameter, inputParameters
+    implicit none
+    type (nodePropertyExtractorLightcone)                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
+    class(geometryLightconeClass        ), pointer       :: geometryLightcone_
+
+    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !# <objectBuilder class="geometryLightcone"  name="geometryLightcone_"  source="parameters"/>
+    self=nodePropertyExtractorLightcone(cosmologyFunctions_,geometryLightcone_)
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"/>
+    !# <objectDestructor name="geometryLightcone_" />
+    return
+  end function lightconeConstructorParameters
+
+  function lightconeConstructorInternal(cosmologyFunctions_,geometryLightcone_) result(self)
+    !% Internal constructor for the ``lightcone'' output extractor property extractor class.
+    use Numerical_Constants_Prefixes    , only : kilo
+    use Numerical_Constants_Astronomical, only : megaParsec, degreesToRadians    
+    implicit none
+    type (nodePropertyExtractorLightcone)                        :: self
+    class(cosmologyFunctionsClass       ), intent(in   ), target :: cosmologyFunctions_
+    class(geometryLightconeClass        ), intent(in   ), target :: geometryLightcone_
+    !# <constructorAssign variables="*cosmologyFunctions_, *geometryLightcone_"/>
+
+    self%elementCount_=8
+    allocate(self%names_       (self%elementCount_))
+    allocate(self%descriptions_(self%elementCount_))
+    allocate(self%unitsInSI_   (self%elementCount_))
+    self%names_       (1)='lightconePositionX'
+    self%descriptions_(1)='Position of galaxy in lightcone (radial axis) [Mpc].'
+    self%unitsInSI_   (1)=megaParsec
+    self%names_       (2)='lightconePositionY'
+    self%descriptions_(2)='Position of galaxy in lightcone (1st angular axis) [Mpc].'
+    self%unitsInSI_   (2)=megaParsec
+    self%names_       (3)='lightconePositionZ'
+    self%descriptions_(3)='Position of galaxy in lightcone (2nd angular axis) [Mpc].'
+    self%unitsInSI_   (3)=megaParsec
+    self%names_       (4)='lightconeVelocityX'
+    self%descriptions_(4)='Velocity of galaxy in lightcone (radial axis) [km/s].'
+    self%unitsInSI_   (4)=kilo
+    self%names_       (5)='lightconeVelocityY'
+    self%descriptions_(5)='Velocity of galaxy in lightcone (1st angular axis) [km/s].'
+    self%unitsInSI_   (5)=kilo
+    self%names_       (6)='lightconeVelocityZ'
+    self%descriptions_(6)='Velocity of galaxy in lightcone (2nd angular axis) [km/s].'
+    self%unitsInSI_   (6)=kilo
+    self%names_       (7)='lightconeRedshift'
+    self%descriptions_(7)='Reshift of galaxy in lightcone.'
+    self%unitsInSI_   (7)=0.0d0
+    self%names_       (8)='angularWeight'
+    self%descriptions_(8)='Number of such galaxies per unit area [degrees⁻²].'
+    self%unitsInSI_   (8)=degreesToRadians**2
+    return
+  end function lightconeConstructorInternal
+  
+  subroutine lightconeDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily lightcone} output extractor property extractor class.
+    implicit none
+    type(nodePropertyExtractorLightcone), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !# <objectDestructor name="self%geometryLightcone_" />
+    return
+  end subroutine lightconeDestructor
+  
+  integer function lightconeElementCount(self)
+    !% Return the number of elements in the lightconeple property extractors.
+    implicit none
+    class(nodePropertyExtractorLightcone), intent(inout) :: self
+
+    lightconeElementCount=self%elementCount_
+    return
+  end function lightconeElementCount
+  
+  function lightconeExtract(self,node,instance)
+    !% Implement a lightcone output extractor.
+    use Vectors                         , only : Vector_Magnitude
+    use Numerical_Constants_Astronomical, only : degreesToRadians
+    use Galacticus_Error                , only : Galacticus_Error_Report
+    implicit none
+    double precision                                , dimension(:) , allocatable :: lightconeExtract
+    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
+    type            (treeNode                      ), intent(inout)              :: node
+    type            (multiCounter                  ), intent(inout), optional    :: instance
+
+    if (.not.present(instance)) call Galacticus_Error_Report('instance is required'//{introspection:location})
+    allocate(lightconeExtract(self%elementCount_))
+    lightconeExtract(1:3)=self%geometryLightcone_%position(node,instance%state(self%instanceIndex))
+    lightconeExtract(4:6)=self%geometryLightcone_%velocity(node,instance%state(self%instanceIndex))
+    lightconeExtract(7  )=self%cosmologyFunctions_   %redshiftFromExpansionFactor(     &
+         &                 self%cosmologyFunctions_  %expansionFactor             (    &
+         &                  self%cosmologyFunctions_ %timeAtDistanceComoving       (   &
+         &                   Vector_Magnitude                                       (  &
+         &                    self%geometryLightcone_%position                       ( &
+         &                     node                         ,                          &
+         &                     instance%state(self%instanceIndex)                      &
+         &                                                                           ) &
+         &                                                                          )  &
+         &                                                                         )   &
+         &                                                                        )    &
+         &                                                                       )
+    lightconeExtract(8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
+    return
+  end function lightconeExtract
+
+  subroutine lightconeAddInstances(self,node,instance)
+    !% Implement adding of instances to a lightcone property extractor.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    use String_Handling , only : operator(//)
+    implicit none
+    class    (nodePropertyExtractorLightcone), intent(inout) :: self
+    type     (treeNode                      ), intent(inout) :: node
+    type     (multiCounter                  ), intent(inout) :: instance
+    integer  (c_size_t                      )                :: replicationCount
+    type     (varying_string                )                :: message
+    character(len=5                         )                :: label
+
+    replicationCount=self%geometryLightcone_%replicationCount(node)
+    if (replicationCount < 1_c_size_t) then
+       if (self%geometryLightcone_%isInLightcone(node,atPresentEpoch=.true.)) then
+          label="true"
+       else
+          label="false"
+       end if
+       message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call instance%append(replicationCount)
+    self%instanceIndex=instance%count()
+    return
+  end subroutine lightconeAddInstances
+
+  function lightconeNames(self)
+    !% Return the names of the lightconeple properties.
+    implicit none
+    type (varying_string                ), dimension(:) , allocatable :: lightconeNames
+    class(nodePropertyExtractorLightcone), intent(inout)              :: self
+
+    allocate(lightconeNames(self%elementCount_))
+    lightconeNames=self%names_
+    return
+  end function lightconeNames
+
+  function lightconeDescriptions(self)
+    !% Return the descriptions of the lightconeple properties.
+    implicit none
+    type (varying_string                ), dimension(:) , allocatable :: lightconeDescriptions
+    class(nodePropertyExtractorLightcone), intent(inout)              :: self
+
+    allocate(lightconeDescriptions(self%elementCount_))
+    lightconeDescriptions=self%descriptions_
+    return
+  end function lightconeDescriptions
+
+  function lightconeUnitsInSI(self)
+    !% Return the units of the lightconeple properties in the SI system.
+    implicit none
+    double precision                                , dimension(:) , allocatable :: lightconeUnitsInSI
+    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
+
+    allocate(lightconeUnitsInSI(self%elementCount_))
+    lightconeUnitsInSI=self%unitsInSI_
+    return
+  end function lightconeUnitsInSI
+
+  integer function lightconeType(self)
+    !% Return the type of the lightcone property.
+    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    implicit none
+    class(nodePropertyExtractorLightcone), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    lightconeType=outputAnalysisPropertyTypeLinear
+    return
+  end function lightconeType
