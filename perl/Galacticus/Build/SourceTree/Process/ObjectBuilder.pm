@@ -189,6 +189,7 @@ sub Process_ObjectBuilder {
 		$builderCode .= $copyLoopOpen;
 		$builderCode .= "      ".$node->{'directive'}->{'name'}." => ".$node->{'directive'}->{'class'}."(parametersCurrent)\n";
 		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%referenceCountIncrement()\n";
+		$builderCode .= "      call ".$node->{'directive'}->{'name'}."%autoHook()\n";
 		$builderCode .= $debugMessage;
 		$builderCode .= $copyLoopClose;
 		$builderCode .= "   end if\n";
