@@ -58,6 +58,12 @@
      !@ <objectMethods>
      !@   <object>darkMatterProfileAdiabaticGnedin2004</object>
      !@   <objectMethod>
+     !@     <method>calculationReset</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
+     !@     <description>Reset memoized calculations.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>computeFactors</method>
      !@     <description>Compute factors needed for solving adiabatic contraction.</description>
      !@     <type>\void</type>

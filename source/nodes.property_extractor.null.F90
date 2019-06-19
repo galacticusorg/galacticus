@@ -26,8 +26,7 @@
      !% A null output analysis class.
      private
    contains
-     procedure :: extract  => nullExtract
-     procedure :: type     => nullType
+     procedure :: type => nullType
   end type nodePropertyExtractorNull
 
   interface nodePropertyExtractorNull
@@ -48,17 +47,6 @@ contains
     nullConstructorParameters=nodePropertyExtractorNull()
     return
   end function nullConstructorParameters
-
-  double precision function nullExtract(self,node)
-    !% Implement a null output analysis.
-    implicit none
-    class(nodePropertyExtractorNull), intent(inout) :: self
-    type (treeNode                           ), intent(inout) :: node
-    !GCC$ attributes unused :: self, node
-
-    nullExtract=0.0d0
-    return
-  end function nullExtract
 
   integer function nullType(self)
     !% Return the type of the null property.
