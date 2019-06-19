@@ -29,7 +29,8 @@
   !#   <ignore variables="galacticStructureSolver_"/>
   !#  </deepCopy>
   !#  <stateStorable>
-  !#   <exclude variables="galacticStructureSolver_"/>
+  !#   <exclude   variables="galacticStructureSolver_"               />
+  !#   <restoreTo variables="odeReset"                 state=".true."/>
   !#  </stateStorable>
   !# </mergerTreeNodeEvolver>
   type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
