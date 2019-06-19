@@ -179,17 +179,6 @@ sub Process_FunctionClass {
 		    ],
 		argument    => [ "integer, intent(in   ) :: stateFile", "type(fgsl_file), intent(in   ) :: fgslStateFile" ],
 	    };
-	    # If the function requires calculation reset, add method to do so.
-	    if ( exists($directive->{'calculationReset'}) && $directive->{'calculationReset'} eq "yes" ) {
-		$methods{'calculationReset'} =
-		{
-		    description => "Reset the calculation state of the object.",
-		    type        => "void",
-		    pass        => "yes",
-		    argument    => [ "type(treeNode), intent(inout) :: node" ],
-		    code        => join("",map {"if (sizeof(".$_.")<0.and.sizeof(".$_.")>0) then\nend if\n"} ('self','node') )
-		};
-	    }
 	    # Add auto-hook function.
 	    $methods{'autoHook'} = 
 	    {
@@ -2572,25 +2561,6 @@ CODE
 	    $postContains->[0]->{'content'} .= "    end if\n";
 	    $postContains->[0]->{'content'} .= "    return\n";
 	    $postContains->[0]->{'content'} .= "  end subroutine ".$directive->{'name'}."DoStateRetrieve\n\n";
-
-	    # Create global calculation reset function.
-	    if ( exists($directive->{'calculationReset'}) && $directive->{'calculationReset'} eq "yes" ) {
-		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."DoCalculationReset","public");
-		$postContains->[0]->{'content'} .= "  !# <calculationResetTask>\n";
-		$postContains->[0]->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoCalculationReset</unitName>\n";
-		$postContains->[0]->{'content'} .= "  !# </calculationResetTask>\n";
-		$postContains->[0]->{'content'} .= "  subroutine ".$directive->{'name'}."DoCalculationReset(node)\n";
-		$postContains->[0]->{'content'} .= "    !% Reset calculations.\n";
-		$postContains->[0]->{'content'} .= "    implicit none\n";
-		$postContains->[0]->{'content'} .= "    type (treeNode), intent(inout) :: node\n";
-		$postContains->[0]->{'content'} .= "    class(".$directive->{'name'}."Class), pointer :: default\n\n";
-		$postContains->[0]->{'content'} .= "    if (associated(".$directive->{'name'}."Default)) then\n";
-		$postContains->[0]->{'content'} .= "      default => ".$directive->{'name'}."()\n";
-		$postContains->[0]->{'content'} .= "      call default%calculationReset(node)\n";
-		$postContains->[0]->{'content'} .= "    end if\n";
-		$postContains->[0]->{'content'} .= "    return\n";
-		$postContains->[0]->{'content'} .= "  end subroutine ".$directive->{'name'}."DoCalculationReset\n\n";
-            }
 
 	    # Create global destroy function.
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."DoDestroy","public");
