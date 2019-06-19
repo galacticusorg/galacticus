@@ -21,7 +21,7 @@
 
   use Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <galacticStructureSolver name="galacticStructureSolverSimple" autoHook="yes">
+  !# <galacticStructureSolver name="galacticStructureSolverSimple">
   !#  <description>A simple solver for galactic structure (self-gravity of baryons is ignored).</description>
   !# </galacticStructureSolver>
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverSimple

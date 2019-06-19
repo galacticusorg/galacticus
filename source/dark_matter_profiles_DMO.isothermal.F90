@@ -27,7 +27,6 @@
      private
    contains
      final                                             isothermalDestructor
-     procedure :: calculationReset                  => isothermalCalculationReset
      procedure :: density                           => isothermalDensity
      procedure :: densityLogSlope                   => isothermalDensityLogSlope
      procedure :: radialMoment                      => isothermalRadialMoment
@@ -88,16 +87,6 @@ contains
     return
   end subroutine isothermalDestructor
   
-  subroutine isothermalCalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
-    implicit none
-    class(darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type (treeNode                   ), intent(inout) :: node
-
-    call self%darkMatterHaloScale_%calculationReset(node)
-    return
-  end subroutine isothermalCalculationReset
-
   double precision function isothermalDensity(self,node,radius)
     !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
     !% in units of Mpc).

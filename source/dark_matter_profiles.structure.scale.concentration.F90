@@ -226,8 +226,7 @@ contains
           end if
           ! Update the work node properties and computed concentration.
           call workBasic%massSet(massDefinition)
-          call Galacticus_Calculations_Reset                       (workNode)
-          call self%darkMatterProfileDMODefinition%calculationReset(workNode)
+          call Galacticus_Calculations_Reset(workNode)
           ! Find the concentration.
           if (self%useMeanConcentration) then
              ! We are simply using the mean concentration-mass relation here.
@@ -266,8 +265,7 @@ contains
 
       ! Set the mass of the worker node.
       call workBasic%massSet(massDefinitionTrial)
-      call Galacticus_Calculations_Reset                      (workNode)
-      call self%darkMatterHaloScaleDefinition%calculationReset(workNode)
+      call Galacticus_Calculations_Reset(workNode)
       ! Get outer radius for this trial definition mass.
       radiusOuterDefinition=self%darkMatterHaloScaleDefinition%virialRadius(workNode)
       ! Get concentration for this a trial definition mass.
@@ -285,8 +283,7 @@ contains
       ! Get core radius.      
       radiusCore=radiusOuterDefinition/concentrationDefinition
       call workDarkMatterProfile%scaleSet(radiusCore)
-      call Galacticus_Calculations_Reset                       (workNode)
-      call self%darkMatterProfileDMODefinition%calculationReset(workNode)
+      call Galacticus_Calculations_Reset(workNode)
       ! Find the non-alt density.
       densityOuter=+self%cosmologyFunctions_   %matterDensityEpochal(                 workBasic%time()) &
            &       *self%virialDensityContrast_%densityContrast     (workBasic%mass(),workBasic%time())      

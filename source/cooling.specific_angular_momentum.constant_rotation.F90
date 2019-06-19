@@ -32,15 +32,16 @@
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumConstantRotation
      !% Implementation of the specific angular momentum of cooling gas class which assumes a constant rotation velocity as a function of radius.
      private 
-     class           (darkMatterProfileDMOClass      ), pointer :: darkMatterProfileDMO_ => null()
-     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
+     class           (darkMatterProfileDMOClass   ), pointer :: darkMatterProfileDMO_             => null()
+     class           (hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_          => null()
      integer         (kind=kind_int8              )          :: lastUniqueID
      logical                                                 :: angularMomentumSpecificComputed
      double precision                                        :: angularMomentumSpecificPrevious
-     integer                                                 :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
+     integer                                                 :: sourceAngularMomentumSpecificMean          , sourceNormalizationRotation
      logical                                                 :: useInteriorMean
    contains
      final     ::                            constantRotationDestructor
+     procedure :: autoHook                => constantRotationAutoHook
      procedure :: calculationReset        => constantRotationCalculationReset
      procedure :: angularMomentumSpecific => constantRotationAngularMomentumSpecific
   end type coolingSpecificAngularMomentumConstantRotation
@@ -68,7 +69,7 @@ contains
     implicit none
     type   (coolingSpecificAngularMomentumConstantRotation)                :: self
     type   (inputParameters                               ), intent(inout) :: parameters
-    class  (darkMatterProfileDMOClass                        ), pointer       :: darkMatterProfileDMO_
+    class  (darkMatterProfileDMOClass                     ), pointer       :: darkMatterProfileDMO_
     class  (hotHaloMassDistributionClass                  ), pointer       :: hotHaloMassDistribution_
     logical                                                                :: useInteriorMean
     type   (varying_string                                )                :: sourceAngularMomentumSpecificMean, sourceNormalizationRotation
@@ -133,13 +134,25 @@ contains
     return
   end function constantRotationConstructorInternal
   
+  subroutine constantRotationAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,constantRotationCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine constantRotationAutoHook
+  
   subroutine constantRotationDestructor(self)
     !% Destructor for the constant rotation specific angular momentum of cooling gas class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterProfileDMO_"      />
     !# <objectDestructor name="self%hotHaloMassDistribution_"/>
+    call calculationResetEvent%detach(self,constantRotationCalculationReset)
     return
   end subroutine constantRotationDestructor
   

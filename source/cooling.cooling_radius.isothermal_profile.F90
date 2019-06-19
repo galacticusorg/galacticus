@@ -57,6 +57,7 @@
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      final     ::                     isothermalDestructor
+     procedure :: autoHook         => isothermalAutoHook
      procedure :: radius           => isothermalRadius
      procedure :: radiusGrowthRate => isothermalRadiusGrowthRate
      procedure :: calculationReset => isothermalCalculationReset
@@ -155,8 +156,19 @@ contains
     return
   end function isothermalConstructorInternal
   
+  subroutine isothermalAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(coolingRadiusIsothermal), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,isothermalCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine isothermalAutoHook
+  
   subroutine isothermalDestructor(self)
     !% Destructor for the isothermal cooling radius class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingRadiusIsothermal), intent(inout) :: self
 
@@ -167,7 +179,8 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"       />
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
     !# <objectDestructor name="self%radiation"                 />
-   return
+    call calculationResetEvent%detach(self,isothermalCalculationReset)
+    return
   end subroutine isothermalDestructor
 
   subroutine isothermalCalculationReset(self,node)

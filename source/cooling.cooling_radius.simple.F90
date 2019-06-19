@@ -57,6 +57,7 @@
      double precision                                                   :: radiusGrowthRateStored              , radiusStored
    contains
      final     ::                     simpleDestructor
+     procedure :: autoHook         => simpleAutoHook
      procedure :: radius           => simpleRadius
      procedure :: radiusGrowthRate => simpleRadiusGrowthRate
      procedure :: calculationReset => simpleCalculationReset
@@ -159,8 +160,19 @@ contains
     return
   end function simpleConstructorInternal
   
+  subroutine simpleAutoHook(self)
+    !% Attach to the calculation reset event.
+    use Events_Hooks, only : calculationResetEvent
+    implicit none
+    class(coolingRadiusSimple), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,simpleCalculationReset,bindToOpenMPThread=.true.)
+    return
+  end subroutine simpleAutoHook
+  
   subroutine simpleDestructor(self)
     !% Destructor for the simple cooling radius class.
+    use Events_Hooks, only : calculationResetEvent
     implicit none
     type(coolingRadiusSimple), intent(inout) :: self
 
@@ -170,6 +182,7 @@ contains
     !# <objectDestructor name="self%hotHaloMassDistribution_"  />
     !# <objectDestructor name="self%cosmologyFunctions_"       />
     !# <objectDestructor name="self%radiation"                 />
+    call calculationResetEvent%detach(self,simpleCalculationReset)
     return
   end subroutine simpleDestructor
 
