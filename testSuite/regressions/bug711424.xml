@@ -59,7 +59,6 @@
   <criticalOverdensityMethod value="sphericalCollapseMatterLambda"/>
   <bondiHoyleAccretionEnhancementHotHalo value="1"/>
   <blackHoleWindEfficiency value="0.001"/>
-  <outputVirialData value="false"/>
   <treeNodeMethodBlackHole value="standard"/>
   <treeNodeMethodSpheroid value="standard"/>
   <spheroidMassDistribution value="hernquist">

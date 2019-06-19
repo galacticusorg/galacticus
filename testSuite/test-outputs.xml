@@ -46,8 +46,8 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <outputHalfMassData value="true"/>
-    <outputVirialData value="false"/>
-    <outputVirialData value="true"/>
+    <nodePropertyExtractorMethod value="null"/>
+    <nodePropertyExtractorMethod value="virialProperties"/>
   </parameters>
   
   <!-- Rotation curves -->

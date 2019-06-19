@@ -157,10 +157,10 @@ my @tests =
 		  output            => 1                                         ,
 		  expression        =>
 		      "+sqrt(0.84333333)"                                        .
-		      "*%[nodeVirialVelocity]"                                   .
+		      "*%[darkMatterOnlyVelocityVirial]"                         .
 		      "/%[spheroidVelocity]"                                     .
 		      "*("                                                       .
-		      "  +%[nodeVirialRadius]"                                   .
+		      "  +%[darkMatterOnlyRadiusVirial]"                         .
 		      "  *("                                                     .
 		      "    +%[rotationCurve:spheroidRadius:darkHalo:dark:1.0]**2".
 		      "    *%[spheroidRadius]"                                   .
