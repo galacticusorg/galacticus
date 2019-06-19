@@ -69,6 +69,7 @@
      !@     <arguments>\doublezero\ halfRadius\argin</arguments>
      !@   </objectMethod>
      !@ </objectMethods>
+     final     ::                                      exponentialDiskDestructor
      procedure :: tabulate                          => exponentialDiskTabulate
      procedure :: besselFactorRotationCurve         => exponentialDiskBesselFactorRotationCurve
      procedure :: besselFactorRotationCurveGradient => exponentialDiskBesselFactorRotationCurveGradient
@@ -220,6 +221,21 @@ contains
     !$ call OMP_Init_Lock(self%potentialLock            )
     return
   end function exponentialDiskConstructorInternal
+
+  subroutine exponentialDiskDestructor(self)
+    !% Destructor for exponential disk mass distributions.
+    implicit none
+    type(massDistributionExponentialDisk), intent(inout) :: self
+
+    call self%rotationCurveTable        %destroy()
+    call self%rotationCurveGradientTable%destroy()
+    call self%potentialTable            %destroy()
+    !$ call OMP_Destroy_Lock(self%factorComputeLock        )
+    !$ call OMP_Destroy_Lock(self%rotationCurveLock        )
+    !$ call OMP_Destroy_Lock(self%rotationCurveGradientLock)
+    !$ call OMP_Destroy_Lock(self%potentialLock            )
+    return
+  end subroutine exponentialDiskDestructor
 
   subroutine exponentialDiskTabulate(self)
     !% Build tables used for exponential disk mass distributions.
