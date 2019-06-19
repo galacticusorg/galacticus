@@ -335,7 +335,7 @@ sub parameterVectorApply {
 	    }
 	}
 	die('Galacticus::Constraints::Parameters::parameterVectorApply(): unable to resolve parameter dependencies')
-	    unless ( $progress );
+	    unless ( $progress || $dependenciesResolved );
     }
     # Apply any command line parameters.
     &applyCommandLineParameters($parameters,\%options);
