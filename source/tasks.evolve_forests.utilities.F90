@@ -48,7 +48,7 @@ contains
     implicit none
     type (inputParameters), intent(inout)          :: parameters
     class(*              ), intent(  out), pointer :: task_
-
+    
     task__ => task(parameters)
     select type (task__)
     class is (taskEvolveForests)
@@ -86,7 +86,7 @@ contains
   !# <functionGlobal>
   !#  <unitName>Tasks_Evolve_Forest_Destruct</unitName>
   !#  <type>void</type>
-  !#  <arguments>class(*), intent(inout) :: task_</arguments>
+  !#  <arguments>class(*), intent(inout), pointer :: task_</arguments>
   !# </functionGlobal>
   subroutine Tasks_Evolve_Forest_Destruct(task_)
     !% Destruct a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
