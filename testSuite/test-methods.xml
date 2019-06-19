@@ -582,7 +582,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputVirialData value="true"/>
+    <nodePropertyExtractorMethod value="virialProperties"/>
   </parameters>
   
   <!-- Output descendent indices -->
