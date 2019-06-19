@@ -2482,6 +2482,7 @@ CODE
 			$postContains->[0]->{'content'} .= "           call debugStackPush(loc(".$directive->{'name'}."RecursiveDefault))\n"
 			    if ( $debugging );
 			$postContains->[0]->{'content'} .= "           ".$directive->{'name'}."RecursiveDefault=".$class->{'name'}."(subParameters,recursiveConstruct=.true.,recursiveSelf=".$directive->{'name'}."Default)\n";
+			$postContains->[0]->{'content'} .= "           call ".$directive->{'name'}."RecursiveDefault\%autoHook()\n";
 			$postContains->[0]->{'content'} .= "           call debugStackPop()\n"
 			    if ( $debugging );
 			$postContains->[0]->{'content'} .= "        end select\n";
