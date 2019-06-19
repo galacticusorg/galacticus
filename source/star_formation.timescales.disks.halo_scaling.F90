@@ -45,7 +45,8 @@
      !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
      !@     <description>Reset memoized calculations.</description>
      !@   </objectMethod>
-     !@ </objectMethods>                                                                                                                                                                                         final     ::                     haloScalingDestructor
+     !@ </objectMethods>
+     final     ::                     haloScalingDestructor
      procedure :: autoHook         => haloScalingAutoHook
      procedure :: timescale        => haloScalingTimescale
      procedure :: calculationReset => haloScalingCalculationReset
