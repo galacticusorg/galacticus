@@ -30,7 +30,7 @@ sub Process_DeepCopyActions {
 	# Capture deepCopyActions directives.
 	if ( $node->{'type'} eq "deepCopyActions" ) {
 	    # Assert that our parent is a module (for now).
-	    die("Process_StateStorale: parent node must be a module")
+	    die("Process_DeepCopyActions: parent node must be a module")
 		unless ( $node->{'parent'}->{'type'} eq "module" );
 	    $moduleNode = $node->{'parent'};
 	    # Extract the directive.
@@ -95,6 +95,7 @@ CODE
 		    my $classNode = $classes{$parentClassName}->{'node'}->{'firstChild'};
 		    while ( $classNode ) {
 			if ( $classNode->{'type'} eq "declaration" ) {
+			    # "setTo" actions - simply set a variable to a value.
 			    if ( exists($directive->{$parentClassName}) && exists($directive->{$parentClassName}->{'setTo'}) ) {
 				foreach my $setTo ( &List::ExtraUtils::as_array($directive->{$parentClassName}->{'setTo'}) ) {
 				    my @variables = split(/\s*,\s*/,$setTo->{'variables'});
