@@ -252,9 +252,6 @@ contains
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
-    !# <include directive="mergerTreeExtraOutputTask" type="moduleUse">
-    include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
-    !# </include>
     !# <include directive="mergerTreeAnalysisTask" type="moduleUse">
     include 'galacticus.output.merger_tree.analysis.modules.inc'
     !# </include>
@@ -381,16 +378,6 @@ contains
                       if (self% doubleBufferCount == self% doubleBufferSize) call self%extendDoubleBuffer ()
                    end do
                 end if
-                ! Do any extra output tasks.
-                !# <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
-                !#  <functionArgs>node,indexOutput,currentTree%index,nodePassesFilter</functionArgs>
-                include 'galacticus.output.merger_tree.tasks.extra.inc'
-                !# </include>
-                !# <eventHook name="mergerTreeExtraOutput">
-                !#  <callWith>node,indexOutput,currentTree%index,nodePassesFilter</callWith>
-                !# </eventHook>
-                ! Do any post-output processing of the node. This may include clean-up of properties no longer needed for example.
-                call node%postOutput(time)                
              end if
           end do
           ! Finished output.
