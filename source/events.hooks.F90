@@ -67,11 +67,25 @@ module Events_Hooks
      !@     <arguments></arguments>
      !@     <description>Initialize the event.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>lock</method>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@     <description>Lock the event.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>unlock</method>
+     !@     <type>void</type>
+     !@     <arguments></arguments>
+     !@     <description>Unlock the event.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::               eventHookDestructor
      procedure :: count      => eventHookCount
      procedure :: first      => eventHookFirst
      procedure :: initialize => eventHookInitialize
+     procedure :: lock       => eventHookLock
+     procedure :: unlock     => eventHookUnlock
   end type eventHook
   
   type, extends(eventHook) :: eventHookUnspecified
@@ -119,6 +133,26 @@ contains
     !$ if (self%initialized_) call OMP_Destroy_Lock(self%lock_)
     return
   end subroutine eventHookDestructor
+
+  subroutine eventHookLock(self)
+    !% Lock the event to avoid race conditions between OpenMP threads.
+    !$ use OMP_Lib
+    implicit none
+    class(eventHook), intent(inout) :: self
+
+    !$ call OMP_Set_Lock(self%lock_)
+    return
+  end subroutine eventHookLock
+
+  subroutine eventHookUnlock(self)
+    !% Unlock the event to avoid race conditions between OpenMP threads.
+    !$ use OMP_Lib
+    implicit none
+    class(eventHook), intent(inout) :: self
+
+    !$ call OMP_Unset_Lock(self%lock_)
+    return
+  end subroutine eventHookUnlock
   
   subroutine eventHookUnspecifiedAttach(self,object_,function_,bindToOpenMPThread)
     !% Attach an object to an event hook.
@@ -228,9 +262,7 @@ contains
     class(eventHook), intent(inout):: self
 
     !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
-    !$ call OMP_Set_Lock(self%lock_)
     eventHookFirst => self%first_
-    !$ call OMP_Unset_Lock(self%lock_)
     return
   end function eventHookFirst
   
