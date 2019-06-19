@@ -257,7 +257,7 @@ contains
     type            (varying_string                                  ), intent(in   ), optional                 :: targetLabel
     double precision                                                  , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                                  , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
-    type            (outputAnalysisPropertyExtractorLmnstyStllrCF2000)               , pointer                  :: outputAnalysisPropertyExtractor_
+    type            (nodePropertyExtractorLmnstyStllrCF2000)               , pointer                  :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorMagnitude         )               , pointer                  :: outputAnalysisPropertyOperatorMagnitude_
     type            (outputAnalysisPropertyOperatorIdentity          )               , pointer                  :: outputAnalysisPropertyOperatorIdentity_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc )               , pointer                  :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
@@ -278,8 +278,8 @@ contains
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(self%surveyGeometry_,self%cosmologyFunctions_,self%outputTimes_,magnitudeAbsoluteLimit=magnitudesAbsolute(iBin))
     end do
     ! Create a luminosity property extractor.
-    allocate(outputAnalysisPropertyExtractor_)
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    allocate(nodePropertyExtractor_)
+    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorLmnstyStllrCF2000(filterName         ,filterType  ,depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent          =0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     ! Prepend magnitude and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorMagnitude_"         constructor="outputAnalysisPropertyOperatorMagnitude         (                                                                                                  )"/>
@@ -329,7 +329,7 @@ contains
          &                                magnitudesAbsolute                                      , &
          &                                bufferCount                                             , &
          &                                outputWeight                                            , &
-         &                                outputAnalysisPropertyExtractor_                        , &
+         &                                nodePropertyExtractor_                        , &
          &                                outputAnalysisPropertyOperatorSequence_                 , &
          &                                outputAnalysisPropertyOperatorIdentity_                 , &
          &                                outputAnalysisWeightOperator_                           , &
@@ -350,7 +350,7 @@ contains
          &                                functionCovarianceTarget                                  &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                />
     !# <objectDestructor name="outputAnalysisPropertyOperatorMagnitude_"        />
     !# <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />

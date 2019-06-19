@@ -20,21 +20,24 @@
 !% Contains a module which implements a half-stellar mass radius output analysis property extractor class.
 
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorHalfMassRadius">
+  !# <nodePropertyExtractor name="nodePropertyExtractorHalfMassRadius">
   !#  <description>A half-(stellar) mass output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorHalfMassRadius
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHalfMassRadius
      !% A half-(stellar) mass property extractor output analysis class.
      private
    contains
-     procedure :: extract  => halfMassRadiusExtract
-     procedure :: type     => halfMassRadiusType
-  end type outputAnalysisPropertyExtractorHalfMassRadius
+     procedure :: extract     => halfMassRadiusExtract
+     procedure :: type        => halfMassRadiusType
+     procedure :: name        => halfMassRadiusName
+     procedure :: description => halfMassRadiusDescription
+     procedure :: unitsInSI   => halfMassRadiusUnitsInSI
+  end type nodePropertyExtractorHalfMassRadius
 
-  interface outputAnalysisPropertyExtractorHalfMassRadius
+  interface nodePropertyExtractorHalfMassRadius
      !% Constructors for the ``halfMassRadius'' output analysis class.
      module procedure halfMassRadiusConstructorParameters
-  end interface outputAnalysisPropertyExtractorHalfMassRadius
+  end interface nodePropertyExtractorHalfMassRadius
 
 contains
 
@@ -42,12 +45,12 @@ contains
     !% Constructor for the ``halfMassRadius'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(outputAnalysisPropertyExtractorHalfMassRadius)                :: self
-    type(inputParameters                              ), intent(inout) :: parameters
+    type(nodePropertyExtractorHalfMassRadius)                :: self
+    type(inputParameters                    ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
     ! Build the object.
-    self=outputAnalysisPropertyExtractorHalfMassRadius()
+    self=nodePropertyExtractorHalfMassRadius()
     return
   end function halfMassRadiusConstructorParameters
 
@@ -56,8 +59,8 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    class(outputAnalysisPropertyExtractorHalfMassRadius), intent(inout) :: self
-    type (treeNode                                     ), intent(inout) :: node
+    class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
+    type (treeNode                           ), intent(inout) :: node
     !GCC$ attributes unused :: self
 
     halfMassRadiusExtract=Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=0.5d0,massType=massTypeStellar)
@@ -68,9 +71,42 @@ contains
     !% Return the type of the half-mass radius property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorHalfMassRadius), intent(inout) :: self
+    class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     halfMassRadiusType=outputAnalysisPropertyTypeLinear
     return
   end function halfMassRadiusType
+
+  function halfMassRadiusName(self)
+    !% Return the name of the halfMassRadius property.
+    implicit none
+    type (varying_string                     )                :: halfMassRadiusName
+    class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    halfMassRadiusName=var_str('radiusHalfMass')
+    return
+  end function halfMassRadiusName
+
+  function halfMassRadiusDescription(self)
+    !% Return a description of the halfMassRadius property.
+    implicit none
+    type (varying_string                     )                :: halfMassRadiusDescription
+    class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    halfMassRadiusDescription=var_str('The stellar half-mass radius.')
+    return
+  end function halfMassRadiusDescription
+
+  double precision function halfMassRadiusUnitsInSI(self)
+    !% Return the units of the halfMassRadius property in the SI system.
+    use Numerical_Constants_Astronomical, only : megaParsec
+    implicit none
+    class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    halfMassRadiusUnitsInSI=megaParsec
+    return
+  end function halfMassRadiusUnitsInSI

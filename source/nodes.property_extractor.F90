@@ -19,23 +19,17 @@
 
 !% Contains a module which provides a class that implements on-the-fly analyses.
 
-module Output_Analysis_Property_Extractions
-  !% Provides a class that implements extraction of properties for on-the-fly analyses.
+module Node_Property_Extractors
+  !% Provides a class that implements extraction of properties from nodes.
   use Galacticus_Nodes       , only : treeNode
   use Output_Analyses_Options
   private
   
   !# <functionClass>
-  !#  <name>outputAnalysisPropertyExtractor</name>
+  !#  <name>nodePropertyExtractor</name>
   !#  <descriptiveName>Output Analysis Property Extractor</descriptiveName>
-  !#  <description>Class providing extraction of properties for on-the-fly analysis of outputs.</description>
+  !#  <description>Class providing extraction of properties from nodes.</description>
   !#  <default>null</default>
-  !#  <method name="extract" >
-  !#   <description>Extract the property from the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
   !#  <method name="type" >
   !#   <description>Return the type of the extracted property.</description>
   !#   <type>integer</type>
@@ -47,9 +41,9 @@ module Output_Analysis_Property_Extractions
   !#   <pass>yes</pass>
   !#   <code>
   !#    !GCC$ attributes unused :: self
-  !#    outputAnalysisPropertyExtractorQuantity=outputAnalysisPropertyQuantityUnknown
+  !#    nodePropertyExtractorQuantity=outputAnalysisPropertyQuantityUnknown
   !#   </code>
   !#  </method>
   !# </functionClass>
 
-end module Output_Analysis_Property_Extractions
+end module Node_Property_Extractors

@@ -88,8 +88,8 @@ contains
     class           (outputTimesClass                                  ), target     , intent(inout)  :: outputTimes_
     type            (cosmologyParametersSimple                         ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                    ), pointer                     :: cosmologyFunctionsData
-    type            (outputAnalysisPropertyExtractorRatio              ), pointer                     :: outputAnalysisPropertyExtractorRatio_
-    type            (outputAnalysisPropertyExtractorLmnstyStllrCF2000  ), pointer                     :: outputAnalysisPropertyExtractorBandR_            , outputAnalysisPropertyExtractorBandU_
+    type            (nodePropertyExtractorRatio              ), pointer                     :: nodePropertyExtractorRatio_
+    type            (nodePropertyExtractorLmnstyStllrCF2000  ), pointer                     :: nodePropertyExtractorBandR_            , nodePropertyExtractorBandU_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc   ), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorMagnitude           ), pointer                     :: outputAnalysisPropertyOperatorMagnitude_
     type            (outputAnalysisPropertyOperatorSequence            ), pointer                     :: outputAnalysisWeightPropertyOperatorSequence_
@@ -171,13 +171,13 @@ contains
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,self%cosmologyFunctions_,outputTimes_,magnitudeAbsoluteLimit=magnitudeMaximum)
     end do
     ! Create stellar luminosity property extractors.
-    allocate(outputAnalysisPropertyExtractorBandR_           )
-    allocate(outputAnalysisPropertyExtractorBandU_           )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractorBandR_"            constructor="outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_r','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
-    !# <referenceConstruct object="outputAnalysisPropertyExtractorBandU_"            constructor="outputAnalysisPropertyExtractorLmnstyStllrCF2000  ('SDSS_u','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    allocate(nodePropertyExtractorBandR_           )
+    allocate(nodePropertyExtractorBandU_           )
+    !# <referenceConstruct object="nodePropertyExtractorBandR_"            constructor="nodePropertyExtractorLmnstyStllrCF2000  ('SDSS_r','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    !# <referenceConstruct object="nodePropertyExtractorBandU_"            constructor="nodePropertyExtractorLmnstyStllrCF2000  ('SDSS_u','observed',depthOpticalISMCoefficient=1.0d0,depthOpticalCloudsCoefficient=1.0d0,wavelengthExponent=0.7d0,outputTimes_=outputTimes_,redshiftBand=redshiftBand,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
     ! Create a ratio property extractor.
-    allocate(outputAnalysisPropertyExtractorRatio_        )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractorRatio_"            constructor="outputAnalysisPropertyExtractorRatio              (outputAnalysisPropertyExtractorBandU_,outputAnalysisPropertyExtractorBandR_                                                          )"/>
+    allocate(nodePropertyExtractorRatio_        )
+    !# <referenceConstruct object="nodePropertyExtractorRatio_"            constructor="nodePropertyExtractorRatio              ('color','SDSS u-r color',nodePropertyExtractorBandU_,nodePropertyExtractorBandR_                                 )"/>
     ! Creat magnitude, and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
     allocate(outputAnalysisPropertyOperatorMagnitude_        )
@@ -191,7 +191,7 @@ contains
     !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSequence_"    constructor="outputAnalysisPropertyOperatorSequence            (weightPropertyOperatorSequence                                                                                                       )"/>
     ! Create a normal-weight weight operator.
     allocate(outputAnalysisWeightOperator_                   )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorNormal                (magnitudeMinimum,magnitudeMaximum,magnitudeErrorR,outputAnalysisPropertyExtractorBandR_,outputAnalysisWeightPropertyOperatorSequence_)"/>
+    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorNormal                (magnitudeMinimum,magnitudeMaximum,magnitudeErrorR,nodePropertyExtractorBandR_,outputAnalysisWeightPropertyOperatorSequence_)"/>
     ! Create random error distribution operator.
     allocate(outputAnalysisDistributionOperator_             )
     !# <referenceConstruct object="outputAnalysisDistributionOperator_"              constructor="outputAnalysisDistributionOperatorRandomErrorFixed(sqrt(magnitudeErrorR**2+magnitudeErrorU**2))"/>
@@ -241,7 +241,7 @@ contains
          &                                colors                                                  , &
          &                                bufferCount                                             , &
          &                                outputWeight                                            , &
-         &                                outputAnalysisPropertyExtractorRatio_                   , &
+         &                                nodePropertyExtractorRatio_                   , &
          &                                outputAnalysisPropertyOperatorMagnitude_                , &
          &                                outputAnalysisPropertyOperatorIdentity_                 , &
          &                                outputAnalysisWeightOperator_                           , &
@@ -268,9 +268,9 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyOperatorIdentity_"         />
     !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
-    !# <objectDestructor name="outputAnalysisPropertyExtractorBandR_"           />
-    !# <objectDestructor name="outputAnalysisPropertyExtractorBandU_"           />
-    !# <objectDestructor name="outputAnalysisPropertyExtractorRatio_"           />
+    !# <objectDestructor name="nodePropertyExtractorBandR_"           />
+    !# <objectDestructor name="nodePropertyExtractorBandU_"           />
+    !# <objectDestructor name="nodePropertyExtractorRatio_"           />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
     !# <objectDestructor name="galacticFilter_"                                 />
     !# <objectDestructor name="cosmologyParametersData"                         />

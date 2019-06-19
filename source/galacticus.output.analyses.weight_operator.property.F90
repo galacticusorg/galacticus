@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an analysis weight operator class which weights by a property value.
-  use Output_Analysis_Property_Extractions
+  use Node_Property_Extractors
   use Output_Analysis_Property_Operators
   
   !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorProperty">
@@ -27,7 +27,7 @@
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorProperty
      !% An weight operator class which weights by a property value.
      private
-     class(outputAnalysisPropertyExtractorClass), pointer :: extractor_ => null()
+     class(nodePropertyExtractorClass), pointer :: extractor_ => null()
      class(outputAnalysisPropertyOperatorClass ), pointer :: operator_ => null()
    contains
      final     ::            propertyDestructor
@@ -48,11 +48,11 @@ contains
     implicit none
     type (outputAnalysisWeightOperatorProperty)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
-    class(outputAnalysisPropertyExtractorClass), pointer       :: extractor_
+    class(nodePropertyExtractorClass), pointer       :: extractor_
     class(outputAnalysisPropertyOperatorClass ), pointer       :: operator_
     
     ! Check and read parameters.
-    !# <objectBuilder class="outputAnalysisPropertyExtractor" name="extractor_" source="parameters"/>
+    !# <objectBuilder class="nodePropertyExtractor" name="extractor_" source="parameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"  name="operator_"  source="parameters"/>
     ! Construct the object.
     self=outputAnalysisWeightOperatorProperty(extractor_,operator_)
@@ -64,13 +64,20 @@ contains
 
   function propertyConstructorInternal(extractor_,operator_) result(self)
     !% Internal constructor for the ``property'' output analysis weight operator class.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (outputAnalysisWeightOperatorProperty)                        :: self
-    class(outputAnalysisPropertyExtractorClass), intent(in   ), target :: extractor_
+    class(nodePropertyExtractorClass), intent(in   ), target :: extractor_
     class(outputAnalysisPropertyOperatorClass ), intent(in   ), target :: operator_
     !# <constructorAssign variables="*extractor_, *operator_"/>
 
-   return
+    select type (extractor_)
+    class is (nodePropertyExtractorScalar)
+       ! This is acceptable.
+    class default
+       call Galacticus_Error_Report('property extrator must be of scalar class'//{introspection:location})
+    end select
+    return
   end function propertyConstructorInternal
 
   subroutine propertyDestructor(self)
@@ -97,9 +104,14 @@ contains
     integer                                                               :: weightPropertyType
     !GCC$ attributes unused :: propertyType, propertyValueIntrinsic, propertyValue, propertyQuantity
 
-    weightPropertyValue=+self       %extractor_%extract(node                                                   )
-    weightPropertyType = self       %extractor_%type   (                                                       )
-    propertyOperate    =+self       %operator_ %operate(weightPropertyValue,node,weightPropertyType,outputIndex) &
-         &              *weightValue
+    select type (extractor_ => self%extractor_)
+    class is (nodePropertyExtractorScalar)
+       weightPropertyValue=+            extractor_%extract(node                                                   )
+    class default
+       weightPropertyValue=+0.0d0
+    end select
+    weightPropertyType    = self       %extractor_%type   (                                                       )
+    propertyOperate       =+self       %operator_ %operate(weightPropertyValue,node,weightPropertyType,outputIndex) &
+         &                 *weightValue
     return
   end function propertyOperate

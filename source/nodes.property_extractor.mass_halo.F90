@@ -21,10 +21,10 @@
 
   use Virial_Density_Contrast
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMassHalo">
+  !# <nodePropertyExtractor name="nodePropertyExtractorMassHalo">
   !#  <description>A halo mass output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorMassHalo
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHalo
      !% A halo mass property extractor output analysis class. The property extracted is the ''\gls{dmou}'' mass of the halo within
      !% a radius enclosing a density contrast as defined by the supplied {\normalfont \ttfamily virialDensityContrast} class
      !% object. Note that the density contrast is defined here at the time at which the halo presently exists, \emph{not} at the
@@ -32,16 +32,19 @@
      private
      class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
-     final     ::             massHaloDestructor
-     procedure :: extract  => massHaloExtract
-     procedure :: type     => massHaloType
-  end type outputAnalysisPropertyExtractorMassHalo
+     final     ::                massHaloDestructor
+     procedure :: extract     => massHaloExtract
+     procedure :: type        => massHaloType
+     procedure :: name        => massHaloName
+     procedure :: description => massHaloDescription
+     procedure :: unitsInSI   => massHaloUnitsInSI
+  end type nodePropertyExtractorMassHalo
 
-  interface outputAnalysisPropertyExtractorMassHalo
+  interface nodePropertyExtractorMassHalo
      !% Constructors for the ``massHalo'' output analysis class.
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal
-  end interface outputAnalysisPropertyExtractorMassHalo
+  end interface nodePropertyExtractorMassHalo
   
 contains
 
@@ -49,12 +52,12 @@ contains
     !% Constructor for the ``massHalo'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (outputAnalysisPropertyExtractorMassHalo)                :: self
-    type (inputParameters                        ), intent(inout) :: parameters
-    class(virialDensityContrastClass             ), pointer       :: virialDensityContrast_
+    type (nodePropertyExtractorMassHalo)                :: self
+    type (inputParameters              ), intent(inout) :: parameters
+    class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_
 
     !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
-    self=outputAnalysisPropertyExtractorMassHalo(virialDensityContrast_)
+    self=nodePropertyExtractorMassHalo(virialDensityContrast_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="virialDensityContrast_"/>
     return
@@ -64,8 +67,8 @@ contains
     !% Internal constructor for the ``massHalo'' output analysis property extractor class.
     use Input_Parameters
     implicit none
-    type (outputAnalysisPropertyExtractorMassHalo)         :: self
-    class(virialDensityContrastClass             ), target :: virialDensityContrast_
+    type (nodePropertyExtractorMassHalo)         :: self
+    class(virialDensityContrastClass   ), target :: virialDensityContrast_
     !# <constructorAssign variables="*virialDensityContrast_"/>
     
     return
@@ -74,7 +77,7 @@ contains
   subroutine massHaloDestructor(self)
     !% Destructor for the {\normalfont \ttfamily mass} output analysis property extractor class.
     implicit none
-    type(outputAnalysisPropertyExtractorMassHalo), intent(inout) :: self
+    type(nodePropertyExtractorMassHalo), intent(inout) :: self
 
     !# <objectDestructor name="self%virialDensityContrast_"/>
     return
@@ -85,9 +88,9 @@ contains
     use Dark_Matter_Profile_Mass_Definitions
     use Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
-    class(outputAnalysisPropertyExtractorMassHalo), intent(inout) :: self
-    type (treeNode                               ), intent(inout) :: node
-    class(nodeComponentBasic                     ), pointer       :: basic
+    class(nodePropertyExtractorMassHalo), intent(inout) :: self
+    type (treeNode                     ), intent(inout) :: node
+    class(nodeComponentBasic           ), pointer       :: basic
     
     basic           => node%basic()
     massHaloExtract =  Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(basic%mass(),basic%time()))    
@@ -98,9 +101,42 @@ contains
     !% Return the type of the halo mass property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassHalo), intent(inout) :: self
+    class(nodePropertyExtractorMassHalo), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     massHaloType=outputAnalysisPropertyTypeLinear
     return
   end function massHaloType
+
+  function massHaloName(self)
+    !% Return the name of the massHalo property.
+    implicit none
+    type (varying_string               )                :: massHaloName
+    class(nodePropertyExtractorMassHalo), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massHaloName=var_str('massHaloEnclosedCurrent')
+    return
+  end function massHaloName
+
+  function massHaloDescription(self)
+    !% Return a description of the massHalo property.
+    implicit none
+    type (varying_string               )                :: massHaloDescription
+    class(nodePropertyExtractorMassHalo), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massHaloDescription=var_str('The current mass of the dark-matter-only halo within a radius enclosing a specified density contrast.')
+    return
+  end function massHaloDescription
+
+  double precision function massHaloUnitsInSI(self)
+    !% Return the units of the massHalo property in the SI system.
+    use Numerical_Constants_Astronomical, only : massSolar
+    implicit none
+    class(nodePropertyExtractorMassHalo), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massHaloUnitsInSI=massSolar
+    return
+  end function massHaloUnitsInSI
