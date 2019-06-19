@@ -28,7 +28,7 @@ my @tests =
      		  name              => "hot halo mass"            ,
      		  output            => 1                          ,
      		  property          => "hotHaloMass"              ,
-     		  values            => pdl ( 7.97045921944598e10 ),
+     		  values            => pdl ( 7.9212210798497e10 ),
      		  toleranceRelative => 4.0e-6
      	      }
      	     ]
@@ -117,7 +117,7 @@ my @tests =
 		  name              => "spheroid radius"          ,
 		  output            => 1                          ,
 		  property          => "spheroidRadius"           ,
-		  values            => pdl ( 0.00360666999691727 ),
+		  values            => pdl ( 0.00360696907940912 ),
 		  toleranceRelative => 1.4e-5
 	      },
 	      {
@@ -125,14 +125,14 @@ my @tests =
 		  output            => 1                                                                                          ,
 		  expression        => "(%[spheroidRadius]*%[spheroidVelocity]*%[spheroidMassStellar])/%[spheroidAngularMomentum]",
 		  values            => pdl ( 0.5 )                                                                                ,
-		  toleranceRelative => 4.0e-6
+		  toleranceRelative => 4.0e-5
 	      },
 	      {
 		  name              => "rotation curve"                                                        ,
 		  output            => 1                                                                       ,
 		  expression        => "%[rotationCurve:spheroidRadius:all:all:1.0]/%[spheroidVelocity]",
 		  values            => pdl ( 1.0 )                                                             ,
-		  toleranceRelative => 1.0e-4
+		  toleranceRelative => 2.0e-4
 	      },
 	      {
 		  # The adiabatic contraction calculation solves the following system:
