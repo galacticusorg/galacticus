@@ -105,10 +105,7 @@ contains
           call Galacticus_Calculations_Reset(node)
           ! Get the basic component.
           basic => node%basic()
-          if (basic%time() == time) then
-             call self%outputAnalysis_%analyze   (node,indexOutput)
-             call node%                postOutput(     time       )
-          end if
+          if (basic%time() == time) call self%outputAnalysis_%analyze(node,indexOutput)
        end do
        ! Skip to the next tree.
        treeCurrent => treeCurrent%nextTree
