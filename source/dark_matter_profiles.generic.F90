@@ -638,7 +638,7 @@ contains
   end function genericEnergyGrowthRateNumerical
 
   double precision function genericEnergyEvaluate(timeLogarithmic)
-    !% GSL-callable function to evaluate the freefall radius of the dark matter profile.
+    !% GSL-callable function to evaluate the energy of the dark matter profile.
     use Functions_Global, only : Galacticus_Calculations_Reset_
     implicit none
     double precision, intent(in   ), value :: timeLogarithmic
