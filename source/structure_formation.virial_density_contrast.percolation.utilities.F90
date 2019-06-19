@@ -21,10 +21,14 @@
 
 module Virial_Density_Contrast_Percolation_Utilities
   !% Provides utilities needed by the {\normalfont \ttfamily percolation} virial density contrast class.
-  use Galacticus_Nodes          , only : treeNode                                 , nodeComponentDarkMatterProfile
-  use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius             , darkMatterProfileScaleRadiusClass, &
-       &                                 darkMatterProfileScaleRadiusConcentration
-  use Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO                     , darkMatterProfileDMOClass
+  use Galacticus_Nodes                  , only : treeNode                                 , nodeComponentDarkMatterProfile
+  use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius             , darkMatterProfileScaleRadiusClass  , &
+       &                                         darkMatterProfileScaleRadiusConcentration
+  use Dark_Matter_Profiles_DMO          , only : darkMatterProfileDMO                     , darkMatterProfileDMOClass
+  use Cosmology_Parameters              , only : cosmologyParameters                      , cosmologyParametersClass
+  use Cosmology_Functions               , only : cosmologyFunctions                       , cosmologyFunctionsClass
+  use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale                      , darkMatterHaloScaleClass
+  use Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration           , darkMatterProfileConcentrationClass
   private
   public :: Virial_Density_Contrast_Percolation_Solver, Virial_Density_Contrast_Percolation_Objects_Constructor, percolationObjects, percolationObjectsDeepCopy
 
@@ -40,7 +44,11 @@ module Virial_Density_Contrast_Percolation_Utilities
 
   type :: percolationObjects
      !% Type used to store pointers to objects
-     class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+     class(darkMatterProfileDMOClass          ), pointer :: darkMatterProfileDMO_
+     class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
+     class(cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_
+     class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
+     class(darkMatterProfileConcentrationClass), pointer :: darkMatterProfileConcentration_
    contains
      final :: percolationObjectsDestructor
   end type percolationObjects
@@ -57,12 +65,16 @@ contains
     !% Construct an instance of the container type for percolation virial density contrast objects from a parameter structure.
     use Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    class(*                 ), pointer               :: self
-    type (percolationObjects), pointer               :: percolationObjects_
-    type (inputParameters   ), intent(inout), target :: parameters
-
+    class(*                         ), pointer               :: self
+    type (percolationObjects        ), pointer               :: percolationObjects_
+    type (inputParameters           ), intent(inout), target :: parameters
+    
     allocate(percolationObjects_)
-    !# <objectBuilder class="darkMatterProfileDMO" name="percolationObjects_%darkMatterProfileDMO_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"           name="percolationObjects_%darkMatterProfileDMO_"           source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"            name="percolationObjects_%cosmologyParameters_"            source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"             name="percolationObjects_%cosmologyFunctions_"             source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"            name="percolationObjects_%darkMatterHaloScale_"            source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileConcentration" name="percolationObjects_%darkMatterProfileConcentration_" source="parameters"/>
     self => percolationObjects_
     nullify(percolationObjects_)
     return
@@ -73,7 +85,11 @@ contains
     implicit none
     type(percolationObjects), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !# <objectDestructor name="self%darkMatterProfileDMO_"          />
+    !# <objectDestructor name="self%cosmologyParameters_"           />
+    !# <objectDestructor name="self%cosmologyFunctions_"            />
+    !# <objectDestructor name="self%darkMatterHaloScale_"           />
+    !# <objectDestructor name="self%darkMatterProfileConcentration_"/>
     return
   end subroutine percolationObjectsDestructor
   
@@ -92,9 +108,21 @@ contains
     class is (percolationObjects)
        select type (destination)
        class is (percolationObjects)
-          nullify(destination%darkMatterProfileDMO_)
-          allocate(destination%darkMatterProfileDMO_,mold=self%darkMatterProfileDMO_)
-          !# <deepCopy source="self%darkMatterProfileDMO_" destination="destination%darkMatterProfileDMO_"/>
+          nullify(destination%darkMatterProfileDMO_          )
+          nullify(destination%cosmologyParameters_           )
+          nullify(destination%cosmologyFunctions_            )
+          nullify(destination%darkMatterHaloScale_           )
+          nullify(destination%darkMatterProfileConcentration_)
+          allocate(destination%darkMatterProfileDMO_          ,mold=self%darkMatterProfileDMO_          )
+          allocate(destination%cosmologyParameters_           ,mold=self%cosmologyParameters_           )
+          allocate(destination%cosmologyFunctions_            ,mold=self%cosmologyFunctions_            )
+          allocate(destination%darkMatterHaloScale_           ,mold=self%darkMatterHaloScale_           )
+          allocate(destination%darkMatterProfileConcentration_,mold=self%darkMatterProfileConcentration_)
+          !# <deepCopy source="self%darkMatterProfileDMO_"           destination="destination%darkMatterProfileDMO_"          />
+          !# <deepCopy source="self%cosmologyParameters_"            destination="destination%cosmologyParameters_"           />
+          !# <deepCopy source="self%cosmologyFunctions_"             destination="destination%cosmologyFunctions_"            />
+          !# <deepCopy source="self%darkMatterHaloScale_"            destination="destination%darkMatterHaloScale_"           />
+          !# <deepCopy source="self%darkMatterProfileConcentration_" destination="destination%darkMatterProfileConcentration_"/>
        class default
           call Galacticus_Error_Report("destination must be of 'percolationObjects' class"//{introspection:location})
        end select
@@ -107,68 +135,69 @@ contains
   !# <functionGlobal>
   !#  <unitName>Virial_Density_Contrast_Percolation_Solver</unitName>
   !#  <type>double precision</type>
-  !#  <arguments>double precision   , intent(in   )         :: mass, time, linkingLength</arguments>
-  !#  <arguments>double precision   , intent(in   ), target :: densityContrastCurrent</arguments>
-  !#  <arguments>class           (*), intent(in   )         :: percolationObjects_</arguments>
+  !#  <arguments>double precision                            , intent(in   )         :: mass, time, linkingLength</arguments>
+  !#  <arguments>double precision                            , intent(in   ), target :: densityContrastCurrent</arguments>
+  !#  <arguments>class           (*                         ), intent(in   )         :: percolationObjects_</arguments>
+  !#  <arguments>class           (*                         ), intent(inout)         :: virialDensityContrast_</arguments>
   !# </functionGlobal>
-  double precision function Virial_Density_Contrast_Percolation_Solver(mass,time,linkingLength,densityContrastCurrent,percolationObjects_)
+  double precision function Virial_Density_Contrast_Percolation_Solver(mass,time,linkingLength,densityContrastCurrent,percolationObjects_,virialDensityContrast_)
     !% Return the virial density contrast at the given epoch, based on the percolation algorithm of \cite{more_overdensity_2011}.
-    use Cosmology_Parameters              , only : cosmologyParameters           , cosmologyParametersClass
-    use Cosmology_Functions               , only : cosmologyFunctions            , cosmologyFunctionsClass
-    use Root_Finder                       , only : rootFinder                    , rangeExpandMultiplicative
-    use Galacticus_Error                  , only : Galacticus_Error_Report
-    use Numerical_Constants_Math          , only : Pi
-    use Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
-    use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale           , darkMatterHaloScaleClass
-    use Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration, darkMatterProfileConcentrationClass
-    use Virial_Density_Contrast           , only : virialDensityContrast         , virialDensityContrastClass
-    use Galacticus_Nodes                  , only : nodeComponentBasic
-    implicit none
+    use Root_Finder                   , only : rootFinder                    , rangeExpandMultiplicative
+    use Galacticus_Error              , only : Galacticus_Error_Report
+    use Numerical_Constants_Math      , only : Pi
+    use Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
+    use Galacticus_Nodes              , only : nodeComponentBasic
+    use Virial_Density_Contrast       , only : virialDensityContrastClass
+   implicit none
     double precision                                     , intent(in   )         :: mass                                      , time, &
          &                                                                          linkingLength
     double precision                                     , intent(in   ), target :: densityContrastCurrent
     class           (*                                  ), intent(in   )         :: percolationObjects_
+    class           (*                                  ), intent(inout)         :: virialDensityContrast_
     double precision                                     , parameter             :: percolationThreshold           =0.652960d0
     class           (cosmologyParametersClass           ), pointer               :: cosmologyParameters_
     class           (cosmologyFunctionsClass            ), pointer               :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass           ), pointer               :: darkMatterHaloScale_
     class           (darkMatterProfileConcentrationClass), pointer               :: darkMatterProfileConcentration_
-    class           (virialDensityContrastClass         ), pointer               :: virialDensityContrast_
     class           (nodeComponentBasic                 ), pointer               :: workBasic
     type            (rootFinder                         )                        :: finder
     double precision                                                             :: radiusHalo
-    
+
     ! Initialize module-scope variables.
     massHalo        =  mass
     densityContrast => densityContrastCurrent
     ! Extract required objects from the container.
-    cosmologyFunctions_             => cosmologyFunctions            ()
-    cosmologyParameters_            => cosmologyParameters           ()
-    darkMatterHaloScale_            => darkMatterHaloScale           ()
-    darkMatterProfileConcentration_ => darkMatterProfileConcentration()
-    virialDensityContrast_          => virialDensityContrast         ()
     select type (percolationObjects_)
     type is (percolationObjects)
        darkMatterProfileDMO_           => percolationObjects_%darkMatterProfileDMO_
-    class default
+       cosmologyFunctions_             => percolationObjects_%cosmologyFunctions_
+       cosmologyParameters_            => percolationObjects_%cosmologyParameters_
+       darkMatterHaloScale_            => percolationObjects_%darkMatterHaloScale_
+       darkMatterProfileConcentration_ => percolationObjects_%darkMatterProfileConcentration_
+       class default
        call Galacticus_Error_Report('percolationObjects_ must be of "percolationObjects" type'//{introspection:location})
     end select
     ! Build a scale radius object.
     allocate(darkMatterProfileScaleRadius_)
-    !# <referenceConstruct object="darkMatterProfileScaleRadius_">
-    !#  <constructor>
-    !#   darkMatterProfileScaleRadiusConcentration(                                                                   &amp;
-    !#    &amp;                                    correctForConcentrationDefinition=.true.                         , &amp;
-    !#    &amp;                                    useMeanConcentration             =.true.                         , &amp;
-    !#    &amp;                                    cosmologyParameters_             =cosmologyParameters_           , &amp;
-    !#    &amp;                                    cosmologyFunctions_              =cosmologyFunctions_            , &amp;
-    !#    &amp;                                    darkMatterHaloScale_             =darkMatterHaloScale_           , &amp;
-    !#    &amp;                                    darkMatterProfileDMO_            =darkMatterProfileDMO_          , &amp;
-    !#    &amp;                                    virialDensityContrast_           =virialDensityContrast_         , &amp;
-    !#    &amp;                                    darkMatterProfileConcentration_  =darkMatterProfileConcentration_  &amp;
-    !#    &amp;                                   )
-    !#  </constructor>
-    !# </referenceConstruct>
+    select type (virialDensityContrast_)
+    class is (virialDensityContrastClass)
+       !# <referenceConstruct object="darkMatterProfileScaleRadius_">
+       !#  <constructor>
+       !#   darkMatterProfileScaleRadiusConcentration(                                                                   &amp;
+       !#    &amp;                                    correctForConcentrationDefinition=.true.                         , &amp;
+       !#    &amp;                                    useMeanConcentration             =.true.                         , &amp;
+       !#    &amp;                                    cosmologyParameters_             =cosmologyParameters_           , &amp;
+       !#    &amp;                                    cosmologyFunctions_              =cosmologyFunctions_            , &amp;
+       !#    &amp;                                    darkMatterHaloScale_             =darkMatterHaloScale_           , &amp;
+       !#    &amp;                                    darkMatterProfileDMO_            =darkMatterProfileDMO_          , &amp;
+       !#    &amp;                                    virialDensityContrast_           =virialDensityContrast_         , &amp;
+       !#    &amp;                                    darkMatterProfileConcentration_  =darkMatterProfileConcentration_  &amp;
+       !#    &amp;                                   )
+       !#  </constructor>
+       !# </referenceConstruct>
+    class default
+       call Galacticus_Error_Report('virialDensityContrast_ must be of "virialDensityContrastClass" class'//{introspection:location})
+    end select
     ! Compute the bounding density, based on percolation theory (eq. 5 of More et al.).
     densityMatterMean=cosmologyFunctions_%matterDensityEpochal(time)
     boundingDensity=+densityMatterMean       &
