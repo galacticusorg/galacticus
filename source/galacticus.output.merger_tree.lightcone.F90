@@ -171,7 +171,7 @@ contains
           else
              label="false"
           end if
-          message=var_str("Node ")//node%index()//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
+          message=var_str("Node ")//node%index()//" of tree "//node%hostTree%index//" appears in "//replicationCount//"(<1) replicants - this should not happen - lightcone intersection reports '"//trim(label)//"'"
           call Galacticus_Error_Report(message//{introspection:location})
        end if
        call instance%append(replicationCount)
