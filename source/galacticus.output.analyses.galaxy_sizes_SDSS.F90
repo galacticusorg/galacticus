@@ -99,8 +99,8 @@ contains
     class           (outputTimesClass                               ), target     , intent(inout)  :: outputTimes_
     type            (cosmologyParametersSimple                      ), pointer                     :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                 ), pointer                     :: cosmologyFunctionsData
-    type            (outputAnalysisPropertyExtractorHalfMassRadius  ), pointer                     :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyExtractorMassStellar     ), pointer                     :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorHalfMassRadius  ), pointer                     :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellar     ), pointer                     :: outputAnalysisWeightPropertyExtractor_
     type            (outputAnalysisPropertyOperatorCsmlgyAnglrDstnc ), pointer                     :: outputAnalysisPropertyOperatorCsmlgyAnglrDstnc_
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc), pointer                     :: outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorLog10            ), pointer                     :: outputAnalysisPropertyOperatorLog10_
@@ -194,11 +194,11 @@ contains
        outputWeight(iBin,:)=Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,self%cosmologyFunctions_,outputTimes_,massStellarMinimum)
     end do
     ! Create a half-mass radius property extractor.
-    allocate(outputAnalysisPropertyExtractor_        )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorHalfMassRadius     (                                                                                                                                                            )"/>
+    allocate(nodePropertyExtractor_        )
+    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorHalfMassRadius     (                                                                                                                                                            )"/>
     ! Create a stellar mass property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_        )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="outputAnalysisPropertyExtractorMassStellar        (                                                                                                                                                            )"/>
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_"           constructor="nodePropertyExtractorMassStellar        (                                                                                                                                                            )"/>
     ! Create multiply, log10, cosmological angular distance, and cosmologyical luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorMultiply_         )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorMultiply_"          constructor="outputAnalysisPropertyOperatorMultiply            (kilo                                                                                                                                                        )"/>
@@ -315,7 +315,7 @@ contains
          &                                log10(radii)                                          , &
          &                                0_c_size_t                                            , &
          &                                outputWeight                                          , &
-         &                                outputAnalysisPropertyExtractor_                      , &
+         &                                nodePropertyExtractor_                      , &
          &                                outputAnalysisPropertyOperatorSequence_               , &
          &                                outputAnalysisPropertyOperatorAntiLog10_              , &
          &                                outputAnalysisWeightOperator_                         , &
@@ -336,7 +336,7 @@ contains
          &                                functionCovarianceTarget                                &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
     !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSequence_"   />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />

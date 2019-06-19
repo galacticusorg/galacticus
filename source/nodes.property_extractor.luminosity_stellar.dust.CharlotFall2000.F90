@@ -22,30 +22,34 @@
   use ISO_Varying_String
   use Output_Times
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorLmnstyStllrCF2000">
+  !# <nodePropertyExtractor name="nodePropertyExtractorLmnstyStllrCF2000">
   !#  <description>A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorLmnstyStllrCF2000
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyStllrCF2000
      !% A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
      private
-     type            (varying_string  )                            :: filterName                , filterType
+     type            (varying_string  )                            :: filterName                , filterType                   , &
+          &                                                           name_                     , description_
      double precision                                              :: redshiftBand              , wavelengthFilterEffective    , &
           &                                                           depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
           &                                                           wavelengthExponent
      integer                           , allocatable, dimension(:) :: luminosityIndex           , luminosityRecentIndex
      class           (outputTimesClass), pointer                   :: outputTimes_ => null()
    contains
-     final     ::             lmnstyStllrChrltFll2000Destructor
-     procedure :: extract  => lmnstyStllrChrltFll2000Extract
-     procedure :: type     => lmnstyStllrChrltFll2000Type
-     procedure :: quantity => lmnstyStllrChrltFll2000Quantity
-  end type outputAnalysisPropertyExtractorLmnstyStllrCF2000
+     final     ::                lmnstyStllrChrltFll2000Destructor
+     procedure :: extract     => lmnstyStllrChrltFll2000Extract
+     procedure :: type        => lmnstyStllrChrltFll2000Type
+     procedure :: quantity    => lmnstyStllrChrltFll2000Quantity
+     procedure :: name        => lmnstyStllrCF2000Name
+     procedure :: description => lmnstyStllrCF2000Description
+     procedure :: unitsInSI   => lmnstyStllrCF2000UnitsInSI
+  end type nodePropertyExtractorLmnstyStllrCF2000
 
-  interface outputAnalysisPropertyExtractorLmnstyStllrCF2000
+  interface nodePropertyExtractorLmnstyStllrCF2000
      !% Constructors for the ``lmnstyStllrChrltFll2000'' output analysis class.
      module procedure lmnstyStllrChrltFll2000ConstructorParameters
      module procedure lmnstyStllrChrltFll2000ConstructorInternal
-  end interface outputAnalysisPropertyExtractorLmnstyStllrCF2000
+  end interface nodePropertyExtractorLmnstyStllrCF2000
 
 contains
 
@@ -53,13 +57,13 @@ contains
     !% Constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type            (outputAnalysisPropertyExtractorLmnstyStllrCF2000)                :: self
-    type            (inputParameters                                 ), intent(inout) :: parameters
-    class           (outputTimesClass                                ), pointer       :: outputTimes_
-    type            (varying_string                                  )                :: filterName                   , filterType
-    double precision                                                                  :: redshiftBand                 , depthOpticalISMCoefficient, &
-         &                                                                               depthOpticalCloudsCoefficient, wavelengthExponent
-    logical                                                                           :: redshiftBandIsPresent
+    type            (nodePropertyExtractorLmnstyStllrCF2000)                :: self
+    type            (inputParameters                       ), intent(inout) :: parameters
+    class           (outputTimesClass                      ), pointer       :: outputTimes_
+    type            (varying_string                        )                :: filterName                   , filterType
+    double precision                                                        :: redshiftBand                 , depthOpticalISMCoefficient, &
+         &                                                                     depthOpticalCloudsCoefficient, wavelengthExponent
+    logical                                                                 :: redshiftBandIsPresent
 
     redshiftBandIsPresent=parameters%isPresent('redshiftBand'    )
     !# <inputParameter>
@@ -111,9 +115,9 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
     if (redshiftBandIsPresent) then
-       self=outputAnalysisPropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand=redshiftBand)
+       self=nodePropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand=redshiftBand)
     else
-       self=outputAnalysisPropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_                          )
+       self=nodePropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_                          )
     end if
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="outputTimes_"/>
@@ -127,14 +131,15 @@ contains
     use               Memory_Management
     use               Instruments_Filters
     implicit none
-    type            (outputAnalysisPropertyExtractorLmnstyStllrCF2000)                                        :: self
-    character       (len=*                                           ), intent(in   )                         :: filterName                , filterType
-    double precision                                                  , intent(in   )                         :: depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
-         &                                                                                                       wavelengthExponent
-    class           (outputTimesClass                                ), intent(in   ), target                 :: outputTimes_
-    double precision                                                  , intent(in   ),               optional :: redshiftBand
-    logical                                                           , intent(in   ), dimension(:), optional :: outputMask
-    integer         (c_size_t                                        )                                        :: i
+    type            (nodePropertyExtractorLmnstyStllrCF2000)                                        :: self
+    character       (len=*                                 ), intent(in   )                         :: filterName                , filterType
+    double precision                                        , intent(in   )                         :: depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, &
+         &                                                                                             wavelengthExponent
+    class           (outputTimesClass                      ), intent(in   ), target                 :: outputTimes_
+    double precision                                        , intent(in   ),               optional :: redshiftBand
+    logical                                                 , intent(in   ), dimension(:), optional :: outputMask
+    integer         (c_size_t                              )                                        :: i
+    character       (len=7                                 )                                        :: label
     !# <constructorAssign variables="filterName, filterType, redshiftBand, depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, wavelengthExponent, *outputTimes_"/>
 
     self%wavelengthFilterEffective=Filter_Wavelength_Effective(Filter_Get_Index(var_str(filterName)))
@@ -149,13 +154,22 @@ contains
           self%luminosityRecentIndex(i)=unitStellarLuminosities%index(filterName,filterType,self%outputTimes_%redshift(i),redshiftBand,postprocessChain='recent' )
        end if
     end do
+    self%name_       ="luminosityStellar:"//filterName//":"//filterType
+    self%description_="Total stellar luminosity luminosity in the "//filterType//"-frame "//filterName//" filter"
+    if (present(redshiftBand)) then
+       write (label,'(f7.3)') redshiftBand
+       self%name_      =self%name_        //":z"            //trim(adjustl(label))
+       self%description_=self%description_//" shifted to z="//trim(adjustl(label))
+    end if
+    self%name_       =self%name_       //":dustCharlotFall2000"
+    self%description_=self%description_//" with Charlot & Fall (2000) dust extinction."
     return
   end function lmnstyStllrChrltFll2000ConstructorInternal
   
   subroutine lmnstyStllrChrltFll2000Destructor(self)
     !% Destructor for the {\normalfont \ttfamily lmnstyStllrChrltFll2000} output analysis property extractor class.
     implicit none
-    type(outputAnalysisPropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+    type(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
 
     !# <objectDestructor name="self%outputTimes_"/>
     return
@@ -172,40 +186,40 @@ contains
     use               Numerical_Constants_Prefixes
     use               Numerical_Constants_Math
     implicit none
-    class           (outputAnalysisPropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
-    type            (treeNode                                        ), intent(inout) :: node
-    class           (nodeComponentBasic                              ), pointer       :: basic
-    class           (nodeComponentDisk                               ), pointer       :: disk
-    class           (nodeComponentSpheroid                           ), pointer       :: spheroid
-    double precision                                                  , parameter     :: metallicityISMLocal      =+2.00d-02            ! Metallicity in the local ISM.
-    double precision                                                  , parameter     :: AVToEBV                  =+3.10d+00            ! (A_V/E(B-V); Savage & Mathis 1979)
-    double precision                                                  , parameter     :: NHToEBV                  =+5.80d+21            ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
-    double precision                                                  , parameter     :: wavelengthZeroPoint      =+5.50d+03            ! Angstroms
-    double precision                                                  , parameter     :: depthOpticalToMagnitudes =+2.50d+00          & ! Conversion factor from optical depth to magnitudes of extinction.
-         &                                                                                                         *log10(            &
-         &                                                                                                                +exp(       &
-         &                                                                                                                     +1.0d0 &
-         &                                                                                                                    )       &
-         &                                                                                                               )
-    double precision                                                  , parameter     :: depthOpticalNormalization=+AVToEBV                  &
-         &                                                                                                         /NHToEBV                  &
-         &                                                                                                         *hydrogenByMassSolar      &
-         &                                                                                                         /atomicMassUnit*massSolar &
-         &                                                                                                         /(                        &
-         &                                                                                                           +parsec                 &
-         &                                                                                                           *hecto                  &
-         &                                                                                                         )**2                      &
-         &                                                                                                         /metallicityISMLocal      &
-         &                                                                                                         /depthOpticalToMagnitudes
-    integer         (c_size_t                                        )                :: i
-    type            (stellarLuminosities                             )                :: luminositiesStellar
-    type            (abundances                                      )                :: abundancesGas
-    double precision                                                                  :: luminosityDisk                                     , luminosityDiskRecent        , &
-         &                                                                               luminositySpheroid                                 , luminositySpheroidRecent    , &
-         &                                                                               metallicityDisk                                    , metallicitySpheroid         , &
-         &                                                                               densitySurfaceMetalsDisk                           , densitySurfaceMetalsSpheroid, &
-         &                                                                               depthOpticalDiffuseDisk                            , depthOpticalDiffuseSpheroid , &
-         &                                                                               depthOpticalCloudsDisk                             , depthOpticalCloudsSpheroid
+    class           (nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+    type            (treeNode                              ), intent(inout) :: node
+    class           (nodeComponentBasic                    ), pointer       :: basic
+    class           (nodeComponentDisk                     ), pointer       :: disk
+    class           (nodeComponentSpheroid                 ), pointer       :: spheroid
+    double precision                                        , parameter     :: metallicityISMLocal      =+2.00d-02            ! Metallicity in the local ISM.
+    double precision                                        , parameter     :: AVToEBV                  =+3.10d+00            ! (A_V/E(B-V); Savage & Mathis 1979)
+    double precision                                        , parameter     :: NHToEBV                  =+5.80d+21            ! (N_H/E(B-V); atoms/cm^2/mag; Savage & Mathis 1979)
+    double precision                                        , parameter     :: wavelengthZeroPoint      =+5.50d+03            ! Angstroms
+    double precision                                        , parameter     :: depthOpticalToMagnitudes =+2.50d+00          & ! Conversion factor from optical depth to magnitudes of extinction.
+         &                                                                                               *log10(            &
+         &                                                                                                      +exp(       &
+         &                                                                                                           +1.0d0 &
+         &                                                                                                          )       &
+         &                                                                                                     )
+    double precision                                        , parameter     :: depthOpticalNormalization=+AVToEBV                  &
+         &                                                                                               /NHToEBV                  &
+         &                                                                                               *hydrogenByMassSolar      &
+         &                                                                                               /atomicMassUnit*massSolar &
+         &                                                                                               /(                        &
+         &                                                                                                 +parsec                 &
+         &                                                                                                 *hecto                  &
+         &                                                                                               )**2                      &
+         &                                                                                               /metallicityISMLocal      &
+         &                                                                                               /depthOpticalToMagnitudes
+    integer         (c_size_t                              )                :: i
+    type            (stellarLuminosities                   )                :: luminositiesStellar
+    type            (abundances                            )                :: abundancesGas
+    double precision                                                        :: luminosityDisk                                     , luminosityDiskRecent        , &
+         &                                                                     luminositySpheroid                                 , luminositySpheroidRecent    , &
+         &                                                                     metallicityDisk                                    , metallicitySpheroid         , &
+         &                                                                     densitySurfaceMetalsDisk                           , densitySurfaceMetalsSpheroid, &
+         &                                                                     depthOpticalDiffuseDisk                            , depthOpticalDiffuseSpheroid , &
+         &                                                                     depthOpticalCloudsDisk                             , depthOpticalCloudsSpheroid
 
     ! Extract luminosities and metallicities of disk and spheroid.
     basic                          =>                         node               %basic              (                             )
@@ -305,7 +319,7 @@ contains
     !% Return the type of the stellar luminosity property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+    class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     lmnstyStllrChrltFll2000Type=outputAnalysisPropertyTypeLinear
@@ -316,9 +330,40 @@ contains
     !% Return the class of the stellar luminosity property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+    class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     lmnstyStllrChrltFll2000Quantity=outputAnalysisPropertyQuantityLuminosity
     return
   end function lmnstyStllrChrltFll2000Quantity
+
+  function lmnstyStllrCF2000Name(self)
+    !% Return the name of the lmnstyStllrCF2000 property.
+    implicit none
+    type (varying_string                        )                :: lmnstyStllrCF2000Name
+    class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+
+    lmnstyStllrCF2000Name=self%name_
+    return
+  end function lmnstyStllrCF2000Name
+
+  function lmnstyStllrCF2000Description(self)
+    !% Return a description of the lmnstyStllrCF2000 property.
+    implicit none
+    type (varying_string                        )                :: lmnstyStllrCF2000Description
+    class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+
+    lmnstyStllrCF2000Description=self%description_
+    return
+  end function lmnstyStllrCF2000Description
+
+  double precision function lmnstyStllrCF2000UnitsInSI(self)
+    !% Return the units of the lmnstyStllrCF2000 property in the SI system.
+    use Numerical_Constants_Astronomical, only : luminosityZeroPointAB
+    implicit none
+    class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    lmnstyStllrCF2000UnitsInSI=luminosityZeroPointAB
+    return
+  end function lmnstyStllrCF2000UnitsInSI

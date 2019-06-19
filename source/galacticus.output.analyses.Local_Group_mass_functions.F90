@@ -165,7 +165,7 @@ contains
 
   function localGroupMassFunctionConstructorInternal(outputTimes_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
     !% Constructor for the ``localGroupMassFunction'' output analysis class for internal use.
-    use Output_Analysis_Property_Extractions    , only : outputAnalysisPropertyExtractorMassStellar
+    use Node_Property_Extractors    , only : nodePropertyExtractorMassStellar
     use Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorLog10                , outputAnalysisPropertyOperatorAntiLog10       , outputAnalysisPropertyOperatorSystmtcPolynomial, outputAnalysisPropertyOperatorSequence      , &
          &                                               propertyOperatorList
     use Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorIdentity
@@ -188,7 +188,7 @@ contains
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                         , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
     class           (outputTimesClass                                   ), intent(inout)                 :: outputTimes_
-    type            (outputAnalysisPropertyExtractorMassStellar         )               , pointer        :: outputAnalysisPropertyExtractor_
+    type            (nodePropertyExtractorMassStellar         )               , pointer        :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorLog10                )               , pointer        :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorSequence             )               , pointer        :: outputAnalysisPropertyOperator_
@@ -250,8 +250,8 @@ contains
        if (j > 0 .and. j <= binCountSatellites) self%massFunctionTarget(j)=self%massFunctionTarget(j)+1.0d0
     end do    
     ! Create a stellar mass property extractor.
-    allocate(outputAnalysisPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"                 constructor="outputAnalysisPropertyExtractorMassStellar     (                                                   )"/>
+    allocate(nodePropertyExtractor_                )
+    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar     (                                                   )"/>
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass.
     allocate(outputAnalysisPropertyOperatorLog10_            )
     !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                   )"/>
@@ -369,7 +369,7 @@ contains
     !#    &amp;                         massesSatellites                                       , &amp;
     !#    &amp;                         bufferCountSatellites                                  , &amp;
     !#    &amp;                         outputWeightSatellites                                 , &amp;
-    !#    &amp;                         outputAnalysisPropertyExtractor_                       , &amp;
+    !#    &amp;                         nodePropertyExtractor_                       , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                        , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_                      , &amp;
     !#    &amp;                         outputAnalysisWeightOperator_                          , &amp;
@@ -400,7 +400,7 @@ contains
     !#    &amp;                         massesCentrals                                        , &amp;
     !#    &amp;                         bufferCountCentrals                                   , &amp;
     !#    &amp;                         outputWeightCentrals                                  , &amp;
-    !#    &amp;                         outputAnalysisPropertyExtractor_                      , &amp;
+    !#    &amp;                         nodePropertyExtractor_                      , &amp;
     !#    &amp;                         outputAnalysisPropertyOperator_                       , &amp;
     !#    &amp;                         outputAnalysisPropertyUnoperator_                     , &amp;
     !#    &amp;                         outputAnalysisWeightOperator_                         , &amp;
@@ -415,7 +415,7 @@ contains
     !#    &amp;                        )
     !#  </constructor>
     !# </referenceConstruct>
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                />
+    !# <objectDestructor name="nodePropertyExtractor_"                />
     !# <objectDestructor name="outputAnalysisPropertyOperator_"                 />
     !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
     !# <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>

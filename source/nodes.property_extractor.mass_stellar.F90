@@ -19,22 +19,25 @@
 
 !% Contains a module which implements a stellar mass output analysis property extractor class.
 
-  !# <outputAnalysisPropertyExtractor name="outputAnalysisPropertyExtractorMassStellar">
+  !# <nodePropertyExtractor name="nodePropertyExtractorMassStellar">
   !#  <description>A stellar mass output analysis property extractor class.</description>
-  !# </outputAnalysisPropertyExtractor>
-  type, extends(outputAnalysisPropertyExtractorClass) :: outputAnalysisPropertyExtractorMassStellar
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellar
      !% A stelalr mass output analysis class.
      private
    contains
-     procedure :: extract  => massStellarExtract
-     procedure :: type     => massStellarType
-     procedure :: quantity => massStellarQuantity
-  end type outputAnalysisPropertyExtractorMassStellar
+     procedure :: extract     => massStellarExtract
+     procedure :: name        => massStellarName
+     procedure :: description => massStellarDescription
+     procedure :: unitsInSI   => massStellarUnitsInSI
+     procedure :: type        => massStellarType
+     procedure :: quantity    => massStellarQuantity
+  end type nodePropertyExtractorMassStellar
 
-  interface outputAnalysisPropertyExtractorMassStellar
+  interface nodePropertyExtractorMassStellar
      !% Constructors for the ``massStellar'' output analysis class.
      module procedure massStellarConstructorParameters
-  end interface outputAnalysisPropertyExtractorMassStellar
+  end interface nodePropertyExtractorMassStellar
 
 contains
 
@@ -42,11 +45,11 @@ contains
     !% Constructor for the ``massStellar'' output analysis property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(outputAnalysisPropertyExtractorMassStellar)                :: massStellarConstructorParameters
-    type(inputParameters                           ), intent(inout) :: parameters
+    type(nodePropertyExtractorMassStellar)                :: massStellarConstructorParameters
+    type(inputParameters                 ), intent(inout) :: parameters
     !GCC$ attributes unused :: parameters
 
-    massStellarConstructorParameters=outputAnalysisPropertyExtractorMassStellar()
+    massStellarConstructorParameters=nodePropertyExtractorMassStellar()
     return
   end function massStellarConstructorParameters
 
@@ -55,19 +58,52 @@ contains
     use Galactic_Structure_Enclosed_Masses
     use Galactic_Structure_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassStellar), intent(inout) :: self
-    type (treeNode                                  ), intent(inout) :: node
+    class(nodePropertyExtractorMassStellar), intent(inout) :: self
+    type (treeNode                        ), intent(inout) :: node
     !GCC$ attributes unused :: self
 
     massStellarExtract=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar)
     return
   end function massStellarExtract
 
+  function massStellarName(self)
+    !% Return the name of the massStellar property.
+    implicit none
+    type (varying_string                            )                :: massStellarName
+    class(nodePropertyExtractorMassStellar), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massStellarName=var_str('massStellarTotal')
+    return
+  end function massStellarName
+
+  function massStellarDescription(self)
+    !% Return a description of the massStellar property.
+    implicit none
+    type (varying_string                  )                :: massStellarDescription
+    class(nodePropertyExtractorMassStellar), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massStellarDescription=var_str('The total mass of stars in this node [M☉].')
+    return
+  end function massStellarDescription
+
+  double precision function massStellarUnitsInSI(self)
+    !% Return the units of the massStellar property in the SI system.
+    use Numerical_Constants_Astronomical, only : massSolar
+    implicit none
+    class(nodePropertyExtractorMassStellar), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    massStellarUnitsInSI=massSolar
+    return
+  end function massStellarUnitsInSI
+
   integer function massStellarType(self)
     !% Return the type of the stellar mass property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassStellar), intent(inout) :: self
+    class(nodePropertyExtractorMassStellar), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     massStellarType=outputAnalysisPropertyTypeLinear
@@ -78,7 +114,7 @@ contains
     !% Return the class of the stellar luminosity property.
     use Output_Analyses_Options
     implicit none
-    class(outputAnalysisPropertyExtractorMassStellar), intent(inout) :: self
+    class(nodePropertyExtractorMassStellar), intent(inout) :: self
     !GCC$ attributes unused :: self
 
     massStellarQuantity=outputAnalysisPropertyQuantityMass

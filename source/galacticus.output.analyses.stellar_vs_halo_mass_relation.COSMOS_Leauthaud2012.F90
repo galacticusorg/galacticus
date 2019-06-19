@@ -116,7 +116,7 @@ contains
     use Numerical_Ranges
     use Numerical_Comparison
     use Output_Analysis_Property_Operators
-    use Output_Analysis_Property_Extractions
+    use Node_Property_Extractors
     use Output_Analysis_Distribution_Operators
     use Output_Analysis_Weight_Operators
     use Output_Analysis_Utilities
@@ -162,8 +162,8 @@ contains
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial     ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorFilterHighPass        ), pointer                       :: outputAnalysisWeightPropertyOperatorFilterHighPass_
-    type            (outputAnalysisPropertyExtractorMassHalo             ), pointer                       :: outputAnalysisPropertyExtractor_
-    type            (outputAnalysisPropertyExtractorMassStellar          ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo             ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellar          ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (propertyOperatorList                                ), pointer                       :: propertyOperators_
     type            (cosmologyParametersSimple                           ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                      ), pointer                       :: cosmologyFunctionsData
@@ -327,12 +327,12 @@ contains
     !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                )"/>
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="outputAnalysisPropertyExtractorMassStellar            (                                                                                )"/>
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar            (                                                                                )"/>
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrast_                                )
     !# <referenceConstruct object="virialDensityContrast_"                 constructor="virialDensityContrastFixed                            (200.0d0                 ,fixedDensityTypeMean               ,cosmologyFunctions_)"/>
-    allocate(outputAnalysisPropertyExtractor_                      )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"       constructor="outputAnalysisPropertyExtractorMassHalo               (virialDensityContrast_                                                          )"/>
+    allocate(nodePropertyExtractor_                      )
+    !# <referenceConstruct object="nodePropertyExtractor_"       constructor="nodePropertyExtractorMassHalo               (virialDensityContrast_                                                          )"/>
     ! Build the object.
     if (computeScatter) then
        analysisLabel            =var_str('stellarHaloMassRelationScatterLeauthaud2012z')//redshiftInterval
@@ -371,7 +371,7 @@ contains
        !#    &amp;                          massHalo                                                                                                          , &amp;
        !#    &amp;                          0_c_size_t                                                                                                        , &amp;
        !#    &amp;                          outputWeight                                                                                                      , &amp;
-       !#    &amp;                          outputAnalysisPropertyExtractor_                                                                                  , &amp;
+       !#    &amp;                          nodePropertyExtractor_                                                                                  , &amp;
        !#    &amp;                          outputAnalysisWeightPropertyExtractor_                                                                            , &amp;
        !#    &amp;                          outputAnalysisPropertyOperator_                                                                                   , &amp;
        !#    &amp;                          outputAnalysisWeightPropertyOperator_                                                                             , &amp;
@@ -412,7 +412,7 @@ contains
        !#    &amp;                          massHalo                                                                                               , &amp;
        !#    &amp;                          0_c_size_t                                                                                             , &amp;
        !#    &amp;                          outputWeight                                                                                           , &amp;
-       !#    &amp;                          outputAnalysisPropertyExtractor_                                                                       , &amp;
+       !#    &amp;                          nodePropertyExtractor_                                                                       , &amp;
        !#    &amp;                          outputAnalysisWeightPropertyExtractor_                                                                 , &amp;
        !#    &amp;                          outputAnalysisPropertyOperator_                                                                        , &amp;
        !#    &amp;                          outputAnalysisWeightPropertyOperator_                                                                  , &amp;
@@ -457,7 +457,7 @@ contains
     !# <objectDestructor name="outputAnalysisPropertyUnoperator_"                      />
     !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                 />
     !# <objectDestructor name="virialDensityContrast_"                                 />
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"                       />
+    !# <objectDestructor name="nodePropertyExtractor_"                       />
     nullify(propertyOperators_)
     nullify(filters_          )
     return

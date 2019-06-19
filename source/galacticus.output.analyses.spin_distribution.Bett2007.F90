@@ -109,7 +109,7 @@ contains
     class           (darkMatterProfileDMOClass                        ), target     , intent(in   )  :: darkMatterProfileDMO_           
     class           (darkMatterProfileScaleRadiusClass                ), target     , intent(in   )  :: darkMatterProfileScaleRadius_           
     class           (*                                                ), target     , intent(in   )  :: percolationObjects_
-    type            (outputAnalysisPropertyExtractorSpin              ), pointer                     :: outputAnalysisPropertyExtractor_
+    type            (nodePropertyExtractorSpin                        ), pointer                     :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorLog10              ), pointer                     :: outputAnalysisPropertyOperator_
     type            (outputAnalysisWeightOperatorIdentity             ), pointer                     :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerSequence     ), pointer                     :: outputAnalysisDistributionNormalizer_
@@ -191,8 +191,8 @@ contains
     !#  </constructor>
     !# </referenceConstruct>
     ! Create a spin parameter property extractor.
-    allocate(outputAnalysisPropertyExtractor_        )
-    !# <referenceConstruct object="outputAnalysisPropertyExtractor_"         constructor="outputAnalysisPropertyExtractorSpin              (                                                                                      )"/>
+    allocate(nodePropertyExtractor_        )
+    !# <referenceConstruct object="nodePropertyExtractor_"                   constructor="nodePropertyExtractorSpin                       (                                                                                       )"/>
     ! Create a log10 property operator.
     allocate(outputAnalysisPropertyOperator_         )
     !# <referenceConstruct object="outputAnalysisPropertyOperator_"          constructor="outputAnalysisPropertyOperatorLog10              (                                                                                      )"/>
@@ -261,7 +261,7 @@ contains
          &                                                             log10(spins)                                       , &
          &                                                             bufferCount                                        , &
          &                                                             outputWeight                                       , &
-         &                                                             outputAnalysisPropertyExtractor_                   , &
+         &                                                             nodePropertyExtractor_                   , &
          &                                                             outputAnalysisPropertyOperator_                    , &
          &                                                             outputAnalysisPropertyOperatorAntiLog10_           , &
          &                                                             outputAnalysisWeightOperator_                      , &
@@ -283,7 +283,7 @@ contains
          &                                                            )
     !# <objectDestructor name="haloSpinDistributionDeltaFunction_"             />
     !# <objectDestructor name="haloSpinDistribution_"                          />
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"               />
+    !# <objectDestructor name="nodePropertyExtractor_"               />
     !# <objectDestructor name="outputAnalysisPropertyOperator_"                />
     !# <objectDestructor name="outputAnalysisWeightOperator_"                  />
     !# <objectDestructor name="outputAnalysisDistributionOperator_"            />

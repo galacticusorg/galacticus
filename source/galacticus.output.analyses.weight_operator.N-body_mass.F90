@@ -48,7 +48,7 @@ contains
     implicit none
     type            (outputAnalysisWeightOperatorNbodyMass)                :: self
     type            (inputParameters                      ), intent(inout) :: parameters
-    class           (outputAnalysisPropertyExtractorClass ), pointer       :: outputAnalysisPropertyExtractor_
+    class           (nodePropertyExtractorClass ), pointer       :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass  ), pointer       :: outputAnalysisPropertyOperator_
     class           (nbodyHaloMassErrorClass              ), pointer       :: nbodyHaloMassError_
     double precision                                                       :: rangeLower                      , rangeUpper
@@ -68,28 +68,34 @@ contains
     !#   <type>float</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="outputAnalysisPropertyExtractor" name="outputAnalysisPropertyExtractor_" source="parameters"/>
+    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     !# <objectBuilder class="outputAnalysisPropertyOperator"  name="outputAnalysisPropertyOperator_"  source="parameters"/>
     !# <objectBuilder class="nbodyHaloMassError"              name="nbodyHaloMassError_"              source="parameters"/>
-    self=outputAnalysisWeightOperatorNbodyMass(rangeLower,rangeUpper,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_)
+    self=outputAnalysisWeightOperatorNbodyMass(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="nodePropertyExtractor_"/>
     !# <objectDestructor name="outputAnalysisPropertyOperator_" />
     !# <objectDestructor name="nbodyHaloMassError_"             />
     return
   end function nbodyMassConstructorParameters
 
-  function nbodyMassConstructorInternal(rangeLower,rangeUpper,outputAnalysisPropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_) result (self)
+  function nbodyMassConstructorInternal(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_) result (self)
     !% Internal constructor for the ``nbodyMass'' output analysis distribution operator class.
-    use Input_Parameters
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (outputAnalysisWeightOperatorNbodyMass)                        :: self
     double precision                                       , intent(in   )         :: rangeLower                      , rangeUpper
-    class           (outputAnalysisPropertyExtractorClass ), intent(in   ), target :: outputAnalysisPropertyExtractor_
+    class           (nodePropertyExtractorClass ), intent(in   ), target :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass  ), intent(in   ), target :: outputAnalysisPropertyOperator_
     class(nbodyHaloMassErrorClass                         ), intent(in   ), target :: nbodyHaloMassError_
-    !# <constructorAssign variables="rangeLower, rangeUpper, *outputAnalysisPropertyExtractor_, *outputAnalysisPropertyOperator_, *nbodyHaloMassError_"/>
+    !# <constructorAssign variables="rangeLower, rangeUpper, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *nbodyHaloMassError_"/>
 
+    select type (nodePropertyExtractor_)
+    class is (nodePropertyExtractorScalar)
+       ! This is acceptable.
+    class default
+       call Galacticus_Error_Report('property extrator must be of scalar class'//{introspection:location})
+    end select
     return
   end function nbodyMassConstructorInternal
 
@@ -98,7 +104,7 @@ contains
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
     
     !# <objectDestructor name="self%nbodyHaloMassError_"             />
-    !# <objectDestructor name="self%outputAnalysisPropertyExtractor_"/>
+    !# <objectDestructor name="self%nodePropertyExtractor_"/>
     !# <objectDestructor name="self%outputAnalysisPropertyOperator_" />
     return
   end subroutine nbodyMassDestructor
@@ -116,10 +122,15 @@ contains
     !GCC$ attributes unused :: propertyValue, propertyValueIntrinsic, propertyType, propertyQuantity, outputIndex
 
     ! Extract property and operate on it.
-    nbodyMassPropertyType =+self%outputAnalysisPropertyExtractor_%type           (    )
-    nbodyMassPropertyValue=+self%outputAnalysisPropertyExtractor_%extract        (node)
-    nbodyMassRootVariance =+self%nbodyHaloMassError_             %errorFractional(node) &
-         &                 *nbodyMassPropertyValue
+    nbodyMassPropertyType   =+self%nodePropertyExtractor_%type           (    )
+    select type (extractor_ => self%nodePropertyExtractor_)
+    class is (nodePropertyExtractorScalar)
+       nbodyMassPropertyValue=+                          extractor_%extract        (node)
+    class default
+       nbodyMassPropertyValue=+0.0d0       
+    end select
+    nbodyMassRootVariance   =+self%nbodyHaloMassError_             %errorFractional(node) &
+         &                   *nbodyMassPropertyValue
     return
   end function nbodyMassRootVariance
   
