@@ -209,7 +209,7 @@ contains
     class           (surveyGeometryClass                    ), intent(in   ) , target      :: surveyGeometry_
     class           (cosmologyFunctionsClass                ), intent(in   ) , target      :: cosmologyFunctions_                , cosmologyFunctionsData
     class           (outputTimesClass                       ), intent(in   ) , target      :: outputTimes_
-    class           (outputAnalysisPropertyOperatorClass    ), intent(in   ) , target      :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisPropertyOperatorClass    ), intent(inout) , target      :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass), intent(in   ) , target      :: outputAnalysisDistributionOperator_
     class           (stellarSpectraDustAttenuationClass     ), intent(in   ) , target      :: stellarSpectraDustAttenuation_
     double precision                                         , dimension(:  ), allocatable :: luminosities                       , functionValueTarget              , &
@@ -270,7 +270,7 @@ contains
     class           (surveyGeometryClass                            ), intent(in   ), target                   :: surveyGeometry_
     class           (cosmologyFunctionsClass                        ), intent(in   ), target                   :: cosmologyFunctions_                                   , cosmologyFunctionsData
     class           (outputTimesClass                               ), intent(in   ), target                   :: outputTimes_
-    class           (outputAnalysisPropertyOperatorClass            ), intent(in   ), target                   :: outputAnalysisPropertyOperator_
+    class           (outputAnalysisPropertyOperatorClass            ), intent(inout), target                   :: outputAnalysisPropertyOperator_
     class           (outputAnalysisDistributionOperatorClass        ), intent(in   ), target                   :: outputAnalysisDistributionOperator_
     class           (stellarSpectraDustAttenuationClass             ), intent(in   ), target                   :: stellarSpectraDustAttenuation_
     integer                                                          , intent(in   )                           :: covarianceBinomialBinsPerDecade
