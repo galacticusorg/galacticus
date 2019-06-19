@@ -48,7 +48,8 @@
      !@     <arguments>\textcolor{red}{\textless type(table)\textgreater} node\arginout</arguments>
      !@     <description>Reset memoized calculations.</description>
      !@   </objectMethod>
-     !@ </objectMethods>                                                                                                                                                                                         final     ::                     velocityMaxScalingDestructor
+     !@ </objectMethods>
+     final     ::                     velocityMaxScalingDestructor
      procedure :: autoHook         => velocityMaxScalingAutoHook
      procedure :: timescale        => velocityMaxScalingTimescale
      procedure :: calculationReset => velocityMaxScalingCalculationReset
