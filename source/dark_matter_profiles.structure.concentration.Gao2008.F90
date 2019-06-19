@@ -34,11 +34,11 @@
      class(cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
      class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
      type (virialDensityContrastFixed), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type (darkMatterProfileDMONFW   ), pointer :: darkMatterProfileDMODefinition_     => null()
    contains
-     final     ::                                gao2008Destructor
-     procedure :: concentration               => gao2008Concentration
-     procedure :: densityContrastDefinition   => gao2008DensityContrastDefinition
+     final     ::                                   gao2008Destructor
+     procedure :: concentration                  => gao2008Concentration
+     procedure :: densityContrastDefinition      => gao2008DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => gao2008DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationGao2008
   
@@ -88,7 +88,7 @@ contains
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine gao2008Destructor
   
@@ -145,7 +145,7 @@ contains
        allocate(     darkMatterHaloScaleDefinition_)
        !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
        !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
+       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                  )"/>
        !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
        !# <objectDestructor name="virialDensityContrastDefinition_"/>
     end if
