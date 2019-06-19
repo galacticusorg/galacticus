@@ -62,11 +62,12 @@
   end type nodePropertyExtractorScalar
 
   abstract interface
-     double precision function scalarExtract(self,node)
+     double precision function scalarExtract(self,node,instance)
        !% Interface for scalar property extraction.
-       import nodePropertyExtractorScalar, treeNode
-       class(nodePropertyExtractorScalar), intent(inout) :: self
-       type (treeNode                             ), intent(inout) :: node
+       import nodePropertyExtractorScalar, treeNode, multiCounter
+       class(nodePropertyExtractorScalar), intent(inout)           :: self
+       type (treeNode                   ), intent(inout)           :: node
+       type (multiCounter               ), intent(inout), optional :: instance
      end function scalarExtract
   end interface
 
@@ -74,7 +75,7 @@
      function scalarName(self)
        !% Interface for scalar property name.
        import varying_string, nodePropertyExtractorScalar
-       type (varying_string                       )                :: scalarName
+       type (varying_string             )                :: scalarName
        class(nodePropertyExtractorScalar), intent(inout) :: self
      end function scalarName
   end interface

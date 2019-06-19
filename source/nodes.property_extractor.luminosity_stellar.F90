@@ -165,18 +165,20 @@ contains
     return
   end subroutine luminosityStellarDestructor
 
-  double precision function luminosityStellarExtract(self,node)
+  double precision function luminosityStellarExtract(self,node,instance)
     !% Implement a stellar luminosity output analysis property extractor.
     use, intrinsic :: ISO_C_Binding
     use               Galactic_Structure_Enclosed_Masses
     use               Galactic_Structure_Options
     use               Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
-    class  (nodePropertyExtractorLuminosityStellar), intent(inout) :: self
-    type   (treeNode                              ), intent(inout) :: node
-    class  (nodeComponentBasic                    ), pointer       :: basic
-    integer(c_size_t                              )                :: i
-    
+    class  (nodePropertyExtractorLuminosityStellar), intent(inout)           :: self
+    type   (treeNode                              ), intent(inout)           :: node
+    type   (multiCounter                          ), intent(inout), optional :: instance
+    class  (nodeComponentBasic                    ), pointer                 :: basic
+    integer(c_size_t                              )                          :: i
+    !GCC$ attributes unused :: instance
+
     basic                    =>                                  node %basic()
     i                        =  self%outputTimes_%index         (basic%time (),findClosest=.true.                                                                                              )
     luminosityStellarExtract =  Galactic_Structure_Enclosed_Mass(node         ,            radiusLarge,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=self%luminosityIndex(i))

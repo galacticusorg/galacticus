@@ -114,23 +114,25 @@ contains
     return
   end subroutine ratioDestructor
 
-  double precision function ratioExtract(self,node)
+  double precision function ratioExtract(self,node,instance)
     !% Implement a ratio output analysis.
     use Galacticus_Error
     implicit none
-    class           (nodePropertyExtractorRatio), intent(inout) :: self
-    type            (treeNode                            ), intent(inout) :: node
+    class           (nodePropertyExtractorRatio), intent(inout)           :: self
+    type            (treeNode                  ), intent(inout)           :: node
+    type            (multiCounter              ), intent(inout), optional :: instance
     double precision                                                      :: numerator, denominator
+    !GCC$ attributes unused :: instance
 
     select type (propertyNumerator_   => self%propertyNumerator_  )
     class is (nodePropertyExtractorScalar)
-       numerator   =propertyNumerator_  %extract(node)
+       numerator   =propertyNumerator_  %extract(node,instance)
     class default
        numerator   =huge(0.0d0)
     end select
     select type (propertyDenominator_ => self%propertyDenominator_)
     class is (nodePropertyExtractorScalar)
-       denominator = propertyDenominator_%extract(node)
+       denominator = propertyDenominator_%extract(node,instance)
     class default
        denominator =     0.0d0
     end select
