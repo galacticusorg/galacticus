@@ -72,7 +72,7 @@
   </darkMatterProfileMethod>
 
   <galacticusStructureSolver value="equilibrium">
-    <solutionTolerance value="1.0e-2"/>
+    <solutionTolerance value="1.0e-4"/>
   </galacticusStructureSolver>
   
   <!-- Numerical tolerances -->
