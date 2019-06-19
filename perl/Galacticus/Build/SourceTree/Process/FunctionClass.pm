@@ -118,7 +118,7 @@ sub Process_FunctionClass {
 				if ( $childNode->{'type'} eq "declaration" ) {
 				    foreach my $declaration ( @{$childNode->{'declarations'}} ) {
 					push(@{$dependencies{$declaration->{'type'}}},$type)
-					    if ( ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) && $declaration->{'type'} =~ m/^$directive->{'name'}/ );
+					    if ( ( $declaration->{'intrinsic'} eq "class" || $declaration->{'intrinsic'} eq "type" ) && $declaration->{'type'} =~ m/^$directive->{'name'}/ && $declaration->{'type'} ne $type );
 				    }
 				}
 				$childNode = $childNode->{'sibling'};
@@ -906,6 +906,25 @@ CODE
 					}
 				    }
 				}
+                                # Perform any explicit deep copies.
+				if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
+				    my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
+				    foreach my $object ( @{$declaration->{'variables'}} ) {
+					foreach my $deepCopy ( @deepCopies ) {
+					    if ( lc($object) eq lc($deepCopy) ) {
+						$assignments .= "nullify(destination\%".$object.")\n";
+						$assignments .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
+						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'function'}) ) {
+						    $deepCopyModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+						    $assignments .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'function'}."(self\%".$object.",destination\%".$object.")\n";
+						} else {
+						    $assignments .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
+						}
+					    }
+					}
+				    }
+				}
 				# Deallocate FGSL interpolators.
 				if
 				    (
@@ -1086,6 +1105,25 @@ CODE
 				    $assignments .= "!\$omp atomic\n"
 					if ( exists($class->{'deepCopy'}->{'increment'}->{'atomic'}) && $class->{'deepCopy'}->{'increment'}->{'atomic'} eq "yes" );
 				    $assignments .= "destination\%".$increment->{'variable'}."=destination\%".$increment->{'variable'}."+1\n";
+				}
+			    }
+			}
+		    }
+		    # Perform any explicit deep copies.
+		    if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
+			my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
+			foreach my $object ( @{$declaration->{'variables'}} ) {
+			    foreach my $deepCopy ( @deepCopies ) {
+				if ( lc($object) eq lc($deepCopy) ) {
+				    $assignments .= "nullify(destination\%".$object.")\n";
+				    $assignments .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
+				    if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'function'}) ) {
+					$deepCopyModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+					    if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+					$assignments .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'function'}."(self\%".$object.",destination\%".$object.")\n";
+				    } else {
+					$assignments .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
+				    }
 				}
 			    }
 			}
@@ -2215,6 +2253,13 @@ CODE
 	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."CnstrctrDflt\n";
 	    $preContains->[0]->{'content'} .= "    module procedure ".$directive->{'name'}."CnstrctrPrmtrs\n";
 	    $preContains->[0]->{'content'} .= "   end interface ".$directive->{'name'}."\n";
+	    # Add a variable which records whether construction of the default object is underway.
+	    my $allowRecursion = grep {exists($_->{'recursive'}) && $_->{'recursive'} eq "yes"} @classes;
+	    if ( $allowRecursion ) {
+		$preContains->[0]->{'content'} .= "   ! Record of whether construction of default object is underway.\n";
+		$preContains->[0]->{'content'} .= "   logical :: ".$directive->{'name'}."DefaultConstructing=.false.\n";
+		$preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DefaultConstructing)\n\n";
+ 	    }
 	    # Add method name parameter.
 	    $preContains->[0]->{'content'} .= "   ! Method name parameter.\n";
 	    $preContains->[0]->{'content'} .= "   type(varying_string) :: ".$directive->{'name'}."Method\n\n";
@@ -2247,8 +2292,24 @@ CODE
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
 	    $postContains->[0]->{'content'} .= "      class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."CnstrctrDflt\n\n";
-	    $postContains->[0]->{'content'} .= "      if (.not.associated(".$directive->{'name'}."Default)) call ".$directive->{'name'}."Initialize()\n";
+	    $postContains->[0]->{'content'} .= "      if (.not.associated(".$directive->{'name'}."Default)) ";
+	    if ( $allowRecursion ) {
+	        $postContains->[0]->{'content'} .= " then\n";
+	        $postContains->[0]->{'content'} .= "         ".$directive->{'name'}."DefaultConstructing=.true.\n         ";
+	    }
+	    $postContains->[0]->{'content'} .= "call ".$directive->{'name'}."Initialize()\n";
+	    if ( $allowRecursion ) {
+	        $postContains->[0]->{'content'} .= "         ".$directive->{'name'}."DefaultConstructing=.false.\n";
+	        $postContains->[0]->{'content'} .= "      end if\n";
+	    }
+	    if ( $allowRecursion ) {
+	        $postContains->[0]->{'content'} .= "      if (".$directive->{'name'}."DefaultConstructing) then\n";
+	        $postContains->[0]->{'content'} .= "         ".$directive->{'name'}."CnstrctrDflt => ".$directive->{'name'}."RecursiveDefault()\n";
+	        $postContains->[0]->{'content'} .= "      else\n   ";
+	    }
 	    $postContains->[0]->{'content'} .= "      ".$directive->{'name'}."CnstrctrDflt => ".$directive->{'name'}."Default\n";
+	    $postContains->[0]->{'content'} .= "      end if\n"
+                if ( $allowRecursion );
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrDflt\n\n";
 	    # Create XML constructor.
@@ -2406,6 +2467,60 @@ CODE
 	    $postContains->[0]->{'content'} .= "      !\$omp end critical (".$directive->{'name'}."Initialization)\n";
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end subroutine ".$directive->{'name'}."Initialize\n\n";
+
+	    # Create initialization function for recursive constuction of the default object.
+	    if ( $allowRecursion ) {
+		$postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."RecursiveDefault()\n";
+		$postContains->[0]->{'content'} .= "      !% Construct a recursive copy of the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
+		$postContains->[0]->{'content'} .= "      use Input_Parameters, only : inputParameters, globalParameters\n";
+		$postContains->[0]->{'content'} .= "      use Galacticus_Error, only : Galacticus_Error_Report\n";
+		$postContains->[0]->{'content'} .= "      use Function_Classes, only : debugStackPush, debugStackPop\n"
+		    if ( $debugging );
+		$postContains->[0]->{'content'} .= "      implicit none\n";
+		$postContains->[0]->{'content'} .= "      class  (".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."RecursiveDefault\n";
+		$postContains->[0]->{'content'} .= "      type   (inputParameters) :: subParameters\n";
+		$postContains->[0]->{'content'} .= "      type   (varying_string ) :: message\n";
+		$postContains->[0]->{'content'} .= "      subParameters=globalParameters%subParameters('".$directive->{'name'}."Method',requirePresent=.false.)\n";
+		$postContains->[0]->{'content'} .= "      select case (char(".$directive->{'name'}."Method))\n";
+		my @nonRecursiveTypes;
+		foreach my $class ( @nonAbstractClasses ) {
+		    (my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;
+		    $name = lcfirst($name)
+			unless ( $name =~ m/^[A-Z]{2,}/ );
+		    if ( exists($class->{'recursive'}) && $class->{'recursive'} eq "yes" ) {
+			$postContains->[0]->{'content'} .= "     case ('".$name."')\n";
+			$postContains->[0]->{'content'} .= "        allocate(".$class->{'name'}." :: ".$directive->{'name'}."RecursiveDefault)\n";
+			$postContains->[0]->{'content'} .= "        select type (".$directive->{'name'}."RecursiveDefault)\n";
+			$postContains->[0]->{'content'} .= "        type is (".$class->{'name'}.")\n";
+			$postContains->[0]->{'content'} .= "           call debugStackPush(loc(".$directive->{'name'}."RecursiveDefault))\n"
+			    if ( $debugging );
+			$postContains->[0]->{'content'} .= "           ".$directive->{'name'}."RecursiveDefault=".$class->{'name'}."(subParameters,recursiveConstruct=.true.,recursiveSelf=".$directive->{'name'}."Default)\n";
+			$postContains->[0]->{'content'} .= "           call debugStackPop()\n"
+			    if ( $debugging );
+			$postContains->[0]->{'content'} .= "        end select\n";
+			$postContains->[0]->{'content'} .= "        call ".$directive->{'name'}."Default%autoHook()\n"
+			    if ( grep {exists($_->{'autoHook'}) && $_->{'autoHook'} eq "yes"} @classes );
+		    } else {
+			push(@nonRecursiveTypes,$class->{'name'});
+		    }
+		}
+		if ( @nonRecursiveTypes ) {
+		    $postContains->[0]->{'content'} .= "        case (".join(",",map {"'".$_."'"} @nonRecursiveTypes).")\n";
+		    $postContains->[0]->{'content'} .= "         call Galacticus_Error_Report('this type does not support recursion'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		}
+		$postContains->[0]->{'content'} .= "      case default\n";
+		$postContains->[0]->{'content'} .= "         message='Unrecognized option for [".$directive->{'name'}."Method](='//".$directive->{'name'}."Method//'). Available options are:'\n";
+		foreach ( sort(@classNames) ) {
+		    (my $name = $_) =~ s/^$directive->{'name'}//;
+		    $name = lcfirst($name)
+			unless ( $name =~ m/^[A-Z]{2,}/ );
+		    $postContains->[0]->{'content'} .= "        message=message//char(10)//'   -> ".$name."'\n";
+		}
+		$postContains->[0]->{'content'} .= "         call Galacticus_Error_Report(message//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		$postContains->[0]->{'content'} .= "      end select\n";
+		$postContains->[0]->{'content'} .= "      return\n";
+		$postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."RecursiveDefault\n\n";
+	    }
 
 	    # Create global state store/restore functions.
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}.$_,"public")
