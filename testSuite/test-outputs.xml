@@ -87,7 +87,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputNodeRedshifts value="true"/>
+    <nodePropertyExtractorMethod value="redshiftLastIsolated"/>
   </parameters>
   
   <!-- Merger tree structure -->
