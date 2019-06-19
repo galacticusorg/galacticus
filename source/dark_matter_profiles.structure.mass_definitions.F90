@@ -45,14 +45,14 @@ contains
     class           (nodeComponentBasic        ), pointer                 :: basic
     class           (cosmologyParametersClass  ), pointer                 :: cosmologyParameters_
     class           (cosmologyFunctionsClass   ), pointer                 :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass    ), pointer                 :: darkMatterProfileDMO_
-    double precision                                                      :: radiusHalo            , density
+    class           (darkMatterProfileDMOClass ), pointer                 :: darkMatterProfileDMO_
     class           (virialDensityContrastClass), pointer                 :: virialDensityContrast_
+    double precision                                                      :: radiusHalo            , density
 
     ! Get required objects.
     cosmologyParameters_   =>  cosmologyParameters        ()
     cosmologyFunctions_    =>  cosmologyFunctions         ()
-    darkMatterProfileDMO_     =>  darkMatterProfileDMO          ()
+    darkMatterProfileDMO_  =>  darkMatterProfileDMO       ()
     virialDensityContrast_ =>  virialDensityContrast      ()
     basic                  =>  node                 %basic()
     ! Compute the density from the density contrast.
