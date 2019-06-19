@@ -277,6 +277,7 @@ CODE
 	    $code::callWith      = exists($node->{'directive'}->{'callWith'}) ? ",".$node->{'directive'}->{'callWith'} : "";
 	    $code::eventName     = $node->{'directive'}->{'name'    };
 	    my $eventHookCode    = fill_in_string(<<'CODE', PACKAGE => 'code');
+call {$eventName}Event%lock()
 hook_ => {$eventName}Event%first()
 do while (associated(hook_))
    select type (hook_)
@@ -298,6 +299,7 @@ do while (associated(hook_))
    end select
    hook_ => hook_%next
 end do
+call {$eventName}Event%unlock()
 CODE
 	    # Insert the code.
 	    my $newNode =
