@@ -28,7 +28,7 @@ my @tests =
      		  name              => "hot halo mass"            ,
      		  output            => 1                          ,
      		  property          => "hotHaloMass"              ,
-     		  values            => pdl ( 7.9212210798497e10 ),
+     		  values            => pdl ( 7.97045921944598e10 ),
      		  toleranceRelative => 4.0e-6
      	      }
      	     ]
@@ -117,7 +117,7 @@ my @tests =
 		  name              => "spheroid radius"          ,
 		  output            => 1                          ,
 		  property          => "spheroidRadius"           ,
-		  values            => pdl ( 0.00360696907940912 ),
+		  values            => pdl ( 0.00360708622165663 ),
 		  toleranceRelative => 1.4e-5
 	      },
 	      {
