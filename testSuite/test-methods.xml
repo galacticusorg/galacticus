@@ -392,8 +392,8 @@
       <coolingTimeAvailableMethod value="formationTime" parameterLevel="top"/>
       <hotHaloCoolingFromNode value="formationNode" parameterLevel="top"/>
       <treeNodeMethodFormationTime value="Cole2000" parameterLevel="top"/>
-      <outputHotHaloCoolingRates value="false" parameterLevel="top"/>
-      <outputHotHaloCoolingRates value="true" parameterLevel="top"/>
+      <nodePropertyExtractorMethod value="rateCooling" parameterLevel="top"/>
+      <nodePropertyExtractorMethod value="null"        parameterLevel="top"/>
     </coolingRateMethod>
   </parameters>
   
