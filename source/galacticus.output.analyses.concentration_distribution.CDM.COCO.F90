@@ -212,7 +212,7 @@ contains
     !#     &amp;                                         )
     !#  </constructor>
     !# </referenceConstruct>
-    ! Create a virial density contrast object matched to the defintion used by Ludlow et al. (2016).
+    ! Create a virial density contrast object matched to the definition used by Ludlow et al. (2016).
     allocate(virialDensityContrast_                )
     !# <referenceConstruct object="virialDensityContrast_">
     !#  <constructor>
