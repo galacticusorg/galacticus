@@ -37,17 +37,21 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputHotHaloCoolingRates value="true"/>
-    <outputHotHaloCoolingRadii value="true"/>
+    <nodePropertyExtractorMethod value="multi">
+      <nodePropertyExtractorMethod value="rateCooling"  />
+      <nodePropertyExtractorMethod value="radiusCooling"/>
+    </nodePropertyExtractorMethod>
   </parameters>
   
   <!-- Half mass radii -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputHalfMassData value="true"/>
-    <nodePropertyExtractorMethod value="null"/>
-    <nodePropertyExtractorMethod value="virialProperties"/>
+    <nodePropertyExtractorMethod value="radiusHalfMass"/>
+    <nodePropertyExtractorMethod value="multi">
+      <nodePropertyExtractorMethod value="radiusHalfMass"  />
+      <nodePropertyExtractorMethod value="virialProperties"/>
+    </nodePropertyExtractorMethod>
   </parameters>
   
   <!-- Rotation curves -->
