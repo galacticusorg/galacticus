@@ -147,6 +147,7 @@ contains
     if (basic%time() /= self%timeAssign()) then
        call self%    timeAssignSet(basic                       %time    (    ))
        call self%positionOrphanSet(satelliteOrphanDistribution_%position(node))
+       call self%velocityOrphanSet(satelliteOrphanDistribution_%velocity(node))
     end if
     Node_Component_Position_Preset_Orphans_Position_Orphan=self%positionOrphanValue()
     return
@@ -164,7 +165,8 @@ contains
     node  => self%host ()
     basic => node%basic()
     if (basic%time() /= self%timeAssign()) then
-       call self%    timeAssignSet(basic                       %time    (    ))
+       call self%    timeAssignSet(basic                       %time    (    )) 
+       call self%positionOrphanSet(satelliteOrphanDistribution_%position(node))
        call self%velocityOrphanSet(satelliteOrphanDistribution_%velocity(node))
     end if
     Node_Component_Position_Preset_Orphans_Velocity_Orphan=self%velocityOrphanValue()
