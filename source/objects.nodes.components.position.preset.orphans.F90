@@ -98,6 +98,7 @@ contains
     if (defaultPositionComponent%presetIsActive()) then
        ! Bind the position get function.
        call position%positionOrphanFunction(Node_Component_Position_Preset_Orphans_Position_Orphan)
+       call position%velocityOrphanFunction(Node_Component_Position_Preset_Orphans_Velocity_Orphan)
     end if
     return
   end subroutine Node_Component_Position_Preset_Orphans_Initialize
