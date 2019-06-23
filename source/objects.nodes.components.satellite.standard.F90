@@ -198,6 +198,7 @@ contains
   
   !# <mergerTreeInitializeTask>
   !#  <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
+  !#  <after>darkMatterProfile</after>
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Satellite_Standard_Tree_Initialize(node)
     !% Initialize the standard satellite component.
