@@ -34,6 +34,7 @@
      procedure :: densityContrastDefinition       => isotropicDensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => isotropicVelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => isotropicVelocityTangentialVectorMean
+     procedure :: velocityTotalRootMeanSquared    => isotropicVelocityTotalRootMeanSquared
   end type virialOrbitIsotropic
   
   interface virialOrbitIsotropic
@@ -130,3 +131,12 @@ contains
     return
   end function isotropicVelocityTangentialVectorMean
 
+  double precision function isotropicVelocityTotalRootMeanSquared(self,node,host)
+    !% Return the root mean squared of the total velocity.
+    implicit none
+    class(virialOrbitIsotropic), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node, host
+    
+    isotropicVelocityTotalRootMeanSquared=self%virialOrbit_%velocityTotalRootMeanSquared(node,host)
+    return
+  end function isotropicVelocityTotalRootMeanSquared

@@ -56,6 +56,12 @@ module Virial_Orbits
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
   !#  </method>
+  !#  <method name="velocityTotalRootMeanSquared" >
+  !#   <description>Returns the square root of the mean of the squared total velocity averaged over all orbits.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
+  !#  </method>
   !# </functionClass>
 
 end module Virial_Orbits

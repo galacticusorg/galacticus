@@ -36,6 +36,7 @@
      procedure :: densityContrastDefinition       => fixedDensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => fixedVelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => fixedVelocityTangentialVectorMean
+     procedure :: velocityTotalRootMeanSquared    => fixedVelocityTotalRootMeanSquared
   end type virialOrbitFixed
   
   interface virialOrbitFixed
@@ -207,3 +208,24 @@ contains
     return
   end function fixedVelocityTangentialVectorMean
 
+  double precision function fixedVelocityTotalRootMeanSquared(self,node,host)
+    !% Return the root mean squared of the total velocity.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitFixed  ), intent(inout) :: self
+    type            (treeNode          ), intent(inout) :: node, host
+    class           (nodeComponentBasic), pointer       :: hostBasic
+    double precision                                    :: massHost    , radiusHost, &
+         &                                                 velocityHost
+    !GCC$ attributes unused :: node
+
+    hostBasic                         =>  host%basic()
+    massHost                          =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    fixedVelocityTotalRootMeanSquared =   +sqrt(                            &
+         &                                      +self%velocityTangential**2 &
+         &                                      +self%velocityRadial    **2 &
+         &                                     )                            &
+         &                                *           velocityHost
+    return
+  end function fixedVelocityTotalRootMeanSquared
