@@ -40,6 +40,7 @@
      procedure :: densityContrastDefinition       => benson2005DensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => benson2005VelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => benson2005VelocityTangentialVectorMean
+     procedure :: velocityTotalRootMeanSquared    => benson2005VelocityTotalRootMeanSquared
   end type virialOrbitBenson2005
 
   interface virialOrbitBenson2005
@@ -215,3 +216,23 @@ contains
     return
   end function benson2005VelocityTangentialVectorMean
 
+  double precision function benson2005VelocityTotalRootMeanSquared(self,node,host)
+    !% Return the mean magnitude of the tangential velocity.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitBenson2005), intent(inout) :: self
+    type            (treeNode             ), intent(inout) :: node                                  , host
+    class           (nodeComponentBasic   ), pointer       :: hostBasic
+    ! The root mean squared total velocity. This was by numerical integration over the velocity distribution fitting function.
+    double precision                       , parameter     :: velocityTotalRootMeanSquared=1.25534d0
+    double precision                                       :: massHost                              , radiusHost, &
+         &                                                    velocityHost
+    !GCC$ attributes unused :: node
+
+    hostBasic                              =>  host%basic()
+    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    benson2005VelocityTotalRootMeanSquared =  +velocityTotalRootMeanSquared &
+         &                                    *velocityHost
+    return
+  end function benson2005VelocityTotalRootMeanSquared
