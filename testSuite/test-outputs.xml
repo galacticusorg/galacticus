@@ -84,7 +84,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputSatellitePericenterData value="true"/>
+    <nodePropertyExtractorMethod value="satelliteOrbitalExtrema">
+      <extractPericenter value="true"/>
+    </nodePropertyExtractorMethod>
   </parameters>
   
   <!-- Redshifts -->

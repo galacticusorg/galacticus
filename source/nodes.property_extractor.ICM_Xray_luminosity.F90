@@ -108,17 +108,18 @@ contains
     return
   end subroutine icmXRayLuminosityDestructor
   
-  integer function icmXRayLuminosityElementCount(self)
+  integer function icmXRayLuminosityElementCount(self,time)
     !% Return the number of elements in the lightconeple property extractors.
     implicit none
-    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    class           (nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    double precision                                        , intent(in   ) :: time
+    !GCC$ attributes unused :: self, time
     
     icmXRayLuminosityElementCount=2
     return
   end function icmXRayLuminosityElementCount
 
-  function icmXRayLuminosityExtract(self,node,instance)
+  function icmXRayLuminosityExtract(self,node,time,instance)
     !% Implement a last isolated redshift output analysis.
     use FGSL                        , only : fgsl_function                          , fgsl_integration_workspace
     use Numerical_Integration       , only : Integrate                              , Integrate_Done
@@ -131,13 +132,14 @@ contains
     double precision                                         , dimension(:) , allocatable :: icmXRayLuminosityExtract
     class           (nodePropertyExtractorICMXRayLuminosity ), intent(inout)              :: self
     type            (treeNode                               ), intent(inout)              :: node
+    double precision                                         , intent(in   )              :: time
     type            (multiCounter                           ), intent(inout), optional    :: instance
     type            (radiationFieldCosmicMicrowaveBackground), pointer                    :: radiation_
     type            (fgsl_function                          )                             :: integrandFunction
     type            (fgsl_integration_workspace             )                             :: integrationWorkspace
     logical                                                                               :: integrationReset
     double precision                                                                      :: luminosity          , temperature
-    !GCC$ attributes unused :: self, instance
+    !GCC$ attributes unused :: self, time, instance
     
     allocate(icmXRayLuminosityExtract(2))
     ! Initialize radiation field.
@@ -252,38 +254,41 @@ contains
 
   end function icmXRayLuminosityExtract
 
-  function icmXRayLuminosityNames(self)
+  function icmXRayLuminosityNames(self,time)
     !% Return the name of the last isolated redshift property.
     implicit none
-    type (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityNames
-    class(nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
-    !GCC$ attributes unused :: self
+    type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityNames
+    class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
+    double precision                                        , intent(in   )              :: time
+    !GCC$ attributes unused :: self, time
 
     allocate(icmXRayLuminosityNames(2))
     icmXRayLuminosityNames=[var_str('icmXrayLuminosity'),var_str('icmXrayTemperature')]
     return
   end function icmXRayLuminosityNames
 
-  function icmXRayLuminosityDescriptions(self)
+  function icmXRayLuminosityDescriptions(self,time)
     !% Return a description of the icmXRayLuminosity property.
     implicit none
-    type (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityDescriptions
-    class(nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
-    !GCC$ attributes unused :: self
+    type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityDescriptions
+    class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
+    double precision                                        , intent(in   )              :: time
+    !GCC$ attributes unused :: self, time
 
     allocate(icmXRayLuminosityDescriptions(2))
     icmXRayLuminosityDescriptions=[var_str('X-ray luminosity of the ICM [ergs/s]'),var_str('X-ray luminosity-weighted temperature of the ICM [keV]')]
     return
   end function icmXRayLuminosityDescriptions
 
-  function icmXRayLuminosityUnitsInSI(self)
+  function icmXRayLuminosityUnitsInSI(self,time)
     !% Return the units of the last isolated redshift property in the SI system.
     use Numerical_Constants_Units   , only : ergs, electronVolt
     use Numerical_Constants_Prefixes, only : kilo
     implicit none
     double precision                                        , allocatable  , dimension(:) :: icmXRayLuminosityUnitsInSI
     class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)               :: self
-    !GCC$ attributes unused :: self
+    double precision                                        , intent(in   )               :: time
+    !GCC$ attributes unused :: self, time
 
     allocate(icmXRayLuminosityUnitsInSI(2))
     icmXRayLuminosityUnitsInSI=[ergs,kilo*electronVolt]
