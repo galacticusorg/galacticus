@@ -33,6 +33,7 @@ module Node_Component_Spin_Vitvitska
   use Dark_Matter_Profiles_DMO
   use ISO_Varying_String
   use Halo_Spin_Distributions
+  use Dark_Matter_Profile_Scales  , only : darkMatterProfileScaleRadiusClass
   implicit none
   private
   public :: Node_Component_Spin_Vitvitska_Promote            , Node_Component_Spin_Vitvitska_Initialize_Spins , &
@@ -70,11 +71,12 @@ module Node_Component_Spin_Vitvitska
   !# </component>
   
   ! Objects used by this component.
-  class(haloSpinDistributionClass), pointer :: haloSpinDistribution_
-  class(darkMatterProfileDMOClass   ), pointer :: darkMatterProfileDMO_
-  class(virialOrbitClass         ), pointer :: virialOrbit_
-  class(darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(haloSpinDistribution_,darkMatterProfileDMO_,virialOrbit_,darkMatterHaloScale_)
+  class(haloSpinDistributionClass        ), pointer :: haloSpinDistribution_
+  class(darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_
+  class(virialOrbitClass                 ), pointer :: virialOrbit_
+  class(darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_
+  !$omp threadprivate(haloSpinDistribution_,darkMatterProfileDMO_,virialOrbit_,darkMatterHaloScale_,darkMatterProfileScaleRadius_)
   
   ! Parameter controlling scaling of orbital angular momentum with mass ratio.
   double precision :: spinVitvitskaMassExponent
@@ -113,15 +115,17 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(globalParameters_)
     !% Initializes the tree node Vitvitsake spin module.
     use Input_Parameters
-    use Galacticus_Nodes, only : defaultSpinComponent
+    use Galacticus_Nodes          , only : defaultSpinComponent
+    use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
-       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="globalParameters_"/>
-       !# <objectBuilder class="virialOrbit"          name="virialOrbit_"          source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="globalParameters_"/>
+       !# <objectBuilder class="haloSpinDistribution"         name="haloSpinDistribution_"         source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="globalParameters_"/>
+       !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Initialize
@@ -135,10 +139,11 @@ contains
     implicit none
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
-       !# <objectDestructor name="haloSpinDistribution_"/>
-       !# <objectDestructor name="darkMatterProfileDMO_"   />
-       !# <objectDestructor name="darkMatterHaloScale_" />
-       !# <objectDestructor name="virialOrbit_"         />
+       !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+       !# <objectDestructor name="haloSpinDistribution_"        />
+       !# <objectDestructor name="darkMatterProfileDMO_"        />
+       !# <objectDestructor name="darkMatterHaloScale_"         />
+       !# <objectDestructor name="virialOrbit_"                 />
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize
@@ -150,7 +155,8 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
     use ISO_Varying_String
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin, nodeComponentSpinVitvitska, nodeComponentSatellite, defaultSpinComponent
+    use Galacticus_Nodes, only : treeNode              , nodeComponentBasic  , nodeComponentSpin             , nodeComponentSpinVitvitska, &
+         &                       nodeComponentSatellite, defaultSpinComponent, nodeComponentDarkMatterProfile
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
     type            (treeNode                      )               , pointer :: nodeChild                  , nodeSibling          , &
