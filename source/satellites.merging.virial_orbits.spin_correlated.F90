@@ -34,6 +34,7 @@
      procedure :: densityContrastDefinition       => spinCorrelatedDensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => spinCorrelatedVelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => spinCorrelatedVelocityTangentialVectorMean
+     procedure :: velocityTotalRootMeanSquared    => spinCorrelatedVelocityTotalRootMeanSquared
   end type virialOrbitSpinCorrelated
   
   interface virialOrbitSpinCorrelated
@@ -124,16 +125,16 @@ contains
        call spinCorrelatedOrbit%thetaSet  (acos(2.0d0   *node%hostTree%randomNumberGenerator%uniformSample()-1.0d0))
        call spinCorrelatedOrbit%epsilonSet(     2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()       )
        ! Compute the cosine of the angle between the angular momentum of this orbit and the spin of the host halo.
-       spinHost        => host               %spin      ()
-       spinVector      =  spinHost           %spinVector()
-       coordinates     =  spinCorrelatedOrbit%position  ()
-       position        =  coordinates
-       coordinates     =  spinCorrelatedOrbit%velocity  ()
-       velocity        =  coordinates
-       spinMagnitude   =  Vector_Magnitude(spinVector                   )
-       angularMomentum =  Vector_Product  (position     ,velocity       )
-       angularMomentumMagnitude=Vector_Magnitude(              angularMomentum)
-       if (spinMagnitude<=0.0d0.or.angularMomentumMagnitude<=0.0d0) then
+       spinHost                 => host               %spin      ()
+       spinVector               =  spinHost           %spinVector()
+       coordinates              =  spinCorrelatedOrbit%position  ()
+       position                 =  coordinates
+       coordinates              =  spinCorrelatedOrbit%velocity  ()
+       velocity                 =  coordinates
+       spinMagnitude            =  Vector_Magnitude(spinVector                   )
+       angularMomentum          =  Vector_Product  (position     ,velocity       )
+       angularMomentumMagnitude =  Vector_Magnitude(              angularMomentum)
+       if (spinMagnitude <= 0.0d0.or.angularMomentumMagnitude <= 0.0d0) then
           cosineTheta=0.0d0
        else
           cosineTheta  =+Dot_Product(spinVector   ,angularMomentum         ) &
@@ -185,3 +186,12 @@ contains
     return
   end function spinCorrelatedVelocityTangentialVectorMean
 
+  double precision function spinCorrelatedVelocityTotalRootMeanSquared(self,node,host)
+    !% Return the root mean squared of the total velocity.
+    implicit none
+    class(virialOrbitSpinCorrelated), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node, host
+    
+    spinCorrelatedVelocityTotalRootMeanSquared=self%virialOrbit_%velocityTotalRootMeanSquared(node,host)
+    return
+  end function spinCorrelatedVelocityTotalRootMeanSquared
