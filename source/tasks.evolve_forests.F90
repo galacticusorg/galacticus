@@ -378,8 +378,8 @@ contains
     type            (mergerTree                   ), pointer                  , save :: currentTree                               , previousTree                , &
          &                                                                              nextTree
     type            (mergerTreeWalkerIsolatedNodes)                                  :: treeWalkerIsolated
-    type            (mergerTreeWalkerAllNodes     )                                  :: treeWalkerAll
-    !$omp threadprivate(currentTree,previousTree)
+    type            (mergerTreeWalkerAllNodes     )                           , save :: treeWalkerAll
+    !$omp threadprivate(currentTree,previousTree,treeWalkerAll)
     type            (treeNode                     ), pointer                  , save :: satelliteNode
     class           (nodeComponentBasic           ), pointer                  , save :: baseNodeBasic
     !$omp threadprivate(satelliteNode,baseNodeBasic)
