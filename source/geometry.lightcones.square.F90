@@ -88,7 +88,7 @@
      !@      Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the {\normalfont \ttfamily action} argument:
      !@      \begin{description}
      !@      \item[{\normalfont \ttfamily replicantActionCount}] returns in {\normalfont \ttfamily count} the number of replicants in which the node appears in the lightcone;
-     !@      \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} is the given position appears in \emph{any} replicant in the lightcone;
+     !@      \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} if the given position appears in \emph{any} replicant in the lightcone;
      !@      \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^\mathrm{th}$ replicant in which this position appears in the lightcone.
      !@      \end{description}
      !@     </description>
@@ -740,8 +740,32 @@ contains
        distanceMaximum   =+self%distanceMaximum(output)
     end if
     ! Determine range of possible replicants of this galaxy which could be in the lightcone.
-    periodicRange(:,1)=floor  ((origin+self%distanceMinimum(output)*self%unitVector(:,1))/self%lengthReplication)-1
-    periodicRange(:,2)=ceiling((origin+self%distanceMaximum(output)*self%unitVector(:,1))/self%lengthReplication)+0
+    periodicRange(:,1)=+floor  (                                                                                      &
+         &                      +(                                                                                    &
+         &                        +origin                                                                             &
+         &                        +cos(0.5d0*self%angularsize)*    self%distanceMinimum(output)*self%unitVector(:,1)  &
+         &                        -sin(0.5d0*self%angularsize)                                                        &
+         &                        *(                                                                                  &
+         &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,2)) &
+         &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,3)) &
+         &                         )                                                                                  &
+         &                       )                                                                                    &
+         &                      /self%lengthReplication                                                               &
+         &                    )                                                                                       &
+         &             -1
+    periodicRange(:,2)=+ceiling(                                                                                      &
+         &                      +(                                                                                    &
+         &                        +origin                                                                             &
+         &                        +                                self%distanceMaximum(output)*self%unitVector(:,1)  &
+         &                        +sin(0.5d0*self%angularsize)                                                        &
+         &                        *(                                                                                  &
+         &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,2)) &
+         &                          +                          abs(self%distanceMaximum(output)*self%unitVector(:,3)) &
+         &                         )                                                                                  &
+         &                       )                                                                                    &
+         &                      /self%lengthReplication                                                               &
+         &                    )                                                                                       &
+         &             +0
     ! Get comoving position.
     nodePositionComoving=nodePosition/self%cosmologyFunctions_%expansionFactor(self%outputTimes(output))
     ! Iterate over all replicants.
