@@ -78,24 +78,26 @@ contains
     return
   end subroutine virialPropertiesDestructor
   
-  integer function virialPropertiesElementCount(self)
+  integer function virialPropertiesElementCount(self,time)
     !% Return the number of elements in the {\normalfont \ttfamily virialProperies} property extractors.
     implicit none
-    class(nodePropertyExtractorVirialProperties), intent(inout) :: self
-    !GCC$ attributes unused :: self
+    class           (nodePropertyExtractorVirialProperties), intent(inout) :: self
+    double precision                                       , intent(in   ) :: time
+    !GCC$ attributes unused :: self, time
 
     virialPropertiesElementCount=2
     return
   end function virialPropertiesElementCount
   
-  function virialPropertiesExtract(self,node,instance)
+  function virialPropertiesExtract(self,node,time,instance)
     !% Implement a virialProperties output extractor.
     implicit none
     double precision                                       , dimension(:) , allocatable :: virialPropertiesExtract
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
     type            (treeNode                             ), intent(inout)              :: node
+    double precision                                       , intent(in   )              :: time
     type            (multiCounter                         ), intent(inout), optional    :: instance
-    !GCC$ attributes unused :: instance
+    !GCC$ attributes unused :: time, instance
     
     allocate(virialPropertiesExtract(2))
     virialPropertiesExtract=[                                                &
@@ -105,12 +107,13 @@ contains
     return
   end function virialPropertiesExtract
 
-  function virialPropertiesNames(self)
+  function virialPropertiesNames(self,time)
     !% Return the names of the {\normalfont \ttfamily virialProperies} properties.
     implicit none
-    type (varying_string                       ), dimension(:) , allocatable :: virialPropertiesNames
-    class(nodePropertyExtractorVirialProperties), intent(inout)              :: self
-    !GCC$ attributes unused :: self
+    type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesNames
+    class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
+    double precision                                       , intent(in   )              :: time
+    !GCC$ attributes unused :: self, time
 
     allocate(virialPropertiesNames(2))
     virialPropertiesNames=[                                         &
@@ -120,12 +123,13 @@ contains
     return
   end function virialPropertiesNames
 
-  function virialPropertiesDescriptions(self)
+  function virialPropertiesDescriptions(self,time)
     !% Return the descriptions of the {\normalfont \ttfamily virialProperies} properties.
     implicit none
-    type (varying_string                       ), dimension(:) , allocatable :: virialPropertiesDescriptions
-    class(nodePropertyExtractorVirialProperties), intent(inout)              :: self
-    !GCC$ attributes unused :: self
+    type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesDescriptions
+    class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
+    double precision                                       , intent(in   )              :: time
+    !GCC$ attributes unused :: self, time
 
     allocate(virialPropertiesDescriptions(2))
     virialPropertiesDescriptions=[                                                                 &
@@ -135,14 +139,15 @@ contains
     return
   end function virialPropertiesDescriptions
 
-  function virialPropertiesUnitsInSI(self)
+  function virialPropertiesUnitsInSI(self,time)
     !% Return the units of the {\normalfont \ttfamily virialProperies} properties in the SI system.
     use Numerical_Constants_Prefixes    , only : kilo
     use Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     double precision                                       , dimension(:) , allocatable :: virialPropertiesUnitsInSI
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
-    !GCC$ attributes unused :: self
+    double precision                                       , intent(in   )              :: time
+   !GCC$ attributes unused :: self, time
 
     allocate(virialPropertiesUnitsInSI(2))
     virialPropertiesUnitsInSI=[            &
