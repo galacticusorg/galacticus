@@ -89,7 +89,7 @@ contains
     type            (coordinateCartesian                       )                :: positionCartesian
     
     ! Select random spherical coordinates.
-    positionSpherical=[                                                                                                            &
+    positionSpherical=[                                                                                                                   &
          &             self%inverseCumulativeMassFunctionRadial(node,         node%hostTree%randomNumberGenerator%uniformSample()      ), &
          &             acos                                    (     2.0d0   *node%hostTree%randomNumberGenerator%uniformSample()-1.0d0), &
          &                                                           2.0d0*Pi*node%hostTree%randomNumberGenerator%uniformSample()         &
