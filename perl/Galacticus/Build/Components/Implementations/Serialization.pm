@@ -66,7 +66,7 @@ sub Implementation_Serialize_ASCII {
 	 },
 	 {
 	     intrinsic  => "character",
-	     type       => "len=18",
+	     type       => "len=22",
 	     variables  => [ "label" ]
 	 }
 	)
@@ -84,9 +84,9 @@ sub Implementation_Serialize_ASCII {
     # Define format labels for different data types.
     %code::formatLabel = 
 	(
-	 "double"      => "'(e12.6)'",
-	 "integer"     => "'(i8)'"   ,
-	 "longInteger" => "'(i16)'"  ,
+	 "double"      => "'(e22.16)'",
+	 "integer"     => "'(i8)'"    ,
+	 "longInteger" => "'(i16)'"   ,
 	 "logical"     => "'(l1)'"
 	);
     # Handle null components separately.

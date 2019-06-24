@@ -552,7 +552,7 @@ contains
     implicit none
     class    (stellarLuminosities), intent(in   ) :: self
     integer                                       :: i
-    character(len=12             )                :: label
+    character(len=22             )                :: label
     type     (varying_string     )                :: message
 
     ! Ensure module is initialized.
@@ -561,7 +561,7 @@ contains
     if (luminosityCount > 0) then
        do i=1,luminosityCount
           if (i <= size(self%luminosityValue)) then
-             write (label,'(e12.6)') self%luminosityValue(i)
+             write (label,'(e22.16)') self%luminosityValue(i)
           else
              label="pruned"
           end if
