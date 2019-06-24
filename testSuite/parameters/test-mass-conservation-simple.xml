@@ -55,10 +55,10 @@
     </darkMatterProfileConcentrationMethod>
     <darkMatterProfileDMOMethod value="NFW"/>
     <darkMatterProfileScaleRadiusMethod value="concentration">
-    <correctForConcentrationDefinition value="true"/>
-  </darkMatterProfileScaleRadiusMethod>
+      <correctForConcentrationDefinition value="true"/>
+    </darkMatterProfileScaleRadiusMethod>
 
-  <diskMassToleranceAbsolute value="1.0e-6"/>
+    <diskMassToleranceAbsolute value="1.0e-6"/>
     <diskOutflowTimescaleMinimum value="2.1949631313087498E-002"/>
     <diskStarFormationTimescaleMinimum value="2.6271201525734244E-005"/>
     <diskVerySimpleAnalyticSolverPruneMassGas value="1.0e6"/>
@@ -68,11 +68,9 @@
     <diskVerySimpleSurfaceDensityVelocityExponent value="-0.98483665317102953"/>
     <diskVerySimpleUseAnalyticSolver value="true"/>
     <galacticStructureSolverMethod value="fixed">
-    <factor value="0.29610738271059550"/>
-    <radiusFixed value="turnaround"/>
-  </galacticStructureSolverMethod>
-
-  <galacticStructureSolverMethod value="fixed"/>
+      <factor value="0.29610738271059550"/>
+      <radiusFixed value="turnaround"/>
+    </galacticStructureSolverMethod>
     <gravitationalLensingMethod value="takahashi2011"/>
     <haloMassFunctionMethod value="simpleSystematic">
       <alpha value="-0.131667664610245"/>
@@ -93,10 +91,10 @@
     </hotHaloOutflowReincorporationMethod>
     <hotHaloVerySimpleDelayedMassScaleRelative value="1.0"/>
     <stellarPopulationMethod value="standard">
-    <recycledFraction value="0.46"/>
-    <metalYield value="0.0"/>
-  </stellarPopulationMethod>
-  <initialMassFunctionMethod value="chabrier2001"/>
+      <recycledFraction value="0.46"/>
+      <metalYield value="0.0"/>
+    </stellarPopulationMethod>
+    <initialMassFunctionMethod value="chabrier2001"/>
     <stellarPopulationSelectorMethod value="fixed"/>
     <intergalacticMediumStateMethod value="recFast"/>
     <linearGrowthMethod value="simple"/>
@@ -138,16 +136,16 @@
     <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
     <nodeMergersMethod value="singleLevelHierarchy"/>
     <mergerTreeNodeEvolverMethod value="standard">
-    <odeAlgorithm value="rungeKuttaSecondOrder"/>
-    <odeToleranceAbsolute value="1.0e-3"/>
-    <odeToleranceRelative value="0.1"/>
-  </mergerTreeNodeEvolverMethod>
+      <odeAlgorithm value="rungeKuttaSecondOrder"/>
+      <odeToleranceAbsolute value="1.0e-3"/>
+      <odeToleranceRelative value="0.1"/>
+    </mergerTreeNodeEvolverMethod>
 
-  <outputTimesMethod value="list">
-    <redshifts value="0"/>
-  </outputTimesMethod>
+    <outputTimesMethod value="list">
+      <redshifts value="0"/>
+    </outputTimesMethod>
 
-  <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
+    <powerSpectrumNonlinearMethod value="peacockDodds1996"/>
     <powerSpectrumPrimordialMethod value="powerLaw">
       <index value="0.958781924494571"/>
       <running value="0.0"/>
@@ -158,8 +156,8 @@
     <mergerMassMovementsMethod value="verySimple"/>
     <mergerRemnantSizeMethod value="null"/>
     <satelliteMergingTimescalesMethod value="jiang2008">
-  <timescaleMultiplier value="1.2035038666749114"/>
-  </satelliteMergingTimescalesMethod>
+      <timescaleMultiplier value="1.2035038666749114"/>
+    </satelliteMergingTimescalesMethod>
     <starFormationFeedbackDisksMethod value="vlctyMxSclng">
       <fraction value="5.4973312818696149E-002"/>
       <exponentRedshift value="1.9464430036515628"/>
