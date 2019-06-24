@@ -51,14 +51,15 @@ contains
     return
   end function indicesTreeConstructorParameters
 
-  function indicesTreeExtract(self,node,instance)
+  function indicesTreeExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily indicesTree} node property extractor.
     implicit none
-    integer(kind_int8                       )                          :: indicesTreeExtract
-    class  (nodePropertyExtractorIndicesTree), intent(inout)           :: self
-    type   (treeNode                        ), intent(inout)           :: node
-    type   (multiCounter                    ), intent(inout), optional :: instance
-    !GCC$ attributes unused :: self, instance
+    integer         (kind_int8                       )                          :: indicesTreeExtract
+    class           (nodePropertyExtractorIndicesTree), intent(inout)           :: self
+    type            (treeNode                        ), intent(inout), target   :: node
+    double precision                                  , intent(in   )           :: time
+    type            (multiCounter                    ), intent(inout), optional :: instance
+    !GCC$ attributes unused :: self, instance, time
 
     indicesTreeExtract=node%hostTree%index
     return

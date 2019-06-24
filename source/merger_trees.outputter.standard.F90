@@ -373,7 +373,7 @@ contains
                               &                                                                                                                         +extractor_     %elementCount  (                       time         )
                       class is (nodePropertyExtractorIntegerScalar)
                          ! Integer scalar property extractor - extract and store the value.
-                         self%integerBuffer(self%integerBufferCount,integerProperty+1                                                                 )=extractor_      %extract       (                  node     ,instance)
+                         self%integerBuffer(self%integerBufferCount,integerProperty+1                                                                 )=extractor_      %extract       (                  node,time,instance)
                          integerProperty                                                                                                               =+integerProperty                                                      &
                               &                                                                                                                         +1
                       class is (nodePropertyExtractorMulti        )
