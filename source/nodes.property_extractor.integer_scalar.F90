@@ -64,13 +64,14 @@
   end type nodePropertyExtractorIntegerScalar
 
   abstract interface
-     function integerScalarExtract(self,node,instance)
+     function integerScalarExtract(self,node,time,instance)
        !% Interface for integerScalar property extraction.
        import nodePropertyExtractorIntegerScalar, treeNode, multiCounter, kind_int8
-       integer(kind_int8                         )                          :: integerScalarExtract
-       class  (nodePropertyExtractorIntegerScalar), intent(inout)           :: self
-       type   (treeNode                          ), intent(inout)           :: node
-       type   (multiCounter                      ), intent(inout), optional :: instance
+       integer         (kind_int8                         )                          :: integerScalarExtract
+       class           (nodePropertyExtractorIntegerScalar), intent(inout)           :: self
+       type            (treeNode                          ), intent(inout), target   :: node
+       double precision                                    , intent(in   )           :: time
+       type            (multiCounter                      ), intent(inout), optional :: instance
      end function integerScalarExtract
   end interface
 

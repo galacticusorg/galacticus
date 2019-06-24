@@ -256,7 +256,7 @@ contains
           elementCount=0
        class is (nodePropertyExtractorIntegerScalar)
           elementCount=1
-          multiExtractInteger(offset+1:offset+elementCount)=extractor_%extract(node     ,instance)
+          multiExtractInteger(offset+1:offset+elementCount)=extractor_%extract(node,time,instance)
        class default
           elementCount=0
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
