@@ -67,6 +67,7 @@ contains
     !#   <type>string</type>
     !# </inputParameter>
     self=nodePropertyExtractorSatelliteStatus(enumerationSatelliteStatusDiscriminatorEncode(char(discriminator),includesPrefix=.false.))
+    !# <inputParametersValidate source="parameters"/>
     return
   end function satelliteStatusConstructorParameters
 
