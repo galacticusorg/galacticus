@@ -24,12 +24,14 @@ module Node_Component_Scale_Virial_Theorem
   use Galacticus_Nodes          , only : treeNode                         , nodeComponentDarkMatterProfile  
   use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
   use Dark_Matter_Profiles      , only : darkMatterProfileClass
+  use Virial_Orbits             , only : virialOrbitClass
+  use Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute     , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize    , &
        &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Promote          , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set          , &
        &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize, Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize, &
-       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility
+       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility     , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize
 
   !# <component>
   !#  <class>darkMatterProfile</class>
@@ -69,10 +71,43 @@ module Node_Component_Scale_Virial_Theorem
   ! Objects used by this component.
   class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_
   class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_
-  !$omp threadprivate(darkMatterProfileScaleRadius_,darkMatterProfile_)
+  class           (virialOrbitClass                 ), pointer :: virialOrbit_
+  class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterProfileScaleRadius_,darkMatterProfile_,virialOrbit_,darkMatterHaloScale_)
+  
+  ! Parameter controlling scaling of orbital energy with mass ratio.
+  double precision :: darkMatterProfileScaleVirialTheoremMassExponent, darkMatterProfileScaleVirialTheoremUnresolvedEnergy
   
 contains
 
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize(globalParameters_)
+    !% Initializes the ``virialTheorem'' implementation of the dark matter profile component.
+    use Input_Parameters
+    implicit none
+    type(inputParameters), intent(inout) :: globalParameters_
+
+    !# <inputParameter>
+    !#   <name>darkMatterProfileScaleVirialTheoremMassExponent</name>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <source>globalParameters_</source>
+    !#   <description>The exponent of mass ratio appearing in the orbital energy term in the ``virial theorem'' dark matter profile scale model.</description>
+    !#   <type>double</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>darkMatterProfileScaleVirialTheoremUnresolvedEnergy</name>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <source>globalParameters_</source>
+    !#   <description>Factor multiplying the estimate of the internal energy of unresolved accretion in the ``virial theorem'' dark matter profile scale model.</description>
+    !#   <type>double</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+   return
+  end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize
+  
   !# <nodeComponentThreadInitializationTask>
   !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize</unitName>
   !# </nodeComponentThreadInitializationTask>
@@ -82,12 +117,16 @@ contains
     use Galacticus_Nodes          , only : defaultDarkMatterProfileComponent
     use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
     use Dark_Matter_Profiles      , only : darkMatterProfile
+    use Dark_Matter_Halo_Scales   , only : darkMatterHaloScale
+    use Virial_Orbits             , only : virialOrbit
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
     if (defaultDarkMatterProfileComponent%virialTheoremIsActive()) then
        !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
        !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+       !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters"/>
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize
@@ -103,6 +142,8 @@ contains
     if (defaultDarkMatterProfileComponent%virialTheoremIsActive()) then
        !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
        !# <objectDestructor name="darkMatterProfile_"           />
+       !# <objectDestructor name="darkMatterHaloScale_"         />
+       !# <objectDestructor name="virialOrbit_"                 />
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize
@@ -165,22 +206,27 @@ contains
   !# </mergerTreeInitializeTask>
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize(node)
     !% Initialize the scale radius of {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic                         , nodeComponentDarkMatterProfile, nodeComponentSatellite       , defaultDarkMatterProfileComponent, &
-         &                       nodeComponentDarkMatterProfileVirialTheorem
-    use Root_Finder     , only : rootFinder                                 , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
-    use Kepler_Orbits   , only : keplerOrbit
-    use Merger_Tree_Walkers
+    use Galacticus_Nodes            , only : nodeComponentBasic                         , nodeComponentDarkMatterProfile, nodeComponentSatellite       , defaultDarkMatterProfileComponent, &
+         &                                   nodeComponentDarkMatterProfileVirialTheorem
+    use Root_Finder                 , only : rootFinder                                 , rangeExpandMultiplicative     , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
+    use Kepler_Orbits               , only : keplerOrbit
+    use Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes
+    use Numerical_Constants_Physical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode                      ), intent(inout), pointer :: node
-    type            (treeNode                      )               , pointer :: nodeChild             , nodeSibling,nodeWork
-    class           (nodeComponentBasic            )               , pointer :: basicChild            , basicSibling            , &
-         &                                                                      basic                 , basicParent
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile     , darkMatterProfileSibling, &
-         &                                                                      darkMatterProfileChild, darkMatterProfileParent
+    type            (treeNode                      )               , pointer :: nodeChild                  , nodeSibling             , &
+         &                                                                      nodeWork                   , nodeUnresolved
+    class           (nodeComponentBasic            )               , pointer :: basicChild                 , basicSibling            , &
+         &                                                                      basic                      , basicParent             , &
+         &                                                                      basicUnresolved
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile          , darkMatterProfileSibling, &
+         &                                                                      darkMatterProfileChild     , darkMatterProfileParent , &
+         &                                                                      darkMatterProfileUnresolved
     class           (nodeComponentSatellite        )               , pointer :: satelliteSibling
-    double precision                                                         :: energyOrbital         , massRatio               , &
-         &                                                                      radiusScaleChild      , radiusScale             , &
-         &                                                                      massUnresolved        , deltaTime
+    double precision                                                         :: energyOrbital              , massRatio               , &
+         &                                                                      radiusScaleChild           , radiusScale             , &
+         &                                                                      massUnresolved             , deltaTime               , &
+         &                                                                      radiusScaleUnresolved
     type            (rootFinder                    )                         :: finder
     type            (keplerOrbit                   )                         :: orbit
     type            (mergerTreeWalkerAllNodes      )                         :: treeWalker
@@ -196,7 +242,7 @@ contains
           treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
           do while (treeWalker%next(nodeWork))
              darkMatterProfile => nodeWork%darkMatterProfile(autoCreate=.true.)
-             ! If this node has no children, draw its darkMatterProfile from a distribution
+             ! If this node has no children, draw its dark matter profile scale radius from a distribution.
              if (.not.associated(nodeWork%firstChild)) then
                 radiusScale=darkMatterProfileScaleRadius_%radius(nodeWork)
              else
@@ -219,7 +265,11 @@ contains
                    massRatio                =  +basicSibling      %mass             (                      ) &
                         &                      /basicChild        %mass             (                      )
                    energyOrbital            =  +orbit             %energy           (                      ) &
-                        &                      *basicSibling      %mass             (                      )
+                        &                      *basicSibling      %mass             (                      ) &
+                        &                      /(                                                            &
+                        &                        +1.0d0                                                      &
+                        &                        +massRatio                                                  &
+                        &                       )**darkMatterProfileScaleVirialTheoremMassExponent
                    massUnresolved           =  +massUnresolved                                               &
                         &                      -basicSibling      %mass             (                      )
                    ! Add orbital energy of this sibling.
@@ -229,13 +279,31 @@ contains
                    energyTotal              =  +energyTotal                                                  &
                         &                      +darkMatterProfile_%energy           (           nodeSibling)
                 end do
-                ! Account for unresolved accretion. The assumption is that unresolved accretion has the same specific energy as resolved accretion.
-                energyTotal=+  energyTotal            &
-                     &      *  basic         %mass() &
-                     &      /(                       &
-                     &        +basic         %mass() &
-                     &        -massUnresolved        &
-                     &       )                
+                ! Account for unresolved accretion. We assume that unresolved halos are accreted with the mean orbital energy of
+                ! the virial orbital parameter distribution, plus an internal energy corresponding to that of a halo with mass
+                ! equal to the total unresolved mass scaled by some correction factor (to account for the fact that the unresolved
+                ! accretion will not in fact be in a single halo).
+                nodeUnresolved              => treeNode                                       (                         )
+                basicUnresolved             => nodeUnresolved               %basic            (autoCreate=.true.        )
+                darkMatterProfileUnresolved => nodeUnresolved               %darkMatterProfile(autoCreate=.true.        )
+                call basicUnresolved            %massSet            (massUnresolved       )
+                call basicUnresolved            %timeSet            (basicChild%time()    )
+                call basicUnresolved            %timeLastIsolatedSet(basicChild%time()    )
+                radiusScaleUnresolved       =  darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
+                call darkMatterProfileUnresolved%scaleSet           (radiusScaleUnresolved)
+                energyTotal=+energyTotal                                                                      &
+                     &      +massUnresolved                                                                   &
+                     &      *(                                                                                &
+                     &        -gravitationalConstantGalacticus                                                &
+                     &        *basicChild          %mass                        (                        )    &
+                     &        /darkMatterHaloScale_%virialRadius                (               nodeChild)    &
+                     &        +0.5d0                                                                          &
+                     &        *virialOrbit_        %velocityTotalRootMeanSquared(nodeUnresolved,nodeChild)**2 &                      
+                     &       )                                                                                &
+                     &      +  darkMatterProfileScaleVirialTheoremUnresolvedEnergy                            &
+                     &      *  darkMatterProfile_  %energy                      (nodeUnresolved          )                
+                call nodeUnresolved%destroy()
+                deallocate(nodeUnresolved)
                 ! Convert energy back to scale radius.
                 nodeActive              => nodeWork
                 darkMatterProfileActive => darkMatterProfile
