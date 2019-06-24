@@ -30,6 +30,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </stateStorable>
   !# </virialOrbit>
 
   type, extends(virialOrbitClass) :: virialOrbitWetzel2010

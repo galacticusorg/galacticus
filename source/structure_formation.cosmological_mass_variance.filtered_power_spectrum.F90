@@ -47,6 +47,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
+  !#  </stateStorable>
   !# </cosmologicalMassVariance>
   use Tables
   use Cosmology_Parameters

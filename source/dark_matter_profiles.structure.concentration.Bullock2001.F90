@@ -28,6 +28,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+  !#  </stateStorable>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationBullock2001
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{bullock_profiles_2001}.

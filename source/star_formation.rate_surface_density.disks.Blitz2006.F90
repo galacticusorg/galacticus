@@ -171,11 +171,11 @@ contains
 
   subroutine blitz2006AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,blitz2006CalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,blitz2006CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine blitz2006AutoHook
   

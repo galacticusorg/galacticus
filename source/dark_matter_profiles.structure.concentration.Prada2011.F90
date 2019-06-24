@@ -29,6 +29,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+  !#  </stateStorable>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationPrada2011
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{prada_halo_2011}.

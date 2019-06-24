@@ -29,6 +29,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="darkMatterProfileDMODefinition_"/>
+  !#  </stateStorable>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationKlypin2015
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{klypin_multidark_2014}.

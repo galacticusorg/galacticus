@@ -42,6 +42,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="radiation"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="radiation"/>
+  !#  </stateStorable>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusBetaProfile
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
@@ -189,11 +192,11 @@ contains
   
   subroutine betaProfileAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingRadiusBetaProfile), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,betaProfileCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,betaProfileCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine betaProfileAutoHook
   

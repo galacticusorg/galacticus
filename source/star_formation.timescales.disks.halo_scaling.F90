@@ -134,11 +134,11 @@ contains
 
   subroutine haloScalingAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationTimescaleDisksHaloScaling), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,haloScalingCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,haloScalingCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine haloScalingAutoHook
   

@@ -102,11 +102,11 @@ contains
   
   subroutine zentner2005AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(satelliteTidalStrippingZentner2005), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,zentner2005CalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,zentner2005CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine zentner2005AutoHook
   

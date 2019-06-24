@@ -27,6 +27,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+  !#  </stateStorable>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationGao2008
      !% A dark matter halo profile concentration class implementing the algorithm of \cite{gao_redshift_2008}.

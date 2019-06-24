@@ -33,6 +33,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="radiation"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="radiation"/>
+  !#  </stateStorable>
   !# </accretionHalo>
   type, extends(accretionHaloClass) :: accretionHaloSimple
      !% A halo accretion class using simple truncation to mimic the effects of reionization.

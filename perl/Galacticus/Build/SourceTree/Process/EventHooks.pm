@@ -90,24 +90,23 @@ end interface
 CODE
 		    $code::location = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 		    my $attacher = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine eventHook{$interfaceType}Attach(self,object_,function_,bindToOpenMPThread)
+subroutine eventHook{$interfaceType}Attach(self,object_,function_,openMPThreadBinding)
   !$ use OMP_Lib
   use Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   class    (eventHook{$interfaceType}), intent(inout)           :: self
   class    (*                        ), intent(in   ), target   :: object_
-  logical                             , intent(in   ), optional :: bindToOpenMPThread
+  integer                             , intent(in   ), optional :: openMPThreadBinding
   procedure(interface{$interfaceType})                          :: function_
   class    (hook                     )               , pointer  :: hook_
-  integer                                                       :: i
-  logical                                                       :: bindToOpenMPThread_
+  integer                                                       :: i                  , openMPThreadBinding_
 
   !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
   !$ call OMP_Set_Lock(self%lock_)
-  if (present(bindToOpenMPThread)) then
-     bindToOpenMPThread_=bindToOpenMPThread
+  if (present(openMPThreadBinding)) then
+     openMPThreadBinding_=openMPThreadBinding
   else
-     bindToOpenMPThread_=.false.
+     openMPThreadBinding_=openMPThreadBindingNone
   end if
   if (associated(self%first_)) then
      hook_ => self%first_
@@ -122,10 +121,10 @@ subroutine eventHook{$interfaceType}Attach(self,object_,function_,bindToOpenMPTh
   end if
   select type (hook_)
   type is (hook{$interfaceType})
-     hook_%object_   => object_
-     hook_%function_ => function_
-     hook_%openMPBound =  bindToOpenMPThread_
-     if (hook_%openMPBound) then
+     hook_%object_             => object_
+     hook_%function_           => function_
+     hook_%openMPThreadBinding =  openMPThreadBinding_
+     if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
         hook_%openMPLevel=OMP_Get_Level()
         allocate(hook_%openMPThread(0:hook_%openMPLevel))
         do i=0,hook_%openMPLevel
@@ -239,12 +238,17 @@ CODE
 		type      => "moduleUse",
 		moduleUse =>
 		{
-		    Events_Hooks =>
+		    Events_Hooks     =>
 		    {
 			intrinsic => 0,
 			all       => 1
 		    },
-		    OMP_Lib =>
+                    Galacticus_Error =>
+		    {
+			intrinsic => 0,
+			all       => 1
+		    },
+		    OMP_Lib         =>
 		    {
 			intrinsic => 0,
 			all       => 1,
@@ -281,26 +285,48 @@ CODE
 	    $code::interfaceType = &interfaceTypeGet($node->{'directive'});
 	    $code::callWith      = exists($node->{'directive'}->{'callWith'}) ? ",".$node->{'directive'}->{'callWith'} : "";
 	    $code::eventName     = $node->{'directive'}->{'name'    };
+            $code::location      = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 	    my $eventHookCode    = fill_in_string(<<'CODE', PACKAGE => 'code');
 call {$eventName}Event%lock()
 hook_ => {$eventName}Event%first()
 do while (associated(hook_))
    select type (hook_)
    type is (hook{$interfaceType})
-     functionActive_=.true.
-     if (hook_%openMPBound) then
-        if (hook_%openMPLevel <= OMP_Get_Level()) then
-           do ompLevel_=0,OMP_Get_Level()
-              if (hook_%openMPThread(min(ompLevel_,hook_%openMPLevel)) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
-                 functionActive_=.false.
-                 exit
-              end if
-           end do
-        else
-           functionActive_=.false.
-        end if
-     end if
-     if (functionActive_) call hook_%function_(hook_%object_{$callWith})
+      select case (hook_%openMPThreadBinding)
+      case (openMPThreadBindingNone)
+         ! Not bound to any OpenMP thread, so always call.
+         functionActive_=.true.
+      case (openMPThreadBindingAtLevel)
+         ! Binds at the OpenMP level - check levels match, and that this hooked object matches the OpenMP thread number across all levels.
+         if (hook_%openMPLevel == OMP_Get_Level()) then
+            functionActive_=.true.
+            do ompLevel_=0,hook_%openMPLevel
+               if (hook_%openMPThread(ompLevel_) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
+                  functionActive_=.false.
+                  exit
+               end if
+            end do
+         else
+            functionActive_=.false.
+         end if
+      case (openMPThreadBindingAllLevels)
+         ! Binds at all levels at or above the level of the hooked object - check this condition is met, and that the hooked object matches the OpenMP thread number across all levels.
+         if (hook_%openMPLevel <= OMP_Get_Level()) then
+            functionActive_=.true.
+            do ompLevel_=0,OMP_Get_Level()
+               if (hook_%openMPThread(min(ompLevel_,hook_%openMPLevel)) /= OMP_Get_Ancestor_Thread_Num(ompLevel_)) then
+                  functionActive_=.false.
+                  exit
+               end if
+            end do
+         else
+            functionActive_=.false.
+         end if
+      case default
+         functionActive_=.false.
+         call Galacticus_Error_Report('unknown OpenMP binding'//{$location})
+      end select
+      if (functionActive_) call hook_%function_(hook_%object_{$callWith})
    end select
    hook_ => hook_%next
 end do
