@@ -284,13 +284,13 @@ contains
                &         -basic             %time ()
           if (deltaTime > 0.0d0) then
              darkMatterProfileParent => node%parent%darkMatterProfile(autoCreate=.true.)
-             call darkMatterProfile%scaleGrowthRateSet(                                               &
-                  &                                                 (                                 &
-                  &                                                   darkMatterProfileParent%scale() &
-                  &                                                  -darkMatterProfile      %scale() &
-                  &                                                 )                                 &
-                  &                                                 /deltaTime                        &
-                  &                                                )
+             call darkMatterProfile%scaleGrowthRateSet(                                  &
+                  &                                    (                                 &
+                  &                                      darkMatterProfileParent%scale() &
+                  &                                     -darkMatterProfile      %scale() &
+                  &                                    )                                 &
+                  &                                    /deltaTime                        &
+                  &                                   )
           else
              call darkMatterProfile%scaleGrowthRateSet(0.0d0)
           end if
