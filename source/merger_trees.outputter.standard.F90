@@ -248,7 +248,8 @@ contains
     use               Events_Hooks
     use               Galacticus_Error
     use               IO_HDF5                           , only : hdf5Access
-    use               Node_Property_Extractors          , only : nodePropertyExtractorNull, nodePropertyExtractorScalar, nodePropertyExtractorTuple
+    use               Node_Property_Extractors          , only : nodePropertyExtractorNull , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
+         &                                                       nodePropertyExtractorMulti, elementTypeInteger         , elementTypeDouble
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
@@ -360,16 +361,29 @@ contains
                       select type (extractor_ => self%nodePropertyExtractor_)
                       type is (nodePropertyExtractorNull)
                          ! Null extractor - simply ignore.
-                      class is (nodePropertyExtractorScalar)
+                      class is (nodePropertyExtractorScalar       )
                          ! Scalar property extractor - extract and store the value.
-                         self%doubleBuffer(self%doubleBufferCount,doubleProperty+1                                             )=extractor_     %extract     (node      ,instance)
-                         doubleProperty                                                                                         =+doubleProperty                                   &
-                              &                                                                                                  +1
-                      class is (nodePropertyExtractorTuple)
+                         self%doubleBuffer (self%doubleBufferCount ,doubleProperty+1                                                                  )=extractor_      %extract       (                  node      ,instance)
+                         doubleProperty                                                                                                                =+doubleProperty                                                        &
+                              &                                                                                                                         +1
+                      class is (nodePropertyExtractorTuple        )
                          ! Tuple property extractor - extract and store the values.
-                         self%doubleBuffer(self%doubleBufferCount,doubleProperty+1:doubleProperty+extractor_%elementCount(time))= extractor_    %extract     (node,time,instance)
-                         doubleProperty                                                                                         =+doubleProperty                                  &
-                              &                                                                                                  +extractor_    %elementCount(     time         )
+                         self%doubleBuffer (self%doubleBufferCount ,doubleProperty+1 :doubleProperty+extractor_%elementCount(                    time))= extractor_     %extract       (                  node,time,instance)
+                         doubleProperty                                                                                                                =+doubleProperty                                                       &
+                              &                                                                                                                         +extractor_     %elementCount  (                       time         )
+                      class is (nodePropertyExtractorIntegerScalar)
+                         ! Integer scalar property extractor - extract and store the value.
+                         self%integerBuffer(self%integerBufferCount,integerProperty+1                                                                 )=extractor_      %extract       (                  node     ,instance)
+                         integerProperty                                                                                                               =+integerProperty                                                      &
+                              &                                                                                                                         +1
+                      class is (nodePropertyExtractorMulti        )
+                         ! Multi property extractor - extract and store the values.
+                         self%doubleBuffer (self%doubleBufferCount ,doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))=extractor_      %extractDouble (                  node,time,instance)
+                         doubleProperty                                                                                                                =+doubleProperty                                                       &
+                              &                                                                                                                         +extractor_     %elementCount  (elementTypeDouble,     time         )
+                         self%integerBuffer(self%integerBufferCount,integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))=extractor_      %extractInteger(                  node,time,instance)
+                         integerProperty                                                                                                               =+integerProperty                                                      &
+                              &                                                                                                                         +extractor_     %elementCount  (elementTypeInteger,    time         )
                       class default
                          call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
                       end select                    
@@ -610,7 +624,8 @@ contains
     !% Count up the number of properties that will be output.
     use Galacticus_Nodes        , only : treeNode
     use Galacticus_Error        , only : Galacticus_Error_Report
-    use Node_Property_Extractors, only : nodePropertyExtractorNull, nodePropertyExtractorScalar, nodePropertyExtractorTuple
+    use Node_Property_Extractors, only : nodePropertyExtractorNull , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
+         &                               nodePropertyExtractorMulti, elementTypeInteger         , elementTypeDouble
     !# <include directive="mergerTreeOutputPropertyCount" type="moduleUse">
     include 'galacticus.output.merger_tree.property_count.modules.inc'
     !# </include>
@@ -630,12 +645,19 @@ contains
     select type (extractor_ => self%nodePropertyExtractor_)
     type is (nodePropertyExtractorNull)
        ! Null extractor - simply ignore.
-    class is (nodePropertyExtractorScalar)
+    class is (nodePropertyExtractorScalar       )
        ! Scalar property extractor - simply increment the double property output count by one.
-       self%doublePropertyCount=self%doublePropertyCount+1
-    class is (nodePropertyExtractorTuple )
+       self%doublePropertyCount =self%doublePropertyCount +1
+    class is (nodePropertyExtractorTuple        )
        ! Tuple property extractor - increment the double property output count by the number of elements.
-       self%doublePropertyCount=self%doublePropertyCount+extractor_%elementCount(time)
+       self%doublePropertyCount =self%doublePropertyCount +extractor_%elementCount(time)
+    class is (nodePropertyExtractorIntegerScalar)
+       ! Integer scalar property extractor - simply increment the integer property output count by one.
+       self%integerPropertyCount=self%integerPropertyCount+1
+    class is (nodePropertyExtractorMulti        )
+       ! Multi proprty extractor - increment double and integer property output counts.
+       self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(elementTypeInteger,time)
+       self% doublePropertyCount=self% doublePropertyCount+extractor_%elementCount(elementTypeDouble ,time)
     class default
        call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
     end select
@@ -684,7 +706,8 @@ contains
     !% Set names for the properties.
     use Galacticus_Nodes        , only : treeNode
     use Galacticus_Error        , only : Galacticus_Error_Report
-    use Node_Property_Extractors, only : nodePropertyExtractorNull, nodePropertyExtractorScalar, nodePropertyExtractorTuple
+    use Node_Property_Extractors, only : nodePropertyExtractorNull , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
+         &                               nodePropertyExtractorMulti, elementTypeInteger         , elementTypeDouble
     !# <include directive="mergerTreeOutputNames" type="moduleUse">
     include 'galacticus.output.merger_tree.names.modules.inc'
     !# </include>
@@ -705,18 +728,34 @@ contains
     select type (extractor_ => self%nodePropertyExtractor_)
     type is (nodePropertyExtractorNull)
        ! Null extractor - simply ignore.
-    class is (nodePropertyExtractorScalar)
-       ! Scalar property extractor - get the name, description, and units.
-       self%doublePropertyNames   (doubleProperty+1                                             )=extractor_%name        (    )
-       self%doublePropertyComments(doubleProperty+1                                             )=extractor_%description (    )
-       self%doublePropertyUnitsSI (doubleProperty+1                                             )=extractor_%unitsInSI   (    )
-       doubleProperty=doubleProperty+1
-    class is (nodePropertyExtractorTuple )
+    class is (nodePropertyExtractorScalar       )
+          ! Scalar property extractor - get the name, description, and units.
+       self%doublePropertyNames    (doubleProperty +1                                                                 )=extractor_%name        (                       )
+       self%doublePropertyComments (doubleProperty +1                                                                 )=extractor_%description (                       )
+       self%doublePropertyUnitsSI  (doubleProperty +1                                                                 )=extractor_%unitsInSI   (                       )
+       doubleProperty =doubleProperty +1
+    class is (nodePropertyExtractorTuple        )
        ! Tuple property extractor - get the names, descriptions, and units.
-       self%doublePropertyNames   (doubleProperty+1:doubleProperty+extractor_%elementCount(time))=extractor_%names       (time)
-       self%doublePropertyComments(doubleProperty+1:doubleProperty+extractor_%elementCount(time))=extractor_%descriptions(time)
-       self%doublePropertyUnitsSI (doubleProperty+1:doubleProperty+extractor_%elementCount(time))=extractor_%unitsInSI   (time)
-       doubleProperty=doubleProperty+extractor_%elementCount(time)
+       self%doublePropertyNames    (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))=extractor_%names       (                   time)
+       self%doublePropertyComments (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))=extractor_%descriptions(                   time)
+       self%doublePropertyUnitsSI  (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))=extractor_%unitsInSI   (                   time)
+       doubleProperty =doubleProperty +extractor_%elementCount(time)
+    class is (nodePropertyExtractorIntegerScalar)
+       ! Integer scalar property extractor - get the name, description, and units.
+       self%integerPropertyNames   (integerProperty+1                                                                 )=extractor_%name        (                       )
+       self%integerPropertyComments(integerProperty+1                                                                 )=extractor_%description (                       )
+       self%integerPropertyUnitsSI (integerProperty+1                                                                 )=extractor_%unitsInSI   (                       )
+       integerProperty=integerProperty+1
+    class is (nodePropertyExtractorMulti        )
+       ! Multi proprty extractor - get the names, descriptions, and units.
+       self%doublePropertyNames    (doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))=extractor_%names       (elementTypeDouble ,time)
+       self%doublePropertyComments (doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))=extractor_%descriptions(elementTypeDouble ,time)
+       self%doublePropertyUnitsSI  (doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))=extractor_%unitsInSI   (elementTypeDouble ,time)
+       doubleProperty =doubleProperty +extractor_%elementCount(elementTypeDouble ,time)
+       self%integerPropertyNames   (integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))=extractor_%names       (elementTypeInteger,time)
+       self%integerPropertyComments(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))=extractor_%descriptions(elementTypeInteger,time)
+       self%integerPropertyUnitsSI (integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))=extractor_%unitsInSI   (elementTypeInteger,time)
+       integerProperty=integerProperty+extractor_%elementCount(elementTypeInteger,time)
     class default
        call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
     end select
