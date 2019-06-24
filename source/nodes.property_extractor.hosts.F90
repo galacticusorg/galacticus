@@ -25,6 +25,7 @@
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorIndicesHost
      !% A stelalr mass output analysis class.
      private
+     logical :: topLevel
    contains
      procedure :: extract     => indicesHostExtract
      procedure :: type        => indicesHostType
@@ -35,21 +36,41 @@
   interface nodePropertyExtractorIndicesHost
      !% Constructors for the ``indicesHost'' output analysis class.
      module procedure indicesHostConstructorParameters
+     module procedure indicesHostConstructorInternal
   end interface nodePropertyExtractorIndicesHost
 
 contains
 
-  function indicesHostConstructorParameters(parameters)
+  function indicesHostConstructorParameters(parameters) result(self)
     !% Constructor for the {\normalfont \ttfamily indicesHost} node property extractor class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(nodePropertyExtractorIndicesHost)                :: indicesHostConstructorParameters
-    type(inputParameters                 ), intent(inout) :: parameters
-    !GCC$ attributes unused :: parameters
+    type   (nodePropertyExtractorIndicesHost)                :: self
+    type   (inputParameters                 ), intent(inout) :: parameters
+    logical                                                  :: topLevel
 
-    indicesHostConstructorParameters=nodePropertyExtractorIndicesHost()
+    !# <inputParameter>
+    !#   <name>topLevel</name>
+    !#   <cardinality>1</cardinality>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <description>If true, output the index of the host at the top level of the hierarchy, otherwise output the index of the direct host.</description>
+    !#   <source>parameters</source>
+    !#   <type>boolean</type>
+    !# </inputParameter>
+     self=nodePropertyExtractorIndicesHost(topLevel)
+    !# <inputParametersValidate source="parameters"/>
     return
   end function indicesHostConstructorParameters
+
+  function indicesHostConstructorInternal(topLevel) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily indicesHost} node property extractor class.
+    implicit none
+    type   (nodePropertyExtractorIndicesHost)                :: self
+    logical                                  , intent(in   ) :: topLevel
+    !# <constructorAssign variables="topLevel"/>
+    
+    return
+  end function indicesHostConstructorInternal
 
   function indicesHostExtract(self,node,time,instance)
     !% Implement a {\normalfont \ttfamily indicesHost} node property extractor.
@@ -61,13 +82,18 @@ contains
     type            (multiCounter                    ), intent(inout), optional :: instance
     type            (treeNode                        ), pointer                 :: nodeHost
     !GCC$ attributes unused :: self, instance, time
-
+    
     if (node%isSatellite()) then
        nodeHost => node%parent
+       if (self%topLevel) then
+          do while (nodeHost%isSatellite())
+             nodeHost => nodeHost%parent
+          end do
+       end if
     else
        nodeHost => node
     end if
-     indicesHostExtract=nodeHost%index()
+    indicesHostExtract=nodeHost%index()
     return
   end function indicesHostExtract
 
@@ -78,7 +104,7 @@ contains
     class(nodePropertyExtractorIndicesHost), intent(inout) :: self
     !GCC$ attributes unused :: self
     
-   indicesHostType=outputAnalysisPropertyTypeLinear
+    indicesHostType=outputAnalysisPropertyTypeLinear
     return
   end function indicesHostType
 
