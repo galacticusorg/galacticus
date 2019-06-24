@@ -17,7 +17,7 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a multi output property extractor class.
+  !% Contains a module which implements a multi node property extractor class.
 
   type, public :: multiExtractorList
      class(nodePropertyExtractorClass), pointer :: extractor_
@@ -27,7 +27,7 @@
   !# <nodePropertyExtractor name="nodePropertyExtractorMulti">
   !#  <description>A multi output extractor property extractor class.</description>
   !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorMulti
+  type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorMulti
      !% A multi property extractor output extractor class, which concatenates properties from any number of other property
      !% extractors.
      private
@@ -42,16 +42,59 @@
      !@   <pass>yes</pass>
      !@   <arguments></arguments>
      !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>elementCount</method>
+     !@   <description>Return the number of properties in the tuple.</description>
+     !@   <type>\intzero</type>
+     !@   <pass>yes</pass>
+     !@   <arguments>\intzero\ elementType\argin,\doublezero\ time\argin</arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>extractDouble</method>
+     !@   <description>Extract the double properties from the given {\normalfont \ttfamily node}.</description>
+     !@   <type>\doubleone</type>
+     !@   <pass>yes</pass>
+     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin, \doublezero\ time\argin, \textcolor{red}{\textless type(multiCounter)\textgreater} [instance]\argin</arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>extractInteger</method>
+     !@   <description>Extract the integer properties from the given {\normalfont \ttfamily node}.</description>
+     !@   <type>\intone</type>
+     !@   <pass>yes</pass>
+     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin, \doublezero\ time\argin, \textcolor{red}{\textless type(multiCounter)\textgreater} [instance]\argin</arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>names</method>
+     !@   <description>Return the names of the properties extracted.</description>
+     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
+     !@   <pass>yes</pass>
+     !@   <arguments>\intzero\ elementType\argin,\doublezero\ time\argin</arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>descriptions</method>
+     !@   <description>Return descriptions of the properties extracted.</description>
+     !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
+     !@   <pass>yes</pass>
+     !@   <arguments>\intzero\ elementType\argin,\doublezero\ time\argin</arguments>
+     !@  </objectMethod>
+     !@  <objectMethod>
+     !@   <method>unitsInSI</method>
+     !@   <description>Return the units of the properties extracted in the SI system.</description>
+     !@   <type>\doubleone</type>
+     !@   <pass>yes</pass>
+     !@   <arguments>\intzero\ elementType\argin,\doublezero\ time\argin</arguments>
+     !@  </objectMethod>
      !@ </objectMethods>
-     final     ::                 multiDestructor
-     procedure :: elementCount => multiElementCount
-     procedure :: extract      => multiExtract
-     procedure :: names        => multiNames
-     procedure :: descriptions => multiDescriptions
-     procedure :: unitsInSI    => multiUnitsInSI
-     procedure :: addInstances => multiAddInstances
-     procedure :: type         => multiType
-     procedure :: deepCopy     => multiDeepCopy
+     final     ::                   multiDestructor
+     procedure :: elementCount   => multiElementCount
+     procedure :: extractDouble  => multiExtractDouble
+     procedure :: extractInteger => multiExtractInteger
+     procedure :: names          => multiNames
+     procedure :: descriptions   => multiDescriptions
+     procedure :: unitsInSI      => multiUnitsInSI
+     procedure :: addInstances   => multiAddInstances
+     procedure :: type           => multiType
+     procedure :: deepCopy       => multiDeepCopy
   end type nodePropertyExtractorMulti
 
   interface nodePropertyExtractorMulti
@@ -59,6 +102,14 @@
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface nodePropertyExtractorMulti
+
+  !# <enumeration>
+  !#  <name>elementType</name>
+  !#  <description>Enumeration of extracted property element types.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="integer"/>
+  !#  <entry label="double" />
+  !# </enumeration>
 
 contains
 
@@ -120,23 +171,25 @@ contains
     return
   end subroutine multiDestructor
   
-  integer function multiElementCount(self,time)
+  integer function multiElementCount(self,elementType,time)
     !% Return the number of elements in the multiple property extractors.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nodePropertyExtractorMulti), intent(inout) :: self
+    integer                                     , intent(in   ) :: elementType
     double precision                            , intent(in   ) :: time
     type            (multiExtractorList        ), pointer       :: extractor_
 
     multiElementCount =  0
     extractor_        => self%extractors
     do while (associated(extractor_))
-       multiElementCount=multiElementCount+1
        select type (extractor_ => extractor_%extractor_)
-       class is (nodePropertyExtractorScalar)
-          multiElementCount=multiElementCount+1
-       class is (nodePropertyExtractorTuple )
-          multiElementCount=multiElementCount+extractor_%elementCount(time)
+       class is (nodePropertyExtractorScalar       )
+          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+1
+       class is (nodePropertyExtractorTuple        )
+          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(time)
+       class is (nodePropertyExtractorIntegerScalar)
+          if (elementType == elementTypeInteger) multiElementCount=multiElementCount+1
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -145,29 +198,31 @@ contains
     return
   end function multiElementCount
 
-  function multiExtract(self,node,time,instance)
+  function multiExtractDouble(self,node,time,instance)
     !% Implement a multi output extractor.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    double precision                            , dimension(:) , allocatable :: multiExtract
+    double precision                            , dimension(:) , allocatable :: multiExtractDouble
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
     type            (treeNode                  ), intent(inout)              :: node
     double precision                            , intent(in   )              :: time
     type            (multiCounter              ), intent(inout), optional    :: instance
     type            (multiExtractorList        ), pointer                    :: extractor_
-    integer                                                                  :: offset      , elementCount
+    integer                                                                  :: offset            , elementCount
 
-    allocate(multiExtract(self%elementCount(time)))
+    allocate(multiExtractDouble(self%elementCount(elementTypeDouble,time)))
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
        select type (extractor_ => extractor_%extractor_)
        class is (nodePropertyExtractorScalar)
           elementCount=1
-          multiExtract(offset+1:offset+elementCount)=extractor_%extract(node     ,instance)
+          multiExtractDouble(offset+1:offset+elementCount)=extractor_%extract(node     ,instance)
        class is (nodePropertyExtractorTuple )
           elementCount=extractor_%elementCount(time)
-          multiExtract(offset+1:offset+elementCount)=extractor_%extract(node,time,instance)
+          multiExtractDouble(offset+1:offset+elementCount)=extractor_%extract(node,time,instance)
+       class is (nodePropertyExtractorIntegerScalar)
+          elementCount=0
        class default
           elementCount=0
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
@@ -176,7 +231,41 @@ contains
        extractor_ => extractor_%next
     end do
     return
-  end function multiExtract
+  end function multiExtractDouble
+
+  function multiExtractInteger(self,node,time,instance)
+    !% Implement a multi output extractor.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    integer         (kind_int8                 ), dimension(:) , allocatable :: multiExtractInteger
+    class           (nodePropertyExtractorMulti), intent(inout)              :: self
+    type            (treeNode                  ), intent(inout)              :: node
+    double precision                            , intent(in   )              :: time
+    type            (multiCounter              ), intent(inout), optional    :: instance
+    type            (multiExtractorList        ), pointer                    :: extractor_
+    integer                                                                  :: offset             , elementCount
+
+    allocate(multiExtractInteger(self%elementCount(elementTypeInteger,time)))
+    offset     =  0
+    extractor_ => self%extractors
+    do while (associated(extractor_))
+       select type (extractor_ => extractor_%extractor_)
+       class is (nodePropertyExtractorScalar)
+          elementCount=0
+       class is (nodePropertyExtractorTuple )
+          elementCount=0
+       class is (nodePropertyExtractorIntegerScalar)
+          elementCount=1
+          multiExtractInteger(offset+1:offset+elementCount)=extractor_%extract(node     ,instance)
+       class default
+          elementCount=0
+          call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
+       end select
+       offset     =  offset         +elementCount
+       extractor_ => extractor_%next
+    end do
+    return
+  end function multiExtractInteger
 
   subroutine multiAddInstances(self,node,instance)
     !% Implement adding of instances to a multi output extractor.
@@ -194,29 +283,39 @@ contains
     return
   end subroutine multiAddInstances
 
-  function multiNames(self,time)
+  function multiNames(self,elementType,time)
     !% Return the names of the multiple properties.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (varying_string            ), dimension(:) , allocatable :: multiNames
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
+    integer                                     , intent(in   )              :: elementType
     double precision                            , intent(in   )              :: time
     type            (multiExtractorList        ), pointer                    :: extractor_
     integer                                                                  :: offset    , elementCount
 
-    allocate(multiNames(self%elementCount(time)))
+    allocate(multiNames(self%elementCount(elementType,time)))
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
+       elementCount=0
        select type (extractor_ => extractor_%extractor_)
-       class is (nodePropertyExtractorScalar)
-          elementCount=1
-          multiNames(offset+1:offset+elementCount)=extractor_%name (    )
-       class is (nodePropertyExtractorTuple )
-          elementCount=extractor_%elementCount(time)
-          multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+       class is (nodePropertyExtractorScalar       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             multiNames(offset+1:offset+elementCount)=extractor_%name (    )
+          end if
+       class is (nodePropertyExtractorTuple        )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount(time)
+             multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+          end if
+       class is (nodePropertyExtractorIntegerScalar)
+          if (elementType == elementTypeInteger) then
+             elementCount=1
+             multiNames(offset+1:offset+elementCount)=extractor_%name (    )
+          end if
        class default
-          elementCount=0
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
@@ -225,29 +324,39 @@ contains
     return
   end function multiNames
 
-  function multiDescriptions(self,time)
+  function multiDescriptions(self,elementType,time)
     !% Return the descriptions of the multiple properties.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (varying_string            ), dimension(:) , allocatable :: multiDescriptions
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
+    integer                                     , intent(in   )              :: elementType
     double precision                            , intent(in   )              :: time
     type            (multiExtractorList        ), pointer                    :: extractor_
     integer                                                                  :: offset           , elementCount
 
-    allocate(multiDescriptions(self%elementCount(time)))
+    allocate(multiDescriptions(self%elementCount(elementType,time)))
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
+       elementCount=0
        select type (extractor_ => extractor_%extractor_)
-       class is (nodePropertyExtractorScalar)
-          elementCount=1
-          multiDescriptions(offset+1:offset+elementCount)=extractor_%description (    )
-       class is (nodePropertyExtractorTuple )
-          elementCount=extractor_%elementCount(time)
-          multiDescriptions(offset+1:offset+elementCount)=extractor_%descriptions(time)
+       class is (nodePropertyExtractorScalar       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             multiDescriptions(offset+1:offset+elementCount)=extractor_%description (    )
+          end if
+       class is (nodePropertyExtractorTuple        )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount(time)
+             multiDescriptions(offset+1:offset+elementCount)=extractor_%descriptions(time)
+          end if
+       class is (nodePropertyExtractorIntegerScalar)
+          if (elementType == elementTypeInteger) then
+             elementCount=1
+             multiDescriptions(offset+1:offset+elementCount)=extractor_%description (    )
+          end if
        class default
-          elementCount=0
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
@@ -256,29 +365,39 @@ contains
     return
   end function multiDescriptions
 
-  function multiUnitsInSI(self,time)
+  function multiUnitsInSI(self,elementType,time)
     !% Return the units of the multiple properties in the SI system.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                            , dimension(:) , allocatable :: multiUnitsInSI
     class           (nodePropertyExtractorMulti), intent(inout)              :: self
+    integer                                     , intent(in   )              :: elementType
     double precision                            , intent(in   )              :: time
     type            (multiExtractorList        ), pointer                    :: extractor_
     integer                                                                  :: offset        , elementCount
 
-    allocate(multiUnitsInSI(self%elementCount(time)))
+    allocate(multiUnitsInSI(self%elementCount(elementType,time)))
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
+       elementCount=0
        select type (extractor_ => extractor_%extractor_)
-          class is (nodePropertyExtractorScalar)
-          elementCount=1
-          multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
-       class is (nodePropertyExtractorTuple )
-          elementCount=extractor_%elementCount(time)
-          multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(time)
+       class is (nodePropertyExtractorScalar       )
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
+          end if
+       class is (nodePropertyExtractorTuple        )
+          if (elementType == elementTypeDouble ) then
+             elementCount=extractor_%elementCount(time)
+             multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(time)
+          end if
+       class is (nodePropertyExtractorIntegerScalar)
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
+          end if
        class default
-          elementCount=0
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
        offset     =  offset         +elementCount
