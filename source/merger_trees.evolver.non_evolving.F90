@@ -48,7 +48,7 @@ contains
     return
   end function nonEvolvingConstructorParameters
 
-  subroutine nonEvolvingEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,initializationLock,status)
+  subroutine nonEvolvingEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
     !% Evolves all properties of a merger tree to the specified time.
     !$ use OMP_Lib
     use Merger_Trees_Initialize, only : Merger_Tree_Initialize
@@ -60,9 +60,10 @@ contains
     double precision                                                 , intent(in   ) :: timeEnd
     logical                                                          , intent(  out) :: treeDidEvolve     , suspendTree
     logical                                                          , intent(in   ) :: deadlockReporting
+    integer         (kind_int8                   ), optional         , intent(in   ) :: systemClockMaximum
     integer         (omp_lock_kind               ), optional         , intent(inout) :: initializationLock
     type            (mergerTree                  )          , pointer                :: currentTree
-    !GCC$ attributes unused :: self, deadlockReporting
+    !GCC$ attributes unused :: self, deadlockReporting, systemClockMaximum
 
     if (present(status)) status=errorStatusSuccess
     suspendTree   =  .false.
