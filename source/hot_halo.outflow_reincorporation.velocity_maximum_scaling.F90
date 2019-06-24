@@ -162,11 +162,11 @@ contains
 
   subroutine velocityMaximumScalingAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(hotHaloOutflowReincorporationVelocityMaximumScaling), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,velocityMaximumScalingCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,velocityMaximumScalingCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine velocityMaximumScalingAutoHook
   

@@ -238,11 +238,11 @@ contains
   
   subroutine burkertAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOBurkert), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,burkertCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,burkertCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine burkertAutoHook
   

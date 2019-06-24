@@ -137,11 +137,11 @@ contains
 
   subroutine naozBarkana2007AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(accretionHaloNaozBarkana2007), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,naozBarkana2007CalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,naozBarkana2007CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine naozBarkana2007AutoHook
   

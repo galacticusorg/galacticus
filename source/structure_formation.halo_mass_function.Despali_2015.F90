@@ -28,6 +28,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="referenceDensityContrast"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="referenceDensityContrast"/>
+  !#  </stateStorable>
   !# </haloMassFunction>
   type, extends(haloMassFunctionShethTormen) :: haloMassFunctionDespali2015
      !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.

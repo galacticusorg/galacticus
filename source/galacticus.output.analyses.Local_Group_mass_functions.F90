@@ -24,6 +24,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
+  !#  </stateStorable>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassFunction
      !% An output analysis class for Local Group satellite galaxy mass functions.

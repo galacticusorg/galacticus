@@ -166,11 +166,11 @@ contains
 
   subroutine truncatedExponentialAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,truncatedExponentialCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,truncatedExponentialCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine truncatedExponentialAutoHook
   
