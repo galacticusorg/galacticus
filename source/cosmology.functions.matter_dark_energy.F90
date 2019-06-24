@@ -564,6 +564,9 @@ contains
        ! Set the expansion factors to a negative value to indicate they are not yet computed.
        self%ageTableExpansionFactor=-1.0d0
     end if
+    ! Compute quantities required for table interpolation.
+    self%ageTableTimeLogarithmicMinimum=log(self%ageTableTimeMinimum)
+    self%ageTableInverseDeltaLogTime   =dble(self%ageTableNumberPoints-1)/log(self%ageTableTimeMaximum/self%ageTableTimeMinimum)
     ! For the initial time, we approximate that we are at sufficiently early times that a single component dominates the
     ! Universe and use the appropriate analytic solution.
     if (self%ageTableExpansionFactor(1) < 0.0d0)                        &
@@ -726,19 +729,21 @@ contains
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
     double precision                                                              :: expansionFactorActual
 
-    if (present(expansionFactor)) then
-       expansionFactorActual=expansionFactor
-    else if (present(time)) then
-       expansionFactorActual=self%expansionFactor(time)
-    else
-       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
-       expansionFactorActual=1.0d0
+    matterDarkEnergyEquationOfStateDarkEnergy=self%darkEnergyEquationOfStateW0
+    if (self%darkEnergyEquationOfStateW1 /= 0.0d0) then
+       if (present(expansionFactor)) then
+          expansionFactorActual=expansionFactor
+       else if (present(time)) then
+          expansionFactorActual=self%expansionFactor(time)
+       else
+          call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
+          expansionFactorActual=1.0d0
+       end if
+       matterDarkEnergyEquationOfStateDarkEnergy=+matterDarkEnergyEquationOfStateDarkEnergy &
+            &                                    +self%darkEnergyEquationOfStateW1          &
+            &                                    *       expansionFactorActual              &
+            &                                    *(1.0d0-expansionFactorActual)
     end if
-    matterDarkEnergyEquationOfStateDarkEnergy= &
-         &  self%darkEnergyEquationOfStateW0   &
-         & +self%darkEnergyEquationOfStateW1   &
-         & *       expansionFactorActual       &
-         & *(1.0d0-expansionFactorActual)
    return
   end function matterDarkEnergyEquationOfStateDarkEnergy
 
@@ -750,18 +755,18 @@ contains
     double precision                                    , intent(in   ), optional :: expansionFactor      , time
     double precision                                                              :: expansionFactorActual
 
-    if      (present(expansionFactor)) then
-       expansionFactorActual=expansionFactor
-    else if (present(time           )) then
-       expansionFactorActual=self%expansionFactor(time)
-    else
-       if (self%darkEnergyEquationOfStateW1 /= 0.0d0) call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
-       expansionFactorActual=1.0d0
-    end if
-    if (expansionFactorActual == 1.0d0) then
-       matterDarkEnergyExponentDarkEnergy=-3.0d0*(1.0d0+self%darkEnergyEquationOfStateW0)
-    else
-       matterDarkEnergyExponentDarkEnergy=-3.0d0*(1.0d0+self%darkEnergyEquationOfStateW0)+3.0d0*self%darkEnergyEquationOfStateW1*(1.0d0-expansionFactorActual)**2/2.0d0/log(expansionFactorActual)
+    matterDarkEnergyExponentDarkEnergy=-3.0d0*(1.0d0+self%darkEnergyEquationOfStateW0)
+    if (self%darkEnergyEquationOfStateW1 /= 0.0d0) then
+       if      (present(expansionFactor)) then
+          expansionFactorActual=expansionFactor
+       else if (present(time           )) then
+          expansionFactorActual=self%expansionFactor(time)
+       else
+          call Galacticus_Error_Report('equation of state is time dependent, but no time given'//{introspection:location})
+          expansionFactorActual=1.0d0
+       end if
+       if (expansionFactorActual /= 1.0d0) &
+            & matterDarkEnergyExponentDarkEnergy=matterDarkEnergyExponentDarkEnergy+3.0d0*self%darkEnergyEquationOfStateW1*(1.0d0-expansionFactorActual)**2/2.0d0/log(expansionFactorActual)
     end if
     return
   end function matterDarkEnergyExponentDarkEnergy
