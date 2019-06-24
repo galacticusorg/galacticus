@@ -510,16 +510,16 @@ contains
     class    (history       ), intent(in   ) :: self
     integer                                  :: i      , j
     type     (varying_string)                :: message
-    character(len=12        )                :: label
+    character(len=22        )                :: label
 
     if (allocated(self%time)) then
        do i=1,size(self%time)
           write (label,'(i3)') i
           message="("//trim(label)//") "
-          write (label,'(e12.6)') self%time(i)
+          write (label,'(e22.16)') self%time(i)
           message=message//label//" :"
           do j=1,size(self%data,dim=2)
-             write (label,'(e12.6)') self%data(i,j)
+             write (label,'(e22.16)') self%data(i,j)
              message=message//" "//label
           end do
           call Galacticus_Display_Message(message)
@@ -582,13 +582,13 @@ contains
     class    (longIntegerHistory), intent(in   ) :: self
     integer                                      :: i      , j
     type     (varying_string    )                :: message
-    character(len=16            )                :: label
+    character(len=22            )                :: label
 
     if (allocated(self%time)) then
        do i=1,size(self%time)
           write (label,'(i3)') i
           message="("//trim(label)//") "
-          write (label,'(e12.6)') self%time(i)
+          write (label,'(e22.16)') self%time(i)
           message=message//label//" :"
           do j=1,size(self%data,dim=2)
              write (label,'(i16)') self%data(i,j)

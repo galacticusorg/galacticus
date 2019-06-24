@@ -211,11 +211,11 @@ contains
 
   subroutine adiabaticGnedin2004AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,adiabaticGnedin2004CalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,adiabaticGnedin2004CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine adiabaticGnedin2004AutoHook
   

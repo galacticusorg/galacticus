@@ -29,6 +29,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </stateStorable>
   !# </virialOrbit>
   type, extends(virialOrbitClass) :: virialOrbitJiang2014
      !% A virial orbit class using the \cite{jiang_orbital_2014} orbital parameter distribution.

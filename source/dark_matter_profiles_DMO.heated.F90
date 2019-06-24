@@ -137,11 +137,11 @@ contains
 
   subroutine heatedAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,heatedCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,heatedCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine heatedAutoHook
   

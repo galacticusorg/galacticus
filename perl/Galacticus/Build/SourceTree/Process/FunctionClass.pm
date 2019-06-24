@@ -1398,29 +1398,23 @@ CODE
 					    $fgslStateFileUsed = 1;
 					}
 				    } elsif (
-					(
-					 (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
-					 ||
-					 (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
-					)
-					&&
-					(! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'            }})				       
-					){
+					(  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
+					||
+					(  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
+					){					
 					# This is a non-pointer object which is explicitly stateStorable.
-					# Validate: Currently we do not support store/restore of polymorphic functionClass objects.
-					die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): storing of polymorphic functionClass objects is not implemented")
-					    if
-					    (
-					     $declaration->{'intrinsic'} eq "class"
-					     &&
-					     (grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}})
-					    );
+					# Get presence of pointer attribute.
+					my $isPointer = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+					# Get list of named pointer variables that are allowed.
+					my @explicits = exists($class->{'stateStorable'}->{'functionClass'}->{'variables'}) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'functionClass'}->{'variables'}) : ();
 					my $isFunctionClass = grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}};
 					# Construct code to output.
 					foreach ( @{$declaration->{'variables'}} ) {
 					    (my $variableName = $_) =~ s/\s*=.*$//;
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
+					    next
+						unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
 					    my $rank = 0;
 					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
@@ -1613,28 +1607,22 @@ CODE
 				$fgslStateFileUsed = 1;
 			    }
 			} elsif (
-			    (
-			     (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
-			     ||
-			     (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
-			    )
-			    &&
-			    (! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'            }})
+			    (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
+			    ||
+			    (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
 			    ){
+			    # Get presence of pointer attribute.
+			    my $isPointer = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+			    # Get list of named pointer variables that are allowed.
+			    my @explicits = exists($directive->{'stateStorable'}->{'functionClass'}->{'variables'}) ? split(/\s*,\s*/,$directive->{'stateStorable'}->{'functionClass'}->{'variables'}) : ();
 			    # This is a non-pointer object which is explicitly stateStorable or implicitly storeable by virtue of being a functionClass.
-			    # Validate: Currently we do not support store/restore of polymorphic functionClass objects.
-			    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): storing of polymorphic functionClass objects is not implemented")
-				if
-				(
-				 $declaration->{'intrinsic'} eq "class"
-				 &&
-				 (grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}})
-				);
 			    # Construct code to output.
 			    foreach ( @{$declaration->{'variables'}} ) {
 				(my $variableName = $_) =~ s/\s*=.*$//;
 				next
 				    if ( grep {lc($_) eq lc($variableName)} @excludes );
+				next
+				    unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
 				my $rank = 0;
 				if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 				    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});

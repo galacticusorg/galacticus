@@ -249,11 +249,11 @@ contains
   
   subroutine nfwAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMONFW), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,nfwCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,nfwCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine nfwAutoHook
   

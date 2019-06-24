@@ -27,10 +27,9 @@ module Events_Hooks
 
   type :: hook
      !% Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
-     class  (*   ), pointer                   :: object_      => null()
-     class  (hook), pointer                   :: next         => null()
-     logical                                  :: openMPBound
-     integer                                  :: openMPLevel
+     class  (*   ), pointer                   :: object_             => null()
+     class  (hook), pointer                   :: next                => null()
+     integer                                  :: openMPThreadBinding          , openMPLevel
      integer      , dimension(:), allocatable :: openMPThread
   end type hook
 
@@ -111,6 +110,32 @@ module Events_Hooks
       procedure :: detach => eventHookUnspecifiedDetach
   end type eventHookUnspecified
 
+  ! The following is an enumeration of ways in which hooked functions can be bound to OpenMP threads. The behavior is as follows:
+  !
+  !      none: The hooked function is not bound to any OpenMP thread - it will always be called whenever the event is triggered,
+  !            irrespective of which OpenMP thread triggered the event.
+  !   atLevel: The hooked function is only called if: a) the current OpenMP level matches the level at which the function was
+  !            hooked, and; b) the OpenMP thread number of the event triggering thread matches that of the thread which hooked the
+  !            function at all OpenMP levels.
+  ! allLevels: The hooked function is only called if: a) the current OpenMP level is equal to or greater than the level at which
+  !            the function was hooked, and; b) the OpenMP thread number of the event triggering thread matches that of the thread
+  !            which hooked the function at all OpenMP levels, where the thread number of the hooked function at OpenMP levels
+  !            above that at which was hooked is taken to be equal to the thread number of the highest OpenMP level when the
+  !            function was hooked.
+  !
+  ! Ideally there would be no need for the "allLevels" option, but currently some default functionClass objects are used - for
+  ! thread-0 the default at levels greater than 0 is the exact same object as that at level-0 - in many cases
+  ! (e.g. calculationResets) we do want to call this function in the case of the event being triggered even though it exists at a
+  ! lower level. When default functionClass objects are removed this option should be deprecated.  
+  !# <enumeration>
+  !#  <name>openMPThreadBinding</name>
+  !#  <description>Used to specify how hooked functions are bound to OpenMP threads.</description>
+  !#  <visibility>public</visibility>
+  !#  <entry label="none"     />
+  !#  <entry label="atLevel"  />
+  !#  <entry label="allLevels"/>
+  !# </enumeration>
+
   !# <eventHookManager/>
   
 contains
@@ -154,18 +179,18 @@ contains
     return
   end subroutine eventHookUnlock
   
-  subroutine eventHookUnspecifiedAttach(self,object_,function_,bindToOpenMPThread)
+  subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding)
     !% Attach an object to an event hook.
     !$ use OMP_Lib
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (eventHookUnspecified), intent(inout)           :: self
     class    (*                   ), intent(in   ), target   :: object_
-    logical                        , intent(in   ), optional :: bindToOpenMPThread
+    integer                        , intent(in   ), optional :: openMPThreadBinding
     procedure(                    )                          :: function_
     class    (hook                )               , pointer  :: hook_
     integer                                                  :: i
-    !# <optionalArgument name="bindToOpenMPThread" defaultsTo=".false." />
+    !# <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
 
     ! Lock the object.
     !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
@@ -185,10 +210,10 @@ contains
     ! Create the new hook.
     select type (hook_)
     type is (hookUnspecified)
-       hook_%object_     => object_
-       hook_%function_   => function_
-       hook_%openMPBound =  bindToOpenMPThread_
-       if (hook_%openMPBound) then
+       hook_%object_             => object_
+       hook_%function_           => function_
+       hook_%openMPThreadBinding =  openMPThreadBinding_
+       if (hook_%openMPThreadBinding == openMPThreadBindingAtLevel .or. hook_%openMPThreadBinding == openMPThreadBindingAllLevels) then
           hook_%openMPLevel=OMP_Get_Level()
           allocate(hook_%openMPThread(0:hook_%openMPLevel))
           do i=0,hook_%openMPLevel

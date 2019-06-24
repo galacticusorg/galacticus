@@ -284,25 +284,25 @@ contains
     use ISO_Varying_String
     implicit none
     class    (tensorRank2Dimension3Symmetric), intent(in   ) :: self
-    character(len=12                        )                :: label
+    character(len=22                        )                :: label
     type     (varying_string                )                :: message
 
-    write (label,'(e12.6)') self%x00
+    write (label,'(e22.16)') self%x00
     message='x00: '//label
     call Galacticus_Display_Message(message)
-    write (label,'(e12.6)') self%x01
+    write (label,'(e22.16)') self%x01
     message='x01: '//label
     call Galacticus_Display_Message(message)
-    write (label,'(e12.6)') self%x02
+    write (label,'(e22.16)') self%x02
     message='x02: '//label
     call Galacticus_Display_Message(message)
-    write (label,'(e12.6)') self%x11
+    write (label,'(e22.16)') self%x11
     message='x11: '//label
     call Galacticus_Display_Message(message)
-    write (label,'(e12.6)') self%x12
+    write (label,'(e22.16)') self%x12
     message='x12: '//label
     call Galacticus_Display_Message(message)
-    write (label,'(e12.6)') self%x22
+    write (label,'(e22.16)') self%x22
     message='x22: '//label
     call Galacticus_Display_Message(message)
     return

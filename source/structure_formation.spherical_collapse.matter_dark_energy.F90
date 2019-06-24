@@ -72,9 +72,7 @@ contains
     class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
     class           (linearGrowthClass      )             , intent(inout) :: linearGrowth_    
 
-    !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaCritTable,calculationDeltaCrit,cosmologyFunctions_,linearGrowth_=linearGrowth_)
-    !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collapse_Dark_Energy_Critical_Overdensity_Tabulate
 
@@ -87,9 +85,7 @@ contains
     class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
     class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
 
-    !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,deltaVirialTable,calculationDeltaVirial,cosmologyFunctions_,energyFixedAt=energyFixedAt)
-    !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collapse_Dark_Energy_Virial_Density_Contrast_Tabulate
 
@@ -102,9 +98,7 @@ contains
     class           (table1D                ), allocatable, intent(inout) :: turnaroundTable
     class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
 
-    !$omp critical(Spherical_Collapse_Make_Table)
     call Make_Table(time,turnaroundTable,calculationTurnaround,cosmologyFunctions_,energyFixedAt=energyFixedAt)
-    !$omp end critical(Spherical_Collapse_Make_Table)
     return
   end subroutine Spherical_Collapse_Dark_Energy_Turnaround_Radius_Tabulate
 

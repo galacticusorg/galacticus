@@ -144,11 +144,11 @@ contains
 
   subroutine virialDensityContrastDefinitionAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
-
-    call calculationResetEvent%attach(self,virialDensityContrastDefinitionCalculationReset,bindToOpenMPThread=.true.)
+    
+    call calculationResetEvent%attach(self,virialDensityContrastDefinitionCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine virialDensityContrastDefinitionAutoHook
   

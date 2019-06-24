@@ -144,11 +144,11 @@ contains
 
   subroutine truncatedAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,truncatedCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,truncatedCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine truncatedAutoHook
   

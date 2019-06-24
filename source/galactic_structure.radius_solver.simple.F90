@@ -82,14 +82,14 @@ contains
 
   subroutine simpleAutoHook(self)
     !% Attach to various event hooks.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent, openMPThreadBindingAtLevel
     implicit none
     class(galacticStructureSolverSimple), intent(inout) :: self
 
-    call   preDerivativeEvent%attach(self,simpleSolvePreDeriativeHook,bindToOpenMPThread=.true.)
-    call      postEvolveEvent%attach(self,simpleSolveHook            ,bindToOpenMPThread=.true.)
-    call satelliteMergerEvent%attach(self,simpleSolveHook            ,bindToOpenMPThread=.true.)
-    call   nodePromotionEvent%attach(self,simpleSolveHook            ,bindToOpenMPThread=.true.)
+    call   preDerivativeEvent%attach(self,simpleSolvePreDeriativeHook,openMPThreadBindingAtLevel)
+    call      postEvolveEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel)
+    call satelliteMergerEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel)
+    call   nodePromotionEvent%attach(self,simpleSolveHook            ,openMPThreadBindingAtLevel)
     return
   end subroutine simpleAutoHook
 
