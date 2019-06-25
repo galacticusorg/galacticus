@@ -113,8 +113,8 @@ contains
     use Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     double precision                                              , dimension(:) , allocatable :: satelliteOrbitalExtremaExtract
-    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
-    type            (treeNode                                    ), intent(inout)              :: node
+    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout), target      :: self
+    type            (treeNode                                    ), intent(inout), target      :: node
     double precision                                              , intent(in   )              :: time
     type            (multiCounter                                ), intent(inout), optional    :: instance
     type            (treeNode                                    ), pointer                    :: nodeHost

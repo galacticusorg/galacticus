@@ -74,8 +74,8 @@
        !% Interface for tuple property extraction.
        import nodePropertyExtractorTuple, treeNode, multiCounter
        double precision                            , dimension(:) , allocatable :: tupleExtract
-       class           (nodePropertyExtractorTuple), intent(inout)              :: self
-       type            (treeNode                  ), intent(inout)              :: node
+       class           (nodePropertyExtractorTuple), intent(inout), target      :: self
+       type            (treeNode                  ), intent(inout), target      :: node
        double precision                            , intent(in   )              :: time
        type            (multiCounter              ), intent(inout), optional    :: instance
      end function tupleExtract

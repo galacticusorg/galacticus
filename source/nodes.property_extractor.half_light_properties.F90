@@ -72,8 +72,8 @@ contains
     use Galactic_Structure_Options        , only : massTypeStellar                         , massTypeAll                     , componentTypeAll, weightByLuminosity
     implicit none
     double precision                                               , dimension(:) , allocatable :: radiiHalfLightPropertiesExtract
-    class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)              :: self
-    type            (treeNode                                     ), intent(inout)              :: node
+    class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout), target      :: self
+    type            (treeNode                                     ), intent(inout), target      :: node
     double precision                                               , intent(in   )              :: time
     type            (multiCounter                                 ), intent(inout), optional    :: instance
     integer                                                                                     :: i                              , j
