@@ -116,7 +116,7 @@ contains
     use Radiation_Fields        , only : radiationFieldCosmicMicrowaveBackground
     implicit none
     class  (nodePropertyExtractorICMSZ             ), intent(inout)           :: self
-    type   (treeNode                               ), intent(inout)           :: node
+    type   (treeNode                               ), intent(inout), target   :: node
     type   (multiCounter                           ), intent(inout), optional :: instance
     type   (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_
     type   (fgsl_function                          )                          :: integrandFunction

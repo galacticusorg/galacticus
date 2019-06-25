@@ -173,7 +173,7 @@ contains
     use               Galacticus_Nodes                  , only : nodeComponentBasic
     implicit none
     class  (nodePropertyExtractorLuminosityStellar), intent(inout)           :: self
-    type   (treeNode                              ), intent(inout)           :: node
+    type   (treeNode                              ), intent(inout), target   :: node
     type   (multiCounter                          ), intent(inout), optional :: instance
     class  (nodeComponentBasic                    ), pointer                 :: basic
     integer(c_size_t                              )                          :: i

@@ -59,7 +59,7 @@ contains
     use Galactic_Structure_Options
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout)           :: self
-    type (treeNode                        ), intent(inout)           :: node
+    type (treeNode                        ), intent(inout), target   :: node
     type (multiCounter                    ), intent(inout), optional :: instance
     !GCC$ attributes unused :: self, instance
 
