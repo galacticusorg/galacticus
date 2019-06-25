@@ -61,22 +61,11 @@ contains
 
   function descendentsConstructorInternal(outputTimes_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily descendents} node property extractor class.
-    use Galacticus_Nodes, only : defaultSatelliteComponent
-    use Galacticus_Error, only : Galacticus_Error_Report  , Galacticus_Component_List
     implicit none
     type (nodePropertyExtractorDescendents)                        :: self
     class(outputTimesClass                ), intent(in   ), target :: outputTimes_
     !# <constructorAssign variables="*outputTimes_"/>
 
-    if (defaultSatelliteComponent%timeOfMergingIsGettable()) &
-         & call Galacticus_Error_Report(                                                                                                          &
-         &                              'the satellite timeOfMerging property must be gettable to output descendent indices.'//                   &
-         &                              Galacticus_Component_List(                                                                                &
-         &                                                        'satellite'                                                                  ,  &
-         &                                                        defaultSatelliteComponent%timeOfMergingAttributeMatch(requireGettable=.true.)   &
-         &                                                       )                                                                             // &
-         &                              {introspection:location}                                                                                  &
-         &                             )
     return
   end function descendentsConstructorInternal
   
