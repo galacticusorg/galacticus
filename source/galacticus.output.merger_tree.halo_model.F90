@@ -23,12 +23,7 @@ module Galacticus_Output_Halo_Models
   !% Handles outputting of data required by the halo model of galaxy clustering to the \glc\ output file.
   implicit none
   private
-  public :: Galacticus_Output_Halo_Model, Galacticus_Output_Halo_Model_Property_Count, Galacticus_Output_Halo_Model_Names,&
-       & Galacticus_Linear_Power_Spectrum_Output, Galacticus_Growth_Factor_Output, Galacticus_Extra_Output_Halo_Fourier_Profile
-
-  ! Number of halo model properties.
-  integer         , parameter                 :: haloModelIntegerPropertyCount     =1
-  integer         , parameter                 :: haloModelDoublePropertyCount      =1
+  public :: Galacticus_Linear_Power_Spectrum_Output, Galacticus_Growth_Factor_Output, Galacticus_Extra_Output_Halo_Fourier_Profile
 
   ! Flag indicating whether or not halo model information is to be output.
   logical                                     :: outputHaloModelData
@@ -99,105 +94,6 @@ contains
     end if
     return
   end subroutine Galacticus_Output_Halo_Model_Initialize
-
-  !# <mergerTreeOutputNames>
-  !#  <unitName>Galacticus_Output_Halo_Model_Names</unitName>
-  !#  <sortName>Galacticus_Output_Halo_Model</sortName>
-  !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Halo_Model_Names(node,integerProperty,integerPropertyNames,integerPropertyComments&
-       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
-    !% Set the names of halo model properties to be written to the \glc\ output file.
-    use Galacticus_Nodes, only : treeNode
-    implicit none
-    type            (treeNode)              , intent(inout) :: node
-    double precision                        , intent(in   ) :: time
-    integer                                 , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                     integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: node, time
-    
-    ! Initialize the module.
-    call Galacticus_Output_Halo_Model_Initialize
-
-    ! Return property names if we are outputting halo model data.
-    if (outputHaloModelData) then
-       doubleProperty =doubleProperty +1
-       doublePropertyNames    (doubleProperty)='nodeBias'
-       doublePropertyComments (doubleProperty)='The linear bias for this node.'
-       doublePropertyUnitsSI  (doubleProperty)=0.0d0
-       integerProperty=integerProperty+1
-       integerPropertyNames   (integerProperty)='isolatedHostIndex'
-       integerPropertyComments(integerProperty)='The index of the isolated node which hosts this node.'
-       integerPropertyUnitsSI (integerProperty)=0.0d0
-    end if
-    return
-  end subroutine Galacticus_Output_Halo_Model_Names
-
-  !# <mergerTreeOutputPropertyCount>
-  !#  <unitName>Galacticus_Output_Halo_Model_Property_Count</unitName>
-  !#  <sortName>Galacticus_Output_Halo_Model</sortName>
-  !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Halo_Model_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
-    !% Account for the number of halo model properties to be written to the \glc\ output file.
-    use Galacticus_Nodes, only : treeNode
-    implicit none
-    type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: time
-    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: node, time
-    
-    ! Initialize the module.
-    call Galacticus_Output_Halo_Model_Initialize
-
-    ! Increment property count if we are outputting halo model data.
-    if (outputHaloModelData) then
-       integerPropertyCount=integerPropertyCount+haloModelIntegerPropertyCount
-       doublePropertyCount =doublePropertyCount+haloModelDoublePropertyCount
-    end if
-    return
-  end subroutine Galacticus_Output_Halo_Model_Property_Count
-
-  !# <mergerTreeOutputTask>
-  !#  <unitName>Galacticus_Output_Halo_Model</unitName>
-  !#  <sortName>Galacticus_Output_Halo_Model</sortName>
-  !# </mergerTreeOutputTask>
-  subroutine Galacticus_Output_Halo_Model(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
-    !% Store halo model properties in the \glc\ output file buffers.
-    use Galacticus_Nodes, only : treeNode
-    use Dark_Matter_Halo_Biases
-    use Kind_Numbers
-    use Multi_Counters
-    implicit none
-    double precision                         , intent(in   )         :: time
-    type            (treeNode               ), intent(inout), target :: node
-    integer                                  , intent(inout)         :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                              integerProperty
-    integer         (kind=kind_int8         ), intent(inout)         :: integerBuffer    (:,:)
-    double precision                         , intent(inout)         :: doubleBuffer     (:,:)
-    type            (multiCounter           ), intent(inout)         :: instance
-    type            (treeNode               ), pointer               :: isolatedNode
-    class           (darkMatterHaloBiasClass), pointer               :: darkMatterHaloBias_
-    !GCC$ attributes unused :: time, instance
-    
-    ! Initialize the module.
-    call Galacticus_Output_Halo_Model_Initialize
-    
-    ! Store property data if we are outputting halo model data.
-    if (outputHaloModelData) then
-       darkMatterHaloBias_ => darkMatterHaloBias()
-       isolatedNode        => node
-       do while (isolatedNode%isSatellite())
-          isolatedNode => isolatedNode%parent
-       end do
-       doubleProperty =doubleProperty +1
-       doubleBuffer(doubleBufferCount  ,doubleProperty )=darkMatterHaloBias_%bias(isolatedNode)
-       integerProperty=integerProperty+1
-       integerBuffer(integerBufferCount,integerProperty)=isolatedNode%index()
-    end if
-    return
-  end subroutine Galacticus_Output_Halo_Model
 
   !# <outputFileOpenTask>
   !#  <unitName>Galacticus_Linear_Power_Spectrum_Output</unitName>
