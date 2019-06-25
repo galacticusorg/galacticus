@@ -52,7 +52,7 @@ contains
     type            (inputParameters                 ), intent(inout)               :: parameters
     double precision                                  , allocatable  , dimension(:) :: radii
 
-    allocate(radii(parameters%count('outputMassProfileRadii')))
+    allocate(radii(parameters%count('radii')))
     !# <inputParameter>
     !#   <name>radii</name>
     !#   <cardinality>1..*</cardinality>

@@ -540,8 +540,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputDensityContrastData value="true"/>
-    <outputDensityContrastValues value="200 500"/>
+    <nodePropertyExtractorMethod value="densityContrasts">
+      <densityContrasts value="200 500"/>
+    </nodePropertyExtractorMethod>
   </parameters>
 
   <!-- Output half-light radii -->
@@ -549,10 +550,9 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <outputTimesMethod value="list">
-    <redshifts value="0.0 0.1"/>
-  </outputTimesMethod>
-
-  <outputHalfLightData value="true"/>
+      <redshifts value="0.0 0.1"/>
+    </outputTimesMethod>
+    <nodeProprtyExtractorMethod value="radiiHalfLightProperties"/>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
@@ -569,8 +569,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputMassProfileData value="true"/>
-    <outputMassProfileRadii value="10.0e-3 100.0d-3"/>
+    <nodePropertyExtractorMethod value="massprofile">
+      <radii value="10.0e-3 100.0d-3"/>
+    </nodePropertyExtractorMethod>
   </parameters>
 
   <!-- Output star formation rates -->
