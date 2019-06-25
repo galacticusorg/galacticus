@@ -190,6 +190,8 @@ contains
           if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(time)
        class is (nodePropertyExtractorIntegerScalar)
           if (elementType == elementTypeInteger) multiElementCount=multiElementCount+1
+       class is (nodePropertyExtractorIntegerTuple )
+          if (elementType == elementTypeInteger) multiElementCount=multiElementCount+extractor_%elementCount(time)
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -215,13 +217,15 @@ contains
     extractor_ => self%extractors
     do while (associated(extractor_))
        select type (extractor_ => extractor_%extractor_)
-       class is (nodePropertyExtractorScalar)
+       class is (nodePropertyExtractorScalar       )
           elementCount=1
           multiExtractDouble(offset+1:offset+elementCount)=extractor_%extract(node     ,instance)
-       class is (nodePropertyExtractorTuple )
+       class is (nodePropertyExtractorTuple        )
           elementCount=extractor_%elementCount(time)
           multiExtractDouble(offset+1:offset+elementCount)=extractor_%extract(node,time,instance)
        class is (nodePropertyExtractorIntegerScalar)
+          elementCount=0
+       class is (nodePropertyExtractorIntegerTuple )
           elementCount=0
        class default
           elementCount=0
@@ -250,12 +254,15 @@ contains
     extractor_ => self%extractors
     do while (associated(extractor_))
        select type (extractor_ => extractor_%extractor_)
-       class is (nodePropertyExtractorScalar)
+       class is (nodePropertyExtractorScalar       )
           elementCount=0
-       class is (nodePropertyExtractorTuple )
+       class is (nodePropertyExtractorTuple        )
           elementCount=0
        class is (nodePropertyExtractorIntegerScalar)
           elementCount=1
+          multiExtractInteger(offset+1:offset+elementCount)=extractor_%extract(node,time,instance)
+       class is (nodePropertyExtractorIntegerTuple )
+          elementCount=extractor_%elementCount(time)
           multiExtractInteger(offset+1:offset+elementCount)=extractor_%extract(node,time,instance)
        class default
           elementCount=0
@@ -315,6 +322,11 @@ contains
              elementCount=1
              multiNames(offset+1:offset+elementCount)=extractor_%name (    )
           end if
+       class is (nodePropertyExtractorIntegerTuple )
+          if (elementType == elementTypeInteger) then
+             elementCount=extractor_%elementCount(time)
+             multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+          end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -356,6 +368,11 @@ contains
              elementCount=1
              multiDescriptions(offset+1:offset+elementCount)=extractor_%description (    )
           end if
+       class is (nodePropertyExtractorIntegerTuple )
+          if (elementType == elementTypeInteger) then
+             elementCount=extractor_%elementCount(time)
+             multiDescriptions(offset+1:offset+elementCount)=extractor_%descriptions(time)
+          end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -396,6 +413,11 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=1
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
+          end if
+       class is (nodePropertyExtractorIntegerTuple )
+          if (elementType == elementTypeInteger) then
+             elementCount=extractor_%elementCount(time)
+             multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(time)
           end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
