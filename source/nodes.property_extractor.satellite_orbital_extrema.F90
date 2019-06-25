@@ -123,6 +123,7 @@ contains
     double precision                                                                           :: radiusOrbital                 , velocityOrbital
     !GCC$ attributes unused :: time, instance
     
+    allocate(satelliteOrbitalExtremaExtract(self%elementCount_))
     if (self%extractPericenter) then
        if (node%isSatellite()) then
           nodeHost  => node     %parent
