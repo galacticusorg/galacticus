@@ -84,7 +84,7 @@
 
 contains
 
-  function virialDensityContrastDefinitionParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
+  recursive function virialDensityContrastDefinitionParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
     !% Constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
     use Input_Parameters
     implicit none
@@ -107,7 +107,7 @@ contains
     return
   end function virialDensityContrastDefinitionParameters
 
-  function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,recursiveConstruct,recursiveSelf) result(self)
+  recursive function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,recursiveConstruct,recursiveSelf) result(self)
     !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
