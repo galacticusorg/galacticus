@@ -66,7 +66,7 @@
        !% Interface for scalar property extraction.
        import nodePropertyExtractorScalar, treeNode, multiCounter
        class(nodePropertyExtractorScalar), intent(inout)           :: self
-       type (treeNode                   ), intent(inout)           :: node
+       type (treeNode                   ), intent(inout), target   :: node
        type (multiCounter               ), intent(inout), optional :: instance
      end function scalarExtract
   end interface

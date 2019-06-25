@@ -119,7 +119,7 @@ contains
     use Galacticus_Error
     implicit none
     class           (nodePropertyExtractorRatio), intent(inout)           :: self
-    type            (treeNode                  ), intent(inout)           :: node
+    type            (treeNode                  ), intent(inout), target   :: node
     type            (multiCounter              ), intent(inout), optional :: instance
     double precision                                                      :: numerator, denominator
     !GCC$ attributes unused :: instance

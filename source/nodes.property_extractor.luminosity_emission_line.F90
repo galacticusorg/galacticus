@@ -252,7 +252,7 @@ contains
     use               Abundances_Structure
     implicit none
     class           (nodePropertyExtractorLmnstyEmssnLine), intent(inout)              :: self
-    type            (treeNode                            ), intent(inout)              :: node
+    type            (treeNode                            ), intent(inout), target   :: node
     type            (multiCounter                        ), intent(inout)   , optional :: instance
     class           (nodeComponentBasic                  ), pointer                    :: basic
     class           (nodeComponentDisk                   ), pointer                    :: disk

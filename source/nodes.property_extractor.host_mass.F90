@@ -57,7 +57,7 @@ contains
     use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (nodePropertyExtractorMassHost), intent(inout)           :: self
-    type            (treeNode                     ), intent(inout)           :: node
+    type            (treeNode                     ), intent(inout), target   :: node
     type            (multiCounter                 ), intent(inout), optional :: instance
     type            (treeNode                     ), pointer                 :: nodeHost
     class           (nodeComponentBasic           ), pointer                 :: basicHost
