@@ -182,8 +182,8 @@ contains
     use Galacticus_Error                , only : Galacticus_Error_Report
     implicit none
     double precision                                , dimension(:) , allocatable :: lightconeExtract
-    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
-    type            (treeNode                      ), intent(inout)              :: node
+    class           (nodePropertyExtractorLightcone), intent(inout), target      :: self
+    type            (treeNode                      ), intent(inout), target      :: node
     double precision                                , intent(in   )              :: time
     type            (multiCounter                  ), intent(inout), optional    :: instance
     !GCC$ attributes unused :: time

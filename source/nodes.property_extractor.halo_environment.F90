@@ -95,8 +95,8 @@ contains
     !% Implement extraction of halo environment properties.
     implicit none
     double precision                                      , dimension(:) , allocatable :: haloEnvironmentExtract
-    class           (nodePropertyExtractorHaloEnvironment), intent(inout)              :: self
-    type            (treeNode                            ), intent(inout)              :: node
+    class           (nodePropertyExtractorHaloEnvironment), intent(inout), target      :: self
+    type            (treeNode                            ), intent(inout), target      :: node
     double precision                                      , intent(in   )              :: time
     type            (multiCounter                        ), intent(inout), optional    :: instance
     !GCC$ attributes unused :: time, instance

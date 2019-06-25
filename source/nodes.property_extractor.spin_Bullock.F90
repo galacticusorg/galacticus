@@ -113,8 +113,8 @@ contains
     use Dark_Matter_Halo_Spins
     implicit none
     double precision                                   , dimension(:) , allocatable :: spinBullockExtract
-    class           (nodePropertyExtractorSpinBullock ), intent(inout)              :: self
-    type            (treeNode                         ), intent(inout)              :: node
+    class           (nodePropertyExtractorSpinBullock ), intent(inout), target      :: self
+    type            (treeNode                         ), intent(inout), target      :: node
     double precision                                   , intent(in   )              :: time
     type            (multiCounter                     ), intent(inout), optional    :: instance
     class           (nodeComponentBasic               ), pointer                    :: basic

@@ -93,8 +93,8 @@ contains
     !% Implement a virialProperties output extractor.
     implicit none
     double precision                                       , dimension(:) , allocatable :: virialPropertiesExtract
-    class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
-    type            (treeNode                             ), intent(inout)              :: node
+    class           (nodePropertyExtractorVirialProperties), intent(inout), target      :: self
+    type            (treeNode                             ), intent(inout), target      :: node
     double precision                                       , intent(in   )              :: time
     type            (multiCounter                         ), intent(inout), optional    :: instance
     !GCC$ attributes unused :: time, instance
