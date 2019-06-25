@@ -32,15 +32,15 @@
   type, extends(taskClass) :: taskPowerSpectra
      !% Implementation of a task which computes and outputs the power spectrum and related quantities.
      private
-     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_ => null()
-     class           (linearGrowthClass                ), pointer :: linearGrowth_ => null()
-     class           (powerSpectrumClass               ), pointer :: powerSpectrum_ => null()
-     class           (powerSpectrumNonlinearClass      ), pointer :: powerSpectrumNonlinear_ => null()
+     class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_         => null()
+     class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_          => null()
+     class           (linearGrowthClass                ), pointer :: linearGrowth_                => null()
+     class           (powerSpectrumClass               ), pointer :: powerSpectrum_               => null()
+     class           (powerSpectrumNonlinearClass      ), pointer :: powerSpectrumNonlinear_      => null()
      class           (powerSpectrumWindowFunctionClass ), pointer :: powerSpectrumWindowFunction_ => null()
-     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_ => null()
-     class           (outputTimesClass                 ), pointer :: outputTimes_ => null()
-     double precision                                             :: wavenumberMinimum           , wavenumberMaximum
+     class           (cosmologicalMassVarianceClass    ), pointer :: cosmologicalMassVariance_    => null()
+     class           (outputTimesClass                 ), pointer :: outputTimes_                 => null()
+     double precision                                             :: wavenumberMinimum                     , wavenumberMaximum
      integer                                                      :: pointsPerDecade
      logical                                                      :: includeNonLinear
      type            (varying_string                   )          :: outputGroup
@@ -218,19 +218,20 @@ contains
     implicit none
     class           (taskPowerSpectra          ), intent(inout)                 :: self
     integer                                     , intent(  out), optional       :: status
-    integer         (c_size_t                  )                                :: outputCount           , wavenumberCount    , &
-         &                                                                         iOutput               , iWavenumber
-    double precision                            , allocatable  , dimension(:  ) :: wavenumber            , powerSpectrumLinear, &
-         &                                                                         massScale             , sigma              , &
-         &                                                                         sigmaGradient         , growthFactor       , &
-         &                                                                         epochTime             , epochRedshift
-    double precision                            , allocatable  , dimension(:,:) :: powerSpectrumNonLinear, sigmaNonLinear
-    double precision                                                            :: wavenumberMinimum     , wavenumberMaximum
+    integer         (c_size_t                  )                                :: outputCount              , wavenumberCount    , &
+         &                                                                         iOutput                  , iWavenumber
+    double precision                            , allocatable  , dimension(:  ) :: wavenumber               , powerSpectrumLinear, &
+         &                                                                         massScale                , sigma              , &
+         &                                                                         sigmaGradient            , growthFactor       , &
+         &                                                                         epochTime                , epochRedshift      , &
+         &                                                                         growthFactorLogDerivative
+    double precision                            , allocatable  , dimension(:,:) :: powerSpectrumNonLinear   , sigmaNonLinear
+    double precision                                                            :: wavenumberMinimum        , wavenumberMaximum
     type            (fgsl_function             )                                :: integrandFunction
     type            (fgsl_integration_workspace)                                :: integrationWorkspace
-    type            (hdf5Object                )                                :: outputsGroup          , outputGroup        , &
-         &                                                                         containerGroup        , dataset
-    type            (varying_string            )                                :: groupName             , commentText
+    type            (hdf5Object                )                                :: outputsGroup             , outputGroup        , &
+         &                                                                         containerGroup           , dataset
+    type            (varying_string            )                                :: groupName                , commentText
 
     call Galacticus_Display_Indent('Begin task: power spectrum')
     ! Get the requested output redshifts.
@@ -238,17 +239,18 @@ contains
     ! Compute number of tabulation points.
     wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*dble(self%pointsPerDecade))+1
     ! Allocate arrays for power spectra.
-    call    allocateArray(wavenumber            ,[wavenumberCount            ])
-    call    allocateArray(powerSpectrumLinear   ,[wavenumberCount            ])
-    call    allocateArray(massScale             ,[wavenumberCount            ])
-    call    allocateArray(sigma                 ,[wavenumberCount            ])
-    call    allocateArray(sigmaGradient         ,[wavenumberCount            ])
-    call    allocateArray(growthFactor          ,[                outputCount])
-    call    allocateArray(epochTime             ,[                outputCount])
-    call    allocateArray(epochRedshift         ,[                outputCount])
+    call    allocateArray(wavenumber               ,[wavenumberCount            ])
+    call    allocateArray(powerSpectrumLinear      ,[wavenumberCount            ])
+    call    allocateArray(massScale                ,[wavenumberCount            ])
+    call    allocateArray(sigma                    ,[wavenumberCount            ])
+    call    allocateArray(sigmaGradient            ,[wavenumberCount            ])
+    call    allocateArray(growthFactor             ,[                outputCount])
+    call    allocateArray(growthFactorLogDerivative,[                outputCount])
+    call    allocateArray(epochTime                ,[                outputCount])
+    call    allocateArray(epochRedshift            ,[                outputCount])
     if (self%includeNonLinear) then
-       call allocateArray(powerSpectrumNonLinear,[wavenumberCount,outputCount])
-       call allocateArray(sigmaNonLinear        ,[wavenumberCount,outputCount])
+       call allocateArray(powerSpectrumNonLinear   ,[wavenumberCount,outputCount])
+       call allocateArray(sigmaNonLinear           ,[wavenumberCount,outputCount])
     end if
     ! Build a range of wavenumbers.
     wavenumber(:)=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLogarithmic)
@@ -270,13 +272,14 @@ contains
     end do
     ! Iterate over outputs.
     do iOutput=1,outputCount
-       epochTime    (iOutput)=                                                            self%outputTimes_%time(iOutput)
-       epochRedshift(iOutput)=self%cosmologyFunctions_ %redshiftFromExpansionFactor(                                      &
-            &                  self%cosmologyFunctions_%expansionFactor             (                                     &
-            &                                                                             self%outputTimes_%time(iOutput) &
-            &                                                                       )                                     &
-            &                                                                      )
-       growthFactor (iOutput)=self%linearGrowth_       %value                      ( time=self%outputTimes_%time(iOutput))
+       epochTime                (iOutput)=                                                                     self%outputTimes_%time(iOutput)
+       epochRedshift            (iOutput)=self%cosmologyFunctions_ %redshiftFromExpansionFactor         (                                       &
+            &                              self%cosmologyFunctions_%expansionFactor                      (                                      &
+            &                                                                                                  self%outputTimes_%time(iOutput)  &
+            &                                                                                            )                                      &
+            &                                                                                           )
+       growthFactor             (iOutput)=self%linearGrowth_       %value                               ( time=self%outputTimes_%time(iOutput))
+       growthFactorLogDerivative(iOutput)=self%linearGrowth_       %logarithmicDerivativeExpansionFactor( time=self%outputTimes_%time(iOutput))
        ! Iterate over all wavenumbers computing non-linear power spectrum.
        if (self%includeNonLinear) then
           do iWavenumber=1,wavenumberCount
@@ -316,9 +319,10 @@ contains
        groupName  =groupName  //iOutput
        commentText=commentText//iOutput
        outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
-       call outputGroup%writeAttribute(growthFactor (iOutput),'growthFactor'  )
-       call outputGroup%writeAttribute(epochRedshift(iOutput),'outputRedshift')
-       call outputGroup%writeAttribute(epochTime    (iOutput),'outputTime'    )
+       call outputGroup%writeAttribute(growthFactor             (iOutput),'growthFactor'             )
+       call outputGroup%writeAttribute(growthFactorLogDerivative(iOutput),'growthFactorLogDerivative')
+       call outputGroup%writeAttribute(epochRedshift            (iOutput),'outputRedshift'           )
+       call outputGroup%writeAttribute(epochTime                (iOutput),'outputTime'               )
        if (self%includeNonLinear) then
           call outputGroup%writeDataset  (wavenumber                       ,'wavenumber'            ,'The wavenumber.'                               ,datasetReturned=dataset)
           call dataset    %writeAttribute(1.0d0/megaParsec                 ,'unitsInSI'                                                                                      )

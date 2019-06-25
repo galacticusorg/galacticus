@@ -784,9 +784,6 @@ contains
     use            :: Memory_Management
     use            :: Numerical_Constants_Astronomical
     use            :: Galacticus_HDF5
-    !# <include directive="outputGroupOutputTask" type="moduleUse">
-    include 'galacticus.output.merger_tree.outputGroup.tasks.modules.inc'
-    !# </include>
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)               :: self
     integer         (c_size_t                   ), intent(in   )               :: indexOutput
@@ -842,11 +839,6 @@ contains
        call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(gigaYear                                      ,'timeUnitInSI'         )
        call self%outputGroups(indexOutput)%hdf5Group%writeAttribute(self%cosmologyFunctions_%expansionFactor(time),'outputExpansionFactor')
        !$ call hdf5Access%unset()
-       ! Establish all other properties.
-       !# <include directive="outputGroupOutputTask" type="functionCall" functionType="void">
-       !#  <functionArgs>self%outputGroups(indexOutput)%hdf5Group,time</functionArgs>
-       include 'galacticus.output.merger_tree.outputGroup.tasks.inc'
-       !# </include>
     end if
     return
   end subroutine standardOutputGroupCreate
