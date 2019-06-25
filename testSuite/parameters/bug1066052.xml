@@ -35,8 +35,10 @@
     <sigma_8 value="0.816"/>
   </cosmologicalMassVarianceMethod>
 
-  <nodePropertyExtractorMethod value="virialProperties"/>
-  <outputDescendentIndices value="true"/>
+  <nodePropertyExtractorMethod value="multi">
+    <nodePropertyExtractorMethod value="virialProperties"/>
+    <nodePropertyExtractMethod value="descendents"/>
+  </nodePropertyExtractorMethod>
   <diskOutputStarFormationRate value="true"/>
   <spheroidOutputStarFormationRate value="true"/>
   <mergerTreeOperatorMethod value="massAccretionHistory"/>

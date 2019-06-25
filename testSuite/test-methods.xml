@@ -36,6 +36,12 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <outputHaloModelData value="true"/>
+    <nodePropertyExtractMethod value="multi">
+      <nodePropertyExtractMethod value="haloBias"/>
+      <nodePropertyExtractMethod value="indicesHost">
+	<topLevel value="true"/>
+      </nodePropertyExtractMethod>
+    </nodePropertyExtractMethod>
     <darkMatterHaloBiasMethod value="sheth2001"/>
     <darkMatterHaloBiasMethod value="pressSchechter"/>
     <darkMatterHaloBiasMethod value="tinker2010"/>
@@ -552,7 +558,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputMainBranchStatus value="true"/>
+    <nodePropertyExtractorMethod value="mainBranchStatus"/>
   </parameters>
 
   <!-- Output mass profile -->
@@ -589,7 +595,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputDescendentIndices value="true"/>
+    <nodePropertyExtractorMethod value="descendents"/>
     <treeNodeMethodSatellite value="standard"/>
   </parameters>
   
@@ -597,7 +603,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputMostMassiveProgenitor value="true"/>
+    <nodePropertyExtractorMethod value="mostMassiveProgenitor"/>
   </parameters>
   
   <!-- Calculation of luminosities -->
