@@ -240,7 +240,7 @@ contains
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Calculations_Resets
-    use               Galacticus_Nodes                  , only : mergerTree                , treeNode                  , nodeComponentBasic
+    use               Galacticus_Nodes                  , only : mergerTree                       , treeNode                  , nodeComponentBasic
     use               Input_Parameters
     use               Galacticus_Output_Merger_Tree_Data
     use               Multi_Counters
@@ -248,8 +248,8 @@ contains
     use               Events_Hooks
     use               Galacticus_Error
     use               IO_HDF5                           , only : hdf5Access
-    use               Node_Property_Extractors          , only : nodePropertyExtractorNull , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
-         &                                                       nodePropertyExtractorMulti, elementTypeInteger         , elementTypeDouble
+    use               Node_Property_Extractors          , only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
+         &                                                       nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
     !# </include>
@@ -363,8 +363,8 @@ contains
                          ! Null extractor - simply ignore.
                       class is (nodePropertyExtractorScalar       )
                          ! Scalar property extractor - extract and store the value.
-                         self%doubleBuffer (self%doubleBufferCount ,doubleProperty+1                                                                  )=extractor_      %extract       (                  node      ,instance)
-                         doubleProperty                                                                                                                =+doubleProperty                                                        &
+                         self%doubleBuffer (self%doubleBufferCount ,doubleProperty+1                                                                  )=extractor_      %extract       (                  node     ,instance)
+                         doubleProperty                                                                                                                =+doubleProperty                                                       &
                               &                                                                                                                         +1
                       class is (nodePropertyExtractorTuple        )
                          ! Tuple property extractor - extract and store the values.
@@ -376,7 +376,12 @@ contains
                          self%integerBuffer(self%integerBufferCount,integerProperty+1                                                                 )=extractor_      %extract       (                  node,time,instance)
                          integerProperty                                                                                                               =+integerProperty                                                      &
                               &                                                                                                                         +1
-                      class is (nodePropertyExtractorMulti        )
+                      class is (nodePropertyExtractorIntegerTuple )
+                         ! Integer tuple property extractor - extract and store the values.
+                         self%integerBuffer(self%integerBufferCount,integerProperty+1:integerProperty+extractor_%elementCount(                   time))= extractor_     %extract       (                  node,time,instance)
+                         integerProperty                                                                                                               =+integerProperty                                                      &
+                              &                                                                                                                         +extractor_     %elementCount  (                       time         )
+                       class is (nodePropertyExtractorMulti        )
                          ! Multi property extractor - extract and store the values.
                          self%doubleBuffer (self%doubleBufferCount ,doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))=extractor_      %extractDouble (                  node,time,instance)
                          doubleProperty                                                                                                                =+doubleProperty                                                       &
@@ -624,8 +629,8 @@ contains
     !% Count up the number of properties that will be output.
     use Galacticus_Nodes        , only : treeNode
     use Galacticus_Error        , only : Galacticus_Error_Report
-    use Node_Property_Extractors, only : nodePropertyExtractorNull , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
-         &                               nodePropertyExtractorMulti, elementTypeInteger         , elementTypeDouble
+    use Node_Property_Extractors, only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
+         &                               nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble
     !# <include directive="mergerTreeOutputPropertyCount" type="moduleUse">
     include 'galacticus.output.merger_tree.property_count.modules.inc'
     !# </include>
@@ -654,6 +659,9 @@ contains
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - simply increment the integer property output count by one.
        self%integerPropertyCount=self%integerPropertyCount+1
+    class is (nodePropertyExtractorIntegerTuple )
+       ! Integer tuple property extractor - increment the integer property output count by the number of elements.
+       self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(time)
     class is (nodePropertyExtractorMulti        )
        ! Multi proprty extractor - increment double and integer property output counts.
        self%integerPropertyCount=self%integerPropertyCount+extractor_%elementCount(elementTypeInteger,time)
@@ -706,8 +714,8 @@ contains
     !% Set names for the properties.
     use Galacticus_Nodes        , only : treeNode
     use Galacticus_Error        , only : Galacticus_Error_Report
-    use Node_Property_Extractors, only : nodePropertyExtractorNull , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
-         &                               nodePropertyExtractorMulti, elementTypeInteger         , elementTypeDouble
+    use Node_Property_Extractors, only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
+         &                               nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble
     !# <include directive="mergerTreeOutputNames" type="moduleUse">
     include 'galacticus.output.merger_tree.names.modules.inc'
     !# </include>
@@ -746,6 +754,12 @@ contains
        self%integerPropertyComments(integerProperty+1                                                                 )=extractor_%description (                       )
        self%integerPropertyUnitsSI (integerProperty+1                                                                 )=extractor_%unitsInSI   (                       )
        integerProperty=integerProperty+1
+    class is (nodePropertyExtractorIntegerTuple )
+       ! Integer tuple property extractor - get the names, descriptions, and units.
+       self%integerPropertyNames   (integerProperty+1:integerProperty+extractor_%elementCount(                   time))=extractor_%names       (                   time)
+       self%integerPropertyComments(integerProperty+1:integerProperty+extractor_%elementCount(                   time))=extractor_%descriptions(                   time)
+       self%integerPropertyUnitsSI (integerProperty+1:integerProperty+extractor_%elementCount(                   time))=extractor_%unitsInSI   (                   time)
+       integerProperty=integerProperty+extractor_%elementCount(time)
     class is (nodePropertyExtractorMulti        )
        ! Multi proprty extractor - get the names, descriptions, and units.
        self%doublePropertyNames    (doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))=extractor_%names       (elementTypeDouble ,time)
