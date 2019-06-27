@@ -628,7 +628,9 @@ my @translations =
 	     "odeAlgorithmNonJacobian"                                   => "mergerTreeNodeEvolverMethod.standard.--odeAlgorithmNonJacobian"                        ,
 	     "odeLatentIntegratorOrder"                                  => "mergerTreeNodeEvolverMethod.standard.--odeLatentIntegratorOrder"                       ,
 	     "odeLatentIntegratorIntervalsMaximum"                       => "mergerTreeNodeEvolverMethod.standard.--odeLatentIntegratorIntervalsMaximum"            ,
-	     "profileOdeEvolver"                                         => "mergerTreeNodeEvolverMethod.standard.--profileOdeEvolver"
+	     "profileOdeEvolver"                                         => "mergerTreeNodeEvolverMethod.standard.--profileOdeEvolver"                              ,
+	     "timePerTreeMethod"                                         => "metaTreeProcessingTimeMethod"                                                          ,
+	     "timePerTreeFitFileName"                                    => "metaTreeProcessingTimeMethod.file.--fileName"
 	 },
 	 values        =>
          {
