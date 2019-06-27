@@ -101,7 +101,8 @@ contains
     else
        self%step=1
     end if
-    self%elementCount_=self%step*size(radiusSpecifiers)
+    self%radiiCount   =size(radiusSpecifiers)
+    self%elementCount_=self%step*self%radiiCount
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
