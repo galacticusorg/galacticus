@@ -129,7 +129,6 @@
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
-  <timePerTreeFitFileName value="projects/constraints2/verySimplisticToStellarMassFunction/data/treeTiming.xml"/>
   <stellarPopulationPropertiesMethod value="instantaneous"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/initialSatelliteNoPrimaryProgenitor.hdf5"/>
   <coolingSpecificAngularMomentumMethod value="constantRotation">

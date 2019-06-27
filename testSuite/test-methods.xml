@@ -132,7 +132,9 @@
 	  <massCharacteristic value="5.5e10"/>
 	  <normalization value="2.0e-4"/>
 	  <binWidthLogarithmic value="0.097"/>
-	  <timePerTreeFitFileName value="testSuite/data/treeTiming.xml" parameterLevel="top"/>
+	  <metaTreeProcessingTimeMethod value="file" parameterLevel="top">
+	    <fileName value="testSuite/data/treeTiming.xml"/>
+	  </metaTreeProcessingTimeMethod>
 	  <mergerTreeMassResolutionMethod value="fixed" parameterLevel="top">
 	    <massResolution value="5.0e11"/>
 	  </mergerTreeMassResolutionMethod>
