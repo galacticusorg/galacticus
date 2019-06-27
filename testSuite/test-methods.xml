@@ -569,7 +569,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <nodePropertyExtractorMethod value="massprofile">
+    <nodePropertyExtractorMethod value="massProfile">
       <radii value="10.0e-3 100.0d-3"/>
     </nodePropertyExtractorMethod>
   </parameters>
