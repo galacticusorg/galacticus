@@ -43,8 +43,13 @@ contains
 
   subroutine Galacticus_Output_Halo_Model_Initialize
     !% Initializes the module by determining whether or not halo model data should be output.
+    use Galacticus_HDF5
+    use IO_HDF5
     use Input_Parameters
+    use Numerical_Constants_Astronomical, only : megaParsec
+    use Numerical_Ranges                , only : Make_Range, rangeTypeLogarithmic
     implicit none
+    type(hdf5Object) :: haloModelDataset, haloModelGroup
 
     if (.not.outputHaloModelDataInitialized) then
        !$omp critical(Galacticus_Output_Halo_Model_Initialize)
@@ -85,8 +90,20 @@ contains
              !#   <source>globalParameters</source>
              !#   <type>real</type>
              !# </inputParameter>
+             ! Determine how many wavenumbers to tabulate at.
+             wavenumberCount=int(log10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
+             ! Allocate arrays for power spectrum.
+             allocate(wavenumber(wavenumberCount))
+             ! Build a grid of wavenumbers.
+             wavenumber=Make_Range(haloModelWavenumberMinimum,haloModelWavenumberMaximum,wavenumberCount,rangeType=rangeTypeLogarithmic)
+             call hdf5Access%set()
+             haloModelGroup=galacticusOutputFile%openGroup("haloModel","Halo model data.")
+             call haloModelGroup  %writeDataset  (wavenumber      ,'wavenumber','Wavenumber at which power spectrum is tabulated [Mpc⁻¹].',datasetReturned=haloModelDataset)
+             call haloModelDataset%writeAttribute(1.0d0/megaParsec,'unitsInSI'                                                                                             )
+             call haloModelDataset%close()
+             call haloModelGroup  %close()
+             call hdf5Access      %unset()
           end if
-
           ! Flag that module is now initialized.
           outputHaloModelDataInitialized=.true.
        end if
