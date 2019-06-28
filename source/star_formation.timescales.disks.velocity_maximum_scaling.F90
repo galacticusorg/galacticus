@@ -41,7 +41,7 @@
      type            (fastExponentiator               ) :: velocityExponentiator        , expansionFactorExponentiator
    contains
      !@ <objectMethods>
-     !@   <object><starFormationTimescaleDisksVelocityMaxScaling/object>
+     !@   <object>starFormationTimescaleDisksVelocityMaxScaling</object>
      !@   <objectMethod>
      !@     <method>calculationReset</method>
      !@     <type>\void</type>
