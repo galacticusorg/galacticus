@@ -2290,7 +2290,7 @@ CODE
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrDflt\n\n";
 	    # Create XML constructor.
-	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."CnstrctrPrmtrs(parameters,copyInstance,parameterName)\n";
+	    $postContains->[0]->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."CnstrctrPrmtrs(parameters,copyInstance,parameterName)\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
 	    $postContains->[0]->{'content'} .= "      use Input_Parameters\n";
 	    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
@@ -2386,7 +2386,7 @@ CODE
 	    }
 	    
 	    # Create initialization function.
-	    $postContains->[0]->{'content'} .= "   subroutine ".$directive->{'name'}."Initialize()\n";
+	    $postContains->[0]->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."subroutine ".$directive->{'name'}."Initialize()\n";
 	    $postContains->[0]->{'content'} .= "      !% Initialize the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 	    $postContains->[0]->{'content'} .= "      use ISO_Varying_String\n";
 	    $postContains->[0]->{'content'} .= "      use Input_Parameters\n";
@@ -2445,7 +2445,7 @@ CODE
 
 	    # Create initialization function for recursive construction of the default object.
 	    if ( $allowRecursion ) {
-		$postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."RecursiveDefault()\n";
+		$postContains->[0]->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."RecursiveDefault()\n";
 		$postContains->[0]->{'content'} .= "      !% Construct a recursive copy of the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 		$postContains->[0]->{'content'} .= "      use Input_Parameters, only : inputParameters, globalParameters\n";
 		$postContains->[0]->{'content'} .= "      use Galacticus_Error, only : Galacticus_Error_Report\n";
@@ -2474,7 +2474,6 @@ CODE
 			$postContains->[0]->{'content'} .= "           call debugStackPop()\n"
 			    if ( $debugging );
 			$postContains->[0]->{'content'} .= "        end select\n";
-			$postContains->[0]->{'content'} .= "        call ".$directive->{'name'}."Default%autoHook()\n";
 		    } else {
 			push(@nonRecursiveTypes,$class->{'name'});
 		    }
