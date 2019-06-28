@@ -155,7 +155,7 @@ contains
   end subroutine combinedWindowFunctions
 
   double precision function combinedAngularPower(self,i,j,l)
-    !% Return the survey angular power $C^{ij}_\ell$ from \gls{combined} polygons.
+    !% Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
     use Galacticus_Error
     implicit none
     class           (surveyGeometryCombined), intent(inout):: self
