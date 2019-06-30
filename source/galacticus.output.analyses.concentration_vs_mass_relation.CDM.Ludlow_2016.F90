@@ -41,33 +41,39 @@ contains
   function concentrationVsHaloMassCDMLudlow2016ConstructorParameters(parameters) result (self)
     !% Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class which takes a parameter set as input.
     use Input_Parameters
+    use Cosmology_Parameters
     use Cosmology_Functions
     implicit none
     type (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                :: self
     type (inputParameters                                   ), intent(inout) :: parameters
+    class(cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
-    class(outputTimesClass                           ), pointer       :: outputTimes_
+    class(outputTimesClass                                  ), pointer       :: outputTimes_
     class(nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_ 
-  
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
-    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
+ 
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    !# <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
+    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
     !# <inputParametersValidate source="parameters"/>
-    nullify(cosmologyFunctions_)
-    nullify(nbodyHaloMassError_)
-    nullify(outputTimes_       )
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
-    !# <objectDestructor name="nbodyHaloMassError_"/>
+    nullify(cosmologyParameters_)
+    nullify(cosmologyFunctions_ )
+    nullify(nbodyHaloMassError_ )
+    nullify(outputTimes_        )
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="outputTimes_"        />
+    !# <objectDestructor name="nbodyHaloMassError_" />
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorParameters
 
-  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result (self)
+  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result (self)
     !% Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
     use ISO_Varying_String
     use Numerical_Constants_Astronomical
     use Output_Times
+    use Cosmology_Parameters
     use Cosmology_Functions
     use Output_Analysis_Property_Operators
     use Node_Property_Extractors
@@ -82,6 +88,7 @@ contains
     use Galacticus_Paths
     implicit none
     type            (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                                :: self
+    class           (cosmologyParametersClass                          ), target       , intent(in   )  :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), target       , intent(in   )  :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass                           ), target       , intent(in   )  :: nbodyHaloMassError_ 
     class           (outputTimesClass                                  ), target       , intent(inout)  :: outputTimes_
@@ -132,22 +139,22 @@ contains
     galacticFilterAll_                       =  galacticFilterAll          (              filters_)
     ! Build N-body mass error distribution operator.
     allocate(outputAnalysisDistributionOperator_    )
-    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                 )
+    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                                      )
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_          )
-    outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                    )
+    outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                                         )
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperator_        )
-    outputAnalysisPropertyOperator_        =  outputAnalysisPropertyOperatorLog10               (                                                                    )
+    outputAnalysisPropertyOperator_        =  outputAnalysisPropertyOperatorLog10               (                                                                                         )
     ! Build a log10 weight property operators.
     allocate(outputAnalysisWeightPropertyOperator_  )
-    outputAnalysisWeightPropertyOperator_  =  outputAnalysisPropertyOperatorLog10               (                                                                    )
+    outputAnalysisWeightPropertyOperator_  =  outputAnalysisPropertyOperatorLog10               (                                                                                         )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_      )
-    outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                    )
+    outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                                         )
     ! Create a virial density contrast object matched to the defintion used by Ludlow et al. (2016).
     allocate(virialDensityContrast_                 )
-    virialDensityContrast_                 =  virialDensityContrastFixed                        (200.0d0                ,fixedDensityTypeCritical,cosmologyFunctions_)
+    virialDensityContrast_                 =  virialDensityContrastFixed                        (200.0d0                ,fixedDensityTypeCritical,cosmologyParameters_,cosmologyFunctions_)
     ! Create a concentration weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_ )
     outputAnalysisWeightPropertyExtractor_ =  nodePropertyExtractorConcentration      (virialDensityContrast_                                              )
@@ -160,7 +167,7 @@ contains
          &                                                         var_str('Concentration vs. halo mass relation'      ), &
          &                                                         var_str('massHalo'                                  ), &
          &                                                         var_str('Halo mass [M₂₀₀c]'                         ), &
-         &                                                         var_str('M☉'                                       ), &
+         &                                                         var_str('M☉'                                        ), &
          &                                                         massSolar                                            , &
          &                                                         var_str('log10Concentration'                        ), &
          &                                                         var_str('log₁₀ of Concentration [log₁₀(r₂₀₀c/rs)]'  ), &
@@ -169,7 +176,7 @@ contains
          &                                                         massHaloLogarithmic                                  , &
          &                                                         5_c_size_t                                           , &
          &                                                         outputWeight                                         , &
-         &                                                         nodePropertyExtractor_                     , &
+         &                                                         nodePropertyExtractor_                               , &
          &                                                         outputAnalysisWeightPropertyExtractor_               , &
          &                                                         outputAnalysisPropertyOperator_                      , &
          &                                                         outputAnalysisWeightPropertyOperator_                , &

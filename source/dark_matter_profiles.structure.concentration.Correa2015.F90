@@ -228,7 +228,7 @@ contains
     allocate(virialDensityContrastFixed :: correa2015DensityContrastDefinition)
     select type (correa2015DensityContrastDefinition)
     type is (virialDensityContrastFixed)
-       correa2015DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)
+       correa2015DensityContrastDefinition=virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)
     end select    
     return
   end function correa2015DensityContrastDefinition
