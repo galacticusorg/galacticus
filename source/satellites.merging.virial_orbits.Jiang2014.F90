@@ -21,6 +21,7 @@
 
   use Statistics_Distributions
   use Tables
+  use Cosmology_Parameters
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
 
@@ -34,6 +35,7 @@
      !% A virial orbit class using the \cite{jiang_orbital_2014} orbital parameter distribution.
      private
      class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_   => null()
+     class           (cosmologyParametersClass  ), pointer        :: cosmologyParameters_   => null()
      class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_    => null()
      type            (virialDensityContrastFixed), pointer        :: virialDensityContrast_ => null()
      double precision                            , dimension(3,3) :: B                               , gamma, &
@@ -80,6 +82,7 @@ contains
     type            (virialOrbitJiang2014    )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     double precision                          , dimension(3)  :: bRatioLow           , bRatioIntermediate    , bRatioHigh    , &
          &                                                       gammaRatioLow       , gammaRatioIntermediate, gammaRatioHigh, &
@@ -183,15 +186,17 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=virialOrbitJiang2014(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyFunctions_)
+    self=virialOrbitJiang2014(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterHaloScale_"/>
+    !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function jiang2014ConstructorParameters
 
-  function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyFunctions_) result(self)
+  function jiang2014ConstructorInternal(bRatioLow,bRatioIntermediate,bRatioHigh,gammaRatioLow,gammaRatioIntermediate,gammaRatioHigh,sigmaRatioLow,sigmaRatioIntermediate,sigmaRatioHigh,muRatioLow,muRatioIntermediate,muRatioHigh,darkMatterHaloScale_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily jiang2014} virial orbits class.
     use FGSL                 , only : FGSL_Integ_Gauss61, fgsl_function, fgsl_integration_workspace
     use Numerical_Integration
@@ -202,6 +207,7 @@ contains
          &                                                                    sigmaRatioLow                      , sigmaRatioIntermediate      , sigmaRatioHigh      , &
          &                                                                    muRatioLow                         , muRatioIntermediate         , muRatioHigh
     class           (darkMatterHaloScaleClass    ), intent(in   ) , target :: darkMatterHaloScale_
+    class           (cosmologyParametersClass    ), intent(in   ) , target :: cosmologyParameters_
     class           (cosmologyFunctionsClass     ), intent(in   ) , target :: cosmologyFunctions_
     integer                                       , parameter              :: tableCount                 =1000
     integer                                                                :: i                                  , j                           , k
@@ -216,7 +222,7 @@ contains
     type            (fgsl_function               )                         :: integrandFunction
     type            (fgsl_integration_workspace  )                         :: integrationWorkspace
     logical                                                                :: integrationReset
-    !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyParameters_, *cosmologyFunctions_"/>
 
     ! Assign parameters of the distribution.
     self%B    (:,1)=    bRatioLow
@@ -327,7 +333,7 @@ contains
     end do
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrast_)
-    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     return
 
   contains
@@ -365,6 +371,7 @@ contains
     type(virialOrbitJiang2014), intent(inout) :: self
 
     !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !# <objectDestructor name="self%cosmologyParameters_"  />
     !# <objectDestructor name="self%cosmologyFunctions_"   />
     !# <objectDestructor name="self%virialDensityContrast_"/>
     return
