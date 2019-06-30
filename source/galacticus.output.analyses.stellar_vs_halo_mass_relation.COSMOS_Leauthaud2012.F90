@@ -47,12 +47,14 @@ contains
 
   function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters(parameters) result (self)
     !% Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class which takes a parameter set as input.
+    use Cosmology_Parameters
     use Cosmology_Functions
     use Input_Parameters
     implicit none
     type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
     double precision                                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
+    class           (cosmologyParametersClass                            ), pointer                     :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     integer                                                                                             :: redshiftInterval
@@ -99,17 +101,19 @@ contains
     !#   <type>integer</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"        name="outputTimes_"        source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
     ! Build the object.
-    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="outputTimes_"       />
+    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_)
+    !# <inputParametersValidate source="parameters" />
+    !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
+    !# <objectDestructor name="outputTimes_"        />
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
-  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_) result (self)
+  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_) result (self)
     !% Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     use ISO_Varying_String
     use Numerical_Constants_Astronomical
@@ -136,6 +140,7 @@ contains
     logical                                                               , intent(in   )                 :: computeScatter
     integer         (c_size_t                                            ), intent(in   )                 :: likelihoodBin
     double precision                                                      , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
+    class           (cosmologyParametersClass                            ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
     class           (outputTimesClass                                    ), intent(inout), target         :: outputTimes_
     integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
@@ -330,7 +335,7 @@ contains
     !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar            (                                                                                )"/>
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrast_                                )
-    !# <referenceConstruct object="virialDensityContrast_"                 constructor="virialDensityContrastFixed                            (200.0d0                 ,fixedDensityTypeMean               ,cosmologyFunctions_)"/>
+    !# <referenceConstruct object="virialDensityContrast_"                 constructor="virialDensityContrastFixed                            (200.0d0                 ,fixedDensityTypeMean               , cosmologyParameters_, cosmologyFunctions_)"/>
     allocate(nodePropertyExtractor_                      )
     !# <referenceConstruct object="nodePropertyExtractor_"       constructor="nodePropertyExtractorMassHalo               (virialDensityContrast_                                                          )"/>
     ! Build the object.
