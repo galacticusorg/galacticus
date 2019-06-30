@@ -315,7 +315,7 @@ contains
     
     if (.not.associated(self%virialDensityContrastDefinition_)) then
        allocate(self%virialDensityContrastDefinition_)
-       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)"/>
+       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     end if
     prada2011DensityContrastDefinition => self%virialDensityContrastDefinition_
     return

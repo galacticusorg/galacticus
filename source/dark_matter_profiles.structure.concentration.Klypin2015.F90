@@ -724,7 +724,7 @@ contains
           allocate(virialDensityContrastFixed                         :: self%virialDensityContrastDefinition_)
           select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
           type is (virialDensityContrastFixed)
-             !# <referenceConstruct isResult="yes" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyFunctions_)"/>
+             !# <referenceConstruct isResult="yes" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
           end select
        case (klypin2015DensityContrastVirial)
           allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%virialDensityContrastDefinition_)
