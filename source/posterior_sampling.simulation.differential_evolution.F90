@@ -387,7 +387,7 @@ contains
     character       (len=32                                        )                                   :: label
 
     ! Check that we have sufficient chains for differential evolution.
-    if (mpiSelf%count() < 3) call Galacticus_Error_Report('at least 3 chains are required for differential evolution'//{introspection:location})
+    if (mpiSelf%count() < 2*size(self%modelParametersActive_)+1) call Galacticus_Error_Report('set the number of chains to be at least one greater than twice the number of active parameters. Otherwise, it may not be able or efficient to cover the full target distribution'//{introspection:location})
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
