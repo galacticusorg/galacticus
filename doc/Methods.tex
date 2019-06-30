@@ -649,46 +649,6 @@ Currently defined tree timing methods are:
 
 Events are triggered during merger tree evolution. Examples are when a node needs to be promoted to its parent node, or when a minor node merges with its parent.
 
-\subsubsection{Node Merger Events}
-
-Additional methods for the node merging (i.e. when a non-primary progenitor merges with its parent) can be added using the {\normalfont \ttfamily nodeMergersMethod} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily singleLevelHierarchy} method is described by a directive:
-\begin{verbatim}
-  !# <nodeMergersMethod>
-  !#  <unitName>Events_Node_Merger_Initialize_SLH</unitName>
-  !# </nodeMergersMethod>
-\end{verbatim}
-Here, {\normalfont \ttfamily Satellite\_Time\_Until\_Merging\_Lacey\_Cole\_Initialize} is the name of a subroutine which will be called to initialize the method. The initialization subroutine must have the following form:
-\begin{verbatim}
-   subroutine Events_Node_Merger_Initialize(nodeMergersMethod,Events_Node_Merger_Do)
-    implicit none
-    type(varying_string),          intent(in)    :: nodeMergersMethod
-    procedure(),          pointer, intent(inout) :: Events_Node_Merger_Do
-
-    if (nodeMergersMethod.eq.'myMethod') Events_Node_Merger_Do => My_Method_Procedure
-
-    return
-  end subroutine Events_Node_Merger_Initialize
-\end{verbatim}
-where {\normalfont \ttfamily myMethod} is the name of this method as will be specified by the {\normalfont \ttfamily nodeMergersMethod} input parameter. The procedure pointer {\normalfont \ttfamily Events\_Node\_Merger\_Do} must be set to point to a subroutine which handles the merging event as described below. The initialization subroutine should perform any other tasks required to initialize the module (such as reading parameters etc.).
-
-The node merging subroutine must have the form:
-\begin{verbatim}
- subroutine Events_Node_Merger_Do(thisNode)
-    implicit none
-    type(treeNode), intent(inout), pointer :: thisNode
-    .
-    .
-    .
-    return
-  end subroutine Events_Node_Merger_Do_SLH
-\end{verbatim}
-The function must perform any processing required for the merger, and move {\normalfont \ttfamily thisNode} to the linked list of satellite nodes in {\normalfont \ttfamily thisNode\%parentNode}.
-
-Currently defined node merger event methods are:
-\begin{description}
- \item [\hyperlink{events.node_merger.single_level_hierarchy.F90:events_node_mergers_slh:events_node_merger_do_slh}{{\normalfont \ttfamily singleLevelHierarchy}}] The node merger is handled by placing the merging node into the linked list of satellites of the parent node. Any satellites in the merging node are also promoted to be satellites in the new node, thereby maintaining just a single hierarchy level of substructure.
-\end{description}
-
 \subsubsection{Node Promotion Events}
 
 Additional methods for node promotion (i.e. when a primary progenitor reaches its parent halo) can be added using the {\normalfont \ttfamily nodePromotionTask} directive. The directive should contain a single argument, giving the name of a subroutine to be called to initialize the method. For example, the {\normalfont \ttfamily basic} tree node method uses this directive as follows:
