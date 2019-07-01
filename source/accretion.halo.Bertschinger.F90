@@ -69,7 +69,7 @@ contains
     class           (accretionHaloTotalClass      ), intent(in   ), target :: accretionHaloTotal_
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
-    class           (darkMatterProfileDMOClass       ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
     !# <constructorAssign variables="*darkMatterProfileDMO_"/>
 
