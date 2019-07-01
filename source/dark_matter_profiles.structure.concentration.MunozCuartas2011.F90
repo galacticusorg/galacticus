@@ -70,29 +70,36 @@ contains
     !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function munozCuartas2011ConstructorParameters
-
+  
   function munozCuartas2011ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
-    use Input_Parameters
+    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
-    type (darkMatterProfileConcentrationMunozCuartas2011)                        :: self
-    class(cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass                       ), intent(in   ), target :: cosmologyFunctions_
+    type (darkMatterProfileConcentrationMunozCuartas2011    )                         :: self
+    class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
+    class(cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
+    type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
+    allocate(self%virialDensityContrastDefinition_)
+    allocate(self%darkMatterProfileDMODefinition_ )
+    allocate(     darkMatterHaloScaleDefinition_  )
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastBryanNorman1998              (self%cosmologyParameters_,self%cosmologyFunctions_                                      )"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
     return
   end function munozCuartas2011ConstructorInternal
 
   subroutine munozCuartas2011Destructor(self)
     !% Destructor for the {\normalfont \ttfamily munozCuartas2011} dark matter halo profile concentration class.
-    use Input_Parameters
     implicit none
     type(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
     
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine munozCuartas2011Destructor
 
@@ -131,10 +138,6 @@ contains
     class(virialDensityContrastClass                    ), pointer       :: munozCuartas2011DensityContrastDefinition
     class(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
 
-    if (.not.associated(self%virialDensityContrastDefinition_)) then
-       allocate(self%virialDensityContrastDefinition_)
-       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastBryanNorman1998(self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    end if
     munozCuartas2011DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function munozCuartas2011DensityContrastDefinition
@@ -142,22 +145,10 @@ contains
   function munozCuartas2011DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{munoz-cuartas_redshift_2011} algorithm.
-    use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                            ), pointer       :: munozCuartas2011DarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationMunozCuartas2011    ), intent(inout) :: self
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
-    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
+    class(darkMatterProfileDMOClass                     ), pointer       :: munozCuartas2011DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationMunozCuartas2011), intent(inout) :: self
 
-    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
-       allocate(self%darkMatterProfileDMODefinition_  )
-       allocate(     darkMatterHaloScaleDefinition_)
-       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
-       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
-       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
-       !# <objectDestructor name="virialDensityContrastDefinition_"/>
-    end if
     munozCuartas2011DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function munozCuartas2011DarkMatterProfileDefinition
