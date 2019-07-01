@@ -124,9 +124,8 @@ contains
     implicit none
     class           (virialDensityContrastFixed), intent(inout)           :: self
     double precision                            , intent(in   )           :: mass
-    double precision                            , intent(in   ), optional :: time               , expansionFactor
+    double precision                            , intent(in   ), optional :: time      , expansionFactor
     logical                                     , intent(in   ), optional :: collapsing
-    class           (cosmologyFunctionsClass   ),                pointer  :: cosmologyFunctions_
     !GCC$ attributes unused :: mass
 
     ! Set the density contrast.
