@@ -37,7 +37,7 @@
      class(cosmologyParametersClass  ), pointer :: cosmologyParameters_             => null()
      class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_              => null()
      type (virialDensityContrastFixed), pointer :: virialDensityContrastDefinition_ => null()
-     type (darkMatterProfileDMONFW   ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type (darkMatterProfileDMONFW   ), pointer :: darkMatterProfileDMODefinition_  => null()
    contains
      final     ::                                   gao2008Destructor
      procedure :: concentration                  => gao2008Concentration
@@ -74,12 +74,21 @@ contains
 
   function gao2008ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily gao2008} dark matter halo profile concentration class.
+    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
-    type (darkMatterProfileConcentrationGao2008)                        :: self
-    class(cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
-    class(cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
+    type (darkMatterProfileConcentrationGao2008             )                         :: self
+    class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
+    class(cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
+    type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
+    allocate(self%darkMatterProfileDMODefinition_ )
+    allocate(     darkMatterHaloScaleDefinition_  )
+    allocate(self%virialDensityContrastDefinition_)
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
     return
   end function gao2008ConstructorInternal
 
@@ -125,10 +134,6 @@ contains
     class(virialDensityContrastClass           ), pointer       :: gao2008DensityContrastDefinition
     class(darkMatterProfileConcentrationGao2008), intent(inout) :: self
 
-    if (.not.associated(self%virialDensityContrastDefinition_)) then
-       allocate(self%virialDensityContrastDefinition_)
-       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    end if
     gao2008DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function gao2008DensityContrastDefinition
@@ -136,22 +141,10 @@ contains
   function gao2008DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{gao_redshift_2008} algorithm.
-    use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                            ), pointer       :: gao2008DarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationGao2008             ), intent(inout) :: self
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
-    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
-
-    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
-       allocate(self%darkMatterProfileDMODefinition_  )
-       allocate(     darkMatterHaloScaleDefinition_)
-       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
-       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                  )"/>
-       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
-       !# <objectDestructor name="virialDensityContrastDefinition_"/>
-    end if
+    class(darkMatterProfileDMOClass            ), pointer       :: gao2008DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationGao2008), intent(inout) :: self
+    
     gao2008DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function gao2008DarkMatterProfileDefinition

@@ -112,20 +112,29 @@ contains
     !# <objectDestructor name="virialDensityContrast_"   />
     return
   end function nfw1996ConstructorParameters
-
+  
   function nfw1996ConstructorInternal(f,C,cosmologyParameters_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
     !% Constructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile
     !% concentration class.
+    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
-    type            (darkMatterProfileConcentrationNFW1996)                        :: self
-    double precision                                       , intent(in   )         :: f                         , C
-    class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
-    class           (criticalOverdensityClass             ), intent(in   ), target :: criticalOverdensity_     
-    class           (cosmologicalMassVarianceClass        ), intent(in   ), target :: cosmologicalMassVariance_
-    class           (virialDensityContrastClass           ), intent(in   ), target :: virialDensityContrast_
+    type            (darkMatterProfileConcentrationNFW1996             )                         :: self
+    double precision                                                    , intent(in   )          :: f                         , C
+    class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
+    class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_     
+    class           (cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
+    class           (virialDensityContrastClass                        ), intent(in   ), target  :: virialDensityContrast_
+    type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !# <constructorAssign variables="f, C, *cosmologyParameters_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *virialDensityContrast_"/>
 
+    allocate(self%virialDensityContrastDefinition_)
+    allocate(     darkMatterHaloScaleDefinition_  )
+    allocate(self%darkMatterProfileDMODefinition_ )
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
     return
   end function nfw1996ConstructorInternal
 
@@ -133,14 +142,14 @@ contains
     !% Destructor for the {\normalfont \ttfamily nfw1996} dark matter halo profile concentration class.
     implicit none
     type(darkMatterProfileConcentrationNFW1996), intent(inout) :: self
-    
+
     !# <objectDestructor name="self%cosmologyParameters_"            />
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%criticalOverdensity_"            />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrast_"          />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine nfw1996Destructor
 
@@ -206,15 +215,10 @@ contains
   function nfw1996DensityContrastDefinition(self)
     !% Return a virial density contrast object defining that used in the definition of
     !% concentration in the \cite{navarro_structure_1996} algorithm.
-    use Virial_Density_Contrast, only : virialDensityContrastFixed
     implicit none
     class(virialDensityContrastClass           ), pointer       :: nfw1996DensityContrastDefinition
     class(darkMatterProfileConcentrationNfw1996), intent(inout) :: self
     
-    if (.not.associated(self%virialDensityContrastDefinition_)) then
-       allocate(self%virialDensityContrastDefinition_)
-       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    end if
     nfw1996DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function nfw1996DensityContrastDefinition
@@ -222,22 +226,10 @@ contains
   function nfw1996DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{navarro_structure_1996} algorithm.
-    use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                            ), pointer       :: nfw1996DarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationNFW1996             ), intent(inout) :: self
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
-    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
-
-    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
-       allocate(self%darkMatterProfileDMODefinition_  )
-       allocate(     darkMatterHaloScaleDefinition_)
-       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
-       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
-       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
-       !# <objectDestructor name="virialDensityContrastDefinition_"/>
-    end if
+    class(darkMatterProfileDMOClass            ), pointer       :: nfw1996DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationNFW1996), intent(inout) :: self
+  
     nfw1996DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function nfw1996DarkMatterProfileDefinition

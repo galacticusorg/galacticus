@@ -41,12 +41,17 @@
      class           (linearGrowthClass            ), pointer :: linearGrowth_                    => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileDMONFW         ), pointer :: darkMatterProfileDMODefinition_     => null()
-     double precision                                         :: A, B, C, D, C0, C1, X0, X1, inverseSigma0, inverseSigma1, alpha, beta
+     type            (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
+     double precision                                         :: A                                         , B            , &
+          &                                                      C                                         , D            , &
+          &                                                      C0                                        , C1           , &
+          &                                                      X0                                        , X1           , &
+          &                                                      inverseSigma0                             , inverseSigma1, &
+          &                                                      alpha                                     , beta
    contains
-     final     ::                                prada2011Destructor
-     procedure :: concentration               => prada2011Concentration
-     procedure :: densityContrastDefinition   => prada2011DensityContrastDefinition
+     final     ::                                   prada2011Destructor
+     procedure :: concentration                  => prada2011Concentration
+     procedure :: densityContrastDefinition      => prada2011DensityContrastDefinition
      procedure :: darkMatterProfileDMODefinition => prada2011DarkMatterProfileDefinition
   end type darkMatterProfileConcentrationPrada2011
   
@@ -209,9 +214,10 @@ contains
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function prada2011ConstructorParameters
-
+  
   function prada2011ConstructorInternal(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,linearGrowth_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
+    use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
     type            (darkMatterProfileConcentrationPrada2011)                        :: self
     double precision                                                 , intent(in   ) :: A                        , B            , &
@@ -224,8 +230,16 @@ contains
     class           (cosmologyParametersClass               ), target, intent(in   ) :: cosmologyParameters_
     class           (linearGrowthClass                      ), target, intent(in   ) :: linearGrowth_
     class           (cosmologicalMassVarianceClass          ), target, intent(in   ) :: cosmologicalMassVariance_
-   !# <constructorAssign variables="A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,*cosmologyFunctions_,*cosmologyParameters_,*linearGrowth_,*cosmologicalMassVariance_"/>
+    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
+    !# <constructorAssign variables="A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,*cosmologyFunctions_,*cosmologyParameters_,*linearGrowth_,*cosmologicalMassVariance_"/>
 
+    allocate(self%virialDensityContrastDefinition_)
+    allocate(self%darkMatterProfileDMODefinition_ )
+    allocate(     darkMatterHaloScaleDefinition_  )
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
     return
   end function prada2011ConstructorInternal
 
@@ -239,7 +253,7 @@ contains
     !# <objectDestructor name="self%linearGrowth_"                   />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_"    />
+    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
     return
   end subroutine prada2011Destructor
 
@@ -316,10 +330,6 @@ contains
     class(virialDensityContrastClass             ), pointer       :: prada2011DensityContrastDefinition
     class(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
     
-    if (.not.associated(self%virialDensityContrastDefinition_)) then
-       allocate(self%virialDensityContrastDefinition_)
-       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    end if
     prada2011DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function prada2011DensityContrastDefinition
@@ -327,22 +337,10 @@ contains
   function prada2011DarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{prada_halo_2011} algorithm.
-    use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                            ), pointer       :: prada2011DarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationPrada2011           ), intent(inout) :: self
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
-    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
-
-    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
-       allocate(self%darkMatterProfileDMODefinition_  )
-       allocate(     darkMatterHaloScaleDefinition_)
-       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
-       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMONFW                              (darkMatterHaloScaleDefinition_                                                     )"/>
-       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
-       !# <objectDestructor name="virialDensityContrastDefinition_"/>
-    end if
+    class(darkMatterProfileDMOClass              ), pointer       :: prada2011DarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationPrada2011), intent(inout) :: self
+   
     prada2011DarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function prada2011DarkMatterProfileDefinition
