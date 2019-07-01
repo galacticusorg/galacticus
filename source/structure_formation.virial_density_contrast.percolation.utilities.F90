@@ -32,15 +32,21 @@ module Virial_Density_Contrast_Percolation_Utilities
   private
   public :: Virial_Density_Contrast_Percolation_Solver, Virial_Density_Contrast_Percolation_Objects_Constructor, percolationObjects, percolationObjectsDeepCopy
 
-  ! Module-scope variables used in root finding.
-  type            (treeNode                                 ), pointer :: workNode
-  class           (nodeComponentDarkMatterProfile           ), pointer :: workDarkMatterProfile
-  class           (darkMatterProfileDMOClass                ), pointer :: darkMatterProfileDMO_
-  type            (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
-  double precision                                                     :: boundingDensity              , densityMatterMean, &
-       &                                                                  massHalo
-  double precision                                           , pointer :: densityContrast
-  !$omp threadprivate(workNode,workDarkMatterProfile,boundingDensity,densityMatterMean,massHalo,densityContrast,darkMatterProfileScaleRadius_,darkMatterProfileDMO_)
+  ! Container type used to store state.
+  type :: solverState
+     type            (treeNode                                 ), pointer :: workNode
+     class           (nodeComponentDarkMatterProfile           ), pointer :: workDarkMatterProfile
+     class           (darkMatterProfileDMOClass                ), pointer :: darkMatterProfileDMO_
+     type            (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
+     double precision                                                     :: boundingDensity              , densityMatterMean, &
+          &                                                                  massHalo
+     double precision                                           , pointer :: densityContrast
+  end type solverState
+
+  ! State stack.
+  integer                                         :: stateCount=0
+  type   (solverState), allocatable, dimension(:) :: state
+  !$omp threadprivate(state,stateCount)
 
   type :: percolationObjects
      !% Type used to store pointers to objects
@@ -148,50 +154,68 @@ contains
     use Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use Galacticus_Nodes              , only : nodeComponentBasic
     use Virial_Density_Contrast       , only : virialDensityContrastClass
-   implicit none
-    double precision                                     , intent(in   )         :: mass                                      , time, &
-         &                                                                          linkingLength
-    double precision                                     , intent(in   ), target :: densityContrastCurrent
-    class           (*                                  ), intent(in   )         :: percolationObjects_
-    class           (*                                  ), intent(inout)         :: virialDensityContrast_
-    double precision                                     , parameter             :: percolationThreshold           =0.652960d0
-    class           (cosmologyParametersClass           ), pointer               :: cosmologyParameters_
-    class           (cosmologyFunctionsClass            ), pointer               :: cosmologyFunctions_
-    class           (darkMatterHaloScaleClass           ), pointer               :: darkMatterHaloScale_
-    class           (darkMatterProfileConcentrationClass), pointer               :: darkMatterProfileConcentration_
-    class           (nodeComponentBasic                 ), pointer               :: workBasic
-    type            (rootFinder                         )                        :: finder
-    double precision                                                             :: radiusHalo
+    implicit none
+    double precision                                     , intent(in   )               :: mass                                      , time, &
+         &                                                                                linkingLength
+    double precision                                     , intent(in   ), target       :: densityContrastCurrent
+    class           (*                                  ), intent(in   )               :: percolationObjects_
+    class           (*                                  ), intent(inout)               :: virialDensityContrast_
+    double precision                                     , parameter                   :: percolationThreshold           =0.652960d0
+    class           (cosmologyParametersClass           ), pointer                     :: cosmologyParameters_
+    class           (cosmologyFunctionsClass            ), pointer                     :: cosmologyFunctions_
+    class           (darkMatterHaloScaleClass           ), pointer                     :: darkMatterHaloScale_
+    class           (darkMatterProfileConcentrationClass), pointer                     :: darkMatterProfileConcentration_
+    class           (nodeComponentBasic                 ), pointer                     :: workBasic
+    type            (solverState                        ), allocatable  , dimension(:) :: stateTmp
+    type            (rootFinder                         )                              :: finder
+    double precision                                                                   :: radiusHalo
+    integer                                                                            :: i
 
+    ! Increment the state stack.
+    if (.not.allocated(state)) then
+       allocate(state(1))
+    else if (stateCount == size(state)) then
+       call move_alloc(state,stateTmp)
+       allocate(state(size(stateTmp)+1))
+       state(1:size(stateTmp))=stateTmp
+       do i=1,size(stateTmp)
+          nullify(stateTmp(i)%workNode                     )
+          nullify(stateTmp(i)%workDarkMatterProfile        )
+          nullify(stateTmp(i)%darkMatterProfileDMO_        )
+          nullify(stateTmp(i)%darkMatterProfileScaleRadius_)
+          nullify(stateTmp(i)%densityContrast              )
+       end do
+    end if
+    stateCount=stateCount+1
     ! Initialize module-scope variables.
-    massHalo        =  mass
-    densityContrast => densityContrastCurrent
+    state(stateCount)%massHalo        =  mass
+    state(stateCount)%densityContrast => densityContrastCurrent
     ! Extract required objects from the container.
     select type (percolationObjects_)
     type is (percolationObjects)
-       darkMatterProfileDMO_           => percolationObjects_%darkMatterProfileDMO_
-       cosmologyFunctions_             => percolationObjects_%cosmologyFunctions_
-       cosmologyParameters_            => percolationObjects_%cosmologyParameters_
-       darkMatterHaloScale_            => percolationObjects_%darkMatterHaloScale_
-       darkMatterProfileConcentration_ => percolationObjects_%darkMatterProfileConcentration_
+       state(stateCount)%darkMatterProfileDMO_ => percolationObjects_%darkMatterProfileDMO_
+       cosmologyFunctions_                     => percolationObjects_%cosmologyFunctions_
+       cosmologyParameters_                    => percolationObjects_%cosmologyParameters_
+       darkMatterHaloScale_                    => percolationObjects_%darkMatterHaloScale_
+       darkMatterProfileConcentration_         => percolationObjects_%darkMatterProfileConcentration_
        class default
        call Galacticus_Error_Report('percolationObjects_ must be of "percolationObjects" type'//{introspection:location})
     end select
     ! Build a scale radius object.
-    allocate(darkMatterProfileScaleRadius_)
+    allocate(state(stateCount)%darkMatterProfileScaleRadius_)
     select type (virialDensityContrast_)
     class is (virialDensityContrastClass)
-       !# <referenceConstruct object="darkMatterProfileScaleRadius_">
+       !# <referenceConstruct object="state(stateCount)%darkMatterProfileScaleRadius_">
        !#  <constructor>
-       !#   darkMatterProfileScaleRadiusConcentration(                                                                   &amp;
-       !#    &amp;                                    correctForConcentrationDefinition=.true.                         , &amp;
-       !#    &amp;                                    useMeanConcentration             =.true.                         , &amp;
-       !#    &amp;                                    cosmologyParameters_             =cosmologyParameters_           , &amp;
-       !#    &amp;                                    cosmologyFunctions_              =cosmologyFunctions_            , &amp;
-       !#    &amp;                                    darkMatterHaloScale_             =darkMatterHaloScale_           , &amp;
-       !#    &amp;                                    darkMatterProfileDMO_            =darkMatterProfileDMO_          , &amp;
-       !#    &amp;                                    virialDensityContrast_           =virialDensityContrast_         , &amp;
-       !#    &amp;                                    darkMatterProfileConcentration_  =darkMatterProfileConcentration_  &amp;
+       !#   darkMatterProfileScaleRadiusConcentration(                                                                                     &amp;
+       !#    &amp;                                    correctForConcentrationDefinition=.true.                                           , &amp;
+       !#    &amp;                                    useMeanConcentration             =.true.                                           , &amp;
+       !#    &amp;                                    cosmologyParameters_             =                  cosmologyParameters_           , &amp;
+       !#    &amp;                                    cosmologyFunctions_              =                  cosmologyFunctions_            , &amp;
+       !#    &amp;                                    darkMatterHaloScale_             =                  darkMatterHaloScale_           , &amp;
+       !#    &amp;                                    darkMatterProfileDMO_            =state(stateCount)%darkMatterProfileDMO_          , &amp;
+       !#    &amp;                                    virialDensityContrast_           =                  virialDensityContrast_         , &amp;
+       !#    &amp;                                    darkMatterProfileConcentration_  =                  darkMatterProfileConcentration_  &amp;
        !#    &amp;                                   )
        !#  </constructor>
        !# </referenceConstruct>
@@ -199,21 +223,21 @@ contains
        call Galacticus_Error_Report('virialDensityContrast_ must be of "virialDensityContrastClass" class'//{introspection:location})
     end select
     ! Compute the bounding density, based on percolation theory (eq. 5 of More et al.).
-    densityMatterMean=cosmologyFunctions_%matterDensityEpochal(time)
-    boundingDensity=+densityMatterMean       &
-         &          *percolationThreshold    &
-         &          /linkingLength       **3
+    state(stateCount)%densityMatterMean=cosmologyFunctions_%matterDensityEpochal(time)
+    state(stateCount)%boundingDensity  =+state(stateCount)%densityMatterMean &
+         &                              *percolationThreshold                &
+         &                             /linkingLength       **3
     ! Create a node and set the mass and time.
-    workNode              => treeNode                  (                 )
-    workBasic             => workNode%basic            (autoCreate=.true.)
-    workDarkMatterProfile => workNode%darkMatterProfile(autoCreate=.true.)
+    state(stateCount)%workNode              => treeNode                                    (                 )
+    workBasic                               => state(stateCount)%workNode%basic            (autoCreate=.true.)
+    state(stateCount)%workDarkMatterProfile => state(stateCount)%workNode%darkMatterProfile(autoCreate=.true.)
     call workBasic            %massSet            (mass   )
     call workBasic            %timeSet            (time   )
     call workBasic            %timeLastIsolatedSet(time   )
-    call workDarkMatterProfile%scaleIsLimitedSet  (.false.)
-    call Galacticus_Calculations_Reset(workNode)
+    call state(stateCount)%workDarkMatterProfile%scaleIsLimitedSet  (.false.)
+    call Galacticus_Calculations_Reset(state(stateCount)%workNode)
     ! Make an initial guess at the halo radius.
-    radiusHalo=(mass/4.0d0/Pi/boundingDensity)**(1.0d0/3.0d0)
+    radiusHalo=(mass/4.0d0/Pi/state(stateCount)%boundingDensity)**(1.0d0/3.0d0)
     ! Find the corresponding halo radius.
     call finder   %tolerance          (                                               &
          &                             toleranceRelative  =1.0d-3                     &
@@ -227,16 +251,23 @@ contains
          &                                                 haloRadiusRootFunction     &
          &                            )
     radiusHalo=finder%find(rootGuess=radiusHalo)
-    call workNode%destroy()
-    deallocate(workNode)
-    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    call state(stateCount)%workNode%destroy()
+    deallocate(state(stateCount)%workNode)
+    !# <objectDestructor name="state(stateCount)%darkMatterProfileScaleRadius_"/>
     ! Compute the corresponding density contrast.    
-    Virial_Density_Contrast_Percolation_Solver=+3.0d0                &
-         &                                     *mass                 &
-         &                                     /4.0d0                &
-         &                                     /Pi                   &
-         &                                     /radiusHalo       **3 &
-         &                                     /densityMatterMean
+    Virial_Density_Contrast_Percolation_Solver=+3.0d0                                  &
+         &                                     *mass                                   &
+         &                                     /4.0d0                                  &
+         &                                     /Pi                                     &
+         &                                     /radiusHalo                         **3 &
+         &                                     /state(stateCount)%densityMatterMean
+    ! Release stack.
+    nullify(state(stateCount)%workNode                     )
+    nullify(state(stateCount)%workDarkMatterProfile        )
+    nullify(state(stateCount)%darkMatterProfileDMO_        )
+    nullify(state(stateCount)%darkMatterProfileScaleRadius_)
+    nullify(state(stateCount)%densityContrast              )  
+    stateCount=stateCount-1
     return
   end function Virial_Density_Contrast_Percolation_Solver
 
@@ -251,24 +282,24 @@ contains
     class           (darkMatterProfileShapeClass), pointer       :: darkMatterProfileShape_
 
     ! Construct the current density contrast.
-    densityContrast=+3.0d0                &
-         &          *massHalo             &
-         &          /4.0d0                &
-         &          /Pi                   &
-         &          /haloRadiusTrial  **3 &
-         &          /densityMatterMean
+    state(stateCount)%densityContrast=+3.0d0                                  &
+         &                            *state(stateCount)%massHalo             &
+         &                            /4.0d0                                  &
+         &                            /Pi                                     &
+         &                            /haloRadiusTrial                    **3 &
+         &                            /state(stateCount)%densityMatterMean
     ! Find scale radius of the halo.
-    scaleRadius=darkMatterProfileScaleRadius_%radius(workNode)
-    call workDarkMatterProfile%scaleSet(scaleRadius)
-    if (workDarkMatterProfile%shapeIsSettable()) then
+    scaleRadius=state(stateCount)%darkMatterProfileScaleRadius_%radius(state(stateCount)%workNode)
+    call state(stateCount)%workDarkMatterProfile%scaleSet(scaleRadius)
+    if (state(stateCount)%workDarkMatterProfile%shapeIsSettable()) then
        darkMatterProfileShape_ => darkMatterProfileShape()
-       call workDarkMatterProfile%shapeSet(darkMatterProfileShape_%shape(workNode))
+       call state(stateCount)%workDarkMatterProfile%shapeSet(darkMatterProfileShape_%shape(state(stateCount)%workNode))
     end if
-    call Galacticus_Calculations_Reset(workNode)
+    call Galacticus_Calculations_Reset(state(stateCount)%workNode)
     ! Compute density at the halo radius.
-    densityHaloRadius=darkMatterProfileDMO_%density(workNode,haloRadiusTrial)
+    densityHaloRadius=state(stateCount)%darkMatterProfileDMO_%density(state(stateCount)%workNode,haloRadiusTrial)
     ! Find difference from target density.
-    haloRadiusRootFunction=boundingDensity-densityHaloRadius
+    haloRadiusRootFunction=state(stateCount)%boundingDensity-densityHaloRadius
     return
   end function haloRadiusRootFunction
 
