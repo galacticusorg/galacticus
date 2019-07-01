@@ -32,6 +32,7 @@ module Node_Component_Spheroid_Standard
   use Dark_Matter_Halo_Scales
   use Satellites_Tidal_Fields
   use Star_Formation_Timescales_Spheroids
+  use Star_Formation_Histories                       , only : starFormationHistoryClass, starFormationHistory
   implicit none
   private
   public :: Node_Component_Spheroid_Standard_Rate_Compute       , Node_Component_Spheroid_Standard_Scale_Set                    , &
@@ -175,7 +176,8 @@ module Node_Component_Spheroid_Standard
   class(darkMatterHaloScaleClass                    ), pointer :: darkMatterHaloScale_
   class(satelliteTidalFieldClass                    ), pointer :: satelliteTidalField_
   class(starFormationTimescaleSpheroidsClass        ), pointer :: starFormationTimescaleSpheroids_
-  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,starFormationExpulsiveFeedbackSpheroids_,ramPressureStrippingSpheroids_,tidalStrippingSpheroids_,darkMatterHaloScale_,satelliteTidalField_,starFormationTimescaleSpheroids_)
+  class(starFormationHistoryClass                   ), pointer :: starFormationHistory_
+  !$omp threadprivate(stellarPopulationProperties_,starFormationFeedbackSpheroids_,starFormationExpulsiveFeedbackSpheroids_,ramPressureStrippingSpheroids_,tidalStrippingSpheroids_,darkMatterHaloScale_,satelliteTidalField_,starFormationTimescaleSpheroids_,starFormationHistory_)
   
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -294,6 +296,7 @@ contains
        !# <objectBuilder class="tidalStrippingSpheroids"                 name="tidalStrippingSpheroids_"                 source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"                     name="darkMatterHaloScale_"                     source="globalParameters_"/>
        !# <objectBuilder class="satelliteTidalField"                     name="satelliteTidalField_"                     source="globalParameters_"/>
+       !# <objectBuilder class="starFormationHistory"                    name="starFormationHistory_"                    source="globalParameters_"/>
        !# <objectBuilder class="massDistribution" parameterName="spheroidMassDistribution" name="spheroidMassDistribution" source="globalParameters_" threadPrivate="yes">
        !#  <default>
        !#   <spheroidMassDistribution value="hernquist">
@@ -351,6 +354,7 @@ contains
        !# <objectDestructor name="tidalStrippingSpheroids_"                />
        !# <objectDestructor name="darkMatterHaloScale_"                    />
        !# <objectDestructor name="satelliteTidalField_"                    />
+       !# <objectDestructor name="starFormationHistory_"                   />
        !# <objectDestructor name="spheroidMassDistribution"                />
     end if
     return
@@ -626,14 +630,14 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Spheroid_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedure,propertyType)
     !% Compute the standard spheroid node mass rate of change.
+    use Histories                       , only : history
     use Abundances_Structure
     use Galactic_Structure_Options
-    use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
-    use Galacticus_Error                          , only : Galacticus_Error_Report
-    use Galacticus_Nodes                          , only : treeNode                , nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentHotHalo, &
-         &                                                 defaultSpheroidComponent, propertyTypeActive   , propertyTypeAll              , propertyTypeInactive
+    use Galacticus_Error                , only : Galacticus_Error_Report
+    use Galacticus_Nodes                , only : treeNode                , nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentHotHalo, &
+         &                                       defaultSpheroidComponent, propertyTypeActive   , propertyTypeAll              , propertyTypeInactive
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(in   )          :: odeConverged
@@ -709,8 +713,8 @@ contains
 
        ! Record the star formation history.
        stellarHistoryRate=spheroid%starFormationHistory()
-       call stellarHistoryRate%reset()
-       call Star_Formation_History_Record(node,stellarHistoryRate,fuelAbundances,starFormationRate)
+       call stellarHistoryRate   %reset(                                                        )
+       call starFormationHistory_%rate (node,stellarHistoryRate,fuelAbundances,starFormationRate)
        if (stellarHistoryRate%exists()) call spheroid%starFormationHistoryRate(stellarHistoryRate)
 
        ! Find rate of outflow of material from the spheroid and pipe it to the outflowed reservoir.
@@ -903,9 +907,9 @@ contains
     !% Set scales for properties of {\normalfont \ttfamily node}. Note that gas masses get an additional scaling down since they can approach
     !% zero and we'd like to prevent them from becoming negative.
     use Abundances_Structure
-    use Galacticus_Output_Star_Formation_Histories
+    use Histories                     , only : history
     use Stellar_Luminosities_Structure
-    use Galacticus_Nodes                          , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentDisk
+    use Galacticus_Nodes              , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard, nodeComponentDisk
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
@@ -977,7 +981,7 @@ contains
        call spheroid%stellarPropertiesHistoryScale(                                                    stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        stellarPopulationHistoryScales=spheroid%starFormationHistory()
-       call Star_Formation_History_Scales         (stellarPopulationHistoryScales,spheroid%massStellar(),spheroid%abundancesStellar())
+       call starFormationHistory_%scales          (stellarPopulationHistoryScales,spheroid%massStellar(),spheroid%abundancesStellar())
        call spheroid%starFormationHistoryScale    (stellarPopulationHistoryScales                                                    )
        call stellarPopulationHistoryScales%destroy()
     end select
@@ -1502,14 +1506,14 @@ contains
 
   subroutine Node_Component_Spheroid_Standard_Initializor(self)
     !% Initializes a standard spheroid component.
-    use Galacticus_Output_Star_Formation_Histories
-    use Galacticus_Nodes                          , only : treeNode, nodeComponentSpheroidStandard, nodeComponentDisk, nodeComponentBasic
+    use Histories       , only : history
+    use Galacticus_Nodes, only : treeNode, nodeComponentSpheroidStandard, nodeComponentDisk, nodeComponentBasic
     implicit none
     type            (nodeComponentSpheroidStandard)          :: self
     type            (treeNode                     ), pointer :: selfNode
     class           (nodeComponentDisk            ), pointer :: disk
     class           (nodeComponentBasic           ), pointer :: basic
-    type            (history                      )          :: starFormationHistory        , stellarPropertiesHistory      , &
+    type            (history                      )          :: historyStarFormation        , stellarPropertiesHistory      , &
          &                                                      diskStarFormationHistory
     logical                                                  :: createStarFormationHistory  , createStellarPropertiesHistory
     double precision                                         :: timeBegin
@@ -1519,9 +1523,9 @@ contains
     ! Get the associated node.
     selfNode => self%host()
     ! Determine which histories must be created.
-    starFormationHistory          =self%starFormationHistory            ()
-    createStarFormationHistory    =.not.starFormationHistory    %exists ()
-    call                                starformationhistory    %destroy()
+    historyStarFormation          =self%starFormationHistory            ()
+    createStarFormationHistory    =.not.historyStarFormation    %exists ()
+    call                                historyStarFormation    %destroy()
     stellarPropertiesHistory      =self%stellarPropertiesHistory        ()
     createStellarPropertiesHistory=.not.stellarPropertiesHistory%exists ()
     call                                stellarPropertiesHistory%destroy()
@@ -1540,8 +1544,8 @@ contains
           basic    => selfNode%basic()
           timeBegin=  basic   %time ()
        end if
-       call Star_Formation_History_Create(selfNode,starFormationHistory,timeBegin)
-       call self% starFormationHistorySet(         starFormationHistory          )
+       call starFormationHistory_%create (selfNode,historyStarFormation,timeBegin)
+       call self% starFormationHistorySet(         historyStarFormation          )
     end if
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)
@@ -1585,14 +1589,14 @@ contains
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
-    type (history              )                         :: starFormationHistory
+    type (history              )                         :: historyStarFormation
     
     ! Get the spheroid component.
     spheroid => node%spheroid()
     ! Extend the range as necessary.
-    starFormationHistory=spheroid%starFormationHistory()
-    call starFormationHistory%extend(times=starFormationHistoryTemplate)
-    call spheroid%starFormationHistorySet(starFormationHistory)
+    historyStarFormation=spheroid%starFormationHistory()
+    call historyStarFormation%extend(times=starFormationHistoryTemplate)
+    call spheroid%starFormationHistorySet(historyStarFormation)
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Extend
 
@@ -1619,24 +1623,24 @@ contains
   subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes                          , only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard
+    use            :: Galacticus_Nodes, only : treeNode, nodeComponentSpheroid, nodeComponentSpheroidStandard
     use            :: Kind_Numbers
-    use            :: Galacticus_Output_Star_Formation_Histories
+    use            :: Histories       , only : history
     implicit none
     type   (treeNode             ), intent(inout), pointer :: node
     integer(c_size_t             ), intent(in   )          :: iOutput
     integer(kind=kind_int8       ), intent(in   )          :: treeIndex
     logical                       , intent(in   )          :: nodePassesFilter
     class  (nodeComponentSpheroid)               , pointer :: spheroid
-    type   (history              )                         :: starFormationHistory
+    type   (history              )                         :: historyStarFormation
 
     ! Output the star formation history if a spheroid exists for this component.
     spheroid => node%spheroid()
     select type (spheroid)
     class is (nodeComponentSpheroidStandard)
-       starFormationHistory=spheroid%starFormationHistory()
-       call Star_Formation_History_Output(node,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'spheroid')
-       call spheroid%starFormationHistorySet(starFormationHistory)
+       historyStarFormation=spheroid%starFormationHistory()
+       call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,'spheroid')
+       call spheroid%starFormationHistorySet(historyStarFormation)
     end select
     return
   end subroutine Node_Component_Spheroid_Standard_Star_Formation_History_Output

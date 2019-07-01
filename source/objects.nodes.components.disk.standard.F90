@@ -30,6 +30,7 @@ module Node_Component_Disk_Standard
   use Galactic_Dynamics_Bar_Instabilities
   use Ram_Pressure_Stripping_Mass_Loss_Rate_Disks
   use Tidal_Stripping_Mass_Loss_Rate_Disks
+  use Star_Formation_Histories                   , only : starFormationHistoryClass, starFormationHistory
   implicit none
   private
   public :: Node_Component_Disk_Standard_Scale_Set                    , Node_Component_Disk_Standard_Pre_Evolve         , &
@@ -169,7 +170,8 @@ module Node_Component_Disk_Standard
   class(galacticDynamicsBarInstabilityClass     ), pointer :: galacticDynamicsBarInstability_
   class(ramPressureStrippingDisksClass          ), pointer :: ramPressureStrippingDisks_
   class(tidalStrippingDisksClass                ), pointer :: tidalStrippingDisks_
-  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationFeedbackDisks_,starFormationExpulsiveFeedbackDisks_,starFormationTimescaleDisks_,galacticDynamicsBarInstability_,ramPressureStrippingDisks_,tidalStrippingDisks_)
+  class(starFormationHistoryClass               ), pointer :: starFormationHistory_
+  !$omp threadprivate(darkMatterHaloScale_,stellarPopulationProperties_,starFormationFeedbackDisks_,starFormationExpulsiveFeedbackDisks_,starFormationTimescaleDisks_,galacticDynamicsBarInstability_,ramPressureStrippingDisks_,tidalStrippingDisks_,starFormationHistory_)
 
   ! Internal count of abundances.
   integer                                     :: abundancesCount
@@ -311,7 +313,7 @@ contains
        !# <objectBuilder class="galacticDynamicsBarInstability"      name="galacticDynamicsBarInstability_"      source="globalParameters_"/>
        !# <objectBuilder class="ramPressureStrippingDisks"           name="ramPressureStrippingDisks_"           source="globalParameters_"/>
        !# <objectBuilder class="tidalStrippingDisks"                 name="tidalStrippingDisks_"                 source="globalParameters_"/>
-       
+       !# <objectBuilder class="starFormationHistory"                name="starFormationHistory_"                source="globalParameters_"/>
        !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="globalParameters_" threadPrivate="yes">
        !#  <default>
        !#   <diskMassDistribution value="exponentialDisk">
@@ -376,6 +378,7 @@ contains
        !# <objectDestructor name="galacticDynamicsBarInstability_"     />
        !# <objectDestructor name="ramPressureStrippingDisks_"          />
        !# <objectDestructor name="tidalStrippingDisks_"                />
+       !# <objectDestructor name="starFormationHistory_"               />
        !# <objectDestructor name="diskMassDistribution"                />
     end if
     return
@@ -623,15 +626,14 @@ contains
 
   subroutine Node_Component_Disk_Standard_Create(node)
     !% Create properties in an standard disk component.
-    use Histories
-    use Galacticus_Output_Star_Formation_Histories
-    use Galacticus_Nodes                          , only : treeNode, nodeComponentDisk, nodeComponentSpheroid, nodeComponentBasic
+    use Histories       , only : history
+    use Galacticus_Nodes, only : treeNode, nodeComponentDisk, nodeComponentSpheroid, nodeComponentBasic
     implicit none
     type   (treeNode             ), intent(inout), pointer :: node
     class  (nodeComponentDisk    )               , pointer :: disk
     class  (nodeComponentSpheroid)               , pointer :: spheroid
     class  (nodeComponentBasic   )               , pointer :: basic
-    type   (history              )                         :: starFormationHistory        , stellarPropertiesHistory      , &
+    type   (history              )                         :: historyStarFormation        , stellarPropertiesHistory      , &
          &                                                    spheroidStarFormationHistory
     logical                                                :: createStarFormationHistory  , createStellarPropertiesHistory
     double precision                                       :: timeBegin
@@ -641,9 +643,9 @@ contains
     ! Exit if already initialized.
     if (disk%isInitialized()) return
     ! Determine which histories must be created.
-    starFormationHistory          =disk%starFormationHistory            ()
-    createStarFormationHistory    =.not.             starFormationHistory    %exists ()
-    call                                             starformationhistory    %destroy()
+    historyStarFormation          =disk%starFormationHistory            ()
+    createStarFormationHistory    =.not.             historyStarFormation    %exists ()
+    call                                             historyStarFormation    %destroy()
     stellarPropertiesHistory      =disk%stellarPropertiesHistory        ()
     createStellarPropertiesHistory=.not.             stellarPropertiesHistory%exists ()
     call                                             stellarPropertiesHistory%destroy()
@@ -663,8 +665,8 @@ contains
           basic    => node%basic()
           timeBegin=  basic   %time ()
        end if
-       call Star_Formation_History_Create                (node,    starFormationHistory,timeBegin)
-       call disk%    starFormationHistorySet(             starFormationHistory          )
+       call starFormationHistory_%create(node,historyStarFormation,timeBegin)
+       call disk%starFormationHistorySet(     historyStarFormation          )
     end if
     ! Record that the disk has been initialized.
     call disk%isInitializedSet(.true.)
@@ -700,10 +702,10 @@ contains
   !# </rateComputeTask>
   subroutine Node_Component_Disk_Standard_Rate_Compute(node,odeConverged,interrupt,interruptProcedureReturn,propertyType)
     !% Compute the standard disk node mass rate of change.
+    use Histories                       , only : history
     use Abundances_Structure
     use Histories
     use Galactic_Structure_Options
-    use Galacticus_Output_Star_Formation_Histories
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
     use Galacticus_Error                          , only : Galacticus_Error_Report
@@ -830,8 +832,8 @@ contains
        if (propertyType == propertyTypeInactive) return       
        ! Record the star formation history.
        stellarHistoryRate=disk%starFormationHistory()
-       call stellarHistoryRate%reset()
-       call Star_Formation_History_Record(node,stellarHistoryRate,fuelAbundances,starFormationRate)
+       call stellarHistoryRate   %reset(                                                        )
+       call starFormationHistory_%rate (node,stellarHistoryRate,fuelAbundances,starFormationRate)
        if (stellarHistoryRate%exists()) call disk%starFormationHistoryRate(stellarHistoryRate)
        ! Find rate of outflow of material from the disk and pipe it to the outflowed reservoir.
        massOutflowRateToHotHalo=starFormationFeedbackDisks_         %outflowRate(node,energyInputRate,starFormationRate)
@@ -1009,11 +1011,10 @@ contains
   !# </scaleSetTask>
   subroutine Node_Component_Disk_Standard_Scale_Set(node)
     !% Set scales for properties of {\normalfont \ttfamily node}.
-    use Histories
-    use Galacticus_Output_Star_Formation_Histories
+    use Histories                     , only : history
     use Abundances_Structure
     use Stellar_Luminosities_Structure
-    use Galacticus_Nodes                          , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard, nodeComponentSpheroid
+    use Galacticus_Nodes              , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard, nodeComponentSpheroid
     implicit none
     type            (treeNode                        ), intent(inout), pointer :: node
     class           (nodeComponentDisk               )               , pointer :: disk
@@ -1077,7 +1078,7 @@ contains
        call disk%stellarPropertiesHistoryScale  (                                            stellarPopulationHistoryScales)
        call stellarPopulationHistoryScales%destroy()
        stellarPopulationHistoryScales=disk%starFormationHistory()
-       call Star_Formation_History_Scales       (stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())
+       call starFormationHistory_%scales        (stellarPopulationHistoryScales,disk%massStellar(),disk%abundancesStellar())
        call disk%starFormationHistoryScale      (stellarPopulationHistoryScales                                            )
        call stellarPopulationHistoryScales%destroy()
 
@@ -1471,25 +1472,24 @@ contains
   subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
     !% Store the star formation history in the output file.
     use, intrinsic :: ISO_C_Binding
-    use            :: Galacticus_Nodes                          , only : treeNode, nodeComponentDisk, nodeComponentDiskStandard
+    use            :: Galacticus_Nodes, only : treeNode, nodeComponentDisk, nodeComponentDiskStandard
     use            :: Kind_Numbers
-    use            :: Histories
-    use            :: Galacticus_Output_Star_Formation_Histories
+    use            :: Histories       , only : history
     implicit none
     type   (treeNode         ), intent(inout), pointer :: node
     integer(c_size_t         ), intent(in   )          :: iOutput
     integer(kind=kind_int8   ), intent(in   )          :: treeIndex
     logical                   , intent(in   )          :: nodePassesFilter
     class  (nodeComponentDisk)               , pointer :: disk
-    type   (history          )                         :: starFormationHistory
+    type   (history          )                         :: historyStarFormation
 
     ! Output the star formation history if a disk exists for this component.
     disk => node%disk()
     select type (disk)
        class is (nodeComponentDiskStandard)
-       starFormationHistory=disk%starFormationHistory()
-       call Star_Formation_History_Output(node,nodePassesFilter,starFormationHistory,iOutput,treeIndex,'disk')
-       call disk%starFormationHistorySet(starFormationHistory)
+       historyStarFormation=disk%starFormationHistory()
+       call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,'disk')
+       call disk%starFormationHistorySet(historyStarFormation)
     end select
     return
   end subroutine Node_Component_Disk_Standard_Star_Formation_History_Output

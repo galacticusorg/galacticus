@@ -588,7 +588,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <starFormationHistoriesMethod value="metallicitySplit"/>
+    <starFormationHistoryMethod value="metallicitySplit"/>
   </parameters>
 
   <!-- Output virial quantities -->
