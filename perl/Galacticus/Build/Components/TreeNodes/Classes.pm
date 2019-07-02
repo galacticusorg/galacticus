@@ -87,12 +87,6 @@ sub Tree_Node_Class_Get {
 	name        => "treeNode".ucfirst($code::class->{'name'})."Get",
 	description => "Return a {\\normalfont \\ttfamily ".$code::class->{'name'}."} component member of the node. If no {\\normalfont \\ttfamily instance} is specified, return the first instance. If {\\normalfont \\ttfamily autoCreate} is {\\normalfont \\ttfamily true} then create a single instance of the component if none exists in the node.",
 	recursive   => 1,
-	modules     =>
-	    [
-	     "Galacticus_Error",
-	     "ISO_Varying_String",
-	     "String_Handling"
-	    ],
 	variables   =>
 	    [
 	     {
@@ -118,11 +112,6 @@ sub Tree_Node_Class_Get {
 	     {
 		 intrinsic  => "logical",
 		 variables  => [ "autoCreateActual" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 variables  => [ "message" ]
 	     }
 	    ]
     };
@@ -139,9 +128,7 @@ if (.not.allocated(self%component{ucfirst($class->{'name'})})) then
   if (autoCreateActual) then
      call self%{$class->{'name'}}Create()
   else
-     message='component is not allocated in node '
-     message=message//self%index()
-     call Galacticus_Error_Report(message//\{introspection:location\})
+     call nodeComponentGetError('{$class->{'name'}}',self%index())
   end if
 end if
 component => self%component{ucfirst($class->{'name'})}(instanceActual)
