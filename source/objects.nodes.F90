@@ -1044,6 +1044,24 @@ module Galacticus_Nodes
     return
   end function Boolean_True
 
+  subroutine nodeComponentGetError(nameComponent,indexNode)
+    !% Function used to report errors when attempting to get a component from a node. Error reporting is handled here to avoid
+    !% having the relatively expensive creation/destruction of a varying string object in the actual get functions (which are
+    !% called a very large number of times).
+    use Galacticus_Error  , only : Galacticus_Error_Report
+    use ISO_Varying_String, only : varying_string
+    use String_Handling   , only : operator(//)
+    implicit none
+    character(len=*         ), intent(in   ) :: nameComponent
+    integer  (kind_int8     ), intent(in   ) :: indexNode
+    type     (varying_string)                :: message
+    
+    message='"'//nameComponent//'" component is not allocated in node '
+    message=message//indexNode
+    call Galacticus_Error_Report(message//{introspection:location})
+    return
+  end subroutine nodeComponentGetError
+
   ! Include functions for the merger tree class.
   include "objects.merger_trees.functions.inc"
 
