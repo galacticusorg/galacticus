@@ -30,7 +30,7 @@
      !@   <object>starFormationHistoryMetallicitySplit</object>
      !@   <objectMethod>
      !@     <method>make</method>
-     !@     <arguments>\textcolor{red}{\textless type(hsitory)\textgreater historyStarFormation\arginout, \doublezero\ timeBegin\argin, \doublezero\ timeEnd\argin, \doubleone\ [timesCurrent]</arguments>
+     !@     <arguments>\textcolor{red}{\textless type(history)\textgreater} historyStarFormation\arginout, \doublezero\ timeBegin\argin, \doublezero\ timeEnd\argin, \doubleone\ [timesCurrent]</arguments>
      !@     <type>\void</type>
      !@     <description>Make the star formation history.</description>
      !@   </objectMethod>
