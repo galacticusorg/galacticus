@@ -40,14 +40,10 @@ module Spherical_Collapse_Matter_Lambda
   
   ! Calculation types.
   integer         , parameter :: calculationDeltaCrit       =0      , calculationDeltaVirial=1
-
-  ! Tabulation status.
-  logical                     :: moduleInitialized          =.false.
-  logical                     :: sphericalCollapseTableStore
   
 contains
 
-  subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,deltaCritTable,cosmologyFunctions_,linearGrowth_)
+  subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate(time,tableStore,deltaCritTable,cosmologyFunctions_,linearGrowth_)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use ISO_Varying_String , only : varying_string         , operator(//)
     use Galacticus_Error   , only : errorStatusSuccess
@@ -57,6 +53,7 @@ contains
     use Linear_Growth      , only : linearGrowthClass
     implicit none
     double precision                                      , intent(in   ) :: time
+    logical                                               , intent(in   ) :: tableStore
     class           (table1D                ), allocatable, intent(inout) :: deltaCritTable
     class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
     class           (linearGrowthClass      )             , intent(inout) :: linearGrowth_    
@@ -69,15 +66,15 @@ contains
          &   '_'                                                                    // &
          &   linearGrowth_      %hashedDescriptor(includeSourceDigest=.true.)       // &
          &   '.hdf5'
-    call    Restore_Table(time,deltaCritTable,fileName            ,status                           )
+    call    Restore_Table(time,deltaCritTable,fileName            ,tableStore         ,status       )
     if (status /= errorStatusSuccess) then       
        call Make_Table   (time,deltaCritTable,calculationDeltaCrit,cosmologyFunctions_,linearGrowth_)
-       call Store_Table  (     deltaCritTable,fileName                                              )
+       call Store_Table  (     deltaCritTable,fileName            ,tableStore                       )
     end if
     return
   end subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate
 
-  subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,deltaVirialTable,cosmologyFunctions_)
+  subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,tableStore,deltaVirialTable,cosmologyFunctions_)
     !% Tabulate the virial density contrast for the spherical collapse model.
     use ISO_Varying_String , only : varying_string         , operator(//)
     use Galacticus_Error   , only : errorStatusSuccess
@@ -86,6 +83,7 @@ contains
     use Cosmology_Functions, only : cosmologyFunctionsClass
     implicit none
     double precision                                      , intent(in   ) :: time
+    logical                                               , intent(in   ) :: tableStore
     class           (table1D                ), allocatable, intent(inout) :: deltaVirialTable
     class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
     type            (varying_string         )                             :: fileName
@@ -95,10 +93,10 @@ contains
          &   'largeScaleStructure/sphericalCollapseMatterLambdaCriticalOverdensity_'// &
          &   cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)       // &
          &   '.hdf5'
-    call    Restore_Table(time,deltaVirialTable,fileName              ,status             )
+    call    Restore_Table(time,deltaVirialTable,fileName              ,tableStore         ,status)
     if (status /= errorStatusSuccess) then       
-       call Make_Table   (time,deltaVirialTable,calculationDeltaVirial,cosmologyFunctions_)
-       call Store_Table  (     deltaVirialTable,fileName                                  )
+       call Make_Table   (time,deltaVirialTable,calculationDeltaVirial,cosmologyFunctions_       )
+       call Store_Table  (     deltaVirialTable,fileName              ,tableStore                )
     end if
     return
   end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
@@ -618,31 +616,8 @@ contains
     end if
     return
   end function Radius_Root
-
-  subroutine Initialize_Table()
-    !% Initialize tabulation support.
-    use Input_Parameters
-    implicit none
-
-    if (.not.moduleInitialized) then
-       !$omp critical(sphericalCollapseMatterLambdaInit)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>sphericalCollapseTableStore</name>
-          !#   <cardinality>1</cardinality>
-          !#   <description>If true, store and restore spherical collapse tabulated solutions to file.</description>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          moduleInitialized=.true.
-       end if
-       !$omp end critical(sphericalCollapseMatterLambdaInit)
-    end if
-    return
-  end subroutine Initialize_Table
   
-  subroutine Restore_Table(time,restoredTable,fileName,status)
+  subroutine Restore_Table(time,restoredTable,fileName,tableStore,status)
     !% Attempt to restore a table from file.
     use Galacticus_Error  , only : errorStatusSuccess, errorStatusFail
     use IO_HDF5           , only : hdf5Object        , hdf5Access
@@ -654,14 +629,14 @@ contains
     double precision                                      , intent(in   ) :: time
     class           (table1D                ), allocatable, intent(inout) :: restoredTable
     type            (varying_string         )             , intent(in   ) :: fileName
+    logical                                               , intent(in   ) :: tableStore
     integer                                               , intent(  out) :: status
     type            (hdf5Object             )                             :: file
     double precision                         , allocatable, dimension(:)  :: timeTable    , valueTable
     type            (lockDescriptor         )                             :: fileLock
 
     status=errorStatusFail
-    call Initialize_Table()
-    if (.not.sphericalCollapseTableStore) return
+    if (.not.tableStore) return
     if (.not.File_Exists(fileName)) return
     call File_Lock_Initialize(               fileLock)
     call File_Lock           (char(fileName),fileLock)
@@ -693,7 +668,7 @@ contains
     return
   end subroutine Restore_Table
 
-  subroutine Store_Table(storeTable,fileName)
+  subroutine Store_Table(storeTable,fileName,tableStore)
     !% Attempt to restore a table from file.
     use IO_HDF5           , only : hdf5Object    , hdf5Access
     use Tables            , only : table1D
@@ -702,11 +677,11 @@ contains
     implicit none
     class(table1D                ), intent(in   ) :: storeTable
     type (varying_string         ), intent(in   ) :: fileName
+    logical                       , intent(in   ) :: tableStore
     type (hdf5Object             )                :: file
     type (lockDescriptor         )                :: fileLock
 
-    call Initialize_Table()
-    if (.not.sphericalCollapseTableStore) return
+    if (.not.tableStore) return
     call File_Lock_Initialize(               fileLock)
     call File_Lock           (char(fileName),fileLock)
     !$ call hdf5Access%set()
