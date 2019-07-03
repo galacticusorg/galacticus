@@ -190,7 +190,7 @@ contains
           allocate(virialDensityContrastSphericalCollapseMatterLambda :: virialDensityContrast_)
           select type (virialDensityContrast_)
           type is (virialDensityContrastSphericalCollapseMatterLambda)
-             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda(                                                         cosmologyFunctions_)
+             virialDensityContrast_=virialDensityContrastSphericalCollapseMatterLambda(.true.                                                  ,cosmologyFunctions_)
           end select
        case (nodeComponentBasicExtendedSphericalCollapseTypeDE             )
           allocate(virialDensityContrastSphericalCollapseMatterDE     :: virialDensityContrast_)

@@ -641,7 +641,7 @@ contains
        allocate(virialDensityContrastSphericalCollapseMatterLambda :: self%virialDensityContrastDefinition_)
        select type (virialDensityContrastDefinition_ => self%virialDensityContrastDefinition_)
        type is (virialDensityContrastSphericalCollapseMatterLambda)
-          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(                                                            self%cosmologyFunctions_)"/>
+          !# <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true.                                                     ,self%cosmologyFunctions_)"/>
        end select
     end select
     allocate(self%darkMatterProfileDMODefinition_)
