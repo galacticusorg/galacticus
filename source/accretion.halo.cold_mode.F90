@@ -20,16 +20,17 @@
   !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
   !% mimic the effects of reionization and accounting for cold mode accretion.
 
-  use Cooling_Functions
-
+  use Cooling_Functions, only : coolingFunctionClass, coolingFunction
+  use Kind_Numbers     , only : kind_int8
+  
   !# <accretionHalo name="accretionHaloColdMode">
   !#  <description>Accretion onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.</description>
   !# </accretionHalo>
   type, extends(accretionHaloSimple) :: accretionHaloColdMode
      !% A halo accretion class using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
      private
-     class           (coolingFunctionClass), pointer :: coolingFunction_ => null()
-     double precision                                :: thresholdStabilityShock, widthTransitionStabilityShock
+     class           (coolingFunctionClass), pointer :: coolingFunction_        => null()
+     double precision                                :: thresholdStabilityShock          , widthTransitionStabilityShock
      integer         (kind=kind_int8      )          :: lastUniqueID
      double precision                                :: coldFractionStored
      logical                                         :: coldFractionComputed
@@ -80,7 +81,7 @@ contains
   
   function coldModeConstructorParameters(parameters) result(self)
     !% Default constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
-    use Input_Parameters
+    use Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (accretionHaloColdMode)                :: self
     type (inputParameters      ), intent(inout) :: parameters
@@ -115,8 +116,6 @@ contains
 
   function coldModeConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,thresholdStabilityShock,widthTransitionStabilityShock,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,coolingFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
-    use Galacticus_Error
-    use Atomic_Data
     implicit none
     type            (accretionHaloColdMode        )                        :: self
     double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, &
@@ -290,6 +289,7 @@ contains
   function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
     use Galacticus_Nodes                 , only : nodeComponentBasic
+    use Abundances_Structure             , only : zeroAbundances
     use Numerical_Constants_Astronomical
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
@@ -343,6 +343,7 @@ contains
   double precision function coldModeColdModeFraction(self,node,accretionMode)
     !% Computes the fraction of accretion occuring in the specified mode.
     use Galacticus_Nodes                  , only : nodeComponentBasic
+    use Abundances_Structure              , only : zeroAbundances
     use Galacticus_Error
     use Shocks_1D
     use Numerical_Constants_Atomic

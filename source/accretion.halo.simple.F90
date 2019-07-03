@@ -171,9 +171,9 @@ contains
        
   function simpleConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily simple} halo accretion class.
-    use Galacticus_Nodes, only : defaultBasicComponent
-    use Galacticus_Error
-    use Atomic_Data
+    use Galacticus_Nodes             , only : defaultBasicComponent
+    use Chemical_Abundances_Structure, only : Chemicals_Property_Count
+    use Galacticus_Error             , only : Galacticus_Error_Report , Galacticus_Component_List
     implicit none
     type            (accretionHaloSimple          ), target                :: self
     double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization
@@ -357,6 +357,7 @@ contains
   
   function simpleAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    use Abundances_Structure, only : zeroAbundances
     implicit none
     type  (abundances         )                :: simpleAccretionRateMetals
     class (accretionHaloSimple), intent(inout) :: self
@@ -371,6 +372,7 @@ contains
 
   function simpleAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    use Abundances_Structure, only : zeroAbundances
     implicit none
     type   (abundances         )                :: simpleAccretedMassMetals
     class  (accretionHaloSimple), intent(inout) :: self
@@ -430,7 +432,8 @@ contains
 
   function simpleChemicalMasses(self,node,massAccreted)
     !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
-    use Galacticus_Nodes                  , only : nodeComponentBasic
+    use Galacticus_Nodes                 , only : nodeComponentBasic
+    use Abundances_Structure             , only : zeroAbundances
     use Numerical_Constants_Astronomical
     use Chemical_Abundances_Structure
     use Chemical_Reaction_Rates_Utilities
