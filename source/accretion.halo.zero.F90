@@ -117,6 +117,7 @@ contains
 
   function zeroAccretionRateMetals(self,node,accretionMode)
     !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    use Abundances_Structure, only : zeroAbundances
     implicit none
     type   (abundances       )                :: zeroAccretionRateMetals
     class  (accretionHaloZero), intent(inout) :: self
@@ -130,6 +131,7 @@ contains
 
   function zeroAccretedMassMetals(self,node,accretionMode)
     !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    use Abundances_Structure, only : zeroAbundances
     implicit none
     type   (abundances       )                :: zeroAccretedMassMetals
     class  (accretionHaloZero), intent(inout) :: self
