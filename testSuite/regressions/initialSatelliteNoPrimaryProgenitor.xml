@@ -8,7 +8,7 @@
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
   <verbosityLevel value="1"/>
-  <treeNodeMethodDarkMatterProfile value="null"/>
+  <treeNodeMethodDarkMatterProfile value="scale"/>
   <starFormationTimescaleDisksMethod value="haloScaling">
     <exponentRedshift value="0.0"/>
     <exponentVelocityVirial value="0.0"/>

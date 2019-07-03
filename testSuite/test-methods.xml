@@ -983,7 +983,7 @@
     </mergerTreeOperatorMethod>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
-    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
     <treeNodeMethodDisk value="null"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodPosition value="null"/>
@@ -1384,7 +1384,7 @@
     </mergerTreeOperatorMethod>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
-    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
     <treeNodeMethodDisk value="null"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodPosition value="null"/>
@@ -1427,11 +1427,10 @@
     <mergerTreeEvolverMethod value="standard">
       <allTreesExistAtFinalTime value="false"/>
     </mergerTreeEvolverMethod>
-
     <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
-    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
     <treeNodeMethodDisk value="null"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodPosition value="null"/>
@@ -1474,14 +1473,13 @@
     <mergerTreeEvolverMethod value="standard">
     <allTreesExistAtFinalTime value="false"/>
   </mergerTreeEvolverMethod>
-
   <mergerTreeOperatorMethod value="outputRootMasses">
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperatorMethod>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
-    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
     <treeNodeMethodDisk value="null"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodPosition value="null"/>
