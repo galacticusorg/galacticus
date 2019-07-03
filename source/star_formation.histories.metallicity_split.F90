@@ -187,12 +187,12 @@ contains
        if     (                                &
             &   present(metallicityBoundaries) &
             & ) call Galacticus_Error_Report('specify either a list of metallicity boundaries, or a range, not both'//{introspection:location})
-       if     (                                &
-            &   present(countMetallicities   ) &
-            &  .or.                            &
-            &   present(metallicityMinimum   ) &
-            &  .or.                            &
-            &   present(metallicityMaximum   ) &
+       if     (                                     &
+            &   .not.present(countMetallicities   ) &
+            &  .or.                                 &
+            &   .not.present(metallicityMinimum   ) &
+            &  .or.                                 &
+            &   .not.present(metallicityMaximum   ) &
             & ) call Galacticus_Error_Report('metallicity range is incompletely specified'//{introspection:location})
        ! Construct a table of metallicities at which to tabulate. Add an extra bin since we want to catch all metallicities,
        ! including those below and above the maximum. A single bin is not allowed, but zero bins implies that no metallicity
