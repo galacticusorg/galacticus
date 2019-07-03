@@ -46,7 +46,7 @@
    contains
      final     ::           metallicitySplitDestructor
      procedure :: create => metallicitySplitCreate
-     procedure :: record => metallicitySplitRecord
+     procedure :: rate   => metallicitySplitRate
      procedure :: output => metallicitySplitOutput
      procedure :: scales => metallicitySplitScales
      procedure :: make   => metallicitySplitMake
@@ -237,8 +237,8 @@ contains
     return
   end subroutine metallicitySplitCreate
 
-  subroutine metallicitySplitRecord(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !% Record the star formation history for {\normalfont \ttfamily node}.
+  subroutine metallicitySplitRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
+    !% Set the rate the star formation history for {\normalfont \ttfamily node}.
     use Galacticus_Nodes    , only : nodeComponentBasic
     use Arrays_Search       , only : Search_Array
     use Abundances_Structure, only : metallicityTypeLinearByMassSolar
@@ -261,14 +261,14 @@ contains
     ! Find the metallicity bin to accumulate to.
     fuelMetallicity=abundancesFuel%metallicity(metallicityType=metallicityTypeLinearByMassSolar)
     if (fuelMetallicity < self%metallicityTable(1) .or. self%countMetallicities == 0) then
-       iMetallicity=1
+       iMetallicity=                                                   +1
     else
        iMetallicity=Search_Array(self%metallicityTable,fuelMetallicity)+1
     end if
     ! Accumulate to the appropriate time.
     historyStarFormation%data(iHistory,iMetallicity)=rateStarFormation
     return
-  end subroutine metallicitySplitRecord
+  end subroutine metallicitySplitRate
 
   subroutine metallicitySplitOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
     !% Output the star formation history for {\normalfont \ttfamily node}.

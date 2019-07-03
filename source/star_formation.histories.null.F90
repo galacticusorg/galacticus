@@ -27,7 +27,7 @@
      private
    contains
      procedure :: create => nullCreate
-     procedure :: record => nullRecord
+     procedure :: rate   => nullRate
      procedure :: output => nullOutput
      procedure :: scales => nullScales
   end type starFormationHistoryNull
@@ -64,8 +64,8 @@ contains
     return
   end subroutine nullCreate
 
-  subroutine nullRecord(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !% Record the star formation history for {\normalfont \ttfamily node}.
+  subroutine nullRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
+    !% Set the rate the star formation history for {\normalfont \ttfamily node}.
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -77,7 +77,7 @@ contains
     ! Ensure the history does not exist.
     call historyStarFormation%destroy()
     return
-  end subroutine nullRecord
+  end subroutine nullRate
 
   subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
     !% Output the star formation history for {\normalfont \ttfamily node}.

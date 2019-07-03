@@ -42,7 +42,7 @@
    contains
      final     ::             inSituDestructor
      procedure :: create   => inSituCreate
-     procedure :: record   => inSituRecord
+     procedure :: rate     => inSituRate
      procedure :: output   => inSituOutput
      procedure :: scales   => inSituScales
      procedure :: make     => inSituMake
@@ -156,8 +156,8 @@ contains
     return
   end subroutine inSituCreate
 
-  subroutine inSituRecord(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !% Record the star formation history for {\normalfont \ttfamily node}.
+  subroutine inSituRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
+    !% Set the rate the star formation history for {\normalfont \ttfamily node}.
     use Galacticus_Nodes, only : nodeComponentBasic
     use Arrays_Search   , only : Search_Array
     implicit none
@@ -178,7 +178,7 @@ contains
     iHistory                              =  Search_Array(historyStarFormation%time   ,timeNode)+1
     historyStarFormation%data(iHistory,:) =  rateStarFormation
     return
-  end subroutine inSituRecord
+  end subroutine inSituRate
 
   subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
     !% Output the star formation history for {\normalfont \ttfamily node}.
