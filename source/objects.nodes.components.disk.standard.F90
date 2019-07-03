@@ -708,10 +708,10 @@ contains
     use Galactic_Structure_Options
     use Numerical_Constants_Astronomical
     use Stellar_Luminosities_Structure
-    use Galacticus_Error                          , only : Galacticus_Error_Report
-    use Galacticus_Nodes                          , only : treeNode               , nodeComponentDisk   , nodeComponentDiskStandard, nodeComponentSpheroid, &
-         &                                                 nodeComponentHotHalo   , interruptTask       , defaultDiskComponent     , propertyTypeActive   , &
-         &                                                 propertyTypeAll        , propertyTypeInactive
+    use Galacticus_Error                , only : Galacticus_Error_Report
+    use Galacticus_Nodes                , only : treeNode               , nodeComponentDisk   , nodeComponentDiskStandard, nodeComponentSpheroid, &
+         &                                       nodeComponentHotHalo   , interruptTask       , defaultDiskComponent     , propertyTypeActive   , &
+         &                                       propertyTypeAll        , propertyTypeInactive
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     logical                                , intent(in   )          :: odeConverged
