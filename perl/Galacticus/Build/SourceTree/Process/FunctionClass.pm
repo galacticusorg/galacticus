@@ -587,6 +587,29 @@ CODE
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
 		code        => $hashedDescriptorCode
 	    };
+	    # Add a "objectType" method.
+	    $code::directiveName = $directive->{'name'};
+	    my $objectTypeCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+select type (self)
+CODE
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		$code::type = $nonAbstractClass->{'name'};
+		$objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+type is ({$type})
+{$directiveName}ObjectType='{$type}'
+CODE
+	    }
+	    $objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end select
+CODE
+	    $methods{'objectType'} = 
+	    {
+		description => "Return the type of the object.",
+		type        => "type(varying_string)",
+		pass        => "yes",
+		modules     => "ISO_Varying_String",
+		code        => $objectTypeCode
+	    };
 	    # Add "allowedParameters" method.
 	    my $allowedParametersCode;
 	    my $parametersPresent = 0;
