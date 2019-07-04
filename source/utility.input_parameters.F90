@@ -1183,36 +1183,41 @@ contains
     return
   end function inputParametersIsPresent
 
-  integer function inputParametersCopiesCount(self,parameterName,zeroIfNotPresent)
+  integer function inputParametersCopiesCount(self,parameterName,requireValue,zeroIfNotPresent)
     !% Return true if the specified parameter is present.
     use Galacticus_Error
     implicit none
     class    (inputParameters), intent(in   )           :: self
     character(len=*          ), intent(in   )           :: parameterName
-    logical                   , intent(in   ), optional :: zeroIfNotPresent
+    logical                   , intent(in   ), optional :: requireValue    , zeroIfNotPresent
     type     (node           ), pointer                 :: thisNode
     type     (inputParameter ), pointer                 :: currentParameter
-    !# <optionalArgument name="zeroIfNotPresent" defaultsTo=".false." />
-    
+    !# <optionalArgument name="zeroIfNotPresent" defaultsTo=".false."/>
+    !# <optionalArgument name="requireValue"     defaultsTo=".true." />
+
     call self%validateName(parameterName)
-    if (self%isPresent(parameterName)) then
+    if (self%isPresent(parameterName,requireValue_)) then
        inputParametersCopiesCount=0
        !$omp critical (FoX_DOM_Access)
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
           thisNode => currentParameter%content
           if (getNodeType(thisNode) == ELEMENT_NODE .and. trim(parameterName) == getNodeName(thisNode)) then
-             if     (                                     &
-                  &   .not.hasAttribute(thisNode,'id'   ) &
-                  &  .and.                                &
-                  &   (                                   &
-                  &        hasAttribute(thisNode,'value') &
-                  &    .or.                               &
-                  &     XML_Path_Exists(thisNode,"value") &
-                  &    .or.                               &
-                  &        hasAttribute(thisNode,"idRef") &
-                  &   )                                   &
-                  & )                                     &
+             if     (                                       &
+                  &   .not.requireValue_                    &
+                  &  .or.                                   &
+                  &   (                                     &
+                  &     .not.hasAttribute(thisNode,'id'   ) &
+                  &    .and.                                &
+                  &     (                                   &
+                  &          hasAttribute(thisNode,'value') &
+                  &      .or.                               &
+                  &       XML_Path_Exists(thisNode,"value") &
+                  &      .or.                               &
+                  &          hasAttribute(thisNode,"idRef") &
+                  &     )                                   &
+                  &   )                                     &
+                  & )                                       &
                   & inputParametersCopiesCount=inputParametersCopiesCount+1
           end if
           currentParameter => currentParameter%sibling
