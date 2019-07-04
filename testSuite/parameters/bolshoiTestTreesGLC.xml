@@ -200,8 +200,8 @@
     <exponent value="2.0"/>
   </starFormationFeedbackDisksMethod>
   <starFormationFeedbackSpheroidsMethod value="powerLaw">
-    <spheroidOutflowVelocity value="50.0"/>
-    <spheroidOutflowExponent value="2.0"/>
+    <velocityCharacteristic value="50.0"/>
+    <exponent               value="2.0" />
   </starFormationFeedbackSpheroidsMethod>
 
   <!-- Accretion disk properties -->
