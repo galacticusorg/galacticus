@@ -13,12 +13,12 @@ use File::Which;
 system("cd ..; mkdir -p testSuite/outputs");
 
 # Create a file in Galacticus format.
-system("cd ..; ./Bolshoi_Merger_Tree_File_Maker.exe testSuite/data/mergerTrees/bolshoiTestTrees.dat testSuite/outputs/bolshoiTestTreesGLC_in.hdf5 galacticus 1");
+system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeFileBuildBolshoi.xml");
 die("FAILED: failed to make Galacticus-format merger tree file from Bolshoi merger tree")
     unless ( $? == 0 );
 
 # Create a file in IRATE format.
-system("cd ..; ./Bolshoi_Merger_Tree_File_Maker.exe testSuite/data/mergerTrees/bolshoiTestTrees.dat testSuite/outputs/bolshoiTestTreesIRATE_in.hdf5 irate 1");
+system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeFileBuildBolshoiIRATE.xml");
 die("FAILED: failed to make IRATE-format merger tree file from Bolshoi merger tree")
     unless ( $? == 0 );
 
