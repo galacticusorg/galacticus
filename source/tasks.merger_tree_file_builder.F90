@@ -580,7 +580,7 @@ contains
     call mergerTrees%export(char(self%outputFileName),self%outputFormat,int(hdfChunkSize,kind=hsize_t),hdfCompressionLevel)
     ! Done.
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: halo mass function' )
+    call Galacticus_Display_Unindent('Done task: merger tree file builder' )
     return
   end subroutine mergerTreeFileBuilderPerform
 
