@@ -53,7 +53,7 @@ contains
     use Galacticus_Display
     use Interfaces_Cloudy
     implicit none
-    class  (taskBuildToolCloudy), intent(inout)           :: self
+    class  (taskBuildToolCloudy), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
     type   (varying_string     )                          :: cloudyPath, cloudyVersion
     !GCC$ attributes unused :: self

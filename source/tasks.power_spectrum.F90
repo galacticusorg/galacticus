@@ -216,7 +216,7 @@ contains
     use            :: String_Handling
     use            :: Numerical_Integration
     implicit none
-    class           (taskPowerSpectra          ), intent(inout)                 :: self
+    class           (taskPowerSpectra          ), intent(inout), target         :: self
     integer                                     , intent(  out), optional       :: status
     integer         (c_size_t                  )                                :: outputCount              , wavenumberCount    , &
          &                                                                         iOutput                  , iWavenumber

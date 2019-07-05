@@ -204,7 +204,7 @@ contains
     use Galacticus_Error                 , only : errorStatusSuccess
     use Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
     implicit none
-    class  (taskHaloModelProjectedCorrelationFunction), intent(inout)           :: self
+    class  (taskHaloModelProjectedCorrelationFunction), intent(inout), target   :: self
     integer                                           , intent(  out), optional :: status
     type   (hdf5Object                               )                          :: outputGroup
 
