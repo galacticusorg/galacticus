@@ -718,7 +718,7 @@ contains
     call allocateArray(self%yv,[size(x),tableCountActual])
     self%xv   =x
     self%reset=.true.
-    ! Set interpoaltion type.
+    ! Set interpolation type.
     if (present(interpolationType)) then
        self%interpolationType=interpolationType
     else
