@@ -172,7 +172,7 @@ contains
     use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
     use            :: Galacticus_Display     , only : Galacticus_Display_Indent      , Galacticus_Display_Unindent
     implicit none
-    class           (taskHaloSpinDistribution      ), intent(inout)               :: self
+    class           (taskHaloSpinDistribution      ), intent(inout), target       :: self
     integer                                         , intent(  out), optional     :: status
     type            (treeNode                      ), pointer                     :: node
     class           (nodeComponentBasic            ), pointer                     :: nodeBasic

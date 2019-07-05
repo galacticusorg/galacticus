@@ -495,7 +495,7 @@ contains
     use Galacticus_Error                , only : errorStatusSuccess
     use Galacticus_Display              , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     implicit none
-    class           (taskMergerTreeFileBuilder), intent(inout)           :: self
+    class           (taskMergerTreeFileBuilder), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
     integer                                                              :: hdfChunkSize           =1024, hdfCompressionLevel       =9
     type            (mergerTreeData           )                          :: mergerTrees

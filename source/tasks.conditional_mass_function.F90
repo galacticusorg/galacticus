@@ -299,7 +299,7 @@ contains
     use ISO_Varying_String   , only : char
     use Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
     implicit none
-    class           (taskConditionalMassFunction), intent(inout)               :: self
+    class           (taskConditionalMassFunction), intent(inout), target       :: self
     integer                                      , intent(  out), optional     :: status
     double precision                             , allocatable  , dimension(:) :: conditionalMassFunction        , conditionalMassFunctionIncomplete
     integer                                                                    :: iMass                          , iField                                  , &

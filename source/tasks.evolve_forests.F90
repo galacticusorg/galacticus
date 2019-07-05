@@ -407,7 +407,7 @@ contains
     include 'galacticus.output.merger_tree.tasks.extra.modules.inc'
     !# </include>
     implicit none
-    class           (taskEvolveForests            ), intent(inout)                   :: self
+    class           (taskEvolveForests            ), intent(inout), target           :: self
     integer                                        , intent(  out), optional         :: status             
     type            (mergerTree                   ), pointer                  , save :: tree
     logical                                                                   , save :: finished                                  , treeIsNew

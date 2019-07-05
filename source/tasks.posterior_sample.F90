@@ -106,7 +106,7 @@ contains
     use Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     use Galacticus_Error  , only : errorStatusSuccess
     implicit none
-    class  (taskPosteriorSample), intent(inout)           :: self
+    class  (taskPosteriorSample), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
 
     call Galacticus_Display_Indent('Begin task: posterior sampling')
