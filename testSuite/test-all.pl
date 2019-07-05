@@ -230,6 +230,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.sort.topological.exe",                                         # Tests of topological sorting functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.string_utilities.exe",                                         # Tests of string handling utilities.
 	valgrind => 0,
 	mpi      => 0
