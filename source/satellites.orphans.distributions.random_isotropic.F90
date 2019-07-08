@@ -116,11 +116,14 @@ contains
     type            (treeNode                                  ), intent(inout) :: node
     type            (treeNode                                  ), pointer       :: nodeHost
     class           (nodeComponentPosition                     ), pointer       :: positionHost
+    double precision                                            , parameter     :: limitDistribution      =5.0d0
     type            (distributionFunction1DNormal              )                :: normalDistribution
+    double precision                                                            :: velocityDispersion
     integer                                                                     :: i
     
     ! Get the 1-D velocity dispersion for the orphan.
-    normalDistribution=distributionFunction1DNormal(0.0d0,self%velocityDispersion(node))
+    velocityDispersion=self%velocityDispersion(node)
+    normalDistribution=distributionFunction1DNormal(0.0d0,velocityDispersion**2,-limitDistribution*velocityDispersion,+limitDistribution*velocityDispersion)
     ! Find the velocity of the host.
     nodeHost               =>  node        %parent
     positionHost           =>  nodeHost    %position()
