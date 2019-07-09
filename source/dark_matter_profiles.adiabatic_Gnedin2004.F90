@@ -469,9 +469,9 @@ contains
     !% Returns the Fourier transform of the adiabaticGnedin2004 density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$), using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
     implicit none
-    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)          :: self
-    type            (treeNode                            ), intent(inout), pointer :: node
-    double precision                                      , intent(in   )          :: waveNumber
+    class           (darkMatterProfileAdiabaticGnedin2004), intent(inout)         :: self
+    type            (treeNode                            ), intent(inout), target :: node
+    double precision                                      , intent(in   )         :: waveNumber
     
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
        adiabaticGnedin2004KSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)

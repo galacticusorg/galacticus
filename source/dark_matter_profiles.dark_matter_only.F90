@@ -271,9 +271,9 @@ contains
     !% (given in Mpc$^{-1}$).
     use Galacticus_Error
     implicit none
-    class           (darkMatterProfileDarkMatterOnly), intent(inout)          :: self
-    type            (treeNode                       ), intent(inout), pointer :: node
-    double precision                                 , intent(in   )          :: waveNumber
+    class           (darkMatterProfileDarkMatterOnly), intent(inout)         :: self
+    type            (treeNode                       ), intent(inout), target :: node
+    double precision                                 , intent(in   )         :: waveNumber
 
     ! This is normalized by mass, so no need to include the dark matter fraction.
     darkMatterOnlyKSpace=+self%darkMatterProfileDMO_%kSpace(node,waveNumber)

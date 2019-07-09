@@ -852,7 +852,7 @@ contains
     use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileDMOBurkert   ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
+    type            (treeNode                      ), intent(inout), target  :: node
     double precision                                , intent(in   )          :: waveNumber
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: concentration      , radiusScale, &
