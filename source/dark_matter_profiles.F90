@@ -122,8 +122,8 @@ module Dark_Matter_Profiles
   !#   <description>Returns the normalized Fourier space density profile of the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily waveNumber} (given in units of Mpc$^{-1}$).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: wavenumber</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision          , intent(in   )         :: wavenumber</argument>
   !#  </method>
   !#  <method name="freefallRadius" >
   !#   <description>Returns the freefall radius (in Mpc) corresponding to the given {\normalfont \ttfamily time} (in Gyr) in {\normalfont \ttfamily node}.</description>

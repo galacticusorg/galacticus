@@ -444,12 +444,12 @@ contains
     use FGSL                 , only : fgsl_function, fgsl_integration_workspace
     use Numerical_Integration, only : Integrate    , Integrate_Done
     implicit none
-    class           (darkMatterProfileGeneric  ), intent(inout)          :: self
-    type            (treeNode                  ), intent(inout), pointer :: node
-    double precision                            , intent(in   )          :: waveNumber
-    type            (fgsl_function             )                         :: integrandFunction
-    type            (fgsl_integration_workspace)                         :: integrationWorkspace
-    double precision                                                     :: radiusVirial
+    class           (darkMatterProfileGeneric  ), intent(inout)         :: self
+    type            (treeNode                  ), intent(inout), target :: node
+    double precision                            , intent(in   )         :: waveNumber
+    type            (fgsl_function             )                        :: integrandFunction
+    type            (fgsl_integration_workspace)                        :: integrationWorkspace
+    double precision                                                    :: radiusVirial
 
     radiusVirial          =+self%darkMatterHaloScale_%virialRadius(node             )
     genericKSpaceNumerical=+Integrate(                                                &

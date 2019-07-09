@@ -502,9 +502,9 @@ contains
     !% Returns the Fourier transform of the truncatedExponential density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
     implicit none
-    class           (darkMatterProfileDMOTruncatedExponential), intent(inout)          :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
-    double precision                                          , intent(in   )          :: waveNumber
+    class           (darkMatterProfileDMOTruncatedExponential), intent(inout)         :: self
+    type            (treeNode                                ), intent(inout), target :: node
+    double precision                                          , intent(in   )         :: waveNumber
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
        truncatedExponentialKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)
