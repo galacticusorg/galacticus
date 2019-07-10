@@ -72,14 +72,15 @@ module Node_Component_Disk_Very_Simple_Size
 
 contains
 
-  !# <mergerTreePreTreeConstructionTask>
+  !# <nodeComponentInitializationTask>
   !#  <unitName>Node_Component_Disk_Very_Simple_Size_Initialize</unitName>
-  !# </mergerTreePreTreeConstructionTask>
-  subroutine Node_Component_Disk_Very_Simple_Size_Initialize()
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Disk_Very_Simple_Size_Initialize(globalParameters_)
     !% Initializes the tree node exponential disk methods module.
     use Input_Parameters
     use Galacticus_Nodes, only : defaultDiskComponent
     implicit none
+    type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        ! Read parameters controlling the physical implementation.
@@ -88,7 +89,7 @@ contains
        !#   <cardinality>1</cardinality>
        !#   <defaultValue>1.0d-6</defaultValue>
        !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
-       !#   <source>globalParameters</source>
+       !#   <source>globalParameters_</source>
        !#   <type>double</type>
        !# </inputParameter>
     end if
