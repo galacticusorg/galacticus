@@ -29,6 +29,7 @@ module Virial_Density_Contrast_Percolation_Utilities
   use Cosmology_Functions               , only : cosmologyFunctions                       , cosmologyFunctionsClass
   use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale                      , darkMatterHaloScaleClass
   use Dark_Matter_Profiles_Concentration, only : darkMatterProfileConcentration           , darkMatterProfileConcentrationClass
+  use Dark_Matter_Profiles_Shape        , only : darkMatterProfileShape                   , darkMatterProfileShapeClass
   private
   public :: Virial_Density_Contrast_Percolation_Solver, Virial_Density_Contrast_Percolation_Objects_Constructor, percolationObjects, percolationObjectsDeepCopy
 
@@ -37,6 +38,7 @@ module Virial_Density_Contrast_Percolation_Utilities
      type            (treeNode                                 ), pointer :: workNode
      class           (nodeComponentDarkMatterProfile           ), pointer :: workDarkMatterProfile
      class           (darkMatterProfileDMOClass                ), pointer :: darkMatterProfileDMO_
+     class           (darkMatterProfileShapeClass              ), pointer :: darkMatterProfileShape_
      type            (darkMatterProfileScaleRadiusConcentration), pointer :: darkMatterProfileScaleRadius_
      double precision                                                     :: boundingDensity              , densityMatterMean, &
           &                                                                  massHalo
@@ -55,6 +57,7 @@ module Virial_Density_Contrast_Percolation_Utilities
      class(cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_
      class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
      class(darkMatterProfileConcentrationClass), pointer :: darkMatterProfileConcentration_
+     class(darkMatterProfileShapeClass        ), pointer :: darkMatterProfileShape_
    contains
      final :: percolationObjectsDestructor
   end type percolationObjects
@@ -81,6 +84,7 @@ contains
     !# <objectBuilder class="cosmologyFunctions"             name="percolationObjects_%cosmologyFunctions_"             source="parameters"/>
     !# <objectBuilder class="darkMatterHaloScale"            name="percolationObjects_%darkMatterHaloScale_"            source="parameters"/>
     !# <objectBuilder class="darkMatterProfileConcentration" name="percolationObjects_%darkMatterProfileConcentration_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileShape"         name="percolationObjects_%darkMatterProfileShape_"         source="parameters"/>
     self => percolationObjects_
     nullify(percolationObjects_)
     return
@@ -96,6 +100,7 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_"            />
     !# <objectDestructor name="self%darkMatterHaloScale_"           />
     !# <objectDestructor name="self%darkMatterProfileConcentration_"/>
+    !# <objectDestructor name="self%darkMatterProfileShape_"        />
     return
   end subroutine percolationObjectsDestructor
   
@@ -119,16 +124,19 @@ contains
           nullify(destination%cosmologyFunctions_            )
           nullify(destination%darkMatterHaloScale_           )
           nullify(destination%darkMatterProfileConcentration_)
+          nullify(destination%darkMatterProfileShape_        )
           allocate(destination%darkMatterProfileDMO_          ,mold=self%darkMatterProfileDMO_          )
           allocate(destination%cosmologyParameters_           ,mold=self%cosmologyParameters_           )
           allocate(destination%cosmologyFunctions_            ,mold=self%cosmologyFunctions_            )
           allocate(destination%darkMatterHaloScale_           ,mold=self%darkMatterHaloScale_           )
           allocate(destination%darkMatterProfileConcentration_,mold=self%darkMatterProfileConcentration_)
+          allocate(destination%darkMatterProfileShape_        ,mold=self%darkMatterProfileShape_        )
           !# <deepCopy source="self%darkMatterProfileDMO_"           destination="destination%darkMatterProfileDMO_"          />
           !# <deepCopy source="self%cosmologyParameters_"            destination="destination%cosmologyParameters_"           />
           !# <deepCopy source="self%cosmologyFunctions_"             destination="destination%cosmologyFunctions_"            />
           !# <deepCopy source="self%darkMatterHaloScale_"            destination="destination%darkMatterHaloScale_"           />
           !# <deepCopy source="self%darkMatterProfileConcentration_" destination="destination%darkMatterProfileConcentration_"/>
+          !# <deepCopy source="self%darkMatterProfileShape_"         destination="destination%darkMatterProfileShape_"        />
        class default
           call Galacticus_Error_Report("destination must be of 'percolationObjects' class"//{introspection:location})
        end select
@@ -182,6 +190,7 @@ contains
           nullify(stateTmp(i)%workNode                     )
           nullify(stateTmp(i)%workDarkMatterProfile        )
           nullify(stateTmp(i)%darkMatterProfileDMO_        )
+          nullify(stateTmp(i)%darkMatterProfileShape_      )
           nullify(stateTmp(i)%darkMatterProfileScaleRadius_)
           nullify(stateTmp(i)%densityContrast              )
        end do
@@ -193,11 +202,12 @@ contains
     ! Extract required objects from the container.
     select type (percolationObjects_)
     type is (percolationObjects)
-       state(stateCount)%darkMatterProfileDMO_ => percolationObjects_%darkMatterProfileDMO_
-       cosmologyFunctions_                     => percolationObjects_%cosmologyFunctions_
-       cosmologyParameters_                    => percolationObjects_%cosmologyParameters_
-       darkMatterHaloScale_                    => percolationObjects_%darkMatterHaloScale_
-       darkMatterProfileConcentration_         => percolationObjects_%darkMatterProfileConcentration_
+       state(stateCount)%darkMatterProfileDMO_   => percolationObjects_%darkMatterProfileDMO_
+       state(stateCount)%darkMatterProfileShape_ => percolationObjects_%darkMatterProfileShape_
+       cosmologyFunctions_                       => percolationObjects_%cosmologyFunctions_
+       cosmologyParameters_                      => percolationObjects_%cosmologyParameters_
+       darkMatterHaloScale_                      => percolationObjects_%darkMatterHaloScale_
+       darkMatterProfileConcentration_           => percolationObjects_%darkMatterProfileConcentration_
        class default
        call Galacticus_Error_Report('percolationObjects_ must be of "percolationObjects" type'//{introspection:location})
     end select
@@ -265,6 +275,7 @@ contains
     nullify(state(stateCount)%workNode                     )
     nullify(state(stateCount)%workDarkMatterProfile        )
     nullify(state(stateCount)%darkMatterProfileDMO_        )
+    nullify(state(stateCount)%darkMatterProfileShape_      )
     nullify(state(stateCount)%darkMatterProfileScaleRadius_)
     nullify(state(stateCount)%densityContrast              )  
     stateCount=stateCount-1
@@ -273,13 +284,11 @@ contains
 
   double precision function haloRadiusRootFunction(haloRadiusTrial)
     !% Root function used to find the radius of a halo giving the correct bounding density.
-    use Dark_Matter_Profiles_Shape    , only : darkMatterProfileShape       , darkMatterProfileShapeClass
     use Numerical_Constants_Math      , only : Pi
     use Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     implicit none
-    double precision                             , intent(in   ) :: haloRadiusTrial
-    double precision                                             :: scaleRadius            , densityHaloRadius
-    class           (darkMatterProfileShapeClass), pointer       :: darkMatterProfileShape_
+    double precision, intent(in   ) :: haloRadiusTrial
+    double precision                :: scaleRadius            , densityHaloRadius
 
     ! Construct the current density contrast.
     state(stateCount)%densityContrast=+3.0d0                                  &
@@ -292,8 +301,7 @@ contains
     scaleRadius=state(stateCount)%darkMatterProfileScaleRadius_%radius(state(stateCount)%workNode)
     call state(stateCount)%workDarkMatterProfile%scaleSet(scaleRadius)
     if (state(stateCount)%workDarkMatterProfile%shapeIsSettable()) then
-       darkMatterProfileShape_ => darkMatterProfileShape()
-       call state(stateCount)%workDarkMatterProfile%shapeSet(darkMatterProfileShape_%shape(state(stateCount)%workNode))
+       call state(stateCount)%workDarkMatterProfile%shapeSet(state(stateCount)%darkMatterProfileShape_%shape(state(stateCount)%workNode))
     end if
     call Galacticus_Calculations_Reset(state(stateCount)%workNode)
     ! Compute density at the halo radius.
