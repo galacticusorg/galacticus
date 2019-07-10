@@ -144,13 +144,12 @@ module Dark_Matter_Profiles_DMO
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>type             (treeNode), intent(inout), target :: node</argument>
   !#   <argument>double precision           , intent(in   )         :: mass</argument>
-  !#   <modules>Dark_Matter_Halo_Scales Root_Finder Kind_Numbers</modules>
+  !#   <modules>Root_Finder Kind_Numbers</modules>
   !#   <code>
-  !#    class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  !#    double precision                                    :: radiusGuess
-  !#    type            (rootFinder              ), save    :: finder
-  !#    double precision                          , save    :: radiusPrevious=-huge(0.0d0)
-  !#    integer         (kind_int8               ), save    :: uniqueIDPrevious=-1_kind_int8
+  !#    double precision                      :: radiusGuess
+  !#    type            (rootFinder), save    :: finder
+  !#    double precision            , save    :: radiusPrevious=-huge(0.0d0)
+  !#    integer         (kind_int8 ), save    :: uniqueIDPrevious=-1_kind_int8
   !#    !$omp threadprivate(finder,radiusPrevious,uniqueIDPrevious)
   !#    if(mass &lt;= 0.0d0) then
   !#       darkMatterProfileDMORadiusEnclosingMass=0.0d0
@@ -169,11 +168,10 @@ module Dark_Matter_Profiles_DMO
   !#       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
   !#    end if
   !#    if (node%uniqueID()     == uniqueIDPrevious) then
-  !#       radiusGuess          =  radiusPrevious
+  !#       radiusGuess     =radiusPrevious
   !#    else
-  !#       darkMatterHaloScale_ => darkMatterHaloScale              (    )
-  !#       radiusGuess          =  darkMatterHaloScale_%virialRadius(node)
-  !#       uniqueIDPrevious     =  node                %uniqueID    (    )
+  !#       radiusGuess     =self%darkMatterHaloScale_%virialRadius(node)
+  !#       uniqueIDPrevious=node                     %uniqueID    (    )
   !#    end if
   !#    darkMatterProfileDMOSelf  => self
   !#    darkMatterProfileDMONode  => node
