@@ -741,32 +741,38 @@ sub testFailure {
 	    $result = "SUCCESS: ".$jobMessage."\n";
 	}
     } else {
-	# Check for failure message in log file.
-	system("grep -q FAIL ".$logFile);
-	if ( $? == 0 ) {
-	    # Failure detected.
-	    if ( $expect eq "fail" ) {
-		# We expected failure, and we did fail. This is a success.
-		$result = "SUCCESS: ".$jobMessage."\n";
-	    } elsif ( $expect eq "success" ) {
-		# We expected failure, but we did not fail. This is a failure.
-		$result = "FAILED: ".$jobMessage."\n";
+	# Check for crash.
+	if ( $exitStatus == 0 ) {
+	    # Check for failure message in log file.
+	    system("grep -q FAIL ".$logFile);
+	    if ( $? == 0 ) {
+		# Failure detected.
+		if ( $expect eq "fail" ) {
+		    # We expected failure, and we did fail. This is a success.
+		    $result = "SUCCESS: ".$jobMessage."\n";
+		} elsif ( $expect eq "success" ) {
+		    # We expected failure, but we did not fail. This is a failure.
+		    $result = "FAILED: ".$jobMessage."\n";
+		} else {
+		    # Unknown expectation.
+		    $result = "FAILED: ".$jobMessage." (unknown expectation)\n";
+		}
 	    } else {
-		# Unknown expectation.
-		$result = "FAILED: ".$jobMessage." (unknown expectation)\n";
+		# No failure detected.
+		if ( $expect eq "fail" ) {
+		    # We expected failure, but we did not fail. This is a failure.
+		    $result = "FAILED: ".$jobMessage." (failure expected)\n";
+		} elsif ( $expect eq "success" ) {
+		    # We expected failure, but we did not fail. This is a failure.
+		    $result = "SUCCESS: ".$jobMessage."\n";
+		} else {
+		    # Unknown expectation.
+		    $result = "FAILED: ".$jobMessage." (unknown expectation)\n";
+		}
 	    }
 	} else {
-	    # No failure detected.
-	    if ( $expect eq "fail" ) {
-		# We expected failure, but we did not fail. This is a failure.
-		$result = "FAILED: ".$jobMessage." (failure expected)\n";
-	    } elsif ( $expect eq "success" ) {
-		# We expected failure, but we did not fail. This is a failure.
-		$result = "SUCCESS: ".$jobMessage."\n";
-	    } else {
-		# Unknown expectation.
-		$result = "FAILED: ".$jobMessage." (unknown expectation)\n";
-	    }
+	    # We did not expect a crash, but got one. This is a failure.
+	    $result = "FAILED: ".$jobMessage." (crashed unexpectedly)\n";
 	}
     }
     # Report success or failure.
