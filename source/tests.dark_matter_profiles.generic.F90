@@ -35,6 +35,7 @@ program Test_Dark_Matter_Profiles_Generic
   use Dark_Matter_Profiles
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profiles_Generic, only : nonAnalyticSolversNumerical
+  use Events_Hooks                , only : eventsHooksInitialize
   implicit none
   class           (darkMatterHaloScaleClass                ), pointer      :: darkMatterHaloScale_
   type            (darkMatterProfileDMOIsothermal          ), pointer      :: darkMatterProfileIsothermal_
@@ -73,6 +74,7 @@ program Test_Dark_Matter_Profiles_Generic
   call Unit_Tests_Begin_Group("Generic dark matter profiles")
   parameters=inputParameters('testSuite/parameters/darkMatterProfilesGeneric.xml')
   call parameters%markGlobal()
+  call eventsHooksInitialize()
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)
   call Node_Components_Thread_Initialize(parameters)
