@@ -50,17 +50,21 @@ module Node_Component_Formation_Times_Cole2000
 
 contains
 
-  subroutine Node_Component_Formation_Times_Cole2000_Initialize()
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Formation_Times_Cole2000_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Formation_Times_Cole2000_Initialize(globalParameters_)
     !% Initializes the tree node formation time tracking module.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: globalParameters_
 
     !# <inputParameter>
     !#   <name>haloReformationMassFactor</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>Factor by which halo mass must have increased to trigger a new formation event.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     !# <inputParameter>
@@ -69,7 +73,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether halo reformation should occur only at node promotion events, or at the precise time that
     !#      the halo mass has increased sufficiently in mass.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>boolean</type>
     !# </inputParameter>
     return
@@ -146,9 +150,6 @@ contains
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
     class(nodeComponentFormationTime)               , pointer :: formationTime
-
-    ! Ensure that this module has been initialized.
-    call Node_Component_Formation_Times_Cole2000_Initialize()
 
     ! Trigger a halo formation event.
     call Event_Halo_Formation(node)

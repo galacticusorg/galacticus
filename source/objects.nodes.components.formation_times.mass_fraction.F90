@@ -23,7 +23,8 @@ module Node_Component_Formation_Times_Mass_Fraction
   use Galacticus_Nodes
   implicit none
   private
-  public :: Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize, Node_Component_Formation_Time_Mass_Fraction_Node_Promotion
+  public :: Node_Component_Formation_Time_Mass_Fraction_Tree_Initialize, Node_Component_Formation_Time_Mass_Fraction_Node_Promotion, &
+       &    Node_Component_Formation_Times_Mass_Fraction_Initialize
 
   !# <component>
   !#  <class>formationTime</class>
@@ -40,36 +41,28 @@ module Node_Component_Formation_Times_Mass_Fraction
   !#  </properties>
   !# </component>
 
-  ! Record of whether this module has been initialized.
-  logical          :: moduleInitialized             =.false.
-
   ! Fractional mass of primary progenitor used to define formation time.
   double precision :: formationTimeMassFraction
 
 contains
 
-  subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize()
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize(globalParameters_)
     !% Initializes the tree node formation time tracking module.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: globalParameters_
 
-    ! Initialize the module if necessary.
-    if (.not.moduleInitialized) then
-       !$omp critical (Node_Component_Formation_Times_Mass_Fraction_Initialize)
-       if (.not.moduleInitialized) then
-          !# <inputParameter>
-          !#   <name>formationTimeMassFraction</name>
-          !#   <defaultValue>0.5d0</defaultValue>
-          !#   <source>globalParameters</source>
-          !#   <description>Fractional mass of primary progenitor used to define formation time.</description>
-          !#   <type>double</type>
-          !#   <cardinality>1</cardinality>
-          !# </inputParameter>
-          ! Record that the module is now initialized.
-          moduleInitialized=.true.
-       end if
-       !$omp end critical (Node_Component_Formation_Times_Mass_Fraction_Initialize)
-    end if
+    !# <inputParameter>
+    !#   <name>formationTimeMassFraction</name>
+    !#   <defaultValue>0.5d0</defaultValue>
+    !#   <source>globalParameters_</source>
+    !#   <description>Fractional mass of primary progenitor used to define formation time.</description>
+    !#   <type>double</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     return
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize
 
@@ -114,8 +107,6 @@ contains
     
     ! Return immediately if this implementation is not active.
     if (.not.defaultFormationTimeComponent%massFractionIsActive()) return
-    ! Ensure module is initialized.
-    call Node_Component_Formation_Times_Mass_Fraction_Initialize()
     ! Compute the formation time.
     formationTime => node%formationTime(autoCreate=.true.)
     ! Determine the formation mass.
