@@ -65,7 +65,6 @@
      character       (len=standardCommentLengthMax), allocatable, dimension(:  ) :: doublePropertyComments           , integerPropertyComments
      double precision                              , allocatable, dimension(:  ) :: doublePropertyUnitsSI            , integerPropertyUnitsSI
      type            (outputGroup                 ), allocatable, dimension(:  ) :: outputGroups
-     type            (varying_string              ), allocatable, dimension(:  ) :: analyses
      class           (galacticFilterClass         ), pointer                     :: galacticFilter_         => null()
      class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_     => null()
      class           (nodePropertyExtractorClass  ), pointer                     :: nodePropertyExtractor_  => null()
@@ -153,14 +152,13 @@ contains
     !% Constructor for the {\normalfont \ttfamily standard} merger tree outputter class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (mergerTreeOutputterStandard)                              :: self
-    type   (inputParameters            ), intent(inout)               :: parameters
-    type   (varying_string             ), allocatable  , dimension(:) :: analyses
-    class  (galacticFilterClass        ), pointer                     :: galacticFilter_
-    class  (cosmologyFunctionsClass    ), pointer                     :: cosmologyFunctions_
-    class  (nodePropertyExtractorClass ), pointer                     :: nodePropertyExtractor_
-    logical                                                           :: outputReferences
-    type   (varying_string             )                              :: outputsGroupName
+    type   (mergerTreeOutputterStandard)                :: self
+    type   (inputParameters            ), intent(inout) :: parameters
+    class  (galacticFilterClass        ), pointer       :: galacticFilter_
+    class  (cosmologyFunctionsClass    ), pointer       :: cosmologyFunctions_
+    class  (nodePropertyExtractorClass ), pointer       :: nodePropertyExtractor_
+    logical                                             :: outputReferences
+    type   (varying_string             )                :: outputsGroupName
     
     !# <inputParameter>
     !#   <name>outputsGroupName</name>
@@ -178,20 +176,10 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    allocate(analyses(parameters%count('analyses',zeroIfNotPresent=.true.)))
-    if (parameters%isPresent('analyses')) then
-       !# <inputParameter>
-       !#   <name>analyses</name>
-       !#   <source>parameters</source>
-       !#   <description>List of analyses to carry out on merger trees.</description>
-       !#   <type>string</type>
-       !#   <cardinality>1</cardinality>
-       !# </inputParameter>
-    end if
-    !# <objectBuilder class="galacticFilter"        name="galacticFilter_"                  source="parameters"/>          
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"/>          
+    !# <objectBuilder class="galacticFilter"        name="galacticFilter_"        source="parameters"/>          
+    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>          
     !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>          
-    self=mergerTreeOutputterStandard(outputsGroupName,outputReferences,analyses,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_)
+    self=mergerTreeOutputterStandard(outputsGroupName,outputReferences,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_)
     !# <inputParametersValidate source="parameters"   />
     !# <objectDestructor name="galacticFilter_"       />
     !# <objectDestructor name="cosmologyFunctions_"   />
@@ -199,17 +187,16 @@ contains
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(outputsGroupName,outputReferences,analyses,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
+  function standardConstructorInternal(outputsGroupName,outputReferences,galacticFilter_,cosmologyFunctions_,nodePropertyExtractor_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree outputter class.
     implicit none
-    type   (mergerTreeOutputterStandard)                              :: self
-    type   (varying_string             ), intent(in   )               :: outputsGroupName
-    type   (varying_string             ), intent(in   ), dimension(:) :: analyses
-    class  (galacticFilterClass        ), intent(in   ), target       :: galacticFilter_
-    class  (cosmologyFunctionsClass    ), intent(in   ), target       :: cosmologyFunctions_
-    class  (nodePropertyExtractorClass ), intent(in   ), target       :: nodePropertyExtractor_
-    logical                             , intent(in   )               :: outputReferences
-    !# <constructorAssign variables="outputsGroupName, outputReferences, analyses, *galacticFilter_, *cosmologyFunctions_, *nodePropertyExtractor_"/>
+    type   (mergerTreeOutputterStandard)                        :: self
+    type   (varying_string             ), intent(in   )         :: outputsGroupName
+    class  (galacticFilterClass        ), intent(in   ), target :: galacticFilter_
+    class  (cosmologyFunctionsClass    ), intent(in   ), target :: cosmologyFunctions_
+    class  (nodePropertyExtractorClass ), intent(in   ), target :: nodePropertyExtractor_
+    logical                             , intent(in   )         :: outputReferences
+    !# <constructorAssign variables="outputsGroupName, outputReferences, *galacticFilter_, *cosmologyFunctions_, *nodePropertyExtractor_"/>
 
     self%outputsGroupOpened      =.false.
     self%outputGroupsCount       = 0
@@ -240,21 +227,17 @@ contains
     !% Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     use, intrinsic :: ISO_C_Binding
     use               Galacticus_Calculations_Resets
-    use               Galacticus_Nodes                  , only : mergerTree                       , treeNode                  , nodeComponentBasic
+    use               Galacticus_Nodes              , only : mergerTree                       , treeNode                  , nodeComponentBasic
     use               Input_Parameters
-    use               Galacticus_Output_Merger_Tree_Data
     use               Multi_Counters
     use               Merger_Tree_Walkers
     use               Events_Hooks
     use               Galacticus_Error
-    use               IO_HDF5                           , only : hdf5Access
-    use               Node_Property_Extractors          , only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
-         &                                                       nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble
+    use               IO_HDF5                       , only : hdf5Access
+    use               Node_Property_Extractors      , only : nodePropertyExtractorNull        , nodePropertyExtractorScalar, nodePropertyExtractorTuple, nodePropertyExtractorIntegerScalar, &
+         &                                                   nodePropertyExtractorIntegerTuple, nodePropertyExtractorMulti , elementTypeInteger        , elementTypeDouble
     !# <include directive="mergerTreeOutputTask" type="moduleUse">
     include 'galacticus.output.merger_tree.tasks.modules.inc'
-    !# </include>
-    !# <include directive="mergerTreeAnalysisTask" type="moduleUse">
-    include 'galacticus.output.merger_tree.analysis.modules.inc'
     !# </include>
     implicit none
     class           (mergerTreeOutputterStandard), intent(inout)           :: self
@@ -267,44 +250,13 @@ contains
     class           (nodeComponentBasic         )               , pointer  :: basic
     type            (mergerTree                 )               , pointer  :: currentTree
     type            (mergerTreeWalkerAllNodes   )                          :: treeWalker
-    integer                                                                :: doubleProperty  , nodeStatus     , &
-         &                                                                    iProperty       , integerProperty
+    integer                                                                :: doubleProperty  , integerProperty, &
+         &                                                                    iProperty
     integer         (c_size_t                   )                          :: iGroup
     logical                                                                :: nodePassesFilter
     type            (hdf5Object                 )                          :: toDataset
     type            (multiCounter               )                          :: instance
 
-    ! Iterate over trees.
-    currentTree => tree
-    do while (associated(currentTree))     
-       ! Iterate over nodes.
-       nodeStatus=nodeStatusFirst
-       treeWalker=mergerTreeWalkerAllNodes(currentTree,spanForest=.false.)
-       do while (treeWalker%next(node))
-          ! Reset calculations (necessary in case the last node to be evolved is the first one we output, in which case
-          ! calculations would not be automatically reset because the node unique ID will not have changed).
-          call Galacticus_Calculations_Reset (node)
-          ! Check for final node.
-          if (.not.treeWalker%nodesRemain()) nodeStatus=nodeStatusLast
-          ! Get the basic component.
-          basic => node%basic()
-          if (basic%time() == time) then
-             ! Perform analysis tasks.
-             !# <include directive="mergerTreeAnalysisTask" type="functionCall" functionType="void">
-             !#  <functionArgs>currentTree,node,nodeStatus,indexOutput,self%analyses</functionArgs>
-             include 'galacticus.output.merger_tree.analysis.inc'
-             !# </include>
-          end if
-          ! Move to the next node.
-          nodeStatus=nodeStatusNull
-       end do
-       ! Record end of tree.
-       node       => currentTree%baseNode
-       nodeStatus =  nodeStatusFinal
-       include 'galacticus.output.merger_tree.analysis.inc'
-       ! Skip to the next tree.
-       currentTree => currentTree%nextTree
-    end do
     ! Main output block.
     !$omp critical(mergerTreeOutputterStandard)
     ! Create an output group.
