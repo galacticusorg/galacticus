@@ -211,7 +211,7 @@ contains
                &                                 integrandFunction                                         , &
                &                                 integrationWorkspace                                      , &
                &                                 toleranceAbsolute                                  =0.0d+0, &
-               &                                 toleranceRelative                                  =1.0d-3  &
+               &                                 toleranceRelative                                  =1.0d-6  &
                &                                )                                                          , &
                &                       iTime                                                                 &
                &                      )
@@ -225,7 +225,7 @@ contains
                &                                             integrandFunction                                         , &
                &                                             integrationWorkspace                                      , &
                &                                             toleranceAbsolute                                  =0.0d+0, &
-               &                                             toleranceRelative                                  =1.0d-3  &
+               &                                             toleranceRelative                                  =1.0d-6  &
                &                                            )                                                          , &
                &                       iTime                                                                             &
                &                      )
