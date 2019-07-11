@@ -521,7 +521,11 @@ foreach my $executable ( @executablesToRun ) {
     # Generate the job.
     if ( exists($executable->{'name'}) ) {
 	(my $label = $executable->{'name'}) =~ s/\./_/;
-	my $ppn = exists($executable->{'ppn'}) ? $executable->{'ppn'} : 1;
+	my $ppn = 1;
+	$ppn = $executable->{'ppn'}
+	    if ( exists($executable->{'ppn'}) );
+	$ppn = $executable->{'mpi'}
+	    if ( exists($executable->{'mpi'}) );
 	my $launchFile = "testSuite/".$label.".pbs";
 	push(@launchFiles,$launchFile);
 	$executable->{'expect'} = "success"
