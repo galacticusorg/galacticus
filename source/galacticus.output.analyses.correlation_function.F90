@@ -959,14 +959,14 @@ contains
     self%finalized=.true.
 #ifdef USEMPI
     ! If running under MPI, perform a summation reduction across all processes.
-    self%meanDensity          =mpiSelf%sum(meanDensity          )
-    self%oneHaloTerm          =mpiSelf%sum(oneHaloTerm          )
-    self%twoHaloTerm          =mpiSelf%sum(twoHaloTerm          )
-    self%countMainBranch      =mpiSelf%sum(countMainBranch      )
-    self%meanDensityMainBranch=mpiSelf%sum(meanDensityMainBranch)
-    self%oneHaloTermMainBranch=mpiSelf%sum(oneHaloTermMainBranch)
-    self%twoHaloTermMainBranch=mpiSelf%sum(twoHaloTermMainBranch)
-    self%termCovariance       =mpiSelf%sum(termCovariance       )
+    self%meanDensity          =mpiSelf%sum(self%meanDensity          )
+    self%oneHaloTerm          =mpiSelf%sum(self%oneHaloTerm          )
+    self%twoHaloTerm          =mpiSelf%sum(self%twoHaloTerm          )
+    self%countMainBranch      =mpiSelf%sum(self%countMainBranch      )
+    self%meanDensityMainBranch=mpiSelf%sum(self%meanDensityMainBranch)
+    self%oneHaloTermMainBranch=mpiSelf%sum(self%oneHaloTermMainBranch)
+    self%twoHaloTermMainBranch=mpiSelf%sum(self%twoHaloTermMainBranch)
+    self%termCovariance       =mpiSelf%sum(self%termCovariance       )
 #endif
    ! Copy upper to lower triangle of covariance matrix (we've accumulated only the upper triangle).
     self%termCovariance=Matrix_Copy_Upper_To_Lower_Triangle(self%termCovariance)
