@@ -27,8 +27,11 @@ program Test_Correa2015_Concentration
   use Cosmology_Functions
   use Unit_Tests
   use Galacticus_Paths
-  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic
   use Galacticus_Display
+  use Galacticus_Nodes                    , only : treeNode                           , nodeComponentBasic               , nodeClassHierarchyInitialize
+  use Node_Components                     , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
+  use Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
+  use Events_Hooks                        , only : eventsHooksInitialize
   implicit none
   type            (treeNode                           ), pointer      :: node
   class           (nodeComponentBasic                 ), pointer      :: basic
@@ -49,6 +52,10 @@ program Test_Correa2015_Concentration
   parameterFile='testSuite/parameters/Correa2015.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
+  call eventsHooksInitialize()
+  call nodeClassHierarchyInitialize     (parameters)
+  call Node_Components_Initialize       (parameters)
+  call Node_Components_Thread_Initialize(parameters)    
   ! Create a node.
   node  => treeNode      (                 )
   ! Get the basic component.
@@ -91,7 +98,10 @@ program Test_Correa2015_Concentration
   end do
   call Assert('concentration',concentration,concentrationTarget,relTol=2.0d-3)
   ! End unit tests.
-  call Unit_Tests_End_Group       ()
-  call Unit_Tests_Finish          ()
+  call Unit_Tests_End_Group               ()
+  call Unit_Tests_Finish                  ()
+  call Node_Components_Thread_Uninitialize()
+  call Node_Components_Uninitialize       ()
+  call Galacticus_Function_Classes_Destroy()
 
 end program Test_Correa2015_Concentration
