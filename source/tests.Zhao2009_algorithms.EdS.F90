@@ -30,12 +30,15 @@ program Test_Zhao2009_Flat
   use Dark_Matter_Profiles_Concentration
   use Dark_Matter_Halo_Mass_Accretion_Histories
   use Cosmology_Functions
-  use Galacticus_Nodes                         , only : treeNode, nodeComponentBasic
   use Unit_Tests
   use String_Handling
   use Galacticus_Paths
   use File_Utilities
   use Galacticus_Display
+  use Galacticus_Nodes                         , only : treeNode                           , nodeComponentBasic               , nodeClassHierarchyInitialize
+  use Node_Components                          , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
+  use Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
+  use Events_Hooks                             , only : eventsHooksInitialize
   implicit none
   type            (treeNode                               )                         , pointer :: node
   class           (nodeComponentBasic                     )                         , pointer :: basic
@@ -65,6 +68,10 @@ program Test_Zhao2009_Flat
   parameterFile='testSuite/parameters/Zhao2009Algorithms/EdS.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
+  call eventsHooksInitialize()
+  call nodeClassHierarchyInitialize     (parameters)
+  call Node_Components_Initialize       (parameters)
+  call Node_Components_Thread_Initialize(parameters)    
 
   ! Create a node.
   node  => treeNode      (                 )
@@ -141,7 +148,10 @@ program Test_Zhao2009_Flat
 
   end do
   ! End unit tests.
-  call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
+  call Unit_Tests_End_Group               ()
+  call Unit_Tests_Finish                  ()
+  call Node_Components_Thread_Uninitialize()
+  call Node_Components_Uninitialize       ()
+  call Galacticus_Function_Classes_Destroy()
 
 end program Test_Zhao2009_Flat
