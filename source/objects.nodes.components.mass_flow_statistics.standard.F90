@@ -26,7 +26,8 @@ module Node_Component_Mass_Flow_Statistics_Standard
   private
   public :: Node_Component_Mass_Flow_Statistics_Standard_Merger_Tree_Init , Node_Component_Mass_Flow_Statistics_Standard_Scale_Set    , &
        &    Node_Component_Mass_Flow_Statistics_Standard_Extra_Output     , Node_Component_Mass_Flow_Statistics_Standard_Rate_Compute , &
-       &    Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize, Node_Component_Mass_Flow_Statistics_Standard_Thread_Uninit
+       &    Node_Component_Mass_Flow_Statistics_Standard_Thread_Initialize, Node_Component_Mass_Flow_Statistics_Standard_Thread_Uninit, &
+       &    Node_Component_Mass_Flow_Statistics_Standard_Initialize
 
   !# <component>
   !#  <class>massFlowStatistics</class>
@@ -52,17 +53,21 @@ module Node_Component_Mass_Flow_Statistics_Standard
 
 contains
 
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize()
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Mass_Flow_Statistics_Standard_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Initialize(globalParameters_)
     !% Initializes the standard mass flow statistics component.
     use Input_Parameters
     implicit none
+    type(inputParameters), intent(inout) :: globalParameters_
 
     !# <inputParameter>
     !#   <name>massFlowStatisticsResetOnOutput</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>.true.</defaultValue>
     !#   <description>Specifies whether or not mass flow statistics should be reset to zero at each output.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     return
@@ -111,10 +116,6 @@ contains
 
     ! Return immediately if this class is not active.
     if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return
-    
-    ! Ensure that the module is initialized.
-    call Node_Component_Mass_Flow_Statistics_Standard_Initialize()
-
     ! Create a mass flow statistics component and initialize it.
     massFlowStatistics => node%massFlowStatistics(autoCreate=.true.)
     select type (massFlowStatistics)

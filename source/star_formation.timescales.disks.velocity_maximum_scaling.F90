@@ -41,7 +41,7 @@
      type            (fastExponentiator               ) :: velocityExponentiator        , expansionFactorExponentiator
    contains
      !@ <objectMethods>
-     !@   <object><starFormationTimescaleDisksVelocityMaxScaling/object>
+     !@   <object>starFormationTimescaleDisksVelocityMaxScaling</object>
      !@   <objectMethod>
      !@     <method>calculationReset</method>
      !@     <type>\void</type>
@@ -141,11 +141,11 @@ contains
 
   subroutine velocityMaxScalingAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationTimescaleDisksVelocityMaxScaling), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,velocityMaxScalingCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine velocityMaxScalingAutoHook
   

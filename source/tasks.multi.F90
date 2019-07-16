@@ -107,7 +107,7 @@ contains
     use Galacticus_Display
     use Galacticus_Error  , only : errorStatusSuccess
     implicit none
-    class  (taskMulti    ), intent(inout)           :: self
+    class  (taskMulti    ), intent(inout), target   :: self
     integer               , intent(  out), optional :: status 
     type   (multiTaskList), pointer                 :: task_
 

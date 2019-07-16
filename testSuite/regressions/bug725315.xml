@@ -95,7 +95,6 @@
   <hotHaloMassDistributionMethod value="betaProfile"/>
   <spheroidMassToleranceAbsolute value="1e-06"/>
   <hotHaloTemperatureProfileMethod value="virial"/>
-  <starFormationHistoryTimeStep value="1.0"/>
   <verbosityLevel value="1"/>
   <stellarPopulationMethod value="standard">
     <metalYield value="0.02"/>
@@ -123,7 +122,10 @@
       <efficiencyRadiation value="0.01"/>
       <viscosityOption value="fit"/>
   </accretionDisksMethod>
-  <starFormationHistoriesMethod value="metallicitySplit"/>
+  <starFormationHistoryMethod value="metallicitySplit">
+    <countMetallicities value="0"  />
+    <timeStep           value="1.0"/>
+  </starFormationHistoryMethod>
   <bondiHoyleAccretionEnhancementSpheroid value="1"/>
   <mergerRemnantSizeMethod value="cole2000">
   <energyOrbital value="1"/>
@@ -138,7 +140,6 @@
     <gamma2 value="-0.01"/>
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbabilityMethod>
-  <starFormationHistoryMetallicityCount value="0"/>
   <blackHoleSeedMass value="100"/>
   <stellarPopulationSelectorMethod value="fixed"/>
   <stellarPopulationPropertiesMethod value="noninstantaneous">

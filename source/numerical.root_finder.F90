@@ -24,11 +24,11 @@ module Root_Finder
   use               FGSL         , only : fgsl_function            , fgsl_function_fdf        , fgsl_root_fsolver        , fgsl_root_fdfsolver           , &
        &                                  fgsl_root_fsolver_type   , fgsl_root_fdfsolver_type , FGSL_Root_fSolver_Brent  , FGSL_Root_fdfSolver_Steffenson, &
        &                                  FGSL_Root_FdFSolver_Free , FGSL_Function_FdF_Free   , FGSL_Root_FSolver_Free   , FGSL_Function_Free            , &
-       &                                  fgsl_error_handler_t     , FGSL_Well_Defined        , FGSL_Function_fdf_Init   , FGSL_Root_fdfSolver_Alloc     , &
+       &                                  fgsl_error_handler_t     , FGSL_Root_Test_Interval  , FGSL_Function_fdf_Init   , FGSL_Root_fdfSolver_Alloc     , &
        &                                  FGSL_Function_Init       , FGSL_Root_fSolver_Alloc  , FGSL_Root_fdfSolver_Set  , FGSL_Root_fSolver_Set         , &
        &                                  FGSL_Error_Handler_Init  , FGSL_Set_Error_Handler   , FGSL_Success             , FGSL_Root_fdfSolver_Iterate   , &
        &                                  FGSL_Root_fdfSolver_Root , FGSL_Root_Test_Delta     , FGSL_Root_fSolver_Iterate, FGSL_Root_fSolver_Root        , &
-       &                                  FGSL_Root_fSolver_x_Lower, FGSL_Root_fSolver_x_Upper, FGSL_Root_Test_Interval
+       &                                  FGSL_Root_fSolver_x_Lower, FGSL_Root_fSolver_x_Upper
   implicit none
   private
   public :: rootFinder
@@ -64,6 +64,7 @@ module Root_Finder
      double precision                                                  :: toleranceAbsolute            =1.0d-10
      double precision                                                  :: toleranceRelative            =1.0d-10
      logical                                                           :: initialized                  =.false.
+     logical                                                           :: functionInitialized          =.false.
      logical                                                           :: resetRequired                =.false.
      logical                                                           :: useDerivative
      integer                                                           :: rangeExpandType              =rangeExpandNull
@@ -195,6 +196,7 @@ contains
           call FGSL_Root_FSolver_Free  (self%solver                )
           call FGSL_Function_Free      (self%fgslFunction          )
        end if
+       self%functionInitialized=.false.
     end if
     return
   end subroutine Root_Finder_Destroy
@@ -254,8 +256,8 @@ contains
     currentFinders(currentFinderIndex)%finder => self
     ! Initialize the root finder variables if necessary.
     if (self%useDerivative) then
-       if (.not.FGSL_Well_Defined(self%solverDerivative).or.self%resetRequired) then
-          if (FGSL_Well_Defined(self%solverDerivative)) call FGSL_Root_fdfSolver_Free(self%solverDerivative)
+       if (.not.self%functionInitialized.or.self%resetRequired) then
+          if (self%functionInitialized) call FGSL_Root_fdfSolver_Free(self%solverDerivative)
           self%fgslFunctionDerivative=FGSL_Function_fdf_Init   (                                         &
                &                                                Root_Finder_Wrapper_Function           , &
                &                                                Root_Finder_Wrapper_Function_Derivative, &
@@ -264,14 +266,16 @@ contains
                &                                               )
           self%solverDerivative      =FGSL_Root_fdfSolver_Alloc(self%solverDerivativeType)
           self%resetRequired         =.false.
+          self%functionInitialized   =.true.
        end if
     else
-       if (.not.FGSL_Well_Defined(self%solver).or.self%resetRequired) then
-          if (FGSL_Well_Defined(self%solver)) call FGSL_Root_fSolver_Free(self%solver)
+       if (.not.self%functionInitialized.or.self%resetRequired) then
+          if (self%functionInitialized) call FGSL_Root_fSolver_Free(self%solver)
           self%fgslFunction          =FGSL_Function_Init       (Root_Finder_Wrapper_Function,parameterPointer)
           self%solver                =FGSL_Root_fSolver_Alloc  (self%solverType                              )
           self%resetRequired         =.false.
-       end if
+          self%functionInitialized   =.true.
+      end if
     end if
     ! Initialize range.
     if      (present(rootRange)) then

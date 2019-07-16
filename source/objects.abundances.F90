@@ -410,18 +410,18 @@ contains
     implicit none
     class    (abundances    ), intent(in   ) :: self
     integer                                  :: i
-    character(len=12        )                :: label
+    character(len=22        )                :: label
     type     (varying_string)                :: message
 
     ! Ensure module is initialized.
     call Abundances_Initialize
 
-    write (label,'(e12.6)') self%metallicityValue
+    write (label,'(e22.16)') self%metallicityValue
     message='metallicity: '//label
     call Galacticus_Display_Message(message)
     if (elementsCount > 0) then
        do i=1,elementsCount
-          write (label,'(e12.6)') self%elementalValue(i)
+          write (label,'(e22.16)') self%elementalValue(i)
           message=elementsToTrack(i)//':          '//label
           call Galacticus_Display_Message(message)
        end do

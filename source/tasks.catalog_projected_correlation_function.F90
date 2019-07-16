@@ -279,7 +279,7 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_HDF5
     implicit none
-    class           (taskCatalogProjectedCorrelationFunction), intent(inout)                 :: self
+    class           (taskCatalogProjectedCorrelationFunction), intent(inout), target         :: self
     integer                                                  , intent(  out), optional       :: status
     double precision                                         , allocatable  , dimension(:,:) :: galaxyPosition       , galaxyVelocity          , &
          &                                                                                      randomPosition

@@ -145,11 +145,11 @@ contains
   
   subroutine constantRotationAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,constantRotationCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,constantRotationCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine constantRotationAutoHook
   

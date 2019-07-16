@@ -89,7 +89,7 @@ contains
     use Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
     class(nodePropertyExtractorMassHalo), intent(inout)           :: self
-    type (treeNode                     ), intent(inout)           :: node
+    type (treeNode                     ), intent(inout), target   :: node
     type (multiCounter                 ), intent(inout), optional :: instance
     class(nodeComponentBasic           ), pointer                 :: basic
     !GCC$ attributes unused :: instance

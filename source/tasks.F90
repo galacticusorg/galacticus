@@ -33,6 +33,7 @@ module Tasks
   !#   <description>Perform the task.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
+  !#   <selfTarget>yes</selfTarget>
   !#   <argument>integer, intent(  out), optional :: status</argument>
   !#  </method>
   !#  <method name="requiresOutputFile" >

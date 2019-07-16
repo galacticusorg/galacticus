@@ -551,60 +551,60 @@ contains
     use ISO_Varying_String
     implicit none
     class    (keplerOrbit   ), intent(in   ) :: self
-    character(len=12        )                :: label
+    character(len=22        )                :: label
     type     (varying_string)                :: message
 
     if (self%massesIsSet             ) then
-       write (label,'(e12.6)') self%hostMassValue
+       write (label,'(e22.16)') self%hostMassValue
        message='host mass:             '//label
        call Galacticus_Display_Message(message)
-       write (label,'(e12.6)') self%specificReducedMassValue
+       write (label,'(e22.16)') self%specificReducedMassValue
        message='specific reduced mass: '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%radiusIsSet             ) then
-       write (label,'(e12.6)') self%radiusValue
-       message='radius            :     '//label
+       write (label,'(e22.16)') self%radiusValue
+       message='radius:                '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%radiusPericenterIsSet   ) then
-       write (label,'(e12.6)') self%radiusPericenterValue
-       message='radius pericenter:      '//label
+       write (label,'(e22.16)') self%radiusPericenterValue
+       message='radius pericenter:     '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%radiusApocenterIsSet   ) then
-       write (label,'(e12.6)') self%radiusApocenterValue
-       message='radius apocenter:       '//label
+       write (label,'(e22.16)') self%radiusApocenterValue
+       message='radius apocenter:      '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%velocityRadialIsSet    ) then
-       write (label,'(e12.6)') self%velocityRadialValue
-       message='velocity radial:        '//label
+       write (label,'(e22.16)') self%velocityRadialValue
+       message='velocity radial:       '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%velocityTangentialIsSet) then
-       write (label,'(e12.6)') self%velocityTangentialValue
-       message='velocity tangential:    '//label
+       write (label,'(e22.16)') self%velocityTangentialValue
+       message='velocity tangential:   '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%angularMomentumIsSet   ) then
-       write (label,'(e12.6)') self%angularMomentumValue
-       message='angular momentum:       '//label
+       write (label,'(e22.16)') self%angularMomentumValue
+       message='angular momentum:      '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%energyIsSet            ) then
-       write (label,'(e12.6)') self%energyValue
-       message='energy:                 '//label
+       write (label,'(e22.16)') self%energyValue
+       message='energy:                '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%eccentricityIsSet      ) then
-       write (label,'(e12.6)') self%eccentricityValue
-       message='eccentricity:           '//label
+       write (label,'(e22.16)') self%eccentricityValue
+       message='eccentricity:          '//label
        call Galacticus_Display_Message(message)
     end if
     if (self%semimajorAxisIsSet     ) then
-       write (label,'(e12.6)') self%semimajorAxisValue
-       message='semi-major axis:        '//label
+       write (label,'(e22.16)') self%semimajorAxisValue
+       message='semi-major axis:       '//label
        call Galacticus_Display_Message(message)
     end if
     return

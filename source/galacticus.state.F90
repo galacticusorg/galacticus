@@ -107,6 +107,9 @@ contains
        !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID_</functionArgs>
        include 'galacticus.state.store.inc'
        !# </include>
+       !# <eventHook name="stateStore">
+       !#  <callWith>stateUnit,fgslStateFile,stateOperatorID_</callWith>
+       !# </eventHook>
 
        ! Close the state files.
        close(stateUnit)
@@ -124,7 +127,7 @@ contains
   !#  <type>void</type>
   !# </functionGlobal>
   subroutine Galacticus_State_Retrieve
-    !% Retrieve the interal state.
+    !% Retrieve the internal state.
     !$ use OMP_Lib        , only : omp_in_parallel, omp_get_thread_num
     use    String_Handling
     use    FGSL           , only : fgsl_file, FGSL_Open, FGSL_Close
@@ -169,6 +172,9 @@ contains
           !#  <functionArgs>stateUnit,fgslStateFile,stateOperatorID_</functionArgs>
           include 'galacticus.state.retrieve.inc'
           !# </include>
+          !# <eventHook name="stateRestore">
+          !#  <callWith>stateUnit,fgslStateFile,stateOperatorID_</callWith>
+          !# </eventHook>
 
           ! Close the state files.
           close(stateUnit)

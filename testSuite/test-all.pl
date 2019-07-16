@@ -230,6 +230,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.sort.topological.exe",                                         # Tests of topological sorting functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.string_utilities.exe",                                         # Tests of string handling utilities.
 	valgrind => 0,
 	mpi      => 0
@@ -516,7 +521,11 @@ foreach my $executable ( @executablesToRun ) {
     # Generate the job.
     if ( exists($executable->{'name'}) ) {
 	(my $label = $executable->{'name'}) =~ s/\./_/;
-	my $ppn = exists($executable->{'ppn'}) ? $executable->{'ppn'} : 1;
+	my $ppn = 1;
+	$ppn = $executable->{'ppn'}
+	    if ( exists($executable->{'ppn'}) );
+	$ppn = $executable->{'mpi'}
+	    if ( exists($executable->{'mpi'}) );
 	my $launchFile = "testSuite/".$label.".pbs";
 	push(@launchFiles,$launchFile);
 	$executable->{'expect'} = "success"
@@ -736,32 +745,38 @@ sub testFailure {
 	    $result = "SUCCESS: ".$jobMessage."\n";
 	}
     } else {
-	# Check for failure message in log file.
-	system("grep -q FAIL ".$logFile);
-	if ( $? == 0 ) {
-	    # Failure detected.
-	    if ( $expect eq "fail" ) {
-		# We expected failure, and we did fail. This is a success.
-		$result = "SUCCESS: ".$jobMessage."\n";
-	    } elsif ( $expect eq "success" ) {
-		# We expected failure, but we did not fail. This is a failure.
-		$result = "FAILED: ".$jobMessage."\n";
+	# Check for crash.
+	if ( $exitStatus == 0 ) {
+	    # Check for failure message in log file.
+	    system("grep -q FAIL ".$logFile);
+	    if ( $? == 0 ) {
+		# Failure detected.
+		if ( $expect eq "fail" ) {
+		    # We expected failure, and we did fail. This is a success.
+		    $result = "SUCCESS: ".$jobMessage."\n";
+		} elsif ( $expect eq "success" ) {
+		    # We expected failure, but we did not fail. This is a failure.
+		    $result = "FAILED: ".$jobMessage."\n";
+		} else {
+		    # Unknown expectation.
+		    $result = "FAILED: ".$jobMessage." (unknown expectation)\n";
+		}
 	    } else {
-		# Unknown expectation.
-		$result = "FAILED: ".$jobMessage." (unknown expectation)\n";
+		# No failure detected.
+		if ( $expect eq "fail" ) {
+		    # We expected failure, but we did not fail. This is a failure.
+		    $result = "FAILED: ".$jobMessage." (failure expected)\n";
+		} elsif ( $expect eq "success" ) {
+		    # We expected failure, but we did not fail. This is a failure.
+		    $result = "SUCCESS: ".$jobMessage."\n";
+		} else {
+		    # Unknown expectation.
+		    $result = "FAILED: ".$jobMessage." (unknown expectation)\n";
+		}
 	    }
 	} else {
-	    # No failure detected.
-	    if ( $expect eq "fail" ) {
-		# We expected failure, but we did not fail. This is a failure.
-		$result = "FAILED: ".$jobMessage." (failure expected)\n";
-	    } elsif ( $expect eq "success" ) {
-		# We expected failure, but we did not fail. This is a failure.
-		$result = "SUCCESS: ".$jobMessage."\n";
-	    } else {
-		# Unknown expectation.
-		$result = "FAILED: ".$jobMessage." (unknown expectation)\n";
-	    }
+	    # We did not expect a crash, but got one. This is a failure.
+	    $result = "FAILED: ".$jobMessage." (crashed unexpectedly)\n";
 	}
     }
     # Report success or failure.

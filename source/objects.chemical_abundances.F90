@@ -525,12 +525,12 @@ contains
     implicit none
     class    (chemicalAbundances), intent(in   ) :: chemicals
     integer                                      :: i
-    character(len=12            )                :: label
+    character(len=22            )                :: label
     type     (varying_string    )                :: message
 
     if (allocated(chemicals%chemicalValue)) then
        do i=1,chemicalsCount
-          write (label,'(e12.6)') chemicals%chemicalValue(i)
+          write (label,'(e22.16)') chemicals%chemicalValue(i)
           message=chemicalsToTrack(i)//': '//repeat(" ",chemicalNameLengthMaximum-len(chemicalsToTrack(i)))//label
           call Galacticus_Display_Message(message)
        end do

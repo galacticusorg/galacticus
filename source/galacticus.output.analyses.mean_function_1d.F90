@@ -36,6 +36,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, volumeFunctionCross"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, volumeFunctionCross"/>
+  !#  </stateStorable>
   !# </outputAnalysis>
   type, extends(outputAnalysisClass) :: outputAnalysisMeanFunction1D
      !% A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.

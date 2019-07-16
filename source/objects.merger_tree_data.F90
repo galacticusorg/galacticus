@@ -121,6 +121,7 @@ module Merger_Tree_Data_Structure
   !#  <description>Used to specify the type of metadata being stored in a {\normalfont \ttfamily mergerTreeData} structure.</description>
   !#  <visibility>public</visibility>
   !#  <validator>yes</validator>
+  !#  <encodeFunction>yes</encodeFunction>
   !#  <entry label="generic"     />
   !#  <entry label="cosmology"   />
   !#  <entry label="simulation"  />
@@ -241,13 +242,13 @@ module Merger_Tree_Data_Structure
      !@     <method>readASCII</method>
      !@     <description>Read node data from an ASCII file into the data structure.</description>
      !@     <type>\void</type>
-     !@     <arguments>inputFile\argin, [lineNumberStart]\argin, [lineNumberStop]\argin, [separator]\argin</arguments>
+     !@     <arguments>inputFile\argin, [commentCharacter]\argin, [separator]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>readParticlesASCII</method>
      !@     <description>Read particle data from an ASCII file into the data structure</description>
      !@     <type>\void</type>
-     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} inputFile\argin, \intzero\ [lineNumberStart]\argin, \intzero\ [lineNumberStop]\argin, \textcolor{red}{\textless character(len=*)\textgreater} [separator]\argin</arguments>
+     !@     <arguments>\textcolor{red}{\textless character(len=*)\textgreater} inputFile\argin, \textcolor{red}{\textless character(len=1)\textgreater} [commentCharacter]\argin, \textcolor{red}{\textless character(len=*)\textgreater} [separator]\argin</arguments>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>setProperty</method>
@@ -915,7 +916,7 @@ contains
     return
   end subroutine Merger_Tree_Data_Structure_Set_Property_Double
 
-  subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator,maximumRedshift)
+  subroutine Merger_Tree_Data_Structure_Read_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator,maximumRedshift)
     !% Read in merger tree data from an ASCII file.
     use String_Handling
     use Memory_Management
@@ -925,33 +926,24 @@ contains
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
     character(len=*         ), intent(in   )               :: inputFile
-    integer                  , intent(in   ), optional     :: lineNumberStart               , lineNumberStop
     character(len=*         ), intent(in   ), optional     :: separator
+    character(len=1         ), intent(in   ), optional     :: commentCharacter
     double precision         , intent(in   ), optional     :: maximumRedshift
+    logical                  , intent(in   ), optional     :: columnHeaders
     character(len=32        ), allocatable  , dimension(:) :: inputColumns
     double precision         , parameter                   :: maximumRedshiftDefault=800.0d0
-    integer                                                :: columnsCount                  , fileUnit      , iColumn              , &
-         &                                                    iNode                         , lineNumber    , lineNumberStartActual, &
-         &                                                    lineNumberStopActual          , i
+    integer                                                :: columnsCount                  , fileUnit           , &
+         &                                                    iColumn                       , iNode              , &
+         &                                                    i                             , nodeCount
     double precision                                       :: maximumRedshiftActual
-    logical                                                :: gotFirstDataLine
+    logical                                                :: gotFirstDataLine              , gotColumnHeaderLine
     character(len=1024      )                              :: inputLine
     type     (varying_string)                              :: message
 
-    ! Get start and stop line numbers.
-    if (present(lineNumberStart)) then
-       lineNumberStartActual=lineNumberStart
-    else
-       lineNumberStartActual=1
-    end if
-    if (present(lineNumberStop )) then
-       lineNumberStopActual =lineNumberStop
-    else
-       lineNumberStopActual =Count_Lines_In_File(inputFile)
-    end if
-
     ! Determine number of nodes.
-    call mergerTrees%nodeCountSet(lineNumberStopActual-lineNumberStartActual+1)
+    nodeCount=Count_Lines_In_File(inputFile,commentCharacter)
+    if (present(columnHeaders).and.columnHeaders) nodeCount=nodeCount-1
+    call mergerTrees%nodeCountSet(nodeCount)
 
     ! Specify what properties these trees have.
     mergerTrees%hasForestIndex                     =any(mergerTrees%columnProperties == propertyTypeTreeIndex               )
@@ -1078,24 +1070,28 @@ contains
 
     ! Open the file and read lines.
     open(newunit=fileUnit,file=inputFile,status='old',form='formatted')
-    lineNumber      =0
-    iNode           =0
-    gotFirstDataLine=.false.
-    do while (lineNumber < lineNumberStopActual)
+    iNode              =0
+    columnsCount       =0
+    gotFirstDataLine   =.false.
+    gotColumnHeaderLine=.not.present(columnHeaders).or..not.columnHeaders
+    do while (iNode < nodeCount)
        ! Get the line.
        read (fileUnit,'(a)') inputLine
-       ! Increment line number count.
-       lineNumber=lineNumber+1
        ! Check if this is a data line.
-       if (lineNumber >= lineNumberStartActual .and. lineNumber <= lineNumberStopActual) then
-          ! Count nodes.
-          iNode=iNode+1
+       if (.not.present(commentCharacter) .or. inputLine(1:1) /= commentCharacter) then
+          ! Skip header line.
+          if (.not.gotColumnHeaderLine) then
+             gotColumnHeaderLine=.true.
+             cycle
+          end if
           ! If this is the first data line, determine how many columns are present and allocate array to store them.
           if (.not.gotFirstDataLine) then
              columnsCount=String_Count_Words(inputLine,separator)
              call allocateArray(inputColumns,[columnsCount])
              gotFirstDataLine=.true.
           end if
+          ! Count nodes.
+          iNode=iNode+1
           call String_Split_Words(inputColumns,inputLine,separator)
           do iColumn=1,min(columnsCount,size(mergerTrees%columnProperties))
              select case (mergerTrees%columnProperties(iColumn))
@@ -1392,7 +1388,7 @@ contains
     return
   end subroutine Merger_Tree_Data_Structure_Set_Tree_Indices
 
-  subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII(mergerTrees,inputFile,lineNumberStart,lineNumberStop,separator)
+  subroutine Merger_Tree_Data_Structure_Read_Particles_ASCII(mergerTrees,inputFile,columnHeaders,commentCharacter,separator)
     !% Read in particle data from an ASCII file.
     use String_Handling
     use Memory_Management
@@ -1401,32 +1397,23 @@ contains
     implicit none
     class    (mergerTreeData), intent(inout)               :: mergerTrees
     character(len=*         ), intent(in   )               :: inputFile
-    integer                  , intent(in   ), optional     :: lineNumberStart     , lineNumberStop
+    character(len=1         ), intent(in   ), optional     :: commentCharacter
     character(len=*         ), intent(in   ), optional     :: separator
+    logical                  , intent(in   ), optional     :: columnHeaders
     character(len=32        ), allocatable  , dimension(:) :: inputColumns
-    integer                                                :: columnsCount        , fileUnit      , iColumn              , &
-         &                                                    iNode               , lineNumber    , lineNumberStartActual, &
-         &                                                    lineNumberStopActual
-    logical                                                :: gotFirstDataLine
+    integer                                                :: columnsCount    , fileUnit           , &
+         &                                                    iNode           , nodeCount          , &
+         &                                                    iColumn
+    logical                                                :: gotFirstDataLine, gotColumnHeaderLine
     character(len=1024      )                              :: inputLine
 
     ! Flag that these trees have particles.
     mergerTrees%hasParticles=.true.
 
-    ! Get start and stop line numbers.
-    if (present(lineNumberStart)) then
-       lineNumberStartActual=lineNumberStart
-    else
-       lineNumberStartActual=1
-    end if
-    if (present(lineNumberStop )) then
-       lineNumberStopActual =lineNumberStop
-    else
-       lineNumberStopActual =Count_Lines_In_File(inputFile)
-    end if
-
     ! Determine number of particles.
-    call mergerTrees%particleCountSet(lineNumberStopActual-lineNumberStartActual+1)
+    nodeCount=Count_Lines_In_File(inputFile,commentCharacter)
+    if (present(columnHeaders).and.columnHeaders) nodeCount=nodeCount-1
+    call mergerTrees%particleCountSet(nodeCount)
 
     ! Specify what properties these particles have.
     mergerTrees%hasParticleIndex    =any(mergerTrees%particleColumnProperties == propertyTypeParticleIndex)
@@ -1470,24 +1457,28 @@ contains
 
     ! Open the file and read lines.
     open(newunit=fileUnit,file=inputFile,status='old',form='formatted')
-    lineNumber      =0
-    iNode           =0
-    gotFirstDataLine=.false.
-    do while (lineNumber < lineNumberStopActual)
+    iNode              =0
+    columnsCount       =0
+    gotFirstDataLine   =.false.
+    gotColumnHeaderLine=.not.present(columnHeaders).or..not.columnHeaders
+    do while (iNode < nodeCount)
        ! Get the line.
        read (fileUnit,'(a)') inputLine
-       ! Increment line number count.
-       lineNumber=lineNumber+1
        ! Check if this is a data line.
-       if (lineNumber >= lineNumberStartActual .and. lineNumber <= lineNumberStopActual) then
-          ! Count nodes.
-          iNode=iNode+1
+       if (.not.present(commentCharacter) .or. inputLine(1:1) /= commentCharacter) then
+          ! Skip header line.
+          if (.not.gotColumnHeaderLine) then
+             gotColumnHeaderLine=.true.
+             cycle
+          end if
           ! If this is the first data line, determine how many columns are present and allocate array to store them.
           if (.not.gotFirstDataLine) then
              columnsCount=String_Count_Words(inputLine,separator)
              call allocateArray(inputColumns,[columnsCount])
              gotFirstDataLine=.true.
           end if
+          ! Count nodes.
+          iNode=iNode+1
           call String_Split_Words(inputColumns,inputLine,separator)
           do iColumn=1,min(columnsCount,size(mergerTrees%particleColumnProperties))
              select case (mergerTrees%particleColumnProperties(iColumn))

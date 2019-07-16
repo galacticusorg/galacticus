@@ -3,6 +3,18 @@
 # Build the Galacticus documentation.
 # Andrew Benson (20-February-2011)
 
+# Set defaults.
+PPN=1
+
+# Get options.
+while getopts p: option
+do
+case "${option}"
+in
+p) PPN=${OPTARG};;
+esac
+done
+
 # Clear out old build files.
 rm -f                                                                                                                                     \
    doc/methods/*.tex doc/inputParameters/*.tex doc/enumerations/definitions/*.tex doc/enumerations/specifiers/*.tex doc/contributions.tex \
@@ -10,7 +22,7 @@ rm -f                                                                           
 
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
 rm -rf work/build
-make all
+make -j$PPN all
 if [ $? -ne 0 ]; then
  echo Failed to build all executables
  exit 1

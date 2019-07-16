@@ -178,7 +178,7 @@ contains
     use Galacticus_Nodes                   , only : treeNode                  , nodeComponentBasic          , nodeComponentDarkMatterProfile
     use Conditional_Mass_Functions         , only : haloModelGalaxyTypeCentral, haloModelGalaxyTypeSatellite
     implicit none
-    class           (taskHaloModelGenerate         ), intent(inout)                 :: self
+    class           (taskHaloModelGenerate         ), intent(inout), target         :: self
     integer                                         , intent(  out), optional       :: status
     double precision                                , allocatable  , dimension(  :) :: haloMass             , galaxyMass
     double precision                                , allocatable  , dimension(:,:) :: haloPosition         , haloVelocity             , &

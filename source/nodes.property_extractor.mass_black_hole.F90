@@ -60,7 +60,7 @@ contains
     use Galacticus_Nodes                  , only : nodeComponentBlackHole
     implicit none
     class(nodePropertyExtractorMassBlackHole), intent(inout)           :: self
-    type (treeNode                          ), intent(inout)           :: node
+    type (treeNode                          ), intent(inout), target   :: node
     type (multiCounter                      ), intent(inout), optional :: instance
     class(nodeComponentBlackHole            ), pointer                 :: blackHole
     !GCC$ attributes unused :: self, instance

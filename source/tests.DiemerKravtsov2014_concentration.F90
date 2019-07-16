@@ -26,7 +26,6 @@ program Test_DiemerKravtsov2014_Concentration
   use Dark_Matter_Profiles_Concentration
   use Cosmology_Functions
   use Cosmology_Parameters
-  use Galacticus_Nodes                  , only : treeNode, nodeComponentBasic
   use Unit_Tests
   use System_Command
   use Galacticus_Error
@@ -35,6 +34,10 @@ program Test_DiemerKravtsov2014_Concentration
   use Cosmological_Density_Field
   use Power_Spectra
   use Galacticus_Display
+  use Galacticus_Nodes                    , only : treeNode                           , nodeComponentBasic               , nodeClassHierarchyInitialize
+  use Node_Components                     , only : Node_Components_Initialize         , Node_Components_Thread_Initialize, Node_Components_Uninitialize, Node_Components_Thread_Uninitialize
+  use Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
+  use Events_Hooks                        , only : eventsHooksInitialize
   implicit none
   type            (treeNode                                        ), pointer :: node
   class           (nodeComponentBasic                              ), pointer :: basic
@@ -62,6 +65,10 @@ program Test_DiemerKravtsov2014_Concentration
   parameterFile='testSuite/parameters/DiemerKravtsov2014HaloConcentration/testParameters.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
+  call eventsHooksInitialize()
+  call nodeClassHierarchyInitialize     (parameters)
+  call Node_Components_Initialize       (parameters)
+  call Node_Components_Thread_Initialize(parameters)    
 
   ! Get the data file if we don't have it.
   if (.not.File_Exists(galacticusPath(pathTypeExec)//"testSuite/data/diemerKravtsov2014Concentration.txt")) then
@@ -123,6 +130,9 @@ program Test_DiemerKravtsov2014_Concentration
   ! Kravtsov.
   call Assert("Halo concentration in WMAP7 reference model",differenceFractionalMaximum,0.0d0,absTol=2.9d-2)
   ! End unit tests.
-  call Unit_Tests_End_Group()
-  call Unit_Tests_Finish()
+  call Unit_Tests_End_Group               ()
+  call Unit_Tests_Finish                  ()
+  call Node_Components_Thread_Uninitialize()
+  call Node_Components_Uninitialize       ()
+  call Galacticus_Function_Classes_Destroy()
 end program Test_DiemerKravtsov2014_Concentration

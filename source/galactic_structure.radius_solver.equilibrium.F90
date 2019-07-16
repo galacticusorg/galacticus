@@ -126,14 +126,14 @@ contains
 
   subroutine equilibriumAutoHook(self)
     !% Attach to various event hooks.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent, openMPThreadBindingAtLevel
     implicit none
     class(galacticStructureSolverEquilibrium), intent(inout) :: self
 
-    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,bindToOpenMPThread=.true.)
-    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,bindToOpenMPThread=.true.)
-    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,bindToOpenMPThread=.true.)
-    call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,bindToOpenMPThread=.true.)
+    call   preDerivativeEvent%attach(self,equilibriumSolvePreDeriativeHook,openMPThreadBindingAtLevel)
+    call      postEvolveEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel)
+    call satelliteMergerEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel)
+    call   nodePromotionEvent%attach(self,equilibriumSolveHook            ,openMPThreadBindingAtLevel)
     return
   end subroutine equilibriumAutoHook
 
@@ -316,8 +316,8 @@ contains
             end if
             equilibriumRadiusStored  (equilibriumActiveComponentCount)=radius
             equilibriumVelocityStored(equilibriumActiveComponentCount)=velocity
-         end if
-      else
+         end if    
+       else
          ! On subsequent iterations do the full calculation providing component has non-zero specific angular momentum.
          if (specificAngularMomentum <= 0.0d0) return
          ! Get current radius of the component.

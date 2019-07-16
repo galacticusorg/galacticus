@@ -167,8 +167,8 @@ contains
     type            (outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc     ), pointer                       :: outputAnalysisWeightPropertyOperatorCsmlgyLmnstyDstnc_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial     ), pointer                       :: outputAnalysisWeightPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorFilterHighPass        ), pointer                       :: outputAnalysisWeightPropertyOperatorFilterHighPass_
-    type            (nodePropertyExtractorMassHalo             ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorMassStellar          ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo                       ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellar                    ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (propertyOperatorList                                ), pointer                       :: propertyOperators_
     type            (cosmologyParametersSimple                           ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                      ), pointer                       :: cosmologyFunctionsData
@@ -332,12 +332,12 @@ contains
     !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                )"/>
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar            (                                                                                )"/>
+    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                                                                )"/>
     ! Create a halo mass weight property extractor.
     allocate(virialDensityContrast_                                )
     !# <referenceConstruct object="virialDensityContrast_"                 constructor="virialDensityContrastFixed                            (200.0d0                 ,fixedDensityTypeMean               , cosmologyParameters_, cosmologyFunctions_)"/>
     allocate(nodePropertyExtractor_                      )
-    !# <referenceConstruct object="nodePropertyExtractor_"       constructor="nodePropertyExtractorMassHalo               (virialDensityContrast_                                                          )"/>
+    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassHalo                         (virialDensityContrast_                                                          )"/>
     ! Build the object.
     if (computeScatter) then
        analysisLabel            =var_str('stellarHaloMassRelationScatterLeauthaud2012z')//redshiftInterval

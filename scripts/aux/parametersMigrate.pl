@@ -628,7 +628,17 @@ my @translations =
 	     "odeAlgorithmNonJacobian"                                   => "mergerTreeNodeEvolverMethod.standard.--odeAlgorithmNonJacobian"                        ,
 	     "odeLatentIntegratorOrder"                                  => "mergerTreeNodeEvolverMethod.standard.--odeLatentIntegratorOrder"                       ,
 	     "odeLatentIntegratorIntervalsMaximum"                       => "mergerTreeNodeEvolverMethod.standard.--odeLatentIntegratorIntervalsMaximum"            ,
-	     "profileOdeEvolver"                                         => "mergerTreeNodeEvolverMethod.standard.--profileOdeEvolver"
+	     "profileOdeEvolver"                                         => "mergerTreeNodeEvolverMethod.standard.--profileOdeEvolver"                              ,
+	     "timePerTreeMethod"                                         => "metaTreeProcessingTimeMethod"                                                          ,
+	     "timePerTreeFitFileName"                                    => "metaTreeProcessingTimeMethod.file.--fileName"                                          ,
+	     "starFormationHistoriesMethod"                              => "starFormationHistoryMethod"                                                            ,
+	     "starFormationHistoryTimeStep"                              => "starFormationHistoryMethod--timeStep"                                                  ,
+	     "starFormationHistoryFineTimeStep"                          => "starFormationHistoryMethod--timeStepFine"                                              ,
+	     "starFormationHistoryFineTime"                              => "starFormationHistoryMethod--timeFine"                                                  ,
+	     "starFormationHistoryMetallicityBoundaries"                 => "starFormationHistoryMethod.metallicitySplit.--metallicityBoundaries"                   ,
+	     "starFormationHistoryMetallicityCount"                      => "starFormationHistoryMethod.metallicitySplit.--countMetallicities"                      ,
+	     "starFormationHistoryMetallicityMinimum"                    => "starFormationHistoryMethod.metallicitySplit.--metallicityMinimum"                      ,
+	     "starFormationHistoryMetallicityMaximum"                    => "starFormationHistoryMethod.metallicitySplit.--metallicityMaximum"
 	 },
 	 values        =>
          {
@@ -824,15 +834,16 @@ my @translations =
 # Define known defaults.
 my %knownDefaults =
     (
-     "cosmologyParametersMethod"            => "simple"       ,
-     "mergerTreeBuilderMethod"              => "cole2000"     ,
-     "cosmologicalMassVarianceMethod"       => "filteredPower",
-     "cosmologyParametersMethod"            => "simple"       ,
-     "darkMatterProfileConcentrationMethod" => "gao2008"      ,
-     "powerSpectrumPrimordialMethod"        => "powerLaw"     ,
-     "haloMassFunctionMethod"               => "tinker2008"   ,
-     "mergerTreeOutput"                     => "true"         ,
-     "satelliteMergingTimescalesMethod"     => "jiang2008"
+     "cosmologyParametersMethod"            => "simple"          ,
+     "mergerTreeBuilderMethod"              => "cole2000"        ,
+     "cosmologicalMassVarianceMethod"       => "filteredPower"   ,
+     "cosmologyParametersMethod"            => "simple"          ,
+     "darkMatterProfileConcentrationMethod" => "gao2008"         ,
+     "powerSpectrumPrimordialMethod"        => "powerLaw"        ,
+     "haloMassFunctionMethod"               => "tinker2008"      ,
+     "mergerTreeOutput"                     => "true"            ,
+     "satelliteMergingTimescalesMethod"     => "jiang2008"       ,
+     "starFormationHistoryMethod"           => "metallicitySplit"
   );
 
 # Parse the input file.

@@ -36,6 +36,16 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <outputHaloModelData value="true"/>
+    <taskMethod value="multi">
+      <taskMethod value="evolveForests"/>
+      <taskMethod value="powerSpectra" />
+    </taskMethod>
+    <nodePropertyExtractMethod value="multi">
+      <nodePropertyExtractMethod value="haloBias"/>
+      <nodePropertyExtractMethod value="indicesHost">
+	<topLevel value="true"/>
+      </nodePropertyExtractMethod>
+    </nodePropertyExtractMethod>
     <darkMatterHaloBiasMethod value="sheth2001"/>
     <darkMatterHaloBiasMethod value="pressSchechter"/>
     <darkMatterHaloBiasMethod value="tinker2010"/>
@@ -122,7 +132,9 @@
 	  <massCharacteristic value="5.5e10"/>
 	  <normalization value="2.0e-4"/>
 	  <binWidthLogarithmic value="0.097"/>
-	  <timePerTreeFitFileName value="testSuite/data/treeTiming.xml" parameterLevel="top"/>
+	  <metaTreeProcessingTimeMethod value="file" parameterLevel="top">
+	    <fileName value="testSuite/data/treeTiming.xml"/>
+	  </metaTreeProcessingTimeMethod>
 	  <mergerTreeMassResolutionMethod value="fixed" parameterLevel="top">
 	    <massResolution value="5.0e11"/>
 	  </mergerTreeMassResolutionMethod>
@@ -392,8 +404,8 @@
       <coolingTimeAvailableMethod value="formationTime" parameterLevel="top"/>
       <hotHaloCoolingFromNode value="formationNode" parameterLevel="top"/>
       <treeNodeMethodFormationTime value="Cole2000" parameterLevel="top"/>
-      <outputHotHaloCoolingRates value="false" parameterLevel="top"/>
-      <outputHotHaloCoolingRates value="true" parameterLevel="top"/>
+      <nodePropertyExtractorMethod value="rateCooling" parameterLevel="top"/>
+      <nodePropertyExtractorMethod value="null"        parameterLevel="top"/>
     </coolingRateMethod>
   </parameters>
   
@@ -530,8 +542,9 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputDensityContrastData value="true"/>
-    <outputDensityContrastValues value="200 500"/>
+    <nodePropertyExtractorMethod value="densityContrasts">
+      <densityContrasts value="200 500"/>
+    </nodePropertyExtractorMethod>
   </parameters>
 
   <!-- Output half-light radii -->
@@ -539,10 +552,9 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <outputTimesMethod value="list">
-    <redshifts value="0.0 0.1"/>
-  </outputTimesMethod>
-
-  <outputHalfLightData value="true"/>
+      <redshifts value="0.0 0.1"/>
+    </outputTimesMethod>
+    <nodeProprtyExtractorMethod value="radiiHalfLightProperties"/>
     <luminosityFilter value="RGO_I SDSS_g SDSS_r SDSS_i"/>
     <luminosityType value="rest observed observed observed"/>
     <luminosityRedshift value="0.0 0.1 0.1 0.1"/>
@@ -552,15 +564,16 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputMainBranchStatus value="true"/>
+    <nodePropertyExtractorMethod value="mainBranchStatus"/>
   </parameters>
 
   <!-- Output mass profile -->
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputMassProfileData value="true"/>
-    <outputMassProfileRadii value="10.0e-3 100.0d-3"/>
+    <nodePropertyExtractorMethod value="massProfile">
+      <radii value="10.0e-3 100.0d-3"/>
+    </nodePropertyExtractorMethod>
   </parameters>
 
   <!-- Output star formation rates -->
@@ -575,7 +588,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <starFormationHistoriesMethod value="metallicitySplit"/>
+    <starFormationHistoryMethod value="metallicitySplit"/>
   </parameters>
 
   <!-- Output virial quantities -->
@@ -589,7 +602,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputDescendentIndices value="true"/>
+    <nodePropertyExtractorMethod value="descendents"/>
     <treeNodeMethodSatellite value="standard"/>
   </parameters>
   
@@ -597,7 +610,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <outputMostMassiveProgenitor value="true"/>
+    <nodePropertyExtractorMethod value="mostMassiveProgenitor"/>
   </parameters>
   
   <!-- Calculation of luminosities -->
@@ -970,7 +983,7 @@
     </mergerTreeOperatorMethod>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
-    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
     <treeNodeMethodDisk value="null"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodPosition value="null"/>
@@ -1371,7 +1384,7 @@
     </mergerTreeOperatorMethod>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
-    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
     <treeNodeMethodDisk value="null"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodPosition value="null"/>
@@ -1414,11 +1427,10 @@
     <mergerTreeEvolverMethod value="standard">
       <allTreesExistAtFinalTime value="false"/>
     </mergerTreeEvolverMethod>
-
     <mergerTreeOperatorMethod value="monotonizeMassGrowth"/>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
-    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
     <treeNodeMethodDisk value="null"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodPosition value="null"/>
@@ -1461,14 +1473,13 @@
     <mergerTreeEvolverMethod value="standard">
     <allTreesExistAtFinalTime value="false"/>
   </mergerTreeEvolverMethod>
-
   <mergerTreeOperatorMethod value="outputRootMasses">
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperatorMethod>
     <treeNodeMethodBasic value="standard"/>
     <treeNodeMethodBlackHole value="null"/>
-    <treeNodeMethodDarkMatterProfile value="null"/>
+    <treeNodeMethodDarkMatterProfile value="scale"/>
     <treeNodeMethodDisk value="null"/>
     <treeNodeMethodHotHalo value="null"/>
     <treeNodeMethodPosition value="null"/>

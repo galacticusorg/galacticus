@@ -28,6 +28,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="referenceDensityContrast"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="referenceDensityContrast"/>
+  !#  </stateStorable>
   !# </haloMassFunction>
   type, extends(haloMassFunctionShethTormen) :: haloMassFunctionDespali2015
      !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.
@@ -100,7 +103,7 @@ contains
     !# <constructorAssign variables="*cosmologyParameters_,*cosmologyFunctions_,*cosmologicalMassVariance_,*criticalOverdensity_,*virialDensityContrast_"/>
 
     allocate(self%referenceDensityContrast)
-    !# <referenceConstruct isResult="yes" owner="self" object="referenceDensityContrast" constructor="virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="referenceDensityContrast" constructor="virialDensityContrastSphericalCollapseMatterLambda(.true.,cosmologyFunctions_)"/>
     return
   end function despali2015ConstructorInternal
 

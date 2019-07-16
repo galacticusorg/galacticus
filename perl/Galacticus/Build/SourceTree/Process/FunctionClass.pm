@@ -587,6 +587,29 @@ CODE
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
 		code        => $hashedDescriptorCode
 	    };
+	    # Add a "objectType" method.
+	    $code::directiveName = $directive->{'name'};
+	    my $objectTypeCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+select type (self)
+CODE
+	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
+		$code::type = $nonAbstractClass->{'name'};
+		$objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+type is ({$type})
+{$directiveName}ObjectType='{$type}'
+CODE
+	    }
+	    $objectTypeCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+end select
+CODE
+	    $methods{'objectType'} = 
+	    {
+		description => "Return the type of the object.",
+		type        => "type(varying_string)",
+		pass        => "yes",
+		modules     => "ISO_Varying_String",
+		code        => $objectTypeCode
+	    };
 	    # Add "allowedParameters" method.
 	    my $allowedParametersCode;
 	    my $parametersPresent = 0;
@@ -613,7 +636,7 @@ CODE
 		my $allowedParameters;
 		my $declarationMatches = 0;
 		while ( $node ) {
-		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*function\s+$node->{'name'}\s*\(\s*parameters\s*(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
+		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive)??\s+function\s+$node->{'name'}\s*\(\s*parameters\s*(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
 			# Extract the name of the return variable in this function.
 			my $result = ($node->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/) ? $1 : $node->{'name'};
 			# Check if this is the parameters constructor.
@@ -1066,18 +1089,21 @@ CODE
 		    }
 		    # Deep copy of non-(class,pointer) functionClass objects.
 		    if ( exists($class->{'deepCopy'}->{'functionClass'}) ) {
-			foreach my $name ( split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
-			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				$assignments .= "nullify(destination%".$name.")\n";
-				$assignments .= "if (associated(self%".$name.")) then\n";
-				$assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
-			    }
-			    $assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-			    $assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
-				if ( $debugging );
-			    $assignments .= "call destination%".$name."%autoHook()\n";
-			    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
-				$assignments .= "end if\n";
+			foreach my $object ( @{$declaration->{'variables'}} ) {
+			    (my $name = $object) =~ s/^([a-zA-Z0-9_]+).*/$1/; # Strip away anything (e.g. assignment operators) after the variable name.
+			    if ( grep {lc($_) eq lc($name)} split(/\s*,\s*/,$class->{'deepCopy'}->{'functionClass'}->{'variables'}) ) {
+				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+				    $assignments .= "nullify(destination%".$name.")\n";
+				    $assignments .= "if (associated(self%".$name.")) then\n";
+				    $assignments .= "allocate(destination%".$name.",mold=self%".$name.")\n";
+				}
+				$assignments .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+				$assignments .= "if (mpiSelf\%isMaster()) call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): ".$name." : [destination] : ')//loc(destination)//' : '//loc(destination%".$name.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$lineNumber,compact => 1).",verbositySilent)\n"
+				    if ( $debugging );
+				$assignments .= "call destination%".$name."%autoHook()\n";
+				if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
+				    $assignments .= "end if\n";
+				}
 			    }
 			}
 		    }
@@ -1398,29 +1424,23 @@ CODE
 					    $fgslStateFileUsed = 1;
 					}
 				    } elsif (
-					(
-					 (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
-					 ||
-					 (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
-					)
-					&&
-					(! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'            }})				       
-					){
+					(  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
+					||
+					(  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
+					){					
 					# This is a non-pointer object which is explicitly stateStorable.
-					# Validate: Currently we do not support store/restore of polymorphic functionClass objects.
-					die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): storing of polymorphic functionClass objects is not implemented")
-					    if
-					    (
-					     $declaration->{'intrinsic'} eq "class"
-					     &&
-					     (grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}})
-					    );
+					# Get presence of pointer attribute.
+					my $isPointer = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+					# Get list of named pointer variables that are allowed.
+					my @explicits = exists($class->{'stateStorable'}->{'functionClass'}->{'variables'}) ? split(/\s*,\s*/,$class->{'stateStorable'}->{'functionClass'}->{'variables'}) : ();
 					my $isFunctionClass = grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}};
 					# Construct code to output.
 					foreach ( @{$declaration->{'variables'}} ) {
 					    (my $variableName = $_) =~ s/\s*=.*$//;
 					    next
 						if ( grep {lc($_) eq lc($variableName)} @excludes );
+					    next
+						unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
 					    my $rank = 0;
 					    if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 						my $dimensionDeclarator = join(",",map {/^dimension\s*\(([a-zA-Z0-9_,]+)\)/} @{$declaration->{'attributes'}});
@@ -1613,28 +1633,22 @@ CODE
 				$fgslStateFileUsed = 1;
 			    }
 			} elsif (
-			    (
-			     (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
-			     ||
-			     (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
-			    )
-			    &&
-			    (! grep {$_           eq "pointer"} @{$declaration   ->{'attributes'            }})
+			    (  grep {$_->{'type'} eq $type    } @{$stateStorables->{'stateStorables'        }})
+			    ||
+			    (  grep {$_           eq $type    } @{$stateStorables->{'functionClassInstances'}})
 			    ){
+			    # Get presence of pointer attribute.
+			    my $isPointer = grep {$_ eq "pointer"} @{$declaration->{'attributes'}};
+			    # Get list of named pointer variables that are allowed.
+			    my @explicits = exists($directive->{'stateStorable'}->{'functionClass'}->{'variables'}) ? split(/\s*,\s*/,$directive->{'stateStorable'}->{'functionClass'}->{'variables'}) : ();
 			    # This is a non-pointer object which is explicitly stateStorable or implicitly storeable by virtue of being a functionClass.
-			    # Validate: Currently we do not support store/restore of polymorphic functionClass objects.
-			    die("Galacticus::Build::SourceTree::Process::FunctionClass::Process_FunctionClass(): storing of polymorphic functionClass objects is not implemented")
-				if
-				(
-				 $declaration->{'intrinsic'} eq "class"
-				 &&
-				 (grep {$_ eq $type} @{$stateStorables->{'functionClassInstances'}})
-				);
 			    # Construct code to output.
 			    foreach ( @{$declaration->{'variables'}} ) {
 				(my $variableName = $_) =~ s/\s*=.*$//;
 				next
 				    if ( grep {lc($_) eq lc($variableName)} @excludes );
+				next
+				    unless ( (! $isPointer) || grep {lc($_) eq lc($variableName)} @explicits );
 				my $rank = 0;
 				if ( grep {$_ =~ m/^dimension\s*\(/} @{$declaration->{'attributes'}} ) {
 				    my $dimensionDeclarator = join(",",map {/^dimension\s*\(([:,]+)\)/} @{$declaration->{'attributes'}});
@@ -2277,7 +2291,7 @@ CODE
 	    $preContains->[0]->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."Default)\n";
 	    $preContains->[0]->{'content'} .= "\n";
 	    # Create default constructor.
-	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."CnstrctrDflt()\n";
+	    $postContains->[0]->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."CnstrctrDflt()\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 	    $postContains->[0]->{'content'} .= "      implicit none\n";
 	    $postContains->[0]->{'content'} .= "      class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."CnstrctrDflt\n\n";
@@ -2302,7 +2316,7 @@ CODE
 	    $postContains->[0]->{'content'} .= "      return\n";
 	    $postContains->[0]->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrDflt\n\n";
 	    # Create XML constructor.
-	    $postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."CnstrctrPrmtrs(parameters,copyInstance,parameterName)\n";
+	    $postContains->[0]->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."CnstrctrPrmtrs(parameters,copyInstance,parameterName)\n";
 	    $postContains->[0]->{'content'} .= "      !% Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
 	    $postContains->[0]->{'content'} .= "      use Input_Parameters\n";
 	    $postContains->[0]->{'content'} .= "      use Galacticus_Error\n";
@@ -2398,7 +2412,7 @@ CODE
 	    }
 	    
 	    # Create initialization function.
-	    $postContains->[0]->{'content'} .= "   subroutine ".$directive->{'name'}."Initialize()\n";
+	    $postContains->[0]->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."subroutine ".$directive->{'name'}."Initialize()\n";
 	    $postContains->[0]->{'content'} .= "      !% Initialize the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 	    $postContains->[0]->{'content'} .= "      use ISO_Varying_String\n";
 	    $postContains->[0]->{'content'} .= "      use Input_Parameters\n";
@@ -2457,7 +2471,7 @@ CODE
 
 	    # Create initialization function for recursive construction of the default object.
 	    if ( $allowRecursion ) {
-		$postContains->[0]->{'content'} .= "   function ".$directive->{'name'}."RecursiveDefault()\n";
+		$postContains->[0]->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."RecursiveDefault()\n";
 		$postContains->[0]->{'content'} .= "      !% Construct a recursive copy of the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
 		$postContains->[0]->{'content'} .= "      use Input_Parameters, only : inputParameters, globalParameters\n";
 		$postContains->[0]->{'content'} .= "      use Galacticus_Error, only : Galacticus_Error_Report\n";
@@ -2486,7 +2500,6 @@ CODE
 			$postContains->[0]->{'content'} .= "           call debugStackPop()\n"
 			    if ( $debugging );
 			$postContains->[0]->{'content'} .= "        end select\n";
-			$postContains->[0]->{'content'} .= "        call ".$directive->{'name'}."Default%autoHook()\n";
 		    } else {
 			push(@nonRecursiveTypes,$class->{'name'});
 		    }

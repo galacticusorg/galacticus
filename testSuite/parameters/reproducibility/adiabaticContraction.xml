@@ -91,10 +91,14 @@
   <mergerTreeOutputterMethod value="standard">
     <outputReferences value="false"/>
   </mergerTreeOutputterMethod>
-  <outputRotationCurveData value="true"/>
-  <outputRotationCurveRadii value="spheroidRadius:all:all:1.0 spheroidRadius:darkHalo:dark:1.0 spheroidRadius:spheroid:baryonic:1.0"/>
-  <nodePropertyExtractorMethod value="virialProperties"/>
-
+  <nodePropertyExtractorMethod value="multi">
+    <nodePropertyExtractorMethod value="nodeIndices"/>
+    <nodePropertyExtractorMethod value="virialProperties"/>
+    <nodePropertyExtractorMethod value="rotationCurve">
+      <radiusSpecifiers value="spheroidRadius:all:all:1.0 spheroidRadius:darkHalo:dark:1.0 spheroidRadius:spheroid:baryonic:1.0"/>
+    </nodePropertyExtractorMethod>
+  </nodePropertyExtractorMethod>
+  
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/adiabaticContraction.hdf5"/>
   

@@ -30,6 +30,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </stateStorable>
   !# </virialOrbit>
 
   type, extends(virialOrbitClass) :: virialOrbitWetzel2010
@@ -49,6 +52,7 @@
      procedure :: densityContrastDefinition       => wetzel2010DensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => wetzel2010VelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => wetzel2010VelocityTangentialVectorMean
+     procedure :: velocityTotalRootMeanSquared    => wetzel2010VelocityTotalRootMeanSquared
   end type virialOrbitWetzel2010
 
   interface virialOrbitWetzel2010
@@ -282,7 +286,7 @@ contains
 
   double precision function wetzel2010VelocityTangentialMagnitudeMean(self,node,host)
     !% Return the mean magnitude of the tangential velocity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node, host
@@ -295,7 +299,7 @@ contains
 
   function wetzel2010VelocityTangentialVectorMean(self,node,host)
     !% Return the mean of the vector tangential velocity.
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                       , dimension(3)  :: wetzel2010VelocityTangentialVectorMean
     class           (virialOrbitWetzel2010), intent(inout) :: self
@@ -307,3 +311,15 @@ contains
     return
   end function wetzel2010VelocityTangentialVectorMean
 
+  double precision function wetzel2010VelocityTotalRootMeanSquared(self,node,host)
+    !% Return the root mean squared total velocity.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class(virialOrbitWetzel2010), intent(inout) :: self
+    type (treeNode             ), intent(inout) :: node, host
+    !GCC$ attributes unused :: self, node, host
+
+    wetzel2010VelocityTotalRootMeanSquared=0.0d0
+    call Galacticus_Error_Report('root mean squared total velocity is not defined for this class'//{introspection:location})
+    return
+  end function wetzel2010VelocityTotalRootMeanSquared

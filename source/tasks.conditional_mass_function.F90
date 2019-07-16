@@ -107,7 +107,7 @@ contains
     !#   <defaultValue>.false.</defaultValue>
     !#   <description>Specifies whether the limiting redshifts for integrating over the halo mass function should be limited by those of a galaxy survey.</description>
     !#   <source>parameters</source>
-    !#   <type>string</type>
+    !#   <type>boolean</type>
     !# </inputParameter>
     if (parameters%isPresent('massBinCenters').or.parameters%isPresent('massLogarithmDelta')) then
        if     (                                                 &
@@ -291,15 +291,17 @@ contains
 
   subroutine conditionalMassFunctionPerform(self,status)
     !% Compute and output the halo mass function.
-    use FGSL                 , only : fgsl_function          , fgsl_integration_workspace
+    use FGSL                 , only : fgsl_function            , fgsl_integration_workspace
     use IO_HDF5              , only : hdf5Object
     use Galacticus_HDF5      , only : galacticusOutputFile
     use Memory_Management    , only : allocateArray
     use Numerical_Integration, only : Integrate
-    use ISO_Varying_String   , only : char
-    use Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
+    use ISO_Varying_String   , only : char                     , var_str
+    use Galacticus_Error     , only : Galacticus_Error_Report  , errorStatusSuccess
+    use String_Handling      , only : operator(//)
+    use Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
     implicit none
-    class           (taskConditionalMassFunction), intent(inout)               :: self
+    class           (taskConditionalMassFunction), intent(inout), target       :: self
     integer                                      , intent(  out), optional     :: status
     double precision                             , allocatable  , dimension(:) :: conditionalMassFunction        , conditionalMassFunctionIncomplete
     integer                                                                    :: iMass                          , iField                                  , &
@@ -313,7 +315,10 @@ contains
     type            (fgsl_function             )                               :: integrandFunction              , integrandFunctionNormalization
     type            (fgsl_integration_workspace)                               :: integrationWorkspace           , integrationWorkspaceNormalization
     type            (hdf5Object                )                               :: outputGroup
+    type            (varying_string            )                               :: message
+    character       (len=12                    )                               :: label
 
+    call Galacticus_Display_Indent('Begin task: conditional mass function' )
     if(present(status)) status=errorStatusSuccess
     call allocateArray(conditionalMassFunction          ,[self%countMass])
     call allocateArray(conditionalMassFunctionIncomplete,[self%countMass])
@@ -368,7 +373,7 @@ contains
                    binTimeMaximum=self%timeMaximum
                 end if
                 ! Range of redshifts was given, integrate the mass function over this time interval.
-                massFunctionIntegrand=                                                                &
+               massFunctionIntegrand=                                                                &
                      &                +massFunctionIntegrand                                          &
                      &                +self%surveyGeometry_%solidAngle(iField)                        &
                      &                *Integrate(                                                     &
@@ -393,6 +398,11 @@ contains
                      &                           reset            =integrationResetNormalization      &
                      &                          )
              end do
+             if (volumeIntegrand <= 0.0d0) then
+                write (label,'(e12.6)') self%massBinCenters(iMass)
+                message=var_str("zero volume for conditional mass function integral in mass bin ")//iMass//" (mass = "//trim(adjustl(label))//" M☉) - check your redshift interval"
+                call Galacticus_Error_Report(message//{introspection:location})
+             end if
              conditionalMassFunction(iMass)=massFunctionIntegrand/volumeIntegrand
           end if
        else
@@ -424,9 +434,11 @@ contains
        call outputGroup%writeDataset(conditionalMassFunctionIncomplete,"massFunctionIncomplete",commentText="Incomplete conditional mass function in units of per log(mass).")
     end if
     call outputGroup%close()
+    call Galacticus_Display_Unindent('Done task: conditional mass function' )
+    return
 
-  contains  
-
+  contains
+    
     double precision function integrandTime(timePrime)
       !% Integral over time.
       implicit none

@@ -153,11 +153,11 @@ contains
 
   subroutine kennicuttSchmidtAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,kennicuttSchmidtCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,kennicuttSchmidtCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine kennicuttSchmidtAutoHook
   

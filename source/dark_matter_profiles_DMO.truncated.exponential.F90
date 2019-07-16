@@ -137,8 +137,8 @@ contains
     !#   <type>float</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     self=darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay,alpha,beta,gamma,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="darkMatterProfileDMO_"  />
@@ -166,11 +166,11 @@ contains
 
   subroutine truncatedExponentialAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,truncatedExponentialCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,truncatedExponentialCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine truncatedExponentialAutoHook
   
@@ -502,9 +502,9 @@ contains
     !% Returns the Fourier transform of the truncatedExponential density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
     implicit none
-    class           (darkMatterProfileDMOTruncatedExponential), intent(inout)          :: self
-    type            (treeNode                                ), intent(inout), pointer :: node
-    double precision                                          , intent(in   )          :: waveNumber
+    class           (darkMatterProfileDMOTruncatedExponential), intent(inout)         :: self
+    type            (treeNode                                ), intent(inout), target :: node
+    double precision                                          , intent(in   )         :: waveNumber
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
        truncatedExponentialKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)

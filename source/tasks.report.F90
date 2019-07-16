@@ -54,7 +54,7 @@ contains
     use Galacticus_Versioning, only : Galacticus_Version_String
     use Galacticus_Build     , only : Galacticus_Build_String
     implicit none
-    class  (taskReport), intent(inout)           :: self
+    class  (taskReport), intent(inout), target   :: self
     integer            , intent(  out), optional :: status
     !GCC$ attributes unused :: self
 

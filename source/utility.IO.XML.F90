@@ -438,6 +438,7 @@ contains
        else
           ! No node, this is therefore the base document.
           document => nodeNew
+          call setLiveNodeLists(document,.false.)
        end if
        ! Search for any XIncludes - rescan the entire document as we can handle inserting only one xi:include element at a time.
        stackListCount=0
@@ -491,6 +492,7 @@ contains
           end do
        end do
     end do
+    call setLiveNodeLists(document,.true.)
     return
   end function XML_Parse
 

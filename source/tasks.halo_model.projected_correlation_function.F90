@@ -15,23 +15,42 @@
 !!    GNU General Public License for more details.
 !!
 !!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  use Geometry_Surveys          , only : surveyGeometryClass              , surveyGeometry
+  use Cosmology_Functions       , only : cosmologyFunctionsClass          , cosmologyFunctions
+  use Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass         , darkMatterHaloScale
+  use Power_Spectra             , only : powerSpectrumClass               , powerSpectrum
+  use Linear_Growth             , only : linearGrowthClass                , linearGrowth
+  use Halo_Mass_Functions       , only : haloMassFunctionClass            , haloMassFunction
+  use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass, darkMatterProfileScaleRadius
+  use Dark_Matter_Halo_Biases   , only : darkMatterHaloBiasClass          , darkMatterHaloBias
+  use Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOClass        , darkMatterProfileDMO
+  use Conditional_Mass_Functions, only : conditionalMassFunctionClass     , conditionalMassFunction
+
   !# <task name="taskHaloModelProjectedCorrelationFunction">
   !#  <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
   !# </task>
   type, extends(taskClass) :: taskHaloModelProjectedCorrelationFunction
      !% Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
      private 
-     class           (conditionalMassFunctionClass), pointer                   :: conditionalMassFunction_ => null()
-     double precision                              , allocatable, dimension(:) :: separationProjectedBinned, correlationProjectedBinned
-     double precision                                                          :: separationMinimum        , separationMaximum         , &
-          &                                                                       massMinimum              , massMaximum               , &
-          &                                                                       massHaloMinimum          , massHaloMaximum           , &
-          &                                                                       depthLineOfSight
-     integer                                                                   :: countSeparations
-     logical                                                                   :: halfIntegral
-     type            (varying_string              )                            :: outputGroup
+     class           (conditionalMassFunctionClass     ), pointer                   :: conditionalMassFunction_      => null()
+     class           (powerSpectrumClass               ), pointer                   :: powerSpectrum_                => null()
+     class           (cosmologyFunctionsClass          ), pointer                   :: cosmologyFunctions_           => null()
+     class           (surveyGeometryClass              ), pointer                   :: surveyGeometry_               => null()
+     class           (darkMatterHaloScaleClass         ), pointer                   :: darkMatterHaloScale_          => null()
+     class           (linearGrowthClass                ), pointer                   :: linearGrowth_                 => null()
+     class           (haloMassFunctionClass            ), pointer                   :: haloMassFunction_             => null()
+     class           (darkMatterProfileDMOClass        ), pointer                   :: darkMatterProfileDMO_         => null()
+     class           (darkMatterHaloBiasClass          ), pointer                   :: darkMatterHaloBias_           => null()
+     class           (darkMatterProfileScaleRadiusClass), pointer                   :: darkMatterProfileScaleRadius_ => null()
+      double precision                                  , allocatable, dimension(:) :: separationProjectedBinned              , correlationProjectedBinned
+     double precision                                                               :: separationMinimum                      , separationMaximum         , &
+          &                                                                            massMinimum                            , massMaximum               , &
+          &                                                                            massHaloMinimum                        , massHaloMaximum           , &
+          &                                                                            depthLineOfSight
+     integer                                                                        :: countSeparations
+     logical                                                                        :: halfIntegral
+     type            (varying_string                   )                            :: outputGroup
    contains
      final     ::                       haloModelProjectedCorrelationFunctionDestructor
      procedure :: perform            => haloModelProjectedCorrelationFunctionPerform
@@ -55,10 +74,19 @@ contains
     type            (taskHaloModelProjectedCorrelationFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     class           (conditionalMassFunctionClass             ), pointer       :: conditionalMassFunction_
+    class           (powerSpectrumClass                       ), pointer       :: powerSpectrum_
+    class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
+    class           (surveyGeometryClass                      ), pointer       :: surveyGeometry_
+    class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
+    class           (linearGrowthClass                        ), pointer       :: linearGrowth_
+    class           (haloMassFunctionClass                    ), pointer       :: haloMassFunction_
+    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloBiasClass                  ), pointer       :: darkMatterHaloBias_
+    class           (darkMatterProfileScaleRadiusClass        ), pointer       :: darkMatterProfileScaleRadius_
     type            (inputParameters                          ), pointer       :: parametersRoot
-    double precision                                                           :: separationMinimum       , separationMaximum, &
-         &                                                                        massMinimum             , massMaximum      , &
-         &                                                                        massHaloMinimum         , massHaloMaximum  , &
+    double precision                                                           :: separationMinimum            , separationMaximum, &
+         &                                                                        massMinimum                  , massMaximum      , &
+         &                                                                        massHaloMinimum              , massHaloMaximum  , &
          &                                                                        depthLineOfSight
     integer                                                                    :: countSeparations
     logical                                                                    :: halfIntegral
@@ -155,14 +183,32 @@ contains
     !#   <source>parameters</source>
     !#   <type>string</type>
     !# </inputParameter>    
-    !# <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
-    self=taskHaloModelProjectedCorrelationFunction(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_)
+    !# <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
+    !# <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    !# <objectBuilder class="surveyGeometry"               name="surveyGeometry_"               source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+    !# <objectBuilder class="linearGrowth"                 name="linearGrowth_"                 source="parameters"/>
+    !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
+    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    self=taskHaloModelProjectedCorrelationFunction(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,linearGrowth_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
     !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="conditionalMassFunction_"/>
+    !# <objectDestructor name="conditionalMassFunction_"     />
+    !# <objectDestructor name="powerSpectrum_"               />
+    !# <objectDestructor name="cosmologyFunctions_"          />
+    !# <objectDestructor name="surveyGeometry_"              />
+    !# <objectDestructor name="darkMatterHaloScale_"         />
+    !# <objectDestructor name="linearGrowth_"                />
+    !# <objectDestructor name="haloMassFunction_"            />
+    !# <objectDestructor name="darkMatterProfileDMO_"        />
+    !# <objectDestructor name="darkMatterHaloBias_"          />
+    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
     return
   end function haloModelProjectedCorrelationFunctionConstructorParameters
 
-  function haloModelProjectedCorrelationFunctionConstructorInternal(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_) result(self)
+  function haloModelProjectedCorrelationFunctionConstructorInternal(separationMinimum,separationMaximum,countSeparations,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,depthLineOfSight,halfIntegral,outputGroup,conditionalMassFunction_,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,linearGrowth_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
     !% Constructor for the {\normalfont \ttfamily haloModelProjectedCorrelationFunction} task class which takes a parameter set as input.
     use Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     use Memory_Management, only : allocateArray
@@ -176,7 +222,16 @@ contains
     logical                                                    , intent(in   )         :: halfIntegral
     type            (varying_string                           ), intent(in   )         :: outputGroup
     class           (conditionalMassFunctionClass             ), intent(in   ), target :: conditionalMassFunction_
-    !# <constructorAssign variables="separationMinimum, separationMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum, depthLineOfSight, countSeparations, halfIntegral, outputGroup, *conditionalMassFunction_"/>
+    class           (powerSpectrumClass                       ), intent(in   ), target :: powerSpectrum_
+    class           (cosmologyFunctionsClass                  ), intent(in   ), target :: cosmologyFunctions_
+    class           (surveyGeometryClass                      ), intent(in   ), target :: surveyGeometry_
+    class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
+    class           (linearGrowthClass                        ), intent(in   ), target :: linearGrowth_
+    class           (haloMassFunctionClass                    ), intent(in   ), target :: haloMassFunction_
+    class           (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloBiasClass                  ), intent(in   ), target :: darkMatterHaloBias_
+    class           (darkMatterProfileScaleRadiusClass        ), intent(in   ), target :: darkMatterProfileScaleRadius_
+     !# <constructorAssign variables="separationMinimum, separationMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum, depthLineOfSight, countSeparations, halfIntegral, outputGroup, *conditionalMassFunction_, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *linearGrowth_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
 
     call allocateArray(self%separationProjectedBinned ,[self%countSeparations])
     call allocateArray(self%correlationProjectedBinned,[self%countSeparations])
@@ -190,7 +245,16 @@ contains
     implicit none
     type(taskHaloModelProjectedCorrelationFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%conditionalMassFunction_"/>
+    !# <objectDestructor name="self%conditionalMassFunction_"     />
+    !# <objectDestructor name="self%powerSpectrum_"               />
+    !# <objectDestructor name="self%cosmologyFunctions_"          />
+    !# <objectDestructor name="self%surveyGeometry_"              />
+    !# <objectDestructor name="self%darkMatterHaloScale_"         />
+    !# <objectDestructor name="self%linearGrowth_"                />
+    !# <objectDestructor name="self%haloMassFunction_"            />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
+    !# <objectDestructor name="self%darkMatterHaloBias_"          />
+    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     call Node_Components_Uninitialize       ()
     call Node_Components_Thread_Uninitialize()
     return
@@ -204,21 +268,30 @@ contains
     use Galacticus_Error                 , only : errorStatusSuccess
     use Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
     implicit none
-    class  (taskHaloModelProjectedCorrelationFunction), intent(inout)           :: self
+    class  (taskHaloModelProjectedCorrelationFunction), intent(inout), target   :: self
     integer                                           , intent(  out), optional :: status
     type   (hdf5Object                               )                          :: outputGroup
 
     call Galacticus_Display_Indent('Begin task: halo model projected correlation function')
-    call Halo_Model_Projected_Correlation(                                 &
-         &                                self%conditionalMassFunction_  , &
-         &                                self%separationProjectedBinned , &
-         &                                self%massMinimum               , &
-         &                                self%massMaximum               , &
-         &                                self%massHaloMinimum           , &
-         &                                self%massHaloMaximum           , &
-         &                                self%depthLineOfSight          , &
-         &                                self%halfIntegral              , &
-         &                                self%correlationProjectedBinned  &
+    call Halo_Model_Projected_Correlation(                                    &
+         &                                self%conditionalMassFunction_     , &
+         &                                self%powerSpectrum_               , &
+         &                                self%cosmologyFunctions_          , &
+         &                                self%surveyGeometry_              , &
+         &                                self%darkMatterHaloScale_         , &
+         &                                self%linearGrowth_                , &
+         &                                self%haloMassFunction_            , &
+         &                                self%darkMatterProfileDMO_        , &
+         &                                self%darkMatterHaloBias_          , &
+         &                                self%darkMatterProfileScaleRadius_, &
+         &                                self%separationProjectedBinned    , &
+         &                                self%massMinimum                  , &
+         &                                self%massMaximum                  , &
+         &                                self%massHaloMinimum              , &
+         &                                self%massHaloMaximum              , &
+         &                                self%depthLineOfSight             , &
+         &                                self%halfIntegral                 , &
+         &                                self%correlationProjectedBinned     &
          &                               )
     outputGroup=galacticusOutputFile%openGroup(char(self%outputGroup),'Group containing halo mass function data.'          )
     call outputGroup%writeDataset(self%separationProjectedBinned ,"separation"          ,commentText="Projected separation [Mpc]." )

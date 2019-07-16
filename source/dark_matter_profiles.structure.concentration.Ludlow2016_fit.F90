@@ -29,6 +29,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+  !#  </stateStorable>
   !# </darkMatterProfileConcentration>
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationLudlow2016Fit
      !% A dark matter halo profile concentration class implementing the fitting function of
@@ -74,17 +77,25 @@ contains
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function ludlow2016FitConstructorParameters
-  
+
   function ludlow2016FitConstructorInternal(cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
-    use Galacticus_Error
+    use Dark_Matter_Halo_Scales
     implicit none
-    type (darkMatterProfileConcentrationLudlow2016Fit)                        :: self
-    class(cosmologyFunctionsClass                    ), intent(in   ), target :: cosmologyFunctions_
-    class(cosmologyParametersClass                   ), intent(in   ), target :: cosmologyParameters_     
-    class(cosmologicalMassVarianceClass              ), intent(in   ), target :: cosmologicalMassVariance_
+    type (darkMatterProfileConcentrationLudlow2016Fit       )                         :: self
+    class(cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
+    class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_     
+    class(cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
+    type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
 
+    allocate(self%virialDensityContrastDefinition_)
+    allocate(self%darkMatterProfileDMODefinition_ )
+    allocate(     darkMatterHaloScaleDefinition_  )
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMOEinasto                       (darkMatterHaloScaleDefinition_                                                          )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
     return
   end function ludlow2016FitConstructorInternal
 
@@ -145,10 +156,6 @@ contains
     class(virialDensityContrastClass                 ), pointer       :: ludlow2016FitDensityContrastDefinition
     class(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self
     
-    if (.not.associated(self%virialDensityContrastDefinition_)) then
-       allocate(self%virialDensityContrastDefinition_)
-       !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    end if
     ludlow2016FitDensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function ludlow2016FitDensityContrastDefinition
@@ -156,22 +163,10 @@ contains
   function ludlow2016FitDarkMatterProfileDefinition(self)
     !% Return a dark matter density profile object defining that used in the definition of concentration in the
     !% \cite{ludlow_mass-concentration-redshift_2016} algorithm.
-    use Dark_Matter_Halo_Scales
     implicit none
-    class(darkMatterProfileDMOClass                            ), pointer       :: ludlow2016FitDarkMatterProfileDefinition
-    class(darkMatterProfileConcentrationLudlow2016Fit       ), intent(inout) :: self
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
-    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrastDefinition_
+    class(darkMatterProfileDMOClass                  ), pointer       :: ludlow2016FitDarkMatterProfileDefinition
+    class(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self
 
-    if (.not.associated(self%darkMatterProfileDMODefinition_)) then
-       allocate(self%darkMatterProfileDMODefinition_  )
-       allocate(     darkMatterHaloScaleDefinition_)
-       !# <referenceAcquire                target="virialDensityContrastDefinition_" source     ="self%densityContrastDefinition()"/>
-       !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,virialDensityContrastDefinition_)"/>
-       !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"     constructor="darkMatterProfileDMOEinasto                          (darkMatterHaloScaleDefinition_                                                     )"/>
-       !# <objectDestructor name="darkMatterHaloScaleDefinition_"  />
-       !# <objectDestructor name="virialDensityContrastDefinition_"/>
-    end if
     ludlow2016FitDarkMatterProfileDefinition => self%darkMatterProfileDMODefinition_
     return
   end function ludlow2016FitDarkMatterProfileDefinition

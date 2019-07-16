@@ -58,7 +58,7 @@ contains
     use Galacticus_Nodes, only : nodeComponentSpin
     implicit none
     class(nodePropertyExtractorSpin), intent(inout)           :: self
-    type (treeNode                 ), intent(inout)           :: node
+    type (treeNode                 ), intent(inout), target   :: node
     type (multiCounter             ), intent(inout), optional :: instance
     class(nodeComponentSpin        ), pointer                 :: spin
     !GCC$ attributes unused :: self, instance

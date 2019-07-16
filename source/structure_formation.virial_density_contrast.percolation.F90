@@ -94,7 +94,7 @@
 
 contains
 
-  function percolationConstructorParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
+  recursive function percolationConstructorParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
     !% Constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class that takes a parameter set as input.
     use Functions_Global   , only : Virial_Density_Contrast_Percolation_Objects_Constructor_
     use Input_Parameters   , only : inputParameter                                          , inputParameters
@@ -134,7 +134,7 @@ contains
     return
   end function percolationConstructorParameters
 
-  function percolationConstructorInternal(linkingLength,cosmologyFunctions_,percolationObjects_,recursiveSelf) result(self)
+  recursive  function percolationConstructorInternal(linkingLength,cosmologyFunctions_,percolationObjects_,recursiveSelf) result(self)
     !% Internal constructor for the {\normalfont \ttfamily percolation} dark matter halo virial density contrast class.
     use Input_Parameters, only : inputParameter         , inputParameters
     use Galacticus_Error, only : Galacticus_Error_Report

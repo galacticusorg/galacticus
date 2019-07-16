@@ -53,7 +53,7 @@ contains
     use Galacticus_Display
     use Interfaces_CAMB
     implicit none
-    class  (taskBuildToolCAMB), intent(inout)           :: self
+    class  (taskBuildToolCAMB), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: cambPath, cambVersion
     !GCC$ attributes unused :: self
