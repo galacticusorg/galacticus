@@ -202,9 +202,9 @@ contains
     !% Constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type(darkMatterProfileDMOEinasto )                :: self
-    type (inputParameters         ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    type (darkMatterProfileDMOEinasto )                :: self
+    type (inputParameters             ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
 
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=darkMatterProfileDMOEinasto(darkMatterHaloScale_)
@@ -354,10 +354,10 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    radiusOverScaleRadius      =radius                       /scaleRadius
+    radiusOverScaleRadius      =radius                                      /scaleRadius
     virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-    einastoDensity=self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
-         &*basic%mass()/scaleRadius**3
+    einastoDensity             =self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
+         &                      *basic%mass()/scaleRadius**3
     return
   end function einastoDensity
 
@@ -366,7 +366,7 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMOEinasto      ), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -464,10 +464,10 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    radiusOverScaleRadius      =radius                       /scaleRadius
+    radiusOverScaleRadius      =radius                                      /scaleRadius
     virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-    einastoEnclosedMass=self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
-         &*basic%mass()
+    einastoEnclosedMass        =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
+         &                      *basic%mass()
     return
   end function einastoEnclosedMass
 
@@ -477,12 +477,11 @@ contains
     use Numerical_Constants_Physical
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
-    type            (treeNode                ), intent(inout) :: node
-    double precision                          , intent(in   ) :: radius
+    type            (treeNode                   ), intent(inout) :: node
+    double precision                             , intent(in   ) :: radius
 
     if (radius > 0.0d0) then
-       einastoCircularVelocity=sqrt(gravitationalConstantGalacticus&
-            &*self%enclosedMass(node,radius)/radius)
+       einastoCircularVelocity=sqrt(gravitationalConstantGalacticus*self%enclosedMass(node,radius)/radius)
     else
        einastoCircularVelocity=0.0d0
     end if
@@ -495,7 +494,7 @@ contains
     use Numerical_Constants_Physical
     use Root_Finder
     implicit none
-    class           (darkMatterProfileDMOEinasto      ), intent(inout) :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                , parameter     :: toleranceRelative=1.0d-3
@@ -594,7 +593,7 @@ contains
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     use Numerical_Constants_Physical
     implicit none
-    class           (darkMatterProfileDMOEinasto      ), intent(inout)          :: self
+    class           (darkMatterProfileDMOEinasto   ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: specificAngularMomentum
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -608,11 +607,15 @@ contains
     ! Get the shape parameter of the halo.
     alpha      =darkMatterProfile%shape()
     ! Compute the specific angular momentum in scale free units.
-    specificAngularMomentumScaleFree=specificAngularMomentum/sqrt(gravitationalConstantGalacticus*scaleRadius&
-         &*self%enclosedMass(node,scaleRadius))
+    specificAngularMomentumScaleFree=specificAngularMomentum                    &
+         &                           /sqrt(                                     &
+         &                                 +gravitationalConstantGalacticus     &
+         &                                 *scaleRadius                         &
+         &                                 *self%enclosedMass(node,scaleRadius) &
+         &                                )
     ! Compute the corresponding radius.
-    einastoRadiusFromSpecificAngularMomentum=scaleRadius*self%radiusFromSpecificAngularMomentumScaleFree(alpha&
-         &,specificAngularMomentumScaleFree)
+    einastoRadiusFromSpecificAngularMomentum=scaleRadius                                                                              &
+         &                                   *self%radiusFromSpecificAngularMomentumScaleFree(alpha,specificAngularMomentumScaleFree)
     return
   end function einastoRadiusFromSpecificAngularMomentum
 
@@ -623,10 +626,10 @@ contains
     use Numerical_Interpolation
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)  :: self
-    double precision                          , intent(in   )  :: alpha , specificAngularMomentumScaleFree
-    integer         (c_size_t                ), dimension(0:1) :: jAlpha
-    double precision                          , dimension(0:1) :: hAlpha
-    integer                                                    :: iAlpha
+    double precision                             , intent(in   )  :: alpha , specificAngularMomentumScaleFree
+    integer         (c_size_t                   ), dimension(0:1) :: jAlpha
+    double precision                             , dimension(0:1) :: hAlpha
+    integer                                                       :: iAlpha
 
     ! Return immediately for zero angular momentum.
     if (specificAngularMomentumScaleFree <= 0.0d0) then
@@ -638,23 +641,23 @@ contains
     call self%radiusFromSpecificAngularMomentumTableMake(alpha,specificAngularMomentumScaleFree)
 
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%angularMomentumTableAlpha&
-         &,self%angularMomentumTableAlphaInterpolationAccelerator,alpha,reset=self%angularMomentumTableAlphaInterpolationReset)
+    jAlpha(0)=Interpolate_Locate(self%angularMomentumTableAlpha,self%angularMomentumTableAlphaInterpolationAccelerator, &
+         &                       alpha,reset=self%angularMomentumTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
     hAlpha=Interpolate_Linear_Generate_Factors(self%angularMomentumTableAlpha,jAlpha(0),alpha)
 
     ! Interpolate in specific angular momentum to get radius.
     einastoRadiusFromSpecificAngularMomentumScaleFree=0.0d0
     do iAlpha=0,1
-       einastoRadiusFromSpecificAngularMomentumScaleFree=                      &
-            &  einastoRadiusFromSpecificAngularMomentumScaleFree               &
+       einastoRadiusFromSpecificAngularMomentumScaleFree=                           &
+            &  einastoRadiusFromSpecificAngularMomentumScaleFree                    &
             & +Interpolate( self%angularMomentumTable(:,jAlpha(iAlpha))             &
             &              ,self%angularMomentumTableRadius                         &
             &              ,self%angularMomentumTableRadiusInterpolationObject      &
             &              ,self%angularMomentumTableRadiusInterpolationAccelerator &
-            &              ,specificAngularMomentumScaleFree                   &
+            &              ,specificAngularMomentumScaleFree                        &
             &              ,reset=self%angularMomentumTableRadiusInterpolationReset &
-            &             )                                                    &
+            &             )                                                         &
             & *hAlpha(iAlpha)
     end do
     return
@@ -668,11 +671,11 @@ contains
     use Memory_Management
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
-    double precision                          , intent(in   ) :: alphaRequired, specificAngularMomentumRequired
-    integer                                                   :: iAlpha       , iRadius
-    logical                                                   :: makeTable
-    double precision                                          :: alpha        , enclosedMass                   , &
-         &                                                       radius
+    double precision                             , intent(in   ) :: alphaRequired, specificAngularMomentumRequired
+    integer                                                      :: iAlpha       , iRadius
+    logical                                                      :: makeTable
+    double precision                                             :: alpha        , enclosedMass                   , &
+         &                                                          radius
 
     ! Always check if we need to make the table.
     makeTable=.true.
@@ -701,21 +704,23 @@ contains
        ! Remake the table if necessary.
        if (makeTable) then
           ! Allocate arrays to the appropriate sizes.
-          self%angularMomentumTableAlphaCount =int(      (self%angularMomentumTableAlphaMaximum -self%angularMomentumTableAlphaMinimum )&
-               &*dble(einastoAngularMomentumTableAlphaPointsPerUnit   ))+1
-          self%angularMomentumTableRadiusCount=int(log10(self%angularMomentumTableRadiusMaximum/self%angularMomentumTableRadiusMinimum)&
-               &*dble(einastoAngularMomentumTableRadiusPointsPerDecade))+1
+          self%angularMomentumTableAlphaCount =int(     (self%angularMomentumTableAlphaMaximum -self%angularMomentumTableAlphaMinimum ) &
+               &                                   *dble(einastoAngularMomentumTableAlphaPointsPerUnit   )                              &
+               &                                  )+1
+          self%angularMomentumTableRadiusCount=int(log10(self%angularMomentumTableRadiusMaximum/self%angularMomentumTableRadiusMinimum) &
+               &                                   *dble(einastoAngularMomentumTableRadiusPointsPerDecade)                              &
+               &                                  )+1
           if (allocated(self%angularMomentumTableAlpha )) call deallocateArray(self%angularMomentumTableAlpha )
           if (allocated(self%angularMomentumTableRadius)) call deallocateArray(self%angularMomentumTableRadius)
           if (allocated(self%angularMomentumTable      )) call deallocateArray(self%angularMomentumTable      )
-          call allocateArray(self%angularMomentumTableAlpha ,[                                self%angularMomentumTableAlphaCount])
-          call allocateArray(self%angularMomentumTableRadius,[self%angularMomentumTableRadiusCount                               ])
+          call allocateArray(self%angularMomentumTableAlpha ,[                                     self%angularMomentumTableAlphaCount])
+          call allocateArray(self%angularMomentumTableRadius,[self%angularMomentumTableRadiusCount                                    ])
           call allocateArray(self%angularMomentumTable      ,[self%angularMomentumTableRadiusCount,self%angularMomentumTableAlphaCount])
           ! Create ranges of alpha and radius.
-          self%angularMomentumTableAlpha =Make_Range(self%angularMomentumTableAlphaMinimum ,self%angularMomentumTableAlphaMaximum &
-               &,self%angularMomentumTableAlphaCount ,rangeType=rangeTypeLinear     )
-          self%angularMomentumTableRadius=Make_Range(self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum&
-               &,self%angularMomentumTableRadiusCount,rangeType=rangeTypeLogarithmic)
+          self%angularMomentumTableAlpha =Make_Range(self%angularMomentumTableAlphaMinimum ,self%angularMomentumTableAlphaMaximum,  &
+               &                                     self%angularMomentumTableAlphaCount   ,rangeType=rangeTypeLinear     )
+          self%angularMomentumTableRadius=Make_Range(self%angularMomentumTableRadiusMinimum,self%angularMomentumTableRadiusMaximum, &
+               &                                     self%angularMomentumTableRadiusCount  ,rangeType=rangeTypeLogarithmic)
           ! Tabulate the radius vs. specific angular momentum relation.
           do iAlpha=1,self%angularMomentumTableAlphaCount
              alpha=self%angularMomentumTableAlpha(iAlpha)
@@ -727,10 +732,10 @@ contains
              end do
           end do
           ! Reset interpolators.
-          call Interpolate_Done(self%angularMomentumTableRadiusInterpolationObject,self%angularMomentumTableRadiusInterpolationAccelerator &
-               &,self%angularMomentumTableRadiusInterpolationReset)
-          call Interpolate_Done(interpolationAccelerator=self%angularMomentumTableAlphaInterpolationAccelerator &
-               &,reset=self%angularMomentumTableAlphaInterpolationReset)
+          call Interpolate_Done(self%angularMomentumTableRadiusInterpolationObject,self%angularMomentumTableRadiusInterpolationAccelerator, &
+               &                self%angularMomentumTableRadiusInterpolationReset)
+          call Interpolate_Done(interpolationAccelerator=self%angularMomentumTableAlphaInterpolationAccelerator, &
+               &                reset=self%angularMomentumTableAlphaInterpolationReset)
           self%angularMomentumTableRadiusInterpolationReset=.true.
           self%angularMomentumTableAlphaInterpolationReset =.true.
           ! Flag that the table is now initialized.
@@ -797,22 +802,25 @@ contains
     call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
 
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%energyTableAlpha,self%energyTableAlphaInterpolationAccelerator,alpha,reset&
-         &=self%energyTableAlphaInterpolationReset)
+    jAlpha(0)=Interpolate_Locate(self%energyTableAlpha,self%energyTableAlphaInterpolationAccelerator,alpha, &
+         &                       reset=self%energyTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
     hAlpha=Interpolate_Linear_Generate_Factors(self%energyTableAlpha,jAlpha(0),alpha)
 
     ! Find the energy by interpolation.
     einastoEnergy=0.0d0
     do iAlpha=0,1
-       einastoEnergy=einastoEnergy+Interpolate(self%energyTableConcentration,self%energyTable(:,jAlpha(iAlpha)),self%energyTableConcentrationInterpolationObject &
-            &,self%energyTableConcentrationInterpolationAccelerator,virialRadiusOverScaleRadius,reset&
-            &=self%energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
+       einastoEnergy=+einastoEnergy                                                                                                                  &
+            &        +Interpolate(self%energyTableConcentration,self%energyTable(:,jAlpha(iAlpha)),self%energyTableConcentrationInterpolationObject, &
+            &                     self%energyTableConcentrationInterpolationAccelerator           ,virialRadiusOverScaleRadius                     , &
+            &                     reset=self%energyTableConcentrationInterpolationReset                                                              &
+            &                    )                                                                                                                   &
+            &        *hAlpha(iAlpha)
     end do
 
     ! Scale to dimensionful units.
-    einastoEnergy=einastoEnergy*basic%mass() &
-         &*self%darkMatterHaloScale_%virialVelocity(node)**2
+    einastoEnergy=einastoEnergy*basic%mass()                         &
+         &        *self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function einastoEnergy
 
@@ -846,8 +854,8 @@ contains
     call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
 
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%energyTableAlpha,self%energyTableAlphaInterpolationAccelerator,alpha,reset&
-         &=self%energyTableAlphaInterpolationReset)
+    jAlpha(0)=Interpolate_Locate(self%energyTableAlpha,self%energyTableAlphaInterpolationAccelerator,alpha, &
+         &                       reset=self%energyTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
     hAlpha=Interpolate_Linear_Generate_Factors(self%energyTableAlpha,jAlpha(0),alpha)
 
@@ -855,21 +863,31 @@ contains
     energy        =0.0d0
     energyGradient=0.0d0
     do iAlpha=0,1
-       energy        =energy        +Interpolate           (self%energyTableConcentration,self%energyTable(:&
-            &,jAlpha(iAlpha)),self%energyTableConcentrationInterpolationObject ,self%energyTableConcentrationInterpolationAccelerator&
-            &,virialRadiusOverScaleRadius,reset=self%energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
-       energyGradient=energyGradient+Interpolate_Derivative(self%energyTableConcentration,self%energyTable(:&
-            &,jAlpha(iAlpha)),self%energyTableConcentrationInterpolationObject ,self%energyTableConcentrationInterpolationAccelerator&
-            &,virialRadiusOverScaleRadius,reset=self%energyTableConcentrationInterpolationReset)*hAlpha(iAlpha)
+       energy        =+energy                                                                                                                         &
+            &         +Interpolate           (self%energyTableConcentration                   ,self%energyTable(:,jAlpha(iAlpha))                   , &
+            &                                 self%energyTableConcentrationInterpolationObject,self%energyTableConcentrationInterpolationAccelerator, &
+            &                                 virialRadiusOverScaleRadius                     ,reset=self%energyTableConcentrationInterpolationReset  &
+            &                                )                                                                                                        &
+            &         *hAlpha(iAlpha)
+       energyGradient=+energyGradient                                                                                                                 &
+            &         +Interpolate_Derivative(self%energyTableConcentration                   ,self%energyTable(:,jAlpha(iAlpha))                   , &
+            &                                 self%energyTableConcentrationInterpolationObject,self%energyTableConcentrationInterpolationAccelerator, &
+            &                                 virialRadiusOverScaleRadius                     ,reset=self%energyTableConcentrationInterpolationReset  &
+            &                                )                                                                                                        &
+            &         *hAlpha(iAlpha)
     end do
 
     ! Compute the energy growth rate.
-    einastoEnergyGrowthRate=self%energy(node)&
-         &*(basic%accretionRate()/basic%mass()+2.0d0 &
-         &*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node)+(energyGradient&
-         &*virialRadiusOverScaleRadius/energy)*(self%darkMatterHaloScale_%virialRadiusGrowthRate(node)&
-         &/self%darkMatterHaloScale_%virialRadius(node)-darkMatterProfile%scaleGrowthRate()&
-         &/darkMatterProfile%scale()))
+    einastoEnergyGrowthRate=+self%energy(node)                                                                                               &
+         &                  *(                                                                                                               &
+         &                    +basic%accretionRate()/basic%mass()                                                                            &
+         &                    +2.0d0*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node) &
+         &                    +(energyGradient*virialRadiusOverScaleRadius/energy)                                                           &
+         &                    *(                                                                                                             &
+         &                      +self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)         &
+         &                      -darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()                                               &
+         &                     )                                                                                                             &
+         &                   )
 
     return
   end function einastoEnergyGrowthRate
@@ -882,18 +900,18 @@ contains
     use Memory_Management
     use Numerical_Constants_Math
     implicit none
-    class           (darkMatterProfileDMOEinasto  ), intent(inout) :: self
-    double precision                            , intent(in   ) :: alphaRequired          , concentrationRequired
-    integer                                                     :: iAlpha                 , iConcentration
-    logical                                                     :: makeTable
-    double precision                                            :: alpha                  , concentration        , &
-         &                                                         jeansEquationIntegral  , kineticEnergy        , &
-         &                                                         kineticEnergyIntegral  , potentialEnergy      , &
-         &                                                         potentialEnergyIntegral, radiusMaximum        , &
-         &                                                         radiusMinimum          , concentrationParameter, &
-         &                                                         alphaParameter
-    type            (fgsl_function             )                :: integrandFunction
-    type            (fgsl_integration_workspace)                :: integrationWorkspace
+    class           (darkMatterProfileDMOEinasto), intent(inout) :: self
+    double precision                             , intent(in   ) :: alphaRequired          , concentrationRequired
+    integer                                                      :: iAlpha                 , iConcentration
+    logical                                                      :: makeTable
+    double precision                                             :: alpha                  , concentration        , &
+         &                                                          jeansEquationIntegral  , kineticEnergy        , &
+         &                                                          kineticEnergyIntegral  , potentialEnergy      , &
+         &                                                          potentialEnergyIntegral, radiusMaximum        , &
+         &                                                          radiusMinimum          , concentrationParameter, &
+         &                                                          alphaParameter
+    type            (fgsl_function              )                :: integrandFunction
+    type            (fgsl_integration_workspace )                :: integrationWorkspace
 
     ! Assume table does not need remaking.
     makeTable=.false.
@@ -915,21 +933,23 @@ contains
     ! Remake the table if necessary.
     if (makeTable) then
        ! Allocate arrays to the appropriate sizes.
-       self%energyTableAlphaCount        =int(      (self%energyTableAlphaMaximum        -self%energyTableAlphaMinimum        ) &
-            &*dble(einastoEnergyTableAlphaPointsPerUnit          ))+1
+       self%energyTableAlphaCount        =int(     (self%energyTableAlphaMaximum        -self%energyTableAlphaMinimum        ) &
+            &                                 *dble(einastoEnergyTableAlphaPointsPerUnit                                     ) &
+            &                                )+1
        self%energyTableConcentrationCount=int(log10(self%energyTableConcentrationMaximum/self%energyTableConcentrationMinimum) &
-            &*dble(einastoEnergyTableConcentrationPointsPerDecade))+1
+            &                                 *dble(einastoEnergyTableConcentrationPointsPerDecade                           ) &
+            &                                )+1
        if (allocated(self%energyTableAlpha        )) call deallocateArray(self%energyTableAlpha        )
        if (allocated(self%energyTableConcentration)) call deallocateArray(self%energyTableConcentration)
        if (allocated(self%energyTable             )) call deallocateArray(self%energyTable             )
-       call allocateArray(self%energyTableAlpha        ,[                              self%energyTableAlphaCount])
-       call allocateArray(self%energyTableConcentration,[self%energyTableConcentrationCount                      ])
+       call allocateArray(self%energyTableAlpha        ,[                                   self%energyTableAlphaCount])
+       call allocateArray(self%energyTableConcentration,[self%energyTableConcentrationCount                           ])
        call allocateArray(self%energyTable             ,[self%energyTableConcentrationCount,self%energyTableAlphaCount])
        ! Create ranges of alpha and concentration.
-       self%energyTableAlpha        =Make_Range(self%energyTableAlphaMinimum        ,self%energyTableAlphaMaximum         &
-            &,self%energyTableAlphaCount        ,rangeType=rangeTypeLinear     )
-       self%energyTableConcentration=Make_Range(self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum &
-            &,self%energyTableConcentrationCount,rangeType=rangeTypeLogarithmic)
+       self%energyTableAlpha        =Make_Range(self%energyTableAlphaMinimum        ,self%energyTableAlphaMaximum        , &
+            &                                   self%energyTableAlphaCount          ,rangeType=rangeTypeLinear     )
+       self%energyTableConcentration=Make_Range(self%energyTableConcentrationMinimum,self%energyTableConcentrationMaximum, &
+            &                                   self%energyTableConcentrationCount  ,rangeType=rangeTypeLogarithmic)
        ! Tabulate the radius vs. specific angular momentum relation.
        do iAlpha=1,self%energyTableAlphaCount
           alpha=self%energyTableAlpha(iAlpha)
@@ -941,8 +961,8 @@ contains
              radiusMaximum         =concentration
              concentrationParameter=concentration
              alphaParameter        =alpha
-             potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoPotentialEnergyIntegrand&
-                  &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoPotentialEnergyIntegrand,integrandFunction, &
+                  &                            integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
              potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
 
@@ -951,8 +971,8 @@ contains
              radiusMaximum         =100.0d0*concentration
              concentrationParameter=        concentration
              alphaParameter        =alpha
-             jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,einastoJeansEquationIntegrand&
-                  &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,einastoJeansEquationIntegrand,integrandFunction, &
+                  &                          integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
 
              ! Compute the kinetic energy.
@@ -960,8 +980,8 @@ contains
              radiusMaximum         =concentration
              concentrationParameter=concentration
              alphaParameter        =alpha
-             kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoKineticEnergyIntegrand&
-                  &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+             kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,einastoKineticEnergyIntegrand,integrandFunction, &
+                  &                          integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
              call Integrate_Done(integrandFunction,integrationWorkspace)
              kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
 
@@ -971,10 +991,10 @@ contains
           end do
        end do
        ! Reset interpolators.
-       call Interpolate_Done(self%energyTableConcentrationInterpolationObject,self%energyTableConcentrationInterpolationAccelerator &
-            &,self%energyTableConcentrationInterpolationReset)
-       call Interpolate_Done(self%energyTableAlphaInterpolationObject        ,self%energyTableAlphaInterpolationAccelerator         &
-            &,self%energyTableAlphaInterpolationReset        )
+       call Interpolate_Done(self%energyTableConcentrationInterpolationObject,self%energyTableConcentrationInterpolationAccelerator, &
+            &                self%energyTableConcentrationInterpolationReset)
+       call Interpolate_Done(self%energyTableAlphaInterpolationObject        ,self%energyTableAlphaInterpolationAccelerator        , &
+            &                self%energyTableAlphaInterpolationReset        )
        self%energyTableConcentrationInterpolationReset=.true.
        self%energyTableAlphaInterpolationReset        =.true.
        ! Flag that the table is now initialized.
@@ -998,8 +1018,9 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
       
-      einastoKineticEnergyIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter)&
-           &*self%densityScaleFree(radius,concentrationParameter,alphaParameter)*radius
+      einastoKineticEnergyIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter) &
+           &                        *self%densityScaleFree    (radius,concentrationParameter,alphaParameter) &
+           &                        *radius
       return
     end function einastoKineticEnergyIntegrand
     
@@ -1008,8 +1029,9 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
       
-      einastoJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter)&
-           &*self%densityScaleFree(radius ,concentrationParameter,alphaParameter)/radius**2
+      einastoJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter,alphaParameter) &
+           &                        *self%densityScaleFree    (radius,concentrationParameter,alphaParameter) &
+           &                        /radius**2
       return
     end function einastoJeansEquationIntegrand
     
@@ -1074,7 +1096,7 @@ contains
             &                      +Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius       **alpha/alpha) &
             &                      +(                                                                                     &
             &                        +radius                                                                              &
-            &                        *(2.0d0/alpha)**(1.0d0/alpha)&
+            &                        *(2.0d0/alpha)**(1.0d0/alpha)                                                        &
             &                       )                                                                                     &
             &                      *Gamma_Function_Incomplete              (2.0d0/alpha,2.0d0*radius       **alpha/alpha) &
             &                      *Gamma_Function                         (2.0d0/alpha                                 ) &
@@ -1114,27 +1136,30 @@ contains
     call self%fourierProfileTableMake(wavenumberScaleFree,virialRadiusOverScaleRadius,alpha)
 
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%fourierProfileTableAlpha&
-         &,self%fourierProfileTableAlphaInterpolationAccelerator,alpha,reset=self%fourierProfileTableAlphaInterpolationReset)
+    jAlpha(0)=Interpolate_Locate(self%fourierProfileTableAlpha,self%fourierProfileTableAlphaInterpolationAccelerator, &
+         &                       alpha,reset=self%fourierProfileTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
     hAlpha=Interpolate_Linear_Generate_Factors(self%fourierProfileTableAlpha,jAlpha(0),alpha)
 
     ! Get interpolating factors in concentration.
-    jConcentration(0)=Interpolate_Locate(self%fourierProfileTableConcentration &
-         &,self%fourierProfileTableConcentrationInterpolationAccelerator,virialRadiusOverScaleRadius,reset &
-         &=self%fourierProfileTableConcentrationInterpolationReset)
+    jConcentration(0)=Interpolate_Locate(self%fourierProfileTableConcentration,self%fourierProfileTableConcentrationInterpolationAccelerator, &
+         &                               virialRadiusOverScaleRadius          ,reset=self%fourierProfileTableConcentrationInterpolationReset)
     jConcentration(1)=jConcentration(0)+1
-    hConcentration=Interpolate_Linear_Generate_Factors(self%fourierProfileTableConcentration&
-         &,jConcentration(0),virialRadiusOverScaleRadius)
+    hConcentration=Interpolate_Linear_Generate_Factors(self%fourierProfileTableConcentration, jConcentration(0), &
+         &                                             virialRadiusOverScaleRadius)
 
     ! Find the Fourier profile by interpolation.
     einastoKSpace=0.0d0
     do iAlpha=0,1
        do iConcentration=0,1
-          einastoKSpace=einastoKSpace+Interpolate( &
-               &self%fourierProfileTableWavenumber,self%fourierProfileTable(:,jConcentration(iConcentration),jAlpha(iAlpha))&
-               &,self%fourierProfileTableWavenumberInterpolationObject ,self%fourierProfileTableWavenumberInterpolationAccelerator&
-               &,wavenumberScaleFree,reset =self%fourierProfileTableWavenumberInterpolationReset)*hAlpha(iAlpha)*hConcentration(iConcentration)
+          einastoKSpace=+einastoKSpace                                                                                                                 &
+               &        +Interpolate(                                                                                                                  &
+               &                     self%fourierProfileTableWavenumber,self%fourierProfileTable(:,jConcentration(iConcentration),jAlpha(iAlpha))    , &
+               &                     self%fourierProfileTableWavenumberInterpolationObject,self%fourierProfileTableWavenumberInterpolationAccelerator, &
+               &                     wavenumberScaleFree,reset=self%fourierProfileTableWavenumberInterpolationReset                                    &
+               &                    )                                                                                                                  &
+               &        *hAlpha(iAlpha)                                                                                                                &
+               &        *hConcentration(iConcentration)
        end do
     end do
     return
@@ -1203,17 +1228,17 @@ contains
        if (allocated(self%fourierProfileTableConcentration)) call deallocateArray(self%fourierProfileTableConcentration)
        if (allocated(self%fourierProfileTableWavenumber   )) call deallocateArray(self%fourierProfileTableWavenumber   )
        if (allocated(self%fourierProfileTable             )) call deallocateArray(self%fourierProfileTable             )
-       call allocateArray(self%fourierProfileTableAlpha        ,[                                                                         self%fourierProfileTableAlphaCount])
-       call allocateArray(self%fourierProfileTableConcentration,[                                   self%fourierProfileTableConcentrationCount                              ])
-       call allocateArray(self%fourierProfileTableWavenumber   ,[self%fourierProfileTableWavenumberCount                                                                    ])
+       call allocateArray(self%fourierProfileTableAlpha        ,[                                                                                   self%fourierProfileTableAlphaCount])
+       call allocateArray(self%fourierProfileTableConcentration,[                                        self%fourierProfileTableConcentrationCount                                   ])
+       call allocateArray(self%fourierProfileTableWavenumber   ,[self%fourierProfileTableWavenumberCount                                                                              ])
        call allocateArray(self%fourierProfileTable             ,[self%fourierProfileTableWavenumberCount,self%fourierProfileTableConcentrationCount,self%fourierProfileTableAlphaCount])
        ! Create ranges of alpha and wavenumber.
-       self%fourierProfileTableAlpha        =Make_Range(self%fourierProfileTableAlphaMinimum        ,self%fourierProfileTableAlphaMaximum         &
-            &,self%fourierProfileTableAlphaCount        ,rangeType=rangeTypeLinear     )
-       self%fourierProfileTableConcentration=Make_Range(self%fourierProfileTableConcentrationMinimum,self%fourierProfileTableConcentrationMaximum &
-            &,self%fourierProfileTableConcentrationCount,rangeType=rangeTypeLogarithmic)
-       self%fourierProfileTableWavenumber   =Make_Range(self%fourierProfileTableWavenumberMinimum   ,self%fourierProfileTableWavenumberMaximum    &
-            &,self%fourierProfileTableWavenumberCount   ,rangeType=rangeTypeLogarithmic)
+       self%fourierProfileTableAlpha        =Make_Range(self%fourierProfileTableAlphaMinimum        ,self%fourierProfileTableAlphaMaximum        , &
+            &                                           self%fourierProfileTableAlphaCount          ,rangeType=rangeTypeLinear     )
+       self%fourierProfileTableConcentration=Make_Range(self%fourierProfileTableConcentrationMinimum,self%fourierProfileTableConcentrationMaximum, &
+            &                                           self%fourierProfileTableConcentrationCount  ,rangeType=rangeTypeLogarithmic)
+       self%fourierProfileTableWavenumber   =Make_Range(self%fourierProfileTableWavenumberMinimum   ,self%fourierProfileTableWavenumberMaximum   , &
+            &                                           self%fourierProfileTableWavenumberCount     ,rangeType=rangeTypeLogarithmic)
        ! Tabulate the Fourier profile.
        do iAlpha=1,self%fourierProfileTableAlphaCount
           alpha=self%fourierProfileTableAlpha(iAlpha)
@@ -1221,8 +1246,9 @@ contains
              concentration=self%fourierProfileTableConcentration(iConcentration)
 
              ! Show progress.
-             percentage=int(100.0d0*dble((iAlpha-1)*self%fourierProfileTableConcentrationCount+iConcentration-1)&
-                  &/dble(self%fourierProfileTableAlphaCount*self%fourierProfileTableConcentrationCount))
+             percentage=int(100.0d0*dble((iAlpha-1)*self%fourierProfileTableConcentrationCount+iConcentration-1       ) &
+                  &                /dble(self%fourierProfileTableAlphaCount*self%fourierProfileTableConcentrationCount) &
+                  &        )
              call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iConcentration == 1,verbosityWorking)
 
              do iWavenumber=1,self%fourierProfileTableWavenumberCount
@@ -1238,9 +1264,10 @@ contains
                    wavenumberParameter   =wavenumber
                    alphaParameter        =alpha
                    concentrationParameter=concentration
-                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum&
-                        &,einastoFourierProfileIntegrand,integrandFunction,integrationWorkspace&
-                        &,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3,maxIntervals=10000,errorStatus=errorStatus)
+                   self%fourierProfileTable(iWavenumber,iConcentration,iAlpha)=Integrate(radiusMinimum,radiusMaximum,einastoFourierProfileIntegrand, &
+                        &                                                                integrandFunction      ,integrationWorkspace              , &
+                        &                                                                toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3          , &
+                        &                                                                maxIntervals     =10000,errorStatus      =errorStatus)
                    call Integrate_Done(integrandFunction,integrationWorkspace)
                    if (errorStatus /= errorStatusSuccess) then
                       message="Integration of Einasto profile Fourier transform failed at:"//char(10)
@@ -1260,12 +1287,12 @@ contains
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
        ! Reset interpolators.
-       call Interpolate_Done(self%fourierProfileTableWavenumberInterpolationObject,self%fourierProfileTableWavenumberInterpolationAccelerator &
-            &,self%fourierProfileTableWavenumberInterpolationReset)
-       call Interpolate_Done(interpolationAccelerator=self%fourierProfileTableAlphaInterpolationAccelerator         &
-            &,reset=self%fourierProfileTableAlphaInterpolationReset        )
-       call Interpolate_Done(interpolationAccelerator=self%fourierProfileTableConcentrationInterpolationAccelerator &
-            &,reset=self%fourierProfileTableConcentrationInterpolationReset)
+       call Interpolate_Done(self%fourierProfileTableWavenumberInterpolationObject,self%fourierProfileTableWavenumberInterpolationAccelerator, &
+            &                self%fourierProfileTableWavenumberInterpolationReset         )
+       call Interpolate_Done(interpolationAccelerator=self%fourierProfileTableAlphaInterpolationAccelerator                                  , &
+            &                reset=self%fourierProfileTableAlphaInterpolationReset        )
+       call Interpolate_Done(interpolationAccelerator=self%fourierProfileTableConcentrationInterpolationAccelerator                          , &
+            &                reset=self%fourierProfileTableConcentrationInterpolationReset)
        self%fourierProfileTableWavenumberInterpolationReset   =.true.
        self%fourierProfileTableAlphaInterpolationReset        =.true.
        self%fourierProfileTableConcentrationInterpolationReset=.true.
@@ -1353,7 +1380,12 @@ contains
 
     einastoFreefallRadius=0.0d0
     do iAlpha=0,1
-       einastoFreefallRadius=einastoFreefallRadius+Interpolate(self%freefallRadiusTable(:,jAlpha(iAlpha)),self%freefallRadiusTableRadius,self%freefallRadiusTableRadiusInterpolationObject,self%freefallRadiusTableRadiusInterpolationAccelerator,freefallTimeScaleFree,reset=self%freefallRadiusTableRadiusInterpolationReset)*hAlpha(iAlpha)
+       einastoFreefallRadius=+einastoFreefallRadius                                                                                                  &
+            &                +Interpolate(self%freefallRadiusTable(:,jAlpha(iAlpha))       , self%freefallRadiusTableRadius                        , &
+            &                             self%freefallRadiusTableRadiusInterpolationObject, self%freefallRadiusTableRadiusInterpolationAccelerator, &
+            &                             freefallTimeScaleFree                            , reset=self%freefallRadiusTableRadiusInterpolationReset  &
+            &                            )                                                                                                           &
+            &                *hAlpha(iAlpha)
     end do
     einastoFreefallRadius=einastoFreefallRadius*radiusScale
     return
@@ -1416,17 +1448,19 @@ contains
 
     ! Interpolate to get the freefall radius.
     ! Get interpolating factors in alpha.
-    jAlpha(0)=Interpolate_Locate(self%freefallRadiusTableAlpha&
-         &,self%freefallRadiusTableAlphaInterpolationAccelerator,alpha,reset=self%freefallRadiusTableAlphaInterpolationReset)
+    jAlpha(0)=Interpolate_Locate(self%freefallRadiusTableAlpha,self%freefallRadiusTableAlphaInterpolationAccelerator, &
+         &                       alpha                        ,reset=self%freefallRadiusTableAlphaInterpolationReset)
     jAlpha(1)=jAlpha(0)+1
     hAlpha=Interpolate_Linear_Generate_Factors(self%freefallRadiusTableAlpha,jAlpha(0),alpha)
 
     einastoFreefallRadiusIncreaseRate=0.0d0
     do iAlpha=0,1
-       einastoFreefallRadiusIncreaseRate=einastoFreefallRadiusIncreaseRate+Interpolate_Derivative(self%freefallRadiusTable(:&
-            &,jAlpha(iAlpha)),self%freefallRadiusTableRadius ,self%freefallRadiusTableRadiusInterpolationObject&
-            &,self%freefallRadiusTableRadiusInterpolationAccelerator ,freefallTimeScaleFree,reset&
-            &=self%freefallRadiusTableRadiusInterpolationReset)*hAlpha(iAlpha)
+       einastoFreefallRadiusIncreaseRate=+einastoFreefallRadiusIncreaseRate                                                                                                &
+            &                            +Interpolate_Derivative(self%freefallRadiusTable(:,jAlpha(iAlpha))       ,self%freefallRadiusTableRadius                        , &
+            &                                                    self%freefallRadiusTableRadiusInterpolationObject,self%freefallRadiusTableRadiusInterpolationAccelerator, &
+            &                                                    freefallTimeScaleFree                            ,reset=self%freefallRadiusTableRadiusInterpolationReset  &
+            &                                                   )                                                                                                          &
+            &                            *hAlpha(iAlpha)
     end do
     einastoFreefallRadiusIncreaseRate=einastoFreefallRadiusIncreaseRate*radiusScale/timeScale
     return
@@ -1492,8 +1526,9 @@ contains
           alpha=self%freefallRadiusTableAlpha(iAlpha)
           do iRadius=1,self%freefallRadiusTableRadiusCount
              ! Show progress.
-             percentage=int(100.0d0*dble((iAlpha-1)*self%freefallRadiusTableRadiusCount+iRadius-1)&
-                  &/dble(self%freefallRadiusTableAlphaCount*self%freefallRadiusTableRadiusCount))
+             percentage=int(100.0d0*dble((iAlpha-1)*self%freefallRadiusTableRadiusCount+iRadius-1              ) &
+                  &                /dble(self%freefallRadiusTableAlphaCount*self%freefallRadiusTableRadiusCount) &
+                  &        )
              call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iRadius == 1,verbosityWorking)
              ! Compute the freefall radius.
              self%freefallRadiusTable(iRadius,iAlpha)=self%freefallTimeScaleFree(self%freefallRadiusTableRadius(iRadius),alpha)
@@ -1572,11 +1607,11 @@ contains
     use Root_Finder
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout), target :: self
-    type            (treeNode                ), intent(inout), target :: node
-    double precision                          , intent(in   )         :: density
-    type            (rootFinder              ), save                  :: finder
-    double precision                          , parameter             :: toleranceAbsolute=0.0d0
-    double precision                          , parameter             :: toleranceRelative=1.0d-3
+    type            (treeNode                   ), intent(inout), target :: node
+    double precision                             , intent(in   )         :: density
+    type            (rootFinder                 ), save                  :: finder
+    double precision                             , parameter             :: toleranceAbsolute=0.0d0
+    double precision                             , parameter             :: toleranceRelative=1.0d-3
     !$omp threadprivate(finder)
     
     if (.not.finder%isInitialized()) then
