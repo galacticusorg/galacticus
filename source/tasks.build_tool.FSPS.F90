@@ -53,7 +53,7 @@ contains
     use Galacticus_Display
     use Interfaces_FSPS
     implicit none
-    class  (taskBuildToolFSPS), intent(inout)           :: self
+    class  (taskBuildToolFSPS), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: fspsPath, fspsVersion
     !GCC$ attributes unused :: self

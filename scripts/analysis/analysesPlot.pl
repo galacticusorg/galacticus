@@ -71,167 +71,217 @@ foreach my $analysisName ( @analyses ) {
 		$data->{$dataset->{'name'}} = $analysisGroup->dataset($analysisDatasetName)->get();
 	    }
 	}
-	# Determine non-zero entries.
-	my $nonZero       = which( $data->{'yDataset'      } != 0.0)                                      ;
-	my $nonZeroTarget = which(                                      $data->{'yDatasetTarget'} != 0.0) ;
-	my $nonZeroBoth   = which(($data->{'yDataset'      } != 0.0) | ($data->{'yDatasetTarget'} != 0.0));
-	# Determine plot ranges.
-	my $yErrorLower      ;
-	my $yErrorUpper      ;
-	my $yErrorLowerTarget;
-	my $yErrorUpperTarget;
-	if ( exists($data->{'yErrorLower'      }) ) {
-	    $yErrorLower       = $data->{'yErrorLower'      }                       ;
+	&function1DPlot($data,$attributes,$analysisName);
+    } elsif ( $attributes->{'type'} eq "function1DSequence" ) {
+    	# Sequence of simple 1D functions - will be shown as multiple x-y scatter plot.
+	# Validate attributes.
+	my @datasetNames =
+	    (
+	     {name => 'xDataset'         , required => 1},
+	     {name => 'yDataset'         , required => 1},
+	     {name => 'yDatasetTarget'   , required => 1},
+	     {name => 'yCovariance'      , required => 0},
+	     {name => 'yCovarianceTarget', required => 0},
+	     {name => 'yErrorLower'      , required => 0},
+	     {name => 'yErrorUpper'      , required => 0},
+	     {name => 'yErrorLowerTarget', required => 0},
+	     {name => 'yErrorUpperTarget', required => 0},
+	    );
+	foreach my $attribute ( @datasetNames ) {
+	    die("Error: attribute '".$attribute->{'name'}."' is missing from analysis '".$analysisName."' but is required.")
+		unless ( ! $attribute->{'required'} || grep {$_ eq $attribute->{'name'}} keys(%{$attributes}) );
 	}
-	if ( exists($data->{'yErrorUpper'      }) ) {
-	    $yErrorUpper       = $data->{'yErrorUpper'      }                       ;
-	}
-	if ( exists($data->{'yCovariance'      }) ) {
-	    $yErrorUpper       = $data->{'yCovariance'      }->diagonal(0,1)->sqrt();
-	    $yErrorLower       = $data->{'yCovariance'      }->diagonal(0,1)->sqrt();
-	}
-	if ( exists($data->{'yErrorLowerTarget'}) ) {
-	    $yErrorLowerTarget = $data->{'yErrorLowerTarget'}                       ;
-	}
-	if ( exists($data->{'yErrorUpperTarget'}) ) {
-	    $yErrorUpperTarget = $data->{'yErrorUpperTarget'}                       ;
-	}
-	if ( exists($data->{'yCovarianceTarget'}) ) {
-	    $yErrorUpperTarget = $data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
-	    $yErrorLowerTarget = $data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
-	}
-	my $yLower       = $data->{'yDataset'      }->copy();
-	my $yUpper       = $data->{'yDataset'      }->copy();
-	my $yLowerTarget = $data->{'yDatasetTarget'}->copy();
-	my $yUpperTarget = $data->{'yDatasetTarget'}->copy();
-	$yLower       -= $yErrorLower       if ( defined($yErrorLower      ) );
-	$yUpper       += $yErrorUpper       if ( defined($yErrorUpper      ) );
-	$yLowerTarget -= $yErrorLowerTarget if ( defined($yErrorLowerTarget) );
-	$yUpperTarget += $yErrorUpperTarget if ( defined($yErrorUpperTarget) );
-	if ( $attributes->{'yAxisIsLog'} ) {
-	    my $negativeY                      = which($yLower       <= 0.0);
-	    my $negativeYTarget                = which($yLowerTarget <= 0.0);
-	    $yLower      ->($negativeY      ) .= $data->{'yDataset'      }->($negativeY      );
-	    $yLowerTarget->($negativeYTarget) .= $data->{'yDatasetTarget'}->($negativeYTarget);
-	}
-	my $yUpperBoth   = $yUpper->($nonZero)->append($yUpperTarget->($nonZeroTarget));
-	my $yLowerBoth   = $yLower->($nonZero)->append($yLowerTarget->($nonZeroTarget));
-	my $xMinimum = $data->{'xDataset'}->($nonZeroBoth)->minimum();
-	my $xMaximum = $data->{'xDataset'}->($nonZeroBoth)->maximum();
-	my $yMinimum = $yLowerBoth                        ->minimum();
-	my $yMaximum = $yUpperBoth                        ->maximum();
-	if ( $attributes->{'xAxisIsLog'} ) {
-	    $xMinimum /= 1.05;
-	    $xMaximum *= 1.05;
-	    # Ensure that we span at least one integer.
-	    my $xMinimumLog = log10($xMinimum);
-	    my $xMaximumLog = log10($xMaximum);
-	    if ( int($xMaximumLog) == int($xMinimumLog) ) {
-		if ( $xMinimumLog-int($xMinimumLog) < int($xMaximumLog)+1-$xMaximumLog ) {
-		    $xMinimum = 10.0** int($xMinimumLog)   ;
-		} else {
-		    $xMaximum = 10.0**(int($xMaximumLog)+1);
-		}
-	    }		
-	} else {
-	    my $xRange  = $xMaximum-$xMinimum;
-	    $xRange    .= $xMinimum
-		if ( $xRange == 0.0 );
-	    $xMinimum  -= 0.05*$xRange;
-	    $xMaximum  += 0.05*$xRange;
-	}
-	if ( $attributes->{'yAxisIsLog'} ) {
-	    $yMinimum /= 1.05;
-	    $yMaximum *= 1.05;
-	    # Ensure that we span at least one integer.
-	    my $yMinimumLog = log10($yMinimum);
-	    my $yMaximumLog = log10($yMaximum);
-	    if ( int($yMaximumLog) == int($yMinimumLog) ) {
-		if ( $yMinimumLog-int($yMinimumLog) < int($yMaximumLog)+1-$yMaximumLog ) {
-		    $yMinimum = 10.0** int($yMinimumLog)   ;
-		} else {
-		    $yMaximum = 10.0**(int($yMaximumLog)+1);
-		}
-	    }		
-	} else {
-	    my $yRange  = $yMaximum-$yMinimum;
-	    $yRange    .= $yMinimum
-		if ( $yRange == 0.0 );
-	    $yMinimum  -= 0.05*$yRange;
-	    $yMaximum  += 0.05*$yRange;
-	}
-	# Determine a suitable pointsize.
-	my $pointSize = "1.0";
-	$pointSize = 0.25
-	    if ( nelem($data->{'xDataset'}) > 100 );
-	# Construct a plot.
-	my $plot;
-	my $gnuPlot;
-	my $plotFileTeX = $options{'outputDirectory'}."/".$analysisName.".tex";
-	open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
-	print $gnuPlot "set terminal cairolatex pdf standalone color lw 2 size 4in,4in\n";
-	print $gnuPlot "set output '".$plotFileTeX."'\n";
-	print $gnuPlot "set title offset 0,-0.8 '\\tiny ".$attributes->{'description'}."'\n"
-	    if ( exists($attributes->{'description'}) );
-	print $gnuPlot "set xlabel '".$attributes->{'xAxisLabel'}."'\n";
-	print $gnuPlot "set ylabel '".$attributes->{'yAxisLabel'}."'\n";
-	print $gnuPlot "set lmargin screen 0.15\n";
-	print $gnuPlot "set rmargin screen 0.95\n";
-	print $gnuPlot "set bmargin screen 0.20\n";
-	print $gnuPlot "set tmargin screen 0.95\n";
-	print $gnuPlot "set key spacing 1.1\n";
-	print $gnuPlot "set key bmargin box\n";
-	foreach my $axis ( 'x', 'y' ) {
-	    if ( $attributes->{$axis.'AxisIsLog'} ) {
-		print $gnuPlot "set logscale ".$axis."\n";
-		print $gnuPlot "set m".$axis."tics 10\n";
-		print $gnuPlot "set format ".$axis." '\$10^{\%L}\$'\n";
+	# Read the datasets.
+	my $data;
+	foreach my $dataset ( @datasetNames ) {
+	    if ( grep {$_ eq $dataset->{'name'}} keys(%{$attributes}) ) {
+		(my $analysisDatasetName) = $analysisGroup->attrGet($dataset->{'name'});
+		$data->{$dataset->{'name'}} = $analysisGroup->dataset($analysisDatasetName)->get();
 	    }
 	}
-	print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
-	print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
-	print $gnuPlot "set pointsize ".$pointSize."\n";
-	(my $targetLabel = $attributes->{'targetLabel'}) =~ s/&/\\&/g;
-	my %plotOptionsTarget =
-	    (
-	     style      => "point",
-	     symbol     => [6,7],
-	     weight     => [2,1],
-	     color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
-	     title      => "\\\\footnotesize ".$targetLabel
-	    );
-	$plotOptionsTarget{'errorDown'} = $yErrorLowerTarget
-	    if ( defined($yErrorLowerTarget) );
-	$plotOptionsTarget{'errorUp'  } = $yErrorUpperTarget
-	    if ( defined($yErrorUpperTarget) );
-	&GnuPlot::PrettyPlots::Prepare_Dataset(
-		\$plot,
-		$data->{'xDataset'      }->($nonZeroTarget),
-		$data->{'yDatasetTarget'}->($nonZeroTarget),
-		%plotOptionsTarget
-	    );
-	my %plotOptions =
-	    (
-	    style      => "point",
-	    symbol     => [6,7],
-	    weight     => [2,1],
-	    color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
-	    title      => "\\\\footnotesize Galacticus"
-	    );
-	$plotOptions{'errorDown'} = $yErrorLower
-	    if ( defined($yErrorLower) );
-	$plotOptions{'errorUp'  } = $yErrorUpper
-	    if ( defined($yErrorUpper) );
-	&GnuPlot::PrettyPlots::Prepare_Dataset(
-		\$plot,
-		$data->{'xDataset'}->($nonZero),
-		$data->{'yDataset'}->($nonZero),
-		%plotOptions
-	    );
-	&GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
-	close($gnuPlot);
-	&GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+	# Iterate over each individual plot in the sequence.
+	for(my $i=0;$i<$data->{'yDataset'}->dim(1);++$i) {
+	    my $dataSequence                              ;
+	    my $size1D       = $data->{'xDataset'}->dim(0);
+	    $dataSequence->{'xDataset'} = $data->{'xDataset'};
+	    foreach my $dataset ( 'yDataset', 'yDatasetTarget', 'yErrorLower', 'yErrorUpper', 'yErrorLowerTarget', 'yErrorUpperTarget' ) {
+		$dataSequence->{$dataset} = $data->{$dataset}->(:,($i))
+		    if ( exists($data->{$dataset}) );
+	    }
+	    foreach my $dataset ( 'yCovariance', 'yCovarianceTarget' ) {
+		$dataSequence->{$dataset} = $data->{$dataset}->($size1D*$i:$size1D*($i+1)-1,$size1D*$i:$size1D*($i+1)-1)
+		    if ( exists($data->{$dataset}) );
+	    }
+	    &function1DPlot($dataSequence,$attributes,$analysisName.":".$i);
+	}
     }
 }
 
 exit 0;
+
+sub function1DPlot {
+    # Plot a 1-D function.
+    my $data         = shift();
+    my $attributes   = shift();
+    my $analysisName = shift();
+    # Determine non-zero entries.
+    my $nonZero       = which( $data->{'yDataset'      } != 0.0)                                      ;
+    my $nonZeroTarget = which(                                      $data->{'yDatasetTarget'} != 0.0) ;
+    my $nonZeroBoth   = which(($data->{'yDataset'      } != 0.0) | ($data->{'yDatasetTarget'} != 0.0));
+    # Determine plot ranges.
+    my $yErrorLower      ;
+    my $yErrorUpper      ;
+    my $yErrorLowerTarget;
+    my $yErrorUpperTarget;
+    if ( exists($data->{'yErrorLower'      }) ) {
+	$yErrorLower       = $data->{'yErrorLower'      }                       ;
+    }
+    if ( exists($data->{'yErrorUpper'      }) ) {
+	$yErrorUpper       = $data->{'yErrorUpper'      }                       ;
+    }
+    if ( exists($data->{'yCovariance'      }) ) {
+	$yErrorUpper       = $data->{'yCovariance'      }->diagonal(0,1)->sqrt();
+	$yErrorLower       = $data->{'yCovariance'      }->diagonal(0,1)->sqrt();
+    }
+    if ( exists($data->{'yErrorLowerTarget'}) ) {
+	$yErrorLowerTarget = $data->{'yErrorLowerTarget'}                       ;
+    }
+    if ( exists($data->{'yErrorUpperTarget'}) ) {
+	$yErrorUpperTarget = $data->{'yErrorUpperTarget'}                       ;
+    }
+    if ( exists($data->{'yCovarianceTarget'}) ) {
+	$yErrorUpperTarget = $data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
+	$yErrorLowerTarget = $data->{'yCovarianceTarget'}->diagonal(0,1)->sqrt();
+    }
+    my $yLower       = $data->{'yDataset'      }->copy();
+    my $yUpper       = $data->{'yDataset'      }->copy();
+    my $yLowerTarget = $data->{'yDatasetTarget'}->copy();
+    my $yUpperTarget = $data->{'yDatasetTarget'}->copy();
+    $yLower       -= $yErrorLower       if ( defined($yErrorLower      ) );
+    $yUpper       += $yErrorUpper       if ( defined($yErrorUpper      ) );
+    $yLowerTarget -= $yErrorLowerTarget if ( defined($yErrorLowerTarget) );
+    $yUpperTarget += $yErrorUpperTarget if ( defined($yErrorUpperTarget) );
+    if ( $attributes->{'yAxisIsLog'} ) {
+	my $negativeY                      = which($yLower       <= 0.0);
+	my $negativeYTarget                = which($yLowerTarget <= 0.0);
+	$yLower      ->($negativeY      ) .= $data->{'yDataset'      }->($negativeY      );
+	$yLowerTarget->($negativeYTarget) .= $data->{'yDatasetTarget'}->($negativeYTarget);
+    }
+    my $yUpperBoth   = $yUpper->($nonZero)->append($yUpperTarget->($nonZeroTarget));
+    my $yLowerBoth   = $yLower->($nonZero)->append($yLowerTarget->($nonZeroTarget));
+    my $xMinimum = $data->{'xDataset'}->($nonZeroBoth)->minimum();
+    my $xMaximum = $data->{'xDataset'}->($nonZeroBoth)->maximum();
+    my $yMinimum = $yLowerBoth                        ->minimum();
+    my $yMaximum = $yUpperBoth                        ->maximum();
+    if ( $attributes->{'xAxisIsLog'} ) {
+	$xMinimum /= 1.05;
+	$xMaximum *= 1.05;
+	# Ensure that we span at least one integer.
+	my $xMinimumLog = log10($xMinimum);
+	my $xMaximumLog = log10($xMaximum);
+	if ( int($xMaximumLog) == int($xMinimumLog) ) {
+	    if ( $xMinimumLog-int($xMinimumLog) < int($xMaximumLog)+1-$xMaximumLog ) {
+		$xMinimum = 10.0** int($xMinimumLog)   ;
+	    } else {
+		$xMaximum = 10.0**(int($xMaximumLog)+1);
+	    }
+	}		
+    } else {
+	my $xRange  = $xMaximum-$xMinimum;
+	$xRange    .= $xMinimum
+	    if ( $xRange == 0.0 );
+	$xMinimum  -= 0.05*$xRange;
+	$xMaximum  += 0.05*$xRange;
+    }
+    if ( $attributes->{'yAxisIsLog'} ) {
+	$yMinimum /= 1.05;
+	$yMaximum *= 1.05;
+	# Ensure that we span at least one integer.
+	my $yMinimumLog = log10($yMinimum);
+	my $yMaximumLog = log10($yMaximum);
+	if ( int($yMaximumLog) == int($yMinimumLog) ) {
+	    if ( $yMinimumLog-int($yMinimumLog) < int($yMaximumLog)+1-$yMaximumLog ) {
+		$yMinimum = 10.0** int($yMinimumLog)   ;
+	    } else {
+		$yMaximum = 10.0**(int($yMaximumLog)+1);
+	    }
+	}		
+    } else {
+	my $yRange  = $yMaximum-$yMinimum;
+	$yRange    .= $yMinimum
+	    if ( $yRange == 0.0 );
+	$yMinimum  -= 0.05*$yRange;
+	$yMaximum  += 0.05*$yRange;
+    }
+    # Determine a suitable pointsize.
+    my $pointSize = "1.0";
+    $pointSize = 0.25
+	if ( nelem($data->{'xDataset'}) > 100 );
+    # Construct a plot.
+    my $plot;
+    my $gnuPlot;
+    my $plotFileTeX = $options{'outputDirectory'}."/".$analysisName.".tex";
+    open($gnuPlot,"|gnuplot 1>/dev/null 2>&1");
+    print $gnuPlot "set terminal cairolatex pdf standalone color lw 2 size 4in,4in\n";
+    print $gnuPlot "set output '".$plotFileTeX."'\n";
+    print $gnuPlot "set title offset 0,-0.8 '\\tiny ".$attributes->{'description'}."'\n"
+	if ( exists($attributes->{'description'}) );
+    print $gnuPlot "set xlabel '".$attributes->{'xAxisLabel'}."'\n";
+    print $gnuPlot "set ylabel '".$attributes->{'yAxisLabel'}."'\n";
+    print $gnuPlot "set lmargin screen 0.15\n";
+    print $gnuPlot "set rmargin screen 0.95\n";
+    print $gnuPlot "set bmargin screen 0.20\n";
+    print $gnuPlot "set tmargin screen 0.95\n";
+    print $gnuPlot "set key spacing 1.1\n";
+    print $gnuPlot "set key bmargin box\n";
+    foreach my $axis ( 'x', 'y' ) {
+	if ( $attributes->{$axis.'AxisIsLog'} ) {
+	    print $gnuPlot "set logscale ".$axis."\n";
+	    print $gnuPlot "set m".$axis."tics 10\n";
+	    print $gnuPlot "set format ".$axis." '\$10^{\%L}\$'\n";
+	}
+    }
+    print $gnuPlot "set xrange [".$xMinimum.":".$xMaximum."]\n";
+    print $gnuPlot "set yrange [".$yMinimum.":".$yMaximum."]\n";
+    print $gnuPlot "set pointsize ".$pointSize."\n";
+    (my $targetLabel = $attributes->{'targetLabel'}) =~ s/&/\\&/g;
+    my %plotOptionsTarget =
+	(
+	 style      => "point",
+	 symbol     => [6,7],
+	 weight     => [2,1],
+	 color      => $GnuPlot::PrettyPlots::colorPairs{'cornflowerBlue'},
+	 title      => "\\\\footnotesize ".$targetLabel
+	);
+    $plotOptionsTarget{'errorDown'} = $yErrorLowerTarget
+	if ( defined($yErrorLowerTarget) );
+    $plotOptionsTarget{'errorUp'  } = $yErrorUpperTarget
+	if ( defined($yErrorUpperTarget) );
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
+	    \$plot,
+	    $data->{'xDataset'      }->($nonZeroTarget),
+	    $data->{'yDatasetTarget'}->($nonZeroTarget),
+	    %plotOptionsTarget
+	);
+    my %plotOptions =
+	(
+	 style      => "point",
+	 symbol     => [6,7],
+	 weight     => [2,1],
+	 color      => $GnuPlot::PrettyPlots::colorPairs{'redYellow'},
+	 title      => "\\\\footnotesize Galacticus"
+	);
+    $plotOptions{'errorDown'} = $yErrorLower
+	if ( defined($yErrorLower) );
+    $plotOptions{'errorUp'  } = $yErrorUpper
+	if ( defined($yErrorUpper) );
+    &GnuPlot::PrettyPlots::Prepare_Dataset(
+	    \$plot,
+	    $data->{'xDataset'}->($nonZero),
+	    $data->{'yDataset'}->($nonZero),
+	    %plotOptions
+	);
+    &GnuPlot::PrettyPlots::Plot_Datasets($gnuPlot,\$plot);
+    close($gnuPlot);
+    &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
+}

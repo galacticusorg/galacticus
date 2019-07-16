@@ -23,12 +23,7 @@ module Galacticus_Output_Halo_Models
   !% Handles outputting of data required by the halo model of galaxy clustering to the \glc\ output file.
   implicit none
   private
-  public :: Galacticus_Output_Halo_Model, Galacticus_Output_Halo_Model_Property_Count, Galacticus_Output_Halo_Model_Names,&
-       & Galacticus_Linear_Power_Spectrum_Output, Galacticus_Growth_Factor_Output, Galacticus_Extra_Output_Halo_Fourier_Profile
-
-  ! Number of halo model properties.
-  integer         , parameter                 :: haloModelIntegerPropertyCount     =1
-  integer         , parameter                 :: haloModelDoublePropertyCount      =1
+  public :: Galacticus_Extra_Output_Halo_Fourier_Profile
 
   ! Flag indicating whether or not halo model information is to be output.
   logical                                     :: outputHaloModelData
@@ -48,8 +43,13 @@ contains
 
   subroutine Galacticus_Output_Halo_Model_Initialize
     !% Initializes the module by determining whether or not halo model data should be output.
+    use Galacticus_HDF5
+    use IO_HDF5
     use Input_Parameters
+    use Numerical_Constants_Astronomical, only : megaParsec
+    use Numerical_Ranges                , only : Make_Range, rangeTypeLogarithmic
     implicit none
+    type(hdf5Object) :: haloModelDataset, haloModelGroup
 
     if (.not.outputHaloModelDataInitialized) then
        !$omp critical(Galacticus_Output_Halo_Model_Initialize)
@@ -90,8 +90,20 @@ contains
              !#   <source>globalParameters</source>
              !#   <type>real</type>
              !# </inputParameter>
+             ! Determine how many wavenumbers to tabulate at.
+             wavenumberCount=int(log10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
+             ! Allocate arrays for power spectrum.
+             allocate(wavenumber(wavenumberCount))
+             ! Build a grid of wavenumbers.
+             wavenumber=Make_Range(haloModelWavenumberMinimum,haloModelWavenumberMaximum,wavenumberCount,rangeType=rangeTypeLogarithmic)
+             call hdf5Access%set()
+             haloModelGroup=galacticusOutputFile%openGroup("haloModel","Halo model data.")
+             call haloModelGroup  %writeDataset  (wavenumber      ,'wavenumber','Wavenumber at which power spectrum is tabulated [Mpc⁻¹].',datasetReturned=haloModelDataset)
+             call haloModelDataset%writeAttribute(1.0d0/megaParsec,'unitsInSI'                                                                                             )
+             call haloModelDataset%close()
+             call haloModelGroup  %close()
+             call hdf5Access      %unset()
           end if
-
           ! Flag that module is now initialized.
           outputHaloModelDataInitialized=.true.
        end if
@@ -99,199 +111,6 @@ contains
     end if
     return
   end subroutine Galacticus_Output_Halo_Model_Initialize
-
-  !# <mergerTreeOutputNames>
-  !#  <unitName>Galacticus_Output_Halo_Model_Names</unitName>
-  !#  <sortName>Galacticus_Output_Halo_Model</sortName>
-  !# </mergerTreeOutputNames>
-  subroutine Galacticus_Output_Halo_Model_Names(node,integerProperty,integerPropertyNames,integerPropertyComments&
-       &,integerPropertyUnitsSI,doubleProperty ,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
-    !% Set the names of halo model properties to be written to the \glc\ output file.
-    use Galacticus_Nodes, only : treeNode
-    implicit none
-    type            (treeNode)              , intent(inout) :: node
-    double precision                        , intent(in   ) :: time
-    integer                                 , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                     integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: node, time
-    
-    ! Initialize the module.
-    call Galacticus_Output_Halo_Model_Initialize
-
-    ! Return property names if we are outputting halo model data.
-    if (outputHaloModelData) then
-       doubleProperty =doubleProperty +1
-       doublePropertyNames    (doubleProperty)='nodeBias'
-       doublePropertyComments (doubleProperty)='The linear bias for this node.'
-       doublePropertyUnitsSI  (doubleProperty)=0.0d0
-       integerProperty=integerProperty+1
-       integerPropertyNames   (integerProperty)='isolatedHostIndex'
-       integerPropertyComments(integerProperty)='The index of the isolated node which hosts this node.'
-       integerPropertyUnitsSI (integerProperty)=0.0d0
-    end if
-    return
-  end subroutine Galacticus_Output_Halo_Model_Names
-
-  !# <mergerTreeOutputPropertyCount>
-  !#  <unitName>Galacticus_Output_Halo_Model_Property_Count</unitName>
-  !#  <sortName>Galacticus_Output_Halo_Model</sortName>
-  !# </mergerTreeOutputPropertyCount>
-  subroutine Galacticus_Output_Halo_Model_Property_Count(node,integerPropertyCount,doublePropertyCount,time)
-    !% Account for the number of halo model properties to be written to the \glc\ output file.
-    use Galacticus_Nodes, only : treeNode
-    implicit none
-    type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: time
-    integer                   , intent(inout) :: doublePropertyCount, integerPropertyCount
-    !GCC$ attributes unused :: node, time
-    
-    ! Initialize the module.
-    call Galacticus_Output_Halo_Model_Initialize
-
-    ! Increment property count if we are outputting halo model data.
-    if (outputHaloModelData) then
-       integerPropertyCount=integerPropertyCount+haloModelIntegerPropertyCount
-       doublePropertyCount =doublePropertyCount+haloModelDoublePropertyCount
-    end if
-    return
-  end subroutine Galacticus_Output_Halo_Model_Property_Count
-
-  !# <mergerTreeOutputTask>
-  !#  <unitName>Galacticus_Output_Halo_Model</unitName>
-  !#  <sortName>Galacticus_Output_Halo_Model</sortName>
-  !# </mergerTreeOutputTask>
-  subroutine Galacticus_Output_Halo_Model(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
-    !% Store halo model properties in the \glc\ output file buffers.
-    use Galacticus_Nodes, only : treeNode
-    use Dark_Matter_Halo_Biases
-    use Kind_Numbers
-    use Multi_Counters
-    implicit none
-    double precision                         , intent(in   )         :: time
-    type            (treeNode               ), intent(inout), target :: node
-    integer                                  , intent(inout)         :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                              integerProperty
-    integer         (kind=kind_int8         ), intent(inout)         :: integerBuffer    (:,:)
-    double precision                         , intent(inout)         :: doubleBuffer     (:,:)
-    type            (multiCounter           ), intent(inout)         :: instance
-    type            (treeNode               ), pointer               :: isolatedNode
-    class           (darkMatterHaloBiasClass), pointer               :: darkMatterHaloBias_
-    !GCC$ attributes unused :: time, instance
-    
-    ! Initialize the module.
-    call Galacticus_Output_Halo_Model_Initialize
-    
-    ! Store property data if we are outputting halo model data.
-    if (outputHaloModelData) then
-       darkMatterHaloBias_ => darkMatterHaloBias()
-       isolatedNode        => node
-       do while (isolatedNode%isSatellite())
-          isolatedNode => isolatedNode%parent
-       end do
-       doubleProperty =doubleProperty +1
-       doubleBuffer(doubleBufferCount  ,doubleProperty )=darkMatterHaloBias_%bias(isolatedNode)
-       integerProperty=integerProperty+1
-       integerBuffer(integerBufferCount,integerProperty)=isolatedNode%index()
-    end if
-    return
-  end subroutine Galacticus_Output_Halo_Model
-
-  !# <outputFileOpenTask>
-  !#  <unitName>Galacticus_Linear_Power_Spectrum_Output</unitName>
-  !# </outputFileOpenTask>
-  subroutine Galacticus_Linear_Power_Spectrum_Output
-    !% Output the linear theory power spectrum to the main output file.
-    use Galacticus_HDF5
-    use Numerical_Ranges
-    use Memory_Management
-    use Power_Spectra
-    use Numerical_Constants_Astronomical
-    implicit none
-    double precision                    , allocatable, dimension(:) :: powerSpectrumValue
-    class           (powerSpectrumClass), pointer                   :: powerSpectrum_
-    integer                                                         :: iWavenumber
-    type            (hdf5Object)                                    :: haloModelDataset   , haloModelGroup
-
-    ! Initialize the module.
-    call Galacticus_Output_Halo_Model_Initialize
-
-    ! Store power specturm if we are outputting halo model data.
-    if (outputHaloModelData) then
-
-       ! Create a group for halo model data..
-       call hdf5Access%set()
-       haloModelGroup=galacticusOutputFile%openGroup('haloModel','Halo model data.')
-       call hdf5Access%unset()
-
-       ! Determine how many wavenumbers to tabulate at.
-       wavenumberCount=int(log10(haloModelWavenumberMaximum/haloModelWavenumberMinimum)*dble(haloModelWavenumberPointsPerDecade))+1
-
-       ! Allocate arrays for power spectrum.
-       call allocateArray(wavenumber        ,[wavenumberCount])
-       call allocateArray(powerSpectrumValue,[wavenumberCount])
-
-       ! Build a grid of wavenumbers.
-       wavenumber=Make_Range(haloModelWavenumberMinimum,haloModelWavenumberMaximum,wavenumberCount,rangeType=rangeTypeLogarithmic)
-
-       ! Compute power spectrum at each wavenumber.
-       powerSpectrum_ => powerSpectrum()
-       do iWavenumber=1,wavenumberCount
-          powerSpectrumValue(iWavenumber)=powerSpectrum_%power(wavenumber(iWavenumber))
-       end do
-
-       ! Store the power spectrum
-       call hdf5Access%set()
-       call haloModelGroup%writeDataset(wavenumber   ,'wavenumber','Wavenumber at which power spectrum is tabulated [Mpc⁻¹].',datasetReturned=haloModelDataset)
-       call haloModelDataset%writeAttribute(1.0d0/megaParsec,'unitsInSI')
-       call haloModelDataset%close()
-       call haloModelGroup%writeDataset(powerSpectrumValue,'powerSpectrum','Linear theory power spectrum [Mpc³].',datasetReturned=haloModelDataset)
-       call haloModelDataset%writeAttribute(megaParsec**3   ,'unitsInSI')
-       call haloModelDataset%close()
-       call hdf5Access%unset()
-
-       ! Deallocate arrays.
-       call deallocateArray(powerSpectrumValue)
-
-       ! Close the halo model group.
-       call hdf5Access%set()
-       call haloModelGroup%close()
-       call hdf5Access%unset()
-
-    end if
-    return
-  end subroutine Galacticus_Linear_Power_Spectrum_Output
-
-  !# <outputGroupOutputTask>
-  !#  <unitName>Galacticus_Growth_Factor_Output</unitName>
-  !# </outputGroupOutputTask>
-  subroutine Galacticus_Growth_Factor_Output(outputGroup,time)
-    !% Output the linear theory power spectrum to the main output file.
-    use Linear_Growth
-    use IO_HDF5
-    type            (hdf5Object       ), intent(inout) :: outputGroup
-    double precision                   , intent(in   ) :: time
-    class           (linearGrowthClass), pointer       :: linearGrowth_
-    double precision                                   :: growthFactor , growthFactorDerivative
-
-    ! Initialize the module.
-    call Galacticus_Output_Halo_Model_Initialize
-
-    ! Store growth factor if we are outputting halo model data.
-    if (outputHaloModelData) then
-       linearGrowth_         => linearGrowth                                      (    )
-       growthFactor          =  linearGrowth_%value                               (time)
-       growthFactorDerivative=  linearGrowth_%logarithmicDerivativeExpansionFactor(time)
-       call hdf5Access%set()
-       call outputGroup%writeAttribute(growthFactor          ,'linearGrowthFactor'             )
-       call outputGroup%writeAttribute(growthFactorDerivative,'linearGrowthFactorLogDerivative')
-       call hdf5Access%unset()
-    end if
-
-    return
-  end subroutine Galacticus_Growth_Factor_Output
 
   !# <mergerTreeExtraOutputTask>
   !#  <unitName>Galacticus_Extra_Output_Halo_Fourier_Profile</unitName>
@@ -308,22 +127,23 @@ contains
     use Cosmology_Functions
     use Kind_Numbers
     implicit none
-    type            (treeNode               ), intent(inout), pointer      :: node
-    integer         (c_size_t               ), intent(in   )               :: iOutput
-    integer         (kind=kind_int8         ), intent(in   )               :: treeIndex
-    logical                                  , intent(in   )               :: nodePassesFilter
-    type            (treeNode          )                    , pointer      :: hostNode
-    class           (nodeComponentBasic     )               , pointer      :: basic
-    class           (cosmologyFunctionsClass)               , pointer      :: cosmologyFunctions_
-    class           (darkMatterProfileDMOClass )               , pointer      :: darkMatterProfileDMO_
-    double precision                         , allocatable  , dimension(:) :: fourierProfile
-    logical                                                                :: nodeExistsInOutput
-    integer                                                                :: iWavenumber
-    double precision                                                       :: expansionFactor
-    type            (varying_string         )                              :: groupName          , dataSetName
-    type            (hdf5Object             )                              :: outputGroup        , profilesGroup, &
-         &                                                                    treeGroup
+    type            (treeNode                 ), intent(inout), pointer      :: node
+    integer         (c_size_t                 ), intent(in   )               :: iOutput
+    integer         (kind=kind_int8           ), intent(in   )               :: treeIndex
+    logical                                    , intent(in   )               :: nodePassesFilter
+    type            (treeNode                 )               , pointer      :: hostNode
+    class           (nodeComponentBasic       )               , pointer      :: basic
+    class           (cosmologyFunctionsClass  )               , pointer      :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass)               , pointer      :: darkMatterProfileDMO_
+    double precision                           , allocatable  , dimension(:) :: fourierProfile
+    logical                                                                  :: nodeExistsInOutput
+    integer                                                                  :: iWavenumber
+    double precision                                                         :: expansionFactor
+    type            (varying_string           )                              :: groupName            , dataSetName
+    type            (hdf5Object               )                              :: outputGroup          , profilesGroup, &
+         &                                                                      treeGroup
 
+    call Galacticus_Output_Halo_Model_Initialize()
     ! For any node that passes the filter, we want to ensure that the host halo profile is output.
     ! Return immediately if halo model is not to be output or this node is filtered out.
     if (.not.(outputHaloModelData.and.nodePassesFilter)) return

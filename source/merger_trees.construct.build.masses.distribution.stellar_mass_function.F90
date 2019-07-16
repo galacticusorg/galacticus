@@ -19,21 +19,23 @@
 
   !% Implementation of a merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
 
-  use Halo_Mass_Functions
-  use Conditional_Mass_Functions
-
+  use Halo_Mass_Functions       , only : haloMassFunctionClass       , haloMassFunction
+  use Conditional_Mass_Functions, only : conditionalMassFunctionClass, conditionalMassFunction
+  use Meta_Tree_Compute_Times   , only : metaTreeProcessingTimeClass , metaTreeProcessingTime
+    
   !# <mergerTreeBuildMassDistribution name="mergerTreeBuildMassDistributionStllrMssFnctn">
   !#  <description>A merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.</description>
   !# </mergerTreeBuildMassDistribution>
   type, extends(mergerTreeBuildMassDistributionClass) :: mergerTreeBuildMassDistributionStllrMssFnctn
      !% Implementation of merger tree halo mass function sampling class optimized to minimize variance in the model stellar mass function.
      private
-     class           (haloMassFunctionClass       ), pointer :: haloMassFunction_ => null()
+     class           (haloMassFunctionClass       ), pointer :: haloMassFunction_        => null()
      class           (conditionalMassFunctionClass), pointer :: conditionalMassFunction_ => null()
-     double precision                                        :: alpha                   , beta               , &
-          &                                                     constant                , binWidthLogarithmic, &
-          &                                                     massMinimum             , massMaximum        , &
-          &                                                     massCharacteristic      , normalization
+     class           (metaTreeProcessingTimeClass ), pointer :: metaTreeProcessingTime_  => null()
+     double precision                                        :: alpha                             , beta               , &
+          &                                                     constant                          , binWidthLogarithmic, &
+          &                                                     massMinimum                       , massMaximum        , &
+          &                                                     massCharacteristic                , normalization
    contains
      final     ::           stellarMassFunctionDestructor
      procedure :: sample => stellarMassFunctionSample
@@ -55,10 +57,11 @@ contains
     type            (inputParameters                             ), intent(inout) :: parameters
     class           (haloMassFunctionClass                       ), pointer       :: haloMassFunction_
     class           (conditionalMassFunctionClass                ), pointer       :: conditionalMassFunction_
+    class           (metaTreeProcessingTimeClass                 ), pointer       :: metaTreeProcessingTime_
     double precision                                                              :: alpha                   , beta               , &
          &                                                                           constant                , binWidthLogarithmic, &
          &                                                                           massMinimum             , massMaximum        , &
-          &                                                                          massCharacteristic      , normalization
+         &                                                                           massCharacteristic      , normalization
     
     !# <inputParameter>
     !#   <name>normalization</name>
@@ -118,24 +121,27 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters"/>
     !# <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
-    self=mergerTreeBuildMassDistributionStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_)
+    !# <objectBuilder class="metaTreeProcessingTime"  name="metaTreeProcessingTime_"  source="parameters"/>
+    self=mergerTreeBuildMassDistributionStllrMssFnctn(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_,metaTreeProcessingTime_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="haloMassFunction_"       />
     !# <objectDestructor name="conditionalMassFunction_"/>
+    !# <objectDestructor name="metaTreeProcessingTime_" />
     return
   end function stellarMassFunctionConstructorParameters
 
-  function stellarMassFunctionConstructorInternal(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_) result(self)
+  function stellarMassFunctionConstructorInternal(alpha,beta,constant,binWidthLogarithmic,massMinimum,massMaximum,massCharacteristic,normalization,haloMassFunction_,conditionalMassFunction_,metaTreeProcessingTime_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily stellarMassFunction} merger tree halo mass function sampling class.
    implicit none
     type            (mergerTreeBuildMassDistributionStllrMssFnctn)                        :: self
     class           (haloMassFunctionClass                       ), intent(in   ), target :: haloMassFunction_
     class           (conditionalMassFunctionClass                ), intent(in   ), target :: conditionalMassFunction_
+    class           (metaTreeProcessingTimeClass                 ), intent(in   ), target :: metaTreeProcessingTime_
     double precision                                              , intent(in   )         :: alpha                   , beta               , &
          &                                                                                   constant                , binWidthLogarithmic, &
          &                                                                                   massMinimum             , massMaximum        , &
          &                                                                                   massCharacteristic      , normalization
-    !# <constructorAssign variables="alpha, beta, constant, binWidthLogarithmic, massMinimum, massMaximum, massCharacteristic, normalization, *haloMassFunction_, *conditionalMassFunction_"/>
+    !# <constructorAssign variables="alpha, beta, constant, binWidthLogarithmic, massMinimum, massMaximum, massCharacteristic, normalization, *haloMassFunction_, *conditionalMassFunction_, *metaTreeProcessingTime_"/>
     
     return
   end function stellarMassFunctionConstructorInternal
@@ -147,25 +153,25 @@ contains
 
     !# <objectDestructor name="self%haloMassFunction_"       />
     !# <objectDestructor name="self%conditionalMassFunction_"/>
+    !# <objectDestructor name="self%metaTreeProcessingTime_" />
     return
   end subroutine stellarMassFunctionDestructor
 
   double precision function stellarMassFunctionSample(self,mass,time,massMinimum,massMaximum)
     !% Computes the halo mass function sampling rate optimized to minimize errors in the stellar mass function.
     use FGSL                         , only : fgsl_function, fgsl_integration_workspace
-    use Galacticus_Meta_Compute_Times
     use Numerical_Integration
     implicit none
     class           (mergerTreeBuildMassDistributionStllrMssFnctn), intent(inout) :: self
-    double precision                                                 , intent(in   ) :: mass                               , massMaximum                 , &
-         &                                                                              massMinimum                        , time
-    double precision                                                 , parameter     :: toleranceAbsolute           =1.0d-3, toleranceRelative    =1.0d-2
-    double precision                                                                 :: haloMassFunctionDifferential       , logStellarMassMaximum       , &
-         &                                                                              logStellarMassMinimum              , treeComputeTime             , &
-         &                                                                              xi                                 , xiIntegral                  , &
-         &                                                                              massHalo
-    type            (fgsl_function                                  )                :: integrandFunction
-    type            (fgsl_integration_workspace                     )                :: integrationWorkspace
+    double precision                                              , intent(in   ) :: mass                               , massMaximum                 , &
+         &                                                                           massMinimum                        , time
+    double precision                                              , parameter     :: toleranceAbsolute           =1.0d-3, toleranceRelative    =1.0d-2
+    double precision                                                              :: haloMassFunctionDifferential       , logStellarMassMaximum       , &
+         &                                                                           logStellarMassMinimum              , treeComputeTime             , &
+         &                                                                           xi                                 , xiIntegral                  , &
+         &                                                                           massHalo
+    type            (fgsl_function                               )                :: integrandFunction
+    type            (fgsl_integration_workspace                  )                :: integrationWorkspace
     !GCC$ attributes unused :: massMinimum, massMaximum
 
     ! Get the halo mass function, defined per logarithmic interval in halo mass.
@@ -189,7 +195,7 @@ contains
     xi              =+haloMassFunctionDifferential**2 &
          &           *xiIntegral
     ! Get the time taken to compute a tree of this mass.
-    treeComputeTime =Galacticus_Time_Per_Tree(mass)
+    treeComputeTime =self%metaTreeProcessingTime_%time(mass)
     ! Compute the optimal weighting for trees of this mass.
     stellarMassFunctionSample=sqrt(xi/treeComputeTime)
     return

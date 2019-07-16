@@ -178,11 +178,11 @@ contains
 
   subroutine krumholz2009AutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,krumholz2009CalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,krumholz2009CalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine krumholz2009AutoHook
   

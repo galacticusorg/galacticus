@@ -278,10 +278,10 @@ contains
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; table~1).
     use Exponential_Integrals
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
-    double precision                                , intent(in   )          :: waveNumber
-    double precision                                                         :: radiusScale, waveNumberScaleFree
+    class           (darkMatterProfileDMOIsothermal), intent(inout)         :: self
+    type            (treeNode                      ), intent(inout), target :: node
+    double precision                                , intent(in   )         :: waveNumber
+    double precision                                                        :: radiusScale, waveNumberScaleFree
 
     ! Get the scale radius (for which we use the virial radius).
     radiusScale          =  self%darkMatterHaloScale_%virialRadius(node)

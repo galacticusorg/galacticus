@@ -238,11 +238,11 @@ contains
   
   subroutine burkertAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOBurkert), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,burkertCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,burkertCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine burkertAutoHook
   
@@ -852,7 +852,7 @@ contains
     use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile
     implicit none
     class           (darkMatterProfileDMOBurkert   ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
+    type            (treeNode                      ), intent(inout), target  :: node
     double precision                                , intent(in   )          :: waveNumber
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: concentration      , radiusScale, &

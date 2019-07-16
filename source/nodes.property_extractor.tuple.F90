@@ -31,35 +31,35 @@
      !@   <description>Return the number of properties in the tuple.</description>
      !@   <type>\intzero</type>
      !@   <pass>yes</pass>
-     !@   <arguments></arguments>
+     !@   <arguments>\doublezero\ time\argin</arguments>
      !@  </objectMethod>
      !@  <objectMethod>
      !@   <method>extract</method>
      !@   <description>Extract the properties from the given {\normalfont \ttfamily node}.</description>
      !@   <type>\doubleone</type>
      !@   <pass>yes</pass>
-     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin</arguments>
+     !@   <arguments>\textcolor{red}{\textless type(treeNode)\textgreater} node\argin, \doublezero\ time\argin, \textcolor{red}{\textless type(multiCounter)\textgreater} [instance]\argin</arguments>
      !@  </objectMethod>
      !@  <objectMethod>
      !@   <method>names</method>
      !@   <description>Return the names of the properties extracted.</description>
      !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
      !@   <pass>yes</pass>
-     !@   <arguments></arguments>
+     !@   <arguments>\doublezero\ time\argin</arguments>
      !@  </objectMethod>
      !@  <objectMethod>
      !@   <method>descriptions</method>
      !@   <description>Return descriptions of the properties extracted.</description>
      !@   <type>\textcolor{red}{\textless type(varying\_string)\textgreater}(:)</type>
      !@   <pass>yes</pass>
-     !@   <arguments></arguments>
+     !@   <arguments>\doublezero\ time\argin</arguments>
      !@  </objectMethod>
      !@  <objectMethod>
      !@   <method>unitsInSI</method>
      !@   <description>Return the units of the properties extracted in the SI system.</description>
      !@   <type>\doubleone</type>
      !@   <pass>yes</pass>
-     !@   <arguments></arguments>
+     !@   <arguments>\doublezero\ time\argin</arguments>
      !@  </objectMethod>
      !@ </objectMethods>
      procedure(tupleElementCount), deferred :: elementCount
@@ -70,38 +70,42 @@
   end type nodePropertyExtractorTuple
 
   abstract interface
-     function tupleExtract(self,node,instance)
+     function tupleExtract(self,node,time,instance)
        !% Interface for tuple property extraction.
        import nodePropertyExtractorTuple, treeNode, multiCounter
        double precision                            , dimension(:) , allocatable :: tupleExtract
-       class           (nodePropertyExtractorTuple), intent(inout)              :: self
-       type            (treeNode                  ), intent(inout)              :: node
+       class           (nodePropertyExtractorTuple), intent(inout), target      :: self
+       type            (treeNode                  ), intent(inout), target      :: node
+       double precision                            , intent(in   )              :: time
        type            (multiCounter              ), intent(inout), optional    :: instance
      end function tupleExtract
   end interface
 
   abstract interface
-     function tupleNames(self)
+     function tupleNames(self,time)
        !% Interface for tuple property names.
        import varying_string, nodePropertyExtractorTuple
-       type (varying_string            ), dimension(:) , allocatable :: tupleNames
-       class(nodePropertyExtractorTuple), intent(inout)              :: self
+       type            (varying_string            ), dimension(:) , allocatable :: tupleNames
+       class           (nodePropertyExtractorTuple), intent(inout)              :: self
+       double precision                            , intent(in   )              :: time
      end function tupleNames
   end interface
 
   abstract interface
-     function tupleUnitsInSI(self)
+     function tupleUnitsInSI(self,time)
        !% Interface for tuple property units.
        import nodePropertyExtractorTuple
        double precision                            , dimension(:) , allocatable :: tupleUnitsInSI
        class           (nodePropertyExtractorTuple), intent(inout)              :: self
+       double precision                            , intent(in   )              :: time
      end function tupleUnitsInSI
   end interface
 
   abstract interface
-     integer function tupleElementCount(self)
+     integer function tupleElementCount(self,time)
        !% Interface for tuple element count.
        import nodePropertyExtractorTuple
-       class(nodePropertyExtractorTuple), intent(inout) :: self
+       class           (nodePropertyExtractorTuple), intent(inout) :: self
+       double precision                            , intent(in   ) :: time
      end function tupleElementCount
   end interface

@@ -30,6 +30,7 @@
      private
      logical                                                :: tableInitialized    =  .false.
      double precision                                       :: tableTimeMinimum              , tableTimeMaximum
+     logical                                                :: tableStore
      class           (table1D                ), allocatable :: deltaVirial
      class           (cosmologyFunctionsClass), pointer     :: cosmologyFunctions_ => null()
    contains
@@ -61,23 +62,33 @@ contains
     !% Constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class that takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (virialDensityContrastSphericalCollapseMatterLambda)                :: self
-    type (inputParameters                                   ), intent(inout) :: parameters
-    class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
-    
+    type   (virialDensityContrastSphericalCollapseMatterLambda)                :: self
+    type   (inputParameters                                   ), intent(inout) :: parameters
+    class  (cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
+    logical                                                                    :: tableStore
+
+    !# <inputParameter>
+    !#   <name>tableStore</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    self=virialDensityContrastSphericalCollapseMatterLambda(cosmologyFunctions_)
+    self=virialDensityContrastSphericalCollapseMatterLambda(tableStore,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"/>
     return
   end function sphericalCollapseMatterLambdaConstructorParameters
 
-  function sphericalCollapseMatterLambdaConstructorInternal(cosmologyFunctions_) result(self)
+  function sphericalCollapseMatterLambdaConstructorInternal(tableStore,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseMatterLambda} dark matter halo virial density contrast class.
     implicit none
-    type (virialDensityContrastSphericalCollapseMatterLambda)                       :: self
-    class(cosmologyFunctionsClass                          ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    type   (virialDensityContrastSphericalCollapseMatterLambda)                        :: self
+    class  (cosmologyFunctionsClass                           ), intent(in   ), target :: cosmologyFunctions_
+    logical                                                    , intent(in   )         :: tableStore
+    !# <constructorAssign variables="tableStore, *cosmologyFunctions_"/>
 
     self%tableInitialized=.false.
     return
@@ -111,7 +122,7 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,self%deltaVirial,self%cosmologyFunctions_)
+       call Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,self%tableStore,self%deltaVirial,self%cosmologyFunctions_)
        self%tableInitialized=.true.
        self%tableTimeMinimum=self%deltaVirial%x(+1)
        self%tableTimeMaximum=self%deltaVirial%x(-1)

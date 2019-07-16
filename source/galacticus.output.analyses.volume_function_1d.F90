@@ -46,7 +46,7 @@
           &                                                                                      xAxisLabel                                     , yAxisLabel                                       , &
           &                                                                                      targetLabel
      double precision                                                                         :: propertyUnitsInSI                              , distributionUnitsInSI
-     class           (nodePropertyExtractorClass     ), pointer                     :: nodePropertyExtractor_      => null()
+     class           (nodePropertyExtractorClass               ), pointer                     :: nodePropertyExtractor_                => null()
      class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_       => null()                                                   , &
           &                                                                                      outputAnalysisPropertyUnoperator_     => null()
      class           (outputAnalysisWeightOperatorClass        ), pointer                     :: outputAnalysisWeightOperator_         => null()
@@ -102,7 +102,7 @@ contains
     implicit none
     type            (outputAnalysisVolumeFunction1D           )                              :: self
     type            (inputParameters                          ), intent(inout)               :: parameters
-    class           (nodePropertyExtractorClass     ), pointer                     :: nodePropertyExtractor_
+    class           (nodePropertyExtractorClass               ), pointer                     :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass      ), pointer                     :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_
     class           (outputAnalysisWeightOperatorClass        ), pointer                     :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass  ), pointer                     :: outputAnalysisDistributionOperator_
@@ -409,7 +409,7 @@ contains
     double precision                                           , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                 ), intent(in   )                           :: bufferCount
     double precision                                           , intent(in   )          , dimension(:,:) :: outputWeight
-    class           (nodePropertyExtractorClass     ), intent(in   ), target                   :: nodePropertyExtractor_
+    class           (nodePropertyExtractorClass               ), intent(in   ), target                   :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass      ), intent(in   ), target                   :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_
     class           (outputAnalysisWeightOperatorClass        ), intent(in   ), target                   :: outputAnalysisWeightOperator_
     class           (outputAnalysisDistributionOperatorClass  ), intent(in   ), target                   :: outputAnalysisDistributionOperator_

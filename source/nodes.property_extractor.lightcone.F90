@@ -162,16 +162,18 @@ contains
     return
   end subroutine lightconeDestructor
   
-  integer function lightconeElementCount(self)
+  integer function lightconeElementCount(self,time)
     !% Return the number of elements in the lightconeple property extractors.
     implicit none
-    class(nodePropertyExtractorLightcone), intent(inout) :: self
+    class           (nodePropertyExtractorLightcone), intent(inout) :: self
+    double precision                                , intent(in   ) :: time
+    !GCC$ attributes unused :: time
 
     lightconeElementCount=self%elementCount_
     return
   end function lightconeElementCount
   
-  function lightconeExtract(self,node,instance)
+  function lightconeExtract(self,node,time,instance)
     !% Implement a lightcone output extractor.
     use Vectors                         , only : Vector_Magnitude
     use Numerical_Constants_Astronomical, only : degreesToRadians
@@ -180,9 +182,11 @@ contains
     use Galacticus_Error                , only : Galacticus_Error_Report
     implicit none
     double precision                                , dimension(:) , allocatable :: lightconeExtract
-    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
-    type            (treeNode                      ), intent(inout)              :: node
+    class           (nodePropertyExtractorLightcone), intent(inout), target      :: self
+    type            (treeNode                      ), intent(inout), target      :: node
+    double precision                                , intent(in   )              :: time
     type            (multiCounter                  ), intent(inout), optional    :: instance
+    !GCC$ attributes unused :: time
 
     if (.not.present(instance)) call Galacticus_Error_Report('instance is required'//{introspection:location})
     allocate(lightconeExtract(self%elementCount_))
@@ -251,33 +255,39 @@ contains
     return
   end subroutine lightconeAddInstances
 
-  function lightconeNames(self)
+  function lightconeNames(self,time)
     !% Return the names of the lightconeple properties.
     implicit none
-    type (varying_string                ), dimension(:) , allocatable :: lightconeNames
-    class(nodePropertyExtractorLightcone), intent(inout)              :: self
+    type            (varying_string                ), dimension(:) , allocatable :: lightconeNames
+    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
+    double precision                                , intent(in   )              :: time
+    !GCC$ attributes unused :: time
 
     allocate(lightconeNames(self%elementCount_))
     lightconeNames=self%names_
     return
   end function lightconeNames
 
-  function lightconeDescriptions(self)
+  function lightconeDescriptions(self,time)
     !% Return the descriptions of the lightconeple properties.
     implicit none
-    type (varying_string                ), dimension(:) , allocatable :: lightconeDescriptions
-    class(nodePropertyExtractorLightcone), intent(inout)              :: self
+    type            (varying_string                ), dimension(:) , allocatable :: lightconeDescriptions
+    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
+    double precision                                , intent(in   )              :: time
+    !GCC$ attributes unused :: time
 
     allocate(lightconeDescriptions(self%elementCount_))
     lightconeDescriptions=self%descriptions_
     return
   end function lightconeDescriptions
 
-  function lightconeUnitsInSI(self)
+  function lightconeUnitsInSI(self,time)
     !% Return the units of the lightconeple properties in the SI system.
     implicit none
     double precision                                , dimension(:) , allocatable :: lightconeUnitsInSI
     class           (nodePropertyExtractorLightcone), intent(inout)              :: self
+    double precision                                , intent(in   )              :: time
+    !GCC$ attributes unused :: time
 
     allocate(lightconeUnitsInSI(self%elementCount_))
     lightconeUnitsInSI=self%unitsInSI_

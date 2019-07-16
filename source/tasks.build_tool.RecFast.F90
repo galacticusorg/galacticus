@@ -53,7 +53,7 @@ contains
     use Galacticus_Display
     use Interfaces_RecFast
     implicit none
-    class  (taskBuildToolRecFast), intent(inout)           :: self
+    class  (taskBuildToolRecFast), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     type   (varying_string      )                          :: recfastPath, recfastVersion
     !GCC$ attributes unused :: self

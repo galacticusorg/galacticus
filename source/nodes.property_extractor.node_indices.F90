@@ -1,0 +1,153 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!% Contains a module which implements a property extractor for basic node indices.
+
+  !# <nodePropertyExtractor name="nodePropertyExtractorNodeIndices">
+  !#  <description>A property extractor class for basic node indices.</description>
+  !# </nodePropertyExtractor>
+  type, extends(nodePropertyExtractorIntegerTuple) :: nodePropertyExtractorNodeIndices
+     !% A property extractor class for basic node indices.
+     private
+   contains
+     procedure :: elementCount => nodeIndicesElementCount
+     procedure :: extract      => nodeIndicesExtract
+     procedure :: names        => nodeIndicesNames
+     procedure :: descriptions => nodeIndicesDescriptions
+     procedure :: unitsInSI    => nodeIndicesUnitsInSI
+     procedure :: type         => nodeIndicesType
+  end type nodePropertyExtractorNodeIndices
+
+  interface nodePropertyExtractorNodeIndices
+     !% Constructors for the ``nodeIndices'' output analysis class.
+     module procedure nodeIndicesConstructorParameters
+  end interface nodePropertyExtractorNodeIndices
+
+contains
+  
+  function nodeIndicesConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily nodeIndices} property extractor class which takes a parameter set as input.
+    use Input_Parameters, only : inputParameters
+    implicit none
+    type(nodePropertyExtractorNodeIndices)                :: self
+    type(inputParameters                 ), intent(inout) :: parameters
+    !GCC$ attributes unused :: parameters
+    
+    self=nodePropertyExtractorNodeIndices()
+    return
+  end function nodeIndicesConstructorParameters
+
+  integer function nodeIndicesElementCount(self,time)
+    !% Return the number of elements in the {\normalfont \ttfamily nodeIndices} property extractors.
+    implicit none
+    class           (nodePropertyExtractorNodeIndices), intent(inout) :: self
+    double precision                                  , intent(in   ) :: time
+    !GCC$ attributes unused :: self, time
+    
+    nodeIndicesElementCount=5
+    return
+  end function nodeIndicesElementCount
+
+  function nodeIndicesExtract(self,node,time,instance)
+    !% Implement a {\normalfont \ttfamily nodeIndices} property extractor.
+    implicit none
+    integer         (kind_int8                       ), dimension(:) , allocatable :: nodeIndicesExtract
+    class           (nodePropertyExtractorNodeIndices), intent(inout)              :: self
+    type            (treeNode                        ), intent(inout)              :: node
+    double precision                                  , intent(in   )              :: time
+    type            (multiCounter                    ), intent(inout), optional    :: instance
+    !GCC$ attributes unused :: self, time, instance
+    
+    allocate(nodeIndicesExtract(5))
+    nodeIndicesExtract   (1:4)=[                             &
+         &                      node               %index(), &
+         &                      node%parent        %index(), &
+         &                      node%sibling       %index(), &
+         &                      node%firstSatellite%index()  &
+         &                     ]
+        select case (node%isSatellite())
+    case (.true. )
+       nodeIndicesExtract(5  )=0
+    case (.false.)
+       nodeIndicesExtract(5  )=1
+    end select
+    return
+  end function nodeIndicesExtract
+
+  function nodeIndicesNames(self,time)
+    !% Return the names of the {\normalfont \ttfamily nodeIndices} properties.
+    implicit none
+    type            (varying_string                  ), dimension(:) , allocatable :: nodeIndicesNames
+    class           (nodePropertyExtractorNodeIndices), intent(inout)              :: self
+    double precision                                  , intent(in   )              :: time
+    !GCC$ attributes unused :: self, time
+
+    allocate(nodeIndicesNames(5))
+    nodeIndicesNames=[                           &
+         &            var_str('nodeIndex'     ), &
+         &            var_str('parentIndex'   ), &
+         &            var_str('siblingIndex'  ), &
+         &            var_str('satelliteIndex'), &
+         &            var_str('nodeIsIsolated')  &
+         &           ]
+    return
+  end function nodeIndicesNames
+
+  function nodeIndicesDescriptions(self,time)
+    !% Return descriptions of the {\normalfont \ttfamily nodeIndices} properties.
+    implicit none
+    type            (varying_string                  ), dimension(:) , allocatable :: nodeIndicesDescriptions
+    class           (nodePropertyExtractorNodeIndices), intent(inout)              :: self
+    double precision                                  , intent(in   )              :: time
+    !GCC$ attributes unused :: self, time
+
+    allocate(nodeIndicesDescriptions(5))
+    nodeIndicesDescriptions=[                                          &
+         &                   var_str('Tree-unique ID for this node.'), &
+         &                   var_str('ID of parent node.'           ), &
+         &                   var_str('ID of sibling node.'          ), &
+         &                   var_str('ID of first satellite node.'  ), &
+         &                   var_str('Is the node isolated (0|1)?'  )  &
+         &                  ]
+    return
+  end function nodeIndicesDescriptions
+
+  function nodeIndicesUnitsInSI(self,time)
+    !% Return the units of the last isolated redshift property in the SI system.
+    implicit none
+    double precision                                  , allocatable  , dimension(:) :: nodeIndicesUnitsInSI
+    class           (nodePropertyExtractorNodeIndices), intent(inout)               :: self
+    double precision                                  , intent(in   )               :: time
+    !GCC$ attributes unused :: self, time
+
+    allocate(nodeIndicesUnitsInSI(5))
+    nodeIndicesUnitsInSI=0.0d0
+    return
+  end function nodeIndicesUnitsInSI
+
+  integer function nodeIndicesType(self)
+    !% Return the type of the last isolated redshift property.
+    use Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    implicit none
+    class(nodePropertyExtractorNodeIndices), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    nodeIndicesType=outputAnalysisPropertyTypeLinear
+    return
+  end function nodeIndicesType

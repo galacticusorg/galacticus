@@ -120,8 +120,8 @@ module Dark_Matter_Profiles_DMO
   !#   <description>Returns the normalized Fourier space density profile of the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily waveNumber} (given in units of Mpc$^{-1}$).</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout), pointer :: node</argument>
-  !#   <argument>double precision          , intent(in   )          :: wavenumber</argument>
+  !#   <argument>type            (treeNode), intent(inout), target :: node</argument>
+  !#   <argument>double precision          , intent(in   )         :: wavenumber</argument>
   !#  </method>
   !#  <method name="freefallRadius" >
   !#   <description>Returns the freefall radius (in Mpc) corresponding to the given {\normalfont \ttfamily time} (in Gyr) in {\normalfont \ttfamily node}.</description>
@@ -144,13 +144,12 @@ module Dark_Matter_Profiles_DMO
   !#   <selfTarget>yes</selfTarget>
   !#   <argument>type             (treeNode), intent(inout), target :: node</argument>
   !#   <argument>double precision           , intent(in   )         :: mass</argument>
-  !#   <modules>Dark_Matter_Halo_Scales Root_Finder Kind_Numbers</modules>
+  !#   <modules>Root_Finder Kind_Numbers</modules>
   !#   <code>
-  !#    class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
-  !#    double precision                                    :: radiusGuess
-  !#    type            (rootFinder              ), save    :: finder
-  !#    double precision                          , save    :: radiusPrevious=-huge(0.0d0)
-  !#    integer         (kind_int8               ), save    :: uniqueIDPrevious=-1_kind_int8
+  !#    double precision                      :: radiusGuess
+  !#    type            (rootFinder), save    :: finder
+  !#    double precision            , save    :: radiusPrevious=-huge(0.0d0)
+  !#    integer         (kind_int8 ), save    :: uniqueIDPrevious=-1_kind_int8
   !#    !$omp threadprivate(finder,radiusPrevious,uniqueIDPrevious)
   !#    if(mass &lt;= 0.0d0) then
   !#       darkMatterProfileDMORadiusEnclosingMass=0.0d0
@@ -165,27 +164,21 @@ module Dark_Matter_Profiles_DMO
   !#            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &amp;
   !#            &amp;                   rangeExpandType              =rangeExpandMultiplicative      &amp;
   !#            &amp;              )
-  !#       call finder%rootFunction(enclosedMassRoot                                )
+  !#       call finder%rootFunction(darkMatterProfileDMOEnclosedMassRoot            )
   !#       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
   !#    end if
   !#    if (node%uniqueID()     == uniqueIDPrevious) then
-  !#       radiusGuess          =  radiusPrevious
+  !#       radiusGuess     =radiusPrevious
   !#    else
-  !#       darkMatterHaloScale_ => darkMatterHaloScale              (    )
-  !#       radiusGuess          =  darkMatterHaloScale_%virialRadius(node)
-  !#       uniqueIDPrevious     =  node                %uniqueID    (    )
+  !#       radiusGuess     =self%darkMatterHaloScale_%virialRadius(node)
+  !#       uniqueIDPrevious=node                     %uniqueID    (    )
   !#    end if
+  !#    darkMatterProfileDMOSelf  => self
+  !#    darkMatterProfileDMONode  => node
+  !#    darkMatterProfileDMOMass_ =  mass
   !#    radiusPrevious=finder%find(rootGuess=radiusGuess)
   !#    darkMatterProfileDMORadiusEnclosingMass=radiusPrevious
   !#    return
-  !#    contains
-  !#      double precision function enclosedMassRoot(radius)
-  !#        !% Root function used in solving for the radius that encloses a given mass.
-  !#        implicit none
-  !#        double precision,               intent(in) :: radius
-  !#        enclosedMassRoot=self%enclosedMass(node,radius)-mass
-  !#        return
-  !#      end function enclosedMassRoot
   !#   </code>
   !#  </method>
   !# </functionClass>
@@ -216,9 +209,26 @@ module Dark_Matter_Profiles_DMO
   !#   <description>Returns true if the specific energy is zero everywhere in the given {\normalfont \ttfamily node}.</description>
   !#   <type>logical</type>
   !#   <pass>yes</pass>
-  !#   <argument>type (treeNode              ), intent(inout) :: node</argument>
+  !#   <argument>type (treeNode                 ), intent(inout) :: node</argument>
   !#   <argument>class(darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_</argument>
   !#  </method>
   !# </functionClass>
+
+  ! Module-scope variables used in root finding.
+  class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMOSelf   => null()
+  type            (treeNode                 ), pointer :: darkMatterProfileDMONode   => null()
+  double precision                                     :: darkMatterProfileDMOMass_
+  !$omp threadprivate(darkMatterProfileDMOSelf,darkMatterProfileDMOMass_)
+  
+contains
+  
+  double precision function darkMatterProfileDMOEnclosedMassRoot(radius)
+    !% Root function used in solving for the radius that encloses a given mass.
+    implicit none
+    double precision,intent(in) :: radius
+    
+    darkMatterProfileDMOEnclosedMassRoot=darkMatterProfileDMOSelf%enclosedMass(darkMatterProfileDMONode,radius)-darkMatterProfileDMOMass_
+    return
+  end function darkMatterProfileDMOEnclosedMassRoot
 
 end module Dark_Matter_Profiles_DMO

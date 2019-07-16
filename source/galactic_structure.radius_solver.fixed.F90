@@ -127,14 +127,14 @@ contains
 
   subroutine fixedAutoHook(self)
     !% Attach to various event hooks.
-    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent
+    use Events_Hooks, only : preDerivativeEvent, postEvolveEvent, satelliteMergerEvent, nodePromotionEvent, openMPThreadBindingAtLevel
     implicit none
     class(galacticStructureSolverFixed), intent(inout) :: self
 
-    call   preDerivativeEvent%attach(self,fixedSolvePreDeriativeHook,bindToOpenMPThread=.true.)
-    call      postEvolveEvent%attach(self,fixedSolveHook            ,bindToOpenMPThread=.true.)
-    call satelliteMergerEvent%attach(self,fixedSolveHook            ,bindToOpenMPThread=.true.)
-    call   nodePromotionEvent%attach(self,fixedSolveHook            ,bindToOpenMPThread=.true.)
+    call   preDerivativeEvent%attach(self,fixedSolvePreDeriativeHook,openMPThreadBindingAtLevel)
+    call      postEvolveEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel)
+    call satelliteMergerEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel)
+    call   nodePromotionEvent%attach(self,fixedSolveHook            ,openMPThreadBindingAtLevel)
     return
   end subroutine fixedAutoHook
 

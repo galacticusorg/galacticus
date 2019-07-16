@@ -39,6 +39,9 @@
   !#  <deepCopy>
   !#   <functionClass variables="radiation"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="radiation"/>
+  !#  </stateStorable>
   !# </coolingRadius>
   type, extends(coolingRadiusClass) :: coolingRadiusSimple
      !% Implementation of cooling radius class in which the cooling radius is defined as that radius at which the time available
@@ -171,11 +174,11 @@ contains
   
   subroutine simpleAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(coolingRadiusSimple), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,simpleCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,simpleCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine simpleAutoHook
   

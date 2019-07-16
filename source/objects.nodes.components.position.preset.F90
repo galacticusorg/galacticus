@@ -131,7 +131,7 @@ contains
   !#  <unitName>Node_Component_Position_Preset_Move</unitName>
   !# </satelliteHostChangeTask>
   subroutine Node_Component_Position_Preset_Move(node)
-    !% Optinally move a satellite to coincide with the postion of its host.
+    !% Optionally move a satellite to coincide with the postion of its host.
     use Galacticus_Nodes, only : treeNode, nodeComponentPosition, defaultPositionComponent
     implicit none
     type (treeNode             ), intent(inout), pointer :: node

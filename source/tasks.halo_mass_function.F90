@@ -288,7 +288,7 @@ contains
     use               String_Handling
     use               FGSL                            , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
     implicit none
-    class           (taskHaloMassFunction          ), intent(inout)                 :: self
+    class           (taskHaloMassFunction          ), intent(inout), target         :: self
     integer                                         , intent(  out), optional       :: status
     double precision                                , allocatable  , dimension(:,:) :: massFunctionDifferentialLogarithmicBinAveraged       , biasHalo                     , &
          &                                                                             massFunctionCumulative                               , massFunctionDifferential     , &

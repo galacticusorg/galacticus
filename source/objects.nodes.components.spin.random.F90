@@ -60,17 +60,21 @@ module Node_Component_Spin_Random
 
 contains
 
-  subroutine Node_Component_Spin_Random_Initialize()
+  !# <nodeComponentInitializationTask>
+  !#  <unitName>Node_Component_Spin_Random_Initialize</unitName>
+  !# </nodeComponentInitializationTask>
+  subroutine Node_Component_Spin_Random_Initialize(globalParameters_)
     !% Initializes the random spin component module.
     use Input_Parameters
     implicit none
-    
+    type(inputParameters), intent(inout) :: globalParameters_
+
     !# <inputParameter>
     !#   <name>randomSpinResetMassFactor</name>
     !#   <cardinality>1</cardinality>
     !#   <defaultValue>2.0d0</defaultValue>
     !#   <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
-    !#   <source>globalParameters</source>
+    !#   <source>globalParameters_</source>
     !#   <type>double</type>
     !# </inputParameter>
     return
@@ -122,8 +126,6 @@ contains
 
     ! Check if we are the default method.
     if (defaultSpinComponent%randomIsActive()) then
-       ! Ensure the module is initialized.
-       call Node_Component_Spin_Random_Initialize()
        ! Get the basic component.
        spin => node%spin()
        ! Ensure that the spin has not yet been assigned for this node.

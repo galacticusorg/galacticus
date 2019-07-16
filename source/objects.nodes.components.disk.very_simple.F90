@@ -252,7 +252,7 @@ contains
        !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="globalParameters_"/>
        !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="globalParameters_"/>
        !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="globalParameters_"/>
        !# <objectBuilder class="starFormationFeedbackDisks"  name="starFormationFeedbackDisks_"  source="globalParameters_"/>
        !# <objectBuilder class="starFormationTimescaleDisks" name="starFormationTimescaleDisks_" source="globalParameters_"/>       
        ! If using the analytic solver, find the time at the present day.
@@ -275,7 +275,7 @@ contains
        !# <objectDestructor name="cosmologyFunctions_"         />
        !# <objectDestructor name="stellarPopulationProperties_"/>
        !# <objectDestructor name="darkMatterHaloScale_"        />
-       !# <objectDestructor name="darkMatterProfileDMO_"          />
+       !# <objectDestructor name="darkMatterProfileDMO_"       />
        !# <objectDestructor name="starFormationFeedbackDisks_" />
        !# <objectDestructor name="starFormationTimescaleDisks_"/>       
     end if

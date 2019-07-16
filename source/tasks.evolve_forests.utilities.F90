@@ -53,6 +53,7 @@ contains
     select type (task__)
     class is (taskEvolveForests)
        !# <referenceCountIncrement object="task__"/>
+       call task__%autoHook()
     class default
        call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
     end select

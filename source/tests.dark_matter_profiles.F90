@@ -23,13 +23,14 @@ program Test_Dark_Matter_Profiles
   !% Tests dark matter profiles.
   use ISO_Varying_String
   use Input_Parameters
-  use Galacticus_Nodes       , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
+  use Galacticus_Nodes        , only : treeNode            , nodeComponentBasic, nodeComponentDarkMatterProfile, nodeClassHierarchyInitialize, nodeClassHierarchyFinalize
   use Node_Components
   use Unit_Tests
   use Cosmology_Functions
   use Dark_Matter_Halo_Scales
   use Dark_Matter_Profiles_DMO
   use Galacticus_Display
+  use Events_Hooks            , only : eventsHooksInitialize
   implicit none
   type            (treeNode                      ), pointer      :: node
   class           (nodeComponentBasic            ), pointer      :: basic
@@ -56,6 +57,8 @@ program Test_Dark_Matter_Profiles
   parameterFile='testSuite/parameters/darkMatterProfiles.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   ! Initialize node components.
   call nodeClassHierarchyInitialize     (parameters)
   call Node_Components_Initialize       (parameters)

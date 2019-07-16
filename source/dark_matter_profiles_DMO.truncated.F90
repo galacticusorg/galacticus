@@ -144,11 +144,11 @@ contains
 
   subroutine truncatedAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,truncatedCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,truncatedCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine truncatedAutoHook
   
@@ -436,9 +436,9 @@ contains
     !% Returns the Fourier transform of the truncated density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$).
     implicit none
-    class           (darkMatterProfileDMOTruncated), intent(inout)          :: self
-    type            (treeNode                     ), intent(inout), pointer :: node
-    double precision                               , intent(in   )          :: waveNumber
+    class           (darkMatterProfileDMOTruncated), intent(inout)         :: self
+    type            (treeNode                     ), intent(inout), target :: node
+    double precision                               , intent(in   )         :: waveNumber
 
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
        truncatedKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)

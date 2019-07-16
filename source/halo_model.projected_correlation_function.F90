@@ -23,7 +23,7 @@ module Halo_Model_Projected_Correlations
   !% Implements calculations of projected correlation functions using the halo model.
   private
   public :: Halo_Model_Projected_Correlation
-
+  
   abstract interface
      double precision function integrandWeight(x)
        double precision, intent(in   ) :: x
@@ -34,6 +34,15 @@ contains
 
   subroutine Halo_Model_Projected_Correlation(                                              &
        &                                      conditionalMassFunction_                    , &
+       &                                      powerSpectrum_                              , &
+       &                                      cosmologyFunctions_                         , &
+       &                                      surveyGeometry_                             , &
+       &                                      darkMatterHaloScale_                        , &
+       &                                      linearGrowth_                               , &
+       &                                      haloMassFunction_                           , &
+       &                                      darkMatterProfileDMO_                       , &
+       &                                      darkMatterHaloBias_                         , &
+       &                                      darkMatterProfileScaleRadius_               , &
        &                                      projectedSeparationBinned                   , &
        &                                      projectedCorrelationFunctionMassMinimum     , &
        &                                      projectedCorrelationFunctionMassMaximum     , &
@@ -44,15 +53,14 @@ contains
        &                                      projectedCorrelationBinned                    &
        &                                     )
     !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
-    use FGSL                                     , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
+    use FGSL                                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss61
     use Memory_Management
     use Galacticus_Error
     use Geometry_Surveys
-    use Galacticus_Nodes                        , only : treeNode, nodeComponentBasic, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale
+    use Galacticus_Nodes                        , only : treeNode     , nodeComponentBasic        , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale
     use Cosmology_Functions
     use Conditional_Mass_Functions
     use Numerical_Integration
-    use Dark_Matter_Profiles_Concentration
     use Node_Component_Dark_Matter_Profile_Scale
     use Dark_Matter_Halo_Scales
     use Numerical_Ranges
@@ -63,24 +71,29 @@ contains
     use Table_Labels
     use Linear_Growth
     use Halo_Mass_Functions
+    use Dark_Matter_Profile_Scales              , only : darkMatterProfileScaleRadiusClass
+    use Dark_Matter_Halo_Biases
+    use Dark_Matter_Profiles_DMO
     implicit none
     class           (conditionalMassFunctionClass       ), intent(inout)                                             :: conditionalMassFunction_
+    class           (powerSpectrumClass                 ), intent(inout)                                             :: powerSpectrum_
+    class           (cosmologyFunctionsClass            ), intent(inout)                                             :: cosmologyFunctions_
+    class           (surveyGeometryClass                ), intent(inout)                                             :: surveyGeometry_
+    class           (darkMatterHaloScaleClass           ), intent(inout)                                             :: darkMatterHaloScale_
+    class           (linearGrowthClass                  ), intent(inout)                                             :: linearGrowth_
+    class           (haloMassFunctionClass              ), intent(inout)                                             :: haloMassFunction_
+    class           (darkMatterProfileDMOClass          ), intent(inout)                                             :: darkMatterProfileDMO_
+    class           (darkMatterHaloBiasClass            ), intent(inout)                                             :: darkMatterHaloBias_
+    class           (darkMatterProfileScaleRadiusClass  ), intent(inout)                                             :: darkMatterProfileScaleRadius_
     double precision                                     , intent(in   ), dimension(                             : ) :: projectedSeparationBinned
     double precision                                     , intent(in   )                                             :: projectedCorrelationFunctionMassMinimum     , projectedCorrelationFunctionMassMaximum    , &
-       &                                                                                                                projectedCorrelationFunctionHaloMassMinimum , projectedCorrelationFunctionHaloMassMaximum, &
-       &                                                                                                                projectedCorrelationFunctionLineOfSightDepth
+         &                                                                                                                projectedCorrelationFunctionHaloMassMinimum , projectedCorrelationFunctionHaloMassMaximum, &
+         &                                                                                                                projectedCorrelationFunctionLineOfSightDepth
     logical                                              , intent(in   )                                             :: projectedCorrelationFunctionHalfIntegral
     double precision                                     , intent(  out), dimension(size(projectedSeparationBinned)) :: projectedCorrelationBinned
-    class           (powerSpectrumClass                 ), pointer                                                   :: powerSpectrum_
-    class           (cosmologyFunctionsClass            ), pointer                                                   :: cosmologyFunctions_
-    class           (surveyGeometryClass                ), pointer                                                   :: surveyGeometry_
-    class           (darkMatterProfileConcentrationClass), pointer                                                   :: darkMatterProfileConcentration_
     type            (treeNode                           ), pointer                                                   :: node
     class           (nodeComponentBasic                 ), pointer                                                   :: basic
     class           (nodeComponentDarkMatterProfile     ), pointer                                                   :: darkMatterProfileHalo
-    class           (darkMatterHaloScaleClass           ), pointer                                                   :: darkMatterHaloScale_
-    class           (linearGrowthClass                  ), pointer                                                   :: linearGrowth_
-    class           (haloMassFunctionClass              ), pointer                                                   :: haloMassFunction_
     procedure       (integrandWeight                    ), pointer                                                   :: integrandWeightFunction
     double precision                                     , allocatable  , dimension(                             : ) :: powerSpectrumOneHalo                              , powerSpectrumTwoHalo                              , &
          &                                                                                                              wavenumber                                        , powerSpectrumTotal                                , &
@@ -103,14 +116,6 @@ contains
     logical                                                                                                          :: integrationReset
     type            (table1DLogarithmicLinear           )                                                            :: correlationTable
 
-    ! Get required objects.
-    cosmologyFunctions_             => cosmologyFunctions            ()     
-    surveyGeometry_                 => surveyGeometry                ()
-    darkMatterProfileConcentration_ => darkMatterProfileConcentration()
-    darkMatterHaloScale_            => darkMatterHaloScale           ()
-    linearGrowth_                   => linearGrowth                  ()
-    haloMassFunction_               => haloMassFunction              ()
-    powerSpectrum_                  => powerSpectrum                 ()
     ! Create worker node.
     node                  => treeNode              (                 )
     basic                 => node%basic            (autoCreate=.true.)
@@ -342,18 +347,12 @@ contains
 
     double precision function powerSpectrumOneHaloIntegrand(massHalo)
       !% Integrand for the one-halo term in the power spectrum.
-      use Dark_Matter_Profile_Scales     , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
-      use Dark_Matter_Profiles_DMO
       use Galacticus_Calculations_Resets
       implicit none
-      double precision                                   , intent(in   ) :: massHalo
-      class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
-      class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
-      double precision                                                   :: darkMatterProfileKSpace      , numberCentrals   , &
-           &                                                                numberSatellites             , wavenumberMaximum
+      double precision, intent(in   ) :: massHalo
+      double precision                :: darkMatterProfileKSpace, numberCentrals   , &
+           &                             numberSatellites       , wavenumberMaximum
 
-      darkMatterProfileDMO_         => darkMatterProfileDMO        ()
-      darkMatterProfileScaleRadius_ => darkMatterProfileScaleRadius()
       call Galacticus_Calculations_Reset(node)
       call basic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(node)
@@ -431,20 +430,11 @@ contains
 
     double precision function powerSpectrumTwoHaloIntegrand(massHalo)
       !% Integrand for the two-halo term in the power spectrum.
-      use Dark_Matter_Profile_Scales    , only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
-      use Dark_Matter_Halo_Biases
-      use Dark_Matter_Profiles_DMO
       use Galacticus_Calculations_Resets
       implicit none
-      double precision                                   , intent(in   ) :: massHalo
-      class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
-      class           (darkMatterHaloBiasClass          ), pointer       :: darkMatterHaloBias_
-      class           (darkMatterProfileScaleRadiusClass), pointer       :: darkMatterProfileScaleRadius_
-      double precision                                                   :: wavenumberMaximum
+      double precision, intent(in   ) :: massHalo
+      double precision                :: wavenumberMaximum
       
-      darkMatterProfileDMO_         => darkMatterProfileDMO        ()
-      darkMatterHaloBias_           => darkMatterHaloBias          ()
-      darkMatterProfileScaleRadius_ => darkMatterProfileScaleRadius()
       call Galacticus_Calculations_Reset(node)
       call basic            % massSet(massHalo                           )
       call Galacticus_Calculations_Reset(node)

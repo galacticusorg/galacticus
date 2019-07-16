@@ -27,10 +27,13 @@ module Node_Component_Spin_Vitvitska
   use Kepler_Orbits
   use Vectors
   use Dark_Matter_Halo_Spins
+  use Dark_Matter_Halo_Scales
+  use Virial_Orbits
   use Numerical_Constants_Physical
   use Dark_Matter_Profiles_DMO
   use ISO_Varying_String
   use Halo_Spin_Distributions
+  use Dark_Matter_Profile_Scales  , only : darkMatterProfileScaleRadiusClass
   implicit none
   private
   public :: Node_Component_Spin_Vitvitska_Promote            , Node_Component_Spin_Vitvitska_Initialize_Spins , &
@@ -68,12 +71,15 @@ module Node_Component_Spin_Vitvitska
   !# </component>
   
   ! Objects used by this component.
-  class(haloSpinDistributionClass), pointer :: haloSpinDistribution_
-  class(darkMatterProfileDMOClass   ), pointer :: darkMatterProfileDMO_
-  !$omp threadprivate(haloSpinDistribution_,darkMatterProfileDMO_)
+  class(haloSpinDistributionClass        ), pointer :: haloSpinDistribution_
+  class(darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_
+  class(virialOrbitClass                 ), pointer :: virialOrbit_
+  class(darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
+  class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_
+  !$omp threadprivate(haloSpinDistribution_,darkMatterProfileDMO_,virialOrbit_,darkMatterHaloScale_,darkMatterProfileScaleRadius_)
   
   ! Parameter controlling scaling of orbital angular momentum with mass ratio.
-  double precision :: spinVitvitskaMassExponent, spinVitvitskaUnresolvedBoost
+  double precision :: spinVitvitskaMassExponent
   
 contains
 
@@ -96,14 +102,6 @@ contains
     !#   <type>double</type>
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>spinVitvitskaUnresolvedBoost</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>globalParameters_</source>
-    !#   <description>The factor by which the angular momentum of unresolved accretion is boosted relative to the angular momentum of the primary progenitor.</description>
-    !#   <type>double</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
     ! Bind deferred functions.
     call spin%spinFunction          (Node_Component_Spin_Vitvitska_Spin            )
     call spin%spinVectorFunction    (Node_Component_Spin_Vitvitska_Spin_Vector     )
@@ -117,13 +115,17 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Thread_Initialize(globalParameters_)
     !% Initializes the tree node Vitvitsake spin module.
     use Input_Parameters
-    use Galacticus_Nodes, only : defaultSpinComponent
+    use Galacticus_Nodes          , only : defaultSpinComponent
+    use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
     implicit none
     type(inputParameters), intent(inout) :: globalParameters_
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
-       !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="globalParameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"    name="darkMatterProfileDMO_"    source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="globalParameters_"/>
+       !# <objectBuilder class="haloSpinDistribution"         name="haloSpinDistribution_"         source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="globalParameters_"/>
+       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="globalParameters_"/>
+       !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="globalParameters_"/>
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Initialize
@@ -137,8 +139,11 @@ contains
     implicit none
 
     if (defaultSpinComponent%vitvitskaIsActive()) then
-       !# <objectDestructor name="haloSpinDistribution_"/>
-       !# <objectDestructor name="darkMatterProfileDMO_"   />
+       !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+       !# <objectDestructor name="haloSpinDistribution_"        />
+       !# <objectDestructor name="darkMatterProfileDMO_"        />
+       !# <objectDestructor name="darkMatterHaloScale_"         />
+       !# <objectDestructor name="virialOrbit_"                 />
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize
@@ -150,21 +155,24 @@ contains
   subroutine Node_Component_Spin_Vitvitska_Initialize_Spins(node)
     !% Initialize the spin of {\normalfont \ttfamily node}.
     use ISO_Varying_String
-    use Galacticus_Nodes, only : treeNode, nodeComponentBasic, nodeComponentSpin, nodeComponentSpinVitvitska, nodeComponentSatellite, defaultSpinComponent
+    use Galacticus_Nodes, only : treeNode              , nodeComponentBasic  , nodeComponentSpin             , nodeComponentSpinVitvitska, &
+         &                       nodeComponentSatellite, defaultSpinComponent, nodeComponentDarkMatterProfile
     implicit none
-    type            (treeNode              ), intent(inout), pointer :: node
-    type            (treeNode              )               , pointer :: nodeChild             , nodeSibling
-    class           (nodeComponentBasic    )               , pointer :: basicChild            , basicSibling        , &
-         &                                                              basic
-    class           (nodeComponentSpin     )               , pointer :: spin                  , spinSibling         , &
-         &                                                              spinChild
-    class           (nodeComponentSatellite)               , pointer :: satelliteSibling
-    double precision                        , dimension(3)           :: angularMomentumOrbital, angularMomentumTotal, &
-         &                                                              spinVector
-    double precision                                                 :: spinValue             , massRatio           , &
-         &                                                              theta                 , phi                 , &
-         &                                                              massUnresolved
-    
+    type            (treeNode                      ), intent(inout), pointer :: node
+    type            (treeNode                      )               , pointer :: nodeChild                  , nodeSibling          , &
+         &                                                                      nodeUnresolved
+    class           (nodeComponentBasic            )               , pointer :: basicChild                 , basicSibling         , &
+         &                                                                      basic                      , basicUnresolved
+    class           (nodeComponentSpin             )               , pointer :: spin                       , spinSibling          , &
+         &                                                                      spinChild
+    class           (nodeComponentSatellite        )               , pointer :: satelliteSibling
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileUnresolved
+    double precision                                , dimension(3)           :: angularMomentumOrbital     , angularMomentumTotal , &
+         &                                                                      spinVector
+    double precision                                                         :: spinValue                  , massRatio            , &
+         &                                                                      theta                      , phi                  , &
+         &                                                                      massUnresolved             , radiusScaleUnresolved
+
     ! Check if we are the default method.
     if (defaultSpinComponent%vitvitskaIsActive()) then
        ! Get the spin component.
@@ -209,26 +217,34 @@ contains
                         &                 +massRatio                 &
                         &               )**spinVitvitskaMassExponent
                    ! Add the spin angular momentum of the sibling.
-                   angularMomentumTotal=+angularMomentumTotal                                              &
+                   angularMomentumTotal=+angularMomentumTotal                                                 &
                         &               +Dark_Matter_Halo_Angular_Momentum(nodeSibling,darkMatterProfileDMO_) &
-                        &               *spinSibling%spinVector()                                          &
+                        &               *spinSibling%spinVector()                                             &
                         &               /spinSibling%spin      ()
                 end do
-                ! Account for unresolved accretion. The assumption is that unresolved accretion has the same specific angular
-                ! momentum as the primary progenitor, multiplied by some boost factor.              
-                angularMomentumTotal=+angularMomentumTotal                                  &
-                     &               +Dark_Matter_Halo_Angular_Momentum(                    &
-                     &                                                  nodeChild         , &
+                ! Add in the spin angular momentum of the primary child.
+                angularMomentumTotal=+angularMomentumTotal                                     &
+                     &               +Dark_Matter_Halo_Angular_Momentum(                       &
+                     &                                                  nodeChild            , &
                      &                                                  darkMatterProfileDMO_  &
-                     &                                                 )                    &
-                     &               *  spinChild                   %spinVector()           &
-                     &               /  spinChild                   %spin      ()           &
-                     &               *(                                                     &
-                     &                 +1.0d0                                               &
-                     &                 +spinVitvitskaUnresolvedBoost                        &
-                     &                 *massUnresolved                                      &
-                     &                 /basicChild                  %mass      ()           &
-                     &                )
+                     &                                                 )                       &
+                     &               *spinChild%spinVector()                                   &
+                     &               /spinChild%spin      ()                
+                ! Account for unresolved accretion. The assumption is that unresolved accretion has the mean specific angular momentum averaged over the distribution of virial orbits.
+                nodeUnresolved              => treeNode                                       (                         )
+                basicUnresolved             => nodeUnresolved               %basic            (autoCreate=.true.        )
+                darkMatterProfileUnresolved => nodeUnresolved               %darkMatterProfile(autoCreate=.true.        )
+                call basicUnresolved            %massSet            (massUnresolved       )
+                call basicUnresolved            %timeSet            (basicChild%time()    )
+                call basicUnresolved            %timeLastIsolatedSet(basicChild%time()    )
+                radiusScaleUnresolved       =  darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
+                call darkMatterProfileUnresolved%scaleSet           (radiusScaleUnresolved)
+                angularMomentumTotal=+angularMomentumTotal                                                        &
+                     &               +massUnresolved                                                              &
+                     &               *virialOrbit_        %velocityTangentialVectorMean(nodeUnresolved,nodeChild) &
+                     &               *darkMatterHaloScale_%virialRadius                (               nodeChild)
+                call nodeUnresolved%destroy()
+                deallocate(nodeUnresolved)
                 ! Convert angular momentum back to spin.
                 spinValue =+Dark_Matter_Halo_Spin(node,Vector_Magnitude(angularMomentumTotal),darkMatterProfileDMO_)
                 spinVector=+spinValue                              &
@@ -400,79 +416,32 @@ contains
     !% Returns the orbital angular momentum vector associated with a satellite by drawing a
     !% random position towards the host at virial radius distance and a random velocity vector
     !% consistent with the orbital parameters of the satellite.
-    use Virial_Orbits
-    use Satellite_Merging_Timescales
-    use Vectors
-    use Galacticus_Nodes            , only : treeNode, nodeComponentSatellite, nodeComponentBasic 
+    use Coordinates     , only : coordinateCartesian, assignment(=)
+    use Galacticus_Nodes, only : treeNode     , nodeComponentSatellite, nodeComponentBasic 
     implicit none
     double precision                        , dimension(3)                :: Orbital_Angular_Momentum
     type            (treeNode              ), pointer     , intent(inout) :: node
     class           (nodeComponentSatellite), pointer                     :: satellite
     class           (nodeComponentBasic    ), pointer                     :: basic
-    double precision                        , dimension(3)                :: haloVelocity            , haloPosition     , &
-         &                                                                   vectorRadial            , vectorTangential1, &
-         &                                                                   vectorTangential2       , p
-    double precision                        , dimension(2)                :: q
+    double precision                        , dimension(3)                :: haloVelocity            , haloPosition
     type            (keplerOrbit           )                              :: orbit
-    double precision                                                      :: velocityRadial          , radius           , &
-         &                                                                   velocityTangential    
-    integer                                                               :: i
+    type            (coordinateCartesian   )                              :: coordinates
 
     ! Get the orbital properties.
-    basic              => node     %basic             (                 )
-    satellite          => node     %satellite         (autoCreate=.true.)
-    orbit              =  satellite%virialOrbit       (                 )
-    velocityRadial     =  orbit    %velocityRadial    (                 )
-    velocityTangential =  orbit    %velocityTangential(                 )
-    radius             =  orbit    %radius            (                 )
-    ! Find the position vector of the subhalo on the virial sphere.
-    p=1.0d0
-    do while(Vector_Magnitude(p) > 1.0d0)
-       do i=1,3
-          p(i)=node%hostTree%randomNumberGenerator%uniformSample()*2.0d0-1.0d0
-       end do
-    end do
-    vectorRadial=+                 p  &
-         &       /Vector_Magnitude(p)
-    haloPosition=+vectorRadial        &
-         &       *radius
-    ! Find two tangential normal vectors. The first we construct by hand.
-    if (vectorRadial(1) == 0.0d0 .and. vectorRadial(2) == 0.0d0) then
-       vectorTangential1   =[+0.0d0                                ,+1.0d0                                ,+0.0d0]
-    else 
-       if (.not.vectorRadial(1) == 0.0d0) then
-          vectorTangential1=[-1.0d0*vectorRadial(2)/vectorRadial(1),+1.0d0                                ,+0.0d0]
-       else
-          vectorTangential1=[+1.0d0                                ,-1.0d0*vectorRadial(1)/vectorRadial(2),+0.0d0]
-       end if
-    end if
-    vectorTangential1=+                 vectorTangential1  &
-         &            /Vector_Magnitude(vectorTangential1)
-   ! The second vector is obtained from the cross product.
-   vectorTangential2=Vector_Product(vectorRadial,vectorTangential1)
-   ! Choose a random direction for the tangential velocity.
-   q=1.0d0
-   do while(sqrt(sum(q**2)) > 1.0d0)
-      do i=1,2
-         q(i)=node%hostTree%randomNumberGenerator%uniformSample()*2.0d0-1.0d0
-      end do
-   end do
-   q=q/sqrt(sum(q**2))
-   ! Construct the full velocity vector.
-   haloVelocity=+       velocityRadial     &
-        &       *       vectorRadial       &
-        &       +       velocityTangential &
-        &       *(                         &
-        &         +q(1)*vectorTangential1  &
-        &         +q(2)*vectorTangential2  &
-        &       )
-   ! Calculate the orbital angular momentum vector.
-   Orbital_Angular_Momentum=+               basic%mass()  &
-        &                   *Vector_Product(              &
-        &                                   haloPosition, &
-        &                                   haloVelocity  &
-        &                                  )
-   return   
- end function Orbital_Angular_Momentum
+    basic        => node       %basic      (                 )
+    satellite    => node       %satellite  (autoCreate=.true.)
+    orbit        =  satellite  %virialOrbit(                 )
+    coordinates  =  orbit      %position   (                 )
+    haloPosition =  coordinates
+    coordinates  =  orbit      %velocity   (                 )
+    haloVelocity =  coordinates
+    ! Calculate the orbital angular momentum vector.
+    Orbital_Angular_Momentum=+               basic%mass()  &
+         &                   *Vector_Product(              &
+         &                                   haloPosition, &
+         &                                   haloVelocity  &
+         &                                  )
+    return   
+  end function Orbital_Angular_Momentum
 
 end module Node_Component_Spin_Vitvitska

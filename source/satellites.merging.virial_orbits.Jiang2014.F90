@@ -30,17 +30,20 @@
   !#  <deepCopy>
   !#   <functionClass variables="virialDensityContrast_"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="virialDensityContrast_"/>
+  !#  </stateStorable>
   !# </virialOrbit>
   type, extends(virialOrbitClass) :: virialOrbitJiang2014
      !% A virial orbit class using the \cite{jiang_orbital_2014} orbital parameter distribution.
      private
-     class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_   => null()
+     class           (darkMatterHaloScaleClass  ), pointer        :: darkMatterHaloScale_    => null()
      class           (cosmologyParametersClass  ), pointer        :: cosmologyParameters_   => null()
-     class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_    => null()
-     type            (virialDensityContrastFixed), pointer        :: virialDensityContrast_ => null()
-     double precision                            , dimension(3,3) :: B                               , gamma, &
-          &                                                          sigma                           , mu   , &
-          &                                                          velocityTangentialMean
+     class           (cosmologyFunctionsClass   ), pointer        :: cosmologyFunctions_     => null()
+     type            (virialDensityContrastFixed), pointer        :: virialDensityContrast_  => null()
+     double precision                            , dimension(3,3) :: B                                , gamma                        , &
+          &                                                          sigma                            , mu                           , &
+          &                                                          velocityTangentialMean_          , velocityTotalRootMeanSquared_
      type            (table1DLinearLinear       ), dimension(3,3) :: voightDistributions
    contains
      !@ <objectMethods>
@@ -57,6 +60,7 @@
      procedure :: densityContrastDefinition       => jiang2014DensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => jiang2014VelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => jiang2014VelocityTangentialVectorMean
+     procedure :: velocityTotalRootMeanSquared    => jiang2014VelocityTotalRootMeanSquared
      procedure :: parametersSelect                => jiang2014ParametersSelect
   end type virialOrbitJiang2014
 
@@ -202,21 +206,21 @@ contains
     use Numerical_Integration
     implicit none
     type            (virialOrbitJiang2014        )                         :: self
-    double precision                              , dimension(3)           :: bRatioLow                          , bRatioIntermediate          , bRatioHigh          , &
-         &                                                                    gammaRatioLow                      , gammaRatioIntermediate      , gammaRatioHigh      , &
-         &                                                                    sigmaRatioLow                      , sigmaRatioIntermediate      , sigmaRatioHigh      , &
-         &                                                                    muRatioLow                         , muRatioIntermediate         , muRatioHigh
+    double precision                              , dimension(3)           :: bRatioLow                          , bRatioIntermediate            , bRatioHigh                          , &
+         &                                                                    gammaRatioLow                      , gammaRatioIntermediate        , gammaRatioHigh                      , &
+         &                                                                    sigmaRatioLow                      , sigmaRatioIntermediate        , sigmaRatioHigh                      , &
+         &                                                                    muRatioLow                         , muRatioIntermediate           , muRatioHigh
     class           (darkMatterHaloScaleClass    ), intent(in   ) , target :: darkMatterHaloScale_
     class           (cosmologyParametersClass    ), intent(in   ) , target :: cosmologyParameters_
     class           (cosmologyFunctionsClass     ), intent(in   ) , target :: cosmologyFunctions_
     integer                                       , parameter              :: tableCount                 =1000
-    integer                                                                :: i                                  , j                           , k
+    integer                                                                :: i                                  , j                             , k
     type            (distributionFunction1DVoight)                         :: voightDistribution
     logical                                       , dimension(3,3), save   :: previousInitialized        =.false.
-    double precision                              , dimension(3,3), save   :: previousB                          , previousGamma               , previousSigma       , &
-         &                                                                    previousMu
+    double precision                              , dimension(3,3), save   :: previousB                          , previousGamma                 , previousSigma                       , &
+         &                                                                    previousMu                         , previousVelocityTangentialMean, previousVelocityTotalRootMeanSquared
     type            (table1DLinearLinear         ), dimension(3,3), save   :: previousVoightDistributions
-    double precision                                                       :: limitLower                         , limitUpper                  , halfWidthHalfMaximum, &
+    double precision                                                       :: limitLower                         , limitUpper                    , halfWidthHalfMaximum                , &
          &                                                                    fullWidthHalfMaximumLorentzian     , fullWidthHalfMaximumGaussian
     logical                                                                :: reUse                              , limitFound
     type            (fgsl_function               )                         :: integrandFunction
@@ -253,7 +257,11 @@ contains
                &   self%sigma(i,j) == previousSigma      (i,j) &
                &  .and.                                        &
                &   self%mu   (i,j) == previousMu         (i,j)
-          if (reuse) self%voightDistributions(i,j)=previousVoightDistributions(i,j)
+          if (reuse) then
+             self%voightDistributions          (i,j)=previousVoightDistributions         (i,j)
+             self%velocityTangentialMean_      (i,j)=previousVelocityTangentialMean      (i,j)
+             self%velocityTotalRootMeanSquared_(i,j)=previousVelocityTotalRootMeanSquared(i,j)
+          end if
           !$omp end critical(virialOrbitJiang2014ReUse)
           ! Build the distribution.
           if (.not.reuse) then
@@ -306,27 +314,45 @@ contains
                 if (self%voightDistributions(i,j)%y(k) <= 0.0d0) limitFound=.true.
              end do
              ! Compute the mean magnitude of tangential velocity.
-             integrationReset                =.true.
-             self%velocityTangentialMean(i,j)=Integrate(                                                       &
-                  &                                     limitLower                                           , &
-                  &                                     limitUpper                                           , &
-                  &                                     jiang2014DistributionVelocityTotal                   , &
-                  &                                     integrandFunction                                    , &
-                  &                                     integrationWorkspace                                 , &
-                  &                                     reset                             =integrationReset  , &
-                  &                                     toleranceAbsolute                 =0.0d+0            , &
-                  &                                     toleranceRelative                 =1.0d-6            , &
-                  &                                     integrationRule                   =FGSL_Integ_Gauss61  &
-                  &                                    )
+             integrationReset                 =.true.
+             self%velocityTangentialMean_(i,j)=           Integrate(                                                             &
+                  &                                                 limitLower                                                 , &
+                  &                                                 limitUpper                                                 , &
+                  &                                                 jiang2014DistributionVelocityTangential                    , &
+                  &                                                 integrandFunction                                          , &
+                  &                                                 integrationWorkspace                                       , &
+                  &                                                 reset                                   =integrationReset  , &
+                  &                                                 toleranceAbsolute                       =0.0d+0            , &
+                  &                                                 toleranceRelative                       =1.0d-6            , &
+                  &                                                 integrationRule                         =FGSL_Integ_Gauss61  &
+                  &                                                )
+             call Integrate_Done(integrandFunction,integrationWorkspace)
+             ! Compute the root mean squared total velocity.
+             integrationReset                       =.true.
+             self%velocityTotalRootMeanSquared_(i,j)=sqrt(                                                                        &
+                  &                                       Integrate(                                                              &
+                  &                                                 limitLower                                                  , &
+                  &                                                 limitUpper                                                  , &
+                  &                                                 jiang2014DistributionVelocityTotalSquared                   , &
+                  &                                                 integrandFunction                                           , &
+                  &                                                 integrationWorkspace                                        , &
+                  &                                                 reset                                    =integrationReset  , &
+                  &                                                 toleranceAbsolute                        =0.0d+0            , &
+                  &                                                 toleranceRelative                        =1.0d-6            , &
+                  &                                                 integrationRule                          =FGSL_Integ_Gauss61  &
+                  &                                                )                                                              &
+                  &                                      )
              call Integrate_Done(integrandFunction,integrationWorkspace)
              ! Store this table for later reuse.
              !$omp critical(virialOrbitJiang2014ReUse)
              previousInitialized(i,j)=.true.
-             previousB                  (i,j)=self%B                  (i,j) 
-             previousGamma              (i,j)=self%gamma              (i,j) 
-             previousSigma              (i,j)=self%sigma              (i,j) 
-             previousMu                 (i,j)=self%mu                 (i,j) 
-             previousVoightDistributions(i,j)=self%voightDistributions(i,j)
+             previousB                           (i,j)=self%B                            (i,j) 
+             previousGamma                       (i,j)=self%gamma                        (i,j) 
+             previousSigma                       (i,j)=self%sigma                        (i,j) 
+             previousMu                          (i,j)=self%mu                           (i,j) 
+             previousVoightDistributions         (i,j)=self%voightDistributions          (i,j)
+             previousVelocityTangentialMean      (i,j)=self%velocityTangentialMean_      (i,j)
+             previousVelocityTotalRootMeanSquared(i,j)=self%velocityTotalRootMeanSquared_(i,j)
              !$omp end critical(virialOrbitJiang2014ReUse)
           end if
        end do
@@ -338,30 +364,40 @@ contains
 
   contains
 
-    double precision function jiang2014DistributionVelocityTotal(velocityTotal)
-      !% The distribution function for total velocity.
+    double precision function jiang2014DistributionVelocityTangential(velocityTotal)
+      !% The integrand used to average the tangential velocity over the distribution function for total velocity.
       use Struve_Functions        , only : Struve_Function_L1
       use Bessel_Functions        , only : Bessel_Function_I1
       use Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: velocityTotal
       
-      jiang2014DistributionVelocityTotal=+voightDistribution%density(velocityTotal) &
-           &                             *Pi                                        &
-           &                             *                           velocityTotal  &
-           &                             *(                                         &
-           &                               +                         self%B(i,j)    & 
-           &                               -2.0d0*Bessel_Function_I1(self%B(i,j))   &
-           &                               -2.0d0*Struve_Function_L1(self%B(i,j))   &
-           &                              )                                         &
-           &                             /4.0d0                                     &
-           &                             /(                                         &
-           &                               +1.0d0                                   &
-           &                               +                         self%B(i,j)    &
-           &                               -      exp               (self%B(i,j))   &
-           &                              )
+      jiang2014DistributionVelocityTangential=+voightDistribution%density(velocityTotal) &
+           &                                  *Pi                                        &
+           &                                  *                           velocityTotal  &
+           &                                  *(                                         &
+           &                                    +                         self%B(i,j)    & 
+           &                                    -2.0d0*Bessel_Function_I1(self%B(i,j))   &
+           &                                    -2.0d0*Struve_Function_L1(self%B(i,j))   &
+           &                                   )                                         &
+           &                                  /4.0d0                                     &
+           &                                  /(                                         &
+           &                                    +1.0d0                                   &
+           &                                    +                         self%B(i,j)    &
+           &                                    -      exp               (self%B(i,j))   &
+           &                                  )
       return
-    end function jiang2014DistributionVelocityTotal
+    end function jiang2014DistributionVelocityTangential
+
+    double precision function jiang2014DistributionVelocityTotalSquared(velocityTotal)
+      !% The integrand used to average the squared total velocity over the distribution function for total velocity.
+      implicit none
+      double precision, intent(in   ) :: velocityTotal
+      
+      jiang2014DistributionVelocityTotalSquared=+voightDistribution%density(velocityTotal)    &
+           &                                    *                           velocityTotal **2
+      return
+    end function jiang2014DistributionVelocityTotalSquared
 
   end function jiang2014ConstructorInternal
 
@@ -549,7 +585,7 @@ contains
     massSatellite =  Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        )
     !# <objectDestructor name="virialDensityContrast_"/>
     call self%parametersSelect(massHost,massSatellite,i,j)
-    jiang2014VelocityTangentialMagnitudeMean=+self%velocityTangentialMean(i,j) &
+    jiang2014VelocityTangentialMagnitudeMean=+self%velocityTangentialMean_(i,j) &
          &                                   *velocityHost
     return
   end function jiang2014VelocityTangentialMagnitudeMean
@@ -558,15 +594,40 @@ contains
     !% Return the mean of the vector tangential velocity.
     use Galacticus_Error
     implicit none
-    double precision                       , dimension(3)  :: jiang2014VelocityTangentialVectorMean
+    double precision                      , dimension(3)  :: jiang2014VelocityTangentialVectorMean
     class           (virialOrbitJiang2014), intent(inout) :: self
-    type            (treeNode             ), intent(inout) :: node                                  , host
+    type            (treeNode            ), intent(inout) :: node                                  , host
     !GCC$ attributes unused :: self, node, host
 
     jiang2014VelocityTangentialVectorMean=0.0d0
     call Galacticus_Error_Report('vector velocity is not defined for this class'//{introspection:location})
     return
   end function jiang2014VelocityTangentialVectorMean
+
+  double precision function jiang2014VelocityTotalRootMeanSquared(self,node,host)
+    !% Return the root mean squared total velocity.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitJiang2014      ), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node                  , host
+    class           (nodeComponentBasic        ), pointer       :: hostBasic             , basic
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    double precision                                            :: massHost              , radiusHost   , &
+         &                                                         velocityHost          , massSatellite
+    integer                                                     :: i                     , j
+
+    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
+    basic         => node%basic()
+    hostBasic     => host%basic()
+    massHost      =  Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    massSatellite =  Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                        )
+    !# <objectDestructor name="virialDensityContrast_"/>
+    call self%parametersSelect(massHost,massSatellite,i,j)
+    jiang2014VelocityTotalRootMeanSquared=+self%velocityTotalRootMeanSquared_(i,j) &
+         &                                *velocityHost
+    return
+  end function jiang2014VelocityTotalRootMeanSquared
 
   subroutine jiang2014ParametersSelect(self,massHost,massSatellite,i,j)
     !% Select the parameter set to use for this satellite/host pairing.

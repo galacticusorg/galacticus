@@ -39,6 +39,7 @@ program Test_Dark_Matter_Profiles_Heated
   use Numerical_Constants_Math
   use Numerical_Constants_Astronomical
   use Dark_Matter_Profiles_Generic    , only : nonAnalyticSolversFallThrough
+  use Events_Hooks                    , only : eventsHooksInitialize
   implicit none
   double precision                                , parameter    :: time                           =13.8d00
   double precision                                , parameter    :: massVirial                     = 1.0d10
@@ -66,6 +67,8 @@ program Test_Dark_Matter_Profiles_Heated
   parameterFile='testSuite/parameters/darkMatterProfileHeated.xml'
   parameters=inputParameters(parameterFile)
   call parameters%markGlobal()
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   call Unit_Tests_Begin_Group("Heated dark matter profiles")
   call nodeClassHierarchyInitialize(parameters)
   ! Create the dark matter profiles.

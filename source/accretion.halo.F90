@@ -21,13 +21,10 @@
 
 module Accretion_Halos
   !% Implements a class implementing accretion of gas from the \gls{igm} onto halos.
-  use ISO_Varying_String
   use Galacticus_Nodes             , only : treeNode
-  use Abundances_Structure
-  use Chemical_Abundances_Structure
-  use Kind_Numbers
+  use Abundances_Structure         , only : abundances
+  use Chemical_Abundances_Structure, only : chemicalAbundances
   private
-  public :: Accretion_Halos_Hot_Halo_Output, Accretion_Halos_Hot_Halo_Output_Count, Accretion_Halos_Hot_Halo_Output_Names
 
   !# <functionClass>
   !#  <name>accretionHalo</name>
@@ -108,121 +105,5 @@ module Accretion_Halos
   !#  <entry label="hot"  />
   !#  <entry label="cold" />
   !# </enumeration>
-
-  ! Options controlling output.
-  logical :: outputHaloAccretionMode, accretionHalosOutputInitialized
-
-contains
-  
-  subroutine Accretion_Halos_Output_Initialize()
-    !% Initialize output in the halo accretion module.
-    use Input_Parameters
-    implicit none
-
-    ! Initialize if necessary.
-    if (.not.accretionHalosOutputInitialized) then
-       !$omp critical(Accretion_Halos_Output_Initialization)
-       if (.not.accretionHalosOutputInitialized) then
-          ! Get options controlling output.
-          !# <inputParameter>
-          !#   <name>outputHaloAccretionMode</name>
-          !#   <cardinality>1</cardinality>
-          !#   <defaultValue>.false.</defaultValue>
-          !#   <description>Determines whether or not halo accretion rates are output.</description>
-          !#   <source>globalParameters</source>
-          !#   <type>boolean</type>
-          !# </inputParameter>
-          accretionHalosOutputInitialized=.true.
-       end if
-       !$omp end critical(Accretion_Halos_Output_Initialization)
-    end if
-    return
-  end subroutine Accretion_Halos_Output_Initialize
-
-  !# <mergerTreeOutputNames>
-  !#  <unitName>Accretion_Halos_Hot_Halo_Output_Names</unitName>
-  !#  <sortName>Accretion_Halos_Hot_Halo_Output</sortName>
-  !# </mergerTreeOutputNames>
-  subroutine Accretion_Halos_Hot_Halo_Output_Names(thisNode,integerProperty,integerPropertyNames,integerPropertyComments&
-       &,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time)
-    !% Set names of hot halo properties to be written to the \glc\ output file.
-    use Numerical_Constants_Astronomical
-    implicit none
-    type            (treeNode            )              , intent(inout) :: thisNode
-    double precision                                    , intent(in   ) :: time
-    integer                                             , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*               ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                                 integerPropertyComments, integerPropertyNames
-    double precision                      , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    !GCC$ attributes unused :: thisNode, time, integerProperty, integerPropertyComments, integerPropertyNames, integerPropertyUnitsSI, doublePropertyUnitsSI
-    
-    ! Initialize the module.
-    call Accretion_Halos_Output_Initialize()
-
-    if (outputHaloAccretionMode) then
-       doubleProperty=doubleProperty+1
-       doublePropertyNames   (doubleProperty)='haloAccretionHotModeFraction'
-       doublePropertyComments(doubleProperty)='Fraction of halo accretion rate occuring via the hot mode.'
-       doublePropertyUnitsSI (doubleProperty)=1.0d0
-    end if
-    return
-  end subroutine Accretion_Halos_Hot_Halo_Output_Names
-
-  !# <mergerTreeOutputPropertyCount>
-  !#  <unitName>Accretion_Halos_Hot_Halo_Output_Count</unitName>
-  !#  <sortName>Accretion_Halos_Hot_Halo_Output</sortName>
-  !# </mergerTreeOutputPropertyCount>
-  subroutine Accretion_Halos_Hot_Halo_Output_Count(thisNode,integerPropertyCount,doublePropertyCount,time)
-    !% Account for the number of hot halo cooling properties to be written to the the \glc\ output file.
-    implicit none
-    type            (treeNode            ), intent(inout) :: thisNode
-    double precision                      , intent(in   ) :: time
-    integer                               , intent(inout) :: doublePropertyCount  , integerPropertyCount
-    integer                               , parameter     :: propertyCount      =1
-    !GCC$ attributes unused :: thisNode,time, integerPropertyCount
-    
-    ! Initialize the module.
-    call Accretion_Halos_Output_Initialize()
-
-    if (outputHaloAccretionMode) doublePropertyCount=doublePropertyCount+propertyCount
-    return
-  end subroutine Accretion_Halos_Hot_Halo_Output_Count
-
-  !# <mergerTreeOutputTask>
-  !#  <unitName>Accretion_Halos_Hot_Halo_Output</unitName>
-  !#  <sortName>Accretion_Halos_Hot_Halo_Output</sortName>
-  !# </mergerTreeOutputTask>
-  subroutine Accretion_Halos_Hot_Halo_Output(thisNode,integerProperty,integerBufferCount,integerBuffer,doubleProperty&
-       &,doubleBufferCount,doubleBuffer,time,instance)
-    !% Store hot halo properties in the \glc\ output file buffers.
-    use Kind_Numbers
-    use Multi_Counters
-    implicit none
-    double precision                    , intent(in   )          :: time
-    type            (treeNode          ), intent(inout), pointer :: thisNode
-    integer                             , intent(inout)          :: doubleBufferCount     , doubleProperty    , &
-         &                                                          integerBufferCount    , integerProperty
-    integer         (kind=kind_int8    ), intent(inout)          :: integerBuffer    (:,:)
-    double precision                    , intent(inout)          :: doubleBuffer     (:,:)
-    type            (multiCounter      ), intent(inout)          :: instance
-    class           (accretionHaloClass)               , pointer :: accretionHalo_
-    double precision                                             :: accretionRateHot      , accretionRateTotal
-    !GCC$ attributes unused :: time, integerBufferCount, integerProperty, integerBuffer, instance
-    
-    ! Initialize the module.
-    call Accretion_Halos_Output_Initialize()
-    if (outputHaloAccretionMode) then
-       doubleProperty=doubleProperty+1
-       accretionHalo_ => accretionHalo()
-       accretionRateHot  =accretionHalo_%accretionRate(thisNode,accretionModeHot  )
-       accretionRateTotal=accretionHalo_%accretionRate(thisNode,accretionModeTotal)
-       if (accretionRateTotal /= 0.0d0) then
-          doubleBuffer(doubleBufferCount,doubleProperty)=accretionRateHot/accretionRateTotal
-       else
-          doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
-       end if
-    end if
-    return
-  end subroutine Accretion_Halos_Hot_Halo_Output
 
 end module Accretion_Halos

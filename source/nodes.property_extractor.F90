@@ -30,7 +30,7 @@ module Node_Property_Extractors
   !#  <name>nodePropertyExtractor</name>
   !#  <descriptiveName>Output Analysis Property Extractor</descriptiveName>
   !#  <description>Class providing extraction of properties from nodes.</description>
-  !#  <default>null</default>
+  !#  <default>nodeIndices</default>
   !#  <method name="type" >
   !#   <description>Return the type of the extracted property.</description>
   !#   <type>integer</type>

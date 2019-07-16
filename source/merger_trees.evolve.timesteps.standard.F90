@@ -24,12 +24,15 @@
   !#  <deepCopy>
   !#   <functionClass variables="simple, satellite"/>
   !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="simple, satellite"/>
+  !#  </stateStorable>
   !# </mergerTreeEvolveTimestep>
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepStandard
      !% Implementation of a merger tree evolution timestepping class which limits the step to the minimum of that given by the
      !% {\normalfont \ttfamily simple} and {\normalfont \ttfamily satellite} timesteps.
      private
-     type(mergerTreeEvolveTimestepSimple   ), pointer :: simple => null()
+     type(mergerTreeEvolveTimestepSimple   ), pointer :: simple    => null()
      type(mergerTreeEvolveTimestepSatellite), pointer :: satellite => null()
    contains
      final     ::                 standardDestructor

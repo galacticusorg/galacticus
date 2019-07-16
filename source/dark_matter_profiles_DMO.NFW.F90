@@ -249,11 +249,11 @@ contains
   
   subroutine nfwAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMONFW), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,nfwCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,nfwCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine nfwAutoHook
   
@@ -1132,8 +1132,8 @@ contains
     use Galacticus_Nodes     , only : nodeComponentDarkMatterProfile
     use Exponential_Integrals
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), pointer :: node
+    class           (darkMatterProfileDMONFW       ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), target  :: node
     double precision                                , intent(in   )          :: waveNumber
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     double precision                                                         :: concentration      , radiusScale, &

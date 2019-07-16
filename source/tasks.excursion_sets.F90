@@ -248,7 +248,7 @@ contains
     use Galacticus_Error        , only : errorStatusSuccess
     use Galacticus_Nodes        , only : treeNode
     implicit none
-    class           (taskExcursionSets), intent(inout)                   :: self
+    class           (taskExcursionSets), intent(inout), target           :: self
     integer                            , intent(  out), optional         :: status
     double precision                   , allocatable  , dimension(:    ) :: mass                    , time                    , &
          &                                                                  powerSpectrumValue      , variance                , &

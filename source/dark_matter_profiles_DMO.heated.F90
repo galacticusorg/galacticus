@@ -137,11 +137,11 @@ contains
 
   subroutine heatedAutoHook(self)
     !% Attach to the calculation reset event.
-    use Events_Hooks, only : calculationResetEvent
+    use Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
 
-    call calculationResetEvent%attach(self,heatedCalculationReset,bindToOpenMPThread=.true.)
+    call calculationResetEvent%attach(self,heatedCalculationReset,openMPThreadBindingAllLevels)
     return
   end subroutine heatedAutoHook
   
@@ -499,9 +499,9 @@ contains
     !% Returns the Fourier transform of the heated density profile at the specified {\normalfont \ttfamily waveNumber}
     !% (given in Mpc$^{-1}$), using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
     implicit none
-    class           (darkMatterProfileDMOHeated), intent(inout)          :: self
-    type            (treeNode                  ), intent(inout), pointer :: node
-    double precision                            , intent(in   )          :: waveNumber
+    class           (darkMatterProfileDMOHeated), intent(inout)         :: self
+    type            (treeNode                  ), intent(inout), target :: node
+    double precision                            , intent(in   )         :: waveNumber
 
     if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then   
        heatedKSpace=self%darkMatterProfileDMO_%kSpace         (node,waveNumber)

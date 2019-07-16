@@ -53,7 +53,7 @@ contains
     use Accretion_Disk_Spectra
     use Galacticus_Error      , only : errorStatusSuccess
     implicit none
-    class  (taskAGNSpectraHopkins2008BuildFile), intent(inout)           :: self
+    class  (taskAGNSpectraHopkins2008BuildFile), intent(inout), target   :: self
     integer                                    , intent(  out), optional :: status
     type   (accretionDiskSpectraHopkins2007   )                          :: accretionDiskSpectra_
     !GCC$ attributes unused :: self
