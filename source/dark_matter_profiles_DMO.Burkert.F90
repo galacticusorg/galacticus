@@ -186,8 +186,8 @@ contains
     use Input_Parameters
     implicit none
     type (darkMatterProfileDMOBurkert)                :: self
-    type (inputParameters         ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
+    type (inputParameters            ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass   ), pointer       :: darkMatterHaloScale_
 
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=darkMatterProfileDMOBurkert(darkMatterHaloScale_)
@@ -291,10 +291,10 @@ contains
     !% Tabulate properties of the Burkert halo profile which must be computed numerically.
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout)           :: self
-    double precision                          , intent(in   ), optional :: concentration
-    integer                                                             :: iConcentration
-    logical                                                             :: retabulate
-    double precision                                                    :: tableConcentration
+    double precision                             , intent(in   ), optional :: concentration
+    integer                                                                :: iConcentration
+    logical                                                                :: retabulate
+    double precision                                                       :: tableConcentration
 
     retabulate=.not.self%burkertTableInitialized
     if (present(concentration)) then
@@ -328,9 +328,9 @@ contains
     !% Tabulates the specific angular momentum vs. radius in an Burkert profile for rapid inversion.
     implicit none
     class           (darkMatterProfileDMOBurkert), intent(inout)           :: self
-    double precision                          , intent(in   ), optional :: specificAngularMomentum
-    integer                                                             :: iRadius
-    logical                                                             :: retabulate
+    double precision                             , intent(in   ), optional :: specificAngularMomentum
+    integer                                                                :: iRadius
+    logical                                                                :: retabulate
 
     retabulate=.not.self%burkertInverseTableInitialized
     ! If the table has not yet been made, compute and store the specific angular momenta corresponding to the minimum and maximum
@@ -515,12 +515,12 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Nodes            , only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMOBurkert      ), intent(inout) :: self
+    class           (darkMatterProfileDMOBurkert   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     ! The radius (in units of the scale radius) at which the rotation speed peaks in a Burkert halo.
-    double precision                                , parameter    :: radiusMaximum    =3.2446257246042642d0
-    class           (nodeComponentDarkMatterProfile), pointer      :: darkMatterProfile
-    double precision                                               :: scaleRadius
+    double precision                                , parameter     :: radiusMaximum    =3.2446257246042642d0
+    class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
+    double precision                                                :: scaleRadius
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -588,7 +588,7 @@ contains
     !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMOBurkert      ), intent(inout) :: self
+    class           (darkMatterProfileDMOBurkert   ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     double precision                                                :: concentration
@@ -659,11 +659,16 @@ contains
     energy        =self%burkertConcentrationTable%interpolate        (concentration,table=burkertConcentrationEnergyIndex)
     energyGradient=self%burkertConcentrationTable%interpolateGradient(concentration,table=burkertConcentrationEnergyIndex)
 
-    burkertEnergyGrowthRate=self%energy(node)&
-         &*(basic%accretionRate()/basic%mass()+2.0d0 &
-         &*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node)+(energyGradient&
-         &*concentration/energy)*(self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)&
-         &-darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()))
+    burkertEnergyGrowthRate=+self%energy(node)                                                                                               &
+         &                  *(                                                                                                               &
+         &                    +basic%accretionRate()/basic%mass()                                                                            &
+         &                    +2.0d0*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node) &
+         &                    +(energyGradient*concentration/energy)                                                                         &
+         &                    *(                                                                                                             &
+         &                      +self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)         &
+         &                      -darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()                                               &
+         &                     )                                                                                                             &
+         &                   )
 
     return
   end function burkertEnergyGrowthRate
@@ -785,30 +790,30 @@ contains
          &                                                          radiusMinimum          , concentrationParameter
 
     ! Compute the potential energy.
-    radiusMinimum    =0.0d0
-    radiusMaximum    =concentration
-    concentrationParameter=concentration
-    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,burkertPotentialEnergyIntegrand&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    radiusMinimum          =0.0d0
+    radiusMaximum          =concentration
+    concentrationParameter =concentration
+    potentialEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,burkertPotentialEnergyIntegrand,integrandFunction, &
+         &                            integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     potentialEnergy=-0.5d0*(1.0d0/concentration+potentialEnergyIntegral)
     ! Compute the velocity dispersion at the virial radius.
-    radiusMinimum=concentration
-    radiusMaximum=100.0d0*concentration
+    radiusMinimum         =concentration
+    radiusMaximum         =100.0d0*concentration
     concentrationParameter=concentration
-    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,burkertJeansEquationIntegrand&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    jeansEquationIntegral =Integrate(radiusMinimum,radiusMaximum,burkertJeansEquationIntegrand,integrandFunction, &
+         &                           integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Compute the kinetic energy.
-    radiusMinimum=0.0d0
-    radiusMaximum=concentration
+    radiusMinimum         =0.0d0
+    radiusMaximum         =concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,burkertKineticEnergyIntegrand&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    kineticEnergyIntegral =Integrate(radiusMinimum,radiusMaximum,burkertKineticEnergyIntegrand,integrandFunction, &
+         &                           integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
-    kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
+    kineticEnergy         =2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
     ! Compute the total energy.
-    burkertProfileEnergy=(potentialEnergy+kineticEnergy)*concentration
+    burkertProfileEnergy  =(potentialEnergy+kineticEnergy)*concentration
     return
 
   contains
@@ -827,8 +832,9 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
       
-      burkertKineticEnergyIntegrand=self%EnclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius&
-           &,concentrationParameter)*radius
+      burkertKineticEnergyIntegrand=+self%EnclosedMassScaleFree(radius,concentrationParameter) &
+           &                        *self%densityScaleFree     (radius,concentrationParameter) &
+           &                        *radius
       return
     end function burkertKineticEnergyIntegrand
     
@@ -837,8 +843,9 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
       
-      burkertJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius &
-           &,concentrationParameter)/radius**2
+      burkertJeansEquationIntegrand=+self%enclosedMassScaleFree(radius,concentrationParameter) &
+           &                        *self%densityScaleFree     (radius,concentrationParameter) &
+           &                        /radius**2
       return
     end function burkertJeansEquationIntegrand
 

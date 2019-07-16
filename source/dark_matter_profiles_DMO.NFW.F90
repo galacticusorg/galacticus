@@ -386,7 +386,7 @@ contains
     !% in units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -409,7 +409,7 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     use Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: radius
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -534,7 +534,7 @@ contains
     use Galacticus_Nodes          , only : nodeComponentDarkMatterProfile
     use Galactic_Structure_Options
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout)           :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout)           :: self
     type            (treeNode                      ), intent(inout), pointer  :: node
     double precision                                , intent(in   )           :: radius
     integer                                         , intent(  out), optional :: status
@@ -571,8 +571,8 @@ contains
     use Numerical_Constants_Physical
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
-    type            (treeNode            ), intent(inout) :: node
-    double precision                      , intent(in   ) :: radius
+    type            (treeNode               ), intent(inout) :: node
+    double precision                         , intent(in   ) :: radius
 
     if (radius > 0.0d0) then
        ! Check if node differs from previous one for which we performed calculations.
@@ -594,7 +594,7 @@ contains
     use Numerical_Constants_Physical
     use Galacticus_Nodes            , only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
     class           (nodeComponentBasic            ), pointer       :: basic
@@ -630,7 +630,7 @@ contains
     !% in units of km s$^{-1}$ Mpc).
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout)          :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), pointer :: node
     double precision                                , intent(in   )          :: specificAngularMomentum
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
@@ -728,7 +728,7 @@ contains
     !% Return the rate of change of the energy of an NFW halo density profile.
     use Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentBasic
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout)          :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout)          :: self
     type            (treeNode                      ), intent(inout), target  :: node
     class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
     class           (nodeComponentBasic            )               , pointer :: basic
@@ -783,7 +783,7 @@ contains
     !% \end{equation}
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
-    double precision                      , intent(in   ) :: concentration
+    double precision                         , intent(in   ) :: concentration
     !GCC$ attributes unused :: self
     
     nfwAngularMomentumScaleFree=(1.0d0+concentration-2.0d0*log(1.0d0+concentration)-1.0d0/(1.0d0+concentration)) &
@@ -796,8 +796,8 @@ contains
     !% {\normalfont \ttfamily radius} (in units of the scale radius) in an NFW profile.
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
-    double precision                      , intent(in   ) :: radius
-    double precision                      , parameter     :: radiusSmall=1.0d-9
+    double precision                         , intent(in   ) :: radius
+    double precision                         , parameter     :: radiusSmall=1.0d-9
     !GCC$ attributes unused :: self
     
     if (radius < radiusSmall) then
@@ -993,9 +993,9 @@ contains
     !% Tabulates the enclosed density vs. radius for NFW halos.
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
-    double precision                      , intent(in   ) :: enclosedDensityScaleFree
-    logical                                               :: retabulate
-    integer                                               :: iRadius
+    double precision                         , intent(in   ) :: enclosedDensityScaleFree
+    logical                                                  :: retabulate
+    integer                                                  :: iRadius
 
     retabulate=.not.self%nfwEnclosedDensityTableInitialized
     ! If the table has not yet been made, compute and store the enclosed density corresponding to the minimum and maximum radii
@@ -1040,7 +1040,7 @@ contains
     use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
-    double precision                      , intent(in   ) :: concentration, radius
+    double precision                         , intent(in   ) :: concentration, radius
     !GCC$ attributes unused :: self
     
     nfwDensityScaleFree=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/radius/(1.0d0+radius)**2/4.0d0/Pi
@@ -1081,15 +1081,15 @@ contains
     radiusMinimum=concentration
     radiusMaximum=100.0d0*concentration
     concentrationParameter=concentration
-    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,nfwJeansEquationIntegrand&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    jeansEquationIntegral=Integrate(radiusMinimum,radiusMaximum,nfwJeansEquationIntegrand,integrandFunction, &
+         &                          integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     ! Compute the kinetic energy.
     radiusMinimum=0.0d0
     radiusMaximum=concentration
     concentrationParameter=concentration
-    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwKineticEnergyIntegrand&
-         &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+    kineticEnergyIntegral=Integrate(radiusMinimum,radiusMaximum,nfwKineticEnergyIntegrand,integrandFunction, &
+         &                          integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
     call Integrate_Done(integrandFunction,integrationWorkspace)
     kineticEnergy=2.0d0*Pi*(jeansEquationIntegral*concentration**3+kineticEnergyIntegral)
     ! Compute the total energy.
@@ -1103,8 +1103,9 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
       
-      nfwKineticEnergyIntegrand=self%EnclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius&
-           &,concentrationParameter)*radius
+      nfwKineticEnergyIntegrand=self%EnclosedMassScaleFree(radius,concentrationParameter) &
+           &                    *self%densityScaleFree    (radius,concentrationParameter) &
+           &                    *radius
       return
     end function nfwKineticEnergyIntegrand
     
@@ -1113,8 +1114,9 @@ contains
       implicit none
       double precision, intent(in   ) :: radius
       
-      nfwJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter)*self%densityScaleFree(radius &
-           &,concentrationParameter)/radius**2
+      nfwJeansEquationIntegrand=self%enclosedMassScaleFree(radius,concentrationParameter) &
+           &                    *self%densityScaleFree    (radius,concentrationParameter) &
+           &                    /radius**2
       return
     end function nfwJeansEquationIntegrand
 
@@ -1160,7 +1162,7 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
@@ -1187,8 +1189,10 @@ contains
     velocityScale=self%darkMatterHaloScale_%virialVelocity(node)
 
     ! Compute time scale.
-    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&
-         &/(1.0d0+concentration)))
+    timeScale=+Mpc_per_km_per_s_To_Gyr                                                            &
+         &    *radiusScale                                                                        &
+         &    /velocityScale                                                                      &
+         &    /sqrt(concentration/(log(1.0d0+concentration)-concentration/(1.0d0+concentration)))
 
     ! Compute dimensionless time.
     freefallTimeScaleFree=time/timeScale
@@ -1207,7 +1211,7 @@ contains
     use Numerical_Constants_Astronomical
     use Galacticus_Nodes                , only : nodeComponentDarkMatterProfile
     implicit none
-    class           (darkMatterProfileDMONFW          ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW       ), intent(inout) :: self
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: time
     class           (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
@@ -1234,8 +1238,10 @@ contains
     velocityScale=self%darkMatterHaloScale_%virialVelocity(node)
 
     ! Compute time scale.
-    timeScale=Mpc_per_km_per_s_To_Gyr*radiusScale/velocityScale/sqrt(concentration/(log(1.0d0+concentration)-concentration&
-         &/(1.0d0+concentration)))
+    timeScale=+Mpc_per_km_per_s_To_Gyr                                                            &
+         &    *radiusScale                                                                        &
+         &    /velocityScale                                                                      &
+         &    /sqrt(concentration/(log(1.0d0+concentration)-concentration/(1.0d0+concentration)))
 
     ! Compute dimensionless time.
     freefallTimeScaleFree=time/timeScale
@@ -1252,9 +1258,9 @@ contains
     !% Tabulates the freefall time vs. freefall radius for NFW halos.
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout) :: self
-    double precision                      , intent(in   ) :: freefallTimeScaleFree
-    logical                                               :: retabulate
-    integer                                               :: iRadius
+    double precision                         , intent(in   ) :: freefallTimeScaleFree
+    logical                                                  :: retabulate
+    integer                                                  :: iRadius
 
     retabulate=.not.self%nfwFreefallTableInitialized
     ! If the table has not yet been made, compute and store the freefall corresponding to the minimum and maximum
@@ -1297,7 +1303,7 @@ contains
     !% Compute the freefall time in a scale-free NFW halo.
     use Numerical_Integration
     implicit none
-    class           (darkMatterProfileDMONFW      ), intent(inout) :: self
+    class           (darkMatterProfileDMONFW   ), intent(inout) :: self
     double precision                            , intent(in   ) :: radius
     double precision                            , parameter     :: radiusSmall         =4.0d-6
     type            (fgsl_function             )                :: integrandFunction
@@ -1309,8 +1315,8 @@ contains
        ! Use the full solution.
        radiusStart=radius
        radiusEnd  =0.0d0
-       nfwFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,nfwFreefallTimeScaleFreeIntegrand&
-            &,integrandFunction,integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
+       nfwFreefallTimeScaleFree=Integrate(radiusEnd,radiusStart,nfwFreefallTimeScaleFreeIntegrand,integrandFunction, &
+            &                             integrationWorkspace,toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
        call Integrate_Done(integrandFunction,integrationWorkspace)
     else
        ! Use an approximation here, found by taking series expansions of the logarithms in the integrand and keeping only the
@@ -1335,9 +1341,13 @@ contains
       else if (radius > radiusStart*(1.0d0-radiusSmallFraction)) then
          ! Use a series approximation for radii close to the initial radius.
          x=1.0d0-radius/radiusStart
-         nfwFreefallTimeScaleFreeIntegrand=(1.0d0/(1.0d0+radiusStart)-log(1.0d0+radiusStart)/radiusStart)*x+(0.5d0*radiusStart&
-              &/(1.0d0+radiusStart)**2+(radiusStart-(1.0d0+radiusStart)*log(1.0d0+radiusStart))/radiusStart/(1.0d0+radiusStart))*x&
-              &**2
+         nfwFreefallTimeScaleFreeIntegrand=+(1.0d0/(1.0d0+radiusStart)-log(1.0d0+radiusStart)/radiusStart)*x &
+              &                            +(                                                                &
+              &                              +0.5d0*radiusStart/(1.0d0+radiusStart)**2                       &
+              &                              +(radiusStart-(1.0d0+radiusStart)*log(1.0d0+radiusStart))       &
+              &                              /radiusStart                                                    &
+              &                              /(1.0d0+radiusStart)                                            &
+              &                             )*x**2
       else
          ! Use full expression for larger radii.
          nfwFreefallTimeScaleFreeIntegrand=log(1.0d0+radiusStart)/radiusStart-log(1.0d0+radius)/radius

@@ -56,9 +56,9 @@ contains
     !% Default constructor for the {\normalfont \ttfamily isothermal} dark matter halo profile class.
     use Input_Parameters
     implicit none
-    type(darkMatterProfileDMOIsothermal)                :: self
-    type (inputParameters           ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
+    type (darkMatterProfileDMOIsothermal)                :: self
+    type (inputParameters               ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
 
     !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     self=darkMatterProfileDMOIsothermal(darkMatterHaloScale_)
@@ -72,7 +72,7 @@ contains
     use Input_Parameters
     implicit none
     type (darkMatterProfileDMOIsothermal)                        :: self
-    class(darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
+    class(darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
  
     return
@@ -94,9 +94,9 @@ contains
     use Galacticus_Nodes        , only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: radius
-    class           (nodeComponentBasic         ), pointer       :: basic
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentBasic            ), pointer       :: basic
 
     basic             => node %basic()
     isothermalDensity =  basic%mass ()/4.0d0/Pi/self%darkMatterHaloScale_%virialRadius(node)/radius**2
@@ -108,8 +108,8 @@ contains
     !% {\normalfont \ttfamily radius} (given in units of Mpc).
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: radius
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
     !GCC$ attributes unused :: self, node, radius
     
     isothermalDensityLogSlope=-2.0d0
@@ -164,9 +164,9 @@ contains
     use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: radius
-    class           (nodeComponentBasic         ), pointer       :: basic
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    class           (nodeComponentBasic            ), pointer       :: basic
 
     basic   => node%basic     ()
     isothermalEnclosedMass=basic%mass()*(radius/self%darkMatterHaloScale_%virialRadius(node))
@@ -180,10 +180,10 @@ contains
     use Galactic_Structure_Options
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout)           :: self
-    type            (treeNode                   ), intent(inout), pointer  :: node
-    double precision                             , intent(in   )           :: radius
-    integer                                      , intent(  out), optional :: status
-    double precision                             , parameter               :: radiusFractionalMinimum=1.0d-30
+    type            (treeNode                      ), intent(inout), pointer  :: node
+    double precision                                , intent(in   )           :: radius
+    integer                                         , intent(  out), optional :: status
+    double precision                                , parameter               :: radiusFractionalMinimum=1.0d-30
     double precision                                                       :: radiusFractional
 
     radiusFractional      =  radius/self%darkMatterHaloScale_%virialRadius(node)
@@ -202,8 +202,8 @@ contains
     !% units of Mpc). For an isothermal halo this is independent of radius and therefore equal to the virial velocity.
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
-    double precision                             , intent(in   ) :: radius
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
     !GCC$ attributes unused :: radius
     
     isothermalCircularVelocity=self%darkMatterHaloScale_%virialVelocity(node)
@@ -215,7 +215,7 @@ contains
     !% velocity is independent of radius.
     implicit none
     class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
-    type            (treeNode                   ), intent(inout) :: node
+    type            (treeNode                      ), intent(inout) :: node
 
     isothermalCircularVelocityMaximum=self%circularVelocity(node,0.0d0)
     return
@@ -267,9 +267,11 @@ contains
     class(nodeComponentBasic            )               , pointer :: basic
 
     basic   => node%basic     ()
-    isothermalEnergyGrowthRate=self%energy(node)&
-         &*(basic%accretionRate()/basic%mass()+2.0d0&
-         &*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node))
+    isothermalEnergyGrowthRate=self%energy(node)                                                                                                &
+         &                     *(                                                                                                               &
+         &                       +basic%accretionRate()/basic%mass()                                                                            &
+         &                       +2.0d0*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node) &
+         &                      )
     return
   end function isothermalEnergyGrowthRate
 
@@ -278,10 +280,10 @@ contains
     !% expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; table~1).
     use Exponential_Integrals
     implicit none
-    class           (darkMatterProfileDMOIsothermal), intent(inout)         :: self
-    type            (treeNode                      ), intent(inout), target :: node
-    double precision                                , intent(in   )         :: waveNumber
-    double precision                                                        :: radiusScale, waveNumberScaleFree
+    class           (darkMatterProfileDMOIsothermal), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout), target  :: node
+    double precision                                , intent(in   )          :: waveNumber
+    double precision                                                         :: radiusScale, waveNumberScaleFree
 
     ! Get the scale radius (for which we use the virial radius).
     radiusScale          =  self%darkMatterHaloScale_%virialRadius(node)
