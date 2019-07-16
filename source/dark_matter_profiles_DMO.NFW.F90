@@ -78,12 +78,6 @@
      !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
      !@   </objectMethod>
      !@   <objectMethod>
-     !@     <method>densityScaleFree</method>
-     !@     <type>\doublezero</type>
-     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
-     !@     <description>Returns the density (in units such that the virial mass and scale length are unity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
-     !@   </objectMethod>
-     !@   <objectMethod>
      !@     <method>enclosedMassScaleFree</method>
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
