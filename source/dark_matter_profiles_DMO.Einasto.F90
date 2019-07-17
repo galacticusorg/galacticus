@@ -38,25 +38,37 @@
      double precision                                                   :: angularMomentumTableAlphaMinimum                     
      double precision                                                   :: angularMomentumTableAlphaMaximum                     
      logical                                                            :: angularMomentumTableInitialized                      
-     integer                                                            :: angularMomentumTableAlphaCount                       , angularMomentumTableRadiusCount
-     double precision                   , allocatable, dimension(:  )   :: angularMomentumTableAlpha                            , angularMomentumTableRadius
+     integer                                                            :: angularMomentumTableAlphaCount                            , angularMomentumTableRadiusCount
+     double precision                   , allocatable, dimension(:  )   :: angularMomentumTableAlpha                                 , angularMomentumTableRadius
      double precision                   , allocatable, dimension(:,:)   :: angularMomentumTable
      type            (fgsl_interp      )                                :: angularMomentumTableRadiusInterpolationObject
-     type            (fgsl_interp_accel)                                :: angularMomentumTableAlphaInterpolationAccelerator    , angularMomentumTableRadiusInterpolationAccelerator
-     logical                                                            :: angularMomentumTableAlphaInterpolationReset          , angularMomentumTableRadiusInterpolationReset            
+     type            (fgsl_interp_accel)                                :: angularMomentumTableAlphaInterpolationAccelerator         , angularMomentumTableRadiusInterpolationAccelerator
+     logical                                                            :: angularMomentumTableAlphaInterpolationReset               , angularMomentumTableRadiusInterpolationReset            
      ! Tables for freefall time vs. radius table
      double precision                                                   :: freefallRadiusTableRadiusMinimum                     
      double precision                                                   :: freefallRadiusTableRadiusMaximum                     
      double precision                                                   :: freefallRadiusTableAlphaMinimum                      
      double precision                                                   :: freefallRadiusTableAlphaMaximum                      
      logical                                                            :: freefallRadiusTableInitialized                       
-     integer                                                            :: freefallRadiusTableAlphaCount                        , freefallRadiusTableRadiusCount
-     double precision                   , allocatable, dimension(:  )   :: freefallRadiusTableAlpha                             , freefallRadiusTableRadius
+     integer                                                            :: freefallRadiusTableAlphaCount                             , freefallRadiusTableRadiusCount
+     double precision                   , allocatable, dimension(:  )   :: freefallRadiusTableAlpha                                  , freefallRadiusTableRadius
      double precision                   , allocatable, dimension(:,:)   :: freefallRadiusTable
-     double precision                                                   :: freefallTimeMaximum                                  , freefallTimeMinimum
+     double precision                                                   :: freefallTimeMaximum                                       , freefallTimeMinimum
      type            (fgsl_interp      )                                :: freefallRadiusTableRadiusInterpolationObject
-     type            (fgsl_interp_accel)                                :: freefallRadiusTableAlphaInterpolationAccelerator     , freefallRadiusTableRadiusInterpolationAccelerator
-     logical                                                            :: freefallRadiusTableAlphaInterpolationReset           , freefallRadiusTableRadiusInterpolationReset             
+     type            (fgsl_interp_accel)                                :: freefallRadiusTableAlphaInterpolationAccelerator          , freefallRadiusTableRadiusInterpolationAccelerator
+     logical                                                            :: freefallRadiusTableAlphaInterpolationReset                , freefallRadiusTableRadiusInterpolationReset             
+     ! Tables for radial velocity dispersion vs. radius table
+     double precision                                                   :: radialVelocityDispersionRadiusMinimum
+     double precision                                                   :: radialVelocityDispersionRadiusMaximum
+     double precision                                                   :: radialVelocityDispersionAlphaMinimum
+     double precision                                                   :: radialVelocityDispersionAlphaMaximum
+     logical                                                            :: radialVelocityDispersionTableInitialized
+     integer                                                            :: radialVelocityDispersionTableAlphaCount                   , radialVelocityDispersionTableRadiusCount
+     double precision                   , allocatable, dimension(:  )   :: radialVelocityDispersionTableAlpha                        , radialVelocityDispersionTableRadius
+     double precision                   , allocatable, dimension(:,:)   :: radialVelocityDispersionTable
+     type            (fgsl_interp      )                                :: radialVelocityDispersionTableRadiusInterpolationObject
+     type            (fgsl_interp_accel)                                :: radialVelocityDispersionTableAlphaInterpolationAccelerator, radialVelocityDispersionTableRadiusInterpolationAccelerator
+     logical                                                            :: radialVelocityDispersionTableAlphaInterpolationReset      , radialVelocityDispersionTableRadiusInterpolationReset
      ! Tables for energy as a function of concentration and alpha.
      double precision                                                   :: energyTableConcentrationMinimum                      
      double precision                                                   :: energyTableConcentrationMaximum                      
@@ -102,6 +114,18 @@
      !@     <type>\doublezero</type>
      !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin, \doublezero\ alpha\argin</arguments>
      !@     <description>Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radialVelocityDispersionScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ alpha\argin</arguments>
+     !@     <description>Returns the scale-free radial velocity dispersion in an Einasto dark matter profile.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>radialVelocityDispersionTabulate</method>
+     !@     <type>\void</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ alphaRequired\argin</arguments>
+     !@     <description>Tabulates the radial velocity dispersion vs. radius for Einasto halos.</description>
      !@   </objectMethod>
      !@   <objectMethod>
      !@     <method>energyTableMake</method>
@@ -155,6 +179,7 @@
      procedure :: potential                                  => einastoPotential
      procedure :: circularVelocity                           => einastoCircularVelocity
      procedure :: circularVelocityMaximum                    => einastoCircularVelocityMaximum
+     procedure :: radialVelocityDispersion                   => einastoRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum          => einastoRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization                      => einastoRotationNormalization
      procedure :: energy                                     => einastoEnergy
@@ -164,6 +189,8 @@
      procedure :: freefallRadiusIncreaseRate                 => einastoFreefallRadiusIncreaseRate
      procedure :: densityScaleFree                           => einastoDensityScaleFree
      procedure :: enclosedMassScaleFree                      => einastoEnclosedMassScaleFree
+     procedure :: radialVelocityDispersionScaleFree          => einastoRadialVelocityDispersionScaleFree
+     procedure :: radialVelocityDispersionTabulate           => einastoRadialVelocityDispersionTabulate
      procedure :: freefallTimeScaleFree                      => einastoFreefallTimeScaleFree
      procedure :: potentialScaleFree                         => einastoPotentialScaleFree
      procedure :: radiusFromSpecificAngularMomentumScaleFree => einastoRadiusFromSpecificAngularMomentumScaleFree
@@ -180,15 +207,17 @@
   end interface darkMatterProfileDMOEinasto
 
   ! Granularity parameters for tabulations.
-  integer, parameter :: einastoAngularMomentumTableRadiusPointsPerDecade      =100
-  integer, parameter :: einastoAngularMomentumTableAlphaPointsPerUnit         =100
-  integer, parameter :: einastoFreefallRadiusTableRadiusPointsPerDecade       = 30
-  integer, parameter :: einastoFreefallRadiusTableAlphaPointsPerUnit          = 30
-  integer, parameter :: einastoEnergyTableConcentrationPointsPerDecade        =100
-  integer, parameter :: einastoEnergyTableAlphaPointsPerUnit                  =100
-  integer, parameter :: einastoFourierProfileTableConcentrationPointsPerDecade=100
-  integer, parameter :: einastoFourierProfileTableWavenumberPointsPerDecade   =100
-  integer, parameter :: einastoFourierProfileTableAlphaPointsPerUnit          =100
+  integer, parameter :: einastoAngularMomentumTableRadiusPointsPerDecade         =100
+  integer, parameter :: einastoAngularMomentumTableAlphaPointsPerUnit            =100
+  integer, parameter :: einastoFreefallRadiusTableRadiusPointsPerDecade          = 30
+  integer, parameter :: einastoFreefallRadiusTableAlphaPointsPerUnit             = 30
+  integer, parameter :: einastoEnergyTableConcentrationPointsPerDecade           =100
+  integer, parameter :: einastoEnergyTableAlphaPointsPerUnit                     =100
+  integer, parameter :: einastoFourierProfileTableConcentrationPointsPerDecade   =100
+  integer, parameter :: einastoFourierProfileTableWavenumberPointsPerDecade      =100
+  integer, parameter :: einastoFourierProfileTableAlphaPointsPerUnit             =100
+  integer, parameter :: einastoRadialVelocityDispersionTableRadiusPointsPerDecade=100
+  integer, parameter :: einastoRadialVelocityDispersionTableAlphaPointsPerUnit   =100
 
   ! Module-scope variables used in root finding.
   class           (darkMatterProfileDMOEinasto), pointer :: einastoSelf
@@ -226,37 +255,44 @@ contains
     !# <constructorAssign variables="*darkMatterHaloScale_"/>
 
     ! Initialize table states.
-    self%angularMomentumTableRadiusMinimum                 = 1.0d-3
-    self%angularMomentumTableRadiusMaximum                 =20.0d+0
-    self%angularMomentumTableAlphaMinimum                  = 0.1d+0
-    self%angularMomentumTableAlphaMaximum                  = 0.3d+0
-    self%angularMomentumTableInitialized                   =.false.
-    self%angularMomentumTableAlphaInterpolationReset       =.true.
-    self%angularMomentumTableRadiusInterpolationReset      =.true.
-    self%freefallRadiusTableRadiusMinimum                  = 1.0d-3
-    self%freefallRadiusTableRadiusMaximum                  =20.0d+0
-    self%freefallRadiusTableAlphaMinimum                   = 0.1d+0
-    self%freefallRadiusTableAlphaMaximum                   = 0.3d+0
-    self%freefallRadiusTableInitialized                    =.false.
-    self%freefallRadiusTableAlphaInterpolationReset        =.true.
-    self%freefallRadiusTableRadiusInterpolationReset       =.true.
-    self%energyTableConcentrationMinimum                   = 2.0d0
-    self%energyTableConcentrationMaximum                   =20.0d0
-    self%energyTableAlphaMinimum                           = 0.1d0
-    self%energyTableAlphaMaximum                           = 0.3d0
-    self%energyTableInitialized                            =.false.
-    self%energyTableAlphaInterpolationReset                =.true.
-    self%energyTableConcentrationInterpolationReset        =.true.
-    self%fourierProfileTableConcentrationMinimum           = 2.0d0
-    self%fourierProfileTableConcentrationMaximum           =20.0d0
-    self%fourierProfileTableWavenumberMinimum              = 1.0d-3
-    self%fourierProfileTableWavenumberMaximum              = 1.0d+3
-    self%fourierProfileTableAlphaMinimum                   = 0.1d+0
-    self%fourierProfileTableAlphaMaximum                   = 0.3d+0
-    self%fourierProfileTableInitialized                    =.false.
-    self%fourierProfileTableAlphaInterpolationReset        =.true.
-    self%fourierProfileTableConcentrationInterpolationReset=.true.
-    self%fourierProfileTableWavenumberInterpolationReset   =.true.
+    self%angularMomentumTableRadiusMinimum                    = 1.0d-3
+    self%angularMomentumTableRadiusMaximum                    =20.0d+0
+    self%angularMomentumTableAlphaMinimum                     = 0.1d+0
+    self%angularMomentumTableAlphaMaximum                     = 0.3d+0
+    self%angularMomentumTableInitialized                      =.false.
+    self%angularMomentumTableAlphaInterpolationReset          =.true.
+    self%angularMomentumTableRadiusInterpolationReset         =.true.
+    self%freefallRadiusTableRadiusMinimum                     = 1.0d-3
+    self%freefallRadiusTableRadiusMaximum                     =20.0d+0
+    self%freefallRadiusTableAlphaMinimum                      = 0.1d+0
+    self%freefallRadiusTableAlphaMaximum                      = 0.3d+0
+    self%freefallRadiusTableInitialized                       =.false.
+    self%freefallRadiusTableAlphaInterpolationReset           =.true.
+    self%freefallRadiusTableRadiusInterpolationReset          =.true.
+    self%energyTableConcentrationMinimum                      = 2.0d0
+    self%energyTableConcentrationMaximum                      =20.0d0
+    self%energyTableAlphaMinimum                              = 0.1d0
+    self%energyTableAlphaMaximum                              = 0.3d0
+    self%energyTableInitialized                               =.false.
+    self%energyTableAlphaInterpolationReset                   =.true.
+    self%energyTableConcentrationInterpolationReset           =.true.
+    self%fourierProfileTableConcentrationMinimum              = 2.0d0
+    self%fourierProfileTableConcentrationMaximum              =20.0d0
+    self%fourierProfileTableWavenumberMinimum                 = 1.0d-3
+    self%fourierProfileTableWavenumberMaximum                 = 1.0d+3
+    self%fourierProfileTableAlphaMinimum                      = 0.1d+0
+    self%fourierProfileTableAlphaMaximum                      = 0.3d+0
+    self%fourierProfileTableInitialized                       =.false.
+    self%fourierProfileTableAlphaInterpolationReset           =.true.
+    self%fourierProfileTableConcentrationInterpolationReset   =.true.
+    self%fourierProfileTableWavenumberInterpolationReset      =.true.
+    self%radialVelocityDispersionRadiusMinimum                = 1.0d-3
+    self%radialVelocityDispersionRadiusMaximum                =20.0d+0
+    self%radialVelocityDispersionAlphaMinimum                 = 0.1d+0
+    self%radialVelocityDispersionAlphaMaximum                 = 0.3d+0
+    self%radialVelocityDispersionTableInitialized             =.false.
+    self%radialVelocityDispersionTableAlphaInterpolationReset =.true.
+    self%radialVelocityDispersionTableRadiusInterpolationReset=.true.
     ! Ensure that the dark matter profile component supports both "scale" and "shape" properties. Since we've been called with
     ! a treeNode to process, it should have been initialized by now.
     if     (                                                                                                                 &
@@ -282,6 +318,8 @@ contains
             &         {introspection:location}                                                                          &
             &        )
     end if
+    ! Initialize the tabulations.
+    call self%radialVelocityDispersionTabulate()
     return
   end function einastoConstructorInternal
   
@@ -291,46 +329,55 @@ contains
     implicit none
     type(darkMatterProfileDMOEinasto), intent(inout) :: self
 
-    call Interpolate_Done(                                                                                        &
-         &                interpolationObject     =self%angularMomentumTableRadiusInterpolationObject           , &
-         &                interpolationAccelerator=self%angularMomentumTableRadiusInterpolationAccelerator      , &
-         &                reset                   =self%angularMomentumTableRadiusInterpolationReset              &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationObject     =self%angularMomentumTableRadiusInterpolationObject              , &
+         &                interpolationAccelerator=self%angularMomentumTableRadiusInterpolationAccelerator         , &
+         &                reset                   =self%angularMomentumTableRadiusInterpolationReset                 &
          &               )
-    call Interpolate_Done(                                                                                        &
-         &                interpolationAccelerator=self%angularMomentumTableAlphaInterpolationAccelerator       , &
-         &                reset                   =self%angularMomentumTableAlphaInterpolationReset               &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationAccelerator=self%angularMomentumTableAlphaInterpolationAccelerator          , &
+         &                reset                   =self%angularMomentumTableAlphaInterpolationReset                  &
          &                )
-    call Interpolate_Done(                                                                                        &
-         &                interpolationObject     =self%energyTableConcentrationInterpolationObject             , &
-         &                interpolationAccelerator=self%energyTableConcentrationInterpolationAccelerator        , &
-         &                reset                   =self%energyTableConcentrationInterpolationReset                &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationObject     =self%energyTableConcentrationInterpolationObject                , &
+         &                interpolationAccelerator=self%energyTableConcentrationInterpolationAccelerator           , &
+         &                reset                   =self%energyTableConcentrationInterpolationReset                   &
          &               )
-    call Interpolate_Done(                                                                                        &
-         &                interpolationObject     =self%energyTableAlphaInterpolationObject                     , &
-         &                interpolationAccelerator=self%energyTableAlphaInterpolationAccelerator                , &
-         &                reset                   =self%energyTableAlphaInterpolationReset                        &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationObject     =self%energyTableAlphaInterpolationObject                        , &
+         &                interpolationAccelerator=self%energyTableAlphaInterpolationAccelerator                   , &
+         &                reset                   =self%energyTableAlphaInterpolationReset                           &
          &                  )
-    call Interpolate_Done(                                                                                        &
-         &                interpolationObject     =self%fourierProfileTableWavenumberInterpolationObject        , &
-         &                interpolationAccelerator=self%fourierProfileTableWavenumberInterpolationAccelerator   , &
-         &                reset                   =self%fourierProfileTableWavenumberInterpolationReset           &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationObject     =self%fourierProfileTableWavenumberInterpolationObject           , &
+         &                interpolationAccelerator=self%fourierProfileTableWavenumberInterpolationAccelerator      , &
+         &                reset                   =self%fourierProfileTableWavenumberInterpolationReset              &
          &               )
-    call Interpolate_Done(                                                                                        &
-         &                interpolationAccelerator=self%fourierProfileTableAlphaInterpolationAccelerator        , &
-         &                reset                   =self%fourierProfileTableAlphaInterpolationReset                &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationAccelerator=self%fourierProfileTableAlphaInterpolationAccelerator           , &
+         &                reset                   =self%fourierProfileTableAlphaInterpolationReset                   &
          &                  )
-    call Interpolate_Done(                                                                                        &
-         &                interpolationAccelerator=self%fourierProfileTableConcentrationInterpolationAccelerator, &
-         &                reset                   =self%fourierProfileTableConcentrationInterpolationReset        &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationAccelerator=self%fourierProfileTableConcentrationInterpolationAccelerator   , &
+         &                reset                   =self%fourierProfileTableConcentrationInterpolationReset           &
          &               )
-    call Interpolate_Done(                                                                                        &
-         &                interpolationAccelerator=self%freefallRadiusTableAlphaInterpolationAccelerator        , &
-         &                reset                   =self%freefallRadiusTableAlphaInterpolationReset                &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationAccelerator=self%freefallRadiusTableAlphaInterpolationAccelerator           , &
+         &                reset                   =self%freefallRadiusTableAlphaInterpolationReset                   &
          &               )
-    call Interpolate_Done(                                                                                        &
-         &                interpolationObject     =self%freefallRadiusTableRadiusInterpolationObject            , &
-         &                interpolationAccelerator=self%freefallRadiusTableRadiusInterpolationAccelerator       , &
-         &                reset                   =self%freefallRadiusTableRadiusInterpolationReset               &
+    call Interpolate_Done(                                                                                           &
+         &                interpolationObject     =self%freefallRadiusTableRadiusInterpolationObject               , &
+         &                interpolationAccelerator=self%freefallRadiusTableRadiusInterpolationAccelerator          , &
+         &                reset                   =self%freefallRadiusTableRadiusInterpolationReset                  &
+         &               )
+    call Interpolate_Done(                                                                                           &
+         &                interpolationAccelerator=self%radialVelocityDispersionTableAlphaInterpolationAccelerator , &
+         &                reset                   =self%radialVelocityDispersionTableAlphaInterpolationReset         &
+         &               )
+    call Interpolate_Done(                                                                                           &
+         &                interpolationObject     =self%radialVelocityDispersionTableRadiusInterpolationObject     , &
+         &                interpolationAccelerator=self%radialVelocityDispersionTableRadiusInterpolationAccelerator, &
+         &                reset                   =self%radialVelocityDispersionTableRadiusInterpolationReset        &
          &               )
     !# <objectDestructor name="self%darkMatterHaloScale_" />
     return
@@ -414,10 +461,10 @@ contains
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
     virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-    densityNormalization= (alpha/4.0d0/Pi)                                                                      &
-         &               *   ((2.0d0/alpha)                    **(3.0d0/alpha)                                ) &
-         &               *exp(-2.0d0/alpha                                                                    ) &
-         &               /Gamma_Function                         (3.0d0/alpha                                 ) &
+    densityNormalization= (alpha/4.0d0/Pi)                                                                                    &
+         &               *   ((2.0d0/alpha)                    **(3.0d0/alpha)                                              ) &
+         &               *exp(-2.0d0/alpha                                                                                  ) &
+         &               /Gamma_Function                         (3.0d0/alpha                                               ) &
          &               /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha)
     einastoRadialMoment=+densityNormalization                                            &
          &              *basic%mass()                                                    &
@@ -466,7 +513,7 @@ contains
     alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                                      /scaleRadius
     virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-    einastoEnclosedMass        =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha)&
+    einastoEnclosedMass        =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
          &                      *basic%mass()
     return
   end function einastoEnclosedMass
@@ -554,6 +601,61 @@ contains
     end function einastoCircularVelocityPeakRadius
 
   end function einastoCircularVelocityMaximum
+
+  double precision function einastoRadialVelocityDispersion(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use, intrinsic :: ISO_C_Binding
+    use            :: Numerical_Interpolation
+    use            :: Galacticus_Nodes       , only : nodeComponentDarkMatterProfile
+    use            :: Gamma_Functions
+    implicit none
+    class           (darkMatterProfileDMOEinasto   ), intent(inout)  :: self
+    type            (treeNode                      ), intent(inout)  :: node
+    double precision                                , intent(in   )  :: radius
+    class           (nodeComponentDarkMatterProfile), pointer        :: darkMatterProfile
+    integer         (c_size_t                      ), dimension(0:1) :: jAlpha
+    double precision                                , dimension(0:1) :: hAlpha
+    integer                                                          :: iAlpha
+    double precision                                                 :: alpha                , scaleRadius                , &
+         &                                                              radiusOverScaleRadius, virialRadiusOverScaleRadius
+
+    darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
+    ! Get the scale radius.
+    scaleRadius                 =  darkMatterProfile%scale()
+    radiusOverScaleRadius       =  radius                                      /scaleRadius
+    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    ! Get the shape parameter.
+    alpha                       =  darkMatterProfile%shape()
+    if (radius > 0.0d0) then
+       ! Ensure table is sufficiently extensive.
+       call self%radialVelocityDispersionTabulate(radiusOverScaleRadius,alpha)
+       ! Interpolate to get the radial velocity dispersion.
+       ! Get interpolating factors in alpha.
+       jAlpha(0)=Interpolate_Locate                 (self%radialVelocityDispersionTableAlpha,self%radialVelocityDispersionTableAlphaInterpolationAccelerator,alpha,reset=self%radialVelocityDispersionTableAlphaInterpolationReset)
+       jAlpha(1)=jAlpha(0)+1
+       hAlpha   =Interpolate_Linear_Generate_Factors(self%radialVelocityDispersionTableAlpha,jAlpha(0)                                                      ,alpha                                                                )
+
+       einastoRadialVelocityDispersion=0.0d0
+       do iAlpha=0,1
+          einastoRadialVelocityDispersion=+einastoRadialVelocityDispersion                                                                                                            &
+               &                          +Interpolate(self%radialVelocityDispersionTableRadius                   , self%radialVelocityDispersionTable(:,jAlpha(iAlpha))            , &
+               &                                       self%radialVelocityDispersionTableRadiusInterpolationObject, self%radialVelocityDispersionTableRadiusInterpolationAccelerator, &
+               &                                       radiusOverScaleRadius                                      , reset=self%radialVelocityDispersionTableRadiusInterpolationReset  &
+               &                                      )                                                                                                                               &
+               &                          *hAlpha(iAlpha)
+       end do
+       einastoRadialVelocityDispersion=+einastoRadialVelocityDispersion                                                                           &
+            &                          *self%darkMatterHaloScale_%virialVelocity(node)                                                            &
+            &                          *sqrt(                                                                                                     &
+            &                                +virialRadiusOverScaleRadius                                                                         &
+            &                                /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha) &
+            &                               )
+    else
+       einastoRadialVelocityDispersion=0.0d0
+    end if
+    return
+  end function einastoRadialVelocityDispersion
 
   double precision function einastoPotential(self,node,radius,status)
     !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
@@ -1646,3 +1748,139 @@ contains
          &                            /radius**3
     return
   end function einastoRadiusEnclosingDensityRoot
+
+  double precision function einastoRadialVelocityDispersionScaleFree(self,radius,alpha)
+    !% Compute the radial velocity dispersion in a scale-free Einasto halo.
+    use Numerical_Integration
+    implicit none
+    class           (darkMatterProfileDMOEinasto), intent(inout)            :: self
+    double precision                             , intent(in   )            :: radius                     , alpha
+    double precision                                            , parameter :: radiusTiny          =1.0d-9, radiusLarge  =5.0d3
+    double precision                                                        :: radiusMinimum              , radiusMaximum
+    type            (fgsl_function              )                           :: integrandFunction
+    type            (fgsl_integration_workspace )                           :: integrationWorkspace
+    !GCC$ attributes unused :: self
+
+    radiusMinimum=max(       radius,radiusTiny )
+    radiusMaximum=max(10.0d0*radius,radiusLarge)
+    einastoRadialVelocityDispersionScaleFree=sqrt(                                              &
+         &                                        +Integrate(                                   &
+         &                                                   radiusMinimum                    , &
+         &                                                   radiusMaximum                    , &
+         &                                                   einastoJeansEquationIntegrand    , &
+         &                                                   integrandFunction                , &
+         &                                                   integrationWorkspace             , &
+         &                                                   toleranceAbsolute    =0.0d+0     , &
+         &                                                   toleranceRelative    =1.0d-6       &
+         &                                                  )                                   &
+         &                                        /exp(-(2.0d0/alpha)*(radius**alpha-1.0d0))    &
+         &                                       )
+    call Integrate_Done(integrandFunction,integrationWorkspace)
+    return
+
+  contains
+
+    double precision function einastoJeansEquationIntegrand(radius)
+      !% Integrand for Einasto drak matter profile Jeans equation.
+      use Gamma_Functions
+      implicit none
+      double precision, intent(in   ) :: radius
+
+      if (radius > 0.0d0) then
+         einastoJeansEquationIntegrand=+Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*radius**alpha/alpha) &
+              &                        *exp(-(2.0d0/alpha)*(radius**alpha-1.0d0))                                      &
+              &                        /radius**2
+      else
+         einastoJeansEquationIntegrand=0.0d0
+      end if
+      return
+    end function einastoJeansEquationIntegrand
+
+  end function einastoRadialVelocityDispersionScaleFree
+
+  subroutine einastoRadialVelocityDispersionTabulate(self,radius,alphaRequired)
+    !% Tabulates the radial velocity dispersion vs. radius for Einasto halos.
+    use Galacticus_Display
+    use Numerical_Ranges
+    use Memory_Management
+    use Numerical_Interpolation
+    implicit none
+    class           (darkMatterProfileDMOEinasto), intent(inout)           :: self
+    double precision                             , intent(in   ), optional :: radius    , alphaRequired
+    logical                                                                :: retabulate
+    integer                                                                :: iAlpha    , iRadius      , percentage
+    double precision                                                       :: alpha
+
+    retabulate=.not.self%radialVelocityDispersionTableInitialized
+    if (present(radius)) then
+       do while (radius < self%radialVelocityDispersionRadiusMinimum)
+          self%radialVelocityDispersionRadiusMinimum=0.5d0*self%radialVelocityDispersionRadiusMinimum
+          retabulate=.true.
+       end do
+       do while (radius > self%radialVelocityDispersionRadiusMaximum)
+          self%radialVelocityDispersionRadiusMaximum=2.0d0*self%radialVelocityDispersionRadiusMaximum
+          retabulate=.true.
+       end do
+    end if
+    if (present(alphaRequired)) then
+       ! Check for alpha out of range.
+       if (alphaRequired < self%radialVelocityDispersionAlphaMinimum .or. alphaRequired > self%radialVelocityDispersionAlphaMaximum) then
+          retabulate=.true.
+          ! Compute the range of tabulation.
+          self%radialVelocityDispersionAlphaMinimum=min(self%radialVelocityDispersionAlphaMinimum,0.9d0*alphaRequired)
+          self%radialVelocityDispersionAlphaMaximum=max(self%radialVelocityDispersionAlphaMaximum,1.1d0*alphaRequired)
+       end if
+    end if
+    if (retabulate) then
+       ! Display a message.
+       call Galacticus_Display_Indent('Constructing Einasto profile radial velocity dispersion lookup table...',verbosityWorking)
+       ! Decide how many points to tabulate and allocate table arrays.
+       self%radialVelocityDispersionTableRadiusCount=int(log10(self%radialVelocityDispersionRadiusMaximum/self%radialVelocityDispersionRadiusMinimum) &
+            &                                            *dble(einastoRadialVelocityDispersionTableRadiusPointsPerDecade                            ) &
+            &                                           )+1
+       self%radialVelocityDispersionTableAlphaCount =int(     (self%radialVelocityDispersionAlphaMaximum -self%radialVelocityDispersionAlphaMinimum ) &
+            &                                            *dble(einastoRadialVelocityDispersionTableAlphaPointsPerUnit                               ) &
+            &                                           )+1
+       if (allocated(self%radialVelocityDispersionTableRadius)) then
+          call deallocateArray(self%radialVelocityDispersionTableAlpha )
+          call deallocateArray(self%radialVelocityDispersionTableRadius)
+          call deallocateArray(self%radialVelocityDispersionTable      )
+       end if
+       call allocateArray(self%radialVelocityDispersionTableAlpha ,[                                              self%radialVelocityDispersionTableAlphaCount])
+       call allocateArray(self%radialVelocityDispersionTableRadius,[self%radialVelocityDispersionTableRadiusCount                                             ])
+       call allocateArray(self%radialVelocityDispersionTable      ,[self%radialVelocityDispersionTableRadiusCount,self%radialVelocityDispersionTableAlphaCount])
+       ! Create a range of radii and alpha.
+       self%radialVelocityDispersionTableAlpha =Make_Range(self%radialVelocityDispersionAlphaMinimum ,self%radialVelocityDispersionAlphaMaximum ,self%radialVelocityDispersionTableAlphaCount ,rangeType=rangeTypeLinear     )
+       self%radialVelocityDispersionTableRadius=Make_Range(self%radialVelocityDispersionRadiusMinimum,self%radialVelocityDispersionRadiusMaximum,self%radialVelocityDispersionTableRadiusCount,rangeType=rangeTypeLogarithmic)
+       ! Loop over radii and alpha and populate tables.
+       do iAlpha=1,self%radialVelocityDispersionTableAlphaCount
+          alpha=self%radialVelocityDispersionTableAlpha(iAlpha)
+          do iRadius=1,self%radialVelocityDispersionTableRadiusCount
+             ! Show progress.
+             percentage=int(100.0d0*dble((iAlpha-1)*self%radialVelocityDispersionTableRadiusCount+iRadius-1                        ) &
+                  &                /dble(self%radialVelocityDispersionTableAlphaCount*self%radialVelocityDispersionTableRadiusCount) &
+                  &        )
+             call Galacticus_Display_Counter(percentage,iAlpha == 1 .and. iRadius == 1,verbosityWorking)
+             ! Compute the radial velocity dispersion.
+             self%radialVelocityDispersionTable(iRadius,iAlpha)=self%radialVelocityDispersionScaleFree(self%radialVelocityDispersionTableRadius(iRadius),alpha)
+          end do
+       end do
+       ! Ensure interpolations get reset.
+       call Interpolate_Done(                                                                                           &
+            &                interpolationAccelerator=self%radialVelocityDispersionTableAlphaInterpolationAccelerator , &
+            &                reset                   =self%radialVelocityDispersionTableAlphaInterpolationReset         &
+            &               )
+       call Interpolate_Done(                                                                                           &
+            &                interpolationObject     =self%radialVelocityDispersionTableRadiusInterpolationObject     , &
+            &                interpolationAccelerator=self%radialVelocityDispersionTableRadiusInterpolationAccelerator, &
+            &                reset                   =self%radialVelocityDispersionTableRadiusInterpolationReset        &
+            &               )
+       self%radialVelocityDispersionTableAlphaInterpolationReset =.true.
+       self%radialVelocityDispersionTableRadiusInterpolationReset=.true.
+       ! Display a message.
+       call Galacticus_Display_Unindent('...done',verbosityWorking)
+       ! Specify that tabulation has been made.
+       self%radialVelocityDispersionTableInitialized=.true.
+    end if
+    return
+  end subroutine einastoRadialVelocityDispersionTabulate

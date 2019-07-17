@@ -82,6 +82,12 @@ module Dark_Matter_Profiles_Generic
      !@     <description>Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>radialVelocityDispersionNumerical</method>
+     !@     <type>double precision</type>
+     !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout,\textcolor{red}{\textless double precision\textgreater} radius\\argin</arguments>
+     !@     <description>Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>radialMomentNumerical</method>
      !@     <type>double precision</type>
      !@     <arguments>\textcolor{red}{\textless type((treeNode))\textgreater} node\arginout, \doublezero\ moment\argin, \doublezero\ radiusMinimum\argin, \doublezero\ radiusMaximum\argin</arguments>
@@ -162,6 +168,7 @@ module Dark_Matter_Profiles_Generic
      procedure                                         :: potentialNumerical                         => genericPotentialNumerical
      procedure                                         :: potentialDifferenceNumerical               => genericPotentialDifferenceNumerical
      procedure                                         :: circularVelocityNumerical                  => genericCircularVelocityNumerical
+     procedure                                         :: radialVelocityDispersionNumerical          => genericRadialVelocityDispersionNumerical
      procedure                                         :: radialMomentNumerical                      => genericRadialMomentNumerical
      procedure                                         :: rotationNormalizationNumerical             => genericRotationNormalizationNumerical
      procedure                                         :: kSpaceNumerical                            => genericKSpaceNumerical
@@ -363,6 +370,60 @@ contains
     end if
     return
   end function genericCircularVelocityNumerical
+
+  double precision function genericRadialVelocityDispersionNumerical(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Numerical_Constants_Physical, only : gravitationalConstantGalacticus
+    use FGSL                        , only : fgsl_function                  , fgsl_integration_workspace
+    use Numerical_Integration       , only : Integrate                      , Integrate_Done
+    implicit none
+    class           (darkMatterProfileGeneric  ), intent(inout)            :: self
+    type            (treeNode                  ), intent(inout)            :: node
+    double precision                            , intent(in   )            :: radius
+    double precision                                           , parameter :: radiusTinyFraction =1.0d-9, radiusLargeFactor=5.0d2
+    double precision                                                       :: radiusMinimum             , radiusMaximum          , &
+         &                                                                    radiusVirial
+    type            (fgsl_function             )                           :: integrandFunction
+    type            (fgsl_integration_workspace)                           :: integrationWorkspace
+
+    radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
+    radiusMinimum=max(       radius,radiusTinyFraction*radiusVirial)
+    radiusMaximum=max(10.0d0*radius,radiusLargeFactor *radiusVirial)
+    genericRadialVelocityDispersionNumerical=sqrt(                                              &
+         &                                        +Integrate(                                   &
+         &                                                   radiusMinimum                    , &
+         &                                                   radiusMaximum                    , &
+         &                                                   genericJeansEquationIntegrand    , &
+         &                                                   integrandFunction                , &
+         &                                                   integrationWorkspace             , &
+         &                                                   toleranceAbsolute    =0.0d+0     , &
+         &                                                   toleranceRelative    =1.0d-6       &
+         &                                                  )                                   &
+         &                                         /self%density(node,radius)                   &
+         &                                        )
+    call Integrate_Done(integrandFunction,integrationWorkspace)
+    return
+
+  contains
+
+    double precision function genericJeansEquationIntegrand(radius)
+      !% Integrand for generic drak matter profile Jeans equation.
+      implicit none
+      double precision, intent(in   ) :: radius
+
+      if (radius > 0.0d0) then
+         genericJeansEquationIntegrand=+gravitationalConstantGalacticus &
+              &                        *self%enclosedMass(node,radius)  &
+              &                        *self%density     (node,radius)  &
+              &                        /radius**2
+      else
+         genericJeansEquationIntegrand=0.0d0
+      end if
+      return
+    end function genericJeansEquationIntegrand
+
+  end function genericRadialVelocityDispersionNumerical
 
   double precision function genericRadialMomentNumerical(self,node,moment,radiusMinimum,radiusMaximum)
     !% Returns the radial moment of the density in the dark matter profile of {\normalfont \ttfamily node} between the given

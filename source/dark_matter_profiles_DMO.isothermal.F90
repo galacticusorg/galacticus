@@ -35,6 +35,7 @@
      procedure :: potential                         => isothermalPotential
      procedure :: circularVelocity                  => isothermalCircularVelocity
      procedure :: circularVelocityMaximum           => isothermalCircularVelocityMaximum
+     procedure :: radialVelocityDispersion          => isothermalRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => isothermalRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => isothermalRotationNormalization
      procedure :: energy                            => isothermalEnergy
@@ -220,6 +221,19 @@ contains
     isothermalCircularVelocityMaximum=self%circularVelocity(node,0.0d0)
     return
   end function isothermalCircularVelocityMaximum
+
+  double precision function isothermalRadialVelocityDispersion(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius}
+    !% (given in units of Mpc). For an isothermal halo this is independent of radius and equal to the virial velocity divided by $\sqrt(2)$.
+    implicit none
+    class           (darkMatterProfileDMOIsothermal), intent(inout) :: self
+    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , intent(in   ) :: radius
+    !GCC$ attributes unused :: radius
+
+    isothermalRadialVelocityDispersion=self%darkMatterHaloScale_%virialVelocity(node)/sqrt(2.0d0)
+    return
+  end function isothermalRadialVelocityDispersion
 
   double precision function isothermalRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given

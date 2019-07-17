@@ -90,6 +90,12 @@
      !@     <description>Returns the density (in units of the virial mass per cubic scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} which is enclosed a given radius (in units of the scale radius).</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>radialVelocityDispersionScaleFree</method>
+     !@     <type>\doublezero</type>
+     !@     <arguments>\doublezero\ radius\argin, \doublezero\ concentration\argin</arguments>
+     !@     <description>Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>freefallTabulate</method>
      !@     <type>\void</type>
      !@     <arguments>\doublezero\ freefallTimeScaleFree\argin</arguments>
@@ -150,6 +156,7 @@
      procedure :: potential                         => nfwPotential
      procedure :: circularVelocity                  => nfwCircularVelocity
      procedure :: circularVelocityMaximum           => nfwCircularVelocityMaximum
+     procedure :: radialVelocityDispersion          => nfwRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => nfwRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => nfwRotationNormalization
      procedure :: energy                            => nfwEnergy
@@ -163,6 +170,7 @@
      procedure :: enclosedMassScaleFree             => nfwEnclosedMassScaleFree
      procedure :: densityEnclosedByRadiusScaleFree  => nfwDensityEnclosedByRadiusScaleFree
      procedure :: densityScaleFree                  => nfwDensityScaleFree
+     procedure :: radialVelocityDispersionScaleFree => nfwRadialVelocityDispersionScaleFree
      procedure :: tabulate                          => nfwTabulate
      procedure :: inverseAngularMomentum            => nfwInverseAngularMomentum
      procedure :: freefallTabulate                  => nfwFreefallTabulate
@@ -521,10 +529,10 @@ contains
     basic                       => node%basic            (                 )
     darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                 =  darkMatterProfile%scale()
-    radiusOverScaleRadius       =  radius                       /scaleRadius
+    radiusOverScaleRadius       =  radius                                      /scaleRadius
     virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
     nfwEnclosedMass             =  self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
-         &*basic%mass()
+         &                         *basic%mass()
     return
   end function nfwEnclosedMass
 
@@ -624,6 +632,27 @@ contains
     nfwCircularVelocityMaximum=self%maximumVelocityPrevious
     return
   end function nfwCircularVelocityMaximum
+
+  double precision function nfwRadialVelocityDispersion(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    use Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    implicit none
+    class           (darkMatterProfileDMONFW       ), intent(inout)          :: self
+    type            (treeNode                      ), intent(inout)          :: node
+    double precision                                , intent(in   )          :: radius
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    double precision                                                         :: radiusOverScaleRadius      , scaleRadius, &
+         &                                                                      virialRadiusOverScaleRadius
+
+    darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
+    scaleRadius                 =  darkMatterProfile%scale()
+    radiusOverScaleRadius       =  radius                                      /scaleRadius
+    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    nfwRadialVelocityDispersion =  +self%radialVelocityDispersionScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius) &
+         &                         *self%darkMatterHaloScale_%virialVelocity(node)
+    return
+  end function nfwRadialVelocityDispersion
 
   double precision function nfwRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
@@ -1046,6 +1075,53 @@ contains
     nfwDensityScaleFree=1.0d0/(log(1.0d0+concentration)-concentration/(1.0d0+concentration))/radius/(1.0d0+radius)**2/4.0d0/Pi
     return
   end function nfwDensityScaleFree
+
+  double precision function nfwRadialVelocityDispersionScaleFree(self,radius,concentration)
+    !% Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given
+    !% {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)
+    !% using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14).
+    use Numerical_Constants_Math
+    use FGSL                    , only : FGSL_SF_DILOG
+    implicit none
+    class           (darkMatterProfileDMONFW), intent(inout)            :: self
+    double precision                         , intent(in   )            :: concentration, radius
+    ! Precomputed NFW normalization factor for unit radius.
+    double precision                                        , parameter :: nfwNormalizationFactorUnitRadius=-8.5d0+Pi**2-6.0d0*log(2.0d0)+6.0d0*log(2.0d0)**2
+    double precision                                                    :: radialVelocityDispersionSquare
+
+    if (radius == 1.0d0) then
+       radialVelocityDispersionSquare=nfwNormalizationFactorUnitRadius
+    else if (radius > 0.0d0) then
+       radialVelocityDispersionSquare=+0.5d0*radius*(1.0d0+radius)**2   &
+            &                         *(                                &
+            &                           +Pi**2                          &
+            &                           -log(radius)                    &
+            &                           -1.0d0/       radius            &
+            &                           -1.0d0/(1.0d0+radius)**2        &
+            &                           -6.0d0/(1.0d0+radius)           &
+            &                           +(                              &
+            &                             +1.0d0+ 1.0d0/radius**2       &
+            &                                   - 4.0d0/radius          &
+            &                             -2.0d0/(1.0d0+radius)         &
+            &                            )                              &
+            &                           *log(1.0d0+radius)              &
+            &                           +3.0d0*log(1.0d0+radius)**2     &
+            &                           +6.0d0*FGSL_SF_DILOG(-radius)   &
+            &                          )
+    else
+       radialVelocityDispersionSquare=0.0d0
+    end if
+    nfwRadialVelocityDispersionScaleFree=sqrt(radialVelocityDispersionSquare)
+    ! Compute the normalization factor.
+    call nfwMassNormalizationFactor(self,concentration)
+    ! Evaluate the scale-free radial velocity dispersion.
+    nfwRadialVelocityDispersionScaleFree=+nfwRadialVelocityDispersionScaleFree      &
+         &                               *sqrt(                                     &
+         &                                     +self%nfwNormalizationFactorPrevious &
+         &                                     *concentration                       &
+         &                                    )
+    return
+  end function nfwRadialVelocityDispersionScaleFree
 
   double precision function nfwProfileEnergy(self,concentration)
     !% Computes the total energy of an NFW profile halo of given {\normalfont \ttfamily concentration} using the methods of
