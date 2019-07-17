@@ -28,13 +28,14 @@
      !% A dark matter halo profile class implementing truncated dark matter halos.
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_              => null()
-     double precision                                     :: radiusFractionalTruncateMinimum             , radiusFractionalTruncateMaximum
+     double precision                                     :: radiusFractionalTruncateMinimum                           , radiusFractionalTruncateMaximum
      integer                                              :: nonAnalyticSolver
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8          )           :: lastUniqueID
      ! Stored values of computed quantities.
-     double precision                                     :: enclosedMassTruncateMinimumPrevious         , enclosedMassTruncateMaximumPrevious, &
-          &                                                  enclosingMassRadiusPrevious
+     double precision                                     :: enclosedMassTruncateMinimumPrevious                       , enclosedMassTruncateMaximumPrevious            , &
+          &                                                  enclosingMassRadiusPrevious                               , radialVelocityDispersionTruncateMinimumPrevious, &
+          &                                                  radialVelocityDispersionTruncateMinimumUntruncatedPrevious
    contains
      !@ <objectMethods>
      !@   <object>darkMatterProfileDMOTruncated</object>
@@ -63,6 +64,7 @@
      procedure :: potential                         => truncatedPotential
      procedure :: circularVelocity                  => truncatedCircularVelocity
      procedure :: circularVelocityMaximum           => truncatedCircularVelocityMaximum
+     procedure :: radialVelocityDispersion          => truncatedRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => truncatedRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => truncatedRotationNormalization
      procedure :: energy                            => truncatedEnergy
@@ -170,10 +172,12 @@ contains
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
 
-    self%lastUniqueID                       =node%uniqueID()
-    self%enclosingMassRadiusPrevious        =-1.0d0
-    self%enclosedMassTruncateMinimumPrevious=-1.0d0
-    self%enclosedMassTruncateMaximumPrevious=-1.0d0
+    self%lastUniqueID                                              =node%uniqueID()
+    self%enclosingMassRadiusPrevious                               =-1.0d0
+    self%enclosedMassTruncateMinimumPrevious                       =-1.0d0
+    self%enclosedMassTruncateMaximumPrevious                       =-1.0d0
+    self%radialVelocityDispersionTruncateMinimumPrevious           =-1.0d0
+    self%radialVelocityDispersionTruncateMinimumUntruncatedPrevious=-1.0d0
     return
   end subroutine truncatedCalculationReset
 
@@ -373,6 +377,42 @@ contains
     end if
     return
   end function truncatedCircularVelocityMaximum
+
+  double precision function truncatedRadialVelocityDispersion(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    implicit none
+    class           (darkMatterProfileDMOTruncated), intent(inout) :: self
+    type            (treeNode                     ), intent(inout) :: node
+    double precision                               , intent(in   ) :: radius
+    double precision                                               :: radiusVirial, radiusTruncateMinimum
+
+    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       truncatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    else
+       if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+       radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+       radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
+       if (radius >= radiusTruncateMinimum) then
+          truncatedRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
+       else
+          if (self%radialVelocityDispersionTruncateMinimumPrevious < 0.0d0 .or. self%radialVelocityDispersionTruncateMinimumUntruncatedPrevious < 0.0d0) then
+             self%radialVelocityDispersionTruncateMinimumPrevious           =self%radialVelocityDispersionNumerical             (node,radiusTruncateMinimum)
+             self%radialVelocityDispersionTruncateMinimumUntruncatedPrevious=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radiusTruncateMinimum)
+          end if
+          truncatedRadialVelocityDispersion=sqrt(                                                                                       &
+               &                                 +self%darkMatterProfileDMO_%radialVelocityDispersion   (node,radius               )**2 &
+               &                                 +self%density                                          (node,radiusTruncateMinimum)    &
+               &                                 /self%density                                          (node,radius               )    &
+               &                                 *(                                                                                     &
+               &                                   +self%radialVelocityDispersionTruncateMinimumPrevious                            **2 &
+               &                                   -self%radialVelocityDispersionTruncateMinimumUntruncatedPrevious                 **2 &
+               &                                  )                                                                                     &
+               &                                )
+       end if
+    end if
+    return
+  end function truncatedRadialVelocityDispersion
 
   double precision function truncatedRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
