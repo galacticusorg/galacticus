@@ -42,6 +42,7 @@
      procedure :: potential                         => darkMatterOnlyPotential
      procedure :: circularVelocity                  => darkMatterOnlyCircularVelocity
      procedure :: circularVelocityMaximum           => darkMatterOnlyCircularVelocityMaximum
+     procedure :: radialVelocityDispersion          => darkMatterOnlyRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => darkMatterOnlyRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => darkMatterOnlyRotationNormalization
      procedure :: energy                            => darkMatterOnlyEnergy
@@ -221,6 +222,19 @@ contains
          &                                *     self%darkMatterProfileDMO_%circularVelocityMaximum(node)
     return
   end function darkMatterOnlyCircularVelocityMaximum
+
+  double precision function darkMatterOnlyRadialVelocityDispersion(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    implicit none
+    class           (darkMatterProfileDarkMatterOnly), intent(inout) :: self
+    type            (treeNode                       ), intent(inout) :: node
+    double precision                                 , intent(in   ) :: radius
+
+    darkMatterOnlyRadialVelocityDispersion=+sqrt(self%darkMatterFraction                                         ) &
+         &                                 *     self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    return
+  end function darkMatterOnlyRadialVelocityDispersion
 
   double precision function darkMatterOnlyRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given

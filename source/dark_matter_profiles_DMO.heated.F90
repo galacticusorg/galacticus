@@ -63,6 +63,7 @@
      procedure :: potential                         => heatedPotential
      procedure :: circularVelocity                  => heatedCircularVelocity
      procedure :: circularVelocityMaximum           => heatedCircularVelocityMaximum
+     procedure :: radialVelocityDispersion          => heatedRadialVelocityDispersion
      procedure :: radiusFromSpecificAngularMomentum => heatedRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => heatedRotationNormalization
      procedure :: energy                            => heatedEnergy
@@ -436,6 +437,28 @@ contains
     end if
     return
   end function heatedCircularVelocityMaximum
+
+  double precision function heatedRadialVelocityDispersion(self,node,radius)
+    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    implicit none
+    class           (darkMatterProfileDMOHeated), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: radius
+    double precision                                            :: radiusInitial           , energySpecific, &
+         &                                                         velocityDispersionSquare
+
+    if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
+       heatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
+    else
+       radiusInitial                 = self%radiusInitial                                     (node                           ,radius       )
+       energySpecific                = self%darkMatterProfileHeating_%specificEnergy          (node,self%darkMatterProfileDMO_,radiusInitial)
+       velocityDispersionSquare      =+self%darkMatterProfileDMO_    %radialVelocityDispersion(node                           ,radiusInitial)**2 &
+            &                         -2.0d0/3.0d0*energySpecific
+       heatedRadialVelocityDispersion=sqrt(max(0.0d0,velocityDispersionSquare))
+    end if
+    return
+  end function heatedRadialVelocityDispersion
 
   double precision function heatedRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
     !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given

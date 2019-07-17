@@ -93,6 +93,13 @@ module Dark_Matter_Profiles_DMO
   !#   <pass>yes</pass>
   !#   <argument>type            (treeNode), intent(inout) :: node</argument>
   !#  </method>
+  !#  <method name="radialVelocityDispersion" >
+  !#   <description>Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
+  !#   <argument>double precision          , intent(in   ) :: radius</argument>
+  !#  </method>
   !#  <method name="potential" >
   !#   <description>Returns the gravitational potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc).</description>
   !#   <type>double precision</type>
