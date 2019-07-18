@@ -439,7 +439,9 @@ contains
     logical                                 , intent(in   ), optional :: noOutput
     type     (node           ), pointer                               :: parameterNode
     integer                                                           :: errorStatus
-    
+
+    ! Check that the file exists.
+    if (.not.File_Exists(fileName)) call Galacticus_Error_Report("parameter file '"//trim(fileName)//"' does not exist"//{introspection:location})
     ! Open and parse the data file.
     !$omp critical (FoX_DOM_Access)
     parameterNode => XML_Parse(fileName,iostat=errorStatus)
