@@ -21,17 +21,190 @@
 
 module Intergalactic_Medium_Filtering_Masses
   !% Provides utility functions related to calculations of the filtering mass.
+  use Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
+  use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
+  use Linear_Growth             , only : linearGrowth            , linearGrowthClass
+  use Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
+  use Tables                    , only : table1DLogarithmicLinear
   private
   public :: Mass_Filtering_Early_Epoch, Mass_Filtering_ODE_Initial_Conditions, &
-       &    Mass_Filtering_ODE_System
+       &    Mass_Filtering_ODE_System , intergalacticMediumFilteringMass
+  
+  type :: intergalacticMediumFilteringMass
+     !% Type used to store tables of filtering masses.
+     private
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
+     class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()
+     logical                                                  :: initialized
+     integer                                                  :: countTimes
+     double precision                                         :: timeMaximum                        , timeMinimum
+     type            (table1DLogarithmicLinear     )          :: table
+   contains
+     !@ <objectMethods>
+     !@   <object>intergalacticMediumFilteringMass</object>
+     !@   <objectMethod>
+     !@     <method>massFiltering</method>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <type>\doublezero</type>
+     !@     <description>Return the filtering mass at the given {\normalfont \ttfamily time}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>tabulate</method>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <type>\void</type>
+     !@     <description>Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                  intergalacticMediumFilteringMassDestructor
+     procedure :: massFiltering => intergalacticMediumFilteringMassFilteringMass
+     procedure :: tabulate      => intergalacticMediumFilteringMassTabulate
+  end type intergalacticMediumFilteringMass
+
+  interface intergalacticMediumFilteringMass
+     !% Constructors for the filtering mass class.
+     module procedure intergalacticMediumFilteringMassConstructor
+  end interface intergalacticMediumFilteringMass
+
+  ! Parameter controlling fine-grainedness of filtering mass tabulations.
+  integer, parameter :: filteringMassTablePointsPerDecade=100
   
 contains
+
+  function intergalacticMediumFilteringMassConstructor(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
+    !% Constructor for the filtering mass class.
+    implicit none
+    type (intergalacticMediumFilteringMass)                        :: self
+    class(cosmologyParametersClass        ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass         ), intent(in   ), target :: cosmologyFunctions_
+    class(linearGrowthClass               ), intent(in   ), target :: linearGrowth_
+    class(intergalacticMediumStateClass   ), intent(in   ), target :: intergalacticMediumState_
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
+    
+    self%initialized=.false.
+    return
+  end function intergalacticMediumFilteringMassConstructor
+
+  subroutine intergalacticMediumFilteringMassDestructor(self)
+    !% Destructor for the filtering mass class.
+    implicit none
+    type (intergalacticMediumFilteringMass), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%intergalacticMediumState_"/>
+    return
+  end subroutine intergalacticMediumFilteringMassDestructor
+
+  double precision function intergalacticMediumFilteringMassFilteringMass(self,time)
+    !% Return the filtering mass at the given {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMass), intent(inout) :: self
+    double precision                                  , intent(in   ) :: time
+
+    call self%tabulate(time)
+    intergalacticMediumFilteringMassFilteringMass=self%table%interpolate(time)
+    return
+  end function intergalacticMediumFilteringMassFilteringMass
+
+  subroutine intergalacticMediumFilteringMassTabulate(self,time)
+    !% Construct a table of filtering mass as a function of cosmological time.
+    use FODEIV2                 , only : fodeiv2_system         , fodeiv2_driver
+    use ODEIV2_Solver           , only : ODEIV2_Solve
+    use Galacticus_Error        , only : Galacticus_Error_Report
+    use Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (intergalacticMediumFilteringMass), intent(inout), target :: self
+    double precision                                  , intent(in   )         :: time
+    double precision                                  , parameter             :: redshiftMaximumNaozBarkana=150.0d0 ! Maximum redshift at which fitting function of Naoz & Barkana is valid.
+    double precision                                  , dimension(3)          :: massFiltering                     , massFilteringScales
+    double precision                                  , parameter             :: odeToleranceAbsolute      =1.0d-03, odeToleranceRelative      =1.0d-03
+    type            (fodeiv2_system                  )                        :: ode2System
+    type            (fodeiv2_driver                  )                        :: ode2Driver
+    logical                                                                   :: odeReset
+    integer                                                                   :: iTime
+    double precision                                                          :: timeInitial                       , timeCurrent
+
+    if (.not.self%initialized .or. time < self%timeMinimum) then
+       ! Find minimum and maximum times to tabulate.
+       self%timeMaximum=max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
+       self%timeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0)
+       ! Decide how many points to tabulate and allocate table arrays.
+       self%countTimes=int(log10(self%timeMaximum/self%timeMinimum)*dble(filteringMassTablePointsPerDecade))+1
+       ! Create the tables.
+       call self%table%destroy()
+       call self%table%create (                   &
+            &                  self%timeMinimum , &
+            &                  self%timeMaximum , &
+            &                  self%countTimes    &
+            &                 )
+       ! Evaluate a suitable starting time for filtering mass calculations.
+       timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
+            &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
+            &                                                             redshiftMaximumNaozBarkana &
+            &                                                            )                           &
+            &                                                           )
+       ! Loop over times and populate tables.
+       do iTime=1,self%countTimes
+          ! Abort if time is too early.
+          if (self%table%x(iTime) <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
+          ! Set the composite variables used to solve for filtering mass.
+          call Mass_Filtering_ODE_Initial_Conditions(timeInitial,self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,massFiltering,massFilteringScales)
+          ! Solve the ODE system
+          odeReset   =.true.
+          timeCurrent=timeInitial
+          call ODEIV2_Solve(                                                     &
+               &            ode2Driver                                         , &
+               &            ode2System                                         , &
+               &            timeCurrent                                        , &
+               &            self%table%x(iTime)                                , &
+               &            3                                                  , &
+               &            massFiltering                                      , &
+               &            Intergalactic_Medium_State_ODEs                    , &
+               &            odeToleranceAbsolute                               , &
+               &            odeToleranceRelative                               , &
+               &            yScale                         =massFilteringScales, &
+               &            reset                          =odeReset             &
+               &           )
+          call self%table%populate(massFiltering(3),iTime)
+       end do
+       ! Specify that tabulation has been made.
+       self%initialized=.true.
+    end if
+    return
+
+  contains
+
+    integer function Intergalactic_Medium_State_ODEs(time,properties,propertiesRateOfChange)
+      !% Evaluates the ODEs controlling the evolution temperature.
+      use Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, heliumByMassPrimordial
+      use Numerical_Constants_Atomic      , only : massHydrogenAtom        , massHeliumAtom        , electronMass
+      use FGSL                            , only : FGSL_Success
+      implicit none
+      double precision, intent(in  )                :: time
+      double precision, intent(in   ), dimension(:) :: properties
+      double precision, intent(  out), dimension(:) :: propertiesRateOfChange
+      double precision                              :: temperature            , massParticleMean
+
+       ! Find mean particle mass.
+      massParticleMean=+(hydrogenByMassPrimordial*(1.0d0+self%intergalacticMediumState_%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
+           &           /(hydrogenByMassPrimordial*(1.0d0+self%intergalacticMediumState_%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
+      ! Get the temperature.
+      temperature=self%intergalacticMediumState_%temperature(time)
+      ! Compute the rates of change for the ODE system.
+      propertiesRateOfChange=Mass_Filtering_ODE_System(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,time,massParticleMean,temperature,properties)
+      ! Return success.
+      Intergalactic_Medium_State_ODEs=FGSL_Success
+      return
+    end function Intergalactic_Medium_State_ODEs
+
+  end subroutine intergalacticMediumFilteringMassTabulate
 
   function Mass_Filtering_Early_Epoch(time,cosmologyParameters_,cosmologyFunctions_) result (massFiltering)
     !% Fitting function for the filtering mass at early epochs from \cite{naoz_formation_2007}. Checks for valid range of redshift
     !% and cosmology for the fit to be valid.
-    use Cosmology_Parameters
-    use Cosmology_Functions
     implicit none
     double precision                                          :: massFiltering
     double precision                          , intent(in   ) :: time
@@ -73,10 +246,8 @@ contains
     !%  k_\mathrm{F}(t) = \pi / [M_\mathrm{F}(t) 3 / 4 \pi \bar{\rho}(t)]^{1/3}
     !% \end{equation},
     !% and $r_\mathrm{LSS}(t)$ is the function defined by \cite{naoz_formation_2007}.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Linear_Growth
-    use Numerical_Constants_Math
+    use Numerical_Constants_Math, only : Pi
+    use Cosmology_Parameters    , only : hubbleUnitsTime
     implicit none
     double precision                          , intent(in   )                         :: time
     class           (cosmologyParametersClass), intent(inout)                         :: cosmologyParameters_
@@ -150,11 +321,9 @@ contains
 
   function Mass_Filtering_ODE_System(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,time,massParticleMean,temperature,massFilteringODEs) result (massFilteringODEsRateOfChange)
     !% Compute the rates of change of the filtering mass ODE system.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Linear_Growth
-    use Numerical_Constants_Math
-    use Numerical_Constants_Astronomical
+    use Numerical_Constants_Math        , only : Pi
+    use Numerical_Constants_Astronomical, only : gigayear          , megaparsec
+    use Numerical_Constants_Physical    , only : boltzmannsConstant
     implicit none
     double precision                                         , dimension(3) :: massFilteringODEsRateOfChange
     class           (cosmologyParametersClass), intent(inout)               :: cosmologyParameters_
@@ -226,9 +395,7 @@ contains
   function Mass_Filtering_Early_Epoch_Coefficients(time,cosmologyParameters_,cosmologyFunctions_) result (coefficients)
     !% Return the coefficients of the fitting function for the filtering mass at early epochs from
     !% \cite{naoz_formation_2007}. Checks for valid range of redshift and cosmology for the fit to be valid.
-    use Cosmology_Parameters
-    use Cosmology_Functions
-    use Galacticus_Error
+    use Galacticus_Error, only : Galacticus_Warn
     implicit none
     double precision                          , dimension(4)  :: coefficients
     double precision                          , intent(in   ) :: time

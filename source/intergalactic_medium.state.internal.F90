@@ -57,27 +57,23 @@ contains
     type (inputParameters                 ), intent(inout) :: parameters
     class(cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass        ), pointer       :: cosmologyParameters_
-    class(linearGrowthClass               ), pointer       :: linearGrowth_
     
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
-    self=intergalacticMediumStateInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
+    self=intergalacticMediumStateInternal(cosmologyFunctions_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="linearGrowth_"       />
     return
   end function internalConstructorParameters
 
-  function internalConstructorInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
+  function internalConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily internal} \gls{igm} state class.
     implicit none
     type (intergalacticMediumStateInternal)                        :: self
     class(cosmologyFunctionsClass         ), intent(inout), target :: cosmologyFunctions_
     class(cosmologyParametersClass        ), intent(inout), target :: cosmologyParameters_
-    class(linearGrowthClass               ), intent(inout), target :: linearGrowth_
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
 
     allocate  (self%time            (0))
     allocate  (self%temperatureIGM  (0))
@@ -115,7 +111,6 @@ contains
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%linearGrowth_"       />
     return
   end subroutine internalDestructor
 
