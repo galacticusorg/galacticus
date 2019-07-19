@@ -75,9 +75,7 @@ contains
     double precision                                       , allocatable  , dimension(:) :: densityContrasts
     logical                                                                              :: darkMatterOnly
 
-    self%countDensityContrasts=parameters%count('densityContrasts')
-    self%elementCount_        =2*self%countDensityContrasts
-    allocate(densityContrasts(self%countDensityContrasts))
+    allocate(densityContrasts(parameters%count('densityContrasts')))
     !# <inputParameter>
     !#   <name>densityContrasts</name>
     !#   <cardinality>1..*</cardinality>
@@ -100,7 +98,7 @@ contains
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterHaloScale_" />
+    !# <objectDestructor name="darkMatterHaloScale_"/>
     return
   end function densityContrastsConstructorParameters
   
@@ -116,7 +114,9 @@ contains
     logical                                                , intent(in   )               :: darkMatterOnly
     !# <constructorAssign variables="densityContrasts, darkMatterOnly, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
     
-    select case (darkMatterOnly)
+    self%countDensityContrasts=  size(densityContrasts)
+    self%elementCount_        =2*size(densityContrasts)
+     select case (darkMatterOnly)
     case (.true.)
        self%massTypeSelected=massTypeDark
        self%densityReference=(self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())*self%cosmologyParameters_%densityCritical()
