@@ -40,6 +40,11 @@ module Transfer_Functions
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: wavenumber</argument>
   !#  </method>
+  !#  <method name="epochTime" >
+  !#   <description>Return the cosmic time corresponding to the epoch for which this transfer function is defined.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#  </method>
   !#  <method name="halfModeMass" >
   !#   <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
   !#   <type>double precision</type>

@@ -69,12 +69,21 @@ contains
     !% Constructor for the CAMB transfer function class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type   (transferFunctionCAMB    )                :: self
-    type   (inputParameters         ), intent(inout) :: parameters
-    class  (cosmologyParametersClass), pointer       :: cosmologyParameters_    
-    class  (darkMatterParticleClass ), pointer       :: darkMatterParticle_
-    logical                                          :: lockFileGlobally
+    type            (transferFunctionCAMB    )                :: self
+    type            (inputParameters         ), intent(inout) :: parameters
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
+    class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_
+    logical                                                   :: lockFileGlobally
+    double precision                                          :: redshift
     
+    !# <inputParameter>
+    !#   <name>redshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>0.0d0</defaultValue>
+    !#   <description>The redshift at which the transfer function should be evaluated.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
     !# <inputParameter>
     !#   <name>lockFileGlobally</name>
     !#   <source>parameters</source>
@@ -85,26 +94,27 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,lockFileGlobally)
+    self=transferFunctionCAMB(darkMatterParticle_,cosmologyParameters_,redshift,lockFileGlobally)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterParticle_" />
     return
   end function cambConstructorParameters
   
-  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,lockFileGlobally) result(self)
+  function cambConstructorInternal(darkMatterParticle_,cosmologyParameters_,redshift,lockFileGlobally) result(self)
     !% Internal constructor for the \href{http://camb.info}{\normalfont \scshape CAMB} transfer function class.
     use Input_Parameters
     use Galacticus_Error
     use Numerical_Constants_Astronomical
     use Dark_Matter_Particles
     implicit none
-    type     (transferFunctionCAMB    )                          :: self
-    class    (darkMatterParticleClass ), intent(in   ), target   :: darkMatterParticle_
-    class    (cosmologyParametersClass), intent(in   ), target   :: cosmologyParameters_    
-    logical                            , intent(in   ), optional :: lockFileGlobally
+    type            (transferFunctionCAMB    )                          :: self
+    class           (darkMatterParticleClass ), intent(in   ), target   :: darkMatterParticle_
+    class           (cosmologyParametersClass), intent(in   ), target   :: cosmologyParameters_
+    double precision                          , intent(in   )           :: redshift
+    logical                            ,        intent(in   ), optional :: lockFileGlobally
     !# <optionalArgument name="lockFileGlobally" defaultsTo=".true." />
-    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_"/>
+    !# <constructorAssign variables="redshift, *darkMatterParticle_, *cosmologyParameters_"/>
     
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -139,10 +149,10 @@ contains
     !% the CAMB transfer function.
     use Interfaces_CAMB, only : Interface_CAMB_Transfer_Function
     implicit none
-    class           (transferFunctionCAMB), intent(inout)               :: self
-    double precision                      , intent(in   )               :: wavenumber
-    logical                                                             :: makeTransferFunction
-    type            (lockDescriptor      )                              :: fileLock
+    class           (transferFunctionCAMB), intent(inout) :: self
+    double precision                      , intent(in   ) :: wavenumber
+    logical                                               :: makeTransferFunction
+    type            (lockDescriptor      )                :: fileLock
 
     ! If the file has been read and the wavenumber is within range, simply return.
     makeTransferFunction=.false.
@@ -157,7 +167,7 @@ contains
     end if
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
-    call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,wavenumber,self%wavenumberMaximum,self%lockFileGlobally,self%fileName,self%wavenumberMaximumReached)
+    call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%lockFileGlobally,self%fileName,self%wavenumberMaximumReached)
     call self%readFile(char(self%fileName))
     ! Initialize the file lock.
     if (self%lockFileGlobally) then
