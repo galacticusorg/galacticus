@@ -30,13 +30,14 @@
      !% A bbks transfer function class.
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
-     double precision                                    :: Gamma
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
+     double precision                                    :: Gamma                         , time
    contains
      final     ::                          bbksDestructor
      procedure :: value                 => bbksValue
      procedure :: logarithmicDerivative => bbksLogarithmicDerivative
      procedure :: halfModeMass          => bbksHalfModeMass
+     procedure :: epochTime             => bbksEpochTime
   end type transferFunctionBBKS
 
   interface transferFunctionBBKS
@@ -53,28 +54,33 @@ contains
   function bbksConstructorParameters(parameters) result(self)
     !% Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
     use Input_Parameters
+    use Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     implicit none
     type (transferFunctionBBKS    )                :: self
     type (inputParameters         ), intent(inout) :: parameters
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_
     class(darkMatterParticleClass ), pointer       :: darkMatterParticle_
+    class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    self=bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_)
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    self=bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterParticle_" />
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function bbksConstructorParameters
 
-  function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_) result(self)
+  function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``BBKS'' transfer function class.
     use Galacticus_Error    
     implicit none
     type (transferFunctionBBKS    )                        :: self
     class(darkMatterParticleClass ), intent(in   ), target :: darkMatterParticle_
     class(cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass ), intent(inout)         :: cosmologyFunctions_
     !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_"/>
 
     ! Require that the dark matter be cold dark matter.
@@ -84,6 +90,8 @@ contains
     class default
        call Galacticus_Error_Report('transfer function expects a cold dark matter particle'//{introspection:location})
     end select
+    ! Compute the epoch - the transfer function is assumed to be for z=0.
+    self%time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Compute the Gamma parameter.
     self%Gamma=+             self%cosmologyParameters_%OmegaMatter   (                  ) &
          &     *             self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
@@ -221,3 +229,12 @@ contains
     end if
     return
   end function bbksHalfModeMass
+
+  double precision function bbksEpochTime(self)
+    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    implicit none
+    class(transferFunctionBBKS), intent(inout) :: self
+
+    bbksEpochTime=self%time
+    return
+  end function bbksEpochTime

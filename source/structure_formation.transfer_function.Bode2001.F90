@@ -28,16 +28,18 @@
   type, extends(transferFunctionClass) :: transferFunctionBode2001
      !% A transfer function class which modifies another transfer function using the thermal \gls{wdm} modifier of \cite{bode_halo_2001}.
      private
-     double precision                                    :: epsilon             , eta        , &
-          &                                                 nu                  , scaleCutOff
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM => null()
+     double precision                                    :: epsilon                       , eta        , &
+          &                                                 nu                            , scaleCutOff, &
+          &                                                 time
+     class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
    contains
      final     ::                          bode2001Destructor
      procedure :: value                 => bode2001Value
      procedure :: logarithmicDerivative => bode2001LogarithmicDerivative
      procedure :: halfModeMass          => bode2001HalfModeMass
+     procedure :: epochTime             => bode2001EpochTime
   end type transferFunctionBode2001
 
   interface transferFunctionBode2001
@@ -52,14 +54,17 @@ contains
     !% Constructor for the ``{\normalfont \ttfamily bode2001}'' transfer function class which takes a parameter set as input.
     use Input_Parameters
     use Galacticus_Error
+    use Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
+    use Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     implicit none
     type            (transferFunctionBode2001)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (transferFunctionClass   ), pointer       :: transferFunctionCDM
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_    
+    class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     class           (darkMatterParticleClass ), pointer       :: darkMatterParticle_    
-    double precision                                          :: epsilon                      , eta, &
-         &                                                       nu
+    double precision                                          :: epsilon             , eta     , &
+         &                                                       nu                  , redshift
     
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
@@ -92,28 +97,38 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    self=transferFunctionBode2001(transferFunctionCDM,epsilon,eta,nu,cosmologyParameters_,darkMatterParticle_)
+    !# <inputParameter>
+    !#   <name>redshift</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
+    !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
+    !#   <type>real</type>
+    !#   <cardinality>1</cardinality>
+    !# </inputParameter>
+     self=transferFunctionBode2001(transferFunctionCDM,epsilon,eta,nu,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,darkMatterParticle_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
+    !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="darkMatterParticle_" />
     !# <objectDestructor name="transferFunctionCDM" />
     return
   end function bode2001ConstructorParameters
 
-  function bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,cosmologyParameters_,darkMatterParticle_) result(self)
+  function bode2001ConstructorInternal(transferFunctionCDM,epsilon,eta,nu,time,cosmologyParameters_,darkMatterParticle_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily bode2001}'' transfer function class.
     use Galacticus_Error
     implicit none
     type            (transferFunctionBode2001)                        :: self
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
     double precision                                  , intent(in   ) :: epsilon                   , eta                            , &
-         &                                                               nu
+         &                                                               nu                        , time
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
     class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_    
     double precision                          , parameter             :: massReference       =1.0d0, degreesOfFreedomReference=1.5d0
-    !# <constructorAssign variables="*transferFunctionCDM, epsilon, eta, nu, *cosmologyParameters_, *darkMatterParticle_"/>
+    !# <constructorAssign variables="*transferFunctionCDM, epsilon, eta, nu, time, *cosmologyParameters_, *darkMatterParticle_"/>
     
     ! Compute the comoving cut-off scale. This uses equation (4) from Barkana et al. (2001;
     ! http://adsabs.harvard.edu/abs/2001ApJ...558..482B), with the prefactor of 0.932 to give the cut-off scale at the epoch of
@@ -155,8 +170,8 @@ contains
     class           (transferFunctionBode2001), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
 
-    bode2001Value       =+self%transferFunctionCDM%value(wavenumber)
-    if (self%scaleCutOff > 0.0d0)              &
+    bode2001Value=+self%transferFunctionCDM%value(wavenumber)
+    if (self%scaleCutOff > 0.0d0)                    &
          & bode2001Value=+bode2001Value              &
          &               /(                          &
          &                  1.0d0                    &
@@ -164,7 +179,7 @@ contains
          &                  (                        &
          &                   +self%epsilon           &
          &                   *wavenumber             &
-         &                   *self%scaleCutOff &
+         &                   *self%scaleCutOff       &
          &                  )**(2.0d0   *self%nu)    &
          &                )  **(self%eta/self%nu)
     return
@@ -177,7 +192,7 @@ contains
     double precision                          , intent(in   ) :: wavenumber
 
     bode2001LogarithmicDerivative=+self%transferFunctionCDM%logarithmicDerivative(wavenumber)    
-    if (self%scaleCutOff > 0.0d0)                                 &
+    if (self%scaleCutOff > 0.0d0)                                       &
          & bode2001LogarithmicDerivative=+bode2001LogarithmicDerivative &
          &                               +2.0d0                         &
          &                               *self%eta                      &
@@ -188,7 +203,7 @@ contains
          &                                   +(                         &
          &                                     +self%epsilon            &
          &                                     *wavenumber              &
-         &                                     *self%scaleCutOff  &
+         &                                     *self%scaleCutOff        &
          &                                    )**(2.0d0*self%nu)        &
          &                                  )                           &
          &                                 -1.0d0                       &
@@ -226,3 +241,12 @@ contains
     if (present(status)) status=errorStatusSuccess
     return
   end function bode2001HalfModeMass
+
+  double precision function bode2001EpochTime(self)
+    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    implicit none
+    class(transferFunctionBode2001), intent(inout) :: self
+
+    bode2001EpochTime=self%time
+    return
+  end function bode2001EpochTime

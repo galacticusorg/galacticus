@@ -28,15 +28,16 @@
   type, extends(transferFunctionClass) :: transferFunctionBBKSWDM
      !% A transfer function class which modifies another transfer function using the \gls{wdm} modifier of \cite{bardeen_statistics_1986}.
      private
-     class           (transferFunctionClass   ), pointer :: transferFunctionCDM => null()
+     class           (transferFunctionClass   ), pointer :: transferFunctionCDM  => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_ => null()
-     double precision                                    :: lengthFreeStreaming
+     class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
+     double precision                                    :: lengthFreeStreaming           , time
    contains
      final     ::                          bbksWDMDestructor
      procedure :: value                 => bbksWDMValue
      procedure :: logarithmicDerivative => bbksWDMLogarithmicDerivative
      procedure :: halfModeMass          => bbksWDMHalfModeMass
+     procedure :: epochTime             => bbksWDMEpochTime
   end type transferFunctionBBKSWDM
 
   interface transferFunctionBBKSWDM
@@ -56,19 +57,22 @@ contains
     class(transferFunctionClass   ), pointer       :: transferFunctionCDM
     class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
     class(darkMatterParticleClass ), pointer       :: darkMatterParticle_    
-    
+    class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
     !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    self=transferFunctionBBKSWDM(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_)
+    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    self=transferFunctionBBKSWDM(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"/>
     !# <objectDestructor name="darkMatterParticle_" />
     !# <objectDestructor name="transferFunctionCDM" />
+    !# <objectDestructor name="cosmologyFunctions_" />
     return
   end function bbksWDMConstructorParameters
 
-  function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_) result(self)
+  function bbksWDMConstructorInternal(transferFunctionCDM,cosmologyParameters_,darkMatterParticle_,cosmologyFunctions_) result(self)
     !% Internal constructor for the ``{\normalfont \ttfamily bbksWDM}'' transfer function class.
     use Galacticus_Error
     implicit none
@@ -76,6 +80,7 @@ contains
     class           (transferFunctionClass   ), target, intent(in   ) :: transferFunctionCDM
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_    
     class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_    
+    class           (cosmologyFunctionsClass )        , intent(inout) :: cosmologyFunctions_
     double precision                                                  :: degreesOfFreedomEffectiveDecoupling
     !# <constructorAssign variables="*transferFunctionCDM, *cosmologyParameters_, *darkMatterParticle_"/>
     
@@ -87,6 +92,8 @@ contains
        degreesOfFreedomEffectiveDecoupling=0.0d0
        call Galacticus_Error_Report('transfer function expects a thermal warm dark matter particle'//{introspection:location})
     end select
+    ! Compute the epoch - the transfer function is assumed to be for z=0.
+    self%time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(0.0d0))
     ! Compute the free-streaming length-like parameter (equation G6 of BBKS).
     self%lengthFreeStreaming=+0.2d0                                                                                     &
          &                                         /(                                                                   &
@@ -181,3 +188,12 @@ contains
     if (present(status)) status=errorStatusSuccess
     return
   end function bbksWDMHalfModeMass
+
+  double precision function bbksWDMEpochTime(self)
+    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    implicit none
+    class(transferFunctionBBKSWDM), intent(inout) :: self
+
+    bbksWDMEpochTime=self%time
+    return
+  end function bbksWDMEpochTime
