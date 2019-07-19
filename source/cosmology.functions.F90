@@ -130,6 +130,12 @@ module Cosmology_Functions
   !#   <pass>yes</pass>
   !#   <argument>integer, intent(in   ), optional :: requestType</argument>
   !#  </method>
+  !#  <method name="equalityEpochMatterRadiation" >
+  !#   <description>Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ), optional :: requestType</argument>
+  !#  </method>
   !#  <method name="dominationEpochMatter" >
   !#   <description>Compute the epoch at which matter dominates over other forms of energy by a given factor.</description>
   !#   <type>double precision</type>
