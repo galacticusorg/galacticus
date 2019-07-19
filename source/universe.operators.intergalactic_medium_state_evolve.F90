@@ -223,7 +223,7 @@ contains
     !# <constructorAssign variables="timeMinimum, timeMaximum ,timeCountPerDecade, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_, *outputTimes_, *gauntFactor_, *atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_, *atomicRecombinationRateDielectronic_, *atomicRecombinationRateRadiative_, *atomicIonizationRateCollisional_, *atomicExcitationRateCollisional_, *intergalacticMediumState_, *radiationField_"/>
 
     ! Get a RecFast intergalactic medium object for setting initial conditions.
-    self%intergalacticMediumStateInitial=intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
+    self%intergalacticMediumStateInitial=intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_)
     ! Build tables of properties and time for the temperature and ionization state densities in the IGM.
     self%timeCount=+int(                               &
          &              +dble(self%timeCountPerDecade) &

@@ -22,16 +22,21 @@
   !% An implementation of accretion from the \gls{igm} onto halos using filtering mass of the \gls{igm}
   !% calculated from an equation from \cite{naoz_formation_2007}.
 
+  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass
+  use Linear_Growth                        , only : linearGrowth                    , linearGrowthClass
+
   !# <accretionHalo name="accretionHaloNaozBarkana2007">
   !#  <description>Accretion onto halos using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.</description>
   !# </accretionHalo>
   type, extends(accretionHaloSimple) :: accretionHaloNaozBarkana2007
      !% A halo accretion class using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.
      private
-     double precision                 :: rateAdjust                  , massMinimum             , &
-          &                              filteredFractionRateStored  , filteredFractionStored
-     logical                          :: filteredFractionRateComputed, filteredFractionComputed
-     integer         (kind=kind_int8) :: lastUniqueID
+     double precision                                            :: rateAdjust                                 , massMinimum             , &
+          &                                                         filteredFractionRateStored                 , filteredFractionStored
+     logical                                                     :: filteredFractionRateComputed               , filteredFractionComputed
+     integer         (kind=kind_int8                  )          :: lastUniqueID
+     class           (linearGrowthClass               ), pointer :: linearGrowth_                     => null()
+     type            (intergalacticMediumFilteringMass)          :: intergalacticMediumFilteringMass_
    contains
      !@ <objectMethods>
      !@   <object>accretionHaloNaozBarkana2007</object>
@@ -110,11 +115,13 @@ contains
     !#   <type>real</type>
     !#   <variable>self%massMinimum</variable>
     !# </inputParameter>
+    !# <objectBuilder class="linearGrowth" name="self%linearGrowth_" source="parameters"/>
     !# <inputParametersValidate source="parameters"/>
+    self%intergalacticMediumFilteringMass_=intergalacticMediumFilteringMass(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,self%intergalacticMediumState_)
     return
   end function naozBarkana2007ConstructorParameters
        
-  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_) result(self)
+  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,linearGrowth_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     use Galacticus_Error
     use Atomic_Data
@@ -129,9 +136,11 @@ contains
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
-    !# <constructorAssign variables="rateAdjust, massMinimum"/>
+    class           (linearGrowthClass            ), intent(in   ), target :: linearGrowth_
+    !# <constructorAssign variables="rateAdjust, massMinimum, *linearGrowth_"/>
 
-    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self%accretionHaloSimple              =accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self%intergalacticMediumFilteringMass_=intergalacticMediumFilteringMass(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
     return
   end function naozBarkana2007ConstructorInternal
 
@@ -152,6 +161,7 @@ contains
     type(accretionHaloNaozBarkana2007), intent(inout) :: self
     
     call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
+    !# <objectDestructor name="self%linearGrowth_"/>
     return
   end subroutine naozBarkana2007Destructor
    
@@ -212,9 +222,9 @@ contains
     ! the original work by Gnedin (2000; http://adsabs.harvard.edu/abs/2000ApJ...542..535G) based on the discussion of halo
     ! definition in Naoz, Yoshida, & Gnedin (2013; http://adsabs.harvard.edu/abs/2013ApJ...763...27N).
     if (.not.self%filteredFractionComputed) then
-       basic                         => node                          %basic        (                                                 )
-       massFiltering                 =  self%intergalacticMediumState_%filteringMass(basic%time()                                     )
-       massHalo                      =  Dark_Matter_Profile_Mass_Definition         (node        ,naozBarkana2007VirialDensityContrast)
+       basic                         => node                                  %basic        (                                                 )
+       massFiltering                 =  self%intergalacticMediumFilteringMass_%massFiltering(basic%time()                                     )
+       massHalo                      =  Dark_Matter_Profile_Mass_Definition                 (node        ,naozBarkana2007VirialDensityContrast)
        self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)
        self%filteredFractionComputed =  .true.
     end if
@@ -241,9 +251,9 @@ contains
     ! definition in Naoz, Yoshida, & Gnedin (2013; http://adsabs.harvard.edu/abs/2013ApJ...763...27N). The rate of change here
     ! assumes that the filtering mass is constant in time.
     if (.not.self%filteredFractionRateComputed) then
-       basic          => node                               %basic        (                                                  )
-       massFiltering  =  self%intergalacticMediumState_     %filteringMass(basic%time()                                      )
-       massHalo       =  Dark_Matter_Profile_Mass_Definition              (node         ,naozBarkana2007VirialDensityContrast)
+       basic          => node                                  %basic        (                                                  )
+       massFiltering  =  self%intergalacticMediumFilteringMass_%massFiltering(basic%time()                                      )
+       massHalo       =  Dark_Matter_Profile_Mass_Definition                 (node         ,naozBarkana2007VirialDensityContrast)
        if (.not.self%filteredFractionComputed) then
           self%filteredFractionStored   =  self%filteredFractionCompute(massHalo,massFiltering)
           self%filteredFractionComputed =  .true.
