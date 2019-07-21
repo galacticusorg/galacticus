@@ -31,6 +31,7 @@ program Tests_Power_Spectrum
   use Transfer_Functions
   use Numerical_Constants_Math
   use Cosmology_Parameters
+  use Cosmology_Functions
   use Galacticus_Display
   use Dark_Matter_Particles               , only : darkMatterParticleCDM
   implicit none
@@ -38,6 +39,7 @@ program Tests_Power_Spectrum
   double precision                                          , parameter    :: radiusNormalization                      =8.0d0 ! Radius for σ(M) normalization in Mpc/h.
   type            (darkMatterParticleCDM                   ), target       :: darkMatterParticleCDM_
   class           (cosmologyParametersClass                ), pointer      :: cosmologyParameters_
+  class           (cosmologyFunctionsClass                 ), pointer      :: cosmologyFunctions_
   type            (powerSpectrumPrimordialPowerLaw         ), target       :: powerSpectrumPrimordialPowerLaw_
   type            (powerSpectrumPrimordialTransferredSimple), target       :: powerSpectrumPrimordialTransferredSimple_
   type            (transferFunctionEisensteinHu1999        ), target       :: transferFunctionEisensteinHu1999_
@@ -77,6 +79,7 @@ program Tests_Power_Spectrum
   ! Get required objects.
   darkMatterParticleCDM_    =  darkMatterParticleCDM   ()
   cosmologyParameters_      => cosmologyParameters     ()
+  cosmologyFunctions_       => cosmologyFunctions      ()
   cosmologicalMassVariance_ => cosmologicalMassVariance()
   powerSpectrum_            => powerSpectrum           ()
   ! Build primordial power spectrum, transfer function, and transferred power spectrum.
@@ -91,7 +94,8 @@ program Tests_Power_Spectrum
        &                                          neutrinoNumberEffective =3.046d0                           , &
        &                                          neutrinoMassSummed      =0.000d0                           , &
        &                                          darkMatterParticle_     =darkMatterParticleCDM_            , &
-       &                                          cosmologyParameters_    =cosmologyParameters_                &
+       &                                          cosmologyParameters_    =cosmologyParameters_              , &
+       &                                          cosmologyFunctions_     =cosmologyFunctions_                 &
        &                                         )
   powerSpectrumPrimordialTransferredSimple_=                                                                  &
        & powerSpectrumPrimordialTransferredSimple(                                                            &
