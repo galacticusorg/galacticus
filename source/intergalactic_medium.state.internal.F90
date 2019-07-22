@@ -37,7 +37,6 @@
      procedure :: neutralHydrogenFraction     => internalNeutralHydrogenFraction
      procedure :: neutralHeliumFraction       => internalNeutralHeliumFraction
      procedure :: singlyIonizedHeliumFraction => internalSinglyIonizedHeliumFraction
-     procedure :: filteringMass               => internalFilteringMass
      procedure :: autoHook                    => internalAutoHook
   end type intergalacticMediumStateInternal
 
@@ -113,39 +112,6 @@ contains
     !# <objectDestructor name="self%cosmologyFunctions_" />
     return
   end subroutine internalDestructor
-
-  double precision function internalFilteringMass(self,time)
-    !% Return the filtering mass of the \gls{igm} in the internal model.
-    use, intrinsic :: ISO_C_Binding
-    use            :: FGSL                   , only : fgsl_interp_accel
-    use            :: Numerical_Interpolation
-    implicit none
-    class           (intergalacticMediumStateInternal), intent(inout)   :: self
-    double precision                                  , intent(in   )   :: time
-    double precision                                  , dimension(0:1)  :: h
-    integer         (c_size_t                        )                  :: i                              , j
-    logical                                           , save            :: interpolationReset      =.true.
-    type            (fgsl_interp_accel               ), save            :: interpolationAccelerator 
-    !$omp threadprivate(interpolationReset,interpolationAccelerator)
-
-    if (size(self%time) > 1) then
-       i=Interpolate_Locate(self%time,interpolationAccelerator,time,reset=interpolationReset)
-    else 
-       internalFilteringMass=self%massFiltering(1)
-       return
-    end if
-    if (self%time(i+1)-self%time(i) > 0.0d0) then
-       h   =Interpolate_Linear_Generate_Factors(self%time,i,time)
-    else
-       h(0)=0.0d0 
-       h(1)=1.0d0
-    end if
-    internalFilteringMass=0.0d0
-    do j=0,1
-       internalFilteringMass=internalFilteringMass+h(j)*self%massFiltering(i+j)
-    end do
-    return
-  end function internalFilteringMass
 
   double precision function internalElectronFraction(self,time)
     !% Return the electron fraction of the \gls{igm} in the internal model.
