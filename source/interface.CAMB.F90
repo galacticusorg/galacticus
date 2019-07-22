@@ -120,7 +120,7 @@ contains
     use               :: Input_Parameters                , only : inputParameters
     use               :: ISO_Varying_String              , only : varying_string          , char               , extract    , len        , &
          &                                                        assignment(=)           , operator(==)
-    use               :: IO_HDF5                         , only : hdf5Object
+    use               :: IO_HDF5                         , only : hdf5Object              , hdf5Access
     use               :: File_Utilities                  , only : File_Lock_Initialize    , File_Lock          , File_Unlock, File_Exists, &
          &                                                        Count_Lines_In_File
     use               :: System_Command                  , only : System_Command_Do
@@ -217,6 +217,7 @@ contains
     allEpochsFound=.false.
     if (File_Exists(fileName_)) then
        allEpochsFound=.true.
+       call hdf5Access%set()
        call cambOutput%openFile(char(fileName_))
        call cambOutput%readDataset           ('wavenumber'  ,wavenumbers                                 )
        allocate(transferFunctions(size(wavenumbers),2,size(redshifts)))
@@ -241,16 +242,19 @@ contains
        end do
        call speciesGroup%close()
        call cambOutput  %close()
-    end if
+       call hdf5Access  %unset()
+   end if
     if (.not.allocated(wavenumbers) .or. wavenumberRequired > wavenumbers(size(wavenumbers)) .or. .not.allEpochsFound) then
        ! If the wavenumber if out of range, or if not all requested epochs exist within the file, recompute the CAMB transfer function.
        ! Find all existing epochs in the file, create a union of these and the requested epochs.
        if (File_Exists(fileName_)) then
+          call hdf5Access%set()
           call cambOutput%openFile(char(fileName_))
           speciesGroup=cambOutput%openGroup('darkMatter')
           datasetNames=speciesGroup%datasets()
           call speciesGroup%close()
           call cambOutput  %close()
+          call hdf5Access  %unset()
        else
           allocate(datasetNames(0))
        end if
@@ -457,6 +461,7 @@ contains
        wavenumbers=+wavenumbers                                                   &
             &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)       
        ! Construct the output HDF5 file.
+       call hdf5Access  %set     (                                          )
        call cambOutput  %openFile(char(fileName_),objectsOverwritable=.true.)
        call cambOutput  %writeAttribute('Transfer functions created by CAMB.','description')
        call cambOutput  %writeAttribute(cambFormatVersionCurrent,'fileFormat')
@@ -487,9 +492,11 @@ contains
        call extrapolationWavenumberGroup%close()
        call extrapolationGroup          %close()
        call cambOutput                  %close()
+       call hdf5Access                  %unset()
     end if
     ! If necessary, construct tables of transfer functions.
     if (present(transferFunctionDarkMatter)) then
+       call hdf5Access%set()
        call cambOutput%openFile(char(fileName_))
        call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
@@ -513,8 +520,10 @@ contains
        end do
        call speciesGroup%close()
        call cambOutput  %close()
+       call hdf5Access  %unset()
     end if
     if (present(transferFunctionBaryons)) then
+       call hdf5Access%unset()
        call cambOutput%openFile(char(fileName_))
        call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
@@ -538,6 +547,7 @@ contains
        end do
        call speciesGroup%close()
        call cambOutput  %close()
+       call hdf5Access  %unset()
     end if
     ! Unlock the lock file.
     if (lockFileGlobally) then
