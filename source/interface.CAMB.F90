@@ -456,7 +456,7 @@ contains
           command=command//' camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(i)))//'.dat'
           command=command//' camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(i)))//'.dat'
        end do
-       !call System_Command_Do(command)
+       call System_Command_Do(command)
        ! Convert from CAMB units to Galacticus units.
        wavenumbers=+wavenumbers                                                   &
             &      *cosmologyParameters_%HubbleConstant(units=hubbleUnitsLittleH)       
