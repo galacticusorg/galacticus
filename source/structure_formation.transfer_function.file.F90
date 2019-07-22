@@ -277,10 +277,10 @@ contains
     call extrapolationObject%close()
     ! Read the transfer function from file.
     darkMatterGroup=fileObject%openGroup('darkMatter')
-    call fileObject     %readDataset('wavenumber'              ,wavenumber)
+    call fileObject     %readDataset('wavenumber'                                   ,wavenumber)
     write (datasetName,'(f9.4)') self%redshift
-    call darkMatterGroup%readDataset(trim(adjustl(datasetName)),transfer  )
-    call darkMatterGroup%close      (                                     )
+    call darkMatterGroup%readDataset('transferFunctionZ'//trim(adjustl(datasetName)),transfer  )
+    call darkMatterGroup%close      (                                                          )
     ! Close the file.
     call fileObject%close()
     call hdf5Access%unset()
