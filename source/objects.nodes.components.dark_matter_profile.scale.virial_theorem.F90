@@ -21,11 +21,12 @@
 
 module Node_Component_Scale_Virial_Theorem
   !% Implements a
-  use Galacticus_Nodes          , only : treeNode                         , nodeComponentDarkMatterProfile  
-  use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
-  use Dark_Matter_Profiles      , only : darkMatterProfileClass
-  use Virial_Orbits             , only : virialOrbitClass
-  use Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
+  use Galacticus_Nodes                  , only : treeNode                         , nodeComponentDarkMatterProfile  
+  use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadiusClass
+  use Dark_Matter_Profiles              , only : darkMatterProfileClass
+  use Virial_Orbits                     , only : virialOrbitClass
+  use Dark_Matter_Halo_Scales           , only : darkMatterHaloScaleClass
+  use Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute     , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize    , &
@@ -73,7 +74,8 @@ module Node_Component_Scale_Virial_Theorem
   class           (darkMatterProfileClass           ), pointer :: darkMatterProfile_
   class           (virialOrbitClass                 ), pointer :: virialOrbit_
   class           (darkMatterHaloScaleClass         ), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(darkMatterProfileScaleRadius_,darkMatterProfile_,virialOrbit_,darkMatterHaloScale_)
+  class           (mergerTreeMassResolutionClass    ), pointer :: mergerTreeMassResolution_
+  !$omp threadprivate(darkMatterProfileScaleRadius_,darkMatterProfile_,virialOrbit_,darkMatterHaloScale_,mergerTreeMassResolution_)
   
   ! Parameter controlling scaling of orbital energy with mass ratio.
   double precision :: darkMatterProfileScaleVirialTheoremMassExponent, darkMatterProfileScaleVirialTheoremUnresolvedEnergy
@@ -113,12 +115,13 @@ contains
   !# </nodeComponentThreadInitializationTask>
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize(parameters)
     !% Initializes the tree node scale dark matter profile module.
-    use Input_Parameters          , only : inputParameters                  , inputParameter
-    use Galacticus_Nodes          , only : defaultDarkMatterProfileComponent
-    use Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius
-    use Dark_Matter_Profiles      , only : darkMatterProfile
-    use Dark_Matter_Halo_Scales   , only : darkMatterHaloScale
-    use Virial_Orbits             , only : virialOrbit
+    use Input_Parameters                  , only : inputParameters                  , inputParameter
+    use Galacticus_Nodes                  , only : defaultDarkMatterProfileComponent
+    use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius
+    use Dark_Matter_Profiles              , only : darkMatterProfile
+    use Dark_Matter_Halo_Scales           , only : darkMatterHaloScale
+    use Virial_Orbits                     , only : virialOrbit
+    use Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolution
     implicit none
     type(inputParameters), intent(inout) :: parameters
 
@@ -127,6 +130,7 @@ contains
        !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
        !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
        !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters"/>
+       !# <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize
@@ -144,6 +148,7 @@ contains
        !# <objectDestructor name="darkMatterProfile_"           />
        !# <objectDestructor name="darkMatterHaloScale_"         />
        !# <objectDestructor name="virialOrbit_"                 />
+       !# <objectDestructor name="mergerTreeMassResolution_"    />
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize
@@ -226,7 +231,7 @@ contains
     double precision                                                         :: energyOrbital              , massRatio               , &
          &                                                                      radiusScaleChild           , radiusScale             , &
          &                                                                      massUnresolved             , deltaTime               , &
-         &                                                                      radiusScaleUnresolved
+         &                                                                      radiusScaleUnresolved      , massResolution
     type            (rootFinder                    )                         :: finder
     type            (keplerOrbit                   )                         :: orbit
     type            (mergerTreeWalkerAllNodes      )                         :: treeWalker
@@ -236,6 +241,8 @@ contains
        ! ! Get the darkMatterProfile component.
        darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
        if (darkMatterProfile%scale() <= 0.0d0) then
+          ! Get the resolution of the tree.
+          massResolution=mergerTreeMassResolution_%resolution(node%hostTree)
           ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
           ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
           ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
@@ -286,7 +293,7 @@ contains
                 nodeUnresolved              => treeNode                                       (                         )
                 basicUnresolved             => nodeUnresolved               %basic            (autoCreate=.true.        )
                 darkMatterProfileUnresolved => nodeUnresolved               %darkMatterProfile(autoCreate=.true.        )
-                call basicUnresolved            %massSet            (massUnresolved       )
+                call basicUnresolved            %massSet            (massResolution       )
                 call basicUnresolved            %timeSet            (basicChild%time()    )
                 call basicUnresolved            %timeLastIsolatedSet(basicChild%time()    )
                 radiusScaleUnresolved       =  darkMatterProfileScaleRadius_%radius           (           nodeUnresolved)
@@ -298,7 +305,12 @@ contains
                      &        *basicChild          %mass                        (                        )    &
                      &        /darkMatterHaloScale_%virialRadius                (               nodeChild)    &
                      &        +0.5d0                                                                          &
-                     &        *virialOrbit_        %velocityTotalRootMeanSquared(nodeUnresolved,nodeChild)**2 &                      
+                     &        *virialOrbit_        %velocityTotalRootMeanSquared(nodeUnresolved,nodeChild)**2 &
+                     &        /(                                                                              &
+                     &          +1.0d0                                                                        &
+                     &          +basicUnresolved%mass()                                                       &
+                     &          /basicChild     %mass()                                                       &
+                     &         )                                                                              &
                      &       )                                                                                &
                      &      +  darkMatterProfileScaleVirialTheoremUnresolvedEnergy                            &
                      &      *  darkMatterProfile_  %energy                      (nodeUnresolved          )                
