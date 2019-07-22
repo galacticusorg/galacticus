@@ -1,0 +1,473 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+  !% Implements the \cite{gnedin_effect_2000} filtering mass calculation.
+
+  use Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
+  use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
+  use Linear_Growth             , only : linearGrowth            , linearGrowthClass
+  use Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
+  use Tables                    , only : table1DLogarithmicLinear
+
+  public :: gnedin2000ODEs
+  
+  !# <intergalacticMediumFilteringMass name="intergalacticMediumFilteringMassGnedin2000">
+  !#  <description>An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.</description>
+  !# </intergalacticMediumFilteringMass>
+  type, extends(intergalacticMediumFilteringMassClass) :: intergalacticMediumFilteringMassGnedin2000
+     !% An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.
+     private
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_ => null()
+     class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()
+     logical                                                  :: initialized
+     integer                                                  :: countTimes
+     double precision                                         :: timeMaximum                        , timeMinimum
+     type            (table1DLogarithmicLinear     )          :: table
+   contains
+     !@ <objectMethods>
+     !@   <object>intergalacticMediumFilteringMassGnedin2000</object>
+     !@   <objectMethod>
+     !@     <method>tabulate</method>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <type>\void</type>
+     !@     <description>Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>conditionsInitialODEs</method>
+     !@     <arguments>\doublezero\ time\argin, \doubleone\ massFilteringODEs\argout, \doubleone\ [massFilteringScales]\argout</arguments>
+     !@     <type>\void</type>
+     !@     <description>Set the initial conditions for the ODE system.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>coefficientsEarlyEpoch</method>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <type>\doubleone</type>
+     !@     <description>Return coefficients for the early-epoch fitting function to the filtering mass.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>massFilteringEarlyEpoch</method>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <type>\doublezero</type>
+     !@     <description>Return the early-epoch solution for the filtering mass.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                            gnedin2000Destructor
+     procedure :: massFiltering           => gnedin2000MassFiltering
+     procedure :: tabulate                => gnedin2000Tabulate
+     procedure :: conditionsInitialODEs   => gnedin2000ConditionsInitialODEs
+     procedure :: coefficientsEarlyEpoch  => gnedin2000CoefficientsEarlyEpoch
+     procedure :: massFilteringEarlyEpoch => gnedin2000MassFilteringEarlyEpoch
+  end type intergalacticMediumFilteringMassGnedin2000
+
+  interface intergalacticMediumFilteringMassGnedin2000
+     !% Constructors for the filtering mass class.
+     module procedure gnedin2000ConstructorParameters
+     module procedure gnedin2000ConstructorInternal
+  end interface intergalacticMediumFilteringMassGnedin2000
+
+  ! Parameter controlling fine-grainedness of filtering mass tabulations.
+  integer, parameter :: filteringMassTablePointsPerDecade=100
+  
+contains
+
+  function gnedin2000ConstructorParameters(parameters) result(self)
+    !% Default constructor for the file \gls{igm} state class.
+    use Input_Parameters, only : inputParameter, inputParameters
+    implicit none
+    type (intergalacticMediumFilteringMassGnedin2000)                :: self
+    type (inputParameters                           ), intent(inout) :: parameters
+    class(cosmologyFunctionsClass                   ), pointer       :: cosmologyFunctions_
+    class(cosmologyParametersClass                  ), pointer       :: cosmologyParameters_
+    class(linearGrowthClass                         ), pointer       :: linearGrowth_
+    class(intergalacticMediumStateClass             ), pointer       :: intergalacticMediumState_
+
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !# <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
+    self=intergalacticMediumFilteringMassGnedin2000(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="intergalacticMediumState_"/>
+    return
+  end function gnedin2000ConstructorParameters
+
+  function gnedin2000ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
+    !% Constructor for the filtering mass class.
+    implicit none
+    type (intergalacticMediumFilteringMassGnedin2000)                        :: self
+    class(cosmologyParametersClass                  ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
+    class(linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
+    class(intergalacticMediumStateClass             ), intent(in   ), target :: intergalacticMediumState_
+    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
+    
+    self%initialized=.false.
+    return
+  end function gnedin2000ConstructorInternal
+
+  subroutine gnedin2000Destructor(self)
+    !% Destructor for the filtering mass class.
+    implicit none
+    type (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%linearGrowth_"            />
+    !# <objectDestructor name="self%intergalacticMediumState_"/>
+    return
+  end subroutine gnedin2000Destructor
+
+  double precision function gnedin2000MassFiltering(self,time)
+    !% Return the filtering mass at the given {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: time
+
+    call self%tabulate(time)
+    gnedin2000MassFiltering=self%table%interpolate(time)
+    return
+  end function gnedin2000MassFiltering
+
+  subroutine gnedin2000Tabulate(self,time)
+    !% Construct a table of filtering mass as a function of cosmological time.
+    use FODEIV2                 , only : fodeiv2_system         , fodeiv2_driver
+    use ODEIV2_Solver           , only : ODEIV2_Solve
+    use Galacticus_Error        , only : Galacticus_Error_Report
+    use Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout), target :: self
+    double precision                                            , intent(in   )         :: time
+    double precision                                            , parameter             :: redshiftMaximumNaozBarkana=150.0d0 ! Maximum redshift at which fitting function of Naoz & Barkana is valid.
+    double precision                                            , dimension(3)          :: massFiltering                     , massFilteringScales
+    double precision                                            , parameter             :: odeToleranceAbsolute      =1.0d-03, odeToleranceRelative      =1.0d-03
+    type            (fodeiv2_system                            )                        :: ode2System
+    type            (fodeiv2_driver                            )                        :: ode2Driver
+    logical                                                                             :: odeReset
+    integer                                                                             :: iTime
+    double precision                                                                    :: timeInitial                       , timeCurrent
+
+    if (.not.self%initialized .or. time < self%timeMinimum) then
+       ! Find minimum and maximum times to tabulate.
+       self%timeMaximum=max(self%cosmologyFunctions_%cosmicTime(1.0d0),time      )
+       self%timeMinimum=min(self%cosmologyFunctions_%cosmicTime(1.0d0),time/2.0d0)
+       ! Decide how many points to tabulate and allocate table arrays.
+       self%countTimes=int(log10(self%timeMaximum/self%timeMinimum)*dble(filteringMassTablePointsPerDecade))+1
+       ! Create the tables.
+       call self%table%destroy()
+       call self%table%create (                   &
+            &                  self%timeMinimum , &
+            &                  self%timeMaximum , &
+            &                  self%countTimes    &
+            &                 )
+       ! Evaluate a suitable starting time for filtering mass calculations.
+       timeInitial=self%cosmologyFunctions_ %cosmicTime                 (                            &
+            &       self%cosmologyFunctions_%expansionFactorFromRedshift (                           &
+            &                                                             redshiftMaximumNaozBarkana &
+            &                                                            )                           &
+            &                                                           )
+       ! Loop over times and populate tables.
+       do iTime=1,self%countTimes
+          ! Abort if time is too early.
+          if (self%table%x(iTime) <= timeInitial) call Galacticus_Error_Report('time is too early'//{introspection:location})
+          ! Set the composite variables used to solve for filtering mass.
+          call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
+          ! Solve the ODE system
+          odeReset   =.true.
+          timeCurrent=timeInitial
+          call ODEIV2_Solve(                                                     &
+               &            ode2Driver                                         , &
+               &            ode2System                                         , &
+               &            timeCurrent                                        , &
+               &            self%table%x(iTime)                                , &
+               &            3                                                  , &
+               &            massFiltering                                      , &
+               &            massFilteringODEs                                  , &
+               &            odeToleranceAbsolute                               , &
+               &            odeToleranceRelative                               , &
+               &            yScale                         =massFilteringScales, &
+               &            reset                          =odeReset             &
+               &           )
+          call self%table%populate(massFiltering(3),iTime)
+       end do
+       ! Specify that tabulation has been made.
+       self%initialized=.true.
+    end if
+    return
+
+  contains
+
+    integer function massFilteringODEs(time,properties,propertiesRateOfChange)
+      !% Evaluates the ODEs controlling the evolution temperature.
+      use Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, heliumByMassPrimordial
+      use Numerical_Constants_Atomic      , only : massHydrogenAtom        , massHeliumAtom        , electronMass
+      use FGSL                            , only : FGSL_Success
+      implicit none
+      double precision, intent(in  )                :: time
+      double precision, intent(in   ), dimension(:) :: properties
+      double precision, intent(  out), dimension(:) :: propertiesRateOfChange
+      double precision                              :: temperature            , massParticleMean
+
+       ! Find mean particle mass.
+      massParticleMean=+(hydrogenByMassPrimordial*(1.0d0+self%intergalacticMediumState_%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
+           &           /(hydrogenByMassPrimordial*(1.0d0+self%intergalacticMediumState_%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
+      ! Get the temperature.
+      temperature=self%intergalacticMediumState_%temperature(time)
+      ! Compute the rates of change for the ODE system.
+      propertiesRateOfChange=gnedin2000ODEs(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,time,massParticleMean,temperature,properties)
+      ! Return success.
+      massFilteringODEs=FGSL_Success
+      return
+    end function massFilteringODEs
+
+  end subroutine gnedin2000Tabulate
+
+  function gnedin2000MassFilteringEarlyEpoch(self,time) result (massFiltering)
+    !% Fitting function for the filtering mass at early epochs from \cite{naoz_formation_2007}. Checks for valid range of redshift
+    !% and cosmology for the fit to be valid.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                                            :: massFiltering
+    double precision                                            , intent(in   ) :: time
+    double precision                                            , dimension(4)  :: coefficients
+    double precision                                                            :: expansionFactor
+    
+    ! Compute the expansion factor.
+    expansionFactor=self%cosmologyFunctions_%expansionFactor        (time)
+    ! Get fitting function coefficients.
+    coefficients   =self                    %coefficientsEarlyEpoch (time)
+    ! Evaluate fitting function.
+    massFiltering  =+exp(                                            &
+         &               +coefficients(1)*(-log(expansionFactor))**3 &
+         &               +coefficients(2)*(-log(expansionFactor))**2 &
+         &               +coefficients(3)*(-log(expansionFactor))    &
+         &               +coefficients(4)                            &
+         &              )
+    ! Compute the 
+    return
+  end function gnedin2000MassFilteringEarlyEpoch
+  
+  subroutine gnedin2000ConditionsInitialODEs(self,time,massFilteringODEs,massFilteringScales)
+    !% Compute initial conditions for a system of three variables used to solve for the evolution of the filtering mass. The ODE system to be solved is
+    !% \begin{eqnarray}
+    !%  \dot{y}_1 &=& y_2 \\
+    !%  \dot{y}_2 &=& -2 (\dot{a}/a) D(t) (1+r_\mathrm{LSS}(t)) y_2 f_\mathrm{DM} \mathrm{k}_\mathrm{B} T(t)/\mu m_\mathrm{H} a^2 \\
+    !%  \dot{y}_3 &=& 4 \pi^4 \bar{\rho}(t) \dot{k}_\mathrm{F}(t)/ k_\mathrm{F}^4(t)
+    !% \end{eqnarray}
+    !% with initial conditions
+    !% \begin{eqnarray}
+    !%  y_1 &=& D(t)/k_\mathrm{F}^2(t) \\
+    !%  y_2 &=& \dot{y}_1 \\
+    !%  y_3 &=& M_\mathrm{F}(t)
+    !% \end{eqnarray}
+    !% and where
+    !% \begin{equation}
+    !%  k_\mathrm{F}(t) = \pi / [M_\mathrm{F}(t) 3 / 4 \pi \bar{\rho}(t)]^{1/3}
+    !% \end{equation},
+    !% and $r_\mathrm{LSS}(t)$ is the function defined by \cite{naoz_formation_2007}.
+    use Numerical_Constants_Math, only : Pi
+    use Cosmology_Parameters    , only : hubbleUnitsTime
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout)                         :: self
+    double precision                                            , intent(in   )                         :: time
+    double precision                                            , intent(  out), dimension(3)           :: massFilteringODEs
+    double precision                                            , intent(  out), dimension(3), optional :: massFilteringScales
+    double precision                                                           , dimension(4)           :: coefficients
+    double precision                                                                                    :: expansionFactor     , expansionRate      , &
+         &                                                                                                 massFiltering       , wavenumberFiltering
+    
+    ! Get fitting function coefficients.
+    coefficients          =self                    %coefficientsEarlyEpoch (time           )
+    ! Compute expansion factor and rate.
+    expansionFactor       =self%cosmologyFunctions_%expansionFactor        (time           )
+    expansionRate         =self%cosmologyFunctions_%expansionRate          (expansionFactor)
+    ! Get the filtering mass at the initial time.
+    massFiltering         =self                    %massFilteringEarlyEpoch(time           )
+    ! Find the corresponding filtering wavenumber.
+    wavenumberFiltering   =+Pi                                            &
+         &                 /(                                             &
+         &                   +massFiltering                               &
+         &                   *3.0d0                                       &
+         &                   /4.0d0                                       &
+         &                   /Pi                                          &
+         &                   /self%cosmologyParameters_%OmegaMatter    () &
+         &                   /self%cosmologyParameters_%densityCritical() &
+         &                  )**(1.0d0/3.0d0)
+    ! Evaluate the three ODE variables at the initial time.
+    massFilteringODEs  (1)=+self%linearGrowth_%value                               (time) &
+         &                 /wavenumberFiltering**2
+    massFilteringODEs  (2)=+self%linearGrowth_%value                               (time) &
+         &                 /time                                                          &
+         &                 *self%linearGrowth_%logarithmicDerivativeExpansionFactor(time) &
+         &                 /wavenumberFiltering**2                                        &
+         &                 +2.0d0                                                         &
+         &                 /3.0d0                                                         &
+         &                 *self%linearGrowth_%value                               (time) &
+         &                 /wavenumberFiltering**2                                        &
+         &                 *(                                                             &
+         &                   -3.0d0                                                       &
+         &                   *coefficients(1)                                             &
+         &                   *log(expansionFactor)**2                                     &
+         &                   +2.0d0                                                       &
+         &                   *coefficients(2)                                             &
+         &                   *log(expansionFactor)                                        &
+         &                   -coefficients(3)                                             &
+         &                  )                                                             &
+         &                 *expansionRate
+    massFilteringODEs  (3)=+massFiltering
+    ! Evaluate suitable absolute tolerance scales for the ODE variables.
+    if (present(massFilteringScales)) then
+       massFilteringScales(1)=+self%linearGrowth_%value(time)                              &
+            &                 *(                                                           &
+            &                   +massFiltering                                             &
+            &                   *3.0d0                                                     &
+            &                   /(                                                         &
+            &                     +4.0d0                                                   &
+            &                     *Pi                                                      &
+            &                     *self%cosmologyParameters_%OmegaMatter    ()             &
+            &                     *self%cosmologyParameters_%densityCritical()             &
+            &                     )                                                        &
+            &                  )**(2.0d0/3.0d0)                                            &
+            &                 *Pi**2
+       massFilteringScales(2)=+massFilteringScales(1)                                    &
+            &                 *self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)
+       massFilteringScales(3)=+massFiltering
+    end if
+    return
+  end subroutine gnedin2000ConditionsInitialODEs
+
+  function gnedin2000ODEs(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,time,massParticleMean,temperature,massFilteringODEs) result (massFilteringODEsRateOfChange)
+    !% Compute the rates of change of the filtering mass ODE system.
+    use Numerical_Constants_Math        , only : Pi
+    use Numerical_Constants_Astronomical, only : gigayear          , megaparsec
+    use Numerical_Constants_Physical    , only : boltzmannsConstant
+    implicit none
+    double precision                                         , dimension(3) :: massFilteringODEsRateOfChange
+    class           (cosmologyParametersClass), intent(inout)               :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), intent(inout)               :: cosmologyFunctions_
+    class           (linearGrowthClass       ), intent(inout)               :: linearGrowth_
+    double precision                          , intent(in   )               :: time                           , massParticleMean   , &
+         &                                                                     temperature
+    double precision                          , intent(in   ), dimension(3) :: massFilteringODEs
+    double precision                                                        :: darkMatterFraction             , wavenumberFiltering, &
+         &                                                                     wavenumberFilteringRateOfChange
+
+    ! Compute dark matter mass fraction.
+    darkMatterFraction              =1.0d0-cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter()
+    ! Evaluate filtering mass composite terms.
+    massFilteringODEsRateOfChange(1)=massFilteringODEs(2)
+    if (massParticleMean > 0.0d0) then
+       massFilteringODEsRateOfChange(2)=-2.0d0                                                                            &
+            &                           *cosmologyFunctions_%expansionRate(cosmologyFunctions_%expansionFactor (time))    &
+            &                           *massFilteringODEs(2)                                                             &
+            &                           +darkMatterFraction                                                               &
+            &                           /                                  cosmologyFunctions_%expansionFactor (time)**2  &
+            &                           *boltzmannsConstant                                                               &
+            &                           *temperature                                                                      & 
+            &                           /massParticleMean                                                                 &
+            &                           *linearGrowth_%value                                                   (time)     &
+            &                           *(                                                                                &
+            &                             +1.0d0                                                                          &
+            &                             +gnedin2000rLSS(                                                                &
+            &                                                              cosmologyParameters_%OmegaMatter    (    )   , &
+            &                                                              cosmologyFunctions_ %expansionFactor(time)     &
+            &                                            )                                                                &
+            &                            )                                                                                &
+            &                           *gigayear  **2                                                                    &
+            &                           /megaparsec**2
+    else
+       massFilteringODEsRateOfChange(2)=0.0d0
+    end if
+    if (massFilteringODEs(1) > 0.0d0) then
+       wavenumberFiltering             =+sqrt(                           &
+            &                                 +linearGrowth_%value(time) &
+            &                                 /massFilteringODEs  (1   ) &
+            &                                )
+       wavenumberFilteringRateOfChange =+0.5d0                                                                                                 &
+            &                           /sqrt(                                                                                                 &
+            &                                 +linearGrowth_%value                                                                     (time)  &
+            &                                 /massFilteringODEs                                                                       (1   )  &
+            &                                )                                                                                                 &
+            &                           *(                                                                                                     &
+            &                             +linearGrowth_      %logarithmicDerivativeExpansionFactor                                    (time)  &
+            &                             *cosmologyFunctions_%expansionRate                       (cosmologyFunctions_%expansionFactor(time)) &
+            &                             *linearGrowth_%value                                                                         (time)  &
+            &                             *massFilteringODEs                                                                           (1   )  &
+            &                             -linearGrowth_%value                                                                         (time)  &
+            &                             *massFilteringODEs                                                                           (2   )  &
+            &                            )                                                                                                     &
+            &                           /massFilteringODEs(1)**2
+       massFilteringODEsRateOfChange(3)=-4.0d0                                     &
+            &                           *Pi                                    **4 &
+            &                           *cosmologyParameters_%densityCritical()    &
+            &                           *cosmologyParameters_%OmegaMatter    ()    & 
+            &                           /wavenumberFiltering                   **4 &
+            &                           *wavenumberFilteringRateOfChange
+    else
+       massFilteringODEsRateOfChange(3)=+0.0d0
+    end if
+    return
+  end function gnedin2000ODEs
+
+  function gnedin2000CoefficientsEarlyEpoch(self,time) result (coefficients)
+    !% Return the coefficients of the fitting function for the filtering mass at early epochs from
+    !% \cite{naoz_formation_2007}. Checks for valid range of redshift and cosmology for the fit to be valid.
+    use Galacticus_Error, only : Galacticus_Warn
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , dimension(4)  :: coefficients
+    double precision                                            , intent(in   ) :: time
+    double precision                                                            :: omegaMatter , expansionFactor, &
+         &                                                                         redshift
+
+    ! Extract matter density and redshift.
+    omegaMatter    =self%cosmologyParameters_%OmegaMatter                (               )
+    expansionFactor=self%cosmologyFunctions_ %expansionFactor            (time           )
+    redshift       =self%cosmologyFunctions_ %redshiftFromExpansionFactor(expansionFactor)
+    ! Validate input.
+    if (omegaMatter < 0.25d0 .or. omegaMatter >   0.40d0) call Galacticus_Warn('gnedin2000CoefficientsEarlyEpoch: matter density outside validated range of fitting function; 0.25 ≤ Ωₘ ≤ 0.40')
+    if (redshift    < 7.00d0 .or. redshift    > 150.00d0) call Galacticus_Warn('gnedin2000CoefficientsEarlyEpoch: redshift outside validated range of fitting function; 7 ≤ z ≤ 150'           )
+    ! Evaluate fitting function.
+    coefficients(1)=-0.38d0*(omegaMatter**2)+ 0.41d0*omegaMatter- 0.16d0
+    coefficients(2)=+3.30d0*(omegaMatter**2)- 3.38d0*omegaMatter+ 1.15d0
+    coefficients(3)=-9.64d0*(omegaMatter**2)+ 9.75d0*omegaMatter- 2.37d0
+    coefficients(4)=+9.80d0*(omegaMatter**2)-10.68d0*omegaMatter+11.60d0
+    return
+  end function gnedin2000CoefficientsEarlyEpoch
+
+  double precision function gnedin2000rLSS(omegaMatter,expansionFactor)
+    !% Evaluate the $r_\mathrm{LSS}$ parameter of \cite{naoz_formation_2007} using their fitting formula.
+    implicit none
+    double precision, intent(in   ) :: omegaMatter     , expansionFactor
+    double precision                :: rLSSCoefficient1, rLSSCoefficient2, rLSSCoefficient3
+
+    rLSSCoefficient1=1.0d-4*(-1.99d0*(omegaMatter**2)+2.41d0*omegaMatter+0.21d0)
+    rLSSCoefficient2=1.0d-3*(+6.37d0*(omegaMatter**2)-6.99d0*omegaMatter-1.76d0)
+    rLSSCoefficient3=1.0d-2*(-1.83d0*(omegaMatter**2)+2.40d0*omegaMatter-0.54d0)
+    ! Note that the coefficients for the different exponents of expansion factor are reversed from that given in Naoz &
+    ! Barkana. Without this change the fit for rLSS does not work.
+    gnedin2000rLSS  =+rLSSCoefficient1/expansionFactor**1.5d0 &
+         &           +rLSSCoefficient2/expansionFactor        &
+         &           +rLSSCoefficient3 
+    return
+  end function gnedin2000rLSS

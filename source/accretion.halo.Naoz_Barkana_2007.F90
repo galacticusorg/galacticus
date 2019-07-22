@@ -22,8 +22,7 @@
   !% An implementation of accretion from the \gls{igm} onto halos using filtering mass of the \gls{igm}
   !% calculated from an equation from \cite{naoz_formation_2007}.
 
-  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass
-  use Linear_Growth                        , only : linearGrowth                    , linearGrowthClass
+  use Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMass, intergalacticMediumFilteringMassClass
 
   !# <accretionHalo name="accretionHaloNaozBarkana2007">
   !#  <description>Accretion onto halos using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.</description>
@@ -31,12 +30,11 @@
   type, extends(accretionHaloSimple) :: accretionHaloNaozBarkana2007
      !% A halo accretion class using filtering mass of the \gls{igm} calculated from an equation from \cite{naoz_formation_2007}.
      private
-     double precision                                            :: rateAdjust                                 , massMinimum             , &
-          &                                                         filteredFractionRateStored                 , filteredFractionStored
-     logical                                                     :: filteredFractionRateComputed               , filteredFractionComputed
-     integer         (kind=kind_int8                  )          :: lastUniqueID
-     class           (linearGrowthClass               ), pointer :: linearGrowth_                     => null()
-     type            (intergalacticMediumFilteringMass)          :: intergalacticMediumFilteringMass_
+     double precision                                                 :: rateAdjust                                 , massMinimum             , &
+          &                                                              filteredFractionRateStored                 , filteredFractionStored
+     logical                                                          :: filteredFractionRateComputed               , filteredFractionComputed
+     integer         (kind=kind_int8                       )          :: lastUniqueID
+     class           (intergalacticMediumFilteringMassClass), pointer :: intergalacticMediumFilteringMass_ => null()
    contains
      !@ <objectMethods>
      !@   <object>accretionHaloNaozBarkana2007</object>
@@ -115,32 +113,30 @@ contains
     !#   <type>real</type>
     !#   <variable>self%massMinimum</variable>
     !# </inputParameter>
-    !# <objectBuilder class="linearGrowth" name="self%linearGrowth_" source="parameters"/>
+    !# <objectBuilder class="intergalacticMediumFilteringMass" name="self%intergalacticMediumFilteringMass_" source="parameters"/>
     !# <inputParametersValidate source="parameters"/>
-    self%intergalacticMediumFilteringMass_=intergalacticMediumFilteringMass(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,self%intergalacticMediumState_)
     return
   end function naozBarkana2007ConstructorParameters
        
-  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,linearGrowth_) result(self)
+  function naozBarkana2007ConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,rateAdjust,massMinimum,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,intergalacticMediumFilteringMass_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     use Galacticus_Error
     use Atomic_Data
     implicit none
-    type            (accretionHaloNaozBarkana2007 )                        :: self
-    double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, &
-         &                                                                    rateAdjust              , massMinimum
-    logical                                        , intent(in   )         :: accretionNegativeAllowed, accretionNewGrowthOnly
-    class           (cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
-    class           (accretionHaloTotalClass      ), intent(in   ), target :: accretionHaloTotal_
-    class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
-    class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
-    class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
-    class           (linearGrowthClass            ), intent(in   ), target :: linearGrowth_
-    !# <constructorAssign variables="rateAdjust, massMinimum, *linearGrowth_"/>
+    type            (accretionHaloNaozBarkana2007         )                        :: self
+    double precision                                       , intent(in   )         :: timeReionization                , velocitySuppressionReionization, &
+         &                                                                            rateAdjust                      , massMinimum
+    logical                                                , intent(in   )         :: accretionNegativeAllowed        , accretionNewGrowthOnly
+    class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
+    class           (accretionHaloTotalClass              ), intent(in   ), target :: accretionHaloTotal_
+    class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
+    class           (chemicalStateClass                   ), intent(in   ), target :: chemicalState_
+    class           (intergalacticMediumStateClass        ), intent(in   ), target :: intergalacticMediumState_
+    class           (intergalacticMediumFilteringMassClass), intent(in   ), target :: intergalacticMediumFilteringMass_
+    !# <constructorAssign variables="rateAdjust, massMinimum, *intergalacticMediumFilteringMass_"/>
 
-    self%accretionHaloSimple              =accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
-    self%intergalacticMediumFilteringMass_=intergalacticMediumFilteringMass(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
+    self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     return
   end function naozBarkana2007ConstructorInternal
 
@@ -161,7 +157,7 @@ contains
     type(accretionHaloNaozBarkana2007), intent(inout) :: self
     
     call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
-    !# <objectDestructor name="self%linearGrowth_"/>
+    !# <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
     return
   end subroutine naozBarkana2007Destructor
    
@@ -187,7 +183,7 @@ contains
     type            (treeNode                           )               , pointer :: branchNode
     class           (nodeComponentBasic                 )               , pointer :: basic
     type            (mergerTreeWalkerIsolatedNodesBranch)                         :: treeWalker
-    double precision                                                              :: fractionBaryons     , massHaloMinimum
+    double precision                                                              :: fractionBaryons, massHaloMinimum
 
     fractionBaryons                 =  +self%cosmologyParameters_%OmegaBaryon() &
          &                             /self%cosmologyParameters_%OmegaMatter()

@@ -36,28 +36,24 @@ contains
     use Galacticus_HDF5
     use Numerical_Ranges
     use Input_Parameters
-    use Cosmology_Parameters                 , only : cosmologyParameters, cosmologyParametersClass
-    use Linear_Growth                        , only : linearGrowth       , linearGrowthClass
     use Cosmology_Functions
     use Intergalactic_Medium_State
     use Intergalactic_Medium_Filtering_Masses
     use Numerical_Constants_Astronomical
     use Memory_Management
     implicit none
-    class           (cosmologyParametersClass        ), pointer                   :: cosmologyParameters_
-    class           (linearGrowthClass               ), pointer                   :: linearGrowth_
-    class           (cosmologyFunctionsClass         ), pointer                   :: cosmologyFunctions_
-    class           (intergalacticMediumStateClass   ), pointer                   :: intergalacticMediumState_
-    type            (intergalacticMediumFilteringMass)                            :: intergalacticMediumFilteringMass_
-    double precision                                  , allocatable, dimension(:) :: time                             , redshift       , &
-         &                                                                           temperature                      , massFiltering
-    double precision                                                              :: redshiftMinimum                  , redshiftMaximum, &
-         &                                                                           timeMinimum                      , timeMaximum
-    type            (hdf5Object                      )                            :: intergalacticMediumGroup         , dataSet
-    logical                                                                       :: intergalacticMediumOutput
-    integer                                                                       :: stepsPerDecade                   , stepCount      , &
-         &                                                                           i
-    type            (inputParameters                 )                            :: subParameters
+    class           (cosmologyFunctionsClass              ), pointer                   :: cosmologyFunctions_
+    class           (intergalacticMediumStateClass        ), pointer                   :: intergalacticMediumState_
+    class           (intergalacticMediumFilteringMassClass), pointer                   :: intergalacticMediumFilteringMass_
+    double precision                                       , allocatable, dimension(:) :: time                             , redshift       , &
+         &                                                                                temperature                      , massFiltering
+    double precision                                                                   :: redshiftMinimum                  , redshiftMaximum, &
+         &                                                                                timeMinimum                      , timeMaximum
+    type            (hdf5Object                           )                            :: intergalacticMediumGroup         , dataSet
+    logical                                                                            :: intergalacticMediumOutput
+    integer                                                                            :: stepsPerDecade                   , stepCount      , &
+         &                                                                                i
+    type            (inputParameters                      )                            :: subParameters
     
     ! Test for output.
     !# <inputParameter>
@@ -100,11 +96,9 @@ contains
        !#   <cardinality>1</cardinality>
        !# </inputParameter>
        ! Get required objects.
-       cosmologyParameters_              => cosmologyParameters             (                                                                                )
-       cosmologyFunctions_               => cosmologyFunctions              (                                                                                )
-       linearGrowth_                     => linearGrowth                    (                                                                                )
-       intergalacticMediumState_         => intergalacticMediumState        (                                                                                )
-       intergalacticMediumFilteringMass_ =  intergalacticMediumFilteringMass(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
+       cosmologyFunctions_               => cosmologyFunctions              ()
+       intergalacticMediumState_         => intergalacticMediumState        ()
+       intergalacticMediumFilteringMass_ => intergalacticMediumFilteringMass()
        ! Determine number of output epochs.
        timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
        timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))

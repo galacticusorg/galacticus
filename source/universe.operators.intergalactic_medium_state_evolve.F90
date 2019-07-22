@@ -189,7 +189,7 @@ contains
     use, intrinsic :: ISO_C_Binding                        , only : c_size_t
     use            :: Memory_Management
     use            :: Numerical_Ranges
-    use            :: Intergalactic_Medium_Filtering_Masses
+    use            :: Intergalactic_Medium_Filtering_Masses, only : intergalacticMediumFilteringMassGnedin2000
     use            :: Numerical_Constants_Math
     use            :: Numerical_Constants_Units
     use            :: Numerical_Constants_Atomic
@@ -211,7 +211,8 @@ contains
     class           (atomicRecombinationRateRadiativeClass         ), intent(in   ), target :: atomicRecombinationRateRadiative_
     class           (atomicIonizationRateCollisionalClass          ), intent(in   ), target :: atomicIonizationRateCollisional_
     class           (atomicExcitationRateCollisionalClass          ), intent(in   ), target :: atomicExcitationRateCollisional_
-    class           (intergalacticMediumStateClass                 ), intent(in   ), target :: intergalacticMediumState_  
+    class           (intergalacticMediumStateClass                 ), intent(in   ), target :: intergalacticMediumState_
+    type            (intergalacticMediumFilteringMassGnedin2000    )                        :: intergalacticMediumFilteringMass_
     integer                                                         , intent(in   )         :: timeCountPerDecade
     double precision                                                , intent(in   )         :: timeMinimum, timeMaximum
     double precision                                                , dimension(3)          :: massFilteringODEs
@@ -321,7 +322,8 @@ contains
         end do
      end do
      ! Set the composite variables used to solve for filtering mass.
-     call Mass_Filtering_ODE_Initial_Conditions(self%timeMinimum,self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,massFilteringODEs)
+     intergalacticMediumFilteringMass_=intergalacticMediumFilteringMassGnedin2000(self%cosmologyParameters_,self%cosmologyFunctions_,self%linearGrowth_,self%intergalacticMediumState_)
+     call intergalacticMediumFilteringMass_%conditionsInitialODEs(self%timeMinimum,massFilteringODEs)
      self%massFilteringComposite(1,:)=massFilteringODEs(1:2)
      self%massFiltering         (1  )=massFilteringODEs(3  )
      ! Find the initial mass variance on the filtering mass scale.
@@ -566,9 +568,9 @@ contains
      use Numerical_Constants_Units
      use Numerical_Constants_Prefixes
      use Numerical_Constants_Atomic
-     use Intergalactic_Medium_Filtering_Masses
+     use Intergalactic_Medium_Filtering_Masses, only : gnedin2000ODES
      use Numerical_Integration
-     use FGSL                                 , only : fgsl_function, fgsl_integration_workspace, FGSL_Success
+     use FGSL                                 , only : fgsl_function , fgsl_integration_workspace, FGSL_Success
      implicit none
      double precision                                          , intent(in  )                :: time
      double precision                                          , intent(in   ), dimension(:) :: properties
@@ -635,7 +637,7 @@ contains
         opticalDepthRateOfChange=0.0d0
      end if
      ! Evaluate the rates of change for the filtering mass variables.
-     massFilteringODEsRateOfChange     =Mass_Filtering_ODE_System(intergalacticMediumStateEvolveSelf%cosmologyParameters_,intergalacticMediumStateEvolveSelf%cosmologyFunctions_,intergalacticMediumStateEvolveSelf%linearGrowth_,time,massParticleMean,temperature,properties)
+     massFilteringODEsRateOfChange     =gnedin2000ODEs(intergalacticMediumStateEvolveSelf%cosmologyParameters_,intergalacticMediumStateEvolveSelf%cosmologyFunctions_,intergalacticMediumStateEvolveSelf%linearGrowth_,time,massParticleMean,temperature,properties)
      massFilteringCompositeRateOfChange=massFilteringODEsRateOfChange(1:2)
      massFilteringRateOfChange         =massFilteringODEsRateOfChange(3  )
      ! Compute the clumping factor.
