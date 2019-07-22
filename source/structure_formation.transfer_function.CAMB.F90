@@ -168,7 +168,6 @@ contains
     if (.not.makeTransferFunction) return
     ! Retrieve the transfer function.
     call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,[self%redshift],wavenumber,self%wavenumberMaximum,self%lockFileGlobally,self%fileName,self%wavenumberMaximumReached)
-    call self%readFile(char(self%fileName))
     ! Initialize the file lock.
     if (self%lockFileGlobally) then
        if (.not.cambFileLockInitialized) then
