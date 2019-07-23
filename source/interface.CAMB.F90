@@ -154,7 +154,7 @@ contains
     character       (len=255                 )                                  :: hostName                                , cambTransferLine
     type            (varying_string          )                                  :: command                                 , parameterFile           , &
          &                                                                         cambPath                                , cambVersion
-    double precision                                                            :: wavenumberCAMB                          , matterPowerNormalization
+    double precision                                                            :: wavenumberCAMB
     integer                                                                     :: status                                  , cambParameterFile       , &
          &                                                                         i                                       , cambTransferFile        , &
          &                                                                         j                                       , countRedshiftsUnique
@@ -165,8 +165,7 @@ contains
     character       (len=32                  )                                  :: parameterLabel                          , datasetName             , &
          &                                                                         redshiftLabel                           , indexLabel
     type            (varying_string          )                                  :: uniqueLabel                             , workPath                , &
-         &                                                                         transferFileName                        , fileName_               , &
-         &                                                                         matterPowerFileName
+         &                                                                         transferFileName                        , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
     
@@ -411,18 +410,7 @@ contains
        allocate(wavenumbers      (0    ))
        allocate(transferFunctions(0,0,0))
        do j=1,countRedshiftsUnique
-          transferFileName   ='camb_transfer_'   //trim(adjustl(redshiftLabelsCombined(j)))//'.dat'
-          matterPowerFileName='camb_matterpower_'//trim(adjustl(redshiftLabelsCombined(j)))//'.dat'
-          open(newunit=cambTransferFile,file=char(matterPowerFileName),status='old',form='formatted')
-          status=0
-          do while (status == 0)
-             read (cambTransferFile,'(a)',iostat=status) cambTransferLine
-             if (cambTransferLine(1:1) /= "#") then
-                read (cambTransferLine,*) wavenumberCAMB,matterPowerNormalization
-                exit
-             end if
-          end do
-          close(cambTransferFile)
+          transferFileName='camb_transfer_'//trim(adjustl(redshiftLabelsCombined(j)))//'.dat'
           if (j == 1) then
              countWavenumber=Count_Lines_In_File(transferFileName,"#")
              if (allocated(wavenumbers      )) deallocate(wavenumbers      )
@@ -444,9 +432,6 @@ contains
              end if
           end do
           close(cambTransferFile)
-          matterPowerNormalization=sqrt(matterPowerNormalization/(transferFunctions(1,cambSpeciesDarkMatter,j)**2+transferFunctions(1,cambSpeciesBaryons   ,j)**2))
-          transferFunctions(:,cambSpeciesDarkMatter,j)=transferFunctions(:,cambSpeciesDarkMatter,j)*matterPowerNormalization
-          transferFunctions(:,cambSpeciesBaryons   ,j)=transferFunctions(:,cambSpeciesBaryons   ,j)*matterPowerNormalization
        end do
        ! Remove temporary files.
        command="rm -f "                    // &
