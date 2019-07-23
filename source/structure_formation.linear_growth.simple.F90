@@ -31,11 +31,11 @@
      !% A linear growth of cosmological structure contrast class in simple cosomologies.
      private
      logical                                                 :: tableInitialized
-     double precision                                        :: tableTimeMinimum            , tableTimeMaximum       , &
+     double precision                                        :: tableTimeMinimum                      , tableTimeMaximum, &
           &                                                     normalizationMatterDominated
      class           (table1D                 ), allocatable :: growthFactor
-     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_ => null()
+     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()
+     class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
    contains
      !@ <objectMethods>
      !@   <object>linearGrowthSimple</object>
@@ -228,7 +228,7 @@ contains
                &                              +abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)) &
                &                              *    growthFactor             %x             (              1)  &
                &                             )**(2.0d0/3.0d0)                                                 &
-               &                            /      growthFactor             %y             (              1)          
+               &                            /      growthFactor             %y             (              1)     
           self%tableInitialized=.true.
        end select
     end if
