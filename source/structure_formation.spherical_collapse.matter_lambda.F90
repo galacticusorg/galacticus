@@ -89,9 +89,9 @@ contains
     type            (varying_string         )                             :: fileName
     integer                                                               :: status
 
-    fileName=galacticusPath(pathTypeDataDynamic)                                    // &
-         &   'largeScaleStructure/sphericalCollapseMatterLambdaCriticalOverdensity_'// &
-         &   cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)       // &
+    fileName=galacticusPath(pathTypeDataDynamic)                                      // &
+         &   'largeScaleStructure/sphericalCollapseMatterLambdaVirialDensityContrast_'// &
+         &   cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)         // &
          &   '.hdf5'
     call    Restore_Table(time,deltaVirialTable,fileName              ,tableStore         ,status)
     if (status /= errorStatusSuccess) then       
