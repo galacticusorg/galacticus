@@ -75,6 +75,39 @@ module Intergalactic_Medium_State
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#  </method>
+  !#  <method name="massJeans" >
+  !#   <description>Return the instantaneus Jeans mass (in $\mathrm{M}_\odot$) at the given time.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <modules>Numerical_Constants_Physical Numerical_Constants_Astronomical Numerical_Constants_Atomic Numerical_Constants_Prefixes</modules>
+  !#   <argument>double precision, intent(in   ) :: time</argument>
+  !#   <code>
+  !#    double precision :: massParticleMean, speedSound
+  !#    massParticleMean                 =+(hydrogenByMassPrimordial*(1.0d0+self%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &amp;
+  !#         &amp;                        /(hydrogenByMassPrimordial*(1.0d0+self%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
+  !#    speedSound                       =+sqrt(                          &amp;
+  !#         &amp;                              +boltzmannsConstant       &amp;
+  !#         &amp;                              *self%temperature  (time) &amp;
+  !#         &amp;                              /massParticleMean         &amp;
+  !#         &amp;                             )                          &amp;
+  !#         &amp;                        /kilo
+  !#    intergalacticMediumStateMassJeans=+4.0d0                                                       &amp;
+  !#         &amp;                        *Pi                                                          &amp;
+  !#         &amp;                        /3.0d0                                                       &amp;
+  !#         &amp;                        *        self%cosmologyFunctions_%matterDensityEpochal(time) &amp;
+  !#         &amp;                        *(                                                           &amp;
+  !#         &amp;                          +2.0d0                                                     &amp;
+  !#         &amp;                          *Pi                                                        &amp;
+  !#         &amp;                          *speedSound                                                &amp;
+  !#         &amp;                          /sqrt(                                                     &amp;
+  !#         &amp;                                +4.0d0                                               &amp;
+  !#         &amp;                                *Pi                                                  &amp;
+  !#         &amp;                                *gravitationalConstantGalacticus                     &amp;
+  !#         &amp;                                *self%cosmologyFunctions_%matterDensityEpochal(time) &amp;
+  !#         &amp;                               )                                                     &amp;
+  !#         &amp;                         )**3
+  !#   </code>
+  !#  </method>
   !#  <method name="electronScatteringOpticalDepth" >
   !#   <description>Return the electron scattering optical depth from the present day back to the given {\normalfont \ttfamily time} in the \gls{igm}.</description>
   !#   <type>double precision</type>
