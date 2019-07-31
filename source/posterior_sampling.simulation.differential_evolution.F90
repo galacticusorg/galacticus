@@ -41,7 +41,7 @@
      double precision                                                                          :: logPosterior                                      , logPrior
      logical                                                                                   :: isConverged                                       , sampleOutliers                    , &
           &                                                                                       isInteractive                                     , appendLogs                        , &
-          &                                                                                       loadBalance
+          &                                                                                       loadBalance                                       , ignoreChainNumberAdvice
      type            (modelParameterList                          ), allocatable, dimension(:) :: modelParametersActive_                            , modelParametersInactive_
      class           (posteriorSampleLikelihoodClass              ), pointer                   :: posteriorSampleLikelihood_               => null()
      class           (posteriorSampleConvergenceClass             ), pointer                   :: posteriorSampleConvergence_              => null()
@@ -144,7 +144,7 @@ contains
     type   (varying_string                                )                              :: logFileRoot                             , interactionRoot         , &
          &                                                                                  message
     logical                                                                              :: sampleOutliers                          , appendLogs              , &
-         &                                                                                  loadBalance
+         &                                                                                  loadBalance                             , ignoreChainNumberAdvice
 
     !# <inputParameter>
     !#   <name>stepsMaximum</name>
@@ -225,6 +225,14 @@ contains
     !#   <defaultValue>.true.</defaultValue>
     !#   <type>logical</type>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>ignoreChainNumberAdvice</name>
+    !#   <cardinality>1</cardinality>
+    !#   <description>If true, ignore warnings and errors about not being able to span the full parameter space with the number of chains used.</description>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.false.</defaultValue>
+    !#   <type>logical</type>
+    !# </inputParameter>
     !# <objectBuilder class="posteriorSampleLikelihood"               name="posteriorSampleLikelihood_"               source="parameters"/>
     !# <objectBuilder class="posteriorSampleConvergence"              name="posteriorSampleConvergence_"              source="parameters"/>
     !# <objectBuilder class="posteriorSampleStoppingCriterion"        name="posteriorSampleStoppingCriterion_"        source="parameters"/>
@@ -270,7 +278,7 @@ contains
        end select
        !# <objectDestructor name="modelParameter_"/>
     end do
-    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance)
+    self=posteriorSampleSimulationDifferentialEvolution(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,char(logFileRoot),sampleOutliers,logFlushCount,reportCount,char(interactionRoot),appendLogs,loadBalance,ignoreChainNumberAdvice)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="posteriorSampleLikelihood_"              />
     !# <objectDestructor name="posteriorSampleConvergence_"             />
@@ -290,7 +298,7 @@ contains
     return
   end function differentialEvolutionConstructorParameters
 
-  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance) result(self)
+  function differentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,stepsMaximum,acceptanceAverageCount,stateSwapCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice) result(self)
     !% Internal constructor for the ``differentialEvolution'' simulation class.
     implicit none
     type     (posteriorSampleSimulationDifferentialEvolution)                              :: self
@@ -307,9 +315,9 @@ contains
          &                                                                                    reportCount
     character(len=*                                         ), intent(in   )               :: logFileRoot                             , interactionRoot
     logical                                                  , intent(in   )               :: sampleOutliers                          , appendLogs              , &
-         &                                                                                    loadBalance
+         &                                                                                    loadBalance                             , ignoreChainNumberAdvice
     integer                                                                                :: i
-    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance"/>
+    !# <constructorAssign variables="*posteriorSampleLikelihood_, *posteriorSampleConvergence_, *posteriorSampleStoppingCriterion_, *posteriorSampleState_, *posteriorSampleStateInitialize_, *posteriorSampleDffrntlEvltnProposalSize_, *posteriorSampleDffrntlEvltnRandomJump_, stepsMaximum, acceptanceAverageCount, stateSwapCount, logFlushCount, reportCount, sampleOutliers, logFileRoot, interactionRoot, appendLogs, loadBalance, ignoreChainNumberAdvice"/>
 
     allocate(self%modelParametersActive_  (size(modelParametersActive_  )))
     allocate(self%modelParametersInactive_(size(modelParametersInactive_)))
@@ -387,7 +395,13 @@ contains
     character       (len=32                                        )                                   :: label
 
     ! Check that we have sufficient chains for differential evolution.
-    if (mpiSelf%count() < 2*size(self%modelParametersActive_)+1) call Galacticus_Error_Report('set the number of chains to be at least one greater than twice the number of active parameters. Otherwise, it may not be able or efficient to cover the full target distribution'//{introspection:location})
+    if (.not.self%ignoreChainNumberAdvice) then
+       if      (mpiSelf%count() <   size(self%modelParametersActive_)) then
+          call Galacticus_Error_Report('the number of chains should at least equal the number of active parameters, otherwise it may not be possible to sample the full posterior distribution'     //{introspection:location})
+       else if (mpiSelf%count() < 2*size(self%modelParametersActive_)) then
+          call Galacticus_Warn         ('the number of chains should be at least twice the number of active parameters, otherwise it may not be efficient to sample the full posterior distribution'//{introspection:location})
+       end if
+    end if
     ! Write start-up message.
     message="Process "//mpiSelf%rankLabel()//" [PID: "
     message=message//getPID()//"] is running on host '"//mpiSelf%hostAffinity()//"'"
