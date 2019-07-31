@@ -638,8 +638,8 @@ contains
     status=errorStatusFail
     if (.not.tableStore) return
     if (.not.File_Exists(fileName)) return
-    call File_Lock_Initialize(               fileLock)
-    call File_Lock           (char(fileName),fileLock)
+    call File_Lock_Initialize(               fileLock                    )
+    call File_Lock           (char(fileName),fileLock,lockIsShared=.true.)
     !$ call hdf5Access%set()
     call file%openFile(char(fileName))
     call file%readDataset('time',timeTable)
@@ -682,8 +682,8 @@ contains
     type (lockDescriptor         )                :: fileLock
 
     if (.not.tableStore) return
-    call File_Lock_Initialize(               fileLock)
-    call File_Lock           (char(fileName),fileLock)
+    call File_Lock_Initialize(               fileLock                     )
+    call File_Lock           (char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)
     call file%writeDataset(        storeTable%xs()                     ,'time'                                   )
