@@ -823,7 +823,7 @@ contains
     double precision                              , allocatable  , dimension(:,:) :: meanCovarianceCombined
     double precision                              , allocatable  , dimension(:  ) :: meanValueDifference
     type            (vector                      )                                :: residual
-    type            (matrix                      )                                :: covariance            , covarianceInverse
+    type            (matrix                      )                                :: covariance
     
     ! Check for existance of a target distribution.
     if (allocated(self%meanValueTarget)) then
@@ -839,10 +839,8 @@ contains
             &                 +self%meanCovarianceTarget
        residual              = meanValueDifference
        covariance            = meanCovarianceCombined       
-       ! Find the inverse covariance matrix of the combined model and target covariances.
-       covarianceInverse=covariance%invert()
        ! Compute the log-likelihood.
-       meanFunction1DLogLikelihood       =-0.5d0*(residual*(covarianceInverse*residual))
+       meanFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
        if (self%likelihoodNormalize)                                                      &
             & meanFunction1DLogLikelihood=+meanFunction1DLogLikelihood                    &
             &                             -0.5d0*covariance%determinant()                 &
