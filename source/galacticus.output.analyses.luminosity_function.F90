@@ -329,7 +329,7 @@ contains
          &                                magnitudesAbsolute                                      , &
          &                                bufferCount                                             , &
          &                                outputWeight                                            , &
-         &                                nodePropertyExtractor_                        , &
+         &                                nodePropertyExtractor_                                  , &
          &                                outputAnalysisPropertyOperatorSequence_                 , &
          &                                outputAnalysisPropertyOperatorIdentity_                 , &
          &                                outputAnalysisWeightOperator_                           , &
@@ -341,6 +341,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                         , &
          &                                covarianceBinomialMassHaloMinimum                       , &
          &                                covarianceBinomialMassHaloMaximum                       , &
+         &                                .false.                                                 , &
          &                                var_str('$M$'                                          ), &
          &                                var_str('$\mathrm{d}n/\mathrm{d}M$ [$_\chi$Mpc$^{-3}$]'), &
          &                                .false.                                                 , &
