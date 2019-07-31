@@ -119,6 +119,12 @@ module Linear_Algebra
      !@     <arguments></arguments>
      !@     <description>Compute the Cholesky decomposition of the matrix in place.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>covarianceProduct</method>
+     !@     <type>\void</type>
+     !@     <arguments>\textcolor{red}{\textless type(vector)\textgreater} y\argin</arguments>
+     !@     <description>Compute $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                             matrixDestroy
      procedure :: invert                   => matrixInvert
@@ -130,6 +136,7 @@ module Linear_Algebra
      procedure :: symmetrize               => matrixSymmetrize
      procedure :: makeSemiPositiveDefinite => matrixMakeSemiPositiveDefinite
      procedure :: choleskyDecompose        => matrixCholeskyDecompose
+     procedure :: covarianceProduct        => matrixCovarianceProduct
   end type matrix
   
   ! Assignment interfaces.
@@ -424,6 +431,18 @@ contains
     self%elements               =selfArray
     return
   end function matrixLinearSystemSolve
+  
+  double precision function matrixCovarianceProduct(self,y)
+    !% Compute the quantity $y C^{-1} y^\mathrm{T}$ as appears in likelihood functions utilizing covariance matrices. Instead of
+    !% directly inverting the covariance matrix (which is computationally slow and can be inaccurate), we solve the linear system
+    !% $y = C x$ for $x$, and then evaluate $y x$.
+    implicit none
+    class(matrix), intent(inout) :: self
+    type (vector), intent(in   ) :: y
+
+    matrixCovarianceProduct=y*self%linearSystemSolve(y)
+    return
+  end function matrixCovarianceProduct
   
   function matrixTranspose(self)
     !% Transpose a matrix.
