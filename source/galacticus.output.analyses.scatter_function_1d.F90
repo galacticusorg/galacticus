@@ -652,7 +652,7 @@ contains
     double precision                                 , allocatable  , dimension(:,:) :: scatterCovarianceCombined
     double precision                                 , allocatable  , dimension(:  ) :: scatterValueDifference
     type            (vector                         )                                :: residual
-    type            (matrix                         )                                :: covariance               , covarianceInverse
+    type            (matrix                         )                                :: covariance
 
     ! Check for existance of a target distribution.
     if (allocated(self%scatterValueTarget)) then
@@ -668,10 +668,8 @@ contains
             &                    +self%scatterCovarianceTarget
        residual                 = scatterValueDifference
        covariance               = scatterCovarianceCombined 
-       ! Find the inverse covariance matrix of the combined model and target covariances.
-       covarianceInverse=covariance%invert()
        ! Compute the log-likelihood.
-       scatterFunction1DLogLikelihood       =-0.5d0*(residual*(covarianceInverse*residual))
+       scatterFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
        if (self%likelihoodNormalize)                                                      &
             & scatterFunction1DLogLikelihood=+scatterFunction1DLogLikelihood              &
             &                             -0.5d0*covariance%determinant()                 &

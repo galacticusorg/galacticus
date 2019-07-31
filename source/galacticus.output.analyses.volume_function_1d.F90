@@ -764,7 +764,7 @@ contains
     double precision                                , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                , allocatable  , dimension(:  ) :: functionValueDifference
     type            (vector                        )                                :: residual
-    type            (matrix                        )                                :: covariance                , covarianceInverse
+    type            (matrix                        )                                :: covariance
     
     ! Check for existance of a target distribution.
     if (allocated(self%functionValueTarget)) then
@@ -780,11 +780,9 @@ contains
             &                     +self%functionCovarianceTarget
        residual                  = functionValueDifference
        covariance                = functionCovarianceCombined
-       ! Find the inverse covariance matrix of the combined model and target covariances.
-       covarianceInverse=covariance%invert()
        ! Compute the log-likelihood.
-       volumeFunction1DLogLikelihood=-0.5d0*(residual*(covarianceInverse*residual)) &
-            &                        -0.5d0*covariance%determinant()                &
+       volumeFunction1DLogLikelihood=-0.5d0*covariance%covarianceProduct(residual) &
+            &                        -0.5d0*covariance%determinant()               &
             &                        -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
     else
        volumeFunction1DLogLikelihood=0.0d0
