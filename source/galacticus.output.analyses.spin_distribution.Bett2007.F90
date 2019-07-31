@@ -261,7 +261,7 @@ contains
          &                                                             log10(spins)                                       , &
          &                                                             bufferCount                                        , &
          &                                                             outputWeight                                       , &
-         &                                                             nodePropertyExtractor_                   , &
+         &                                                             nodePropertyExtractor_                             , &
          &                                                             outputAnalysisPropertyOperator_                    , &
          &                                                             outputAnalysisPropertyOperatorAntiLog10_           , &
          &                                                             outputAnalysisWeightOperator_                      , &
@@ -273,6 +273,7 @@ contains
          &                                                             covarianceBinomialBinsPerDecade                    , &
          &                                                             covarianceBinomialMassHaloMinimum                  , &
          &                                                             covarianceBinomialMassHaloMaximum                  , &
+         &                                                             .false.                                            , &
          &                                                             var_str('$\lambda$'                               ), &
          &                                                             var_str('$\mathrm{d}p/\mathrm{d}\ln\lambda$'      ), &
          &                                                             .true.                                             , &

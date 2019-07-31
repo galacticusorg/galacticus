@@ -66,7 +66,7 @@
      double precision                                                                         :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                , &
           &                                                                                      covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse
      logical                                                                                  :: finalized                                      , xAxisIsLog                                       , &
-          &                                                                                      yAxisIsLog
+          &                                                                                      yAxisIsLog                                     , likelihoodNormalize
      !$ integer      (omp_lock_kind                            )                              :: accumulateLock
    contains
      !@ <objectMethods>
@@ -123,7 +123,8 @@ contains
     type            (inputParameters                          )                              :: unoperatorParameters
     double precision                                                                         :: propertyUnitsInSI                    , distributionUnitsInSI            , &
          &                                                                                      covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
-    logical                                                                                  :: xAxisIsLog                           , yAxisIsLog
+    logical                                                                                  :: xAxisIsLog                           , yAxisIsLog                       , &
+         &                                                                                      likelihoodNormalize
     
     ! Check and read parameters.
     !# <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"      source="parameters"          />
@@ -303,6 +304,14 @@ contains
     !#   <type>real</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>likelihoodNormalize</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>.true.</defaultValue>
+    !#   <description>If true then normalize the likelihood to make it a probability density.</description>
+    !#   <type>boolean</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
           !# <inputParameter>
@@ -369,6 +378,7 @@ contains
     !#        &amp;                          covarianceBinomialBinsPerDecade                                                                   , &amp;
     !#        &amp;                          covarianceBinomialMassHaloMinimum                                                                 , &amp;
     !#        &amp;                          covarianceBinomialMassHaloMaximum                                                                 , &amp;
+    !#        &amp;                          likelihoodNormalize                                                                               , &amp;
     !#        &amp;                          xAxisLabel                                                                                        , &amp;
     !#        &amp;                          yAxisLabel                                                                                        , &amp;
     !#        &amp;                          xAxisIsLog                                                                                        , &amp;
@@ -392,7 +402,7 @@ contains
     return
   end function volumeFunction1DConstructorParameters
 
-  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
+  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
     !% Constructor for the ``volumeFunction1D'' output analysis class for internal use.
     use Galacticus_Error , only : Galacticus_Error_Report
     use Memory_Management
@@ -404,7 +414,8 @@ contains
          &                                                                                                  propertyUnits                        , distributionUnits
     type            (varying_string                           ), intent(in   ), optional                 :: xAxisLabel                           , yAxisLabel                       , &
          &                                                                                                  targetLabel
-    logical                                                    , intent(in   ), optional                 :: xAxisIsLog                           , yAxisIsLog
+    logical                                                    , intent(in   ), optional                 :: xAxisIsLog                           , yAxisIsLog                       , &
+         &                                                                                                  likelihoodNormalize
     double precision                                                                                     :: propertyUnitsInSI                    , distributionUnitsInSI
     double precision                                           , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                 ), intent(in   )                           :: bufferCount
@@ -431,6 +442,9 @@ contains
     class default
        call Galacticus_Error_Report('property extrator must be of scalar class'//{introspection:location})
     end select
+    ! Set normalization state for likelihood.
+    self%likelihoodNormalize=.true.
+    if (present(likelihoodNormalize)) self%likelihoodNormalize=likelihoodNormalize
     ! Count bins.
     self%binCount     =size(binCenter,kind=c_size_t)
     self%binCountTotal=self%binCount+2*bufferCount
@@ -781,9 +795,12 @@ contains
        residual                  = functionValueDifference
        covariance                = functionCovarianceCombined
        ! Compute the log-likelihood.
-       volumeFunction1DLogLikelihood=-0.5d0*covariance%covarianceProduct(residual) &
-            &                        -0.5d0*covariance%determinant()               &
-            &                        -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
+       volumeFunction1DLogLikelihood       =-0.5d0*covariance%covarianceProduct(residual)
+       if (self%likelihoodNormalize)                                                      &
+            & volumeFunction1DLogLikelihood=+volumeFunction1DLogLikelihood                &
+            &                               -0.5d0*covariance%determinant      (        ) &
+            &                               -0.5d0*dble(self%binCount)                    &
+            &                               *log(2.0d0*Pi)
     else
        volumeFunction1DLogLikelihood=0.0d0
        call Galacticus_Error_Report('no target distribution was provided for likelihood calculation'//{introspection:location})

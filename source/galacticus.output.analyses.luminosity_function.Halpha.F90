@@ -373,7 +373,7 @@ contains
          &                                log10(luminosities)                                                                        , &
          &                                bufferCount                                                                                , &
          &                                outputWeight                                                                               , &
-         &                                nodePropertyExtractor_                                                           , &
+         &                                nodePropertyExtractor_                                                                     , &
          &                                outputAnalysisPropertyOperatorSequence_                                                    , &
          &                                outputAnalysisPropertyOperatorAntiLog10_                                                   , &
          &                                outputAnalysisWeightOperator_                                                              , &
@@ -385,6 +385,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                                                            , &
          &                                covarianceBinomialMassHaloMinimum                                                          , &
          &                                covarianceBinomialMassHaloMaximum                                                          , &
+         &                                .false.                                                                                    , &
          &                                var_str('$L_{\mathrm{H}\alpha}$ [ergs/s]'                                                 ), &
          &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} L_{\mathrm{H}\alpha}$ [$_\chi$Mpc$^{-3}$]'), &
          &                                .true.                                                                                     , &

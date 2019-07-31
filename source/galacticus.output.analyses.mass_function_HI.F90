@@ -345,7 +345,7 @@ contains
          &                                log10(masses)                                                  , &
          &                                bufferCount                                                    , &
          &                                outputWeight                                                   , &
-         &                                nodePropertyExtractor_                               , &
+         &                                nodePropertyExtractor_                                         , &
          &                                outputAnalysisPropertyOperatorSequence_                        , &
          &                                outputAnalysisPropertyOperatorAntiLog10_                       , &
          &                                outputAnalysisWeightOperator_                                  , &
@@ -357,6 +357,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                                , &
          &                                covarianceBinomialMassHaloMinimum                              , &
          &                                covarianceBinomialMassHaloMaximum                              , &
+         &                                .false.                                                        , &
          &                                var_str('$\log_{10}(M_\mathrm{HI}/\mathrm{M}_\odot)$'         ), &
          &                                var_str('$\mathrm{d}n/\mathrm{d}\log_\mathrm{e} M_\mathrm{HI}'), &
          &                                .true.                                                         , &

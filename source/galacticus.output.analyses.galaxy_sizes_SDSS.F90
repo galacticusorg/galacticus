@@ -315,7 +315,7 @@ contains
          &                                log10(radii)                                          , &
          &                                0_c_size_t                                            , &
          &                                outputWeight                                          , &
-         &                                nodePropertyExtractor_                      , &
+         &                                nodePropertyExtractor_                                , &
          &                                outputAnalysisPropertyOperatorSequence_               , &
          &                                outputAnalysisPropertyOperatorAntiLog10_              , &
          &                                outputAnalysisWeightOperator_                         , &
@@ -327,6 +327,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                       , &
          &                                covarianceBinomialMassHaloMinimum                     , &
          &                                covarianceBinomialMassHaloMaximum                     , &
+         &                                .false.                                               , &
          &                                var_str('$r_{1/2}/\mathrm{kpc}$'                   )  , &
          &                                var_str('$\mathrm{d}p/\mathrm{d}\log_{10} r_{1/2}$')  , &
          &                                .true.                                                , &

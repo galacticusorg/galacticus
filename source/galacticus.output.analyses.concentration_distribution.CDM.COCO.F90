@@ -300,7 +300,7 @@ contains
          &                                log10(concentrations)                                                                                                                      , &
          &                                bufferCount                                                                                                                                , &
          &                                outputWeight                                                                                                                               , &
-         &                                nodePropertyExtractor_                                                                                                           , &
+         &                                nodePropertyExtractor_                                                                                                                     , &
          &                                outputAnalysisPropertyOperator_                                                                                                            , &
          &                                outputAnalysisPropertyUnoperator_                                                                                                          , &
          &                                outputAnalysisWeightOperator_                                                                                                              , &
@@ -312,6 +312,7 @@ contains
          &                                covarianceBinomialBinsPerDecade                                                                                                            , &
          &                                covarianceBinomialMassHaloMinimum                                                                                                          , &
          &                                covarianceBinomialMassHaloMaximum                                                                                                          , &
+         &                                .false.                                                                                                                                    , &
          &                                var_str('$c_\mathrm{200c}$'                                                                                                               ), &
          &                                var_str('$\mathrm{d}p/\mathrm{d}\log_{10}c_\mathrm{200c}$'                                                                                ), &
          &                                .true.                                                                                                                                     , &

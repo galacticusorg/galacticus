@@ -291,7 +291,7 @@ contains
     !#   <type>boolean</type>
     !#   <cardinality>0..1</cardinality>
     !# </inputParameter>
-   if (parameters%isPresent('scatterValueTarget')) then
+    if (parameters%isPresent('scatterValueTarget')) then
        if (parameters%isPresent('scatterCovarianceTarget')) then
           !# <inputParameter>
           !#   <name>scatterValueTarget</name>
@@ -400,7 +400,7 @@ contains
     double precision                                         , intent(in   )          , dimension(:,:) :: outputWeight
     logical                                                  , intent(in   ), optional                 :: xAxisIsLog                                  , yAxisIsLog                                   , &
          &                                                                                                likelihoodNormalize
-    class           (nodePropertyExtractorClass   ), intent(inout), target                   :: nodePropertyExtractor_            , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass             ), intent(inout), target                   :: nodePropertyExtractor_            , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass    ), intent(inout), target                   :: outputAnalysisPropertyOperator_             , outputAnalysisPropertyUnoperator_            , &
          &                                                                                                outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass      ), intent(inout), target                   :: outputAnalysisWeightOperator_
