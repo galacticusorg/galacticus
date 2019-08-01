@@ -9,6 +9,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use List::ExtraUtils;
 use Galacticus::Build::SourceTree::Hooks;
+use IO::Scalar;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'gccAttributes'} = \&Process_GCCAttributes;
@@ -22,8 +23,8 @@ sub Process_GCCAttributes {
     while ( $node ) {
 	if ( $node->{'type'} eq "code" ) {
 	    my $newContent;
-	    open(my $content,"<",\$node->{'content'});
-	    while ( my $line = <$content> ) {
+	    my $code = new IO::Scalar \$node->{'content'};
+	    while ( defined(my $line = $code->getline()) ) {
 		if ( $line =~ m /^\s*!GCC\$\s+attributes\s+unused\s*::\s*(.*)/ ) {
 		    # <workaround type="gfortran" PR="41209" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=41209"/>		    
 		    # This is an unused variable attribute. To avoid compiler warnings we test the location (or sizeof for pure
@@ -58,7 +59,7 @@ sub Process_GCCAttributes {
 		}
 		$newContent .= $line;
 	    }
-	    close($content);
+	    $code->close();
 	    $node->{'content'} = $newContent;
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);

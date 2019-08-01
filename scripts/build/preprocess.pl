@@ -25,7 +25,7 @@ my $tree = &Galacticus::Build::SourceTree::ParseFile($inputFileName);
     if ( exists($ENV{'GALACTICUS_PREPROCESSOR_ANALYZE'}) && $ENV{'GALACTICUS_PREPROCESSOR_ANALYZE'} eq "yes" );
 
 # Serialize back to source code.
-open(my $outputFile,">",$outputFileName);
+open(my $outputFile,">:utf8",$outputFileName);
 print $outputFile &Galacticus::Build::SourceTree::Serialize($tree);
 close($outputFile);
 
