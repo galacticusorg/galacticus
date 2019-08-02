@@ -1463,12 +1463,14 @@ CODE
 						if ( $rank > 0 ) {
 						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
 						    $inputCode  .= "  read (stateFile) storedShape\n";
-						    $inputCode  .= "  deallocate(storedShape)\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    $inputCode  .= "  call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
+						    $inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 						} else {
 						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+						}
+						if ( $rank > 0 ) {
+						    $inputCode  .= "  deallocate(storedShape)\n";
 						}
 					    }
 					    for(my $i=1;$i<=$rank;++$i) {
@@ -1479,9 +1481,9 @@ CODE
 					    $labelUsed   = 1;
 					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
-						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
+						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= "   write (label,'(i16)') sizeof(c__".$arrayElement.")\n";
+						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
 						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
@@ -1671,12 +1673,14 @@ CODE
 				    if ( $rank > 0 ) {
 					$inputCode  .= "  allocate(storedShape(".$rank."))\n";
 					$inputCode  .= "  read (stateFile) storedShape\n";
-					$inputCode  .= "  deallocate(storedShape)\n";
 				    }
 				    if ( $declaration->{'intrinsic'} eq "class" ) {
-					$inputCode  .= "  call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
+					$inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 				    } else {
 					$inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+				    }
+				    if ( $rank > 0 ) {
+					$inputCode  .= "  deallocate(storedShape)\n";
 				    }
 				}
 				for(my $i=1;$i<=$rank;++$i) {
@@ -1687,9 +1691,9 @@ CODE
 				$labelUsed   = 1;
 				$outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 				if ( $declaration->{'intrinsic'} eq "class" ) {
-				    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
+				    $outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 				    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
-				    $outputCode .= "   write (label,'(i16)') sizeof(c__".$arrayElement.")\n";
+				    $outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 				    $outputCode .= "  end select\n";
 				} else {
 				    $outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n";
@@ -1845,12 +1849,14 @@ CODE
 						if ( $rank > 0 ) {
 						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
 						    $inputCode  .= "  read (stateFile) storedShape\n";
-						    $inputCode  .= "  deallocate(storedShape)\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    $inputCode  .= "  call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
+						    $inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 						} else {
 						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+						}
+						if ( $rank > 0 ) {
+						    $inputCode  .= "  deallocate(storedShape)\n";
 						}
 					    }
 					    for(my $i=1;$i<=$rank;++$i) {
@@ -1861,9 +1867,9 @@ CODE
 					    $labelUsed   = 1;
 					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
-						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
+						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= "   write (label,'(i16)') sizeof(c__".$arrayElement.")\n";
+						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
 						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
