@@ -673,7 +673,8 @@ contains
     use IO_HDF5           , only : hdf5Object    , hdf5Access
     use Tables            , only : table1D
     use ISO_Varying_String, only : varying_string, char    
-    use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock
+    use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock, &
+         &                         File_Path     , Directory_Make
     implicit none
     class(table1D                ), intent(in   ) :: storeTable
     type (varying_string         ), intent(in   ) :: fileName
@@ -682,6 +683,7 @@ contains
     type (lockDescriptor         )                :: fileLock
 
     if (.not.tableStore) return
+    call Directory_Make      (char(File_Path(char(fileName))))
     call File_Lock_Initialize(               fileLock                     )
     call File_Lock           (char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
