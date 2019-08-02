@@ -186,7 +186,7 @@ CODE
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
 					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
-					    $inputCode  .= " call ".$type."ClassRestore(self%".$variableName.")\n"
+					    $inputCode  .= " call ".$type."ClassRestore(self%".$variableName.",stateFile)\n"
 						if ( $declaration->{'intrinsic'} eq "class" );
 					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,fgslStateFile)\n";
 					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,fgslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
@@ -356,39 +356,49 @@ CODE
 	    "\n"             ;
 	# Build the class restore functions.
 	foreach $code::parentClassName ( sort(keys(%classes)) ) {
-	    my $classRestoreCode = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine {$parentClassName}ClassRestore(self,stateFile)
+	    for(my $rank=0;$rank<=1;++$rank) {
+		$code::rankSuffix  = $rank > 0 ? $rank."D"      : "";
+		$code::storedShape = $rank > 0 ? ",storedShape" : "";
+		$code::dimensions  = $rank > 0 ? ", dimension(".join(",",map {":"} 1..$rank).")" : "";
+		my $classRestoreCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+subroutine {$parentClassName}ClassRestore{$rankSuffix}(self,stateFile{$storedShape})
  !% Restore the class of this object from file.
  use Galacticus_Error
+ use, intrinsic :: ISO_C_Binding, only : c_size_t
  implicit none
- class  ({$parentClassName}), intent(inout), allocatable  :: self
+ class  ({$parentClassName}), intent(inout), allocatable{$dimensions} :: self
  integer                    , intent(in   )               :: stateFile
  integer                                                  :: classIdentifier
+CODE
+		$classRestoreCode .= "integer(c_size_t), intent(in   ), dimension(".join(",",map {":"} 1..$rank).") :: storedShape\n"
+		    if ( $rank > 0 );
+		$classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
  read (stateFile) classIdentifier
  select case (classIdentifier)
 CODE
-	    foreach my $childClassName( sort(keys(%classIdentifiers)) ) {
-		my $parentClassName = $childClassName;
-		while ( defined($parentClassName) ) {
-		    if ( $parentClassName eq $code::parentClassName ) {
-			# This class extends our parent class, so include it in this function.
-			$classRestoreCode .= " case (".$classIdentifiers{$childClassName}.")\n";
-			$classRestoreCode .= "  if (allocated(self)) deallocate(self)\n";
-			$classRestoreCode .= "  allocate(".$childClassName." :: self)\n";
+		foreach my $childClassName( sort(keys(%classIdentifiers)) ) {
+		    my $parentClassName = $childClassName;
+		    while ( defined($parentClassName) ) {
+			if ( $parentClassName eq $code::parentClassName ) {
+			    # This class extends our parent class, so include it in this function.
+			    $classRestoreCode .= " case (".$classIdentifiers{$childClassName}.")\n";
+			    $classRestoreCode .= "  if (allocated(self)) deallocate(self)\n";
+			    $classRestoreCode .= "  allocate(".$childClassName." :: self".($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+			}
+			$parentClassName = $classes{$parentClassName}->{'extends'};
 		    }
-		    $parentClassName = $classes{$parentClassName}->{'extends'};
 		}
-	    }
-	    $classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+		$classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
  case default
   call Galacticus_Error_Report('serialized object is of incorrect class')
  end select
  return
-end subroutine {$parentClassName}ClassRestore
+end subroutine {$parentClassName}ClassRestore{$rankSuffix}
 CODE
-	    $functionCode .= $classRestoreCode."\n";
-	    # Set visibility of class restore function.
-	    &Galacticus::Build::SourceTree::SetVisibility($moduleNode,$code::parentClassName."ClassRestore","public");
+		$functionCode .= $classRestoreCode."\n";
+		# Set visibility of class restore function.
+		&Galacticus::Build::SourceTree::SetVisibility($moduleNode,$code::parentClassName."ClassRestore".$code::rankSuffix,"public");
+	    }
 	}
 	# Insert code.
 	my $treeTmp = &Galacticus::Build::SourceTree::ParseCode($functionCode,'null');
