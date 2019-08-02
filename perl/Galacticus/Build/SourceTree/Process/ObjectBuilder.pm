@@ -35,6 +35,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use List::ExtraUtils;
 use XML::Simple;
+use Encode;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'objectBuilder'} = \&Process_ObjectBuilder;
@@ -623,7 +624,7 @@ sub Process_ObjectBuilder {
 	    my $newNode =
 	    {
 		type       => "code"      ,
-		content    => $constructCode,
+		content    => encode(q{utf8},$constructCode),
 		firstChild => undef()
 	    };
 	    # Insert the node.
