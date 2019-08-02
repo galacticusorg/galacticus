@@ -34,15 +34,15 @@
      !% A linear transfer function class.
      private
      integer                                                                      :: wavenumberCount
-     double precision                                 , allocatable, dimension(:) :: powerSpectrumTable       , wavenumberTable
+     double precision                                 , allocatable, dimension(:) :: powerSpectrumTable                 , wavenumberTable
      type            (fgsl_interp                    )                            :: interpolationObject
      type            (fgsl_interp_accel              )                            :: interpolationAccelerator
      logical                                                                      :: resetInterpolation
      double precision                                                             :: timePrevious
      type            (lockDescriptor                 )                            :: fileLock
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_ => null()
-     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_ => null()
-     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_ => null()
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_       => null()
+     class           (cosmologyParametersClass       ), pointer                   :: cosmologyParameters_      => null()
+     class           (powerSpectrumPrimordialClass   ), pointer                   :: powerSpectrumPrimordial_  => null()
      class           (cosmologicalMassVarianceClass  ), pointer                   :: cosmologicalMassVariance_ => null()
    contains
      final     ::          cosmicEmuDestructor
