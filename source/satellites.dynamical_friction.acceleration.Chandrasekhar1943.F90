@@ -116,6 +116,7 @@ contains
     double precision                                                             :: massSatellite                , densityHost       , &
          &                                                                          velocityMagnitude            , velocityDispersion, &
          &                                                                          Xv                           , radius
+    double precision                                             , parameter     :: XvMaximum=10.0d0
 
     nodeHost                     =>  node     %mergesWith                                    (               )
     satellite                    =>  node     %satellite                                     (               )
@@ -126,27 +127,41 @@ contains
     velocityDispersion           =   self     %darkMatterProfileDMO_%radialVelocityDispersion(nodeHost,radius)
     velocityMagnitude            =   Vector_Magnitude          (         velocity                            )
     densityHost                  =   Galactic_Structure_Density(nodeHost,position,coordinateSystemCartesian  )
-    Xv                           =  +velocityMagnitude                  &
-         &                          /velocityDispersion                 &
+    Xv                           =  +velocityMagnitude                     &
+         &                          /velocityDispersion                    &
          &                          /sqrt(2.0d0)
-    chandrasekhar1943Acceleration=  -4.0d0                              &
-         &                          *Pi                                 &
-         &                          *self%logarithmCoulomb              &
-         &                          *gravitationalConstantGalacticus**2 &
-         &                          *massSatellite                      &
-         &                          *densityHost                        &
-         &                          /velocityMagnitude**3               &
-         &                          *(                                  &
-         &                            +Error_Function(Xv)               &
-         &                            -2.0d0                            &
-         &                            *Xv                               &
-         &                            *exp(-Xv**2)                      &
-         &                            /sqrt(Pi)                         &
-         &                           )                                  &
-         &                          *velocity                           &
-         &                          *kilo                               &
-         &                          *gigaYear                           &
-         &                          /megaParsec
+    if (Xv <= XvMaximum) then
+       chandrasekhar1943Acceleration=  -4.0d0                              &
+            &                          *Pi                                 &
+            &                          *self%logarithmCoulomb              &
+            &                          *gravitationalConstantGalacticus**2 &
+            &                          *massSatellite                      &
+            &                          *densityHost                        &
+            &                          /velocityMagnitude**3               &
+            &                          *(                                  &
+            &                            +Error_Function(Xv)               &
+            &                            -2.0d0                            &
+            &                            *Xv                               &
+            &                            *exp(-Xv**2)                      &
+            &                            /sqrt(Pi)                         &
+            &                           )                                  &
+            &                          *velocity                           &
+            &                          *kilo                               &
+            &                          *gigaYear                           &
+            &                          /megaParsec
+    else
+       chandrasekhar1943Acceleration=  -4.0d0                              &
+            &                          *Pi                                 &
+            &                          *self%logarithmCoulomb              &
+            &                          *gravitationalConstantGalacticus**2 &
+            &                          *massSatellite                      &
+            &                          *densityHost                        &
+            &                          /velocityMagnitude**3               &
+            &                          *velocity                           &
+            &                          *kilo                               &
+            &                          *gigaYear                           &
+            &                          /megaParsec
+    end if
     return
   end function chandrasekhar1943Acceleration
 
