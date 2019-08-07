@@ -1085,13 +1085,14 @@ contains
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout)            :: self
     double precision                         , intent(in   )            :: concentration, radius
+    double precision                                        , parameter :: minimumRadiusForExactSolution   =1.0d-6
     ! Precomputed NFW normalization factor for unit radius.
     double precision                                        , parameter :: nfwNormalizationFactorUnitRadius=-8.5d0+Pi**2-6.0d0*log(2.0d0)+6.0d0*log(2.0d0)**2
     double precision                                                    :: radialVelocityDispersionSquare
 
     if (radius == 1.0d0) then
        radialVelocityDispersionSquare=nfwNormalizationFactorUnitRadius
-    else if (radius > 0.0d0) then
+    else if (radius >= minimumRadiusForExactSolution) then
        radialVelocityDispersionSquare=+0.5d0*radius*(1.0d0+radius)**2   &
             &                         *(                                &
             &                           +Pi**2                          &
@@ -1108,6 +1109,10 @@ contains
             &                           +3.0d0*log(1.0d0+radius)**2     &
             &                           +6.0d0*FGSL_SF_DILOG(-radius)   &
             &                          )
+    else if (radius > 0.0d0) then
+       radialVelocityDispersionSquare=+0.25d0      *(-23.0d0       + 2.0d0*Pi**2- 2.0d0*log(radius))*radius    &
+            &                         +             (-59.0d0/6.0d0 +       Pi**2-       log(radius))*radius**2 &
+            &                         +1.0d0/24.0d0*(-101.0d0      +12.0d0*Pi**2-12.0d0*log(radius))*radius**3
     else
        radialVelocityDispersionSquare=0.0d0
     end if
