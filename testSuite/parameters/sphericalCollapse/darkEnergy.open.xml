@@ -13,5 +13,4 @@
     <HubbleConstant value="70.0"/>
   </cosmologyParametersMethod>
   <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
-  <virialDensityContrastMethod value="sphericalCollapseMatterDE"/>
 </parameters>
