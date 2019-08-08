@@ -43,6 +43,18 @@ module File_Utilities
      module procedure File_Exists_VarStr
   end interface File_Exists
 
+  interface File_Path
+     !% Generic interface for functions that return the path to a file.
+     module procedure File_Path_Char
+     module procedure File_Path_VarStr
+  end interface File_Path
+
+  interface Directory_Make
+     !% Generic interface for functions that create a directory.
+     module procedure Directory_Make_Char
+     module procedure Directory_Make_VarStr
+  end interface Directory_Make
+
   interface
      function mkdir_C(name) bind(c,name='mkdir_C')
        !% Template for a C function that calls {\normalfont \ttfamily mkdir()} to make a directory.
@@ -235,7 +247,16 @@ contains
 
   end function Executable_Find
 
-  subroutine Directory_Make(pathName)
+  subroutine Directory_Make_VarStr(pathName)
+    !% Make the given directory path. Will create intermediate directories in the path if necessary.
+    implicit none
+    type(varying_string), intent(in   ) :: pathName
+
+    call Directory_Make(char(pathName))
+    return
+  end subroutine Directory_Make_VarStr
+  
+  subroutine Directory_Make_Char(pathName)
     !% Make the given directory path. Will create intermediate directories in the path if necessary.
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -255,21 +276,31 @@ contains
     status=mkdir_C(trim(pathName))
     if (status /= 0) call Galacticus_Error_Report('failed to make directory "'//trim(pathName)//'"'//{introspection:location})
     return
-  end subroutine Directory_Make
+  end subroutine Directory_Make_Char
   
-  function File_Path(fileName)
+  function File_Path_VarStr(fileName)
     !% Returns the path to the file.
     implicit none
-    type     (varying_string)                :: File_Path
+    type(varying_string)                :: File_Path_VarStr
+    type(varying_string), intent(in   ) :: fileName
+
+    File_Path_VarStr=File_Path(char(fileName))
+    return
+  end function File_Path_VarStr
+  
+  function File_Path_Char(fileName)
+    !% Returns the path to the file.
+    implicit none
+    type     (varying_string)                :: File_Path_Char
     character(len=*         ), intent(in   ) :: fileName
 
     if (index(fileName,"/",back=.true.) > 0) then
-       File_Path=extract(fileName,1,index(fileName,"/",back=.true.))
+       File_Path_Char=extract(fileName,1,index(fileName,"/",back=.true.))
     else
-       File_Path="./"
+       File_Path_Char="./"
     end if
     return
-  end function File_Path
+  end function File_Path_Char
   
   function File_Name(fileName)
     !% Returns the path to the file.
