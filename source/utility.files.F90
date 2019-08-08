@@ -19,8 +19,8 @@
 
 !% Contains a module which implements various file-related utilities.
 
-! Specify an explicit dependence on the flock.o object file.
-!: $(BUILDPATH)/flock.o
+! Specify an explicit dependence on the C interface files.
+!: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o
 
 module File_Utilities
   !% Implements various file-related utilities.
@@ -42,6 +42,15 @@ module File_Utilities
      module procedure File_Exists_Char
      module procedure File_Exists_VarStr
   end interface File_Exists
+
+  interface
+     function mkdir_C(name) bind(c,name='mkdir_C')
+       !% Template for a C function that calls {\normalfont \ttfamily mkdir()} to make a directory.
+       import
+       integer  (c_int ) :: mkdir_C
+       character(c_char) :: name
+     end function mkdir_C
+  end interface
 
   interface
      subroutine flock_C(name,ld,lockIsShared) bind(c,name='flock_C')
@@ -227,12 +236,24 @@ contains
   end function Executable_Find
 
   subroutine Directory_Make(pathName)
-    !% Make the given directory path.
-    use System_Command
+    !% Make the given directory path. Will create intermediate directories in the path if necessary.
+    use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   ) :: pathName
+    integer  (c_int)                :: status
+    integer                         :: i
 
-    call System_Command_Do("mkdir -p "//pathName)
+    ! Quick return if the path exists.
+    if (File_Exists(var_str(pathName))) return
+    do i=2,len(trim(pathName))
+       if (pathName(i:i) == "/") then
+          if (File_Exists(var_str(pathName(1:i-1)))) cycle
+          status=mkdir_C(pathName(1:i-1)//char(0))
+          if (status /= 0) call Galacticus_Error_Report('failed to make intermediate directory "'//pathName(1:i-1)//'"'//{introspection:location})
+       end if
+    end do
+    status=mkdir_C(trim(pathName))
+    if (status /= 0) call Galacticus_Error_Report('failed to make directory "'//trim(pathName)//'"'//{introspection:location})
     return
   end subroutine Directory_Make
   
