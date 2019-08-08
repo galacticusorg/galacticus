@@ -118,11 +118,11 @@ contains
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
     use               :: Input_Parameters                , only : inputParameters
-    use               :: ISO_Varying_String              , only : varying_string          , char               , extract    , len        , &
+    use               :: ISO_Varying_String              , only : varying_string          , char               , extract       , len        , &
          &                                                        assignment(=)           , operator(==)
     use               :: IO_HDF5                         , only : hdf5Object              , hdf5Access
-    use               :: File_Utilities                  , only : File_Lock_Initialize    , File_Lock          , File_Unlock, File_Exists, &
-         &                                                        Count_Lines_In_File
+    use               :: File_Utilities                  , only : File_Lock_Initialize    , File_Lock          , File_Unlock   , File_Exists, &
+         &                                                        Count_Lines_In_File     , File_Path          , Directory_Make
     use               :: System_Command                  , only : System_Command_Do
     use               :: Galacticus_Error                , only : Galacticus_Error_Report
     use               :: Galacticus_Paths                , only : galacticusPath          , pathTypeDataDynamic
@@ -194,7 +194,7 @@ contains
          &                       '.hdf5'
     if (present(fileName)) fileName=fileName_
     ! Create the directory.
-    call System_Command_Do("mkdir -p `dirname "//fileName_//"`")
+    call Directory_Make(File_Path(fileName_))
     ! If the file exists but has not yet been read, read it now.
     if (lockFileGlobally) then
        if (.not.cambFileLockInitialized) then
@@ -301,7 +301,7 @@ contains
        parameterFile=workPath//'transfer_function_parameters'//'_'//trim(hostName)//'_'//GetPID()
        !$ parameterFile=parameterFile//'_'//OMP_Get_Thread_Num()
        parameterFile=parameterFile//'.txt'
-       call System_Command_Do("mkdir -p "//char(workPath))
+       call Directory_Make(workPath)
        open(newunit=cambParameterFile,file=char(parameterFile),status='unknown',form='formatted')
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'output_root                  ','camb'
        write (cambParameterFile,'(a,1x,"=",1x,a    )') 'get_scalar_cls               ','F'
