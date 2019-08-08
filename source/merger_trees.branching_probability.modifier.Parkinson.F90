@@ -96,7 +96,6 @@ contains
 
   double precision function parkinson2008RateModifier(self,deltaParent,sigmaChild,sigmaParent)
     !% Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
-    !% Return the core radius of the hot halo mass distribution.
     implicit none
     class           (mergerTreeBranchingProbabilityModifierParkinson2008), intent(inout) :: self
     double precision                                                     , intent(in   ) :: sigmaChild , deltaParent, &
