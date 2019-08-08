@@ -108,7 +108,7 @@ contains
     self%fileName=self%fileName//'_YHe'            //trim(parameterLabel)
     self%fileName=self%fileName//'.hdf5'
     ! Create directory for output.
-    call System_Command_Do('mkdir -p '//char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium')
+    call Directory_Make(galacticusPath(pathTypeDataDynamic)//'intergalacticMedium')
     ! Lock file
     call File_Lock_Initialize(self%fileLock)
     call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)

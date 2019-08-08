@@ -170,7 +170,7 @@ contains
        self%timePrevious=time
        redshift         =self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
        ! Generate parameters and a file name for this power spectrum.
-       call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"largeScaleStructure")
+       call Directory_Make(galacticusPath(pathTypeDataDynamic)//"largeScaleStructure")
        powerSpectrumFile=galacticusPath(pathTypeDataDynamic)//"largeScaleStructure/powerSpectrumCosmicEmu"
        parameterFile    =File_Name_Temporary("cosmicEmuParameters")
        parameters       =''
@@ -209,7 +209,7 @@ contains
           write (powerSpectrumUnit,'(a)') char(parameters)
           close(powerSpectrumUnit)
           ! Check for presence of the executable.
-          call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
+          call Directory_Make(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1")
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) then    
              ! Check for presence of the source code.
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
