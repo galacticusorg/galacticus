@@ -29,7 +29,7 @@
      !% A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).
      private
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
-     type (hdf5Object                   )          :: file                     , snapshots
+     type (hdf5Object                   )          :: file                               , snapshots
    contains
      final     ::         sussingHDF5Destructor
      procedure :: open => sussingHDF5Open
