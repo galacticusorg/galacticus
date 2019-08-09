@@ -34,6 +34,7 @@
      procedure :: neutralHydrogenFraction     => simpleNeutralHydrogenFraction
      procedure :: neutralHeliumFraction       => simpleNeutralHeliumFraction
      procedure :: singlyIonizedHeliumFraction => simpleSinglyIonizedHeliumFraction
+     procedure :: descriptor                  => simpleDescriptor
   end type intergalacticMediumStateSimple
 
   interface intergalacticMediumStateSimple
@@ -199,3 +200,26 @@ contains
     end if
     return
   end function simpleTemperature
+
+  subroutine simpleDescriptor(self,descriptor,includeMethod)
+    !% Return an input parameter list descriptor which could be used to recreate this object.
+    use Input_Parameters, only : inputParameters
+    implicit none
+    class    (intergalacticMediumStateSimple), intent(inout)           :: self
+    type     (inputParameters               ), intent(inout)           :: descriptor
+    logical                                  , intent(in   ), optional :: includeMethod
+    character(len=18                        )                          :: parameterLabel
+    type     (inputParameters               )                          :: parameters
+    
+    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','simple')
+    parameters=descriptor%subparameters('intergalacticMediumStateMethod')
+    write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime          ))
+    call parameters%addParameter('reionizationRedshift'      ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)')                                                                                               self%reionizationTemperature
+    call parameters%addParameter('reionizationTemperature'   ,trim(adjustl(parameterLabel)))
+    write (parameterLabel,'(e17.10)')                                                                                               self%preReionizationTemperature
+    call parameters%addParameter('preReionizationTemperature',trim(adjustl(parameterLabel)))
+    call self%cosmologyFunctions_ %descriptor(parameters)
+    call self%cosmologyParameters_%descriptor(parameters)
+    return
+  end subroutine simpleDescriptor
