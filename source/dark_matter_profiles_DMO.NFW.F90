@@ -912,7 +912,6 @@ contains
     !% Returns the radius (in units of the scale radius) in an NFW dark matter profile with given {\normalfont \ttfamily
     !% concentration} which encloses a given density (in units of the virial mass per cubic scale radius).
     use Galacticus_Nodes        , only : nodeComponentDarkMatterProfile, nodeComponentBasic
-    use Numerical_Constants_Math
     implicit none
     class           (darkMatterProfileDMONFW       ), intent(inout), target :: self
     type            (treeNode                      ), intent(inout), target :: node
@@ -1079,19 +1078,28 @@ contains
   double precision function nfwRadialVelocityDispersionScaleFree(self,radius,concentration)
     !% Returns the radial velocity dispersion (in units of the virial velocity) in an NFW dark matter profile with given
     !% {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)
-    !% using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14).
+    !% using the result derived by \citeauthor{lokas_properties_2001}~(\citeyear{lokas_properties_2001}; eqn.~14). Note that
+    !% approximate solutions are used at small and large radii.
     use Numerical_Constants_Math
     use FGSL                    , only : FGSL_SF_DILOG
     implicit none
     class           (darkMatterProfileDMONFW), intent(inout)            :: self
     double precision                         , intent(in   )            :: concentration, radius
     double precision                                        , parameter :: minimumRadiusForExactSolution   =1.0d-6
+    double precision                                        , parameter :: maximumRadiusForExactSolution   =5.0d2
     ! Precomputed NFW normalization factor for unit radius.
     double precision                                        , parameter :: nfwNormalizationFactorUnitRadius=-8.5d0+Pi**2-6.0d0*log(2.0d0)+6.0d0*log(2.0d0)**2
     double precision                                                    :: radialVelocityDispersionSquare
 
     if (radius == 1.0d0) then
        radialVelocityDispersionSquare=nfwNormalizationFactorUnitRadius
+    else if (radius >= maximumRadiusForExactSolution) then
+       radialVelocityDispersionSquare=+(2.0d0+radius)                                      &
+            &                         *(                                                   &
+            &                           +         188.0d0-75.0d0*radius                    &
+            &                           +20.0d0*(-  8.0d0+ 5.0d0*radius)*log(1.0d0+radius) &
+            &                          )                                                   &
+            &                         /(400.0d0*radius**3)
     else if (radius >= minimumRadiusForExactSolution) then
        radialVelocityDispersionSquare=+0.5d0*radius*(1.0d0+radius)**2   &
             &                         *(                                &
