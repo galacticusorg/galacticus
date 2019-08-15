@@ -757,7 +757,9 @@ module Galacticus_Nodes
        deallocate(nodeDestroy)
     end do
     ! Destroy the base node of the branch.
-    if (associated(self%parent).and.associated(self%parent%firstChild,self)) self%parent%firstChild => self%sibling
+    if (associated(self%parent)) then
+       if (associated(self%parent%firstChild,self)) self%parent%firstChild => self%sibling
+    end if
     call self%destroy()
     return
   end subroutine treeNodeDestroyBranch
