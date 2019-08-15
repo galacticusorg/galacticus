@@ -148,7 +148,8 @@ contains
     type            (fgsl_integration_workspace              )                                           :: integrationWorkspace
     type            (fgsl_interp                             )                                           :: interpolationObject
     type            (fgsl_interp_accel                       )                                           :: interpolationAccelerator
-    logical                                                                                              :: integrandReset                       , interpolationReset
+    logical                                                                                              :: integrandReset                       , interpolationReset                       , &
+         &                                                                                                  monotonize
     !GCC$ attributes unused :: weight
     
     ! Generate a randomly sampled set of halo masses.
@@ -181,17 +182,16 @@ contains
        else
           probability=0.0d0
        end if
-       if     (                                                       &
-            &     iSample == 1                                        &
-            &  .or.                                                   &
-            &   (                                                     &
-            &     jSample >  0                                        &
-            &    .and.                                                &
-            &      massFunctionSampleProbability(jSample)+probability &
-            &     >                                                   &
-            &      massFunctionSampleProbability(jSample)             &
-            &   )                                                     &
-            & ) then
+       if (iSample == 1) then
+          monotonize=.true.
+       else if (jSample > 0) then
+          monotonize= massFunctionSampleProbability(jSample)+probability &
+               &     >                                                   &
+               &      massFunctionSampleProbability(jSample)
+       else
+          monotonize=.false.
+       end if
+       if (monotonize) then
           jSample=jSample+1
           massFunctionSampleProbability     (jSample)=probability
           massFunctionSampleLogMassMonotonic(jSample)=massFunctionSampleLogMass(iSample)

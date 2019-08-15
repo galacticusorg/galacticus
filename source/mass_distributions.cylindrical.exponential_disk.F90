@@ -507,6 +507,7 @@ contains
     integer                                          , parameter     :: rotationCurvePointsPerDecade=10
     integer                                                          :: iPoint                             , rotationCurvePointsCount
     double precision                                                 :: x
+    logical                                                          :: makeTable
 
     ! For small half-radii, use a series expansion for a more accurate result.
     if (halfRadius <= 0.0d0) then
@@ -517,13 +518,14 @@ contains
        return
     end if
     !$ call OMP_Set_Lock(self%rotationCurveLock)
-    if     (                                            &
-         &   .not.self%rotationCurveInitialized         &
-         &  .or.                                        &
-         &   halfRadius < self%rotationCurveTable%x(+1) &
-         &  .or.                                        &
-         &   halfRadius > self%rotationCurveTable%x(-1) &
-         & ) then
+    if (.not.self%rotationCurveInitialized) then
+       makeTable=.true.
+    else
+       makeTable= halfRadius < self%rotationCurveTable%x(+1) &
+         &       .or.                                        &
+         &        halfRadius > self%rotationCurveTable%x(-1)
+    end if
+    if (makeTable) then
        ! Find the minimum and maximum half-radii to tabulate.
        self%rotationCurveHalfRadiusMinimum=min(self%rotationCurveHalfRadiusMinimum,0.5d0*halfRadius)
        self%rotationCurveHalfRadiusMaximum=max(self%rotationCurveHalfRadiusMaximum,2.0d0*halfRadius)
