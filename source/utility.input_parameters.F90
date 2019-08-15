@@ -507,7 +507,11 @@ contains
     !$omp critical (FoX_DOM_Access)
     if (.not.noBuild_) then
        allocate(inputParametersConstructorNode%parameters)
+       inputParametersConstructorNode%parameters%content    => null()
+       inputParametersConstructorNode%parameters%parent     => null()
        inputParametersConstructorNode%parameters%firstChild => null()
+       inputParametersConstructorNode%parameters%sibling    => null()
+       inputParametersConstructorNode%parameters%referenced => null()
        call inputParametersConstructorNode%buildTree        (inputParametersConstructorNode%parameters,parametersNode)    
        call inputParametersConstructorNode%resolveReferences(                                                        )
     end if
@@ -1547,6 +1551,7 @@ contains
     currentParameter%parent     => self%parameters
     currentParameter%firstChild => null()
     currentParameter%sibling    => null()
+    currentParameter%referenced => null()
     return
   end subroutine inputParametersAddParameter
     

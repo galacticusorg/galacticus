@@ -124,13 +124,15 @@ contains
     integer                                                                               :: status
     double precision                                                                      :: h                               , x                       , &
          &                                                                                   x1Internal                      , xStepBegin
-    logical                                                                               :: forwardEvolve                   , resetActual
+    logical                                                                               :: forwardEvolve                   , resetActual             , &
+         &                                                                                   doReset
     type            (fodeiv2_step_type           )                                        :: algorithmActual
     type            (varying_string              )                                        :: message
     type            (c_ptr                       )                                        :: parameterPointer
     type            (c_funptr                    )                                        :: latentIntegrator_               , postStep_               , &
          &                                                                                   Error_Analyzer_
     !# <optionalArgument name="integratorErrorTolerate" defaultsTo=".false." />
+    !# <optionalArgument name="zCount"                  defaultsTo="0"       />
 
     ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
     currentODEsIndex=currentODEsIndex+1
@@ -169,17 +171,26 @@ contains
        z0=z
     end if
     ! Initialize integrator if required.
-    if (present(zCount).and.zCount > 0) call integrator_%integrandSet (zCount,integrandsWrapper )
+    if (zCount_ > 0) call integrator_%integrandSet (zCount,integrandsWrapper)
     ! Decide whether to reset.
     resetActual=.false.
     if (present(reset)) then
        resetActual=reset
        reset=.false.
     end if
-    if (resetActual.or..not.FODEIV2_Driver_Status(odeDriver)) then
+    if (resetActual) then
+       doReset=.true.
+    else if (.not.FODEIV2_Driver_Status(odeDriver)) then
+       doReset=.true.
+    else
+       doReset=.false.
+    end if
+    if (doReset) then
        ! Make initial guess for timestep.
        h=(x1-x0)
-       if (present(stepSize).and.stepSize > 0.0d0) h=min(stepSize,h)
+       if (present(stepSize)) then
+          if (stepSize > 0.0d0) h=min(stepSize,h)
+       end if
        if (present(jacobian)) then
           odeSystem=FODEIV2_System_Init(odesWrapperIV2,currentODEs(currentODEsIndex)%ODENumber,parameterPointer,jacobianWrapperIV2)
        else
@@ -211,7 +222,7 @@ contains
     ! Reset the driver.
     status=FODEIV2_Driver_Reset(odeDriver)
     ! Get a C-pointer to our latent integrator.
-    if (present(zCount).and.zCount > 0) then
+    if (zCount_ > 0) then
        latentIntegrator_=C_FunLoc(latentIntegrator)
     else
        latentIntegrator_=C_NULL_FUNPTR

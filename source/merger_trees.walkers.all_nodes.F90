@@ -123,7 +123,9 @@ contains
        if (self%spanForest) then
           do while (associated(self%tree))
              self%tree => self%tree%nextTree
-             if (associated(self%tree).and.associated(self%tree%baseNode)) exit
+             if (associated(self%tree)) then
+                if (associated(self%tree%baseNode)) exit
+             end if
           end do
        else
           self%tree => null()
