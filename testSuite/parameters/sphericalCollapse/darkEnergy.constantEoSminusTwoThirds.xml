@@ -12,7 +12,5 @@
     <OmegaBaryon value="0.0"/>
     <HubbleConstant value="70.0"/>
   </cosmologyParametersMethod>
-  <virialDensityContrastMethod value="sphericalCollapseMatterDE">
-    <energyFixedAt value="virialization"/>
-  </virialDensityContrastMethod>
+  <criticalOverdensityMethod value="sphericalCollapseMatterDE"/>
 </parameters>
