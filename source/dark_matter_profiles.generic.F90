@@ -896,13 +896,14 @@ contains
 
   double precision function genericCircularVelocityMaximumNumerical(self,node)
     !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
-    use Root_Finder, only : rootFinder, rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use Root_Finder         , only : rootFinder, rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use Numerical_Comparison, only : Values_Agree
     implicit none
     class           (darkMatterProfileGeneric), intent(inout), target :: self
     type            (treeNode                ), intent(inout), target :: node
     double precision                          , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-3
     type            (rootFinder              )                        :: finder
-
+    
     genericSelf => self
     genericNode => node
     call finder%rootFunction(rootCircularVelocityMaximum                  )
@@ -914,7 +915,23 @@ contains
          &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
          &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                  )
-    genericCircularVelocityMaximumNumerical=self%circularVelocityNumerical(node,finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node)))
+    ! Isothermal profiles have dVc²/dr=0 everywhere. To handle these profiles, first test if the root function is sufficiently
+    ! close to zero at the virial radius (which it will be for an isothermal profile), and return the circular velocity at that
+    ! radius if so. Otherwise solve for the radius corresponding to the maximum circular velocity.
+    if     (                                                                                                           &
+         &  Values_Agree(                                                                                              &
+         &                      +rootCircularVelocityMaximum   (     self%darkMatterHaloScale_%virialRadius(node))   , &
+         &                      +0.0d0                                                                               , &
+         &               absTol=+toleranceRelative                                                                     &
+         &                      *self%circularVelocityNumerical(node,self%darkMatterHaloScale_%virialRadius(node))**2  &
+         &                      /                                    self%darkMatterHaloScale_%virialRadius(node)      &
+         &                                                                                                             &
+         &               )                                                                                             &
+         & ) then
+       genericCircularVelocityMaximumNumerical=self%circularVelocityNumerical(node,                      self%darkMatterHaloScale_%virialRadius(node) )
+    else
+       genericCircularVelocityMaximumNumerical=self%circularVelocityNumerical(node,finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node)))
+    end if
     return    
   end function genericCircularVelocityMaximumNumerical
 
