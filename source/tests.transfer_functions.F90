@@ -24,10 +24,12 @@ program Tests_Transfer_Functions
   use Unit_Tests           , only : Unit_Tests_Begin_Group          , Unit_Tests_End_Group, Unit_Tests_Finish, Assert
   use Transfer_Functions   , only : transferFunctionEisensteinHu1999
   use Cosmology_Parameters , only : cosmologyParametersSimple
+  use Cosmology_Functions  , only : cosmologyFunctionsMatterLambda
   use Dark_Matter_Particles, only : darkMatterParticleCDM
   use Galacticus_Display   , only : Galacticus_Verbosity_Level_Set  , verbosityStandard
   implicit none
   type            (cosmologyParametersSimple       )               :: cosmologyParameters_
+  type            (cosmologyFunctionsMatterLambda  )               :: cosmologyFunctions_
   type            (transferFunctionEisensteinHu1999)               :: transferFunctionEisensteinHu1999_
   type            (darkMatterParticleCDM           )               :: darkMatterParticle_
   double precision                                  , parameter    :: stepLogarithmic                     =1.0d-3
@@ -49,13 +51,17 @@ program Tests_Transfer_Functions
        &                                                             temperatureCMB         = 2.700d0            , &
        &                                                             HubbleConstant         =70.0d0                &
        &                                                            )
+  cosmologyFunctions_              =cosmologyFunctionsMatterLambda  (                                              &
+       &                                                             cosmologyParameters_   =cosmologyParameters_  &
+       &                                                            )
   darkMatterParticle_              =darkMatterParticleCDM           (                                              &
        &                                                            )
   transferFunctionEisensteinHu1999_=transferFunctionEisensteinHu1999(                                              &
        &                                                             neutrinoNumberEffective=3.046d0             , &
        &                                                             neutrinoMassSummed     =0.060d0             , &
        &                                                             darkMatterParticle_    =darkMatterParticle_ , &
-       &                                                             cosmologyParameters_   =cosmologyParameters_  &
+       &                                                             cosmologyParameters_   =cosmologyParameters_, &
+       &                                                             cosmologyFunctions_    =cosmologyFunctions_   &
        &                                                            )
   ! Iterate over reference wavenumbers.
   wavenumberReference=[1.0d-2,1.0d+0]

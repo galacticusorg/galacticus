@@ -136,7 +136,8 @@ contains
        call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Download the AGN SED code.
        if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) then
-          call System_Command_Do("mkdir -p aux/AGN_Spectrum; wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c");
+          call Directory_Make(galacticusPath(pathTypeDataDynamic)//"/AGN_Spectrum")
+          call System_Command_Do("wget --no-check-certificate http://www.tapir.caltech.edu/~phopkins/Site/qlf_files/agn_spectrum.c -O "//char(galacticusPath(pathTypeDataStatic))//"aux/AGN_Spectrum/agn_spectrum.c");
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.c")) call Galacticus_Error_Report('failed to download agn_spectrum.c'//{introspection:location})
        end if
        ! Compile the AGN SED code.
@@ -145,7 +146,7 @@ contains
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"AGN_Spectrum/agn_spectrum.x")) call Galacticus_Error_Report('failed to compile agn_spectrum.c'//{introspection:location})
        end if
        ! Generate a tabulation of AGN spectra over a sufficiently large range of AGN luminosity.
-       call System_Command_Do("mkdir -p "//char(galacticusPath(pathTypeDataStatic))//"blackHoles")
+       call Directory_Make(char(galacticusPath(pathTypeDataStatic))//"blackHoles")
        allocate(luminosityBolometric(luminosityBolometricCount))
        luminosityBolometric=Make_Range(luminosityBolometricMinimum,luminosityBolometricMaximum,luminosityBolometricCount,rangeTypeLogarithmic)
        do i=1,luminosityBolometricCount

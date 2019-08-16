@@ -360,7 +360,7 @@ contains
     !#  <constructor>
     !#   outputAnalysisVolumeFunction1D(                                                         &amp;
     !#    &amp;                         var_str('localGroupMassFunction')                      , &amp;
-    !#    &amp;                         var_str('Mass function of Local Group satellires')     , &amp;
+    !#    &amp;                         var_str('Mass function of Local Group satellites')     , &amp;
     !#    &amp;                         var_str('massStellar')                                 , &amp;
     !#    &amp;                         var_str('Stellar mass at the bin center')              , &amp;
     !#    &amp;                         var_str('M☉')                                          , &amp;

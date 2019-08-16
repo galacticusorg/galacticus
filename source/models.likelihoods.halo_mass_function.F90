@@ -39,7 +39,7 @@
      class           (cosmologicalMassVarianceClass), pointer                     :: cosmologicalMassVariance_ => null(), cosmologicalMassVarianceUnconditioned_ => null()
      class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_      => null(), criticalOverdensityUnconditioned_      => null()
      class           (darkMatterHaloScaleClass     ), pointer                     :: darkMatterHaloScale_      => null()
-     class           (darkMatterProfileDMOClass       ), pointer                     :: darkMatterProfileDMO_        => null()
+     class           (darkMatterProfileDMOClass    ), pointer                     :: darkMatterProfileDMO_     => null()
      class           (haloEnvironmentClass         ), pointer                     :: haloEnvironment_          => null()
      double precision                                                             :: time                               , massParticle                                    , &
           &                                                                          massRangeMinimum                   , redshift     
@@ -309,7 +309,7 @@ contains
     !# <objectDestructor name="self%cosmologicalMassVariance_"             />
     !# <objectDestructor name="self%criticalOverdensity_"                  />
     !# <objectDestructor name="self%darkMatterHaloScale_"                  />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"                    />
+    !# <objectDestructor name="self%darkMatterProfileDMO_"                 />
     !# <objectDestructor name="self%haloEnvironment_"                      />
     !# <objectDestructor name="self%cosmologicalMassVarianceUnconditioned_"/>
     !# <objectDestructor name="self%criticalOverdensityUnconditioned_"     />

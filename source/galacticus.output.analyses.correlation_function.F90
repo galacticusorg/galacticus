@@ -1312,7 +1312,7 @@ contains
     double precision                                   , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                   , allocatable  , dimension(:  ) :: functionValueDifference
     type            (vector                           )                                :: residual
-    type            (matrix                           )                                :: covariance                , covarianceInverse
+    type            (matrix                           )                                :: covariance
     
     ! Check for existance of a target distribution.
     if (allocated(self%binnedProjectedCorrelationTarget)) then
@@ -1334,11 +1334,9 @@ contains
             &                              +self%binnedProjectedCorrelationCovarianceTarget
        residual                  =functionValueDifference
        covariance                =functionCovarianceCombined
-       ! Find the inverse covariance matrix of the combined model and target covariances.
-       covarianceInverse=covariance%invert()
        ! Compute the log-likelihood.
-       correlationFunctionLogLikelihood=-0.5d0*(residual*(covarianceInverse*residual)) &
-            &                           -0.5d0*covariance%determinant()                &
+       correlationFunctionLogLikelihood=-0.5d0*covariance%covarianceProduct(residual) &
+            &                           -0.5d0*covariance%determinant()               &
             &                           -0.5d0*dble(self%binCount)*log(2.0d0*Pi)
     else
        correlationFunctionLogLikelihood=0.0d0

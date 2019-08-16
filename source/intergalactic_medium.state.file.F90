@@ -48,6 +48,7 @@
           &                                                            interpolationObjectIonizedHydrogenFraction             , interpolationObjectIonizedHeliumFraction
      logical                                                        :: interpolationResetElectronFraction             =.true. , interpolationResetTemperature                =.true., &
           &                                                            interpolationResetIonizedHydrogenFraction      =.true. , interpolationResetIonizedHeliumFraction      =.true.
+     integer                                                        :: extrapolationType
    contains
      final     ::                                fileDestructor
      procedure :: electronFraction            => fileElectronFraction
@@ -73,7 +74,6 @@ contains
     type (inputParameters             ), intent(inout) :: parameters
     class(cosmologyFunctionsClass     ), pointer       :: cosmologyFunctions_
     class(cosmologyParametersClass    ), pointer       :: cosmologyParameters_
-    class(linearGrowthClass           ), pointer       :: linearGrowth_
     type (varying_string              )                :: fileName
     
     !# <inputParameter>
@@ -86,16 +86,14 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
-    self=intergalacticMediumStateFile(fileName,cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
+    self=intergalacticMediumStateFile(fileName,cosmologyFunctions_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="linearGrowth_"       />
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
+  function fileConstructorInternal(fileName,cosmologyFunctions_,cosmologyParameters_) result(self)
     !% Constructor for the file \gls{igm} state class.
     use File_Utilities
     implicit none
@@ -103,8 +101,7 @@ contains
     type (varying_string              ), intent(in   )         :: fileName
     class(cosmologyFunctionsClass     ), intent(inout), target :: cosmologyFunctions_
     class(cosmologyParametersClass    ), intent(inout), target :: cosmologyParameters_
-    class(linearGrowthClass           ), intent(inout), target :: linearGrowth_
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
+    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
 
     self%fileName=File_Name_Expand(char(fileName))
     return
@@ -117,7 +114,6 @@ contains
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%linearGrowth_"       />
     return
   end subroutine fileDestructor
 
@@ -126,9 +122,11 @@ contains
     use Galacticus_Error
     use IO_HDF5
     use File_Utilities
+    use Table_Labels    , only : extrapolationTypeExtrapolate, extrapolationTypeAbort
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
-    integer                                              :: fileFormatVersion  , iRedshift
+    integer                                              :: fileFormatVersion   , iRedshift, &
+         &                                                  extrapolationAllowed
     type   (hdf5Object                  )                :: file
 
     ! Check if data has yet to be read.
@@ -140,6 +138,13 @@ contains
        ! Check the file format version of the file.
        call file%readAttribute('fileFormat',fileFormatVersion)
        if (fileFormatVersion /= fileFormatVersionCurrent) call Galacticus_Error_Report('file format version is out of date'//{introspection:location})
+       ! Check if extrapolation is allowed.
+       self%extrapolationType=extrapolationTypeAbort
+       if (file%hasAttribute('extrapolationAllowed')) then
+          call file%readAttribute('extrapolationAllowed',extrapolationAllowed)
+          if (extrapolationAllowed /= 0) self%extrapolationType=extrapolationTypeExtrapolate
+       end if
+       call file%readAttribute('fileFormat',fileFormatVersion)
        ! Read the data.
        call file%readDataset('redshift'         ,self%timeTable                   )
        call file%readDataset('electronFraction' ,self%electronFractionTable       )
@@ -169,14 +174,17 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileTemperature                                               &
-         & =Interpolate(                                          &
-         &              self%timeTable                          , &
-         &              self%temperatureTable                   , &
-         &              self%interpolationObjectTemperature     , &
-         &              self%interpolationAcceleratorTemperature, &
-         &              time                                    , &
-         &              reset=self%interpolationResetTemperature  &
+    fileTemperature=max(                                                                        &
+         &              0.0d0                                                                 , &
+         &              Interpolate(                                                            &
+         &                                            self%timeTable                          , &
+         &                                            self%temperatureTable                   , &
+         &                                            self%interpolationObjectTemperature     , &
+         &                                            self%interpolationAcceleratorTemperature, &
+         &                                                 time                               , &
+         &                          reset            =self%interpolationResetTemperature      , &
+         &                          extrapolationType=self%extrapolationType                    &
+         &                         )                                                            &
          &             )
     return
   end function fileTemperature
@@ -191,15 +199,21 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileElectronFraction                                               &
-         & =Interpolate(                                               &
-         &              self%timeTable                               , &
-         &              self%electronFractionTable                   , &
-         &              self%interpolationObjectElectronFraction     , &
-         &              self%interpolationAcceleratorElectronFraction, &
-         &              time                                         , &
-         &              reset=self%interpolationResetElectronFraction  &
-         &             )
+    fileElectronFraction=min(                                                                                 &
+         &                       1.0d0                                                                      , &
+         &                   max(                                                                             &
+         &                       0.0d0                                                                      , &
+         &                       Interpolate(                                                                 &
+         &                                                     self%timeTable                               , &
+         &                                                     self%electronFractionTable                   , &
+         &                                                     self%interpolationObjectElectronFraction     , &
+         &                                                     self%interpolationAcceleratorElectronFraction, &
+         &                                                          time                                    , &
+         &                                   reset            =self%interpolationResetElectronFraction      , &
+         &                                   extrapolationType=self%extrapolationType                         &
+         &                                  )                                                                 &
+         &                       )                                                                            &
+         &                  )
     return
   end function fileElectronFraction
 
@@ -213,16 +227,22 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileNeutralHydrogenFraction                                                &
-         & =+1.0d0                                                             &
-         &  -Interpolate(                                                      &
-         &               self%timeTable                                      , &
-         &               self%ionizedHydrogenFractionTable                   , &
-         &               self%interpolationObjectIonizedHydrogenFraction     , &
-         &               self%interpolationAcceleratorIonizedHydrogenFraction, &
-         &               time                                                , &
-         &               reset=self%interpolationResetIonizedHydrogenFraction  &
-         &              )
+    fileNeutralHydrogenFraction=+1.0d0                                                                                       &
+         &                      -min(                                                                                        &
+         &                               1.0d0                                                                             , &
+         &                           max(                                                                                    &
+         &                               0.0d0                                                                             , &
+         &                               Interpolate(                                                                        &
+         &                                                             self%timeTable                                      , &
+         &                                                             self%ionizedHydrogenFractionTable                   , &
+         &                                                             self%interpolationObjectIonizedHydrogenFraction     , &
+         &                                                             self%interpolationAcceleratorIonizedHydrogenFraction, &
+         &                                                                  time                                           , &
+         &                                           reset            =self%interpolationResetIonizedHydrogenFraction      , &
+         &                                           extrapolationType=self%extrapolationType                                &
+         &                                          )                                                                        &
+         &                              )                                                                                    &
+         &                          )
     return
   end function fileNeutralHydrogenFraction
 
@@ -236,16 +256,22 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileNeutralHeliumFraction                                                &
-         & =+1.0d0                                                           &
-         &  -Interpolate(                                                    &
-         &               self%timeTable                                    , &
-         &               self%ionizedHeliumFractionTable                   , &
-         &               self%interpolationObjectIonizedHeliumFraction     , &
-         &               self%interpolationAcceleratorIonizedHeliumFraction, &
-         &               time                                              , &
-         &               reset=self%interpolationResetIonizedHeliumFraction  &
-         &              )
+    fileNeutralHeliumFraction=+1.0d0                                                                                     &
+         &                    -min(                                                                                      &
+         &                             1.0d0                                                                           , &
+         &                         max(                                                                                  &
+         &                             0.0d0                                                                           , &
+         &                             Interpolate(                                                                      &
+         &                                                           self%timeTable                                    , &
+         &                                                           self%ionizedHeliumFractionTable                   , &
+         &                                                           self%interpolationObjectIonizedHeliumFraction     , &
+         &                                                           self%interpolationAcceleratorIonizedHeliumFraction, &
+         &                                                                time                                         , &
+         &                                         reset            =self%interpolationResetIonizedHeliumFraction      , &
+         &                                         extrapolationType=self%extrapolationType                              &
+         &                                        )                                                                      &
+         &                            )                                                                                  &
+         &                        )
     return
   end function fileNeutralHeliumFraction
 
@@ -259,14 +285,20 @@ contains
     ! Ensure that data has been read.
     call fileReadData(self)
     ! Interpolate in the tables to get the electron fraction.
-    fileSinglyIonizedHeliumFraction                                         &
-         & =Interpolate(                                                    &
-         &              self%timeTable                                    , &
-         &              self%ionizedHeliumFractionTable                   , &
-         &              self%interpolationObjectIonizedHeliumFraction     , &
-         &              self%interpolationAcceleratorIonizedHeliumFraction, &
-         &              time                                              , &
-         &              reset=self%interpolationResetIonizedHeliumFraction  &
-         &             )
+    fileSinglyIonizedHeliumFraction=min(                                                                                      &
+         &                                  1.0d0                                                                           , &
+         &                              max(                                                                                  &
+         &                                  0.0d0                                                                           , &
+         &                                  Interpolate(                                                                      &
+         &                                                                self%timeTable                                    , &
+         &                                                                self%ionizedHeliumFractionTable                   , &
+         &                                                                self%interpolationObjectIonizedHeliumFraction     , &
+         &                                                                self%interpolationAcceleratorIonizedHeliumFraction, &
+         &                                                                     time                                         , &
+         &                                              reset            =self%interpolationResetIonizedHeliumFraction      , &
+         &                                              extrapolationType=self%extrapolationType                              &
+         &                                             )                                                                      &
+         &                                 )                                                                                  &
+         &                             )
     return
   end function fileSinglyIonizedHeliumFraction

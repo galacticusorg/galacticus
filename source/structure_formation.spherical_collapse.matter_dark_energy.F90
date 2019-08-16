@@ -358,7 +358,7 @@ contains
     perturbationExpansionRateInitial=hubbleParameterInvGyr*sqrt(OmegaM/expansionFactorInitial+epsilonPerturbation)
     ! Set initial conditions.
     propertyValues=[perturbationRadiusInitial,perturbationExpansionRateInitial]
-    ! Evovle if the requested time is after the initial time.
+    ! Evolve if the requested time is after the initial time.
     if (time > timeInitial) then
        ! Solve the ODE to find the perturbation radius at the present day.
        odeReset=.true.

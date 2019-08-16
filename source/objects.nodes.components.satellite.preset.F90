@@ -359,6 +359,7 @@ contains
     class    (nodeComponentBasic    )               , pointer :: basic
     class    (nodeComponentSatellite)               , pointer :: satellite
     type     (history               )                         :: historyBoundMass
+    logical                                                   :: exceedsHistoryTime
     !GCC$ attributes unused :: odeConverged
 
     ! Return immediately if inactive variables are requested.
@@ -366,7 +367,14 @@ contains
     basic            => node     %basic           ()
     satellite        => node     %satellite       ()
     historyBoundMass =  satellite%boundMassHistory()
-    if (.not.satellite%isOrphan() .and. node%isSatellite() .and. associated(node%mergeTarget) .and. ((historyBoundMass%exists() .and. basic%time() >= historyBoundMass%time(size(historyBoundMass%time))) .or. .not.historyBoundMass%exists())) then
+
+    if (historyBoundMass%exists()) then
+       exceedsHistoryTime=basic%time() >= historyBoundMass%time(size(historyBoundMass%time))
+    else
+       exceedsHistoryTime=.true.
+    end if
+    
+    if (.not.satellite%isOrphan() .and. node%isSatellite() .and. associated(node%mergeTarget) .and. exceedsHistoryTime) then
        interrupt          =  .true.
        interruptProcedure => Node_Component_Satellite_Preset_Orphanize
     end if

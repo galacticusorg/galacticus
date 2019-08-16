@@ -193,6 +193,7 @@ sub Process_FunctionClass {
 	    my %addSubParameters;
 	    my $addLabel         = 0;
 	    my $descriptorUsed   = 0;
+	    $descriptorCode .= "logical :: includeMethod_\n";
 	    $descriptorCode .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
 		(my $label = $nonAbstractClass->{'name'}) =~ s/^$directive->{'name'}//;
@@ -464,8 +465,13 @@ sub Process_FunctionClass {
 		} else{
 		    # Build an auto-descriptor function.
 		    if ( $declarationMatches && $supported == 1 ) {
-			$descriptorUsed = 1;
-			$descriptorCode .= " if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('".$directive->{'name'}."Method','".$label."')\n";
+			$descriptorUsed = 1;		
+			$descriptorCode .= " if (present(includeMethod)) then\n";	
+			$descriptorCode .= "  includeMethod_=includeMethod\n";	
+			$descriptorCode .= " else\n";	
+			$descriptorCode .= "  includeMethod_=.true.\n";	
+			$descriptorCode .= " end if\n";	
+			$descriptorCode .= " if (includeMethod_) call descriptor%addParameter('".$directive->{'name'}."Method','".$label."')\n";
 			if ( defined($descriptorParameters) ) {			    
 			    # Get subparameters.
 			    $addSubParameters{'parameters'} = 1;
@@ -522,7 +528,7 @@ sub Process_FunctionClass {
 		}
 	    }	    
 	    $descriptorCode .= "end select\n";
-	    $descriptorCode  = " !GCC\$ attributes unused :: descriptor, includeMethod\n".$descriptorCode
+	    $descriptorCode  = " !GCC\$ attributes unused :: descriptor, includeMethod, includeMethod_\n".$descriptorCode
 		unless ( $descriptorUsed );
  	    $descriptorCode  = "type(inputParameters) :: ".join(",",keys(%addSubParameters))."\n".$descriptorCode
 		if ( %addSubParameters );
@@ -540,9 +546,10 @@ sub Process_FunctionClass {
 	    # Add a "hashedDescriptor" method.
 	    $code::directiveName = $directive->{'name'};
 	    my $hashedDescriptorCode = fill_in_string(<<'CODE', PACKAGE => 'code');
-type(inputParameters)       :: descriptor
-type(varying_string )       :: descriptorString
-type(varying_string ), save :: descriptorStringPrevious, hashedDescriptorPrevious
+logical                        :: includeSourceDigest_
+type   (inputParameters)       :: descriptor
+type   (varying_string )       :: descriptorString
+type   (varying_string ), save :: descriptorStringPrevious, hashedDescriptorPrevious
 !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
 descriptor=inputParameters()
 ! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
@@ -550,7 +557,12 @@ call setLiveNodeLists(descriptor%document,.false.)
 call self%descriptor(descriptor)
 descriptorString=descriptor%serializeToString()
 call descriptor%destroy()
-if (present(includeSourceDigest).and.includeSourceDigest) then
+if (present(includeSourceDigest)) then
+ includeSourceDigest_=includeSourceDigest
+else
+ includeSourceDigest_=.false.
+end if
+if (includeSourceDigest_) then
 select type (self)
 CODE
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
@@ -1463,12 +1475,14 @@ CODE
 						if ( $rank > 0 ) {
 						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
 						    $inputCode  .= "  read (stateFile) storedShape\n";
-						    $inputCode  .= "  deallocate(storedShape)\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    $inputCode  .= "  call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
+						    $inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 						} else {
 						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+						}
+						if ( $rank > 0 ) {
+						    $inputCode  .= "  deallocate(storedShape)\n";
 						}
 					    }
 					    for(my $i=1;$i<=$rank;++$i) {
@@ -1479,9 +1493,9 @@ CODE
 					    $labelUsed   = 1;
 					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
-						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
+						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= "   write (label,'(i16)') sizeof(c__".$arrayElement.")\n";
+						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
 						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
@@ -1671,12 +1685,14 @@ CODE
 				    if ( $rank > 0 ) {
 					$inputCode  .= "  allocate(storedShape(".$rank."))\n";
 					$inputCode  .= "  read (stateFile) storedShape\n";
-					$inputCode  .= "  deallocate(storedShape)\n";
 				    }
 				    if ( $declaration->{'intrinsic'} eq "class" ) {
-					$inputCode  .= "  call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
+					$inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 				    } else {
 					$inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+				    }
+				    if ( $rank > 0 ) {
+					$inputCode  .= "  deallocate(storedShape)\n";
 				    }
 				}
 				for(my $i=1;$i<=$rank;++$i) {
@@ -1687,9 +1703,9 @@ CODE
 				$labelUsed   = 1;
 				$outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 				if ( $declaration->{'intrinsic'} eq "class" ) {
-				    $outputCode .= "  select type (c__ => self%".$variableName.")\n";
+				    $outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 				    $outputCode .= "  class is (".$declaration->{'type'}.")\n";
-				    $outputCode .= "   write (label,'(i16)') sizeof(c__".$arrayElement.")\n";
+				    $outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 				    $outputCode .= "  end select\n";
 				} else {
 				    $outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.$arrayElement.")\n";
@@ -1845,12 +1861,14 @@ CODE
 						if ( $rank > 0 ) {
 						    $inputCode  .= "  allocate(storedShape(".$rank."))\n";
 						    $inputCode  .= "  read (stateFile) storedShape\n";
-						    $inputCode  .= "  deallocate(storedShape)\n";
 						}
 						if ( $declaration->{'intrinsic'} eq "class" ) {
-						    $inputCode  .= "  call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
+						    $inputCode  .= "  call ".$type."ClassRestore".($rank > 0 ? $rank."D" : "")."(self%".$variableName.",stateFile".($rank > 0 ? ",storedShape" : "").")\n";
 						} else {
 						    $inputCode  .= "  allocate(self%".$variableName.($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+						}
+						if ( $rank > 0 ) {
+						    $inputCode  .= "  deallocate(storedShape)\n";
 						}
 					    }
 					    for(my $i=1;$i<=$rank;++$i) {
@@ -1861,9 +1879,9 @@ CODE
 					    $labelUsed   = 1;
 					    $outputCode .= " if (Galacticus_Verbosity_Level() >= verbosityWorking) then\n";
 					    if ( $declaration->{'intrinsic'} eq "class" ) {
-						$outputCode .= "  select type (c__ => self%".$variableName.")\n";
+						$outputCode .= "  select type (c__ => self%".$variableName.$arrayElement.")\n";
 						$outputCode .= "  class is (".$declaration->{'type'}.")\n";
-						$outputCode .= "   write (label,'(i16)') sizeof(c__".$arrayElement.")\n";
+						$outputCode .= "   write (label,'(i16)') sizeof(c__)\n";
 						$outputCode .= "  end select\n";
 					    } else {
 						$outputCode .= "   write (label,'(i16)') sizeof(self%".$variableName.")\n";
@@ -2328,14 +2346,20 @@ CODE
 	    $postContains->[0]->{'content'} .= "      type     (inputParameters)                          :: subParameters\n";
 	    $postContains->[0]->{'content'} .= "      type     (inputParameter ), pointer                 :: parameterNode\n"
                 if ( exists($directive->{'default'}) );
-	    $postContains->[0]->{'content'} .= "      type     (varying_string )                          :: message      , instanceName, parameterName_\n\n";
+	    $postContains->[0]->{'content'} .= "      type     (varying_string )                          :: message      , instanceName, parameterName_\n";
+	    $postContains->[0]->{'content'} .= "      integer                                             :: copyInstance_\n\n";
 	    $postContains->[0]->{'content'} .= "      if (present(parameterName)) then\n";
 	    $postContains->[0]->{'content'} .= "        parameterName_=parameterName\n";
 	    $postContains->[0]->{'content'} .= "      else\n";
 	    $postContains->[0]->{'content'} .= "        parameterName_='".$directive->{'name'}."Method'\n";
 	    $postContains->[0]->{'content'} .= "      end if\n";
+	    $postContains->[0]->{'content'} .= "      if (present(copyInstance)) then\n";
+	    $postContains->[0]->{'content'} .= "        copyInstance_=copyInstance\n";
+	    $postContains->[0]->{'content'} .= "      else\n";
+	    $postContains->[0]->{'content'} .= "        copyInstance_=1\n";
+	    $postContains->[0]->{'content'} .= "      end if\n";
 	    if ( exists($directive->{'default'}) ) {
-	        $postContains->[0]->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."Method' .and. (.not.present(copyInstance) .or. copyInstance == 1) .and. .not.parameters%isPresent(char(parameterName_))) then\n";
+	        $postContains->[0]->{'content'} .= "      if (parameterName_ == '".$directive->{'name'}."Method' .and. copyInstance_ == 1 .and. .not.parameters%isPresent(char(parameterName_))) then\n";
 	        $postContains->[0]->{'content'} .= "        call parameters%addParameter('".$directive->{'name'}."Method','".$directive->{'default'}."')\n";
 	        $postContains->[0]->{'content'} .= "        parameterNode => parameters%node('".$directive->{'name'}."Method',requireValue=.true.)\n";
 		$postContains->[0]->{'content'} .= "        subParameters=parameters%subParameters(char(parameterName_))\n";
@@ -2351,8 +2375,8 @@ CODE
                 $postContains->[0]->{'content'} .= "         call parameterNode%objectSet(".$directive->{'name'}."CnstrctrPrmtrs)\n";
                 $postContains->[0]->{'content'} .= "      else\n";
             }
-	    $postContains->[0]->{'content'} .= "      call parameters%value(char(parameterName_),instanceName,copyInstance=copyInstance)\n";
-	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters(char(parameterName_),copyInstance=copyInstance)\n";
+	    $postContains->[0]->{'content'} .= "      call parameters%value(char(parameterName_),instanceName,copyInstance=copyInstance_)\n";
+	    $postContains->[0]->{'content'} .= "      subParameters=parameters%subParameters(char(parameterName_),copyInstance=copyInstance_)\n";
 	    $postContains->[0]->{'content'} .= "      select case (char(instanceName))\n";
 	    foreach my $class ( @nonAbstractClasses ) {
 		(my $name = $class->{'name'}) =~ s/^$directive->{'name'}//;

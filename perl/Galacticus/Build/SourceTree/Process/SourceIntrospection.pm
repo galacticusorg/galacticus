@@ -6,6 +6,7 @@ use warnings;
 use File::Slurp qw(slurp);
 use Data::Dumper;
 use XML::Simple;
+use IO::Scalar;
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'sourceIntrospection'} = \&Process_Source_Introspection;
@@ -46,8 +47,8 @@ sub Process_Source_Introspection {
 	    die("Galacticus::Build::SourceTree::Process::SourceIntrospection::Process_Source_Introspection(): content does not exist")
 		unless ( exists($node->{'content'}) && defined($node->{'content'}) );
 	    my $newCode;
-	    open(my $code,"<",\$node->{'content'});
-	    while ( my $line = <$code> ) {
+	    my $code = new IO::Scalar \$node->{'content'};
+	    while ( defined(my $line = $code->getline()) ) {
 		if ( $line =~ m/\{introspection:location(:compact)??:(\d+)\}/ ) {
 		    my $compact    = defined($1);
 		    my $lineNumber = $2;
@@ -56,7 +57,7 @@ sub Process_Source_Introspection {
 		}
 		$newCode .= $line;
 	    }
-	    close($code);				    
+	    $code->close();
 	    $node->{'content'} = $newCode;	    
 	}
 	# Move on to the next node.

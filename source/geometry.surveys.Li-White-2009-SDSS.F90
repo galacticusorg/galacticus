@@ -25,9 +25,9 @@
   !#  <description>Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.</description>
   !# </surveyGeometry>
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryLiWhite2009SDSS
-     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
-     double precision                                   :: redshiftMinimum     , redshiftMaximum
-     double precision                                   :: limitDistanceMinimum, limitDistanceMaximum
+     class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
+     double precision                                   :: redshiftMinimum               , redshiftMaximum
+     double precision                                   :: limitDistanceMinimum          , limitDistanceMaximum
    contains
      final     ::                      liWhite2009SDSSDestructor
      procedure :: distanceMinimum   => liWhite2009SDSSDistanceMinimum
@@ -209,7 +209,7 @@ contains
     
     ! Randoms file obtained from:  http://sdss.physics.nyu.edu/lss/dr72/random/
     if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) then
-       call System_Command_Do("mkdir -p "//galacticusPath(pathTypeDataDynamic)//"surveyGeometry")
+       call Directory_Make(galacticusPath(pathTypeDataDynamic)//"surveyGeometry")
        call System_Command_Do("wget http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat -O "//galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")
        if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"surveyGeometry/lss_random-0.dr72.dat")) call Galacticus_Error_Report('unable to download SDSS survey geometry randoms file'//{introspection:location})
     end if

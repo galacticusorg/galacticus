@@ -52,7 +52,6 @@ contains
     type            (inputParameters               ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass       ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass      ), pointer       :: cosmologyParameters_
-    class           (linearGrowthClass             ), pointer       :: linearGrowth_
     double precision                                                :: reionizationRedshift      , reionizationTemperature, &
          &                                                             preReionizationTemperature
     
@@ -87,17 +86,15 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
     ! Construct the object.
-    self=intergalacticMediumStateSimple(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_,linearGrowth_)
+    self=intergalacticMediumStateSimple(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="linearGrowth_"       />
     return
   end function simpleIGMConstructorParameters
 
-  function simpleIGMConstructorInternal(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_,linearGrowth_) result(self)
+  function simpleIGMConstructorInternal(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_) result(self)
     !% Constructor for the simple \gls{igm} state class.
     implicit none
     type            (intergalacticMediumStateSimple)                        :: self
@@ -105,8 +102,7 @@ contains
          &                                                                     preReionizationTemperature
     class           (cosmologyFunctionsClass       ), intent(inout), target :: cosmologyFunctions_
     class           (cosmologyParametersClass      ), intent(inout), target :: cosmologyParameters_
-    class           (linearGrowthClass             ), intent(inout), target :: linearGrowth_
-    !# <constructorAssign variables="reionizationTemperature, preReionizationTemperature, *cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
+    !# <constructorAssign variables="reionizationTemperature, preReionizationTemperature, *cosmologyFunctions_, *cosmologyParameters_"/>
     
     self%reionizationTime=cosmologyFunctions_%cosmicTime                 (                      &
          &                cosmologyFunctions_%expansionFactorFromRedshift (                     &
@@ -123,7 +119,6 @@ contains
 
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%linearGrowth_"       />
     return
   end subroutine simpleDestructor
 

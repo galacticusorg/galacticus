@@ -9,13 +9,15 @@
     <OmegaDarkEnergy value="0.7257"/>
     <OmegaBaryon value="0.0458"/>
     <HubbleConstant value="70.2"/>
-  </cosmologyParametersMethod><cosmologicalMassVarianceMethod value="filteredPower">
+  </cosmologyParametersMethod>
+  <cosmologicalMassVarianceMethod value="filteredPower">
     <sigma_8 value="0.816"/>
-  </cosmologicalMassVarianceMethod><transferFunctionMethod value="eisensteinHu1999"/>
+  </cosmologicalMassVarianceMethod>
+  <transferFunctionMethod value="eisensteinHu1999"/>
   <powerSpectrumPrimordialMethod value="powerLaw">
     <index value="0.968"/>
-  </powerSpectrumPrimordialMethod><virialDensityConstrastFixed value="200.0"/>
-  <virialDensityConstrastFixedType value="criticalDensity"/>
-  <criticalOverdensityMethod value="fixed"/>
-  <criticalOverdensityFixed value="1.686"/>
+  </powerSpectrumPrimordialMethod>
+  <criticalOverdensityMethod value="fixed">
+    <criticalOverdensity value="1.686"/>
+  </criticalOverdensityMethod>
 </parameters>

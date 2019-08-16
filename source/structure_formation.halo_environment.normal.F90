@@ -32,18 +32,19 @@
   type, extends(haloEnvironmentClass) :: haloEnvironmentNormal
      !% A normal halo environment class.
      private
-     class           (cosmologyParametersClass            ), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_ => null()
-     class           (cosmologicalMassVarianceClass       ), pointer :: cosmologicalMassVariance_ => null()
-     class           (linearGrowthClass                   ), pointer :: linearGrowth_ => null()
-     class           (criticalOverdensityClass            ), pointer :: criticalOverdensity_ => null()
+     class           (cosmologyParametersClass            ), pointer :: cosmologyParameters_            => null()
+     class           (cosmologyFunctionsClass             ), pointer :: cosmologyFunctions_             => null()
+     class           (cosmologicalMassVarianceClass       ), pointer :: cosmologicalMassVariance_       => null()
+     class           (linearGrowthClass                   ), pointer :: linearGrowth_                   => null()
+     class           (criticalOverdensityClass            ), pointer :: criticalOverdensity_            => null()
      type            (distributionFunction1DPeakBackground)          :: distributionOverdensity
      type            (distributionFunction1DNormal        )          :: distributionOverdensityMassive
      type            (table2DLinLinLin                    )          :: linearToNonLinear
-     double precision                                                :: radiusEnvironment              , variance           , &
-          &                                                             environmentalOverdensityMaximum, overdensityPrevious, &
+     double precision                                                :: radiusEnvironment                        , variance           , &
+          &                                                             environmentalOverdensityMaximum          , overdensityPrevious, &
           &                                                             includedVolumeFraction
      integer         (kind_int8                           )          :: uniqueIDPrevious
+     logical                                                         :: linearToNonLinearInitialized
    contains
      final     ::                             normalDestructor
      procedure :: overdensityLinear        => normalOverdensityLinear
@@ -103,7 +104,6 @@ contains
 
   function normalConstructorInternal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily normal} halo mass function class.
-    use Spherical_Collapse_Matter_Lambda
     use Numerical_Constants_Math
     use Error_Functions
     implicit none
@@ -128,8 +128,6 @@ contains
          &                                                    *self%cosmologyParameters_%densityCritical  ()    &
          &                                                    *self                     %radiusEnvironment  **3 &
          &                                                   )                                              **2
-    ! Get a table of linear vs. nonlinear density.
-    call Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping(self%cosmologyFunctions_%cosmicTime(1.0d0),self%linearToNonLinear,self%linearGrowth_,self%cosmologyFunctions_)
     ! Build the distribution function.
     overdensityVariance                 =+self%variance                                            &
          &                               *self%linearGrowth_%value      (expansionFactor=1.0d0)**2
@@ -156,6 +154,8 @@ contains
     self%includedVolumeFraction         =Error_Function(self%environmentalOverdensityMaximum/sqrt(2.0d0)/sqrt(overdensityVariance))
     ! Initialize optimizer.
     self%uniqueIDPrevious=-1_kind_int8
+    ! Set initialization states.
+    self%linearToNonLinearInitialized=.false.
     return
   end function normalConstructorInternal
 
@@ -226,12 +226,19 @@ contains
 
   double precision function normalOverdensityNonLinear(self,node)
     !% Return the environment of the given {\normalfont \ttfamily node}.
-    use Galacticus_Nodes, only : nodeComponentBasic
+    use Galacticus_Nodes                , only : nodeComponentBasic
+    use Spherical_Collapse_Matter_Lambda, only : Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node
     class(nodeComponentBasic   ), pointer       :: basic
 
+    ! Get a table of linear vs. nonlinear density.
+    if (.not.self%linearToNonLinearInitialized) then
+       call Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping(self%cosmologyFunctions_%cosmicTime(1.0d0),self%linearToNonLinear,self%linearGrowth_,self%cosmologyFunctions_)
+       self%linearToNonLinearInitialized=.true.
+    end if
+    ! Find the nonlinear overdensity.
     basic                      => node                  %basic      (                                         )
     normalOverdensityNonLinear =  self%linearToNonLinear%interpolate(self%overdensityLinear(node),basic%time())
     return

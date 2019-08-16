@@ -129,7 +129,9 @@ contains
             &                                                                                             )                  , &
             &                                                      iSpin                                                       &
             &                                                     )
-       if (iSpin > 1 .and. bett2007ConstructorInternal%distributionTable%y(iSpin) <= bett2007ConstructorInternal%distributionTable%y(iSpin-1)) bett2007ConstructorInternal%isInvertible=.false.
+       if (iSpin > 1) then
+          if (bett2007ConstructorInternal%distributionTable%y(iSpin) <= bett2007ConstructorInternal%distributionTable%y(iSpin-1)) bett2007ConstructorInternal%isInvertible=.false.
+       end if
     end do
     if (bett2007ConstructorInternal%isInvertible) call bett2007ConstructorInternal%distributionTable%reverse(bett2007ConstructorInternal%distributionInverse)
     return
