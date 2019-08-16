@@ -374,7 +374,7 @@ contains
        ! will not block access to the same file by another thread.       
        !$omp critical (stellarPopulationStandardLock)
 #endif
-       call System_Command_Do("mkdir -p `dirname "//char(fileName)//"`")
+       call Directory_Make(File_Path(fileName))
        call File_Lock_Initialize(lock)
        call File_Lock(char(fileName),lock,lockIsShared=.false.)
        if (File_Exists(fileName)) then

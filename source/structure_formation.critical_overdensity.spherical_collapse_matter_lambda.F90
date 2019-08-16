@@ -177,7 +177,7 @@ contains
     use Galacticus_Error
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout)           :: self
-    double precision                                                  , intent(in   ), optional :: time               , expansionFactor, &
+    double precision                                                  , intent(in   ), optional :: time      , expansionFactor, &
          &                                                                                         mass
     logical                                                           , intent(in   ), optional :: collapsing
     type            (treeNode                                        ), intent(inout), optional :: node
@@ -188,7 +188,7 @@ contains
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     ! Remake the table if necessary.
     call self%retabulate(time_)
-    ! Interpolate to get the expansion factor.
+    ! Interpolate to get the critical overdensity.
     sphericalCollapseMatterLambdaValue=+self%overdensityCritical%interpolate(time_) &
          &                             *self%normalization
     return
@@ -199,7 +199,7 @@ contains
     !% cosmological constant universe.
     implicit none
     class           (criticalOverdensitySphericalCollapseMatterLambda), intent(inout)           :: self
-    double precision                                                  , intent(in   ), optional :: time               , expansionFactor, &
+    double precision                                                  , intent(in   ), optional :: time      , expansionFactor, &
          &                                                                                         mass
     logical                                                           , intent(in   ), optional :: collapsing
     type            (treeNode                                        ), intent(inout), optional :: node

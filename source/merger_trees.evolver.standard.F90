@@ -458,7 +458,9 @@ contains
                             earliestTimeInTree=min(earliestTimeInTree,timeEndThisNode)
                             ! Evolve the node to the next interrupt event, or the end time.
                             call self%mergerTreeNodeEvolver_%evolve(currentTree,node,timeEndThisNode,interrupted,interruptProcedure,self%galacticStructureSolver_,systemClockMaximum,status)
-                            if (present(status) .and. status /= errorStatusSuccess) return
+                            if (present(status)) then
+                               if (status /= errorStatusSuccess) return
+                            end if
                          end if
                          ! Check for interrupt.
                          if (interrupted) then
@@ -472,33 +474,35 @@ contains
                          end if
                       end do
                       ! If this halo has reached its parent halo, decide how to handle it.
-                      if (associated(node).and.associated(node%parent)) then
-                         nodeParent  => node      %parent
-                         basicParent => nodeParent%basic ()
-                         if (basic%time() >= basicParent%time()) then
-                            ! Parent halo has been reached. Check if the node is the primary (major) progenitor of the parent node.
-                            select case (node%isPrimaryProgenitor())
-                            case (.false.)
-                               ! It is not the major progenitor, so this could be a halo merger event unless the halo is already a
-                               ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging
-                               ! event. Also record that the tree is not deadlocked, as we are changing the tree state.
-                               if (.not.node%isSatellite()) then
-                                  statusDeadlock=deadlockStatusIsNotDeadlocked
-                                  call self%mergerTreeNodeEvolver_%merge(node)
-                               end if
-                            case (.true.)
-                               ! This is the major progenitor, so promote the node to its parent providing that the node has no
-                               ! siblings - this ensures that any siblings have already been evolved and become satellites of the
-                               ! parent halo. Also record that the tree is not deadlocked, as we are changing the tree state.
-                               if (.not.associated(node%sibling).and..not.associated(node%event)) then
-                                  statusDeadlock=deadlockStatusIsNotDeadlocked
-                                  call self%mergerTreeNodeEvolver_%promote(node)
-                                  ! As this is a node promotion, we want to attempt to continue evolving the same node. Mark the
-                                  ! parent as the next node to evolve, and flag that our next node has been identified.
-                                  nodeNext      => nodeParent                                  
-                                  nextNodeFound =  .true.
-                               end if
-                            end select
+                      if (associated(node)) then
+                         if (associated(node%parent)) then
+                            nodeParent  => node      %parent
+                            basicParent => nodeParent%basic ()
+                            if (basic%time() >= basicParent%time()) then
+                               ! Parent halo has been reached. Check if the node is the primary (major) progenitor of the parent node.
+                               select case (node%isPrimaryProgenitor())
+                               case (.false.)
+                                  ! It is not the major progenitor, so this could be a halo merger event unless the halo is already a
+                                  ! satellite. Check for satellite status and, if it's not a satellite, process this halo merging
+                                  ! event. Also record that the tree is not deadlocked, as we are changing the tree state.
+                                  if (.not.node%isSatellite()) then
+                                     statusDeadlock=deadlockStatusIsNotDeadlocked
+                                     call self%mergerTreeNodeEvolver_%merge(node)
+                                  end if
+                               case (.true.)
+                                  ! This is the major progenitor, so promote the node to its parent providing that the node has no
+                                  ! siblings - this ensures that any siblings have already been evolved and become satellites of the
+                                  ! parent halo. Also record that the tree is not deadlocked, as we are changing the tree state.
+                                  if (.not.associated(node%sibling).and..not.associated(node%event)) then
+                                     statusDeadlock=deadlockStatusIsNotDeadlocked
+                                     call self%mergerTreeNodeEvolver_%promote(node)
+                                     ! As this is a node promotion, we want to attempt to continue evolving the same node. Mark the
+                                     ! parent as the next node to evolve, and flag that our next node has been identified.
+                                     nodeNext      => nodeParent                                  
+                                     nextNodeFound =  .true.
+                                  end if
+                               end select
+                            end if
                          end if
                       end if
                       ! Determine the next node to process.

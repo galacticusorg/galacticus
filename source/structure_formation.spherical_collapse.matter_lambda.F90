@@ -89,9 +89,9 @@ contains
     type            (varying_string         )                             :: fileName
     integer                                                               :: status
 
-    fileName=galacticusPath(pathTypeDataDynamic)                                    // &
-         &   'largeScaleStructure/sphericalCollapseMatterLambdaCriticalOverdensity_'// &
-         &   cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)       // &
+    fileName=galacticusPath(pathTypeDataDynamic)                                      // &
+         &   'largeScaleStructure/sphericalCollapseMatterLambdaVirialDensityContrast_'// &
+         &   cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)         // &
          &   '.hdf5'
     call    Restore_Table(time,deltaVirialTable,fileName              ,tableStore         ,status)
     if (status /= errorStatusSuccess) then       
@@ -638,8 +638,8 @@ contains
     status=errorStatusFail
     if (.not.tableStore) return
     if (.not.File_Exists(fileName)) return
-    call File_Lock_Initialize(               fileLock)
-    call File_Lock           (char(fileName),fileLock)
+    call File_Lock_Initialize(               fileLock                    )
+    call File_Lock           (char(fileName),fileLock,lockIsShared=.true.)
     !$ call hdf5Access%set()
     call file%openFile(char(fileName))
     call file%readDataset('time',timeTable)
@@ -673,7 +673,8 @@ contains
     use IO_HDF5           , only : hdf5Object    , hdf5Access
     use Tables            , only : table1D
     use ISO_Varying_String, only : varying_string, char    
-    use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock
+    use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock, &
+         &                         File_Path     , Directory_Make
     implicit none
     class(table1D                ), intent(in   ) :: storeTable
     type (varying_string         ), intent(in   ) :: fileName
@@ -682,8 +683,9 @@ contains
     type (lockDescriptor         )                :: fileLock
 
     if (.not.tableStore) return
-    call File_Lock_Initialize(               fileLock)
-    call File_Lock           (char(fileName),fileLock)
+    call Directory_Make      (char(File_Path(char(fileName))))
+    call File_Lock_Initialize(               fileLock                     )
+    call File_Lock           (char(fileName),fileLock,lockIsShared=.false.)
     !$ call hdf5Access%set()
     call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)
     call file%writeDataset(        storeTable%xs()                     ,'time'                                   )

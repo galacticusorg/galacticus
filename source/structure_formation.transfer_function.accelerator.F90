@@ -38,6 +38,7 @@
      procedure :: value                 => acceleratorValue
      procedure :: logarithmicDerivative => acceleratorLogarithmicDerivative
      procedure :: halfModeMass          => acceleratorHalfModeMass
+     procedure :: epochTime             => acceleratorEpochTime
   end type transferFunctionAccelerator
 
   interface transferFunctionAccelerator
@@ -121,6 +122,15 @@ contains
     return
   end function acceleratorLogarithmicDerivative
   
+  double precision function acceleratorEpochTime(self)
+    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    implicit none
+    class(transferFunctionAccelerator), intent(inout) :: self
+
+    acceleratorEpochTime=self%transferFunction_%epochTime()
+    return
+  end function acceleratorEpochTime
+
   double precision function acceleratorHalfModeMass(self,status)
     !% Compute the mass corresponding to the wavenumber at which the transfer function is
     !% suppressed by a factor of two relative to a \gls{cdm} transfer function

@@ -187,15 +187,16 @@ contains
     type            (treeNode                              ), intent(inout), target       :: node
     type            (treeNode                              )               , pointer      :: nodeBranch
     class           (nodeComponentBasic                    )               , pointer      :: basic                     , basicBranch
-    class           (nodeComponentDarkMatterProfile        )               , pointer      :: darkMatterProfile_
+    class           (nodeComponentDarkMatterProfile        )               , pointer      :: darkMatterProfile_        , darkMatterProfileChild_
     integer                                                 , parameter                   :: iterationCountMaximum =100
     type            (ludlow2016State                       ), allocatable  , dimension(:) :: states
     type            (mergerTreeWalkerIsolatedNodesBranch   )                              :: treeWalker
-    double precision                                                                      :: massHaloCharacteristic    , timeBranchEarliest   , &
-         &                                                                                   densityMeanScaleRadius    , timeFormation        , &
-         &                                                                                   radiusScale               , radiusScalePrevious  , &
-         &                                                                                   timeFormationTrial        , timeFormationEarliest, &
-         &                                                                                   timeFormationLatest
+    double precision                                                                      :: massHaloCharacteristic    , timeBranchEarliest     , &
+         &                                                                                   densityMeanScaleRadius    , timeFormation          , &
+         &                                                                                   radiusScale               , radiusScalePrevious    , &
+         &                                                                                   timeFormationTrial        , timeFormationEarliest  , &
+         &                                                                                   timeFormationLatest       , timeFormationPrevious  , &
+         &                                                                                   radiusScalePrevious2nd    , rangeExpandFactor
     integer                                                                               :: iterationCount            , i
 
     ! For halos with no progenitors, simply keep the fall-back result. Otherwise, perform our calculation
@@ -223,8 +224,11 @@ contains
        !# <deepCopy source="self%cosmologyFunctions_" destination="ludlow2016States(ludlow2016StateCount)%cosmologyFunctions_"/>
        ! Get the dark matter profile component of the node.
        darkMatterProfile_ => node%darkMatterProfile()
-       ! Set an initial guess to the scale radius using the fall-back concentration method.
-       radiusScalePrevious=+self%darkMatterProfileScaleRadius_%radius(node)
+       ! Set an initial guess to the scale radius. We use the scale radius of the primary progenitor - under the assumption that the scale radius should change only slowly this should be a reasonable guess.
+       darkMatterProfileChild_ =>  node                   %firstChild%darkMatterProfile()
+       radiusScalePrevious     =   darkMatterProfileChild_           %scale            ()
+       radiusScalePrevious2nd  =  -huge(0.0d0)
+       timeFormationPrevious   =  -huge(0.0d0)
        call darkMatterProfile_%scaleSet(radiusScalePrevious)
        call Galacticus_Calculations_Reset(node)
        ! Begin iteratively seeking a solution for the scale radius.
@@ -232,28 +236,32 @@ contains
        do while (iterationCount < iterationCountMaximum)
           iterationCount=iterationCount+1
           ! Compute the characteristic halo mass, M₋₂.
-          basic                                                         =>  node                       %basic       (                               )
-          massHaloCharacteristic                                        =  +self %darkMatterProfileDMO_%enclosedMass(node,darkMatterProfile_%scale())
-          ludlow2016States(ludlow2016StateCount)%self                   =>  self
-          ludlow2016States(ludlow2016StateCount)%node                   =>  node
-          ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic =   massHaloCharacteristic
-          ludlow2016States(ludlow2016StateCount)%hubbleParameterPresent =   self%cosmologyFunctions_%hubbleParameterEpochal(expansionFactor=1.0d0) 
-          ludlow2016States(ludlow2016StateCount)%timePrevious           =  -1.0d0
-          ludlow2016States(ludlow2016StateCount)%densityContrast        =  -huge(0.0d0)
-          ludlow2016States(ludlow2016StateCount)%massLimit              =  +self%f                                                                                                                   &
-               &                                                           *Dark_Matter_Profile_Mass_Definition(node,ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basic%time()))
+          if (iterationCount == 1) then
+             basic                                                         =>  node                      %basic                 (                               )
+             ludlow2016States(ludlow2016StateCount)%self                   =>  self
+             ludlow2016States(ludlow2016StateCount)%node                   =>  node
+             ludlow2016States(ludlow2016StateCount)%hubbleParameterPresent =   self%cosmologyFunctions_  %hubbleParameterEpochal(expansionFactor=1.0d0          ) 
+             ludlow2016States(ludlow2016StateCount)%timePrevious           =  -1.0d0
+             ludlow2016States(ludlow2016StateCount)%densityContrast        =  -huge(0.0d0)
+          end if
+          massHaloCharacteristic                                           =  +self%darkMatterProfileDMO_%enclosedMass          (node,darkMatterProfile_%scale())
+          ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic    =   massHaloCharacteristic
+          ludlow2016States(ludlow2016StateCount)%massLimit                 =  +self%f                                                                                                                   &
+               &                                                              *Dark_Matter_Profile_Mass_Definition(node,ludlow2016DensityContrast(ludlow2016States(ludlow2016StateCount),basic%time()))
           ! Find the earliest time in the branch. Also estimate the earliest and latest times between which the formation time will lie.
-          timeBranchEarliest   =huge(0.0d0)
-          timeFormationEarliest=huge(0.0d0)
-          timeFormationLatest  =basic%time()
-          treeWalker           =mergerTreeWalkerIsolatedNodesBranch(node )
-          do while (treeWalker%next(nodeBranch))
-             basicBranch =>nodeBranch%basic()
-             timeBranchEarliest                                                                                           =min(timeBranchEarliest   ,basicBranch%time())
-             if (basicBranch%mass() > ludlow2016States(ludlow2016StateCount)%massLimit             ) timeFormationEarliest=min(timeFormationEarliest,basicBranch%time())
-             if (basicBranch%mass() > ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic) timeFormationLatest  =min(timeFormationLatest  ,basicBranch%time())
-          end do
-          timeFormationLatest=max(timeFormationLatest,timeFormationEarliest)
+          if (iterationCount == 1) then
+             timeBranchEarliest   =huge(0.0d0)
+             timeFormationEarliest=huge(0.0d0)
+             timeFormationLatest  =basic%time()
+             treeWalker           =mergerTreeWalkerIsolatedNodesBranch(node )
+             do while (treeWalker%next(nodeBranch))
+                basicBranch =>nodeBranch%basic()
+                timeBranchEarliest                                                                                           =min(timeBranchEarliest   ,basicBranch%time())
+                if (basicBranch%mass() > ludlow2016States(ludlow2016StateCount)%massLimit             ) timeFormationEarliest=min(timeFormationEarliest,basicBranch%time())
+                if (basicBranch%mass() > ludlow2016States(ludlow2016StateCount)%massHaloCharacteristic) timeFormationLatest  =min(timeFormationLatest  ,basicBranch%time())
+             end do
+             timeFormationLatest=max(timeFormationLatest,timeFormationEarliest)
+          end if
           ! Test if the formation time is before the earliest time in the branch.
           if (self%formationTimeRoot(timeBranchEarliest) > 0.0d0) then
              ! The characteristic halo mass is never resolved in this branch - fall though to an alternative concentration calculation.
@@ -264,16 +272,29 @@ contains
           else
              ! Find the time at which the mass in progenitors equals this characteristic halo mass.
              call self%formationTimeRootFunctionSet(ludlow2016States(ludlow2016StateCount)%finder)
+             if (iterationCount > 2) then
+                if (radiusScalePrevious2nd > radiusScalePrevious) then
+                   rangeExpandFactor=radiusScalePrevious2nd/radiusScalePrevious
+                else
+                   rangeExpandFactor=radiusScalePrevious   /radiusScalePrevious2nd
+                end if
+             else
+                rangeExpandFactor=1.1d0
+             end if
              call ludlow2016States(ludlow2016StateCount)%finder%rangeExpand(                                                             &
-                  &                                                         rangeExpandUpward            =1.1d0                        , &
-                  &                                                         rangeExpandDownward          =0.9d0                        , &
+                  &                                                         rangeExpandUpward            =1.0d0*rangeExpandFactor      , &
+                  &                                                         rangeExpandDownward          =1.0d0/rangeExpandFactor      , &
                   &                                                         rangeExpandType              =rangeExpandMultiplicative    , &
                   &                                                         rangeUpwardLimit             =basic%time()                 , &
                   &                                                         rangeDownwardLimit           =timeBranchEarliest           , &
                   &                                                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
                   &                                                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
                   &                                                        )
-             timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest])
+             if (iterationCount == 1) then
+                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootRange=[timeFormationEarliest,timeFormationLatest])
+             else
+                timeFormation=ludlow2016States(ludlow2016StateCount)%finder%find(rootGuess= timeFormationPrevious                     )
+             end if
              ! If requested, check for possible earlier formation times by simply stepping through trial times and finding the
              ! earliest at which the required mass threshold is reached. This is used for cases where the cumulative mass history
              ! is not monotonic.
@@ -284,7 +305,7 @@ contains
                       timeFormation=timeFormationTrial
                       exit
                    end if
-                   timeFormationTrial=+timeFormationTrial                           &
+                   timeFormationTrial=+timeFormationTrial               &
                         &             *exp(self%timeFormationSeekDelta)
                 end do
              end if
@@ -309,7 +330,9 @@ contains
           ! Convergence was not attained - record current results and perform another iteration.
           call darkMatterProfile_%scaleSet(radiusScale)
           call Galacticus_Calculations_Reset(node)
-          radiusScalePrevious=radiusScale
+          radiusScalePrevious2nd=radiusScalePrevious
+          radiusScalePrevious   =radiusScale
+          timeFormationPrevious =timeFormation
        end do
        ! Note that we do not check if convergence was actually reached. Due to the nature of the algorithm it is possible that the
        ! function for which we are seeking the root is discontinuous. As the scale radius changes, so does M₀ and therefore the
@@ -355,7 +378,7 @@ contains
     double precision                                                     :: massBranch   , massAccretionRate, &
          &                                                                  massSiblings , massProgenitor
 
-    treeWalker=mergerTreeWalkerIsolatedNodesBranch(ludlow2016States(ludlow2016StateCount)%node)
+    treeWalker=mergerTreeWalkerIsolatedNodesBranch(ludlow2016States(ludlow2016StateCount)%node,timeEarliest=timeFormation)
     massBranch=0.0d0
     do while (treeWalker%next(nodeBranch))
        basicBranch => nodeBranch%basic()

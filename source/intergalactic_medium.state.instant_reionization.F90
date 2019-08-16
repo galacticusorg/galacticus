@@ -54,7 +54,6 @@ contains
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                    ), pointer       :: cosmologyFunctions_
     class           (cosmologyParametersClass                   ), pointer       :: cosmologyParameters_
-    class           (linearGrowthClass                          ), pointer       :: linearGrowth_
     class           (intergalacticMediumStateClass              ), pointer       :: preReionizationState
     double precision                                                             :: reionizationRedshift          , reionizationTemperature           , &
          &                                                                          electronScatteringOpticalDepth, presentDayTemperature
@@ -107,22 +106,20 @@ contains
     !# <objectBuilder class="intergalacticMediumState" name="preReionizationState" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"        source="parameters"/>
     ! Construct the object.
     if (haveReionizationRedshift) then
-       self=intergalacticMediumStateInstantReionization(cosmologyFunctions_,cosmologyParameters_,linearGrowth_,preReionizationState,reionizationTemperature,presentDayTemperature,reionizationRedshift          =reionizationRedshift          )
+       self=intergalacticMediumStateInstantReionization(cosmologyFunctions_,cosmologyParameters_,preReionizationState,reionizationTemperature,presentDayTemperature,reionizationRedshift          =reionizationRedshift          )
     else
-       self=intergalacticMediumStateInstantReionization(cosmologyFunctions_,cosmologyParameters_,linearGrowth_,preReionizationState,reionizationTemperature,presentDayTemperature,electronScatteringOpticalDepth=electronScatteringOpticalDepth)
+       self=intergalacticMediumStateInstantReionization(cosmologyFunctions_,cosmologyParameters_,preReionizationState,reionizationTemperature,presentDayTemperature,electronScatteringOpticalDepth=electronScatteringOpticalDepth)
     end if
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="preReionizationState"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="linearGrowth_"       />
     return
   end function instantReionizationIGMConstructorParameters
 
-  function instantReionizationIGMConstructorInternal(cosmologyFunctions_,cosmologyParameters_,linearGrowth_,preReionizationState,reionizationTemperature,presentDayTemperature,reionizationRedshift,electronScatteringOpticalDepth) result(self)
+  function instantReionizationIGMConstructorInternal(cosmologyFunctions_,cosmologyParameters_,preReionizationState,reionizationTemperature,presentDayTemperature,reionizationRedshift,electronScatteringOpticalDepth) result(self)
     !% Constructor for the instantReionization \gls{igm} state class.
     use Galacticus_Error
     use Root_Finder
@@ -130,7 +127,6 @@ contains
     type            (intergalacticMediumStateInstantReionization)                          :: self
     class           (cosmologyFunctionsClass                    ), intent(inout), target   :: cosmologyFunctions_
     class           (cosmologyParametersClass                   ), intent(inout), target   :: cosmologyParameters_
-    class           (linearGrowthClass                          ), intent(inout), target   :: linearGrowth_
     class           (intergalacticMediumStateClass              ), intent(in   ), target   :: preReionizationState
     double precision                                             , intent(in   )           :: reionizationTemperature            , presentDayTemperature
     double precision                                             , intent(in   ), optional :: reionizationRedshift               , electronScatteringOpticalDepth
@@ -140,7 +136,7 @@ contains
     double precision                                             , parameter               :: reionizationRedshiftEarly    =1.0d2
     double precision                                                                       :: timePresent                        , timeReionizationGuess
     type            (rootFinder                                 )                          :: finder
-    !# <constructorAssign variables="reionizationTemperature, presentDayTemperature, *preReionizationState, *cosmologyFunctions_, *cosmologyParameters_, *linearGrowth_"/>
+    !# <constructorAssign variables="reionizationTemperature, presentDayTemperature, *preReionizationState, *cosmologyFunctions_, *cosmologyParameters_"/>
 
     ! If reionization is defined by its redshift, simply use that to compute the time of reionization.
     if (present(reionizationRedshift)) then
@@ -226,7 +222,6 @@ contains
     !# <objectDestructor name="self%preReionizationState"/>
     !# <objectDestructor name="self%cosmologyParameters_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%linearGrowth_"       />
     return
   end subroutine instantReionizationDestructor
   

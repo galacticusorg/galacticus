@@ -25,8 +25,9 @@
   type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerIsolatedNodesBranch
      !% A merger tree walker which iterates depth-first over all isolated nodes in a given branch.
      private
-     type   (treeNode), pointer :: branchHead  , node
-     logical                    :: nodesRemain_
+     type            (treeNode), pointer :: branchHead  , node
+     logical                             :: nodesRemain_, timeLimited
+     double precision                    :: timeEarliest
    contains
      procedure :: next        => isolatedNodesBranchNext
      procedure :: nodesRemain => isolatedNodesBranchNodesRemain
@@ -53,15 +54,18 @@ contains
     return
   end function isolatedNodesBranchParameters
   
-  function isolatedNodesBranchInternal(branchHead) result(self)
+  function isolatedNodesBranchInternal(branchHead,timeEarliest) result(self)
     !% Internal constructor for the {\normalfont \ttfamily isolatedNodesBranch} merger tree walker class.
     implicit none
-    type(mergerTreeWalkerIsolatedNodesBranch)                          :: self
-    type(treeNode                           ), intent(in   ), target   :: branchHead
+    type            (mergerTreeWalkerIsolatedNodesBranch)                          :: self
+    type            (treeNode                           ), intent(in   ), target   :: branchHead
+    double precision                                     , intent(in   ), optional :: timeEarliest
 
     self%branchHead   => branchHead
     self%node         => null()
     self%nodesRemain_ = .true.
+    self%timeLimited  = present(timeEarliest)
+    if (self%timeLimited) self%timeEarliest=timeEarliest       
     return
   end function isolatedNodesBranchInternal
   
@@ -70,9 +74,11 @@ contains
     !% to perform a depth-first walk. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer will be
     !% set, and a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes to walk. Each node will
     !% be visited once and once only if the branch is walked in this way.
+    use Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(mergerTreeWalkerIsolatedNodesBranch), intent(inout)          :: self
     type (treeNode                           ), intent(inout), pointer :: node
+    class(nodeComponentBasic                 )               , pointer :: basic
 
     ! If the node is currently pointing to the head node of the branch, then the tree walk is complete.
     if (associated(self%node,self%branchHead)) then
@@ -85,12 +91,20 @@ contains
     if (.not.associated(self%node)) then
        self%node => self%branchHead
        do while (associated(self%node%firstChild))
+          if (self%timeLimited) then
+             basic => self%node%firstChild%basic()
+             if (basic%time() < self%timeEarliest) exit
+          end if
           self%node => self%node%firstChild
        end do
     else
        if (associated(self%node%sibling)) then
           self%node => self%node%sibling
           do while (associated(self%node%firstChild))
+          if (self%timeLimited) then
+             basic => self%node%firstChild%basic()
+             if (basic%time() < self%timeEarliest) exit
+          end if
              self%node => self%node%firstChild
           end do
        else
