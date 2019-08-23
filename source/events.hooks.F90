@@ -100,14 +100,21 @@ module Events_Hooks
      !@     <description>Attach a hook to the event.</description>
      !@   </objectMethod>
      !@   <objectMethod>
+     !@     <method>isAttached</method>
+     !@     <type>\logicalzero</type>
+     !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
+     !@     <description>Return true if the object is attached to this event.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
      !@     <method>detach</method>
      !@     <type>\void</type>
      !@     <arguments>\textcolor{red}{\textless class(*)\textgreater} *object\_\argin, \textcolor{red}{\textless procedure()\textgreater} *function\_\argin</arguments>
      !@     <description>Detach a hook from the event.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-      procedure :: attach => eventHookUnspecifiedAttach
-      procedure :: detach => eventHookUnspecifiedDetach
+     procedure :: attach     => eventHookUnspecifiedAttach
+     procedure :: isAttached => eventHookUnspecifiedIsAttached
+     procedure :: detach     => eventHookUnspecifiedDetach
   end type eventHookUnspecified
 
   ! The following is an enumeration of ways in which hooked functions can be bound to OpenMP threads. The behavior is as follows:
@@ -226,6 +233,37 @@ contains
     !$ call OMP_Unset_Lock(self%lock_)
     return
   end subroutine eventHookUnspecifiedAttach
+
+  logical function eventHookUnspecifiedIsAttached(self,object_,function_)
+    !% Return true if an object is attached to an event hook.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class    (eventHookUnspecified), intent(inout)          :: self
+    class    (*                   ), intent(in   ), target  :: object_
+    procedure(                    )                         :: function_
+    class    (hook                )               , pointer :: hook_
+    
+    ! Lock the object.
+    !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
+    !$ call OMP_Set_Lock(self%lock_)
+    if (associated(self%first_)) then
+       hook_ => self%first_
+       do while (associated(hook_))
+          select type (hook_)
+          type is (hookUnspecified)
+             if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
+                eventHookUnspecifiedIsAttached=.true.
+                !$ call OMP_Unset_Lock(self%lock_)
+                return
+             end if
+          end select
+          hook_ => hook_%next
+       end do
+    end if
+    eventHookUnspecifiedIsAttached=.false.
+    !$ call OMP_Unset_Lock(self%lock_)
+    return
+  end function eventHookUnspecifiedIsAttached
 
   subroutine eventHookUnspecifiedDetach(self,object_,function_)
     !% Attach an object to an event hook.

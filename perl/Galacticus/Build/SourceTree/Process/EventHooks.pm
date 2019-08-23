@@ -71,14 +71,21 @@ type, extends(eventHook) :: eventHook{$interfaceType}
   !@     <description>Attach a hook to the event.</description>
   !@   </objectMethod>
   !@   <objectMethod>
+  !@     <method>isAttached</method>
+  !@     <type>\logicalzero</type>
+  !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
+  !@     <description>Return true if the object is attached to this event.</description>
+  !@   </objectMethod>
+  !@   <objectMethod>
   !@     <method>detach</method>
   !@     <type>\void</type>
   !@     <arguments>\textcolor\{red\}\{\textless class(*)\textgreater\} *object\_\argin, \textcolor\{red\}\{\textless procedure()\textgreater\} *function\_\argin</arguments>
   !@     <description>Detach a hook from the event.</description>
   !@   </objectMethod>
   !@ </objectMethods>
-  procedure :: attach => eventHook{$interfaceType}Attach
-  procedure :: detach => eventHook{$interfaceType}Detach
+  procedure :: attach     => eventHook{$interfaceType}Attach
+  procedure :: isAttached => eventHook{$interfaceType}IsAttached
+  procedure :: detach     => eventHook{$interfaceType}Detach
 end type eventHook{$interfaceType}
 
 abstract interface
@@ -194,7 +201,47 @@ CODE
 		    };
 		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$detacherNode]);
 		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
-		}
+		    my $isAttacher = fill_in_string(<<'CODE', PACKAGE => 'code');
+logical function eventHook{$interfaceType}IsAttached(self,object_,function_)
+  use Galacticus_Error, only : Galacticus_Error_Report
+  implicit none
+  class    (eventHook{$interfaceType}), intent(inout)          :: self
+  class    (*                        ), intent(in   ), target  :: object_
+  procedure(interface{$interfaceType})                         :: function_
+  class    (hook                     )               , pointer :: hook_
+
+  !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{$location})
+  !$ call OMP_Set_Lock(self%lock_)
+  if (associated(self%first_)) then
+     hook_ => self%first_
+     do while (associated(hook_))
+        select type (hook_)
+        type is (hook{$interfaceType})
+           if (associated(hook_%object_,object_).and.associated(hook_%function_,function_)) then
+             eventHook{$interfaceType}IsAttached=.true.
+             !$ call OMP_Unset_Lock(self%lock_)
+             return
+           end if
+        end select
+        hook_ => hook_%next
+     end do
+  end if
+  eventHook{$interfaceType}IsAttached=.false.
+  !$ call OMP_Unset_Lock(self%lock_)
+  return
+end function eventHook{$interfaceType}IsAttached
+CODE
+		    my $isAttacherNode   =
+		    {
+			type       => "code",
+			content    => $isAttacher,
+			firstChild => undef(),
+			source     => "Galacticus::Build::SourceTree::Process::EventHooks::Process_EventHooks()",
+			line       => 1
+		    };
+		    &Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},[$isAttacherNode]);
+		    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},"hook".$code::interfaceType,"public");
+	        }
 		$hookObject .= "type(eventHook".$code::interfaceType."), public :: ".$hook->{'name'}."Event\n";
 		my $newNode   =
 		{
