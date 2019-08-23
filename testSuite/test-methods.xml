@@ -9,6 +9,7 @@
   <baseParameters>testSuite/test-methods-base.xml</baseParameters>
   <launchMethod>pbs</launchMethod>
   <pbs>
+    <mpiLaunch>no</mpiLaunch>
     <ompThreads>16</ompThreads>
     <maxJobsInQueue>40</maxJobsInQueue>
     <postSubmitSleepDuration>1</postSubmitSleepDuration>
@@ -1555,7 +1556,7 @@
     </excursionSetBarrierMethod>
     <excursionSetFirstCrossingMethod value="farahi">
       <timeStepFractional value="0.01"/>
-      <fileName value="excursionSetsWdmMx2.0Gx1.5.hdf5"/>
+      <fileName value="%DATADYNAMICPATH%/largeScaleStructure/excursionSets/excursionSetsWdmMx2.0Gx1.5.hdf5"/>
     </excursionSetFirstCrossingMethod>
     <darkMatterProfileConcentrationMethod value="schneider2015">
       <reference value="">
