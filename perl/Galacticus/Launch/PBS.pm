@@ -288,7 +288,7 @@ sub SubmitJobs {
 			my $traceJob = &File::Which::which("tracejob");
 			my $sacct    = &File::Which::which("sacct"   );
 			if ( defined($traceJob) ) {
-			    open(my $trace,$traceJob." -n 100 ".$jobID." |");
+			    open(my $trace,$traceJob." -q -n 100 ".$jobID." |");
 			    while ( my $line = <$trace> ) {
 				if ( $line =~ m/Exit_status=(\d+)/ ) {
 				    $exitStatus = $1;
