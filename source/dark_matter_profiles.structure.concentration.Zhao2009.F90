@@ -41,7 +41,7 @@
      class(cosmologyParametersClass               ), pointer :: cosmologyParameters_                => null()
      class(darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
      type (virialDensityContrastBryanNorman1998   ), pointer :: virialDensityContrastDefinition_    => null()
-     type (darkMatterProfileDMONFW                   ), pointer :: darkMatterProfileDMODefinition_        => null()
+     type (darkMatterProfileDMONFW                ), pointer :: darkMatterProfileDMODefinition_     => null()
    contains
      final     ::                                zhao2009Destructor
      procedure :: concentration               => zhao2009Concentration
