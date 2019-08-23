@@ -28,13 +28,14 @@ sub Process_StateStorable {
     my $depth      = 0    ;
     while ( $node ) {
 	# Capture stateStorable directives.
-	if ( $node->{'type'} eq "stateStorable" ) {
-	    # Assert that our parent is a module (for now).
-	    die("Process_StateStorale: parent node must be a module")
-		unless ( $node->{'parent'}->{'type'} eq "module" );
-	    $moduleNode = $node->{'parent'};
+	if ( $node->{'type'} eq "stateStorable" && ! $node->{'directive'}->{'processed'} ) {
+	    # Get the module node if contained within a module.
+	    $moduleNode = $node->{'parent'}
+	        if ( $node->{'parent'}->{'type'} eq "module" );	    
 	    # Extract the directive.
 	    push(@directiveNodes,$node);	    
+	    # Mark the directive as processed.
+	    $node->{'directive'}->{'processed'} = 1;
 	    # Get state storables database if we do not have it.
 	    $stateStorables = $xml->XMLin($ENV{'BUILDPATH'}."/stateStorables.xml")
 		unless ( $stateStorables );	    
@@ -59,11 +60,33 @@ sub Process_StateStorable {
 	# Walk to the next node in the tree.
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
+
+    # Remove any type definitions which do not match the storable class.
+    if ( scalar(@directiveNodes) > 0 ) {
+	foreach my $className ( keys(%classes) ) {
+	    my $matched = 0;
+	    my $parentClassName = $className;
+	    while ( ! $matched ) {
+		$matched = 1
+		    if ( grep {$_->{'directive'}->{'class'} eq $parentClassName} @directiveNodes );
+		last
+		    if ( $matched );
+		last
+		    unless ( exists($classes{$parentClassName}) && defined($classes{$parentClassName}->{'extends'}) );
+		$parentClassName = $classes{$parentClassName}->{'extends'};
+	    }
+	    delete($classes{$className})
+		unless ( $matched );
+	}
+    }
+    
     # Specify types that are storable via direct transfer.
     my @transferrables =
 	(
 	 "fgsl_interp_type"
 	);
+    # Record whether we need class functions.
+    my $classFunctionsRequired = defined($moduleNode);
     # Process any stateSotrable directives.
     foreach my $directiveNode ( @directiveNodes ) {
 	my $directive = $directiveNode->{'directive'};
@@ -186,8 +209,10 @@ CODE
 					    $outputCode .= "  call Galacticus_Display_Message('storing \"".$variableName."\" with size '//trim(adjustl(label))//' bytes')\n";
 					    $outputCode .= " end if\n";
 					    $inputCode  .= " call Galacticus_Display_Message('restoring \"".$variableName."\"',verbosity=verbosityWorking)\n";
-					    $inputCode  .= " call ".$type."ClassRestore(self%".$variableName.",stateFile)\n"
-						if ( $declaration->{'intrinsic'} eq "class" );
+					    if ( $declaration->{'intrinsic'} eq "class" ) {
+						$inputCode  .= " call ".$type."ClassRestore(self%".$variableName.",stateFile)\n";
+						$classFunctionsRequired = 1;
+					    }
 					    $inputCode  .= " call self%".$variableName."%stateRestore(stateFile,fgslStateFile)\n";
 					    $outputCode .= " call self%".$variableName."%stateStore  (stateFile,fgslStateFile,storeIdentifier=".($declaration->{'intrinsic'} eq "class" ? ".true." : ".false.").")\n";
 					}
@@ -355,12 +380,13 @@ CODE
 	    $inputCodeCloser .
 	    "\n"             ;
 	# Build the class restore functions.
-	foreach $code::parentClassName ( sort(keys(%classes)) ) {
-	    for(my $rank=0;$rank<=1;++$rank) {
-		$code::rankSuffix  = $rank > 0 ? $rank."D"      : "";
-		$code::storedShape = $rank > 0 ? ",storedShape" : "";
-		$code::dimensions  = $rank > 0 ? ", dimension(".join(",",map {":"} 1..$rank).")" : "";
-		my $classRestoreCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+	if ( $classFunctionsRequired ) {
+	    foreach $code::parentClassName ( sort(keys(%classes)) ) {
+		for(my $rank=0;$rank<=1;++$rank) {
+		    $code::rankSuffix  = $rank > 0 ? $rank."D"      : "";
+		    $code::storedShape = $rank > 0 ? ",storedShape" : "";
+		    $code::dimensions  = $rank > 0 ? ", dimension(".join(",",map {":"} 1..$rank).")" : "";
+		    my $classRestoreCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$parentClassName}ClassRestore{$rankSuffix}(self,stateFile{$storedShape})
  !% Restore the class of this object from file.
  use Galacticus_Error
@@ -370,34 +396,36 @@ subroutine {$parentClassName}ClassRestore{$rankSuffix}(self,stateFile{$storedSha
  integer                    , intent(in   )               :: stateFile
  integer                                                  :: classIdentifier
 CODE
-		$classRestoreCode .= "integer(c_size_t), intent(in   ), dimension(".join(",",map {":"} 1..$rank).") :: storedShape\n"
-		    if ( $rank > 0 );
-		$classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+		    $classRestoreCode .= "integer(c_size_t), intent(in   ), dimension(".join(",",map {":"} 1..$rank).") :: storedShape\n"
+			if ( $rank > 0 );
+		    $classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
  read (stateFile) classIdentifier
  select case (classIdentifier)
 CODE
-		foreach my $childClassName( sort(keys(%classIdentifiers)) ) {
-		    my $parentClassName = $childClassName;
-		    while ( defined($parentClassName) ) {
-			if ( $parentClassName eq $code::parentClassName ) {
-			    # This class extends our parent class, so include it in this function.
-			    $classRestoreCode .= " case (".$classIdentifiers{$childClassName}.")\n";
-			    $classRestoreCode .= "  if (allocated(self)) deallocate(self)\n";
-			    $classRestoreCode .= "  allocate(".$childClassName." :: self".($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+		    foreach my $childClassName( sort(keys(%classIdentifiers)) ) {
+			my $parentClassName = $childClassName;
+			while ( defined($parentClassName) ) {
+			    if ( $parentClassName eq $code::parentClassName ) {
+				# This class extends our parent class, so include it in this function.
+				$classRestoreCode .= " case (".$classIdentifiers{$childClassName}.")\n";
+				$classRestoreCode .= "  if (allocated(self)) deallocate(self)\n";
+				$classRestoreCode .= "  allocate(".$childClassName." :: self".($rank > 0 ? "(".join(",",map {"storedShape(".$_.")"} 1..$rank).")" : "").")\n";
+			    }
+			    $parentClassName = $classes{$parentClassName}->{'extends'};
 			}
-			$parentClassName = $classes{$parentClassName}->{'extends'};
 		    }
-		}
-		$classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
+		    $classRestoreCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
  case default
   call Galacticus_Error_Report('serialized object is of incorrect class')
  end select
  return
 end subroutine {$parentClassName}ClassRestore{$rankSuffix}
 CODE
-		$functionCode .= $classRestoreCode."\n";
-		# Set visibility of class restore function.
-		&Galacticus::Build::SourceTree::SetVisibility($moduleNode,$code::parentClassName."ClassRestore".$code::rankSuffix,"public");
+		    $functionCode .= $classRestoreCode."\n";
+		    # Set visibility of class restore function.
+		    &Galacticus::Build::SourceTree::SetVisibility($moduleNode,$code::parentClassName."ClassRestore".$code::rankSuffix,"public")
+			if ( defined($moduleNode) );
+		}
 	    }
 	}
 	# Insert code.
