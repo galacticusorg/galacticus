@@ -32,7 +32,55 @@ module Star_Formation_Histories
   !# <functionClass>
   !#  <name>starFormationHistory</name>
   !#  <descriptiveName>Star Formation Histories</descriptiveName>
-  !#  <description>Class providing recording and output of star formation histories.</description>
+  !#  <description>
+  !#    Class providing recording and output of star formation histories.
+  !#    
+  !#    Conventionally, star formation histories are output as follows:
+  !#    \begin{verbatim}
+  !#    HDF5 "galacticus.hdf5" {
+  !#    GROUP "starFormationHistories" {
+  !#       COMMENT "Star formation history data."
+  !#       GROUP "Output1" {
+  !#          COMMENT "Star formation histories for all trees at each out"
+  !#          GROUP "mergerTree1" {
+  !#             COMMENT "Star formation histories for each tree."
+  !#             DATASET "diskSFH<nodeID>" {
+  !#             COMMENT "Star formation history stellar masses of the disk "
+  !#                DATATYPE  H5T_IEEE_F64LE
+  !#                DATASPACE  SIMPLE { }
+  !#             }
+  !#             DATASET "diskTime<nodeID>" {
+  !#             COMMENT "Star formation history times of the disk component"
+  !#                DATATYPE  H5T_IEEE_F64LE
+  !#                DATASPACE  SIMPLE { }
+  !#             }
+  !#             DATASET "spheroidSFH<nodeID>" {
+  !#             COMMENT "Star formation history stellar masses of the spher"
+  !#                DATATYPE  H5T_IEEE_F64LE
+  !#                DATASPACE  SIMPLE { }
+  !#             }
+  !#             DATASET "spheroidTime<nodeID>" {
+  !#             COMMENT "Star formation history times of the spheroid compo"
+  !#                DATATYPE  H5T_IEEE_F64LE
+  !#                DATASPACE  SIMPLE { }
+  !#             }
+  !#          }
+  !#          GROUP "mergerTree2" {
+  !#          .
+  !#          .
+  !#          .
+  !#          }
+  !#       }
+  !#       GROUP "Output1" {
+  !#       .
+  !#       .
+  !#       .
+  !#       }
+  !#    }
+  !#    }
+  !#    \end{verbatim}
+  !#    where {\normalfont \ttfamily nodeID} is the index of the relevant node. The specifics of each dataset will depend on the selected star formation history method.
+  !#  </description>
   !#  <default>null</default>
   !#  <method name="create" >
   !#   <description>Create the star formation history object.</description>

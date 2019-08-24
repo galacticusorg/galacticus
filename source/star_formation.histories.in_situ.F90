@@ -22,7 +22,13 @@
   use Output_Times, only : outputTimesClass, outputTimes
 
   !# <starFormationHistory name="starFormationHistoryInSitu">
-  !#  <description>A star formation histories class which records \emph{in situ} star formation.</description>
+  !#  <description>
+  !#   A star formation histories class which records \emph{in situ} star formation. The star formation history is tabulated on a
+  !#   grid of time and is split between in-situ and accreted star formation. The time grid is the same as (and controlled by the
+  !#   same parameters) are for the {\normalfont \ttfamily metallicitySplit} method. Output follows the conventional format, with
+  !#   2D star formation history datasets to represent the history as a function of time and origin. The first element in the
+  !#   origin dimension records in-situ star formation, while the second element records total star formation.
+  !#  </description>
   !# </starFormationHistory>
   type, extends(starFormationHistoryClass) :: starFormationHistoryInSitu
      !% A star formation histories class which records \emph{in situ} star formation.
