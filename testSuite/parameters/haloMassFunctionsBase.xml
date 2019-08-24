@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Base parameters for halo mass function tests. -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Task -->
+  <taskMethod value="haloMassFunction">
+    <haloMassMinimum value="1.0e10"/>
+    <haloMassMaximum value="1.0e15"/>
+    <pointsPerDecade value="20"    />
+  </taskMethod>
+  <galacticusOutputFileName value=""/>
+  
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctionsMethod  value="matterLambda"/>
+  <cosmologyParametersMethod value="simple"       >
+    <HubbleConstant  value="70.00"/>
+    <OmegaMatter     value=" 0.30"/>
+    <OmegaDarkEnergy value=" 0.70"/>
+    <OmegaBaryon     value=" 0.05"/>
+    <temperatureCMB  value=" 2.73"/>
+  </cosmologyParametersMethod>
+
+  <!-- Power spectrum options -->
+  <cosmologicalMassVarianceMethod value="filteredPower">
+    <sigma_8 value="0.8"/>
+  </cosmologicalMassVarianceMethod>
+
+  <transferFunctionMethod value="file">
+    <fileName value=""/>
+  </transferFunctionMethod>
+  <powerSpectrumPrimordialMethod value="powerLaw">
+    <index               value="1.0"/>
+    <wavenumberReference value="1.0"/>
+    <running             value="0.0"/>
+  </powerSpectrumPrimordialMethod>
+  <powerSpectrumPrimordialTransferredMethod value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowthMethod        value="simple"/>
+  <criticalOverdensityMethod value="fixed"  >
+    <criticalOverdensity value="1.686"/>
+  </criticalOverdensityMethod>
+  <virialDensityContrastMethod value="fixed">
+    <densityContrastValue value="200.0"/>
+    <densityType          value="mean" />
+  </virialDensityContrastMethod>
+
+  <!-- Halo mass function -->
+  <excursionSetBarrierMethod       value="criticalOverdensity"/>
+  <excursionSetFirstCrossingMethod value="linearBarrier"      />
+
+</parameters>
