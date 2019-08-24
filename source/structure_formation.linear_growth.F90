@@ -63,6 +63,21 @@ module Linear_Growth
   !#   <argument>integer         , intent(in   ), optional :: component                  </argument>
   !#   <argument>double precision, intent(in   ), optional :: wavenumber                 </argument>
   !#  </method>
+  !#  <method name="logarithmicDerivativeWavenumber" >
+  !#   <description>Return the logarithmic derivative of linear growth factor with respect to wavenumber.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
+  !#   <argument>logical         , intent(in   ), optional :: collapsing                 </argument>
+  !#   <argument>integer         , intent(in   ), optional :: component                  </argument>
+  !#   <argument>double precision, intent(in   ), optional :: wavenumber                 </argument>
+  !#  </method>
+  !#  <method name="isWavenumberDependent" >
+  !#   <description>Return true if the growth function is wavenumber-dependent.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#   <argument>integer, intent(in   ), optional :: component</argument>
+  !#  </method>
   !# </functionClass>
 
 end module Linear_Growth

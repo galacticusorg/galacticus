@@ -197,10 +197,10 @@ contains
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                           )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
     return
   end function diemerKravtsov2014ConstructorInternal
 
@@ -268,12 +268,12 @@ contains
             &                                  /self%cosmologyParameters_%OmegaMatter    ()                             &
             &                                 )
        peakHeight                    =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
-            &                         /self%cosmologicalMassVariance_%rootVariance(                       basic%mass())
+            &                         /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
        wavenumber                    =+self%kappa                                                                       &
             &                         *2.0d0                                                                            &
             &                         *Pi                                                                               &
             &                         /radiusHaloLagrangian
-       powerSpectrumSlope            =+self%powerSpectrum_%powerLogarithmicDerivative(wavenumber)
+       powerSpectrumSlope            =+self%powerSpectrum_%powerLogarithmicDerivative(wavenumber,basic%time())
        concentrationMinimum          =+self%phi0                                                                        &
             &                         +self%phi1                                                                        &
             &                         *powerSpectrumSlope

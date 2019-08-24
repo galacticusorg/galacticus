@@ -124,9 +124,7 @@ contains
           self%timeMinimum=0.5d0*time
           self%timeMaximum=2.0d0*time
        end if
-       self%timeTableCount=int(log10(self%timeMaximum/self%timeMinimum)*dble(timeTableNumberPerDecade))+1
        self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(varianceTableNumberPerUnit))
        ! Make a copy of the current table if possible.
        tableIsExtendable=(self%timeMinimum == self%timeMinimumPrevious .and. self%timeMaximum == self%timeMaximumPrevious .and. self%tableInitialized)
        if (tableIsExtendable) then
@@ -139,6 +137,8 @@ contains
        end if
        self%timeMinimumPrevious=self%timeMinimum
        self%timeMaximumPrevious=self%timeMaximum
+       self%timeTableCount     =int(log10(self%timeMaximum/self%timeMinimum)*dble(timeTableNumberPerDecade))+1
+       self%varianceTableCount =int(self%varianceMaximum*dble(varianceTableNumberPerUnit))
        ! Construct the table of variance on which we will solve for the first crossing distribution.
        if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
        if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
@@ -269,7 +269,7 @@ contains
                      &                                       )
              else if (i == 0) then
                 self%firstCrossingProbabilityTable(i,iTime)=+0.0d0
-             end if
+             end if             
           end do
        end do
        call Galacticus_Display_Counter_Clear(verbosityWorking)
@@ -284,10 +284,10 @@ contains
     end if
     ! Get interpolation in time.
     iTime    =Interpolate_Locate                 (self%timeTable    ,self%interpolationAcceleratorTime    ,time    ,reset=self%interpolationResetTime    )
-    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime    ,time    )
+    hTime    =Interpolate_Linear_Generate_Factors(self%timeTable    ,iTime                                ,time                                          )
     ! Get interpolation in variance.
     iVariance=Interpolate_Locate                 (self%varianceTable,self%interpolationAcceleratorVariance,variance,reset=self%interpolationResetVariance)
-    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance,variance)
+    hVariance=Interpolate_Linear_Generate_Factors(self%varianceTable,iVariance                            ,variance                                      )
     ! Compute first crossing probability by interpolating.
     zhangHuiHighOrderProbability=0.0d0
     do jTime=0,1

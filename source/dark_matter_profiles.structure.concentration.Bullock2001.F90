@@ -162,13 +162,13 @@ contains
     densityContrast        =   virialDensityContrast_             %densityContrast          (basic%mass(),basic          %timeLastIsolated())
     massHalo               =   Dark_Matter_Profile_Mass_Definition                          (node        ,densityContrast                   )
     massHaloFormation      =  +self%F*massHalo
-    ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
-    sigmaFormation          =+self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation              )
+    ! Compute the corresponding rms fluctuation in the density field (i.e. σ(M)).
+    sigmaFormation          =+self%cosmologicalMassVariance_%rootVariance   (                    massHaloFormation,     self%cosmologyFunctions_%cosmicTime(1.0d0))
     ! Get the time at which this equals the critical overdensity for collapse.
-    timeFormation           =+self%criticalOverdensity_     %timeOfCollapse (criticalOverdensity=sigmaFormation   ,mass=massHalo)
+    timeFormation           =+self%criticalOverdensity_     %timeOfCollapse (criticalOverdensity=sigmaFormation   ,mass=massHalo                                  )
     ! Get the corresponding expansion factors.
-    expansionFactorFormation=+self%cosmologyFunctions_      %expansionFactor(                    timeFormation                  )
-    expansionFactor         =+self%cosmologyFunctions_      %expansionFactor(                    basic%time()                   )
+    expansionFactorFormation=+self%cosmologyFunctions_      %expansionFactor(                    timeFormation                                                    )
+    expansionFactor         =+self%cosmologyFunctions_      %expansionFactor(                    basic%time()                                                     )
     ! Compute the concentration.
     bullock2001Concentration=+self%K                   &
          &                   *expansionFactor          &

@@ -52,44 +52,68 @@
   !#  </stateStorable>
   !# </cosmologicalMassVariance>
   use Tables
-  use Cosmology_Parameters
-  use Power_Spectra_Primordial_Transferred
-  use Power_Spectrum_Window_Functions
+  use Cosmology_Parameters                , only : cosmologyParameters               , cosmologyParametersClass
+  use Cosmology_Functions                 , only : cosmologyFunctions                , cosmologyFunctionsClass
+  use Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferred, powerSpectrumPrimordialTransferredClass
+  use Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunction       , powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
+  use Linear_Growth                       , only : linearGrowth                      , linearGrowthClass
 
+  !# <stateStorable class="uniqueTable"/>
+  
+  type :: uniqueTable
+     !% Type used to store unique values of the mass variance.
+     private
+     double precision, allocatable, dimension(:) :: rootVariance
+     integer         , allocatable, dimension(:) :: index
+  end type uniqueTable
+     
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
      !% A cosmological mass variance class computing variance from a filtered power spectrum.
      private
-     class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_ => null()
+     class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
+     class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
      class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_ => null()
-     type            (powerSpectrumWindowFunctionTopHat      ), pointer                   :: powerSpectrumWindowFunctionTopHat_ => null()
+     class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null()
+     type            (powerSpectrumWindowFunctionTopHat      ), pointer                   :: powerSpectrumWindowFunctionTopHat_  => null()
      logical                                                                              :: initialized
-     double precision                                                                     :: tolerance                          , toleranceTopHat   , &
-          &                                                                                  sigma8Value                        , sigmaNormalization, &
-          &                                                                                  massMinimum                        , massMaximum
-     class           (table1DLinearCSpline                   ), allocatable               :: rootVarianceTable
+     double precision                                                                     :: tolerance                                    , toleranceTopHat            , &
+          &                                                                                  sigma8Value                                  , sigmaNormalization         , &
+          &                                                                                  massMinimum                                  , massMaximum                , &
+          &                                                                                  timeMinimum                                  , timeMaximum                , &
+          &                                                                                  timeMinimumLogarithmic                       , timeLogarithmicDeltaInverse
+     double precision                                         , allocatable, dimension(:) :: times
+     class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
      ! Unique values in the variance table and their corresponding indices.
-     double precision                                         , allocatable, dimension(:) :: rootVarianceUniqueTable
-     integer                                                  , allocatable, dimension(:) :: rootVarianceUniqueIndexTable
-     logical                                                                              :: monotonicInterpolation
+     type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
+     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_
    contains
      !@ <objectMethods>
      !@   <object>cosmologicalMassVarianceFilteredPower</object>
      !@   <objectMethod>
      !@     <method>retabulate</method>
      !@     <type>void</type>
-     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <arguments>\doublezero\ mass\argin, \doublezero\ time\argin</arguments>
      !@     <description>Tabulate cosmological mass variance.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>interpolantsTime</method>
+     !@     <type>void</type>
+     !@     <arguments>\doublezero\ time\argin, \intzero\ i\argout, \doublezero\ h\argout</arguments>
+     !@     <description>Compute the interpolating factors in time.</description>
+     !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                                       filteredPowerDestructor
-     procedure :: sigma8                             => filteredPowerSigma8
-     procedure :: powerNormalization                 => filteredPowerPowerNormalization
-     procedure :: rootVariance                       => filteredPowerRootVariance
-     procedure :: rootVarianceLogarithmicGradient    => filteredPowerRootVarianceLogarithmicGradient
-     procedure :: rootVarianceAndLogarithmicGradient => filteredPowerRootVarianceAndLogarithmicGradient
-     procedure :: mass                               => filteredPowerMass
-     procedure :: retabulate                         => filteredPowerRetabulate
+     final     ::                                        filteredPowerDestructor
+     procedure :: sigma8                              => filteredPowerSigma8
+     procedure :: powerNormalization                  => filteredPowerPowerNormalization
+     procedure :: rootVariance                        => filteredPowerRootVariance
+     procedure :: rootVarianceLogarithmicGradient     => filteredPowerRootVarianceLogarithmicGradient
+     procedure :: rootVarianceLogarithmicGradientTime => filteredPowerRootVarianceLogarithmicGradientTime
+     procedure :: rootVarianceAndLogarithmicGradient  => filteredPowerRootVarianceAndLogarithmicGradient
+     procedure :: mass                                => filteredPowerMass
+     procedure :: retabulate                          => filteredPowerRetabulate
+     procedure :: interpolantsTime                    => filteredPowerInterpolantsTime
+     procedure :: growthIsMassDependent               => filteredPowerGrowthIsMassDependent
   end type cosmologicalMassVarianceFilteredPower
 
   interface cosmologicalMassVarianceFilteredPower
@@ -99,8 +123,12 @@
   end interface cosmologicalMassVarianceFilteredPower
 
   ! Number of points per decade to use in tabulation of σ(M).
-  integer, parameter :: filteredPowerTablePointsPerDecade=10
+  integer         , parameter :: filteredPowerTablePointsPerDecade=10, filteredPowerTimePointsPerDecade=100
 
+  ! Module-scope time used in integrals.
+  double precision            :: filteredPowerTime
+  !$omp threadprivate(filteredPowerTime)
+  
 contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
@@ -110,8 +138,10 @@ contains
     type            (cosmologicalMassVarianceFilteredPower  )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_
+    class           (linearGrowthClass                      ), pointer       :: linearGrowth_
     double precision                                                         :: sigma8Value                        , tolerance, &
          &                                                                      toleranceTopHat
     logical                                                                  :: monotonicInterpolation
@@ -152,18 +182,22 @@ contains
     !#   <cardinality>1</cardinality>
     !# </inputParameter>
     !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
     !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>    
+    !# <objectBuilder class="linearGrowth"                       name="linearGrowth_"                       source="parameters"/>    
     ! Construct the instance.
-    self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
+    self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyParameters_"               />
+    !# <objectDestructor name="cosmologyFunctions_"                />
+    !# <objectDestructor name="linearGrowth_"                      />
     !# <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
     !# <objectDestructor name="powerSpectrumWindowFunction_"       />
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
+  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                        :: self
@@ -171,31 +205,41 @@ contains
          &                                                                              sigma8
     logical                                                  , intent(in   )         :: monotonicInterpolation
     class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
     class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
-    !# <constructorAssign variables="tolerance, toleranceTopHat, monotonicInterpolation, *cosmologyParameters_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_"/>
+    class           (linearGrowthClass                      ), intent(in   ), target :: linearGrowth_
+    !# <constructorAssign variables="tolerance, toleranceTopHat, monotonicInterpolation, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_"/>
 
     allocate(self%powerSpectrumWindowFunctionTopHat_)
     !# <referenceConstruct isResult="yes" owner="self" object="powerSpectrumWindowFunctionTopHat_" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>
-    self%sigma8Value=sigma8
-    self%initialized=.false.
-    self%massMinimum=1.0d06
-    self%massMaximum=1.0d15
+    self%sigma8Value           =sigma8
+    self%initialized           =.false.
+    self%massMinimum           =1.0d06
+    self%massMaximum           =1.0d15
+    self%timeMinimum           =self%cosmologyFunctions_                %cosmicTime                 (0.1d0)
+    self%timeMaximum           =self%cosmologyFunctions_                %cosmicTime                 (1.0d0)
+    self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent(     )
     return
   end function filteredPowerConstructorInternal
 
   subroutine filteredPowerDestructor(self)
     !% Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
     implicit none
-    type (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    type   (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    integer                                                       :: i
     
     !# <objectDestructor name="self%cosmologyParameters_"               />
+    !# <objectDestructor name="self%cosmologyFunctions_"                />
+    !# <objectDestructor name="self%linearGrowth_"                      />
     !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
     !# <objectDestructor name="self%powerSpectrumWindowFunction_"       />
     !# <objectDestructor name="self%powerSpectrumWindowFunctionTopHat_" />
-    if (self%initialized) call self%rootVarianceTable%destroy()
-    if (allocated(self%rootVarianceUniqueTable     )) deallocate(self%rootVarianceUniqueTable     ) 
-    if (allocated(self%rootVarianceUniqueIndexTable)) deallocate(self%rootVarianceUniqueIndexTable) 
+    if (self%initialized) then
+       do i=1,size(self%rootVarianceTable)
+          call self%rootVarianceTable(i)%destroy()
+       end do
+    end if
     return
   end subroutine filteredPowerDestructor
 
@@ -218,131 +262,210 @@ contains
     return
   end function filteredPowerSigma8
   
-  double precision function filteredPowerRootVariance(self,mass)
+  double precision function filteredPowerRootVariance(self,mass,time)
     !% Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
     !% \ttfamily mass} on average.
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: mass
-
-    call self%retabulate(mass)
-    filteredPowerRootVariance=self%rootVarianceTable%interpolate(mass)
+    double precision                                       , intent(in   ) :: mass, time
+    double precision                                                       :: h
+    integer                                                                :: i
+    
+    call self%retabulate      (mass,time)
+    if (self%growthIsMassDependent_) then
+       call self%interpolantsTime(time,i,h)
+       filteredPowerRootVariance=+self%rootVarianceTable(i  )%interpolate(mass)*(1.0d0-h) &
+            &                    +self%rootVarianceTable(i+1)%interpolate(mass)*       h
+    else
+       filteredPowerRootVariance=+self%rootVarianceTable(1  )%interpolate(mass)           &
+            &                    *self%linearGrowth_         %value      (time)       
+    end if
     return
   end function filteredPowerRootVariance
   
-  double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass)
+  double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass,time)
     !% Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
     !% region containing the given {\normalfont \ttfamily mass} on average.
-    use Numerical_Constants_Math
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: mass
-    double precision                                                       :: wavenumber
+    double precision                                       , intent(in   ) :: mass        , time
+    double precision                                                       :: rootVariance
 
-    call self%retabulate(mass)
-    if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
-       ! For the case of a constant window function amplitude the logarithmic gradient can be found analytically.
-       wavenumber                                  =+self%powerSpectrumWindowFunction_       %wavenumberMaximum(           mass)
-       filteredPowerRootVarianceLogarithmicGradient=-self%powerSpectrumPrimordialTransferred_%power            (wavenumber     )    &
-            &                                       *self%sigmaNormalization                                                    **2 &
-            &                                       *self%powerSpectrumWindowFunction_       %value            (wavenumber,mass)**2 &
-            &                                       /self%rootVarianceTable                  %interpolate      (           mass)**2 &
-            &                                       *                                                           wavenumber      **3 &
-            &                                       /12.0d0                                                                         &
-            &                                       /Pi                                                                         **2
-    else
-       ! Compute the gradient by interpolation in the tabulated relation.
-       filteredPowerRootVarianceLogarithmicGradient=+self%rootVarianceTable%interpolateGradient(mass) &
-            &                                       /self%rootVarianceTable%interpolate        (mass) &
-            &                                       *                                           mass
-    end if
+    call self%rootVarianceAndLogarithmicGradient(mass,time,rootVariance,filteredPowerRootVarianceLogarithmicGradient)
     return
   end function filteredPowerRootVarianceLogarithmicGradient
   
-  subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,rootVariance,rootVarianceLogarithmicGradient)
-    !% Return the value and logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    !% spherical region containing the given {\normalfont \ttfamily mass} on average.
-    use Numerical_Constants_Math
+  double precision function filteredPowerRootVarianceLogarithmicGradientTime(self,mass,time)
+    !% Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
+    !% region containing the given {\normalfont \ttfamily mass} on average.
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: mass
-    double precision                                       , intent(  out) :: rootVariance, rootVarianceLogarithmicGradient
-    double precision                                                       :: wavenumber
+    double precision                                       , intent(in   ) :: mass, time
+    double precision                                                       :: h
+    integer                                                                :: i
 
-    call self%retabulate(mass)
-    rootVariance=+self%rootVarianceTable%interpolate(mass)
-    if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
-       ! For the case of a constant window function amplitude the logarithmic gradient can be found analytically.
-       wavenumber                    =+self%powerSpectrumWindowFunction_       %wavenumberMaximum(           mass)
-       rootVarianceLogarithmicGradient=-self%powerSpectrumPrimordialTransferred_%power            (wavenumber     )    &
-            &                          *self%sigmaNormalization                                                    **2 &
-            &                          *self%powerSpectrumWindowFunction_       %value            (wavenumber,mass)**2 &
-            &                          /rootVariance                                                               **2 &
-            &                          *                                                           wavenumber      **3 &
-            &                          /12.0d0                                                                         &
-            &                          /Pi                                                                         **2
+    call self%retabulate(mass,time)
+    if (self%growthIsMassDependent_) then
+       call self%interpolantsTime(time,i,h)
+       filteredPowerRootVarianceLogarithmicGradientTime=+(                                                         &
+            &                                             -self%rootVarianceTable(i  )%interpolate(mass)           &
+            &                                             +self%rootVarianceTable(i+1)%interpolate(mass)           &
+            &                                            )                                                         &
+            &                                           /(                                                         &
+            &                                             +self%rootVarianceTable(i  )%interpolate(mass)*(1.0d0-h) &
+            &                                             +self%rootVarianceTable(i+1)%interpolate(mass)*       h  &
+            &                                            )                                                         &
+            &                                           *self%timeLogarithmicDeltaInverse
     else
-       ! Compute the gradient by interpolation in the tabulated relation.
-       rootVarianceLogarithmicGradient=+self%rootVarianceTable%interpolateGradient(mass) &
-            &                          /     rootVariance                                &
-            &                          *                                           mass
+       filteredPowerRootVarianceLogarithmicGradientTime=+self%linearGrowth_       %logarithmicDerivativeExpansionFactor (time) &
+            &                                           *self%cosmologyFunctions_ %expansionRate                       (       &
+            &                                            self%cosmologyFunctions_ %expansionFactor                      (time) &
+            &                                                                                                          )       &
+            &                                           *                                                                time
     end if
+    return
+  end function filteredPowerRootVarianceLogarithmicGradientTime
+
+  subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
+    !% Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
+    !% spherical region containing the given {\normalfont \ttfamily mass} on average.
+    use Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    double precision                                       , intent(in   ) :: mass        , time
+    double precision                                       , intent(  out) :: rootVariance, rootVarianceLogarithmicGradient
+    double precision                                                       :: wavenumber  , rootVarianceGradient           , &
+         &                                                                    interpolant , h
+    integer                                                                :: i           , j
+
+    call self%retabulate(mass,time)
+    if (self%growthIsMassDependent_) then
+       call self%interpolantsTime(time,i,h)
+    else
+       i=1
+       h=0.0d0
+    end if
+    rootVariance        =0.0d0
+    rootVarianceGradient=0.0d0
+    do j=i,i+1
+       if (j == i) then
+          interpolant=1.0d0-h
+       else
+          interpolant=      h
+       end if
+       if (interpolant == 0.0d0) cycle
+       if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
+          ! For the case of a constant window function amplitude the logarithmic gradient can be found analytically.
+          wavenumber          =+self%powerSpectrumWindowFunction_       %wavenumberMaximum(                mass    )
+          rootVarianceGradient=+rootVarianceGradient                                                                    &
+               &               -self%powerSpectrumPrimordialTransferred_%power            (wavenumber,self%times(j))    &
+               &               *self%sigmaNormalization                                                             **2 &
+               &               *self%powerSpectrumWindowFunction_       %value            (wavenumber,     mass    )**2 &
+               &               *                                                           wavenumber               **3 &
+               &               /12.0d0                                                                                  &
+               &               /Pi                                                                                  **2 &
+               &               *interpolant
+       else
+          ! Compute the gradient by interpolation in the tabulated relation.
+          rootVarianceGradient=+rootVarianceGradient                                &
+               &               +self%rootVarianceTable(j)%interpolateGradient(mass) &
+               &               *                                              mass  &
+               &               *interpolant
+       end if
+       rootVariance=+rootVariance                                &
+            &       +self%rootVarianceTable(j)%interpolate(mass) &
+            &       *interpolant
+    end do
+    if (self%powerSpectrumWindowFunction_%amplitudeIsMassIndependent()) then
+       rootVarianceLogarithmicGradient=+rootVarianceGradient    &
+            &                          /rootVariance        **2
+    else
+       rootVarianceLogarithmicGradient=+rootVarianceGradient    &
+            &                          /rootVariance
+    end if
+    ! Scale by the linear growth factor if growth is not mass-dependent.
+    if (.not.self%growthIsMassDependent_) rootVariance=+rootVariance                   &
+         &                                             *self%linearGrowth_%value(time)
     return
   end subroutine filteredPowerRootVarianceAndLogarithmicGradient
 
-  double precision function filteredPowerMass(self,rootVariance)
+  double precision function filteredPowerMass(self,rootVariance,time)
     !% Return the mass corrresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: rootVariance
-    double precision                                                       :: h
-    integer                                                                :: i            , iBoundLeft, &
-         &                                                                    iBoundRight
+    double precision                                       , intent(in   ) :: rootVariance   , time
+    double precision                                                       :: h              , hTime     , &
+         &                                                                    interpolantTime
+    integer                                                                :: i              , iBoundLeft, &
+         &                                                                    iBoundRight    , k         , &
+         &                                                                    j
     
     ! If the requested root-variance is below the lowest value tabulated, attempt to tabulate to higher mass (lower
     ! root-variance).
-    if (.not.self%initialized) call self%retabulate()
-    do while (rootVariance < self%rootVarianceTable%y(-1))
-       call self%retabulate(self%rootVarianceTable%x(-1)*2.0d0)
+    call self%retabulate(time=time)
+    do while (rootVariance < self%rootVarianceTable(1)%y(-1))
+       call self%retabulate(self%rootVarianceTable(1)%x(-1)*2.0d0,time)
     end do
-    ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
-    if (rootVariance > self%rootVarianceTable%y(1)) then
-       filteredPowerMass=self%rootVarianceTable%x(1)
+    ! Get interpolants in time.
+    if (self%growthIsMassDependent_) then
+       call self%interpolantsTime(time,k,hTime)
     else
-       ! Find the largest mass corresponding to this sigma.
-       iBoundLeft =1
-       iBoundRight=size(self%rootVarianceUniqueTable)
-       do while (iBoundLeft+1 < iBoundRight)
-          i=int((iBoundLeft+iBoundRight)/2)
-          if (self%rootVarianceUniqueTable(i) < rootVariance) then
-             iBoundRight=i
+       k    =1
+       hTime=0.0d0
+    end if
+    ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
+    if (rootVariance > self%rootVarianceTable(k)%y(1)) then
+       filteredPowerMass=self%rootVarianceTable(k)%x(1)
+    else
+       ! Iterate over times.
+       filteredPowerMass=0.0d0
+       do j=k,k+1
+          ! Compute interpolating factor.
+          if (j == k) then
+             interpolantTime=1.0d0-hTime
           else
-             iBoundLeft =i
+             interpolantTime=      hTime
           end if
+       if (interpolantTime == 0.0d0) cycle
+          ! Find the largest mass corresponding to this sigma.
+          iBoundLeft =1
+          iBoundRight=size(self%rootVarianceUniqueTable(j)%rootVariance)
+          do while (iBoundLeft+1 < iBoundRight)
+             i=int((iBoundLeft+iBoundRight)/2)
+             if (self%rootVarianceUniqueTable(j)%rootVariance(i) < rootVariance) then
+                iBoundRight=i
+             else
+                iBoundLeft =i
+             end if
+          end do
+          i                =self%rootVarianceUniqueTable(j)%index(iBoundRight)
+          h                =+(     rootVariance               -self%rootVarianceTable(j)%y(i)) &
+               &            /(self%rootVarianceTable(j)%y(i-1)-self%rootVarianceTable(j)%y(i))
+          filteredPowerMass=+filteredPowerMass                                    &
+               &            +exp(                                                 &
+               &                 +log(self%rootVarianceTable(j)%x(i  ))*(1.0d0-h) &
+               &                 +log(self%rootVarianceTable(j)%x(i-1))*       h  &
+               &                )                                                 &
+               &            *interpolantTime
        end do
-       i                =self%rootVarianceUniqueIndexTable(iBoundRight)
-       h                =+(     rootVariance            -self%rootVarianceTable%y(i)) &
-            &            /(self%rootVarianceTable%y(i-1)-self%rootVarianceTable%y(i))
-       filteredPowerMass=exp(                                              &
-            &                +log(self%rootVarianceTable%x(i  ))*(1.0d0-h) &
-            &                +log(self%rootVarianceTable%x(i-1))*       h  &
-            &               )
     end if
     return
   end function filteredPowerMass
  
-  subroutine filteredPowerRetabulate(self,mass)
+  subroutine filteredPowerRetabulate(self,mass,time)
     !% Tabulate the cosmological mass variance.
     use Numerical_Constants_Math
     use Galacticus_Error
+    use Numerical_Ranges        , only : Make_Range, rangeTypeLogarithmic
     implicit none
     class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)               :: self
-    double precision                                         , intent(in   ), optional     :: mass
+    double precision                                         , intent(in   ), optional     :: mass                      , time
     ! Radius for σ(M) normalization in Mpc/h.
-    double precision                                         , parameter                   :: radiusNormalization                =8.0d0
-    integer                                                                                :: i                                        , rootVarianceTableCount , &
-         &                                                                                    j                                        , rootVarianceUniqueCount      
-    double precision                                                                       :: sigma                                    , smoothingMass          , &
+    double precision                                         , parameter                   :: radiusNormalization =8.0d0
+    integer                                                                                :: i                         , rootVarianceTableCount , &
+         &                                                                                    j                         , rootVarianceUniqueCount, &
+         &                                                                                    rootVarianceTimeCount     , k
+    double precision                                                                       :: sigma                     , smoothingMass          , &
          &                                                                                    massMinimum
     logical                                                  , allocatable  , dimension(:) :: rootVarianceIsUnique
     logical                                                                                :: remakeTable
@@ -351,14 +474,22 @@ contains
 
     ! Check if we need to recompute our table.
     if (self%initialized) then
+       remakeTable=.false.
        if (present(mass)) then
           remakeTable=(                         &
                &        mass < self%massMinimum &
                &       .or.                     &
                &        mass > self%massMaximum &
                &      )
-       else
-          remakeTable=.false.
+       end if
+       if (present(time).and.self%growthIsMassDependent_) then
+          remakeTable=(                         &
+               &        remakeTable             &
+               &       .or.                     &
+               &        time < self%timeMinimum &
+               &       .or.                     &
+               &        time > self%timeMaximum &
+               &      )
        end if
     else
        remakeTable=.true.
@@ -377,8 +508,8 @@ contains
             &          /self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
             &         )**3
        ! Determine the normalization of the power spectrum.
-       self%sigmaNormalization=+self%sigma8Value               &
-            &                  /rootVariance(useTopHat=.true.)
+       self%sigmaNormalization=+self%sigma8Value                                                                &
+            &                  /rootVariance(time_=self%cosmologyFunctions_%cosmicTime(1.0d0),useTopHat=.true.)
        ! Find suitable range of masses to tabulate.
        if (present(mass)) then
           self%massMinimum=min(self%massMinimum,mass/10.0d0)
@@ -391,58 +522,95 @@ contains
             &                           )                                  &
             &                     *dble(filteredPowerTablePointsPerDecade) &
             &                    )
+       ! Find suitable range of times to tabulate.
+       if (self%growthIsMassDependent_) then
+          if (present(time)) then
+             self%timeMinimum=min(self%timeMinimum,time/ 2.0d0)
+             self%timeMaximum=max(self%timeMaximum,time* 2.0d0)
+          end if
+          rootVarianceTimeCount =int(                                         &
+               &                     +log10(                                  &
+               &                            +self%timeMaximum                 &
+               &                            /self%timeMinimum                 &
+               &                           )                                  &
+               &                     *dble(filteredPowerTimePointsPerDecade ) &
+               &                    )
+          self%timeMinimumLogarithmic     =                              log(                 self%timeMinimum)
+          self%timeLogarithmicDeltaInverse=dble(rootVarianceTimeCount-1)/log(self%timeMaximum/self%timeMinimum)
+       else
+          ! Growth of the transferred power spectrum is independent of mass - we can therefore tabulate σ(M) at a single epoch
+          ! and use the linear growth factor to transform it to other epochs.
+          self%timeMinimum                =self%cosmologyFunctions_%cosmicTime(1.0d0)
+          self%timeMaximum                =self%cosmologyFunctions_%cosmicTime(1.0d0)
+          rootVarianceTimeCount           =1
+          self%timeMinimumLogarithmic     =0.0d0
+          self%timeLogarithmicDeltaInverse=0.0d0
+       end if
+       if (allocated(self%times                  )) deallocate(self%times                  )
+       if (allocated(self%rootVarianceUniqueTable)) deallocate(self%rootVarianceUniqueTable)
+       allocate(self%rootVarianceUniqueTable(rootVarianceTimeCount))
+       allocate(self%times                  (rootVarianceTimeCount))
+       if (self%growthIsMassDependent_) then
+          self%times=Make_Range(self%timeMinimum,self%timeMaximum,rootVarianceTimeCount,rangeTypeLogarithmic)
+       else
+          self%times=self%timeMinimum
+       end if
        ! Allocate table grid.
        if (allocated(self%rootVarianceTable)) then
-          call self%rootVarianceTable%destroy()
+          do i=1,size(self%rootVarianceTable)
+             call self%rootVarianceTable(i)%destroy()
+          end do
           deallocate(self%rootVarianceTable)
        end if
-       if (allocated(self%rootVarianceUniqueTable     )) deallocate(self%rootVarianceUniqueTable     )
-       if (allocated(self%rootVarianceUniqueIndexTable)) deallocate(self%rootVarianceUniqueIndexTable)
        if (self%monotonicInterpolation) then
-          allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable)
+          allocate(table1DLogarithmicMonotoneCSpline :: self%rootVarianceTable(rootVarianceTimeCount))
        else
-          allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable)
-       end if
-       call self%rootVarianceTable%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
-       allocate(rootVarianceIsUnique(rootVarianceTableCount))
-       rootVarianceIsUnique=.true.
-       ! Compute σ(M) at each tabulated point.
-       massMinimum=-1.0d0
-       do i=1,rootVarianceTableCount
-          smoothingMass=+self        %rootVarianceTable%x(                i)
-          sigma        =+rootVariance                    (useTopHat=.false.) &
-               &        *self%sigmaNormalization
-          ! Enforce monotonicity.
-          if (i > 1) then
-             if (sigma >= self%rootVarianceTable%y(i-1)) then
-                massMinimum            =smoothingMass
-                rootVarianceIsUnique(i)=.false.
+          allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(rootVarianceTimeCount))
+       end if       
+       do k=1,rootVarianceTimeCount
+          call self%rootVarianceTable(k)%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
+          allocate(rootVarianceIsUnique(rootVarianceTableCount))
+          rootVarianceIsUnique=.true.
+          ! Compute σ(M) at each tabulated point.
+          massMinimum=-1.0d0
+          do i=1,rootVarianceTableCount
+             smoothingMass=+self        %rootVarianceTable(k)%x(                                    i)
+             sigma        =+rootVariance                       (time_=self%times(k),useTopHat=.false.) &
+                  &        *self%sigmaNormalization
+             ! Enforce monotonicity.
+             if (i > 1) then
+                if (sigma >= self%rootVarianceTable(k)%y(i-1)) then
+                   massMinimum            =smoothingMass
+                   rootVarianceIsUnique(i)=.false.
+                end if
+                sigma=min(sigma,self%rootVarianceTable(k)%y(i-1))
              end if
-             sigma=min(sigma,self%rootVarianceTable%y(i-1))
+             ! Store the value.
+             call self%rootVarianceTable(k)%populate(sigma,i,computeSpline=(i == rootVarianceTableCount))
+          end do
+          ! Find unique values in the variance table.
+          rootVarianceUniqueCount=count(rootVarianceIsUnique)
+          allocate(self%rootVarianceUniqueTable(k)%rootVariance(rootVarianceUniqueCount))
+          allocate(self%rootVarianceUniqueTable(k)%index       (rootVarianceUniqueCount))
+          j=1
+          do i=1,rootVarianceTableCount
+             if (rootVarianceIsUnique(i)) then
+                self%rootVarianceUniqueTable(k)%rootVariance(j)=self%rootVarianceTable(k)%y(i)
+                self%rootVarianceUniqueTable(k)%index       (j)=i
+                j                                              =j+1
+             end if
+          end do
+          deallocate(rootVarianceIsUnique)
+          ! Warn if σ(M) has no increase below some mass scale.
+          if (massMinimum > 0.0d0) then
+             write (label,'(e12.6)') massMinimum
+             message=         "WARNING: σ(M) is non-increasing below mass M="//label//"M☉"
+             write (label,'(e12.6)') self%times(k)
+             message=message//" at time t="//label//"Gyr."//char(10)
+             message=message//"         If problems occur consider not attempting to model structure below this mass scale."
+             call Galacticus_Warn(message)
           end if
-          ! Store the value.
-          call self%rootVarianceTable%populate(sigma,i,computeSpline=(i == rootVarianceTableCount))
        end do
-       ! Find unique values in the variance table.
-       rootVarianceUniqueCount=count(rootVarianceIsUnique)
-       allocate(self%rootVarianceUniqueTable     (rootVarianceUniqueCount))
-       allocate(self%rootVarianceUniqueIndexTable(rootVarianceUniqueCount))
-       j=1
-       do i=1,rootVarianceTableCount
-          if (rootVarianceIsUnique(i)) then
-             self%rootVarianceUniqueTable     (j)=self%rootVarianceTable%y(i)
-             self%rootVarianceUniqueIndexTable(j)=i
-             j                                   =j+1
-          end if
-       end do
-       deallocate(rootVarianceIsUnique)
-       ! Warn if σ(M) has no increase below some mass scale.
-       if (massMinimum > 0.0d0) then
-          write (label,'(e12.6)') massMinimum
-          message=         "WARNING: σ(M) is non-increasing below mass M="//label//"M☉."//char(10)
-          message=message//"         If problems occur consider not attempting to model structure below this mass scale."
-          call Galacticus_Warn(message)
-       end if
        ! Table is now initialized.
        self%initialized=.true.
     end if
@@ -450,19 +618,21 @@ contains
     
   contains
   
-    double precision function rootVariance(useTopHat)
+    double precision function rootVariance(time_,useTopHat)
       !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
       use, intrinsic :: ISO_C_Binding
       use            :: Numerical_Constants_Math
       use            :: Numerical_Integration
       use            :: FGSL                    , only : fgsl_function, fgsl_integration_workspace, FGSL_Integ_Gauss15
       implicit none
+      double precision                            , intent(in   ) :: time_
       logical                                     , intent(in   ) :: useTopHat
       double precision                                            :: topHatRadius        , wavenumberMaximum, &
            &                                                         wavenumberMinimum
       type            (fgsl_function             )                :: integrandFunction
       type            (fgsl_integration_workspace)                :: integrationWorkspace
-      
+
+      filteredPowerTime=time_
       topHatRadius     =(                                             &
            &             +(                                           &
            &               +3.0d0                                     &
@@ -509,33 +679,64 @@ contains
     end function rootVariance
     
     double precision function varianceIntegrand(wavenumber)
-      !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+      !% Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
       implicit none
       double precision, intent(in   ) :: wavenumber
 
       ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
       ! elsewhere.
-      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ) &
-           &            *(                                                                          &
-           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass) &
-           &              *                                               wavenumber                &
+      varianceIntegrand=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
+           &            *(                                                                             &
+           &              +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass   ) &
+           &              *                                               wavenumber                   &
            &             )**2
       return
     end function varianceIntegrand
     
     double precision function varianceIntegrandTopHat(wavenumber)
-      !% Integrand function used in compute the variance in (real space) top-hat spheres from the power spectrum.
+      !% Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
       implicit none
       double precision, intent(in   ) :: wavenumber
       
-      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and Pi are included
+      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
       ! elsewhere.
-      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber              ) &
-           &                  *(                                                                          &
-           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass) &
-           &                    *                                               wavenumber                &
+      varianceIntegrandTopHat=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
+           &                  *(                                                                              &
+           &                    +self%powerSpectrumWindowFunctionTopHat_ %value(wavenumber,smoothingMass    ) &
+           &                    *                                               wavenumber                    &
            &                   )**2
       return
     end function varianceIntegrandTopHat
 
   end subroutine filteredPowerRetabulate
+
+  subroutine filteredPowerInterpolantsTime(self,time,i,h)
+    !% Compute interoplants in time.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+    double precision                                       , intent(in   ) :: time
+    integer                                                , intent(  out) :: i
+    double precision                                       , intent(  out) :: h
+    
+    h=(log(time)-self%timeMinimumLogarithmic)*self%timeLogarithmicDeltaInverse+1.0d0
+    i=  int (h)
+    h=h-dble(i)
+    if (i == size(self%times)) then
+       ! Requested time must exactly equal the maximum tabulated time.
+       i=size(self%times)-1
+       h=1.0d0
+    else if (i < 1) then
+       call Galacticus_Error_Report('interpolant out of range'//{introspection:location})
+    end if
+    return
+  end subroutine filteredPowerInterpolantsTime
+
+  logical function filteredPowerGrowthIsMassDependent(self)
+    !% Return true if the growth rate of the variance is mass-dependent.
+    implicit none
+    class(cosmologicalMassVarianceFilteredPower), intent(inout) :: self
+
+    filteredPowerGrowthIsMassDependent=self%growthIsMassDependent_
+    return
+  end function filteredPowerGrowthIsMassDependent

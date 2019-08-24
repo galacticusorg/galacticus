@@ -57,17 +57,17 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=excursionSetBarrierCriticalOverdensity(criticalOverdensity_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
-   !# <objectDestructor name="criticalOverdensity_"     />
-   !# <objectDestructor name="cosmologicalMassVariance_"/>
-   return
+    !# <objectDestructor name="criticalOverdensity_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    return
   end function criticalOverdensityConstructorParameters
 
   function criticalOverdensityConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the critical overdensity excursion set class.
     implicit none
-    type (excursionSetBarrierCriticalOverdensity)         :: self
-    class(criticalOverdensityClass              ), target :: criticalOverdensity_
-    class(cosmologicalMassVarianceClass         ), target :: cosmologicalMassVariance_
+    type (excursionSetBarrierCriticalOverdensity)                        :: self
+    class(criticalOverdensityClass              ), intent(in   ), target :: criticalOverdensity_
+    class(cosmologicalMassVarianceClass         ), intent(in   ), target :: cosmologicalMassVariance_
     !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_"/>
     
     return
@@ -95,12 +95,12 @@ contains
 
     if (variance <= 0.0d0) then
        ! Return the critical overdensity at this time for infinite mass.
-       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass=huge(   0.0d0),node=node)
+       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass       =huge(0.0d0   ),node=node)
     else
        ! Get the mass corresponding to this variance.
-       mass                      =self%cosmologicalMassVariance_%mass(                sqrt(variance)          )
+       mass                      =self%cosmologicalMassVariance_%mass(time=time,rootVariance=sqrt(variance)          )
        ! Return the critical overdensity at this time at the computed mass scale.
-       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass=     mass     ,node=node)
+       criticalOverdensityBarrier=self%criticalOverdensity_     %value(time=time,mass       =     mass     ,node=node)
     end if
    return
   end function criticalOverdensityBarrier
@@ -120,9 +120,9 @@ contains
        criticalOverdensityBarrierGradient=0.0d0
     else
        ! Get the halo mass corresponding to this variance.
-       mass =self%cosmologicalMassVariance_%mass                           (sqrt(variance))
+       mass =self%cosmologicalMassVariance_%mass                           (time=time,rootVariance=sqrt(variance))
        ! Get the logarithmic slope of σ(M).
-       alpha=self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(     mass     )
+       alpha=self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(time=time,mass        =     mass     )
        ! Return the critical overdensity at this time at the computed mass scale.
        criticalOverdensityBarrierGradient=+0.5d0                                                                 &
             &                             *mass                                                                  &

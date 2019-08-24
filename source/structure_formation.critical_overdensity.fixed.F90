@@ -18,7 +18,6 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !% Contains a module which implements an fixed critical overdensity class.
-  use Linear_Growth
   use Cosmology_Functions
 
   !# <criticalOverdensity name="criticalOverdensityFixed">
@@ -27,14 +26,14 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityFixed
      !% A fixed critical overdensity class.
      private
-     double precision                             :: criticalOverdensity_
-     class           (linearGrowthClass), pointer :: linearGrowth_ => null()
+     double precision :: criticalOverdensity_
     contains
      final     ::                    fixedDestructor
      procedure :: value           => fixedValue
      procedure :: gradientTime    => fixedGradientTime
      procedure :: gradientMass    => fixedGradientMass
      procedure :: isMassDependent => fixedIsMassDependent
+     procedure :: isNodeDependent => fixedIsNodeDependent
   end type criticalOverdensityFixed
 
   interface criticalOverdensityFixed
@@ -72,10 +71,10 @@ contains
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     self=criticalOverdensityFixed(criticalOverdensity_,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
-   !# <objectDestructor name="linearGrowth_"            />
-   !# <objectDestructor name="cosmologyFunctions_"      />
-   !# <objectDestructor name="cosmologicalMassVariance_"/>
-   return
+    !# <objectDestructor name="linearGrowth_"            />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(criticalOverdensity_,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
@@ -106,16 +105,13 @@ contains
     !% Return the critical overdensity at the given time and mass.
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
-    double precision                          , intent(in   ), optional :: time               , expansionFactor
+    double precision                          , intent(in   ), optional :: time      , expansionFactor
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
-    double precision                                                    :: time_
     type            (treeNode                ), intent(inout), optional :: node
-    !GCC$ attributes unused :: mass, node
+    !GCC$ attributes unused :: mass, node, time, expansionFactor, collapsing
     
-    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
-    fixedValue=+self%criticalOverdensity_              &
-         &     /self%linearGrowth_       %value(time_)
+    fixedValue=+self%criticalOverdensity_
     return
   end function fixedValue
 
@@ -123,18 +119,13 @@ contains
     !% Return the gradient with respect to time of critical overdensity at the given time and mass.
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
-    double precision                          , intent(in   ), optional :: time               , expansionFactor
+    double precision                          , intent(in   ), optional :: time      , expansionFactor
     logical                                   , intent(in   ), optional :: collapsing
     double precision                          , intent(in   ), optional :: mass
     type            (treeNode                ), intent(inout), optional :: node
-    double precision                                                    :: time_              , expansionFactor_
-    !GCC$ attributes unused :: mass, node
+    !GCC$ attributes unused :: self, mass, node, time, expansionFactor, collapsing
     
-    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
-    fixedGradientTime=-self%criticalOverdensity_                                                        &
-         &            *self%linearGrowth_       %logarithmicDerivativeExpansionFactor(time_           ) &
-         &            *self%cosmologyFunctions_ %expansionRate                       (expansionFactor_) &
-         &            /self%linearGrowth_       %value                               (time_           )    
+    fixedGradientTime=0.0d0
     return
   end function fixedGradientTime
 
@@ -161,3 +152,13 @@ contains
     fixedIsMassDependent=.false.
     return
   end function fixedIsMassDependent
+
+  logical function fixedIsNodeDependent(self)
+    !% Return whether the critical overdensity is node dependent.
+    implicit none
+    class(criticalOverdensityFixed), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    fixedIsNodeDependent=.false.
+    return
+  end function fixedIsNodeDependent

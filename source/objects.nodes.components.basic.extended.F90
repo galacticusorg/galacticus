@@ -219,7 +219,7 @@ contains
          &                                                            radius=radiusVirial                                                    &
          &                                                           )                                                                       &
          &                       )
-    call self%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(time=self%time())*radiusVirial)
+    call self%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(mass=self%mass(),time=self%time())*radiusVirial)
     return
   end subroutine Node_Component_Basic_Extended_Bertschinger_Solver
   

@@ -25,8 +25,8 @@ module Spherical_Collapse_Matter_Lambda
   use, intrinsic :: ISO_C_Binding
   implicit none
   private
-  public :: Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate, Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate, &
-       &    Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping
+  public :: Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate, Spherical_Collapse_Matter_Lambda_Delta_Virial_Tabulate     , &
+       &    Spherical_Collapse_Matter_Lambda_Nonlinear_Mapping            , Spherical_Collapse_Matter_Lambda_Turnaround_Radius_Tabulate
 
   ! Variables to hold the tabulated critical overdensity data.
   integer         , parameter :: deltaTableNPointsPerDecade=1000
@@ -39,7 +39,8 @@ module Spherical_Collapse_Matter_Lambda
   !$omp threadprivate(OmegaDE,OmegaM,epsilonPerturbationShared,hubbleParameterInvGyr,tNow,timeTarget,radiusMaximum)
   
   ! Calculation types.
-  integer         , parameter :: calculationDeltaCrit       =0      , calculationDeltaVirial=1
+  integer         , parameter :: calculationDeltaCrit       =0      , calculationDeltaVirial=1, &
+       &                                                              calculationTurnaround =2
   
 contains
 
@@ -74,7 +75,7 @@ contains
     return
   end subroutine Spherical_Collapse_Matter_Lambda_Critical_Overdensity_Tabulate
 
-  subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate(time,tableStore,deltaVirialTable,cosmologyFunctions_)
+  subroutine Spherical_Collapse_Matter_Lambda_Delta_Virial_Tabulate(time,tableStore,deltaVirialTable,cosmologyFunctions_)
     !% Tabulate the virial density contrast for the spherical collapse model.
     use ISO_Varying_String , only : varying_string         , operator(//)
     use Galacticus_Error   , only : errorStatusSuccess
@@ -99,7 +100,35 @@ contains
        call Store_Table  (     deltaVirialTable,fileName              ,tableStore                )
     end if
     return
-  end subroutine Spherical_Collape_Matter_Lambda_Delta_Virial_Tabulate
+  end subroutine Spherical_Collapse_Matter_Lambda_Delta_Virial_Tabulate
+
+  subroutine Spherical_Collapse_Matter_Lambda_Turnaround_Radius_Tabulate(time,tableStore,turnaroundTable,cosmologyFunctions_)
+    !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
+    use ISO_Varying_String , only : varying_string         , operator(//)
+    use Galacticus_Error   , only : errorStatusSuccess
+    use Galacticus_Paths   , only : galacticusPath         , pathTypeDataDynamic
+    use Tables             , only : table1D
+    use Cosmology_Functions, only : cosmologyFunctionsClass
+    implicit none
+    double precision                                      , intent(in   ) :: time
+    logical                                               , intent(in   ) :: tableStore
+    class           (table1D                ), allocatable, intent(inout) :: turnaroundTable
+    class           (cosmologyFunctionsClass)             , intent(inout) :: cosmologyFunctions_    
+
+    type            (varying_string         )                             :: fileName
+    integer                                                               :: status
+
+    fileName=galacticusPath(pathTypeDataDynamic)                                      // &
+         &   'largeScaleStructure/sphericalCollapseMatterLambdaTurnaroundRadius_'// &
+         &   cosmologyFunctions_%hashedDescriptor(includeSourceDigest=.true.)         // &
+         &   '.hdf5'
+    call    Restore_Table(time,turnaroundTable,fileName             ,tableStore         ,status)
+    if (status /= errorStatusSuccess) then       
+       call Make_Table   (time,turnaroundTable,calculationTurnaround,cosmologyFunctions_       )
+       call Store_Table  (     turnaroundTable,fileName             ,tableStore                )
+    end if
+    return
+  end subroutine Spherical_Collapse_Matter_Lambda_Turnaround_Radius_Tabulate
 
   subroutine Make_Table(time,deltaTable,calculationType,cosmologyFunctions_,linearGrowth_)
     !% Tabulate $\delta_\mathrm{crit}$ or $\Delta_\mathrm{vir}$ vs. time.
@@ -201,16 +230,12 @@ contains
           select case (calculationType)
           case (calculationDeltaCrit)
              ! Critical linear overdensity.
-             normalization=linearGrowth_%value(tNow,normalize=normalizeMatterDominated)/linearGrowth_%value(tNow)/aExpansionNow
+             normalization=linearGrowth_%value(tNow,normalize=normalizeMatterDominated)/aExpansionNow
              call deltaTable%populate(                                                                       &
                   &                   normalization*0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)/OmegaM, &
                   &                   iTime                                                                  &
                   &                  )
-             ! Check for non-monotonic decline.
-             if (iTime > 1) then
-                if (deltaTable%y(iTime) >= deltaTable%y(iTime-1)) call Galacticus_Error_Report('accuracy lost in tabulation of critical overdensity (usually results for computing critical overdensity for very large cosmic times)'//{introspection:location})
-             end if
-         case (calculationDeltaVirial)
+          case (calculationDeltaVirial,calculationTurnaround)
              ! Compute the maximum radius of the perturbation.
              radiusMaximum=Perturbation_Maximum_Radius(epsilonPerturbation)
              ! Find the eta-factor (see Lahav et al. 1991) which measures the dark energy contribution to the energy of the
@@ -230,10 +255,18 @@ contains
                 radiiRatio=real(cmplx(1.0d0,-sqrt(3.0d0),kind=kind_dble)*c/2.0d0**(2.0d0/3.0d0)/3.0d0**(1.0d0/3.0d0)/Delta-cmplx(1.0d0,sqrt(3.0d0),kind=kind_dble)&
                      & *Delta /2.0d0/a /2.0d0**(1.0d0/3.0d0)/3.0d0**(2.0d0/3.0d0))
              end if
-             call deltaTable%populate(                                                                        &
-                  &                   1.0d0/(radiiRatio*Perturbation_Maximum_Radius(epsilonPerturbation))**3, &
-                  &                   iTime                                                                   &
-                  &                  )
+             select case (calculationType)
+             case (calculationDeltaVirial)
+                call deltaTable%populate(                                                                        &
+                     &                   1.0d0/(radiiRatio*Perturbation_Maximum_Radius(epsilonPerturbation))**3, &
+                     &                   iTime                                                                   &
+                     &                  )
+             case (calculationTurnaround)
+                call deltaTable%populate(                                                                        &
+                     &                   1.0d0/ radiiRatio                                                     , &
+                     &                   iTime                                                                   &
+                     &                  )
+             end select
           end select
        end do
     end select

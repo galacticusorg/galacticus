@@ -30,6 +30,7 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
   use Cosmology_Functions
   use Virial_Density_Contrast
   use Galacticus_Display
+  use Events_Hooks
   implicit none
   double precision                            , dimension(3) :: redshift                     =[0.00d0,1.00d0,2.00d0]
   double precision                            , dimension(3) :: virialDensityContrastExpected=[390.44d0,241.35d0,208.17d0]
@@ -45,6 +46,8 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Six
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (ω=-0.6 cosmology)")

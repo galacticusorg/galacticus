@@ -27,7 +27,7 @@
   type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter
      !% A halo mass function class using the model of \cite{press_formation_1974}.
      private
-     class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_ => null()
+     class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_  => null()
      class(excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
     contains
      final     ::                 pressSchechterDestructor
@@ -51,16 +51,16 @@ contains
     class(cosmologicalMassVarianceClass ), pointer       :: cosmologicalMassVariance_
     class(excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
     class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
-
+    
     !# <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
     !# <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
     self=haloMassFunctionPressSchechter(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_)
     !# <inputParametersValidate source="parameters"/>
-   !# <objectDestructor name="cosmologyParameters_"      />
-   !# <objectDestructor name="cosmologicalMassVariance_" />
-   !# <objectDestructor name="excursionSetFirstCrossing_"/>
-   return
+    !# <objectDestructor name="cosmologyParameters_"      />
+    !# <objectDestructor name="cosmologicalMassVariance_" />
+    !# <objectDestructor name="excursionSetFirstCrossing_"/>
+    return
   end function pressSchechterConstructorParameters
 
   function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_) result(self)
@@ -96,15 +96,15 @@ contains
     double precision                                                          :: alpha, variance
 
     if (.not.present(node)) call Galacticus_Error_Report('"node" must be present'//{introspection:location})
-    alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass              ))
-    variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass              ) **2
+    alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass,time))
+    variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass,time) **2
     if (variance > 0.0d0) then
-       pressSchechterDifferential=+2.0d0                                                                                      &
-            &                     *   self%cosmologyParameters_      %OmegaMatter                    (                  )     &
-            &                     *   self%cosmologyParameters_      %densityCritical                (                  )     &
-            &                     *   self%excursionSetFirstCrossing_%probability                    (variance,time,node)     &
-            &                     /mass**2                                                                                    &
-            &                     *alpha                                                                                      &
+       pressSchechterDifferential=+2.0d0                                                                  &
+            &                     *   self%cosmologyParameters_      %OmegaMatter    (                  ) &
+            &                     *   self%cosmologyParameters_      %densityCritical(                  ) &
+            &                     *   self%excursionSetFirstCrossing_%probability    (variance,time,node) &
+            &                     /mass**2                                                                &
+            &                     *alpha                                                                  &
             &                     *variance
     else
        pressSchechterDifferential=+0.0d0

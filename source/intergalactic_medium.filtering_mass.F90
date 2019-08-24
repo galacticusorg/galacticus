@@ -34,6 +34,30 @@ module Intergalactic_Medium_Filtering_Masses
   !#   <pass>yes</pass>
   !#   <argument>double precision, intent(in   ) :: time</argument>
   !#  </method>
+  !#  <method name="massFilteringRateOfChange" >
+  !#   <description>Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: time</argument>
+  !#  </method>
+  !#  <method name="fractionBaryons" >
+  !#   <description>Return the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
+  !#  </method>
+  !#  <method name="fractionBaryonsGradientMass" >
+  !#   <description>Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
+  !#  </method>
+  !#  <method name="fractionBaryonsRateOfChange" >
+  !#   <description>Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the {\normalfont \ttfamily time}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
+  !#  </method>
   !# </functionClass>
 
 end module Intergalactic_Medium_Filtering_Masses

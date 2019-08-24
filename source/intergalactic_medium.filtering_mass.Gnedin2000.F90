@@ -69,12 +69,16 @@
      !@     <description>Return the early-epoch solution for the filtering mass.</description>
      !@   </objectMethod>
      !@ </objectMethods>
-     final     ::                            gnedin2000Destructor
-     procedure :: massFiltering           => gnedin2000MassFiltering
-     procedure :: tabulate                => gnedin2000Tabulate
-     procedure :: conditionsInitialODEs   => gnedin2000ConditionsInitialODEs
-     procedure :: coefficientsEarlyEpoch  => gnedin2000CoefficientsEarlyEpoch
-     procedure :: massFilteringEarlyEpoch => gnedin2000MassFilteringEarlyEpoch
+     final     ::                                gnedin2000Destructor
+     procedure :: massFiltering               => gnedin2000MassFiltering
+     procedure :: massFilteringRateOfChange   => gnedin2000MassFilteringRateOfChange
+     procedure :: fractionBaryons             => gnedin2000FractionBaryons
+     procedure :: fractionBaryonsRateOfChange => gnedin2000FractionBaryonsRateOfChange
+     procedure :: fractionBaryonsGradientMass => gnedin2000FractionBaryonsGradientMass
+     procedure :: tabulate                    => gnedin2000Tabulate
+     procedure :: conditionsInitialODEs       => gnedin2000ConditionsInitialODEs
+     procedure :: coefficientsEarlyEpoch      => gnedin2000CoefficientsEarlyEpoch
+     procedure :: massFilteringEarlyEpoch     => gnedin2000MassFilteringEarlyEpoch
   end type intergalacticMediumFilteringMassGnedin2000
 
   interface intergalacticMediumFilteringMassGnedin2000
@@ -148,6 +152,57 @@ contains
     gnedin2000MassFiltering=self%table%interpolate(time)
     return
   end function gnedin2000MassFiltering
+
+  double precision function gnedin2000MassFilteringRateOfChange(self,time)
+    !% Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: time
+
+    call self%tabulate(time)
+    gnedin2000MassFilteringRateOfChange=self%table%interpolateGradient(time)
+    return
+  end function gnedin2000MassFilteringRateOfChange
+
+  double precision function gnedin2000FractionBaryons(self,mass,time)
+    !% Return the rate fo change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
+    !% {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: mass, time
+
+    gnedin2000FractionBaryons=1.0d0/(1.0d0+(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0*self%massFiltering(time)/mass)**3
+    return
+  end function gnedin2000FractionBaryons
+
+  double precision function gnedin2000FractionBaryonsRateOfChange(self,mass,time)
+    !% Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
+    !% {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: mass, time
+
+    gnedin2000FractionBaryonsRateOfChange=-3.0d0                                                    &
+         &                                *(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0                       &
+         &                                *self%massFilteringRateOfChange(     time)                &
+         &                                /     mass                                                &
+         &                                *self%fractionBaryons          (mass,time)**(4.0d0/3.0d0)
+    return
+  end function gnedin2000FractionBaryonsRateOfChange
+
+  double precision function gnedin2000FractionBaryonsGradientMass(self,mass,time)
+    !% Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont
+    !% \ttfamily mass} at the {\normalfont \ttfamily time}.
+    implicit none
+    class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
+    double precision                                            , intent(in   ) :: mass, time
+
+    gnedin2000FractionBaryonsGradientMass=-(2.0d0**(1.0d0/3.0d0)-1.0d0)*8.0d0             &
+         &                                *self%massFiltering  (     time)                &
+         &                                /     mass                      **2             &
+         &                                *self%fractionBaryons(mass,time)**(4.0d0/3.0d0)
+    return
+  end function gnedin2000FractionBaryonsGradientMass
 
   subroutine gnedin2000Tabulate(self,time)
     !% Construct a table of filtering mass as a function of cosmological time.

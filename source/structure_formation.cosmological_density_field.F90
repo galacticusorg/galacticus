@@ -21,20 +21,32 @@
 
 module Cosmological_Density_Field
   !% Provides an object that implements critical overdensities and halo environments.
-  use Cosmology_Functions
+  use Cosmology_Functions, only : cosmologyFunctionsClass
+  use Linear_Growth      , only : linearGrowthClass
   use Galacticus_Nodes   , only : treeNode
+  use Tables             , only : table1DLinearLinear
   private
-  
+    
   !# <functionClass>
   !#  <name>criticalOverdensity</name>
   !#  <descriptiveName>Critical Overdensity</descriptiveName>
   !#  <description>Object providing critical overdensities.</description>
   !#  <default>sphericalCollapseMatterLambda</default>
-  !#  <data>double precision                                         :: criticalOverdensityTarget          , mass       , time</data>
-  !#  <data>type            (treeNode                     ), pointer :: node                                                  </data>
-  !#  <data>logical                                                  :: massPresent                        , nodePresent      </data>
-  !#  <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()                   </data>
-  !#  <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()                   </data>
+  !#  <data>integer         (kind_int8                    )          :: lastUniqueID                =  -1_kind_int8                                          </data>
+  !#  <data>double precision                                         :: criticalOverdensityTarget                  , mass                                    </data>
+  !#  <data>double precision                                         :: time                                       , timeNow                    =-huge(0.0d0)</data>
+  !#  <data>double precision                                         :: timeOfCollapsePrevious      =  -huge(0.0d0), criticalOverdensityPrevious=-huge(0.0d0)</data>
+  !#  <data>double precision                                         :: massPrevious                =  -huge(0.0d0)                                          </data>
+  !#  <data>type            (table1DLinearLinear          )          :: collapseThreshold                                                                    </data>
+  !#  <data>double precision                                         :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
+  !#  <data>logical                                                  :: collapseThresholdInitialized=.false.                                                 </data>
+  !#  <data>type            (treeNode                     ), pointer :: node                                                                                 </data>
+  !#  <data>logical                                                  :: massPresent                              , nodePresent                               </data>
+  !#  <data>logical                                                  :: dependenciesInitialized   =  .false.     , isMassDependent_                          </data>
+  !#  <data>logical                                                  :: isNodeDependent_                                                                     </data>
+  !#  <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()                                                  </data>
+  !#  <data>class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()                                                  </data>
+  !#  <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()                                                  </data>
   !#  <data>
   !#   <scope>module</scope>
   !#   <threadprivate>yes</threadprivate>
@@ -57,42 +69,7 @@ module Cosmological_Density_Field
   !#   <argument>double precision          , intent(in   )                   :: criticalOverdensity</argument>
   !#   <argument>double precision          , intent(in   ), optional         :: mass               </argument>
   !#   <argument>type            (treeNode), intent(inout), optional, target :: node               </argument>
-  !#   <modules>Root_Finder</modules>
-  !#   <code>
-  !#    double precision            , parameter :: toleranceRelative=1.0d-12, toleranceAbsolute=0.0d0
-  !#    double precision                        :: timeBigCrunch
-  !#    type            (rootFinder)            :: finder
-  !#    call finder%rootFunction(collapseTimeRoot                   )
-  !#    call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-  !#    timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
-  !#    if (timeBigCrunch &lt; 0.0d0) then
-  !#       timeBigCrunch=huge(0.0d0)
-  !#    else
-  !#       timeBigCrunch=timeBigCrunch*(1.0d0-timeToleranceRelativeBigCrunch)
-  !#       ! Check for critical overdensity for collapse exceeding that at the Big Crunch.
-  !#       if (criticalOverdensity &lt;= self%value(time=timeBigCrunch,mass=mass,node=node)) then
-  !#          ! Return a collapse time close to the Big Crunch in this case.
-  !#          criticalOverdensityTimeOfCollapse=timeBigCrunch
-  !#          return
-  !#       end if
-  !#    end if
-  !#    call finder%rangeExpand(                                                             &amp;
-  !#       &amp;                rangeExpandUpward            =2.0d0                        , &amp;
-  !#       &amp;                rangeExpandDownward          =0.5d0                        , &amp;
-  !#       &amp;                rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &amp;
-  !#       &amp;                rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &amp;
-  !#       &amp;                rangeUpwardLimit             =timeBigCrunch                , &amp;
-  !#       &amp;                rangeExpandType              =rangeExpandMultiplicative      &amp;
-  !#       &amp;               )
-  !#    globalSelf                           => self
-  !#    self      %criticalOverdensityTarget =  criticalOverdensity
-  !#    self      %massPresent               =  present(mass)
-  !#    self      %nodePresent               =  present(node)
-  !#    if (self%massPresent) self%mass      =          mass
-  !#    if (self%nodePresent) self%node      =>         node
-  !#    criticalOverdensityTimeOfCollapse=finder%find(rootGuess=self%cosmologyFunctions_%cosmicTime(1.0d0))
-  !#    return
-  !#   </code>
+  !#   <function>criticalOverdensityTimeOfCollapse</function>
   !#  </method>
   !#  <method name="collapsingMass" >
   !#   <description>Return the mass scale just collapsing at the given cosmic time.</description>
@@ -155,6 +132,31 @@ module Cosmological_Density_Field
   !#   <type>logical</type>
   !#   <pass>yes</pass>
   !#  </method>
+  !#  <method name="isNodeDependent" >
+  !#   <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node} object.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
+  !#  </method>
+  !#  <autoHook>
+  !#   <modules>
+  !#    <name>Events_Hooks</name>
+  !#    <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
+  !#   </modules>
+  !#   <code>
+  !#    call calculationResetEvent%attach(self,criticalOverdensityCalculationReset,openMPThreadBindingAllLevels)
+  !#    return
+  !#   </code>
+  !#  </autoHook>
+  !#  <destructor>
+  !#   <modules>
+  !#    <name>Events_Hooks</name>
+  !#    <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
+  !#   </modules>
+  !#   <code>
+  !#    if (calculationResetEvent%isAttached(self,criticalOverdensityCalculationReset)) call calculationResetEvent%detach(self,criticalOverdensityCalculationReset)
+  !#    return
+  !#   </code>
+  !#  </destructor>
   !# </functionClass>
 
   !# <functionClass>
@@ -168,6 +170,12 @@ module Cosmological_Density_Field
   !#   <pass>yes</pass>
   !#   <argument>type   (treeNode), intent(inout)           :: node</argument>
   !#   <argument>logical          , intent(in   ), optional :: presentDay</argument>
+  !#  </method>
+  !#  <method name="overdensityLinearGradientTime" >
+  !#   <description>Return the gradient with time of the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type   (treeNode), intent(inout)           :: node</argument>
   !#  </method>
   !#  <method name="overdensityNonLinear" >
   !#   <description>Return the environmental non-linear overdensity for the given {\normalfont \ttfamily node}.</description>
@@ -243,47 +251,218 @@ module Cosmological_Density_Field
   !#   <description>Return the root-variance of the cosmological density field.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass</argument>
+  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
   !#  </method>
   !#  <method name="rootVarianceLogarithmicGradient" >
   !#   <description>Return the logarithmic gradient of the root-variance of the cosmological density field with respect to mass.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass</argument>
+  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
+  !#  </method>
+  !#  <method name="rootVarianceLogarithmicGradientTime" >
+  !#   <description>Return the logarithmic gradient of the root-variance of the cosmological density field with respect to time.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
   !#  </method>
   !#  <method name="rootVarianceAndLogarithmicGradient" >
   !#   <description>Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field.</description>
   !#   <type>void</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass</argument>
+  !#   <argument>double precision, intent(in   ) :: mass        , time</argument>
   !#   <argument>double precision, intent(  out) :: rootVariance, rootVarianceLogarithmicGradient</argument>
   !#  </method>
   !#  <method name="mass" >
   !#   <description>Return the mass corresponding to the given {\normalfont \ttfamily rootVariance} of the cosmological density field.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: rootVariance</argument>
+  !#   <argument>double precision, intent(in   ) :: rootVariance, time</argument>
+  !#  </method>
+  !#  <method name="growthIsMassDependent" >
+  !#   <description>Return true if the growth of the variance with time is mass-dependent.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
   !#  </method>
   !# </functionClass>
 
 contains
 
+  double precision function criticalOverdensityTimeOfCollapse(self,criticalOverdensity,mass,node)
+    !% Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
+    use Root_Finder
+    implicit none
+    class           (criticalOverdensityClass), intent(inout)          , target :: self
+    double precision                          , intent(in   )                   :: criticalOverdensity
+    double precision                          , intent(in   ), optional         :: mass
+    type            (treeNode                ), intent(inout), optional, target :: node
+    double precision                          , parameter                       :: toleranceRelative=1.0d-12, toleranceAbsolute=0.0d0
+    integer                                   , parameter                       :: countPerUnit     =1000
+    double precision                                                            :: timeBigCrunch
+    type            (rootFinder              )                                  :: finder
+    logical                                                                     :: updateResult             , remakeTable
+    integer                                                                     :: i                        , countThresholds
+
+
+    double precision :: collapseThresholdMinimum, collapseThresholdMaximum
+    integer :: countNewLower, countNewUpper
+    double precision, allocatable, dimension(:) :: threshold
+
+    ! Determine dependencies.
+    if (.not.self%dependenciesInitialized) then
+       self%isMassDependent_=self%isMassDependent() .or. self%cosmologicalMassVariance_%growthIsMassDependent()
+       self%isNodeDependent_=self%isNodeDependent()
+       self%dependenciesInitialized=.true.
+    end if
+    ! Determine which arguments are present and not ignorable.
+    self%massPresent=present(mass).and.self%isMassDependent_
+    self%nodePresent=present(node).and.self%isNodeDependent_
+    ! Determine if the memoized value must be updated.
+    updateResult=.false.
+    if (criticalOverdensity /= self%criticalOverdensityPrevious) updateResult=.true.
+    if (self%massPresent) then
+       if (mass            /= self%massPrevious) updateResult=.true.
+    else
+       if (-huge(0.0d0)    /= self%massPrevious) updateResult=.true.
+    end if
+    if (self%nodePresent) then
+       if (node%uniqueID() /= self%lastUniqueID) updateResult=.true.
+    else
+       if (-1_kind_int8    /= self%lastUniqueID) updateResult=.true.
+    end if
+    ! Recompute memoized value if necessary.
+    if (updateResult) then
+       if (self%massPresent) then
+          self%massPrevious=mass
+       else
+          self%massPrevious=-huge(0.0d0)
+       end if
+       if (self%nodePresent) then
+          self%lastUniqueID=node%uniqueID()
+       else
+          self%lastUniqueID=-1_kind_int8
+       end if
+       self%criticalOverdensityPrevious=criticalOverdensity
+       call finder%rootFunction(collapseTimeRoot                   )
+       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       if (self%timeNow < 0.0d0) self%timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
+       timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
+       if (timeBigCrunch < 0.0d0) then
+          timeBigCrunch=huge(0.0d0)
+       else
+          timeBigCrunch=timeBigCrunch*(1.0d0-timeToleranceRelativeBigCrunch)
+          ! Check for critical overdensity for collapse exceeding that at the Big Crunch.
+          if     (                                                                                           &
+               &   +criticalOverdensity                                                                      &
+               &  <=                                                                                         &
+               &   +self                          %value       (time=     timeBigCrunch,mass=mass,node=node) &
+               &   *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow      ,mass=mass          ) &
+               &   /self%cosmologicalMassVariance_%rootVariance(time=     timeBigCrunch,mass=mass          ) &
+               & ) then
+             ! Return a collapse time close to the Big Crunch in this case.
+             criticalOverdensityTimeOfCollapse=timeBigCrunch
+             return
+          end if
+       end if
+       call finder%rangeExpand(                                                             &
+            &                  rangeExpandUpward            =2.0d0                        , &
+            &                  rangeExpandDownward          =0.5d0                        , &
+            &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+            &                  rangeUpwardLimit             =timeBigCrunch                , &
+            &                  rangeExpandType              =rangeExpandMultiplicative      &
+            &                 )
+       globalSelf                      => self
+       if (self%massPresent) self%mass =  mass
+       if (self%nodePresent) self%node => node
+       if (self%massPresent) then
+          self%criticalOverdensityTarget=criticalOverdensity/self%cosmologicalMassVariance_%rootVariance(mass,self%timeNow)
+       else
+          self%criticalOverdensityTarget=criticalOverdensity
+       end if
+       if (self%timeOfCollapsePrevious < 0.0d0) self%timeOfCollapsePrevious=self%cosmologyFunctions_%cosmicTime(1.0d0)
+       if (.not.self%massPresent.and..not.self%nodePresent) then
+          ! Neither the mass or the node are provided, so we can use a simple tabulation of collapse thresholds for rapid
+          ! inversion. Note that we do not tabulate lower than the requested threshold as in some cosmologies (e.g. with dark
+          ! energy or a cosmological constant) this can require tabulating to extremely large cosmic times).
+          remakeTable=.false.
+          if (.not.self%collapseThresholdInitialized) then
+             remakeTable                  =.true.
+             self%collapseThresholdMinimum=      criticalOverdensity
+             self%collapseThresholdMaximum=2.0d0*criticalOverdensity
+             countThresholds              =int(dble(countPerUnit)*(self%collapseThresholdMaximum-self%collapseThresholdMinimum))+2
+             ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
+             self%collapseThresholdMaximum=self%collapseThresholdMinimum+dble(countThresholds-1)/dble(countPerUnit)
+             allocate(threshold(countThresholds))
+             threshold=-huge(0.0d0)
+          else if (criticalOverdensity < self%collapseThresholdMinimum .or. criticalOverdensity > self%collapseThresholdMaximum) then
+             remakeTable                      =.true.
+             collapseThresholdMinimum=min(      criticalOverdensity,self%collapseThresholdMinimum)
+             collapseThresholdMaximum=max(2.0d0*criticalOverdensity,self%collapseThresholdMaximum)
+             ! Determine how many points the table must be extended by in each direction to span the new required range.
+             countNewLower=0
+             countNewUpper=0
+             if (self%collapseThresholdMinimum > collapseThresholdMinimum) countNewLower=int((+self%collapseThresholdMinimum-collapseThresholdMinimum)*dble(countPerUnit)+1.0d0)
+             if (self%collapseThresholdMaximum < collapseThresholdMaximum) countNewUpper=int((-self%collapseThresholdMaximum+collapseThresholdMaximum)*dble(countPerUnit)+1.0d0)
+             countThresholds=self%collapseThreshold%size()+countNewLower+countNewUpper
+             ! Adjust the limits of the table by an integer number of steps.
+             self%collapseThresholdMinimum=self%collapseThresholdMinimum-dble(countNewLower)/dble(countPerUnit)
+             self%collapseThresholdMaximum=self%collapseThresholdMaximum+dble(countNewUpper)/dble(countPerUnit)
+             allocate(threshold(countThresholds))
+             threshold=-huge(0.0d0)
+             ! Populate the table with pre-existing results.
+             threshold(countNewLower+1:countNewLower+self%collapseThreshold%size())=reshape(self%collapseThreshold%ys(),[self%collapseThreshold%size()])
+          end if
+          if (remakeTable) then
+             if (self%collapseThresholdInitialized) call self%collapseThreshold%destroy()
+             call self%collapseThreshold%create(self%collapseThresholdMinimum,self%collapseThresholdMaximum,countThresholds)
+             ! Populate the table in regions where it was not previously populated.
+             do i=1,countThresholds
+                self%criticalOverdensityTarget=self%collapseThreshold%x(i)
+                if (threshold(i) < 0.0d0) threshold(i)=finder%find(rootGuess=self%timeOfCollapsePrevious)
+             end do
+             call self%collapseThreshold%populate(threshold)
+             deallocate(threshold)
+             self%criticalOverdensityTarget   =criticalOverdensity
+             self%collapseThresholdInitialized=.true.
+          end if
+          self%timeOfCollapsePrevious=self%collapseThreshold%interpolate(criticalOverdensity)
+       else
+          self%timeOfCollapsePrevious=finder%find(rootGuess=self%timeOfCollapsePrevious)
+       end if
+    end if
+    ! Return the memoized value.
+    criticalOverdensityTimeOfCollapse=self%timeOfCollapsePrevious
+    return
+  end function criticalOverdensityTimeOfCollapse
+
   double precision function collapseTimeRoot(time)
-    !% Function used in root finding for the collapse time at a given critical overdensity.
+    !% Function used in root finding for the collapse time at a given critical overdensity. We have some target linear theory
+    !% overdensity, $\delta_0$, extrapolated to the present epoch, $t_0$, and want to know at what epoch is would collapse. In a
+    !% pure dark matter universe, in which modes an all scales grow at the same rate (i.e. the growth factor $D(k,t)$ is
+    !% independent of wavenumber $k$) we would simply have $\delta(t) = \delta_0 D(t)$, and so would solve for
+    !% $\delta_\mathrm{c}(t)/D(t) = \delta_0$. We want to generalize this to cases where the growth factor is scale dependent. In
+    !% these cases we actually want to consider the growth rate for a region of fixed mass. Since modes of a range of different
+    !% wavenumber contribute to the growth of such a region, we write $\delta(t) = \delta_0 \sigma(M,t) / \sigma(M,t_0)$, and
+    !% therefore solve for $\delta_\mathrm{c}(t) \sigma(M,t_0) / \sigma(M,t) = \delta_0$. If no mass argument was provided then we
+    !% revert to assuming that $D(t,k)$ is independent of wavenumber and simply solve for $\delta_\mathrm{c}(t)/D(t) = \delta_0$.
     implicit none
     double precision, intent(in   ) :: time
 
     if (globalSelf%massPresent) then
        if (globalSelf%nodePresent) then
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf%value(time=time,mass=globalSelf%mass,node=globalSelf%node)
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time,mass=globalSelf%mass,node=globalSelf%node) &
+               &                                               /globalSelf%cosmologicalMassVariance_%rootVariance(time=time,mass=globalSelf%mass                     )
        else
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf%value(time=time,mass=globalSelf%mass                     )
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time,mass=globalSelf%mass                     ) &
+               &                                               /globalSelf%cosmologicalMassVariance_%rootVariance(time=time,mass=globalSelf%mass                     )
        end if
     else
        if (globalSelf%nodePresent) then
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf%value(time=time                     ,node=globalSelf%node)
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                     ,node=globalSelf%node) &
+               &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        else
-          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf%value(time=time                                          )
+          collapseTimeRoot=globalSelf%criticalOverdensityTarget-globalSelf                          %value       (time=time                                          ) &
+               &                                               /globalSelf%linearGrowth_            %value       (time=time                                          )
        end if
     end if
     return
@@ -295,11 +474,21 @@ contains
     double precision, intent(in   ) :: mass        
 
     if (globalSelf%nodePresent) then
-       collapsingMassRoot=globalSelf%cosmologicalMassVariance_%rootVariance(mass)-globalSelf%value(time=globalSelf%time,mass=mass,node=globalSelf%node)
+       collapsingMassRoot=globalSelf%cosmologicalMassVariance_%rootVariance(mass,globalSelf%time)-globalSelf%value(time=globalSelf%time,mass=mass,node=globalSelf%node)
     else
-       collapsingMassRoot=globalSelf%cosmologicalMassVariance_%rootVariance(mass)-globalSelf%value(time=globalSelf%time,mass=mass                     )
+       collapsingMassRoot=globalSelf%cosmologicalMassVariance_%rootVariance(mass,globalSelf%time)-globalSelf%value(time=globalSelf%time,mass=mass                     )
     end if
     return
   end function collapsingMassRoot
 
+  subroutine criticalOverdensityCalculationReset(self,node)
+    !% Reset the critical overdensity calculation.
+    implicit none
+    class(criticalOverdensityClass), intent(inout) :: self
+    type (treeNode                ), intent(inout) :: node
+
+    self%lastUniqueID=node%uniqueID()
+    return
+  end subroutine criticalOverdensityCalculationReset
+  
 end module Cosmological_Density_Field

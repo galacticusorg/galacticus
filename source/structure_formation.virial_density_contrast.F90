@@ -50,12 +50,13 @@ module Virial_Density_Contrast
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <modules>Galacticus_Error</modules>
+  !#   <argument>double precision, intent(in   )           :: mass</argument>
   !#   <argument>double precision, intent(in   ), optional :: time      , expansionFactor</argument>
   !#   <argument>logical         , intent(in   ), optional :: collapsing</argument>
   !#   <code>
-  !#    !GCC$ attributes unused :: self, time, expansionFactor, collapsing
+  !#    !GCC$ attributes unused :: self, mass, time, expansionFactor, collapsing
   !#    virialDensityContrastTurnaroundOverVirialRadii=0.0d0
-  !#    call Galacticus_Error_Report('ratio is undefined for this density contrast class'//{introspection:location})
+  !#    call Galacticus_Error_Report('ratio is undefined for the "'//char(self%objectType())//'" density contrast class'//{introspection:location})
   !#   </code>
   !#  </method>
   !#  <method name="isMassDependent" >

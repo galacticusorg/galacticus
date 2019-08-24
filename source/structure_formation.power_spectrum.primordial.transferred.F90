@@ -32,13 +32,18 @@ module Power_Spectra_Primordial_Transferred
   !#   <description>Return the (unnormalized) power in the transferred primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: wavenumber</argument>
+  !#   <argument>double precision, intent(in   ) :: wavenumber, time</argument>
   !#  </method>
   !#  <method name="logarithmicDerivative" >
   !#   <description>Return the logarithmic derivative with respect to wavenumber of the transferred primordial power spectrum at the given {\normalfont \ttfamily wavenumber} (specified in units of Mpc$^{-1}$.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: wavenumber</argument>
+  !#   <argument>double precision, intent(in   ) :: wavenumber, time</argument>
+  !#  </method>
+  !#  <method name="growthIsWavenumberDependent" >
+  !#   <description>Return true if the growth of the power spectrum is wavenumber-dependent.</description>
+  !#   <type>logical</type>
+  !#   <pass>yes</pass>
   !#  </method>
   !# </functionClass>
 

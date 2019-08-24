@@ -1,0 +1,482 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !% An implementation of linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth
+  !% of radiation perturbations.
+
+  use Tables                    , only : table1D
+  use Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass     , hubbleUnitsTime
+  use Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
+  use Intergalactic_Medium_State, only : intergalacticMediumState, intergalacticMediumStateClass
+
+  !# <linearGrowth name="linearGrowthBaryonsDarkMatter">
+  !#  <description>Linear growth of cosmological structure in models containing baryons and dark matter. Assumes no growth of radiation perturbations.</description>
+  !#  <deepCopy>
+  !#   <functionClass variables="linearGrowthSimple_"/>
+  !#  </deepCopy>
+  !#  <stateStorable>
+  !#   <functionClass variables="linearGrowthSimple_"/>
+  !#  </stateStorable>
+  !# </linearGrowth>
+  type, extends(linearGrowthClass) :: linearGrowthBaryonsDarkMatter
+     !% A linear growth of cosmological structure contrast class in models containing baryons and dark matter. Assumes no growth
+     !% of radiation perturbations.
+     private
+     logical                                                  :: tableInitialized
+     double precision                                         :: tableTimeMinimum                      , tableTimeMaximum      , &
+          &                                                      tableWavenumberMinimum                , tableWavenumberMaximum, &
+          &                                                      fractionDarkMatter                    , fractionBaryons       , &
+          &                                                      normalizationMatterDominated          , redshiftInitial       , &
+          &                                                      redshiftInitialDelta
+     type            (table2DLogLogLin             )          :: growthFactor
+     class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_         => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_          => null()
+     class           (intergalacticMediumStateClass), pointer :: intergalacticMediumState_    => null()
+     type            (linearGrowthSimple           ), pointer :: linearGrowthSimple_          => null()
+   contains
+     !@ <objectMethods>
+     !@   <object>linearGrowthBaryonsDarkMatter</object>
+     !@   <objectMethod>
+     !@     <method>retabulate</method>
+     !@     <type>void</type>
+     !@     <arguments>\doublezero\ time\argin</arguments>
+     !@     <description>Tabulate linear growth factor.</description>
+     !@   </objectMethod>
+     !@ </objectMethods>
+     final     ::                                         baryonsDarkMatterDestructor
+     procedure :: value                                => baryonsDarkMatterValue
+     procedure :: logarithmicDerivativeExpansionFactor => baryonsDarkMatterLogarithmicDerivativeExpansionFactor
+     procedure :: logarithmicDerivativeWavenumber      => baryonsDarkMatterLogarithmicDerivativeWavenumber
+     procedure :: retabulate                           => baryonsDarkMatterRetabulate
+     procedure :: isWavenumberDependent                => baryonsDarkMatterIsWavenumberDependent
+  end type linearGrowthBaryonsDarkMatter
+
+  interface linearGrowthBaryonsDarkMatter
+     !% Constructors for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+     module procedure baryonsDarkMatterConstructorParameters
+     module procedure baryonsDarkMatterConstructorInternal
+  end interface linearGrowthBaryonsDarkMatter
+
+  ! Tolerance parameter used to ensure times do not exceed that at the Big Crunch.
+  double precision, parameter :: baryonsDarkMatterTimeToleranceRelative=1.0d-4
+
+  ! Reference wavenumber used when no wavenumber is specified. Small enough that it should be into the regime where baryon
+  ! suppression is negligible, but large enough to avoid the BAO region.
+  double precision, parameter :: baryonsDarkMatterWavenumberReference  =1.0d+0
+  
+  ! Indices of tables for baryons and dark matter.
+  integer         , parameter :: baryonsDarkMatterDarkMatter           =1
+  integer         , parameter :: baryonsDarkMatterBaryons              =2
+  
+contains
+
+  function baryonsDarkMatterConstructorParameters(parameters) result(self)
+    !% Constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class which takes a parameter set as input.
+    use Input_Parameters
+    implicit none
+    type            (linearGrowthBaryonsDarkMatter)                :: self
+    type            (inputParameters              ), intent(inout) :: parameters
+    class           (cosmologyParametersClass     ), pointer       :: cosmologyParameters_    
+    class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class           (intergalacticMediumStateClass), pointer       :: intergalacticMediumState_
+    double precision                                               :: redshiftInitial          , redshiftInitialDelta,
+
+    !# <inputParameter>
+    !#   <name>redshiftInitial</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>100.0d0</defaultValue>
+    !#   <description>The initial redshift from which integration of linear growth should be begin.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <inputParameter>
+    !#   <name>redshiftInitialDelta</name>
+    !#   <source>parameters</source>
+    !#   <defaultValue>1.0d0</defaultValue>
+    !#   <description>The initial step in redshift used to estimate growth rates of perturbations using finite differencing.</description>
+    !#   <type>real</type>
+    !#   <cardinality>0..1</cardinality>
+    !# </inputParameter>
+    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !# <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
+    self=baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_)
+    !# <inputParametersValidate source="parameters"/>
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologyFunctions_"      />
+    !# <objectDestructor name="intergalacticMediumState_"/>
+    return
+  end function baryonsDarkMatterConstructorParameters
+
+  function baryonsDarkMatterConstructorInternal(redshiftInitial,redshiftInitialDelta,cosmologyParameters_,cosmologyFunctions_,intergalacticMediumState_) result(self)
+    !% Internal constructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    type            (linearGrowthBaryonsDarkMatter)                           :: self
+    double precision                                          , intent(in   ) :: redshiftInitial          , redshiftInitialDelta
+    class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyFunctionsClass      ), target   , intent(in   ) :: cosmologyFunctions_
+    class           (intergalacticMediumStateClass), target   , intent(in   ) :: intergalacticMediumState_
+    double precision                                                          :: timeBigCrunch            , timeNow
+    !# <constructorAssign variables="redshiftInitial, redshiftInitialDelta, *cosmologyParameters_, *cosmologyFunctions_, *intergalacticMediumState_"/>
+
+    self%tableInitialized      =.false.
+    self%tableTimeMinimum      =1.0d+0
+    self%tableTimeMaximum      =2.0d+1
+    self%tableWavenumberMinimum=1.0d-3
+    self%tableWavenumberMaximum=1.0d+4
+    timeBigCrunch              =self%cosmologyFunctions_%timeBigCrunch()
+    if (timeBigCrunch > 0.0d0) then
+       ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
+       if (self%tableTimeMinimum > timeBigCrunch) self%tableTimeMinimum= 0.5d0                                        *timeBigCrunch
+       if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-baryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
+    end if
+    ! Validate initial redshifts.
+    if (redshiftInitialDelta > redshiftInitial) call Galacticus_Error_Report('[redshiftInitialDelta] ≤ [redshiftInitial] is required'//{introspection:location})
+    ! Compute dark matter and baryon fractions.
+    self%fractionDarkMatter=(+self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter()
+    self%fractionBaryons   =(                                        +self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter()
+    ! Build a linear growth object of the simple class which we will use to derive the matter-dominated phase normalization
+    ! factor. This is used to figure out the amplitude of a growing mode which grows as the expansion factor at early times, as is
+    ! needed for calculations of critical overdensity. The initial conditions we use from CAMB are not pure growing modes, so we
+    ! can't compute the normalization from them directly.
+    allocate(self%linearGrowthSimple_)
+    !# <referenceConstruct isResult="yes" owner="self" object="linearGrowthSimple_" constructor="linearGrowthSimple(cosmologyParameters_,cosmologyFunctions_)"/>
+    timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
+    self%normalizationMatterDominated=+self%linearGrowthSimple_%value(timeNow,normalize=normalizeMatterDominated) &
+         &                            /self%linearGrowthSimple_%value(timeNow                                   )
+    return
+  end function baryonsDarkMatterConstructorInternal
+
+  subroutine baryonsDarkMatterDestructor(self)
+    !% Destructor for the {\normalfont \ttfamily baryonsDarkMatter} linear growth class.
+    implicit none
+    type (linearGrowthBaryonsDarkMatter), intent(inout) :: self
+    
+    !# <objectDestructor name="self%cosmologyParameters_"     />
+    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    !# <objectDestructor name="self%intergalacticMediumState_"/>
+    !# <objectDestructor name="self%linearGrowthSimple_"      />
+    call self%growthFactor%destroy()
+    return
+  end subroutine baryonsDarkMatterDestructor
+
+  subroutine baryonsDarkMatterRetabulate(self,time,wavenumber)
+    !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
+    !% $D(1)=1$ for a baryonsDarkMatter matter plus cosmological constant cosmology.
+    use FGSL            , only : FGSL_Success
+    use ODEIV2_Solver   , only : ODEIV2_Solve                    , ODEIV2_Solver_Free
+    use FODEIV2         , only : fodeiv2_system                  , fodeiv2_driver
+    use Interfaces_CAMB , only : Interface_CAMB_Transfer_Function
+    use Tables          , only : table1DGeneric
+    use Table_Labels    , only : extrapolationTypeAbort          , extrapolationTypeFix
+    use Galacticus_Error, only : Galacticus_Error_Report
+    implicit none
+    class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
+    double precision                               , intent(in   )           :: time
+    double precision                               , intent(in   ), optional :: wavenumber
+    double precision                               , parameter               :: odeToleranceAbsolute          =   1.0d-10, odeToleranceRelative                = 1.0d-10
+    integer                                        , parameter               :: growthTablePointsPerDecadeTime=1000      , growthTablePointsPerDecadeWavenumber=100
+    double precision                               , dimension(4)            :: growthFactorODEVariables
+    double precision                               , dimension(2)            :: redshiftsInitial                         , timesInitial
+    logical                                                                  :: remakeTable
+    integer                                                                  :: i                                        , j
+    double precision                                                         :: growthFactorDerivativeBaryons            , growthFactorDerivativeDarkMatter             , &
+         &                                                                      timeNow                                  , linearGrowthFactorPresent                    , &
+         &                                                                      timePresent                              , timeBigCrunch                                , &
+         &                                                                      wavenumberLogarithmic                    , wavenumber_
+    integer                                                                  :: growthTableNumberPoints    
+    type            (fodeiv2_system                         )                :: ode2System
+    type            (fodeiv2_driver                         )                :: ode2Driver
+    logical                                                                  :: odeReset                      =.true.
+    type            (table1DGeneric                         )                :: transferFunctionDarkMatter               , transferFunctionBaryons
+    integer                                                                  :: countWavenumbers
+    
+
+    ! Check if we need to recompute our table.
+    if (self%tableInitialized) then
+       remakeTable=time > self%tableTimeMaximum
+    else
+       remakeTable=.true.
+    end if
+    if (remakeTable) then
+       ! Find the present-day epoch.
+       timePresent=self%cosmologyFunctions_%cosmicTime(1.0d0,collapsingPhase=self%cosmologyParameters_%HubbleConstant() < 0.0d0)
+       ! Find the time corresponding to our CAMB starting redshift.
+       redshiftsInitial(1)=+self%redshiftInitial
+       redshiftsInitial(2)=+self%redshiftInitial      &
+            &              -self%redshiftInitialDelta
+       timesInitial    (1)=+self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftsInitial(1)))
+       timesInitial    (2)=+self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftsInitial(2)))
+       if (time        < timesInitial(1)) call Galacticus_Error_Report('requested epoch is before the chosen initial epoch'//{introspection:location})
+       if (timePresent < timesInitial(1)) call Galacticus_Error_Report('present epoch is before the chosen initial epoch'  //{introspection:location})
+       ! Find minimum and maximum times to tabulate.
+       self%tableTimeMinimum=timesInitial(1)
+       self%tableTimeMaximum=max(self%tableTimeMaximum,max(timePresent,2.0d0*time))
+       timeBigCrunch        =self%cosmologyFunctions_%timeBigCrunch()
+       if (timeBigCrunch > 0.0d0) then
+          ! A Big Crunch exists - avoid attempting to tabulate times beyond this epoch.
+          if (self%tableTimeMinimum > timeBigCrunch) call Galacticus_Error_Report('Big Crunch occurs before the chosen initial epoch'//{introspection:location})
+          if (self%tableTimeMaximum > timeBigCrunch) self%tableTimeMaximum=(1.0d0-baryonsDarkMatterTimeToleranceRelative)*timeBigCrunch
+       end if
+       ! Find minimum and maximum wavenumbers to tabulate.
+       if (present(wavenumber)) then
+          self%tableWavenumberMinimum=min(self%tableWavenumberMinimum,0.5d0*wavenumber)
+          self%tableWavenumberMaximum=min(self%tableWavenumberMaximum,2.0d0*wavenumber)
+       end if
+       ! Get the initial conditions from CAMB.
+       call Interface_CAMB_Transfer_Function(self%cosmologyParameters_,redshiftsInitial,self%tableWavenumberMaximum,self%tableWavenumberMaximum,lockFileGlobally=.true.,transferFunctionDarkMatter=transferFunctionDarkMatter,transferFunctionBaryons=transferFunctionBaryons)
+       ! Determine number of points to tabulate.
+       growthTableNumberPoints=int(log10(self%tableTimeMaximum/self%tableTimeMinimum)*dble(growthTablePointsPerDecadeTime))       
+       ! Destroy current table.
+       call self%growthFactor%destroy()
+       ! Create table.
+       countWavenumbers=int(dble(growthTablePointsPerDecadeWavenumber)*log10(self%tableWavenumberMaximum/self%tableWavenumberMinimum))+1
+       call self%growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints,self%tableWavenumberMinimum,self%tableWavenumberMaximum,countWavenumbers,tableCount=2,extrapolationTypeX=extrapolationTypeAbort,extrapolationTypeY=extrapolationTypeFix)
+       ! Iterate over wavenumber.
+       do j=1,countWavenumbers
+          wavenumber_          =self%growthFactor%y(j)
+          wavenumberLogarithmic=log(wavenumber_)
+          ! Solve ODE to get corresponding expansion factors. Initialize with solution from CAMB.
+          call self%growthFactor%populate(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)),1,j,table=baryonsDarkMatterDarkMatter)
+          call self%growthFactor%populate(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)),1,j,table=baryonsDarkMatterBaryons   )
+          growthFactorDerivativeDarkMatter=(exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=2))-exp(transferFunctionDarkMatter%interpolate(wavenumberLogarithmic,table=1)))/(timesInitial(2)-timesInitial(1))
+          growthFactorDerivativeBaryons   =(exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=2))-exp(transferFunctionBaryons   %interpolate(wavenumberLogarithmic,table=1)))/(timesInitial(2)-timesInitial(1))
+          do i=2,growthTableNumberPoints
+             timeNow                    =self%growthFactor                    %x(i-1                                    )
+             growthFactorODEVariables(1)=self%growthFactor                    %z(i-1,j,table=baryonsDarkMatterDarkMatter)
+             growthFactorODEVariables(2)=growthFactorDerivativeDarkMatter
+             growthFactorODEVariables(3)=self%growthFactor                    %z(i-1,j,table=baryonsDarkMatterBaryons   )
+             growthFactorODEVariables(4)=growthFactorDerivativeBaryons
+             odeReset=.true.
+             call ODEIV2_Solve(                                   &
+                  &            ode2Driver                       , &
+                  &            ode2System                       , &
+                  &            timeNow                          , &
+                  &            self%growthFactor%x(i)           , &
+                  &            4                                , &
+                  &            growthFactorODEVariables         , &
+                  &            growthFactorODEs                 , &
+                  &            odeToleranceAbsolute             , &
+                  &            odeToleranceRelative             , &
+                  &            reset                   =odeReset  &
+                  &           )
+             call ODEIV2_Solver_Free(ode2Driver,ode2System)
+             call self%growthFactor%populate(growthFactorODEVariables(1),i,j,table=baryonsDarkMatterDarkMatter)
+             call self%growthFactor%populate(growthFactorODEVariables(3),i,j,table=baryonsDarkMatterBaryons   )
+             growthFactorDerivativeDarkMatter=growthFactorODEVariables(2)
+             growthFactorDerivativeBaryons   =growthFactorODEVariables(4)
+          end do
+          ! Normalize to growth factor of unity at present day.
+          linearGrowthFactorPresent=self%growthFactor%interpolate(timePresent,self%growthFactor%y(j))
+          do i=1,growthTableNumberPoints
+             call self%growthFactor%populate(self%growthFactor%z(i,j,table=baryonsDarkMatterDarkMatter)/linearGrowthFactorPresent,i,j,table=baryonsDarkMatterDarkMatter)
+             call self%growthFactor%populate(self%growthFactor%z(i,j,table=baryonsDarkMatterBaryons   )/linearGrowthFactorPresent,i,j,table=baryonsDarkMatterBaryons   )
+          end do
+       end do
+       self%tableInitialized=.true.
+    end if
+    return
+    
+  contains
+    
+    integer function growthFactorODEs(time,values,derivatives)
+      !% System of differential equations to solve for the growth factor.
+      use Numerical_Constants_Physical    , only : boltzmannsConstant
+      use Numerical_Constants_Astronomical, only : hydrogenByMassPrimordial, heliumByMassPrimordial
+      use Numerical_Constants_Atomic      , only : massHydrogenAtom        , massHeliumAtom        , electronMass
+      use Numerical_Constants_Prefixes    , only : kilo
+      implicit none
+      double precision              , intent(in   ) :: time
+      double precision, dimension(:), intent(in   ) :: values
+      double precision, dimension(:), intent(  out) :: derivatives
+      double precision                              :: perturbationDarkMatter             , perturbationBaryons             , &
+           &                                           perturbationDarkMatterDerivative1st, perturbationBaryonsDerivative1st, &
+           &                                           perturbationDarkMatterDerivative2nd, perturbationBaryonsDerivative2nd, &
+           &                                           expansionFactor                    , wavenumberJeans, massParticleMean,speedSound
+
+      ! Get expansion factor.
+      expansionFactor                    =+                                 self%cosmologyFunctions_      %expansionFactor (time)
+      ! Compute the instantaneous Jeans wavenumber. Note that we want the comoving wavenumber here, so we multiply by the expansion factor.
+      massParticleMean                   =+(hydrogenByMassPrimordial*(1.0d0+self%intergalacticMediumState_%electronFraction(time)*electronMass/massHydrogenAtom)                 +heliumByMassPrimordial               ) &
+           &                              /(hydrogenByMassPrimordial*(1.0d0+self%intergalacticMediumState_%electronFraction(time)                              )/massHydrogenAtom+heliumByMassPrimordial/massHeliumAtom)
+      speedSound                         =+sqrt(                                                         &
+           &                                    +boltzmannsConstant                                      &
+           &                                    *self%intergalacticMediumState_%temperature(time)        &
+           &                                    /massParticleMean                                        &
+           &                                   )                                                         &
+           &                              /kilo
+      if (speedSound > 0.0d0) then
+         wavenumberJeans                 =+sqrt(                                                         &
+              &                                 +1.5d0                                                   &
+              &                                 *(                                                       &
+              &                                   +self%cosmologyFunctions_%hubbleParameterEpochal(time) &
+              &                                   /speedSound                                            &
+              &                                  )**2                                                    &
+              &                                )                                                         &
+              &                           *expansionFactor
+      else
+         wavenumberJeans=huge(0.0d0)
+      end if
+      ! Compute perturbations and their derivatives.
+      perturbationDarkMatter             =+    values(1)
+      perturbationDarkMatterDerivative1st=+    values(2)
+      perturbationBaryons                =+    values(3)
+      perturbationBaryonsDerivative1st   =+    values(4)
+      perturbationDarkMatterDerivative2nd=+    1.5d0                                                                           &
+           &                              *    self%cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
+           &                              *    self%cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
+           &                              *    (                                                                               &
+           &                                    +self%    fractionDarkMatter                                                   &
+           &                                    *     perturbationDarkMatter                                                   &
+           &                                    +self%    fractionBaryons                                                      &
+           &                                    *     perturbationBaryons                                                      &
+           &                                   )                                                                               &
+           &                              -    2.0d0                                                                           &
+           &                              *abs(self%cosmologyFunctions_%expansionRate     (                expansionFactor))   &
+           &                              *    perturbationDarkMatterDerivative1st
+      perturbationBaryonsDerivative2nd   =+    1.5d0                                                                           &
+           &                              *    self%cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
+           &                              *    self%cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
+           &                              *    (                                                                               &
+           &                                    +self%    fractionDarkMatter                                                   &
+           &                                    *     perturbationDarkMatter                                                   &
+           &                                    +self%    fractionBaryons                                                      &
+           &                                    *     perturbationBaryons                                                      &
+           &                                    -(                                                                             &
+           &                                      +wavenumber_                                                                 &
+           &                                      /wavenumberJeans                                                             &
+           &                                     )**2                                                                          &
+           &                                    *     perturbationBaryons                                                      &
+           &                                   )                                                                               &
+           &                              -    2.0d0                                                                           &
+           &                              *abs(self%cosmologyFunctions_%expansionRate     (                expansionFactor))   &
+           &                              *    perturbationBaryonsDerivative1st
+      ! Set the derivatives in the ODE arrays.
+      derivatives    (1)=perturbationDarkMatterDerivative1st
+      derivatives    (2)=perturbationDarkMatterDerivative2nd
+      derivatives    (3)=perturbationBaryonsDerivative1st
+      derivatives    (4)=perturbationBaryonsDerivative2nd
+      growthFactorODEs  =FGSL_Success
+    end function growthFactorODEs
+
+  end subroutine baryonsDarkMatterRetabulate
+
+  double precision function baryonsDarkMatterValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
+    !% Return the linear growth factor at the given epoch.
+    implicit none
+    class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
+    double precision                               , intent(in   ), optional :: time      , expansionFactor
+    logical                                        , intent(in   ), optional :: collapsing
+    integer                                        , intent(in   ), optional :: normalize , component
+    double precision                               , intent(in   ), optional :: wavenumber
+    double precision                                                         :: time_     , wavenumber_
+    !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
+    !GCC$ attributes unused :: component
+    
+    ! Determine cosmological time.
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
+    ! Remake the table if necessary.
+    call self%retabulate(time_,wavenumber)
+    ! Get wavenumber.
+    if (present(wavenumber)) then
+       wavenumber_=wavenumber
+    else
+       wavenumber_=baryonsDarkMatterWavenumberReference
+    end if
+    ! Interpolate to get the expansion factor.
+    baryonsDarkMatterValue=self%growthFactor%interpolate(time_,wavenumber_,table=baryonsDarkMatterDarkMatter)
+    ! Normalize.
+    select case (normalize_)
+    case (normalizeMatterDominated)
+       ! Normalize such that the radii of long-wavelength, growing perturbations behave as the scale factor at early times.
+       baryonsDarkMatterValue=+baryonsDarkMatterValue            &
+            &                 *self%normalizationMatterDominated
+    end select
+    return
+  end function baryonsDarkMatterValue
+
+  double precision function baryonsDarkMatterLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
+    !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    implicit none
+    class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
+    double precision                               , intent(in   ), optional :: time       , expansionFactor
+    logical                                        , intent(in   ), optional :: collapsing
+    integer                                        , intent(in   ), optional :: component 
+    double precision                               , intent(in   ), optional :: wavenumber
+    double precision                                                         :: time_      , expansionFactor_, &
+         &                                                                      wavenumber_
+    !GCC$ attributes unused :: component
+    
+    ! Determine cosmological time.
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
+    ! Remake the table if necessary.
+    call self%retabulate(time_,wavenumber)
+    ! Get wavenumber.
+    if (present(wavenumber)) then
+       wavenumber_=wavenumber
+    else
+       wavenumber_=baryonsDarkMatterWavenumberReference
+    end if
+    ! Interpolate to get the expansion factor.
+    baryonsDarkMatterLogarithmicDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ,wavenumber_,table=baryonsDarkMatterDarkMatter,dim=1) &
+         &                                                /self%growthFactor       %interpolate        (time_           ,wavenumber_,table=baryonsDarkMatterDarkMatter      ) &
+         &                                                /self%cosmologyFunctions_%expansionRate      (expansionFactor_                                                    )
+    return
+  end function baryonsDarkMatterLogarithmicDerivativeExpansionFactor
+
+  double precision function baryonsDarkMatterLogarithmicDerivativeWavenumber(self,time,expansionFactor,collapsing,component,wavenumber)
+    !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    implicit none
+    class           (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
+    double precision                               , intent(in   ), optional :: time       , expansionFactor
+    logical                                        , intent(in   ), optional :: collapsing
+    integer                                        , intent(in   ), optional :: component 
+    double precision                               , intent(in   ), optional :: wavenumber
+    double precision                                                         :: time_      , expansionFactor_, &
+         &                                                                      wavenumber_
+    !GCC$ attributes unused :: component
+    
+    ! Determine cosmological time.
+    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
+    ! Remake the table if necessary.
+    call self%retabulate(time_,wavenumber)
+    ! Get wavenumber.
+    if (present(wavenumber)) then
+       wavenumber_=wavenumber
+    else
+       wavenumber_=baryonsDarkMatterWavenumberReference
+    end if
+    ! Interpolate to get the expansion factor.
+    baryonsDarkMatterLogarithmicDerivativeWavenumber=+self%growthFactor%interpolateGradient(time_,wavenumber_,table=baryonsDarkMatterDarkMatter,dim=2) &
+         &                                           /self%growthFactor%interpolate        (time_,wavenumber_,table=baryonsDarkMatterDarkMatter      ) &
+         &                                           *                                            wavenumber_
+    return
+  end function baryonsDarkMatterLogarithmicDerivativeWavenumber
+
+  logical function baryonsDarkMatterIsWavenumberDependent(self,component)
+    !% Return true indicating that the growth function is wavenumber-dependent.
+    implicit none
+    class  (linearGrowthBaryonsDarkMatter), intent(inout)           :: self
+    integer                               , intent(in   ), optional :: component 
+    !GCC$ attributes unused :: self, component
+    
+    baryonsDarkMatterIsWavenumberDependent=.true.
+    return
+  end function baryonsDarkMatterIsWavenumberDependent
