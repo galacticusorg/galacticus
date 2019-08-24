@@ -37,31 +37,31 @@
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus
      !% A merger tree importer class for \glc\ format merger tree files.
      private
-     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_ => null()
-     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_ => null()
-     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_ => null()
+     class           (cosmologyFunctionsClass      ), pointer                   :: cosmologyFunctions_       => null()
+     class           (haloMassFunctionClass        ), pointer                   :: haloMassFunction_         => null()
+     class           (cosmologyParametersClass     ), pointer                   :: cosmologyParameters_      => null()
      class           (cosmologicalMassVarianceClass), pointer                   :: cosmologicalMassVariance_ => null()
-     type            (hdf5Object                   )                            :: file                     , forestHalos
-     type            (statefulInteger              )                            :: hasSubhalos              , areSelfContained              , &
-          &                                                                        includesHubbleFlow       , periodicPositions             , &
+     type            (hdf5Object                   )                            :: file                               , forestHalos
+     type            (statefulInteger              )                            :: hasSubhalos                        , areSelfContained              , &
+          &                                                                        includesHubbleFlow                 , periodicPositions             , &
           &                                                                        lengthStatus
-     type            (statefulLogical              )                            :: massesAreInclusive       , angularMomentaAreInclusive
+     type            (statefulLogical              )                            :: massesAreInclusive                 , angularMomentaAreInclusive
      type            (statefulDouble               )                            :: length
-     type            (importerUnits                )                            :: massUnit                 , lengthUnit                    , &
-          &                                                                        timeUnit                 , velocityUnit
-     logical                                                                    :: fatalMismatches          , forestIndicesRead             , &
-          &                                                                        angularMomentaIsScalar   , angularMomentaIsVector        , &
-          &                                                                        spinIsScalar             , spinIsVector                  , &
+     type            (importerUnits                )                            :: massUnit                           , lengthUnit                    , &
+          &                                                                        timeUnit                           , velocityUnit
+     logical                                                                    :: fatalMismatches                    , forestIndicesRead             , &
+          &                                                                        angularMomentaIsScalar             , angularMomentaIsVector        , &
+          &                                                                        spinIsScalar                       , spinIsVector                  , &
           &                                                                        reweightTrees
-     integer                                                                    :: forestsCount             , formatVersion
-     integer                                        , allocatable, dimension(:) :: firstNodes               , nodeCounts
+     integer                                                                    :: forestsCount                       , formatVersion
+     integer                                        , allocatable, dimension(:) :: firstNodes                         , nodeCounts
      integer         (kind=kind_int8               ), allocatable, dimension(:) :: forestIndices
      double precision                               , allocatable, dimension(:) :: weights
      type            (hdf5Object                   )                            :: particles
      integer                                                                    :: particleEpochType
      type            (varying_string               )                            :: particleEpochDataSetName
-     character       (len=32                       )                            :: forestHalosGroupName     , forestContainmentAttributeName, &
-          &                                                                        forestIndexGroupName     , forestIndexDatasetName        , &
+     character       (len=32                       )                            :: forestHalosGroupName               , forestContainmentAttributeName, &
+          &                                                                        forestIndexGroupName               , forestIndexDatasetName        , &
           &                                                                        forestWeightDatasetName
    contains
      final     ::                                  galacticusDestructor

@@ -28,8 +28,8 @@
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryWechsler2002
      !% A dark matter halo mass accretion historiy class using the \cite{wechsler_concentrations_2002} algorithm.
      private
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_ => null()
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      logical                                                  :: formationRedshiftCompute
      double precision                                         :: formationRedshift
@@ -159,7 +159,7 @@ contains
       ! Compute the characteristic mass at formation time.
       haloMassCharacteristic=haloMassFraction*haloMass
       ! Compute the corresponding rms fluctuation in the density field (i.e. sigma(M)).
-      sigmaCharacteristic=self%cosmologicalMassVariance_%rootVariance(haloMassCharacteristic)
+      sigmaCharacteristic=self%cosmologicalMassVariance_%rootVariance(haloMassCharacteristic,self%cosmologyFunctions_%cosmicTime(1.0d0))
       ! Get the time at which this equals the critical overdensity for collapse.
       formationTime=self%criticalOverdensity_%timeOfCollapse(criticalOverdensity=sigmaCharacteristic,mass=haloMass)
       ! Get the corresponding expansion factor.

@@ -220,7 +220,7 @@ contains
           select case (calculationType)
           case (calculationDeltaCrit)
              ! Critical linear overdensity.
-             normalization=linearGrowth__%value(tNow,normalize=normalizeMatterDominated)/linearGrowth__%value(tNow)/aExpansionNow
+             normalization=linearGrowth__%value(tNow,normalize=normalizeMatterDominated)/aExpansionNow
              call deltaTable%populate(                                                                       &
                   &                   normalization*0.6d0*(1.0d0-OmegaM-OmegaDE-epsilonPerturbation)/OmegaM, &
                   &                   iTime                                                                  &

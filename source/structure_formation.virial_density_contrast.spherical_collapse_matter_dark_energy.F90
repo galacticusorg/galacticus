@@ -27,12 +27,8 @@
   type, extends(virialDensityContrastSphericalCollapseMatterLambda) :: virialDensityContrastSphericalCollapseMatterDE
      !% A dark matter halo virial density contrast class based on spherical collapse in a matter plus dark eneryg universe.
      private
-     logical                                :: turnaroundInitialized
-     double precision                       :: turnaroundTimeMinimum, turnaroundTimeMaximum
-     class           (table1D), allocatable :: turnaround
-     integer                                :: energyFixedAt
+     integer :: energyFixedAt
    contains
-     final     ::                              sphericalCollapseMatterDEDestructor
      procedure :: retabulate                => sphericalCollapseMatterDERetabulate
      procedure :: turnAroundOverVirialRadii => sphericalCollapseMatterDETurnAroundOverVirialRadii
   end type virialDensityContrastSphericalCollapseMatterDE
@@ -85,19 +81,6 @@ contains
     return
   end function sphericalCollapseMatterDEConstructorInternal
 
-  subroutine sphericalCollapseMatterDEDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sphericalCollapseMatterDE} dark matter halo virial density contrast class.
-    implicit none
-    type (virialDensityContrastSphericalCollapseMatterDE), intent(inout) :: self
-
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    if (self%turnaroundInitialized) then
-       call self%turnaround%destroy()
-       deallocate(self%turnaround)
-    end if
-    return
-  end subroutine sphericalCollapseMatterDEDestructor
-
   subroutine sphericalCollapseMatterDERetabulate(self,time)
     !% Recompute the look-up tables for virial density contrast.
     use Spherical_Collapse_Matter_Dark_Energy
@@ -121,17 +104,19 @@ contains
     return
   end subroutine sphericalCollapseMatterDERetabulate
 
-  double precision function sphericalCollapseMatterDETurnAroundOverVirialRadii(self,time,expansionFactor,collapsing)
+  double precision function sphericalCollapseMatterDETurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
     !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
     !% constant universe.
     use Galacticus_Error
     use Spherical_Collapse_Matter_Dark_Energy
     implicit none
     class           (virialDensityContrastSphericalCollapseMatterDE), intent(inout)           :: self
+    double precision                                                , intent(in   )           :: mass
     double precision                                                , intent(in   ), optional :: time       , expansionFactor
     logical                                                         , intent(in   ), optional :: collapsing
     logical                                                                                   :: remakeTable, collapsingActual
     double precision                                                                          :: timeActual
+    !GCC$ attributes unused :: mass
 
     ! Determine which type of input we have.
     if (present(time)) then

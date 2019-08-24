@@ -122,7 +122,7 @@ contains
     basic => node%basic()
     ! Compute the shape parameter.
     nu     =+self%criticalOverdensity_     %value       (time=basic%time(),mass=basic%mass()) &
-         &  /self%cosmologicalMassVariance_%rootVariance(                       basic%mass())
+         &  /self%cosmologicalMassVariance_%rootVariance(time=basic%time(),mass=basic%mass())
     select case (self%sample)
     case (klypin2015SampleAll    )
        klypin2015Shape=0.115d0+0.0165d0*nu**2

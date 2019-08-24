@@ -106,8 +106,8 @@ contains
     type            (outputAnalysisWeightOperatorIdentity              ), pointer                       :: outputAnalysisWeightOperator_
     type            (outputAnalysisPropertyOperatorLog10               ), pointer                       :: outputAnalysisPropertyOperator_              , outputAnalysisWeightPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10           ), pointer                       :: outputAnalysisPropertyUnoperator_
-    type            (nodePropertyExtractorMassHalo           ), pointer                       :: nodePropertyExtractor_
-    type            (nodePropertyExtractorConcentration      ), pointer                       :: outputAnalysisWeightPropertyExtractor_
+    type            (nodePropertyExtractorMassHalo                     ), pointer                       :: nodePropertyExtractor_
+    type            (nodePropertyExtractorConcentration                ), pointer                       :: outputAnalysisWeightPropertyExtractor_
     type            (virialDensityContrastFixed                        ), pointer                       :: virialDensityContrast_
     integer         (c_size_t                                          )                                :: iOutput
     type            (hdf5Object                                        )                                :: dataFile
@@ -139,28 +139,28 @@ contains
     galacticFilterAll_                       =  galacticFilterAll          (              filters_)
     ! Build N-body mass error distribution operator.
     allocate(outputAnalysisDistributionOperator_    )
-    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                                      )
+    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                                            )
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_          )
-    outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                                         )
+    outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                                               )
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperator_        )
-    outputAnalysisPropertyOperator_        =  outputAnalysisPropertyOperatorLog10               (                                                                                         )
+    outputAnalysisPropertyOperator_        =  outputAnalysisPropertyOperatorLog10               (                                                                                               )
     ! Build a log10 weight property operators.
     allocate(outputAnalysisWeightPropertyOperator_  )
-    outputAnalysisWeightPropertyOperator_  =  outputAnalysisPropertyOperatorLog10               (                                                                                         )
+    outputAnalysisWeightPropertyOperator_  =  outputAnalysisPropertyOperatorLog10               (                                                                                               )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_      )
-    outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                                         )
+    outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                                               )
     ! Create a virial density contrast object matched to the defintion used by Ludlow et al. (2016).
     allocate(virialDensityContrast_                 )
-    virialDensityContrast_                 =  virialDensityContrastFixed                        (200.0d0                ,fixedDensityTypeCritical,cosmologyParameters_,cosmologyFunctions_)
+    virialDensityContrast_                 =  virialDensityContrastFixed                        (200.0d0                ,fixedDensityTypeCritical,2.0d0,cosmologyParameters_,cosmologyFunctions_)
     ! Create a concentration weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_ )
-    outputAnalysisWeightPropertyExtractor_ =  nodePropertyExtractorConcentration      (virialDensityContrast_                                              )
+    outputAnalysisWeightPropertyExtractor_ =  nodePropertyExtractorConcentration                (virialDensityContrast_                                                                         )
     ! Create a halo mass property extractor.
     allocate(nodePropertyExtractor_       )
-    nodePropertyExtractor_       =  nodePropertyExtractorMassHalo           (virialDensityContrast_                                              )
+    nodePropertyExtractor_                 =  nodePropertyExtractorMassHalo                     (virialDensityContrast_                                                                        )
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                       &
          &                                                         var_str('concentrationHaloMassRelationCDMLudlow2016'), &
@@ -201,7 +201,7 @@ contains
     nullify(outputAnalysisPropertyUnoperator_     )
     nullify(outputAnalysisWeightPropertyOperator_ )
     nullify(outputAnalysisWeightPropertyExtractor_)
-    nullify(nodePropertyExtractor_      )
+    nullify(nodePropertyExtractor_                )
     nullify(virialDensityContrast_                )
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorInternal

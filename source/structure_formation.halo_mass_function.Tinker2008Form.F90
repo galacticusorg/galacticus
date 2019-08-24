@@ -93,24 +93,23 @@ contains
     ! Update fitting function parameters if the time differs from that on the previous call.
     if (time /= self%time .or. mass /= self%mass) then
        ! Compute and store the mass function.
-       sigma            =+    self%cosmologicalMassVariance_%rootVariance                   (mass)  &
-            &            *    self%linearGrowth_            %value                          (time)
-       alpha            =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
-       self%massFunction=+    self%cosmologyParameters_     %OmegaMatter                    (    )  &
-            &            *    self%cosmologyParameters_     %densityCritical                (    )  &
-            &            /mass**2                                                                   &
-            &            *alpha                                                                     &
-            &            *self%normalization(time,mass)                                             &
-            &            *exp(                                                                      &
-            &                 -self%c(time,mass)                                                    &
-            &                 /sigma**2                                                             &
-            &                )                                                                      &
-            &            *(                                                                         &
-            &              +1.0d0                                                                   &
-            &              +(                                                                       &
-            &                +self%b(time,mass)                                                     &
-            &                /sigma                                                                 &
-            &               )**self%a(time,mass)                                                    &
+       sigma            =+    self%cosmologicalMassVariance_%rootVariance                   (mass,time)
+       alpha            =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time))
+       self%massFunction=+    self%cosmologyParameters_     %OmegaMatter                    (         )  &
+            &            *    self%cosmologyParameters_     %densityCritical                (         )  &
+            &            /mass**2                                                                        &
+            &            *alpha                                                                          &
+            &            *self%normalization(time,mass)                                                  &
+            &            *exp(                                                                           &
+            &                 -self%c(time,mass)                                                         &
+            &                 /sigma**2                                                                  &
+            &                )                                                                           &
+            &            *(                                                                              &
+            &              +1.0d0                                                                        &
+            &              +(                                                                            &
+            &                +self%b(time,mass)                                                          &
+            &                /sigma                                                                      &
+            &               )**self%a(time,mass)                                                         &
             &             )
        ! Store the time and mass.
        self%time=time

@@ -21,7 +21,6 @@
   !% matter plus cosmological constant universe.
 
   use Tables
-  use Linear_Growth
   use Cosmology_Functions
   use Dark_Matter_Particles
 
@@ -36,7 +35,6 @@
      double precision                                       :: normalization
      logical                                                :: tableStore
      class           (table1D                ), allocatable :: overdensityCritical
-     class           (linearGrowthClass      ), pointer     :: linearGrowth_       => null()
      class           (darkMatterParticleClass), pointer     :: darkMatterParticle_ => null()
    contains
      !@ <objectMethods>
@@ -54,6 +52,7 @@
      procedure :: gradientMass    => sphericalCollapseMatterLambdaGradientMass
      procedure :: retabulate      => sphericalCollapseMatterLambdaRetabulate
      procedure :: isMassDependent => sphericalCollapseMatterLambdaIsMassDependent
+     procedure :: isNodeDependent => sphericalCollapseMatterLambdaIsNodeDependent
   end type criticalOverdensitySphericalCollapseMatterLambda
 
   interface criticalOverdensitySphericalCollapseMatterLambda
@@ -120,8 +119,9 @@ contains
     logical                                                                     , intent(in   ) :: tableStore
     double precision                                                  , optional, intent(in   ) :: normalization
     !# <optionalArgument name="normalization" defaultsTo="1.0d0" />
-    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, tableStore, normalization"/>
-    
+    !# <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, tableStore"/>
+
+    self%normalization   =normalization_
     self%tableInitialized=.false.
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -241,3 +241,13 @@ contains
     sphericalCollapseMatterLambdaIsMassDependent=.false.
     return
   end function sphericalCollapseMatterLambdaIsMassDependent
+
+  logical function sphericalCollapseMatterLambdaIsNodeDependent(self)
+    !% Return whether the critical overdensity is node dependent.
+    implicit none
+    class(criticalOverdensitySphericalCollapseMatterLambda), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    sphericalCollapseMatterLambdaIsNodeDependent=.false.
+    return
+  end function sphericalCollapseMatterLambdaIsNodeDependent

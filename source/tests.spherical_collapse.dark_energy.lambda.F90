@@ -31,14 +31,13 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
   use Virial_Density_Contrast
   use Numerical_Constants_Math
   use Cosmological_Density_Field
-  use Linear_Growth
   use Galacticus_Display
+  use Events_Hooks
   implicit none
   double precision                            , dimension(7) :: redshift                     =[0.0d0,1.0d0,3.0d0,7.0d0,15.0d0,31.0d0,63.0d0]
   class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_
   class           (virialDensityContrastClass), pointer      :: virialDensityContrast_
   class           (criticalOverdensityClass  ), pointer      :: criticalOverdensity_
-  class           (linearGrowthClass         ), pointer      :: linearGrowth_
   double precision                            , parameter    :: massDummy                    =1.0d0
   type            (varying_string            )               :: parameterFile
   character       (len=1024                  )               :: message
@@ -51,6 +50,8 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
 
   ! Set verbosity level.
   call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
   
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (lambda cosmology)")
@@ -63,12 +64,11 @@ program Tests_Spherical_Collapse_Dark_Energy_Lambda
   cosmologyFunctions_    => cosmologyFunctions   ()
   virialDensityContrast_ => virialDensityContrast()
   criticalOverdensity_   => criticalOverdensity  ()
-  linearGrowth_          => linearGrowth         ()
   do iExpansion=size(redshift),1,-1
      expansionFactor            =cosmologyFunctions_ %expansionFactorFromRedshift(redshift       (iExpansion))
      age                        =cosmologyFunctions_ %cosmicTime                 (expansionFactor            )
      criticalOverdensityValue   =criticalOverdensity_%value                      (age                        )
-     criticalOverdensityExpected=(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)*(1.0d0+0.0123d0*log10(cosmologyFunctions_%omegaMatterEpochal(age)))/linearGrowth_%value(age)
+     criticalOverdensityExpected=(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)*(1.0d0+0.0123d0*log10(cosmologyFunctions_%omegaMatterEpochal(age)))
      write (message,'(a,f6.1,a,f6.4,a)') "critical density for collapse [z=",redshift(iExpansion),";Ωₘ=",cosmologyFunctions_%omegaMatterEpochal(age),"]"
      call Assert(trim(message),criticalOverdensityValue,criticalOverdensityExpected,relTol=1.5d-2)
      virialDensityContrastActual  =virialDensityContrast_%densityContrast(massDummy,age)

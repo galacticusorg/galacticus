@@ -28,24 +28,26 @@
   type, extends(mergerTreeBranchingProbabilityClass) :: mergerTreeBranchingProbabilityParkinsonColeHelly
      !% A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.
      private
-     double precision                                         :: gamma1                                , gamma2                             , &
-          &                                                      G0                                    , accuracyFirstOrder                 , &
+     double precision                                         :: gamma1                                          , gamma2                             , &
+          &                                                      G0                                              , accuracyFirstOrder                 , &
           &                                                      precisionHypergeometric
-     logical                                                  :: hypergeometricTabulate                , cdmAssumptions                     , &
+     logical                                                  :: hypergeometricTabulate                          , cdmAssumptions                     , &
           &                                                      hypergeometricFailureWarned
-     type            (table1DLogarithmicLinear     )          :: subresolutionHypergeometric           , upperBoundHypergeometric
-     logical                                                  :: subresolutionHypergeometricInitialized, upperBoundHypergeometricInitialized
-     double precision                                         :: massResolutionTabulated               , factorG0Gamma2                     , &
-          &                                                      branchingProbabilityPreFactor         , sigmaParentSquared                 , &
-          &                                                      sigmaParent                           , deltaParent                        , &
-          &                                                      massHaloParent                        , probabilityMinimumMassLog          , &
-          &                                                      probabilityMaximumMassLog             , probabilitySeek                    , &
-          &                                                      probabilityGradientMinimum            , probabilityGradientMaximum         , &
-          &                                                      probabilityMaximum                    , probabilityMinimumMass             , &
-          &                                                      haloMassPrevious                      , deltaCriticalPrevious              , &
-          &                                                      massResolutionPrevious                , probabilityPrevious                , &
-          &                                                      resolutionSigma                       , resolutionAlpha
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     type            (table1DLogarithmicLinear     )          :: subresolutionHypergeometric                     , upperBoundHypergeometric
+     logical                                                  :: subresolutionHypergeometricInitialized          , upperBoundHypergeometricInitialized
+     double precision                                         :: massResolutionTabulated                         , factorG0Gamma2                     , &
+          &                                                      branchingProbabilityPreFactor                   , sigmaParentSquared                 , &
+          &                                                      sigmaParent                                     , deltaParent                        , &
+          &                                                      massHaloParent                                  , probabilityMinimumMassLog          , &
+          &                                                      probabilityMaximumMassLog                       , probabilitySeek                    , &
+          &                                                      probabilityGradientMinimum                      , probabilityGradientMaximum         , &
+          &                                                      probabilityMaximum                              , probabilityMinimumMass             , &
+          &                                                      haloMassPrevious                                , deltaCriticalPrevious              , &
+          &                                                      massResolutionPrevious                          , probabilityPrevious                , &
+          &                                                      resolutionSigma                                 , resolutionAlpha                    , &
+          &                                                      timeParent
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_              => null()
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_                   => null()
    contains
      !@ <objectMethods>
      !@   <object>mergerTreeBranchingProbabilityParkinsonColeHelly</object>
@@ -90,6 +92,7 @@ contains
     type            (mergerTreeBranchingProbabilityParkinsonColeHelly)                :: self    
     type            (inputParameters                                 ), intent(inout) :: parameters
     class           (cosmologicalMassVarianceClass                   ), pointer       :: cosmologicalMassVariance_
+    class           (criticalOverdensityClass                        ), pointer       :: criticalOverdensity_
     double precision                                                                  :: gamma1                   , gamma2            , &
          &                                                                               G0                       , accuracyFirstOrder, &
          &                                                                               precisionHypergeometric
@@ -154,13 +157,15 @@ contains
     !#   <type>real</type>
     !# </inputParameter>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_)
+    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    self=mergerTreeBranchingProbabilityParkinsonColeHelly(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
     return
   end function parkinsonColeHellyConstructorParameters
 
-  function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_) result(self)
+  function parkinsonColeHellyConstructorInternal(G0,gamma1,gamma2,accuracyFirstOrder,precisionHypergeometric,hypergeometricTabulate,cdmAssumptions,cosmologicalMassVariance_,criticalOverdensity_) result(self)
     !% Internal constructor for the ``parkinsonColeHelly'' merger tree branching probability class.
     use Galacticus_Error
     implicit none
@@ -170,7 +175,8 @@ contains
          &                                                                                       precisionHypergeometric
     logical                                                           , intent(in   )         :: hypergeometricTabulate   , cdmAssumptions
     class           (cosmologicalMassVarianceClass                   ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="G0, gamma1, gamma2, accuracyFirstOrder, precisionHypergeometric, hypergeometricTabulate, cdmAssumptions, *cosmologicalMassVariance_"/>
+    class           (criticalOverdensityClass                        ), intent(in   ), target :: criticalOverdensity_
+    !# <constructorAssign variables="G0, gamma1, gamma2, accuracyFirstOrder, precisionHypergeometric, hypergeometricTabulate, cdmAssumptions, *cosmologicalMassVariance_, *criticalOverdensity_"/>
 
     self%subresolutionHypergeometricInitialized=.false.
     self%upperBoundHypergeometricInitialized   =.false.
@@ -188,16 +194,18 @@ contains
 
     call self%subresolutionHypergeometric%destroy()
     call self%upperBoundHypergeometric   %destroy()
-    !# <objectDestructor name="self%cosmologicalMassVariance_" />
+    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
     return
   end subroutine parkinsonColeHellyDestructor
   
-  double precision function parkinsonColeHellyMassBranch(self,haloMass,deltaCritical,massResolution,probabilityFraction,randomNumberGenerator,node)
+  double precision function parkinsonColeHellyMassBranch(self,haloMass,deltaCritical,time,massResolution,probabilityFraction,randomNumberGenerator,node)
     !% A merger tree branch split mass function.
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical                 , haloMass              , &
-         &                                                                                       massResolution                , probabilityFraction
+         &                                                                                       massResolution                , probabilityFraction   , &
+         &                                                                                       time
     type            (pseudoRandom                                    ), intent(inout)         :: randomNumberGenerator
     type            (treeNode                                        ), intent(inout), target :: node
     double precision                                                                          :: B                             , mu                    , &
@@ -230,8 +238,9 @@ contains
       logical :: reject
 
       ! Get parent and half-mass sigmas and alphas.
-      self%sigmaParentSquared=self%cosmologicalMassVariance_%rootVariance(haloMass)**2
-      call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*haloMass,halfMassSigma,halfMassAlpha)
+      self%timeParent        =self%criticalOverdensity_     %timeOfCollapse(criticalOverdensity=     deltaCritical,mass=haloMass,node=node)
+      self%sigmaParentSquared=self%cosmologicalMassVariance_%rootVariance  (time               =self%timeParent   ,mass=haloMass          )**2
+      call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*haloMass,self%timeParent,halfMassSigma,halfMassAlpha)
       ! Compute parameters beta, mu, and B.
       massFractionResolution=+massResolution                 &
            &                 /haloMass
@@ -249,7 +258,7 @@ contains
       if (self%gamma1 >= 0.0d0) then
          mu                 =-halfMassAlpha
       else
-         resolutionSigma    =+self%cosmologicalMassVariance_%rootVariance(massResolution)
+         resolutionSigma    =+self%cosmologicalMassVariance_%rootVariance(massResolution,self%timeParent)
          mu                 =-log(                        &
               &                   +resolutionSigma        &
               &                   /halfMassSigma          &
@@ -288,7 +297,7 @@ contains
       double precision, intent(in   ) :: massFraction
       double precision                :: massFractionSigma, massFractionAlpha
 
-      call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,massFractionSigma,massFractionAlpha)   
+      call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massFraction*haloMass,self%timeParent,massFractionSigma,massFractionAlpha)   
       R      =+(                   &
            &    +massFractionAlpha &
            &    /halfMassAlpha     &
@@ -313,7 +322,7 @@ contains
       double precision, intent(in   ) :: massFraction
       double precision                :: childSigmaSquared
 
-      childSigmaSquared=self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass)**2
+      childSigmaSquared=self%cosmologicalMassVariance_%rootVariance(massFraction*haloMass,self%timeParent)**2
       V                =+       childSigmaSquared  &
            &            /(                         &
            &              +     childSigmaSquared  &
@@ -337,7 +346,7 @@ contains
       double precision                        :: logMassMinimum         , logMassMaximum
 
       ! Initialize global variables.
-      call self%computeCommonFactors(deltaCritical,haloMass)
+      call self%computeCommonFactors(deltaCritical,time,haloMass,node)
       parkinsonColeHellySelf                           => self
       self                  %probabilityMinimumMass    =            massResolution
       self                  %probabilityMinimumMassLog =  log(      massResolution)
@@ -427,21 +436,21 @@ contains
     return
   end function parkinsonColeHellyMassBranchRootDerivative
 
-  double precision function parkinsonColeHellyStepMaximum(self,haloMass,deltaCritical,massResolution)
+  double precision function parkinsonColeHellyStepMaximum(self,haloMass,deltaCritical,time,massResolution)
     !% Return the maximum allowed step in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily
     !% deltaCritical} should be allowed to take.
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
     double precision                                                  , intent(in   ) :: deltaCritical             , haloMass   , &
-         &                                                                               massResolution
+         &                                                                               massResolution            , time
     double precision                                                  , parameter     :: largeStep          =1.0d10                 !   Effectively infinitely large step in w(=delta_crit).
     double precision                                                                  :: parentHalfMassSigma       , parentSigma
-    !GCC$ attributes unused :: deltaCritical
+    !GCC$ attributes unused :: deltaCritical, time
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
-       parentSigma                  =+self%cosmologicalMassVariance_%rootVariance(      haloMass)
-       parentHalfMassSigma          =+self%cosmologicalMassVariance_%rootVariance(0.5d0*haloMass)
+       parentSigma                  =+self%cosmologicalMassVariance_%rootVariance(      haloMass,self%timeParent)
+       parentHalfMassSigma          =+self%cosmologicalMassVariance_%rootVariance(0.5d0*haloMass,self%timeParent)
        parkinsonColeHellyStepMaximum=+self%accuracyFirstOrder        &
             &                        *sqrt(                          &
             &                              +2.0d0                    &
@@ -456,7 +465,7 @@ contains
     return
   end function parkinsonColeHellyStepMaximum
 
-  double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,massResolution,node)
+  double precision function parkinsonColeHellyProbability(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily haloMass} at time
     !% {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than {\normalfont \ttfamily massResolution}.
     use Numerical_Integration
@@ -464,7 +473,7 @@ contains
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
     double precision                                                  , intent(in   )         :: deltaCritical       , haloMass   , &
-         &                                                                                       massResolution
+         &                                                                                       massResolution      , time
     type            (treeNode                                        ), intent(inout), target :: node
     type            (fgsl_function                                   )                        :: integrandFunction
     type            (fgsl_integration_workspace                      )                        :: integrationWorkspace
@@ -485,7 +494,7 @@ contains
        self%massResolutionPrevious =  massResolution
        ! Get sigma and delta_critical for the parent halo.
        if (haloMass > 2.0d0*massResolution) then
-          call self%computeCommonFactors(deltaCritical,haloMass)
+          call self%computeCommonFactors(deltaCritical,time,haloMass,node)
           massMinimum             =+           massResolution
           massMaximum             =+0.5d0*self%massHaloParent
           self%probabilityPrevious=+self%branchingProbabilityPreFactor                                             &
@@ -516,7 +525,7 @@ contains
          &                             childHaloMass
 
     childHaloMass=exp(logChildHaloMass)
-    call parkinsonColeHellySelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,childSigma,childAlpha)
+    call parkinsonColeHellySelf%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(childHaloMass,parkinsonColeHellySelf%timeParent,childSigma,childAlpha)    
     parkinsonColeHellyProbabilityIntegrandLogarithmic=+parkinsonColeHellyProgenitorMassFunction(childHaloMass,childSigma,childAlpha)&
          &                                            *                                         childHaloMass
     return
@@ -535,7 +544,7 @@ contains
   end function parkinsonColeHellyProgenitorMassFunction
 
   double precision function parkinsonColeHellyMergingRate(childSigma,childAlpha)
-    !% Merging rate from Press-Schechter. The constant factor of sqrt(2/pi) not included here---instead it is included in a
+    !% Merging rate from Press-Schechter. The constant factor of $\sqrt{2/\pi}$ not included here---instead it is included in a
     !% multiplicative prefactor by which integrals over this function are multiplied.
     implicit none
     double precision, intent(in   ) :: childAlpha       , childSigma
@@ -561,7 +570,7 @@ contains
     return
   end function parkinsonColeHellyModifier
 
-  double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,massResolution,bound,node)
+  double precision function parkinsonColeHellyProbabilityBound(self,haloMass,deltaCritical,time,massResolution,bound,node)
     !% Return a bound on the probability per unit change in $\delta_\mathrm{crit}$ that a halo of mass {\normalfont \ttfamily
     !% haloMass} at time {\normalfont \ttfamily deltaCritical} will undergo a branching to progenitors with mass greater than
     !% {\normalfont \ttfamily massResolution}.
@@ -574,7 +583,7 @@ contains
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout)         :: self
     double precision                                                  , intent(in   )         :: deltaCritical                                , haloMass                 , &
-         &                                                                                       massResolution
+         &                                                                                       massResolution                               , time
     integer                                                           , intent(in   )         :: bound
     type            (treeNode                                        ), intent(inout), target :: node
     double precision                                                  , parameter             :: sqrtTwoOverPi                 =sqrt(2.0d0/Pi)
@@ -590,18 +599,18 @@ contains
 
     ! Get sigma and delta_critical for the parent halo.
     if (haloMass > 2.0d0*massResolution) then
-       call self%computeCommonFactors(deltaCritical,haloMass)
-       if (massResolution /= self%massResolutionTabulated) then
+       call self%computeCommonFactors(deltaCritical,time,haloMass,node)
+       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,self%timeParent,self%resolutionSigma,self%resolutionAlpha)
+       if (massResolution /= self%massResolutionTabulated .or. self%cosmologicalMassVariance_%growthIsMassDependent()) then
           ! Resolution changed - recompute sigma and alpha at resolution limit. Also reset the hypergeometric factor tables since
           ! these depend on resolution.
-          call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,self%resolutionSigma,self%resolutionAlpha)
           self%upperBoundHypergeometricInitialized=.false.
        end if
        resolutionSigmaOverParentSigma=self%resolutionSigma/self%sigmaParent
        ! Estimate probability.
        if (resolutionSigmaOverParentSigma > 1.0d0) then
           ! Compute relevant sigmas and alphas.
-          call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%massHaloParent,halfParentSigma,halfParentAlpha)
+          call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%massHaloParent,self%timeParent,halfParentSigma,halfParentAlpha)
           ! Iterative over available bounds.
           parkinsonColeHellyProbabilityBound=0.0d0
           do iBound=1,2
@@ -654,7 +663,7 @@ contains
                    ! tables already include the difference between the upper and lower integrand, we simply set the lower
                    ! integrand to zero here.
                    call parkinsonColeHellyUpperBoundHypergeometricTabulate(self,self%massHaloParent,massResolution)
-                   probabilityIntegrandUpper=self%factorG0Gamma2*self%upperBoundHypergeometric%interpolate(self%massHaloParent)
+                   probabilityIntegrandUpper=self%factorG0Gamma2*self%upperBoundHypergeometric%interpolate(self%massHaloParent)/self%resolutionSigma
                    probabilityIntegrandLower=0.0d0
                 else
                    ! Use a direct calculation of the hypergeometric factors in this case.
@@ -776,7 +785,7 @@ contains
     return
   end function parkinsonColeHellyProbabilityBound
 
-  double precision function parkinsonColeHellyFractionSubresolution(self,haloMass,deltaCritical,massResolution,node)
+  double precision function parkinsonColeHellyFractionSubresolution(self,haloMass,deltaCritical,time,massResolution,node)
     !% Return the fraction of mass accreted in subresolution halos, i.e. those below {\normalfont \ttfamily massResolution}, per unit change in
     !% $\delta_\mathrm{crit}$ for a halo of mass {\normalfont \ttfamily haloMass} at time {\normalfont \ttfamily deltaCritical}. The integral is computed analytically in
     !% terms of the $_2F_1$ hypergeometric function.
@@ -784,21 +793,17 @@ contains
     use Numerical_Constants_Math
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout), target :: self
-    double precision                                                  , intent(in   )         :: deltaCritical                        , haloMass                      , &
-         &                                                                                       massResolution
+    double precision                                                  , intent(in   )         :: deltaCritical                      , haloMass                      , &
+         &                                                                                       massResolution                     , time
     type            (treeNode                                        ), intent(inout), target :: node
-    double precision                                                  , parameter             :: sqrtTwoOverPi         =sqrt(2.0d0/Pi)
-    double precision                                                  , save                  :: massResolutionPrevious=-1.0d+0       , resolutionSigma
-    !$omp threadprivate(resolutionSigma,massResolutionPrevious)
-    double precision                                                                          :: hyperGeometricFactor                 , resolutionSigmaOverParentSigma
+    double precision                                                  , parameter             :: sqrtTwoOverPi       =sqrt(2.0d0/Pi)
+    double precision                                                                          :: hyperGeometricFactor               , resolutionSigmaOverParentSigma, &
+         &                                                                                       resolutionSigma
     !GCC$ attributes unused :: node
 
     ! Get sigma and delta_critical for the parent halo.
-    call self%computeCommonFactors(deltaCritical,haloMass)
-    if (massResolution /= massResolutionPrevious) then
-       resolutionSigma       =self%cosmologicalMassVariance_%rootVariance(massResolution)
-       massResolutionPrevious=                                            massResolution
-    end if
+    call self%computeCommonFactors(deltaCritical,time,haloMass,node)
+    resolutionSigma               =self%cosmologicalMassVariance_%rootVariance(massResolution,self%timeParent)
     resolutionSigmaOverParentSigma=resolutionSigma/self%sigmaParent
     if (resolutionSigmaOverParentSigma > 1.0d0) then
        if (self%hypergeometricTabulate) then
@@ -831,19 +836,22 @@ contains
     return
   end function parkinsonColeHellyFractionSubresolution
 
-  subroutine parkinsonColeHellyComputeCommonFactors(self,deltaParent,massHaloParent)
+  subroutine parkinsonColeHellyComputeCommonFactors(self,deltaParent,time,massHaloParent,node)
     !% Precomputes some useful factors that are used in the modified Press-Schechter branching integrals.
     use Numerical_Constants_Math
     implicit none
     class           (mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
-    double precision                                                  , intent(in   ) :: deltaParent                 , massHaloParent
+    double precision                                                  , intent(in   ) :: deltaParent                 , massHaloParent, &
+         &                                                                               time
+    type            (treeNode                                        ), intent(inout) :: node
     double precision                                                  , parameter     :: sqrtTwoOverPi=sqrt(2.0d0/Pi)
 
-    self%deltaParent                  =     deltaParent
-    self%massHaloParent               =     massHaloParent
-    self%sigmaParent                  =self%cosmologicalMassVariance_%rootVariance(massHaloParent)
+    self%deltaParent                  =                                                                       deltaParent
+    self%massHaloParent               =                                                                                             massHaloParent
+    self%timeParent                   =                                                                       time
+    self%sigmaParent                  =self%cosmologicalMassVariance_%rootVariance  (time               =self%timeParent ,mass=self%massHaloParent          )
     self%sigmaParentSquared           =self%sigmaParent**2
-    self%factorG0Gamma2               =self%G0*((max(self%deltaParent,0.0d0)/self%sigmaParent)**self%gamma2)
+    self%factorG0Gamma2               =self%G0*((max(self%criticalOverdensity_%value(time=self%timeParent,mass=self%massHaloParent,node=node),0.0d0)/self%sigmaParent)**self%gamma2)
     self%branchingProbabilityPreFactor=sqrtTwoOverPi*self%massHaloParent*self%factorG0Gamma2/self%sigmaParent**self%gamma1
     return
   end subroutine parkinsonColeHellyComputeCommonFactors
@@ -893,17 +901,17 @@ contains
        if (.not.self%subresolutionHypergeometricInitialized) call self%subresolutionHypergeometric%destroy()
        call self%subresolutionHypergeometric%create(xMinimum,xMaximum,xCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        do i=1,xCount
-          call self%subresolutionHypergeometric%populate(                                                                                        &
-               &                                    +sqrtTwoOverPi                                                                               &
-               &                                    *(self%subresolutionHypergeometric%x(i)+1.0d0)**(+self%gamma1-1.0d0)                         &
-               &                                    /                                               (-self%gamma1+1.0d0)                         &
-               &                                    *Hypergeometric_2F1(                                                                         &
-               &                                                                         [1.5d0,0.5d0-0.5d0*self%gamma1]                       , &
-               &                                                                         [      1.5d0-0.5d0*self%gamma1]                       , &
-               &                                                                         1.0d0/(self%subresolutionHypergeometric%x(i)+1.0d0)**2, &
-               &                                                       toleranceRelative=self%precisionHypergeometric                            &
-               &                                                      )                                                                        , &
-               &                                    i                                                                                            &
+          call self%subresolutionHypergeometric%populate(                                                                                         &
+               &                                    +sqrtTwoOverPi                                                                                &
+               &                                    *(self%subresolutionHypergeometric%x(i)+1.0d0)**(+self%gamma1-1.0d0)                          &
+               &                                    /                                               (-self%gamma1+1.0d0)                          &
+               &                                    *Hypergeometric_2F1(                                                                          &
+               &                                                                          [1.5d0,0.5d0-0.5d0*self%gamma1]                       , &
+               &                                                                          [      1.5d0-0.5d0*self%gamma1]                       , &
+               &                                                                          1.0d0/(self%subresolutionHypergeometric%x(i)+1.0d0)**2, &
+               &                                                        toleranceRelative=self%precisionHypergeometric                            &
+               &                                                       )                                                                        , &
+               &                                    i                                                                                             &
                &                                   )
        end do
        self%subresolutionHypergeometricInitialized=.true.
@@ -960,14 +968,15 @@ contains
        if (.not.self%upperBoundHypergeometricInitialized) call self%upperBoundHypergeometric%destroy()
        call self%upperBoundHypergeometric%create(massMinimum,massMaximum,massCount,1,extrapolationType=spread(extrapolationTypeAbort,1,2))
        ! Evaluate sigma and alpha at the mass resolution.
-       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,resolutionMassSigma,resolutionMassAlpha)
+       call self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(massResolution,self%timeParent,resolutionMassSigma,resolutionMassAlpha)
        do i=1,massCount
           ! Evaluate sigmas and alpha.
-          call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%upperBoundHypergeometric%x(i),halfMassSigma,halfMassAlpha)
-          massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      self%upperBoundHypergeometric%x(i)                            )
+          call           self%cosmologicalMassVariance_%rootVarianceAndLogarithmicGradient(0.5d0*self%upperBoundHypergeometric%x(i),self%timeParent,halfMassSigma,halfMassAlpha)
+          massSigma     =self%cosmologicalMassVariance_%rootVariance                      (      self%upperBoundHypergeometric%x(i),self%timeParent                            )
           gammaEffective=self%gamma1-1.0d0/halfMassAlpha
           call self%upperBoundHypergeometric%populate(                                                                           &
                &                                      +sqrtTwoOverPi                                                             &
+               &                                      *resolutionMassSigma                                                       &
                &                                      /massSigma                                                                 & 
                &                                      *(                                                                         &
                &                                        +(halfMassSigma/massSigma)**(+gammaEffective-1.0d0)                      &

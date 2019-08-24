@@ -42,7 +42,7 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      class           (virialDensityContrastClass   ), pointer :: virialDensityContrast_           => null()
      type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
-     type            (darkMatterProfileDMONFW         ), pointer :: darkMatterProfileDMODefinition_     => null()
+     type            (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
      double precision                                         :: f                                         , C
    contains
      final     ::                                nfw1996Destructor
@@ -131,10 +131,10 @@ contains
     allocate(self%virialDensityContrastDefinition_)
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%darkMatterProfileDMODefinition_ )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                           )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
     return
   end function nfw1996ConstructorInternal
 
@@ -170,18 +170,35 @@ contains
     double precision                                                                :: collapseCriticalOverdensity             , collapseExpansionFactor       , &
          &                                                                             collapseMass                            , collapseOverdensity           , &
          &                                                                             collapseTime                            , expansionFactor               , &
-         &                                                                             nodeMass                                , nodeTime
+         &                                                                             nodeMass                                , nodeTime                      , &
+         &                                                                             nowTime
 
     ! Get the basic component.
-    basic                      => node                     %basic          (        )
+    basic                      =>  node                     %basic          (        )
     ! Get the properties of the node.
-    nodeMass                   =  basic                    %mass           (        )
-    nodeTime                   =  basic                    %time           (        )
-    expansionFactor            =  self %cosmologyFunctions_%expansionFactor(nodeTime)
+    nodeMass                   =   basic                    %mass           (        )
+    nodeTime                   =   basic                    %time           (        )
+    expansionFactor            =   self %cosmologyFunctions_%expansionFactor(nodeTime)
     ! Compute the mass of a progenitor as defined by NFW.
-    collapseMass               =self%F*nodeMass
-    ! Find the time of collapse for this progenitor.
-    collapseCriticalOverdensity=sqrt(2.0d0*fitParameterNuHalf**2*(self%cosmologicalMassVariance_%rootVariance(collapseMass)**2-self%cosmologicalMassVariance_%rootVariance(nodeMass)**2))+self%criticalOverdensity_%value(time=nodeTime,mass=nodeMass)
+    collapseMass               =  +self%F   &
+         &                        *nodeMass
+    ! Find the time of collapse for this progenitor. The critical overdensity at collapse is scaled by a factor σ(M,t₀)/σ(M,t)
+    ! because the definition of critical overdensity in Galacticus does not include the 1/D(t) factor that is included in the
+    ! definition used by Navarro et al. (1996).
+    nowTime                    =  +self%cosmologyFunctions_%cosmicTime      (   1.0d0)
+    collapseCriticalOverdensity=+(                                                                                         &
+         &                        +sqrt(                                                                                   &
+         &                              +2.0d0                                                                             &
+         &                              *fitParameterNuHalf**2                                                             &
+         &                              *(                                                                                 &
+         &                                +self%cosmologicalMassVariance_%rootVariance(time=nodeTime,mass=collapseMass)**2 &
+         &                                -self%cosmologicalMassVariance_%rootVariance(time=nodeTime,mass=    nodeMass)**2 &
+         &                               )                                                                                 &
+         &                             )                                                                                   &
+         &                        +        self%criticalOverdensity_     %value       (time=nodeTime,mass=    nodeMass)    &
+         &                       )                                                                                         &
+         &                      *          self%cosmologicalMassVariance_%rootVariance(time= nowTime,mass=    nodeMass)    &
+         &                      /          self%cosmologicalMassVariance_%rootVariance(time=nodeTime,mass=    nodeMass)    
     collapseTime               =self%criticalOverdensity_%timeOfCollapse (collapseCriticalOverdensity,mass=nodeMass)
     collapseExpansionFactor    =self%cosmologyFunctions_ %expansionFactor(collapseTime                             )
     ! Compute the overdensity of the progenitor at collapse using the scaling given by NFW.

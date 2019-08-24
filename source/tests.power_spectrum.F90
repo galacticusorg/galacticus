@@ -33,6 +33,7 @@ program Tests_Power_Spectrum
   use Cosmology_Parameters
   use Cosmology_Functions
   use Galacticus_Display
+  use Linear_Growth
   use Dark_Matter_Particles               , only : darkMatterParticleCDM
   implicit none
   type            (inputParameters                         ), target       :: parameters
@@ -45,6 +46,7 @@ program Tests_Power_Spectrum
   type            (transferFunctionEisensteinHu1999        ), target       :: transferFunctionEisensteinHu1999_
   class           (cosmologicalMassVarianceClass           ), pointer      :: cosmologicalMassVariance_
   class           (powerSpectrumClass                      ), pointer      :: powerSpectrum_
+  class           (linearGrowthClass                       ), pointer      :: linearGrowth_
   double precision                                          , dimension(5) :: powerComputed                                                   , &
        &                                                                      transferComputed                                                , &
        &                                                                      powerTransferredComputed                                        , &
@@ -82,6 +84,7 @@ program Tests_Power_Spectrum
   cosmologyFunctions_       => cosmologyFunctions      ()
   cosmologicalMassVariance_ => cosmologicalMassVariance()
   powerSpectrum_            => powerSpectrum           ()
+  linearGrowth_             => linearGrowth            ()
   ! Build primordial power spectrum, transfer function, and transferred power spectrum.
   powerSpectrumPrimordialPowerLaw_         =                                                                   &
        & powerSpectrumPrimordialPowerLaw         (                                                             &
@@ -100,7 +103,8 @@ program Tests_Power_Spectrum
   powerSpectrumPrimordialTransferredSimple_=                                                                  &
        & powerSpectrumPrimordialTransferredSimple(                                                            &
        &                                          powerSpectrumPrimordial_=powerSpectrumPrimordialPowerLaw_ , &
-       &                                          transferFunction_       =transferFunctionEisensteinHu1999_  &
+       &                                          transferFunction_       =transferFunctionEisensteinHu1999_, &
+       &                                          linearGrowth_           =linearGrowth_                      &
        &                                         )
   ! Test that σ₈ is correctly recovered.
   mass   =+4.0d0                                                      &
@@ -112,38 +116,39 @@ program Tests_Power_Spectrum
        &    +radiusNormalization                                      &
        &    /cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
        &   )**3
-  call Assert('σ₈   consistency',cosmologicalMassVariance_%rootVariance(mass),cosmologicalMassVariance_%sigma8(),relTol=1.0d-6)
+  call Assert('σ₈   consistency',cosmologicalMassVariance_%rootVariance(mass,cosmologyFunctions_%cosmicTime(1.0d0)),cosmologicalMassVariance_%sigma8(),relTol=1.0d-3)
   ! Test that σ(M) scales as expected.
-  ratio=cosmologicalMassVariance_%rootVariance(1.0d10)/cosmologicalMassVariance_%rootVariance(1.0d12)
+  ratio=cosmologicalMassVariance_%rootVariance(1.0d10,cosmologyFunctions_%cosmicTime(1.0d0))/cosmologicalMassVariance_%rootVariance(1.0d12,cosmologyFunctions_%cosmicTime(1.0d0))
   call Assert('σ(M) scaling',ratio,100.0d0**((-1.0d0+3.0d0)/6.0d0),relTol=1.0d-6)
   ! Test power spectrum normalization. For a power-law n=-1 power spectrum, the integral over k²
   ! P(k) W²(k)/2π² can be computed analytically and is equal to 9/8π². We can therefore express
   ! this integral as 2π P(k₈) 9/8π²R₈³ where R₈=(8/h)Mpc and k₈=2π/R₈.
-  sigma  =+sqrt(                                                                               &
-       &        +powerSpectrum_%power(                                                         &
-       &                              +2.0d0                                                   &
-       &                              *Pi                                                      &
-       &                              *cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
-       &                              /radiusNormalization                                     &
-       &                             )                                                         &
-       &        *9.0d0                                                                         &
-       &        /4.0d0                                                                         &
-       &        /Pi                                                                            &
-       &        /                    (                                                         &
-       &                              +radiusNormalization                                     &
-       &                              /cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH) &
-       &                             )**3                                                      &
+  sigma  =+sqrt(                                                                                &
+       &        +powerSpectrum_%power(                                                          &
+       &                              +2.0d0                                                    &
+       &                              *Pi                                                       &
+       &                              *cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)  &
+       &                              /radiusNormalization                                    , &
+       &                               cosmologyFunctions_ %cosmicTime    (1.0d0             )  &
+       &                             )                                                          &
+       &        *9.0d0                                                                          &
+       &        /4.0d0                                                                          &
+       &        /Pi                                                                             &
+       &        /                    (                                                          &
+       &                              +radiusNormalization                                      &
+       &                              /cosmologyParameters_%hubbleConstant(hubbleUnitsLittleH)  &
+       &                             )**3                                                       &
        &       )
   call Assert('P(k) normalization',sigma,cosmologicalMassVariance_%sigma8(),relTol=1.0d-6)
   ! Test that power spectrum scales as expected.
-  ratio=powerSpectrum_%power(1.0d0)/powerSpectrum_%power(0.1d0)
+  ratio=powerSpectrum_%power(1.0d0,cosmologyFunctions_%cosmicTime(1.0d0))/powerSpectrum_%power(0.1d0,cosmologyFunctions_%cosmicTime(1.0d0))
   call Assert('P(k) scaling',ratio,0.1d0,relTol=1.0d-6)
   ! Do reproducibility tests.
   call Unit_Tests_Begin_Group("Reproducibility")
   do i=1,size(wavenumber)
-     powerComputed           (i)=powerSpectrumPrimordialPowerLaw_         %power(wavenumber(i))
-     transferComputed        (i)=transferFunctionEisensteinHu1999_        %value(wavenumber(i))
-     powerTransferredComputed(i)=powerSpectrumPrimordialTransferredSimple_%power(wavenumber(i))
+     powerComputed           (i)=powerSpectrumPrimordialPowerLaw_         %power(wavenumber=wavenumber(i)                                           )
+     transferComputed        (i)=transferFunctionEisensteinHu1999_        %value(wavenumber=wavenumber(i)                                           )
+     powerTransferredComputed(i)=powerSpectrumPrimordialTransferredSimple_%power(wavenumber=wavenumber(i),time=cosmologyFunctions_%cosmicTime(1.0d0))
   end do
   call Assert('Pₚ(k)'      ,powerComputed           ,wavenumber                    ,relTol=1.0d-6)
   call Assert('      T (k)',transferComputed        ,transferExpected              ,relTol=1.0d-6)

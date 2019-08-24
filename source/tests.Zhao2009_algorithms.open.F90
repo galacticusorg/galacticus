@@ -129,7 +129,7 @@ program Test_Zhao2009_Open
         timeDifferenceMaximum         =max(                                                             &
              &                              timeDifferenceMaximum                                       &
              &                             ,abs(ourTime         -theirTime         )/theirTime          &
-             &                             )
+             &                             )        
         concentrationDifferenceMaximum=max(                                                             &
              &                              concentrationDifferenceMaximum                              &
              &                             ,abs(ourConcentration-theirConcentration)/theirConcentration &

@@ -20,7 +20,6 @@
   !% Contains a module which implements a critical overdensity class based on the fitting functions of
   !% \cite{kitayama_semianalytic_1996}.
 
-  use Linear_Growth
   use Cosmology_Functions
   use Dark_Matter_Particles
 
@@ -30,8 +29,7 @@
   type, extends(criticalOverdensityClass) :: criticalOverdensityKitayamaSuto1996
      !% A critical overdensity class based on the fitting functions of \cite{kitayama_semianalytic_1996}.
      private
-     double precision                                   :: timePrevious       , valuePrevious
-     class           (linearGrowthClass      ), pointer :: linearGrowth_ => null()
+     double precision                                   :: timePrevious                 , valuePrevious
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
     contains
      final     ::                    kitayamaSuto1996Destructor
@@ -39,6 +37,7 @@
      procedure :: gradientTime    => kitayamaSuto1996GradientTime
      procedure :: gradientMass    => kitayamaSuto1996GradientMass
      procedure :: isMassDependent => kitayamaSuto1996IsMassDependent
+     procedure :: isNodeDependent => kitayamaSuto1996IsNodeDependent
   end type criticalOverdensityKitayamaSuto1996
 
   interface criticalOverdensityKitayamaSuto1996
@@ -125,8 +124,7 @@ contains
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_)
     if (time_ /= self%timePrevious)                                                                       &
          & self%valuePrevious=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                  &
-         &                    *(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal(time_))) &
-         &                    /                      self%linearGrowth_      %value             (time_)
+         &                    *(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal(time_)))
     kitayamaSuto1996Value=self%valuePrevious
     return
   end function kitayamaSuto1996Value
@@ -144,16 +142,12 @@ contains
     !GCC$ attributes unused :: mass, node
     
     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=time_,expansionFactorOut=expansionFactor_)
-    kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                                                                 &
-         &                       *(                                                                                                         &
-         &                                +0.0123d0*      self%cosmologyFunctions_%omegaMatterRateOfChange             (time_           )   &
-         &                         /                      self%cosmologyFunctions_%omegaMatterEpochal                  (time_           )   &
-         &                         /                log  (10.0d0                                                                         )  &
-         &                         -(1.0d0+0.0123d0*log10(self%cosmologyFunctions_%omegaMatterEpochal                  (time_           ))) &
-         &                         *                      self%linearGrowth_      %logarithmicDerivativeExpansionFactor(time_           )   &
-         &                         *                      self%cosmologyFunctions_%expansionRate                       (expansionFactor_)   &
-         &                        )                                                                                                         &
-         &                       /                        self%linearGrowth_      %value                               (time_           )
+    kitayamaSuto1996GradientTime=+(3.0d0*(12.0d0*Pi)**(2.0d0/3.0d0)/20.0d0)                          &
+         &                       *(                                                                  &
+         &                         +0.0123d0*self%cosmologyFunctions_%omegaMatterRateOfChange(time_) &
+         &                         /         self%cosmologyFunctions_%omegaMatterEpochal     (time_) &
+         &                         /log(10.0d0)  &
+         &                        )
     return
   end function kitayamaSuto1996GradientTime
 
@@ -180,3 +174,13 @@ contains
     kitayamaSuto1996IsMassDependent=.false.
     return
   end function kitayamaSuto1996IsMassDependent
+
+  logical function kitayamaSuto1996IsNodeDependent(self)
+    !% Return whether the critical overdensity is node dependent.
+    implicit none
+    class(criticalOverdensityKitayamaSuto1996), intent(inout) :: self
+    !GCC$ attributes unused :: self
+
+    kitayamaSuto1996IsNodeDependent=.false.
+    return
+  end function kitayamaSuto1996IsNodeDependent

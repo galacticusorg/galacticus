@@ -43,7 +43,7 @@ program Test_Zhao2009_Flat
   type            (treeNode                               )                         , pointer :: node
   class           (nodeComponentBasic                     )                         , pointer :: basic
   integer                                                  , dimension(1), parameter          :: logarithmicHaloMasses           =[12]
-  double precision                                         , dimension(1), parameter          :: concentrationDifferenceTolerance=[3.3d-2], timeDifferenceTolerance=[3.4d-2]
+  double precision                                         , dimension(1), parameter          :: concentrationDifferenceTolerance=[4.1d-2], timeDifferenceTolerance=[3.4d-2]
   class           (cosmologyFunctionsClass                )                         , pointer :: cosmologyFunctions_
   class           (darkMatterProfileConcentrationClass    )                         , pointer :: darkMatterProfileConcentration_
   class           (darkMatterHaloMassAccretionHistoryClass)                         , pointer :: darkMatterHaloMassAccretionHistory_
@@ -134,7 +134,6 @@ program Test_Zhao2009_Flat
              &                              concentrationDifferenceMaximum                              &
              &                             ,abs(ourConcentration-theirConcentration)/theirConcentration &
              &                            )
-
      end do
      close(fUnit)
 

@@ -29,8 +29,8 @@
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryCorrea2015
      !% A dark matter halo mass accretion historiy class using the \cite{correa_accretion_2015} algorithm.
      private
-     class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_ => null()
-     class(linearGrowthClass            ), pointer :: linearGrowth_ => null()
+     class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     class(linearGrowthClass            ), pointer :: linearGrowth_             => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::         correa2015Destructor
@@ -119,7 +119,7 @@ contains
     baseExpansionFactor=self%cosmologyFunctions_%expansionFactor            (baseTime           )
     baseRedshift       =self%cosmologyFunctions_%redshiftFromExpansionFactor(baseExpansionFactor)
     ! Find the a~ and b~ parameters.
-    call Dark_Matter_Halo_Correa2015_Fit_Parameters(baseMass,baseExpansionFactor,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
+    call Dark_Matter_Halo_Correa2015_Fit_Parameters(baseMass,baseExpansionFactor,self%cosmologyFunctions_,self%linearGrowth_,self%cosmologicalMassVariance_,aTilde,bTilde)
     ! Solve for the redshift corresponding to this mass.
     if (.not.finder%isInitialized()) then
        call finder%rootFunction(redshiftMassSolver                  )

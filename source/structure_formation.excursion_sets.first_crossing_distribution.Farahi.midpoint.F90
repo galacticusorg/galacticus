@@ -51,17 +51,17 @@ contains
     return
   end function farahiMidpointConstructorParameters
 
-  function farahiMidpointConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_) result(self)
+  function farahiMidpointConstructorInternal(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
     !% Internal constructor for the Farahi-midpoint excursion set class first crossing class.
-    use Input_Parameters
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
     double precision                                         , intent(in   )         :: timeStepFractional
     type            (varying_string                         ), intent(in   )         :: fileName
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     class           (excursionSetBarrierClass               ), intent(in   ), target :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
 
-    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_)
+    self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(timeStepFractional,fileName,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_)
     return
   end function farahiMidpointConstructorInternal
 
@@ -97,13 +97,17 @@ contains
 
     ! Read tables from file if possible.
     locked=.false.
-    if (self%useFile.and..not.self%tableInitialized) then
-       call File_Lock(char(self%fileName),farahiFileLock)
-       locked=.true.
-       call self%fileRead()
-    end if
-    ! Construct the table if necessary.
-    makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)
+    do i=1,2
+       makeTable=.not.self%tableInitialized.or.(variance > self%varianceMaximum*(1.0d0+varianceTableTolerance)).or.(time < self%timeMinimum).or.(time > self%timeMaximum)    
+       if (i == 1 .and. self%useFile .and. makeTable) then
+          call self%fileNameInitialize()
+          call File_Lock(char(self%fileName),farahiFileLock)
+          locked=.true.
+          call self%fileRead()
+       else
+          exit
+       end if
+    end do
 #ifdef USEMPI
     if (self%coordinatedMPI_) then
        if (locked) then
@@ -351,40 +355,57 @@ contains
     use Error_Functions
     use MPI_Utilities
     implicit none
-    class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)               :: self
-    double precision                                         , intent(in   )               :: time                             , varianceProgenitor
-    type            (treeNode                               ), intent(inout)               :: node
-    double precision                                         , parameter                   :: varianceMinimumDefault    =1.0d-2
-    double precision                                         , parameter                   :: varianceTolerance         =1.0d-6
-    real            (kind=kind_quad                         ), allocatable  , dimension(:) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
-         &                                                                                    varianceTableRateQuad            , varianceMidTableRateQuad , &
-         &                                                                                    barrierTableRateQuad             , barrierMidTableRateQuad
-    double precision                                                                       :: barrierRateTest
-    class           (excursionSetBarrierClass               ), pointer                     :: excursionSetBarrier_
+    class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
+    double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
+    type            (treeNode                               ), intent(inout)                   :: node
+    double precision                                         , parameter                       :: varianceMinimumDefault    =1.0d-2
+    double precision                                         , parameter                       :: varianceTolerance         =1.0d-6
+    double precision                                         , parameter                       :: massLarge                 =1.0d16
+    real            (kind=kind_quad                         ), allocatable  , dimension(:    ) :: firstCrossingTableRateQuad       , varianceTableRateBaseQuad, &
+         &                                                                                        varianceTableRateQuad            , varianceMidTableRateQuad , &
+         &                                                                                        barrierTableRateQuad             , barrierMidTableRateQuad
+    double precision                                         , allocatable  , dimension(:,:  ) :: nonCrossingTableRate
+    double precision                                         , allocatable  , dimension(:,:,:) :: firstCrossingTableRate
+    double precision                                                                           :: barrierRateTest
+    class           (excursionSetBarrierClass               ), pointer                         :: excursionSetBarrier_
+    class           (cosmologicalMassVarianceClass          ), pointer                         :: cosmologicalMassVariance_
 #ifdef USEMPI
-    integer                                                                                :: taskCount
+    integer                                                                                    :: taskCount
 #endif
-    logical                                                                                :: makeTable
-    integer         (c_size_t                               )                              :: loopCount                        , loopCountTotal
-    integer                                                                                :: i                                , iTime                    , &
-         &                                                                                    iVariance                        , j
-    double precision                                                                       :: timeProgenitor                   , varianceMinimumRate
-    character       (len=6                                  )                              :: label
-    type            (varying_string                         )                              :: message
-    real            (kind=kind_quad                         )                              :: crossingFraction                 , effectiveBarrierInitial  , &
-         &                                                                                    sigma1f                          , varianceTableStepRate    , &
-         &                                                                                    barrier                          , integralKernelRate
-    logical                                                                                :: locked
+    logical                                                                                    :: makeTable
+    integer         (c_size_t                               )                                  :: loopCount                        , loopCountTotal
+    integer                                                                                    :: i                                , iTime                    , &
+         &                                                                                        iVariance                        , j                        , &
+         &                                                                                        countNewLower                    , countNewUpper            , &
+         &                                                                                        timeTableCountNew
+    double precision                                                                           :: timeProgenitor                   , varianceMinimumRate      , &
+         &                                                                                        massProgenitor                   , timeMinimumRate          , &
+         &                                                                                        timeMaximumRate
+    character       (len=6                                  )                                  :: label
+    type            (varying_string                         )                                  :: message
+    real            (kind=kind_quad                         )                                  :: crossingFraction                 , effectiveBarrierInitial  , &
+         &                                                                                        sigma1f                          , varianceTableStepRate    , &
+         &                                                                                        barrier                          , integralKernelRate       , &
+         &                                                                                        growthFactorEffective
+    logical                                                                                    :: locked                           , varianceMaximumChanged
    
     ! Determine if we need to make the table.
-    ! Read tables from file if possible.
+    !    
+    !! Read tables from file if possible. We make two passes through the logic that determines if the table needs to be remade. On
+    !! the first pass if the table does need to be remade we attempt to read it from file. If the file is read, then we re-check if
+    !! the table needs to be remade.
     locked=.false.
-    if (self%useFile.and..not.self%tableInitializedRate) then
-       call File_Lock(char(self%fileName),farahiFileLock)
-       locked=.true.
-       call self%fileRead()
-    end if
-    makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
+    do i=1,2
+       makeTable=.not.self%tableInitializedRate.or.(varianceProgenitor > self%varianceMaximumRate*(1.0d0+varianceTolerance)).or.(time < self%timeMinimumRate).or.(time > self%timeMaximumRate)
+       if (i == 1 .and. self%useFile .and. makeTable) then
+          call self%fileNameInitialize()
+          call File_Lock(char(self%fileName),farahiFileLock)
+          locked=.true.
+          call self%fileRead()
+       else
+          exit
+       end if
+    end do
 #ifdef USEMPI
     if (self%coordinatedMPI_) then
        if (locked) then
@@ -407,45 +428,78 @@ contains
 #ifdef USEMPI
        end if
 #endif
-       if (allocated(self%varianceTableRate     )) call deallocateArray(self%varianceTableRate     )
-       if (allocated(self%varianceTableRateBase )) call deallocateArray(self%varianceTableRateBase )
-       if (allocated(self%timeTableRate         )) call deallocateArray(self%timeTableRate         )
-       if (allocated(self%firstCrossingTableRate)) call deallocateArray(self%firstCrossingTableRate)
-       if (allocated(self%nonCrossingTableRate  )) call deallocateArray(self%nonCrossingTableRate  )
+       ! Construct or expand the range of times to tabulate.
+       countNewLower=0
+       countNewUpper=0
        if (self%tableInitializedRate) then
-          self%timeMinimumRate   =min(self%timeMinimumRate,0.5d0*time)
-          self%timeMaximumRate   =max(self%timeMaximumRate,2.0d0*time)
-          self%timeTableCountRate=int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+1
+          varianceMaximumChanged=varianceProgenitor > self%varianceMaximumRate
+          timeMinimumRate=min(0.5d0*time,self%timeMinimumRate)
+          timeMaximumRate=max(2.0d0*time,self%timeMaximumRate)
+          ! Determine how many points the table must be extended by in each direction to span the new required range.
+          if (self%timeMinimumRate > timeMinimumRate) countNewLower=int(+log10(self%timeMinimumRate/timeMinimumRate)*dble(farahiTimeNumberPerDecade)+1.0d0)
+          if (self%timeMaximumRate < timeMaximumRate) countNewUpper=int(-log10(self%timeMaximumRate/timeMaximumRate)*dble(farahiTimeNumberPerDecade)+1.0d0)
+          self%timeTableCountRate=self%timeTableCountRate+countNewLower+countNewUpper
+          ! Adjust the limits of the table by an integer number of steps.
+          self%timeMinimumRate=self%timeMinimumRate/10.0d0**(dble(countNewLower)/dble(farahiTimeNumberPerDecade))
+          self%timeMaximumRate=self%timeMaximumRate*10.0d0**(dble(countNewUpper)/dble(farahiTimeNumberPerDecade))
        else
+          varianceMaximumChanged =.true.
           self%timeMinimumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMaximum))
           self%timeMaximumRate   =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(farahiRateRedshiftMinimum))
           self%timeMinimumRate   =min(self%timeMinimumRate,0.5d0*time)
           self%timeMaximumRate   =max(self%timeMaximumRate,2.0d0*time)
-          self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+1,2)
+          self%timeTableCountRate=max(int(log10(self%timeMaximumRate/self%timeMinimumRate)*dble(farahiTimeNumberPerDecade))+2,2)
+          ! Ensure the maximum of the table is precisely an integer number of steps above the minimum.
+          self%timeMaximumRate   =self%timeMinimumRate*10.0d0**(dble(self%timeTableCountRate-1)/dble(farahiTimeNumberPerDecade))
        end if
        ! Set the default minimum variance.
        varianceMinimumRate       =varianceMinimumDefault
-       ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of sqrt[10])
-       ! than the effective barrier height at zero variance for the minimum and maximum times that we must consider.
-       allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       ! Next reduce the variance if necessary such that the typical amplitude of fluctuations is less (by a factor of 10) than
+       ! the effective barrier height at zero variance for the minimum and maximum times that we must consider. We use some
+       ! suitably large mass to estimate the growth of fluctuations on large scales (since we can't assume infinitely large
+       ! scales).
+       allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
+       allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+       !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+       !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+       growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
+            &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
        varianceMinimumRate            =min(                                                                                                                      &
             &                              +varianceMinimumRate                                                                                                , &
             &                              +1.0d-2                                                                                                               &
             &                              *(                                                                                                                    &
             &                                +excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)  &
+            &                                *dble(growthFactorEffective)                                                                                        &
             &                                -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
             &                               )**2                                                                                                                 &
             &                             )
-       !# <objectDestructor name="excursionSetBarrier_"/>
+       !# <objectDestructor name="excursionSetBarrier_"     />
+       !# <objectDestructor name="cosmologicalMassVariance_"/>
        self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
        self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(farahiVarianceNumberPerDecade))+1
        self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(farahiVarianceNumberPerUnit))
+       ! Store copies of the current tables if these will be used later.
+       if (.not.varianceMaximumChanged) then
+          call move_alloc(self%firstCrossingTableRate,firstCrossingTableRate)
+          call move_alloc(self%nonCrossingTableRate  ,nonCrossingTableRate  )
+       end if       
+       if (allocated(self%varianceTableRate     )) call deallocateArray(self%varianceTableRate     )
+       if (allocated(self%varianceTableRateBase )) call deallocateArray(self%varianceTableRateBase )
+       if (allocated(self%timeTableRate         )) call deallocateArray(self%timeTableRate         )
+       if (allocated(self%firstCrossingTableRate)) call deallocateArray(self%firstCrossingTableRate)
+       if (allocated(self%nonCrossingTableRate  )) call deallocateArray(self%nonCrossingTableRate  )
        call allocateArray(self%varianceTableRate     ,[1+self%varianceTableCountRate                                                          ],lowerBounds=[0    ])
        call allocateArray(self%varianceTableRateBase ,[                              1+self%varianceTableCountRateBase                        ],lowerBounds=[0    ])
        call allocateArray(self%timeTableRate         ,[                                                                self%timeTableCountRate]                    )
        call allocateArray(self%firstCrossingTableRate,[1+self%varianceTableCountRate,1+self%varianceTableCountRateBase,self%timeTableCountRate],lowerBounds=[0,0,1])
        call allocateArray(self%nonCrossingTableRate  ,[                              1+self%varianceTableCountRateBase,self%timeTableCountRate],lowerBounds=[  0,1])
+       ! If only times have changed then pre-populate the tables with results previously computed.
+       if (.not.varianceMaximumChanged) then
+          self%firstCrossingTableRate(:,:,countNewLower+1:countNewLower+size(firstCrossingTableRate,dim=3))=firstCrossingTableRate
+          self%  nonCrossingTableRate(  :,countNewLower+1:countNewLower+size(  nonCrossingTableRate,dim=2))=  nonCrossingTableRate
+          deallocate(firstCrossingTableRate)
+          deallocate(  nonCrossingTableRate)
+       end if
        ! For the variance table, the zeroth point is always zero, higher points are distributed uniformly in variance.
        self%varianceTableRate    (0                                )=0.0d0
        self%varianceTableRate    (1:self%varianceTableCountRate    )=self%varianceRange(varianceMinimumRate,self%varianceMaximumRate,self%varianceTableCountRate      ,exponent =1.0d0          )
@@ -481,12 +535,14 @@ contains
 #ifdef USEMPI
        end if
 #endif
+       timeTableCountNew=self%timeTableCountRate
+       if (.not.varianceMaximumChanged) timeTableCountNew=countNewLower+countNewUpper
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-          loopCountTotal=int(self%timeTableCountRate,kind=c_size_t)*int(self%varianceTableCountRateBase+1,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t
+          loopCountTotal=int(timeTableCountNew,kind=c_size_t)*int(self%varianceTableCountRateBase+1,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t
        else
 #endif
-          loopCountTotal=int(self%timeTableCountRate,kind=c_size_t)*int(self%varianceTableCountRateBase+1,kind=c_size_t)
+          loopCountTotal=int(timeTableCountNew,kind=c_size_t)*int(self%varianceTableCountRateBase+1,kind=c_size_t)
 #ifdef USEMPI
        end if
 #endif
@@ -502,13 +558,18 @@ contains
        ! is initialized and covers the whole range we are intereseted in.
        barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
        barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
-       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,barrierTableRateQuad,barrierMidTableRateQuad) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
-       allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
-       call allocateArray(barrierTableRateQuad   ,[1+self%varianceTableCountRate],lowerBounds=[0])
-       call allocateArray(barrierMidTableRateQuad,[1+self%varianceTableCountRate],lowerBounds=[0])
+       !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+       allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
+       allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
+       !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+       !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+       call allocateArray(barrierTableRateQuad   ,[self%varianceTableCountRate])
+       call allocateArray(barrierMidTableRateQuad,[self%varianceTableCountRate])
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCountRate
+          ! Skip if this time was already computed.
+          if (.not.varianceMaximumChanged.and.(iTime > countNewLower .and. self%timeTableCountRate+1-iTime > countNewUpper)) cycle
+          ! Allocate workspace table.
           if (.not.allocated(firstCrossingTableRateQuad)) allocate(firstCrossingTableRateQuad(0:self%varianceTableCountRate))
           ! Compute a suitable progenitor time.
           timeProgenitor=self%timeTableRate(iTime)*(1.0d0-self%timeStepFractional)
@@ -526,9 +587,17 @@ contains
              end if
 #endif
              ! Construct the barrier table.
-             do i=0,self%varianceTableCountRate
-                barrierTableRateQuad   (i)=excursionSetBarrier_%barrier(real(+varianceTableRateQuad   (i)+varianceTableRateBaseQuad(iVariance),kind=8),timeProgenitor,node,rateCompute=.true.)
-                barrierMidTableRateQuad(i)=excursionSetBarrier_%barrier(real(+varianceMidTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),timeProgenitor,node,rateCompute=.true.)
+             do i=1,self%varianceTableCountRate
+                massProgenitor            =+cosmologicalMassVariance_%mass        (real(+varianceTableRateQuad   (i)+varianceTableRateBaseQuad(iVariance),kind=8),self%timeTableRate(iTime)                        )
+                growthFactorEffective     =+cosmologicalMassVariance_%rootVariance(      massProgenitor                                                          ,self%timeTableRate(iTime)                        ) &
+                     &                     /cosmologicalMassVariance_%rootVariance(      massProgenitor                                                          ,     timeProgenitor                              )
+                barrierTableRateQuad   (i)=+excursionSetBarrier_     %barrier     (real(+varianceTableRateQuad   (i)+varianceTableRateBaseQuad(iVariance),kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
+                     &                     *growthFactorEffective
+                massProgenitor            =+cosmologicalMassVariance_%mass        (real(+varianceMidTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),self%timeTableRate(iTime)                        )
+                growthFactorEffective     =+cosmologicalMassVariance_%rootVariance(      massProgenitor                                                          ,self%timeTableRate(iTime)                        ) &
+                     &                     /cosmologicalMassVariance_%rootVariance(      massProgenitor                                                          ,     timeProgenitor                              )
+                barrierMidTableRateQuad(i)=+excursionSetBarrier_     %barrier     (real(+varianceMidTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
+                     &                     *growthFactorEffective
              end do
              !$omp atomic
              loopCount=loopCount+1_c_size_t
@@ -646,7 +715,8 @@ contains
                &                                 /self%timeStepFractional
        end do
        !$omp end do
-       !# <objectDestructor name="excursionSetBarrier_"/>
+       !# <objectDestructor name="excursionSetBarrier_"     />
+       !# <objectDestructor name="cosmologicalMassVariance_"/>
        call deallocateArray(barrierTableRateQuad   )
        call deallocateArray(barrierMidTableRateQuad)
        !$omp end parallel

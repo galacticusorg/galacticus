@@ -154,7 +154,7 @@ contains
          &                                                                    nuPrime, massVariance
 
     ! Determine the mass variance. If zero, return zero mass function.
-    massVariance=self%cosmologicalMassVariance_%rootVariance(mass)
+    massVariance=self%cosmologicalMassVariance_%rootVariance(mass,time)
     if (massVariance <= 0.0d0) then
        shethTormenDifferential=0.0d0
        return
@@ -166,7 +166,7 @@ contains
          &                   )**2
     nuPrime                =+self%a(time,mass)                                                &
          &                  *nu
-    alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
+    alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time))
     shethTormenDifferential=+self%cosmologyParameters_%OmegaMatter    () &
          &                  *self%cosmologyParameters_%densityCritical() &
          &                  /mass**2                                     &

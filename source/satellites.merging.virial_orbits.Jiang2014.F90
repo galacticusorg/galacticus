@@ -359,7 +359,7 @@ contains
     end do
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrast_)
-    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFixed(200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
     return
 
   contains

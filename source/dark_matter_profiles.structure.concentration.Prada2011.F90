@@ -22,7 +22,6 @@
   use Cosmology_Functions
   use Cosmological_Density_Field
   use Cosmology_Parameters
-  use Linear_Growth
   
   !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationPrada2011">
   !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{prada_halo_2011}.</description>
@@ -38,7 +37,6 @@
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
      class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
-     class           (linearGrowthClass            ), pointer :: linearGrowth_                    => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_        => null()
      type            (virialDensityContrastFixed   ), pointer :: virialDensityContrastDefinition_ => null()
      type            (darkMatterProfileDMONFW      ), pointer :: darkMatterProfileDMODefinition_  => null()
@@ -71,7 +69,6 @@ contains
     type            (inputParameters                        ), intent(inout) :: parameters
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_    
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
-    class           (linearGrowthClass                      ), pointer       :: linearGrowth_
     class           (cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVariance_
     double precision                                                         :: A                        , B            , &
          &                                                                      C                        , D            , &
@@ -204,42 +201,39 @@ contains
     !# </inputParameter>
     !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"      source="parameters"/>
     !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    self=darkMatterProfileConcentrationPrada2011(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,linearGrowth_,cosmologicalMassVariance_)
+    self=darkMatterProfileConcentrationPrada2011(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_"      />
     !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="linearGrowth_"            />
     !# <objectDestructor name="cosmologicalMassVariance_"/>
     return
   end function prada2011ConstructorParameters
   
-  function prada2011ConstructorInternal(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,linearGrowth_,cosmologicalMassVariance_) result(self)
+  function prada2011ConstructorInternal(A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
     !% Constructor for the {\normalfont \ttfamily prada2011} dark matter halo profile concentration class.
     use Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     implicit none
-    type            (darkMatterProfileConcentrationPrada2011)                        :: self
-    double precision                                                 , intent(in   ) :: A                        , B            , &
-         &                                                                              C                        , D            , &
-         &                                                                              C0                       , C1           , &
-         &                                                                              X0                       , inverseSigma0, &
-         &                                                                              inverseSigma1            , alpha        , &
-         &                                                                              beta                     , X1
-    class           (cosmologyFunctionsClass                ), target, intent(in   ) :: cosmologyFunctions_    
-    class           (cosmologyParametersClass               ), target, intent(in   ) :: cosmologyParameters_
-    class           (linearGrowthClass                      ), target, intent(in   ) :: linearGrowth_
-    class           (cosmologicalMassVarianceClass          ), target, intent(in   ) :: cosmologicalMassVariance_
-    type (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
-    !# <constructorAssign variables="A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,*cosmologyFunctions_,*cosmologyParameters_,*linearGrowth_,*cosmologicalMassVariance_"/>
+    type            (darkMatterProfileConcentrationPrada2011           )                        :: self
+    double precision                                                            , intent(in   ) :: A                        , B            , &
+         &                                                                                         C                        , D            , &
+         &                                                                                         C0                       , C1           , &
+         &                                                                                         X0                       , inverseSigma0, &
+         &                                                                                         inverseSigma1            , alpha        , &
+         &                                                                                         beta                     , X1
+    class           (cosmologyFunctionsClass                           ), target, intent(in   ) :: cosmologyFunctions_    
+    class           (cosmologyParametersClass                          ), target, intent(in   ) :: cosmologyParameters_
+    class           (cosmologicalMassVarianceClass                     ), target, intent(in   ) :: cosmologicalMassVariance_
+    type            (darkMatterHaloScaleVirialDensityContrastDefinition), pointer       :: darkMatterHaloScaleDefinition_
+    !# <constructorAssign variables="A,B,C,D,C0,C1,X0,X1,inverseSigma0,inverseSigma1,alpha,beta,*cosmologyFunctions_,*cosmologyParameters_,*cosmologicalMassVariance_"/>
 
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,self%cosmologyParameters_,self%cosmologyFunctions_     )"/>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_)"/>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                          )"/>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                             />
+    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
+    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                           )"/>
+    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
     return
   end function prada2011ConstructorInternal
 
@@ -250,7 +244,6 @@ contains
 
     !# <objectDestructor name="self%cosmologyFunctions_"             />
     !# <objectDestructor name="self%cosmologyParameters_"            />
-    !# <objectDestructor name="self%linearGrowth_"                   />
     !# <objectDestructor name="self%cosmologicalMassVariance_"       />
     !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
@@ -272,7 +265,7 @@ contains
     massNode              =  basic%mass ()
     timeNode              =  basic%time ()
     x                     =  (self%cosmologyParameters_%OmegaDarkEnergy()/self%cosmologyParameters_%OmegaMatter())**(1.0d0/3.0d0)*self%cosmologyFunctions_%expansionFactor(timeNode)
-    sigmaPrime            =  prada2011B1(self,x)*self%cosmologicalMassVariance_%rootVariance(massNode)*self%linearGrowth_%value(timeNode)
+    sigmaPrime            =  prada2011B1(self,x)*self%cosmologicalMassVariance_%rootVariance(massNode,timeNode)
     prada2011Concentration=  prada2011B0(self,x)*prada2011C(self,sigmaPrime)
     return
   end function prada2011Concentration

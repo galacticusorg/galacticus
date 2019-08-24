@@ -17,19 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of halo bias using the Press-Schechter algorithm \citep{mo_analytic_1996}.
+  !% Implementation of halo bias using the Press-Schechter algorithm \citep{cole_biased_1989}.
 
   use Cosmological_Density_Field
   
   !# <darkMatterHaloBias name="darkMatterHaloBiasPressSchechter">
   !#  <description>
-  !#   A dark matter halo mass bias class utilizing the Press-Schechter algorithm \citep{mo_analytic_1996}.
+  !#   A dark matter halo mass bias class utilizing the Press-Schechter algorithm \citep{cole_biased_1989}.
   !#  </description>
   !# </darkMatterHaloBias>
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasPressSchechter
-     !% Implementation of a dark matter halo mass utilizing the Press-Schechter algorithm \citep{mo_analytic_1996}.
+     !% Implementation of a dark matter halo mass utilizing the Press-Schechter algorithm \citep{cole_biased_1989}.
      private
-     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_ => null()
+     class(criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
    contains
      final     ::               pressSchechterDestructor
@@ -93,7 +93,7 @@ contains
 
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=+self%criticalOverdensity_     %value       (time=time,mass=mass)
-    sigma        =+self%cosmologicalMassVariance_%rootVariance(               mass)
+    sigma        =+self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
     nu           =+deltaCritical                                                    &
          &        /sigma
     ! Compute halo bias.

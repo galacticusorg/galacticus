@@ -220,12 +220,12 @@ contains
     integer                                     , intent(  out), optional       :: status
     integer         (c_size_t                  )                                :: outputCount              , wavenumberCount    , &
          &                                                                         iOutput                  , iWavenumber
-    double precision                            , allocatable  , dimension(:  ) :: wavenumber               , powerSpectrumLinear, &
-         &                                                                         massScale                , sigma              , &
-         &                                                                         sigmaGradient            , growthFactor       , &
-         &                                                                         epochTime                , epochRedshift      , &
+    double precision                            , allocatable  , dimension(:  ) :: wavenumber               , massScale          , &
+         &                                                                         epochTime                , epochRedshift
+    double precision                            , allocatable  , dimension(:,:) :: powerSpectrumNonLinear   , sigmaNonLinear     , &
+         &                                                                         sigma                    , sigmaGradient      , &
+         &                                                                         powerSpectrumLinear      , growthFactor       , &
          &                                                                         growthFactorLogDerivative
-    double precision                            , allocatable  , dimension(:,:) :: powerSpectrumNonLinear   , sigmaNonLinear
     double precision                                                            :: wavenumberMinimum        , wavenumberMaximum
     type            (fgsl_function             )                                :: integrandFunction
     type            (fgsl_integration_workspace)                                :: integrationWorkspace
@@ -240,12 +240,12 @@ contains
     wavenumberCount=int(log10(self%wavenumberMaximum/self%wavenumberMinimum)*dble(self%pointsPerDecade))+1
     ! Allocate arrays for power spectra.
     call    allocateArray(wavenumber               ,[wavenumberCount            ])
-    call    allocateArray(powerSpectrumLinear      ,[wavenumberCount            ])
+    call    allocateArray(powerSpectrumLinear      ,[wavenumberCount,outputCount])
     call    allocateArray(massScale                ,[wavenumberCount            ])
-    call    allocateArray(sigma                    ,[wavenumberCount            ])
-    call    allocateArray(sigmaGradient            ,[wavenumberCount            ])
-    call    allocateArray(growthFactor             ,[                outputCount])
-    call    allocateArray(growthFactorLogDerivative,[                outputCount])
+    call    allocateArray(sigma                    ,[wavenumberCount,outputCount])
+    call    allocateArray(sigmaGradient            ,[wavenumberCount,outputCount])
+    call    allocateArray(growthFactor             ,[wavenumberCount,outputCount])
+    call    allocateArray(growthFactorLogDerivative,[wavenumberCount,outputCount])
     call    allocateArray(epochTime                ,[                outputCount])
     call    allocateArray(epochRedshift            ,[                outputCount])
     if (self%includeNonLinear) then
@@ -254,22 +254,6 @@ contains
     end if
     ! Build a range of wavenumbers.
     wavenumber(:)=Make_Range(self%wavenumberMinimum,self%wavenumberMaximum,int(wavenumberCount),rangeTypeLogarithmic)
-    ! Iterate over all wavenumbers computing power spectrum and related quantities.
-    do iWavenumber=1,wavenumberCount
-      ! Compute power spectrum.
-       powerSpectrumLinear(iWavenumber)=+self%powerSpectrum_%power(wavenumber(iWavenumber))
-       ! Compute corresponding mass scale.
-       massScale          (iWavenumber)=+4.0d0                                       &
-            &                           /3.0d0                                       &
-            &                           *Pi                                          &
-            &                           *self%cosmologyParameters_%OmegaMatter    () &
-            &                           *self%cosmologyParameters_%densityCritical() &
-            &                           /                                                               wavenumber(iWavenumber) **3
-       ! Compute fluctuation on this mass scale.
-       sigma              (iWavenumber)=+self%cosmologicalMassVariance_%rootVariance                   (massScale (iWavenumber))
-       ! Compute gradient of mass fluctuations.
-       sigmaGradient      (iWavenumber)=+self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(massScale (iWavenumber))
-    end do
     ! Iterate over outputs.
     do iOutput=1,outputCount
        epochTime                (iOutput)=                                                                     self%outputTimes_%time(iOutput)
@@ -278,11 +262,26 @@ contains
             &                                                                                                  self%outputTimes_%time(iOutput)  &
             &                                                                                            )                                      &
             &                                                                                           )
-       growthFactor             (iOutput)=self%linearGrowth_       %value                               ( time=self%outputTimes_%time(iOutput))
-       growthFactorLogDerivative(iOutput)=self%linearGrowth_       %logarithmicDerivativeExpansionFactor( time=self%outputTimes_%time(iOutput))
-       ! Iterate over all wavenumbers computing non-linear power spectrum.
-       if (self%includeNonLinear) then
-          do iWavenumber=1,wavenumberCount
+       ! Iterate over all wavenumbers computing power spectrum and related quantities.
+       do iWavenumber=1,wavenumberCount
+          ! Compute corresponding mass scale.
+          massScale                (iWavenumber        )=+4.0d0                                       &
+               &                                         /3.0d0                                       &
+               &                                         *Pi                                          &
+               &                                         *self%cosmologyParameters_%OmegaMatter    () &
+               &                                         *self%cosmologyParameters_%densityCritical() &
+               &                                         /                                                                                                                    wavenumber(iWavenumber) **3
+          ! Compute linear growth factors.
+          growthFactor             (iWavenumber,iOutput)=self%linearGrowth_             %value                               (time=self%outputTimes_%time(iOutput),wavenumber=wavenumber(iWavenumber))
+          growthFactorLogDerivative(iWavenumber,iOutput)=self%linearGrowth_             %logarithmicDerivativeExpansionFactor(time=self%outputTimes_%time(iOutput),wavenumber=wavenumber(iWavenumber))
+          ! Compute power spectrum.
+          powerSpectrumLinear      (iWavenumber,iOutput)=+self%powerSpectrum_           %power                               (time=self%outputTimes_%time(iOutput),wavenumber=wavenumber(iWavenumber))
+          ! Compute fluctuation on this mass scale.
+          sigma                    (iWavenumber,iOutput)=+self%cosmologicalMassVariance_%rootVariance                        (time=self%outputTimes_%time(iOutput),mass      =massScale (iWavenumber))
+          ! Compute gradient of mass fluctuations.
+          sigmaGradient            (iWavenumber,iOutput)=+self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient     (time=self%outputTimes_%time(iOutput),mass      =massScale (iWavenumber))
+          ! Include non-linear power spectrum if requested.
+          if (self%includeNonLinear) then
              powerSpectrumNonLinear(iWavenumber,iOutput)=self%powerSpectrumNonlinear_%value(wavenumber(iWavenumber),self%outputTimes_%time(iOutput))
              ! Compute the variance in the non-linear power spectrum.
              wavenumberMinimum=    0.0d0
@@ -302,8 +301,8 @@ contains
                   &                                    /Pi**2                                             &
                   &                                   )
              call Integrate_Done(integrandFunction,integrationWorkspace)
-          end do
-       end if
+          end if
+       end do
     end do
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
@@ -319,37 +318,31 @@ contains
        groupName  =groupName  //iOutput
        commentText=commentText//iOutput
        outputGroup=outputsGroup%openGroup(char(groupName),char(commentText))
-       call outputGroup%writeAttribute(growthFactor             (iOutput),'growthFactor'             )
-       call outputGroup%writeAttribute(growthFactorLogDerivative(iOutput),'growthFactorLogDerivative')
-       call outputGroup%writeAttribute(epochRedshift            (iOutput),'outputRedshift'           )
-       call outputGroup%writeAttribute(epochTime                (iOutput),'outputTime'               )
+       call outputGroup   %writeAttribute(epochRedshift            (  iOutput),'outputRedshift'                                                                                                                            )
+       call outputGroup   %writeAttribute(epochTime                (  iOutput),'outputTime'                                                                                                                                )
+       call outputGroup   %writeDataset  (wavenumber                          ,'wavenumber'               ,'The wavenumber.'                                                                       ,datasetReturned=dataset)
+       call dataset       %writeAttribute(1.0d0/megaParsec                    ,'unitsInSI'                                                                                                                                 )
+       call dataset       %close         (                                                                                                                                                                                 )
+       call outputGroup   %writeDataset  (massScale                           ,'mass'                     ,'The corresponding mass scale.'                                                         ,datasetReturned=dataset)
+       call dataset       %writeAttribute(massSolar                           ,'unitsInSI'                                                                                                                                 )
+       call dataset       %close         (                                                                                                                                                                                 )
+       call outputGroup   %writeDataset  (growthFactor             (:,iOutput),'growthFactor'             ,'Linear theory growth factor, D(t).'                                                                            )
+       call outputGroup   %writeDataset  (growthFactorLogDerivative(:,iOutput),'growthFactorLogDerivative','Logarithmic derivative of growth factor with respect to expansion factor, dlogD/dloga.'                        )
+       call outputGroup   %writeDataset  (powerSpectrumLinear      (:,iOutput),'powerSpectrum'            ,'The power spectrum.'                                                                   ,datasetReturned=dataset)
+       call dataset       %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
+       call dataset       %close         (                                                                                                                                                                                 )
+       call outputGroup   %writeDataset  (sigma                    (:,iOutput),'sigma'                    ,'The mass fluctuation on this scale.'                                                                           )
+       call outputGroup   %writeDataset  (sigmaGradient            (:,iOutput),'alpha'                    ,'Logarithmic deriative of the mass flucation with respect to mass.'                                             )
        if (self%includeNonLinear) then
-          call outputGroup%writeDataset  (wavenumber                       ,'wavenumber'            ,'The wavenumber.'                               ,datasetReturned=dataset)
-          call dataset    %writeAttribute(1.0d0/megaParsec                 ,'unitsInSI'                                                                                      )
-          call dataset    %close         (                                                                                                                                   )
-          call outputGroup%writeDataset  (powerSpectrumNonLinear(:,iOutput),'powerSpectrumNonlinear','The non-linear power spectrum.'                ,datasetReturned=dataset)
-          call dataset    %writeAttribute(megaParsec**3                    ,'unitsInSI'                                                                                      )
-          call dataset    %close         (                                                                                                                                   )
-          call outputGroup%writeDataset  (sigmaNonLinear        (:,iOutput),'sigmaNonlinear'        ,'The non-linear mass fluctuation on this scale.'                        )
+          call outputGroup%writeDataset  (powerSpectrumNonLinear   (:,iOutput),'powerSpectrumNonlinear'   ,'The non-linear power spectrum.'                                                        ,datasetReturned=dataset)
+          call dataset    %writeAttribute(megaParsec**3                       ,'unitsInSI'                                                                                                                                 )
+          call dataset    %close         (                                                                                                                                                                                 )
+          call outputGroup%writeDataset  (sigmaNonLinear           (:,iOutput),'sigmaNonlinear'           ,'The non-linear mass fluctuation on this scale.'                                                                )
        end if
        call outputGroup%close()
     end do
     call outputsGroup%close()
-    if (self%outputGroup == ".")                                                                                  &
-         & containerGroup=galacticusOutputFile%openGroup('powerSpectrum','Group containing power spectrum data.')
-    call containerGroup%writeDataset  (wavenumber         ,'wavenumber'   ,'The wavenumber.'                                                  ,datasetReturned=dataset)
-    call dataset       %writeAttribute(1.0d0/megaParsec   ,'unitsInSI'                                                                                                )
-    call dataset       %close         (                                                                                                                               )
-    call containerGroup%writeDataset  (powerSpectrumLinear,'powerSpectrum','The power spectrum.'                                              ,datasetReturned=dataset)
-    call dataset       %writeAttribute(megaParsec**3      ,'unitsInSI'                                                                                                )
-    call dataset       %close         (                                                                                                                               )
-    call containerGroup%writeDataset  (massScale          ,'mass'         ,'The corresponding mass scale.'                                    ,datasetReturned=dataset)
-    call dataset       %writeAttribute(massSolar          ,'unitsInSI'                                                                                                )
-    call dataset       %close         (                                                                                                                               )
-    call containerGroup%writeDataset  (sigma              ,'sigma'        ,'The mass fluctuation on this scale.'                                                      )
-    call containerGroup%writeDataset  (sigmaGradient      ,'alpha'        ,'Logarithmic deriative of the mass flucation with respect to mass.'                        )
-    ! Close the datasets group.
-    call containerGroup%close         (                                                                                                                               )
+    if (self%outputGroup /= ".") call containerGroup%close()
     if (present(status)) status=errorStatusSuccess
     call Galacticus_Display_Unindent('Done task: power spectrum' )
     return

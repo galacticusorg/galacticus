@@ -94,7 +94,7 @@ contains
     !# <inputParameter>
     !#   <name>a</name>
     !#   <source>parameters</source>
-    !#   <defaultValue>0.786d0</defaultValue>
+    !#   <defaultValue>0.788d0</defaultValue>
     !#   <defaultSource>\citep{comparat_accurate_2017}</defaultSource>
     !#   <description>The parameter $\bar{a}$ in the \cite{bhattacharya_mass_2011} halo mass function fit.</description>
     !#   <type>real</type>
@@ -129,10 +129,10 @@ contains
     !# </inputParameter>
     self=haloMassFunctionBhattacharya2011(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,q,normalization)
     !# <inputParametersValidate source="parameters"/>
-   !# <objectDestructor name="cosmologyParameters_"     />
-   !# <objectDestructor name="cosmologicalMassVariance_"/>
-   !# <objectDestructor name="criticalOverdensity_"     />
-   return
+    !# <objectDestructor name="cosmologyParameters_"     />
+    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !# <objectDestructor name="criticalOverdensity_"     />
+    return
   end function bhattacharya2011ConstructorParameters
 
   function bhattacharya2011ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,a,p,q,normalization) result(self)
@@ -175,7 +175,7 @@ contains
          &                                                                         nuPrime, massVariance
 
     ! Determine the mass variance. If zero, return zero mass function.
-    massVariance=self%cosmologicalMassVariance_%rootVariance(mass)
+    massVariance=self%cosmologicalMassVariance_%rootVariance(mass,time)
     if (massVariance <= 0.0d0) then
        bhattacharya2011Differential=0.0d0
        return
@@ -187,26 +187,26 @@ contains
          &                   )**2
     nuPrime                =+self%a(time,mass)                                                &
          &                  *nu
-    alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass))
+    alpha                  =+abs(self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time))
     bhattacharya2011Differential=+self%cosmologyParameters_%OmegaMatter    () &
-         &                  *self%cosmologyParameters_%densityCritical() &
-         &                  /mass**2                                     &
-         &                  *alpha                                       &
-         &                  *sqrt(                                       &
-         &                        +2.0d0                                 &
-         &                        *nuPrime**self%q(time,mass)            &
-         &                        /Pi                                    &
-         &                       )                                       &
-         &                  *self%normalization(time,mass)               &
-         &                  *(                                           &
-         &                    +1.0d0                                     &
-         &                    +1.0d0                                     &
-         &                    /nuPrime**self%p(time,mass)                &
-         &                  )                                            &
-         &                  *exp(                                        &
-         &                       -0.5d0                                  &
-         &                       *nuPrime                                &
-         &                  )
+         &                       *self%cosmologyParameters_%densityCritical() &
+         &                       /mass**2                                     &
+         &                       *alpha                                       &
+         &                       *sqrt(                                       &
+         &                             +2.0d0                                 &
+         &                             *nuPrime**self%q(time,mass)            &
+         &                             /Pi                                    &
+         &                            )                                       &
+         &                       *self%normalization(time,mass)               &
+         &                       *(                                           &
+         &                         +1.0d0                                     &
+         &                         +1.0d0                                     &
+         &                         /nuPrime**self%p(time,mass)                &
+         &                       )                                            &
+         &                       *exp(                                        &
+         &                            -0.5d0                                  &
+         &                            *nuPrime                                &
+         &                       )
     return
   end function bhattacharya2011Differential
 

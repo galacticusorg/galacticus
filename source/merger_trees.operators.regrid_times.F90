@@ -19,8 +19,9 @@
 
   !% Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
 
-  use Cosmology_Functions
-  use Cosmological_Density_Field
+  use Cosmology_Functions       , only : cosmologyFunctionsClass , cosmologyFunctions
+  use Cosmological_Density_Field, only : criticalOverdensityClass, criticalOverdensity
+  use Linear_Growth             , only : linearGrowthClass       , linearGrowth
 
   !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
   !#  <description>Provides a merger tree operator which restructures the tree onto a fixed grid of timesteps.</description>
@@ -28,8 +29,9 @@
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
      !% A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
      private
-     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_ => null()
+     class           (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
      class           (criticalOverdensityClass), pointer                   :: criticalOverdensity_ => null()
+     class           (linearGrowthClass       ), pointer                   :: linearGrowth_        => null()
      logical                                                               :: dumpTrees
      double precision                                                      :: snapTolerance
      double precision                          , allocatable, dimension(:) :: timeGrid
@@ -66,6 +68,7 @@ contains
     type            (inputParameters              ), intent(inout)               :: parameters
     class           (cosmologyFunctionsClass      ), pointer                     :: cosmologyFunctions_
     class           (criticalOverdensityClass     ), pointer                     :: criticalOverdensity_
+    class           (linearGrowthClass            ), pointer                     :: linearGrowth_
     double precision                               , allocatable  , dimension(:) :: snapshotTimes
     logical                                                                      :: dumpTrees
     integer                                                                      :: regridCount                     , snapshotSpacing   , &
@@ -76,6 +79,7 @@ contains
         
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
     !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
+    !# <objectBuilder class="linearGrowth"        name="linearGrowth_"        source="parameters"/>
     !# <inputParameter>
     !#   <name>dumpTrees</name>
     !#   <source>parameters</source>
@@ -144,14 +148,15 @@ contains
        end do
     end if
     ! Build the instance.
-    self=mergerTreeOperatorRegridTimes(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_)
+    self=mergerTreeOperatorRegridTimes(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_,linearGrowth_)
     !# <inputParametersValidate source="parameters"/>
     !# <objectDestructor name="cosmologyFunctions_" />
     !# <objectDestructor name="criticalOverdensity_"/>
+    !# <objectDestructor name="linearGrowth_"       />
     return
   end function regridTimesConstructorParameters
 
-  function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_) result(self)
+  function regridTimesConstructorInternal(snapTolerance,regridCount,expansionFactorStart,expansionFactorEnd,snapshotSpacing,dumpTrees,snapshotTimes,cosmologyFunctions_,criticalOverdensity_,linearGrowth_) result(self)
     !% Internal constructor for the regrid times merger tree operator class.
     use Numerical_Ranges
     use Galacticus_Error
@@ -167,8 +172,9 @@ contains
     double precision                               , intent(in   ), optional, dimension(:) :: snapshotTimes
     class           (cosmologyFunctionsClass      ), intent(in   ), target                 :: cosmologyFunctions_
     class           (criticalOverdensityClass     ), intent(in   ), target                 :: criticalOverdensity_
+    class           (linearGrowthClass            ), intent(in   ), target                 :: linearGrowth_
     integer                                                                                :: iTime
-    !# <constructorAssign variables="dumpTrees, snapTolerance, *cosmologyFunctions_, *criticalOverdensity_"/>
+    !# <constructorAssign variables="dumpTrees, snapTolerance, *cosmologyFunctions_, *criticalOverdensity_, *linearGrowth_"/>
     
     ! Validate arguments.
     if (regridCount < 2) call Galacticus_Error_Report('regridCount > 2 is required'//{introspection:location})
@@ -189,11 +195,13 @@ contains
        end do
     case (snapshotSpacingLogCriticalOverdensity)
        ! Build a logarithmic grid in critical overdensity.
-       self%timeGrid=Make_Range(                                                                                            &
-            &                    self%criticalOverdensity_%value(self%cosmologyFunctions_%cosmicTime(expansionFactorStart)) &
-            &                   ,self%criticalOverdensity_%value(self%cosmologyFunctions_%cosmicTime(expansionFactorEnd  )) &
-            &                   ,regridCount                                                                                &
-            &                   ,rangeTypeLogarithmic                                                                       &
+       self%timeGrid=Make_Range(                                                                                             &
+            &                   +self%criticalOverdensity_%value(self%cosmologyFunctions_%cosmicTime(expansionFactorStart))  &
+            &                   /self%linearGrowth_       %value(self%cosmologyFunctions_%cosmicTime(expansionFactorStart)), &
+            &                   +self%criticalOverdensity_%value(self%cosmologyFunctions_%cosmicTime(expansionFactorEnd  ))  &
+            &                   /self%linearGrowth_       %value(self%cosmologyFunctions_%cosmicTime(expansionFactorEnd  )), &
+            &                    regridCount                                                                               , &
+            &                    rangeTypeLogarithmic                                                                        &
             &                  )
        ! Convert critical overdensity to time.
        do iTime=1,regridCount
@@ -234,6 +242,7 @@ contains
     implicit none
     type(mergerTreeOperatorRegridTimes), intent(inout) :: self
     
+    !# <objectDestructor name="self%linearGrowth_"       />
     !# <objectDestructor name="self%criticalOverdensity_"/>
     !# <objectDestructor name="self%cosmologyFunctions_" />
     return
