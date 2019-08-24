@@ -29,11 +29,11 @@
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusGrowing
      !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
      private
-     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_ => null()
-     class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_ => null()
-     double precision                                        :: coreRadiusOverScaleRadius      , coreRadiusOverVirialRadiusMaximum
-     double precision                                        :: coreRadiusMaximum              , coreRadiusMinimum
-     double precision                                        :: hotGasFractionSaved            , coreRadiusOverVirialRadiusInitialSaved, &
+     class           (cosmologyParametersClass), pointer     :: cosmologyParameters_            => null()
+     class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_            => null()
+     double precision                                        :: coreRadiusOverScaleRadius                , coreRadiusOverVirialRadiusMaximum
+     double precision                                        :: coreRadiusMaximum                        , coreRadiusMinimum
+     double precision                                        :: hotGasFractionSaved                      , coreRadiusOverVirialRadiusInitialSaved, &
           &                                                     coreRadiusOverVirialRadiusSaved
      integer                                                 :: coreRadiusTableCount
      logical                                                 :: coreRadiusTableInitialized
@@ -111,7 +111,12 @@ contains
          &                                  defaultDarkMatterProfileComponent%scaleAttributeMatch(requireGettable=.true.)   &
          &                                )                                                                              // &
          &       {introspection:location}                                                                                   &
-         &      )    
+         &      )
+    ! Initialize memoized values and table status.
+    self%hotGasFractionSaved                   =-huge(0.0d0)
+    self%coreRadiusOverVirialRadiusInitialSaved=-huge(0.0d0)
+    self%coreRadiusOverVirialRadiusSaved       =-huge(0.0d0)
+    self%coreRadiusTableInitialized            =.false.
     return
   end function growingConstructorInternal
 
