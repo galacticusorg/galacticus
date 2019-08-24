@@ -299,6 +299,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.spherical_collapse.baryons_dark_matter.exe",                   # .
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.spherical_collapse.nonlinear.exe",                             # .
 	valgrind => 0,
 	mpi      => 0
@@ -320,6 +325,11 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.linear_growth.dark_energy.exe",                                # .
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.linear_growth.baryons.EdS.exe",                                # .
 	valgrind => 0,
 	mpi      => 0
     },
@@ -369,7 +379,17 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
-	name     => "tests.concentration.Correa2015.exe",                                # Tests of Correa et al. (2015) halo concentration algorithm.
+	name     => "tests.concentration.Correa2015.exe",                                 # Tests of Correa et al. (2015) halo concentration algorithm.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.concentrations.exe",                                           # Tests of various halo concentration algorithms.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.biases.exe",                                                   # Tests of various halo bias algorithms.
 	valgrind => 0,
 	mpi      => 0
     },
@@ -485,6 +505,17 @@ my @executablesToRun = (
 	valgrind => 0,
 	mpi      => 0,
 	expect   => "fail"
+    },
+    {
+	name     => "tests.excursion_sets.exe",                                           # Tests of excursion set solvers.
+	valgrind =>  0,
+	ppn      => 16,
+	mpi      =>  0
+    },
+    {
+	name     => "tests.merger_tree_branching.exe",                                    # Tests of merger tree branching rate functions.
+	valgrind => 0,
+	mpi      => 0
     }
     );
 
@@ -525,7 +556,7 @@ foreach my $executable ( @executablesToRun ) {
 	$ppn = $executable->{'ppn'}
 	    if ( exists($executable->{'ppn'}) );
 	$ppn = $executable->{'mpi'}
-	    if ( exists($executable->{'mpi'}) );
+	    if ( exists($executable->{'mpi'}) && $executable->{'mpi'} > 0 );
 	my $launchFile = "testSuite/".$label.".pbs";
 	push(@launchFiles,$launchFile);
 	$executable->{'expect'} = "success"
@@ -589,18 +620,27 @@ foreach $mpi ( "noMPI", "MPI" ) {
 	# Run scripts that require us to launch them under PBS.
 	&Galacticus::Launch::PBS::SubmitJobs(\%pbsOptions,@launchPBS);
 	# Run scripts that can launch themselves using PBS.
-	foreach ( @launchLocal ) {
-	    print           ":-> Running test script: ".$_."\n";
-	    print lHndl "\n\n:-> Running test script: ".$_."\n";
-	    &System::Redirect::tofile("cd testSuite; ".$_,"testSuite/allTests.tmp");
-	    print lHndl slurp("testSuite/allTests.tmp");
-	    unlink("testSuite/allTests.tmp");
+	print           ":-> Running test scripts:\n";
+	print lHndl "\n\n:-> Running test scripts:\n";
+	print       join("\n",map {"\t".$_} @launchLocal)."\n";
+	print lHndl join("\n",map {"\t".$_} @launchLocal)."\n";
+	open(my $script,">testSuite/outputs/launchLocal.sh");
+	print $script "cd testSuite\n";
+	foreach my $localScript ( @launchLocal ) {
+	    print $script $localScript." &\n";
 	}
+	print $script "wait\n";
+	print $script "exit\n";
+	close($script);
+	&System::Redirect::tofile("chmod u=wrx testSuite/outputs/launchLocal.sh; testSuite/outputs/launchLocal.sh","testSuite/allTests.tmp");
+	print lHndl slurp("testSuite/allTests.tmp");
+	unlink("testSuite/allTests.tmp");
     }
 }
 
 # Close the log file.
 close(lHndl);
+exit;
 
 # Scan the log file for FAILED.
 my $lineNumber = 0;

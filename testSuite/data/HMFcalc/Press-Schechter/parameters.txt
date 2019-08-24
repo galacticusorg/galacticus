@@ -1,0 +1,45 @@
+File Created On: 2019-08-08 12:47:57.746978
+With version 1.0.5 of HMFcalc 
+And version 1.7.0 of hmf (backend) 
+
+SETS OF PARAMETERS USED 
+=====================================================
+   PLANCK-SMT 
+=====================================================
+Mmax: 15.0 
+tau: 0.0925 
+Mmin: 10.0 
+transfer_options: {'fname': u'transfers/PLANCK_transfer.dat'} 
+cs2_lam: 1 
+cut_fit: True 
+t_cmb: 2.725 
+dlog10m: 0.05 
+omegam: 0.2715 
+N_nu: 3.04 
+omegan: 0.0 
+transfer_fit: FromFile 
+omegak: 0.0005 
+omegac: 0.226 
+omegab: 0.0455 
+nz: None 
+z_reion: 11.35 
+N_nu_massive: 0.0 
+omegav: 0.728 
+_fsig_params: {} 
+delta_wrt: mean 
+lnk_min: -15.0 
+delta_h: 200.0 
+wdm_mass: None 
+z2: None 
+delta_c: 1.686 
+sigma_8: 0.81 
+dlnk: 0.05 
+h: 0.704 
+H0: 70.4 
+lnk_max: 15.0 
+n: 0.967 
+w: -1 
+z: 0.0 
+y_he: 0.24 
+mf_fit: PS 
+
