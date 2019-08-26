@@ -44,22 +44,22 @@ module Star_Formation_Histories
   !#          COMMENT "Star formation histories for all trees at each out"
   !#          GROUP "mergerTree1" {
   !#             COMMENT "Star formation histories for each tree."
-  !#             DATASET "diskSFH<nodeID>" {
+  !#             DATASET "diskSFH&lt;nodeID&gt;" {
   !#             COMMENT "Star formation history stellar masses of the disk "
   !#                DATATYPE  H5T_IEEE_F64LE
   !#                DATASPACE  SIMPLE { }
   !#             }
-  !#             DATASET "diskTime<nodeID>" {
+  !#             DATASET "diskTime&lt;nodeID&gt;" {
   !#             COMMENT "Star formation history times of the disk component"
   !#                DATATYPE  H5T_IEEE_F64LE
   !#                DATASPACE  SIMPLE { }
   !#             }
-  !#             DATASET "spheroidSFH<nodeID>" {
+  !#             DATASET "spheroidSFH&lt;nodeID&gt;" {
   !#             COMMENT "Star formation history stellar masses of the spher"
   !#                DATATYPE  H5T_IEEE_F64LE
   !#                DATASPACE  SIMPLE { }
   !#             }
-  !#             DATASET "spheroidTime<nodeID>" {
+  !#             DATASET "spheroidTime&lt;nodeID&gt;" {
   !#             COMMENT "Star formation history times of the spheroid compo"
   !#                DATATYPE  H5T_IEEE_F64LE
   !#                DATASPACE  SIMPLE { }
