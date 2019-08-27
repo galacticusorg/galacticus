@@ -308,7 +308,18 @@ contains
                    if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) then
                       ! The expression contains dependencies on other variables. Substitute the actual values where possible.
                       !! For active parameters we only need to consider substitution on the first iteration (since they are fully defined immediately).
+                      !! Also handle special parameters here:
+                      !!  * %[posteriorSimulationStep] - this is the current step number in the simulation.
                       if (firstIteration) then
+                         if (index(self%modelParametersInactive_(i)%definition,"%[posteriorSimulationStep]") /= 0) then
+                            write (valueText,'(i10)') simulationState%count()
+                            self%modelParametersInactive_(i)%definition=replace(                                                                     &
+                                 &                                                    self% modelParametersInactive_(i)%definition                 , &
+                                 &                                                    "%[posteriorSimulationStep]"                                 , &
+                                 &                                                    valueText                                                    , &
+                                 &                                              every=.true.                                                         &
+                                 &                                             )
+                         end if
                          do j=1,size(modelParametersActive_)
                             if (index(self%modelParametersInactive_(i)%definition,"%["//modelParametersActive_  (j)%modelParameter_%name()//"]") /= 0) dependenciesUpdated=.true.
                             self%modelParametersInactive_(i)%definition=replace(                                                                     &
