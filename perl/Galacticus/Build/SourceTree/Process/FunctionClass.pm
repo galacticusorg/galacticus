@@ -893,6 +893,8 @@ CODE
 						if ( $rank > $rankMaximum );
 					}
 					foreach my $variableName ( @{$declaration->{'variables'}} ) {
+					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
+						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
 					    for(my $i=1;$i<=$rank;++$i) {
 						$assignments .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
 					    }
@@ -901,6 +903,8 @@ CODE
 					    for(my $i=1;$i<=$rank;++$i) {
 						    $assignments .= (" " x ($rank+1-$i))."end do\n";
 					    }					    
+					    $assignments .= "end if\n"
+						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
 					}
 				}
 				# Deep copy of HDF5 objects.
