@@ -269,12 +269,16 @@ contains
     do i=2,len(trim(pathName))
        if (pathName(i:i) == "/") then
           if (File_Exists(var_str(pathName(1:i-1)))) cycle
+          !$omp critical(mkdir)
           status=mkdir_C(pathName(1:i-1)//char(0))
           if (status /= 0) call Galacticus_Error_Report('failed to make intermediate directory "'//pathName(1:i-1)//'"'//{introspection:location})
+          !$omp end critical(mkdir)
        end if
     end do
-    status=mkdir_C(trim(pathName))
+    !$omp critical(mkdir)
+    status=mkdir_C(trim(pathName)//char(0))
     if (status /= 0) call Galacticus_Error_Report('failed to make directory "'//trim(pathName)//'"'//{introspection:location})
+    !$omp end critical(mkdir)
     return
   end subroutine Directory_Make_Char
   
