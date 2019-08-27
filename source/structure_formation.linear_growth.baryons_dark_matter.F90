@@ -202,10 +202,10 @@ contains
          &                                                                      timePresent                              , timeBigCrunch                                , &
          &                                                                      wavenumberLogarithmic                    , wavenumber_
     integer                                                                  :: growthTableNumberPoints    
-    type            (fodeiv2_system                         )                :: ode2System
-    type            (fodeiv2_driver                         )                :: ode2Driver
-    logical                                                                  :: odeReset                      =.true.
-    type            (table1DGeneric                         )                :: transferFunctionDarkMatter               , transferFunctionBaryons
+    type            (fodeiv2_system               )                          :: ode2System
+    type            (fodeiv2_driver               )                          :: ode2Driver
+    logical                                                                  :: odeReset
+    type            (table1DGeneric               )                          :: transferFunctionDarkMatter               , transferFunctionBaryons
     integer                                                                  :: countWavenumbers
     
 
