@@ -508,7 +508,7 @@ contains
        call hdf5Access  %unset()
     end if
     if (present(transferFunctionBaryons)) then
-       call hdf5Access%unset()
+       call hdf5Access%set()
        call cambOutput%openFile(char(fileName_))
        call cambOutput%readDataset('wavenumber',wavenumbersLogarithmic)
        wavenumbersLogarithmic=log(wavenumbersLogarithmic)
