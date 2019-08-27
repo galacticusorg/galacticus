@@ -34,7 +34,7 @@ contains
     !% Return version information
     use ISO_Varying_String
     implicit none
-    character(len=14        ), intent(  out), optional :: gitHash_
+    character(len=42        ), intent(  out), optional :: gitHash_
     type     (varying_string), intent(  out), optional :: gitBranch_  , buildTime_
 
     if (present(gitHash_   )) gitHash_   =     gitHash
