@@ -309,8 +309,7 @@ contains
     use String_Handling
     use Models_Likelihoods_Constants
     use Kind_Numbers
-    use File_Utilities
-    use System_Command
+    use File_Utilities              , only : File_Remove, File_Exists
     use Error_Functions
     implicit none
     class           (posteriorSampleSimulationParticleSwarm), intent(inout)                               :: self
@@ -475,7 +474,7 @@ contains
              end if
              close(interactionFile)
              ! Remove the interaction file.
-             call System_Command_Do("rm -f "//interactionFileName)
+             call File_Remove(interactionFileName)
           end if
        end if
        ! Store the state vector.

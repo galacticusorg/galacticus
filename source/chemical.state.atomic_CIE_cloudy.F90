@@ -119,16 +119,15 @@ contains
 
   subroutine atomicCIECloudyTabulate(self,gasAbundances)
     !% Create the chemical state.
-    use System_Command
     use Galacticus_Paths
     use String_Handling
     use Galacticus_Display
     use Interfaces_Cloudy_CIE
+    use File_Utilities       , only : File_Remove
     implicit none
     class  (chemicalStateAtomicCIECloudy), intent(inout) :: self
     type   (abundances                  ), intent(in   ) :: gasAbundances
     logical                                              :: makeFile
-    type   (varying_string              )                :: command
     
     ! Determine if we need to retabulate the chemical state.
     if (.not.self%initialized) then
@@ -146,11 +145,8 @@ contains
        else
           makeFile=.false.
        end if
-       if (makeFile) then
-          ! Remove the chemical state file so that a new one will be created.
-          command='rm -f '//char(galacticusPath(pathTypeDataStatic))//trim(atomicCIECloudyChemicalStateFileName)
-          call System_Command_Do(command)
-       end if
+       ! Remove the chemical state file so that a new one will be created.
+       if (makeFile) call File_Remove(galacticusPath(pathTypeDataStatic)//trim(atomicCIECloudyChemicalStateFileName))
     end if
     ! Read the file if this module has not been initialized or if the metallicity is out of range.
     if (makeFile) then

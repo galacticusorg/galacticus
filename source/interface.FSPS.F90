@@ -30,7 +30,7 @@ contains
     !% Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
     use ISO_Varying_String
     use Galacticus_Paths
-    use File_Utilities
+    use File_Utilities    , only : File_Remove, File_Exists
     use System_Command
     use Galacticus_Display
     use Galacticus_Error
@@ -59,7 +59,8 @@ contains
        if (.not.upToDate) then
           call Galacticus_Display_Message("updating FSPS source code",verbosityWorking)
           ! Update and remove the galacticus_IMF.f90 file to trigger re-patching of the code.
-          call System_Command_Do("cd "//fspsPath//"; git checkout -- .; git pull; rm -f src/galacticus_IMF.f90")
+          call System_Command_Do("cd "//fspsPath//"; git checkout -- .; git pull")
+          call File_Remove(fspsPath//"src/galacticus_IMF.f90")
        end if
        ! Patch the code if not already patched.
        if (.not.File_Exists(fspsPath//"/src/galacticus_IMF.f90")) then
@@ -75,7 +76,7 @@ contains
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
           call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
-          call System_Command_Do("rm -f "//fspsPath//"/src/autosps.exe")
+          call File_Remove(fspsPath//"/src/autosps.exe")
        end if
        call Galacticus_Display_Message("compiling autosps.exe code",verbosityWorking)
        if (static_) then
