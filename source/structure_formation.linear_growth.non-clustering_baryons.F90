@@ -69,10 +69,10 @@ contains
     !% Constructor for the {\normalfont \ttfamily nonClusteringBaryons} linear growth class which takes a parameter set as input.
     use Input_Parameters
     implicit none
-    type (linearGrowthNonClusteringBaryons      )                :: self
-    type (inputParameters         ), intent(inout) :: parameters
-    class(cosmologyParametersClass), pointer       :: cosmologyParameters_    
-    class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    type (linearGrowthNonClusteringBaryons)                :: self
+    type (inputParameters                 ), intent(inout) :: parameters
+    class(cosmologyParametersClass        ), pointer       :: cosmologyParameters_    
+    class(cosmologyFunctionsClass         ), pointer       :: cosmologyFunctions_
 
     !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
@@ -86,10 +86,10 @@ contains
   function nonClusteringBaryonsConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily nonClusteringBaryons} linear growth class.
     implicit none
-    type            (linearGrowthNonClusteringBaryons      )                           :: self
-    class           (cosmologyParametersClass), target   , intent(in   ) :: cosmologyParameters_    
-    class           (cosmologyFunctionsClass ), target   , intent(in   ) :: cosmologyFunctions_
-    double precision                                                     :: timeBigCrunch
+    type            (linearGrowthNonClusteringBaryons)                           :: self
+    class           (cosmologyParametersClass        ), target   , intent(in   ) :: cosmologyParameters_    
+    class           (cosmologyFunctionsClass         ), target   , intent(in   ) :: cosmologyFunctions_
+    double precision                                                             :: timeBigCrunch
     !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
 
     self%tableInitialized=.false.
@@ -127,24 +127,24 @@ contains
     use Table_Labels
     use ODE_Solver
     implicit none
-    class           (linearGrowthNonClusteringBaryons      ), intent(inout) :: self
-    double precision                          , intent(in   ) :: time
-    double precision                          , parameter     :: dominateFactor               =   1.0d+04
-    double precision                          , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
-    integer                                   , parameter     :: growthTablePointsPerDecade   =1000
-    double precision                          , dimension(2)  :: growthFactorODEVariables
-    logical                                                   :: remakeTable
-    integer                                                   :: i
-    double precision                                          :: expansionFactorMatterDominant           , growthFactorDerivative           , &
-         &                                                       timeNow                                 , linearGrowthFactorPresent        , &
-         &                                                       timeMatterDominant                      , timePresent                      , &
-         &                                                       timeBigCrunch, exponent
-    integer                                                   :: growthTableNumberPoints    
-    type            (fgsl_odeiv_step         )                :: odeStepper
-    type            (fgsl_odeiv_control      )                :: odeController
-    type            (fgsl_odeiv_evolve       )                :: odeEvolver
-    type            (fgsl_odeiv_system       )                :: odeSystem
-    logical                                                   :: odeReset                     =.true.
+    class           (linearGrowthNonClusteringBaryons), intent(inout) :: self
+    double precision                                  , intent(in   ) :: time
+    double precision                                  , parameter     :: dominateFactor               =   1.0d+04
+    double precision                                  , parameter     :: odeToleranceAbsolute         =   1.0d-10, odeToleranceRelative     =1.0d-10
+    integer                                           , parameter     :: growthTablePointsPerDecade   =1000
+    double precision                                  , dimension(2)  :: growthFactorODEVariables
+    logical                                                           :: remakeTable
+    integer                                                           :: i
+    double precision                                                  :: expansionFactorMatterDominant           , growthFactorDerivative           , &
+         &                                                               timeNow                                 , linearGrowthFactorPresent        , &
+         &                                                               timeMatterDominant                      , timePresent                      , &
+         &                                                               timeBigCrunch, exponent
+    integer                                                           :: growthTableNumberPoints    
+    type            (fgsl_odeiv_step                 )                :: odeStepper
+    type            (fgsl_odeiv_control              )                :: odeController
+    type            (fgsl_odeiv_evolve               )                :: odeEvolver
+    type            (fgsl_odeiv_system               )                :: odeSystem
+    logical                                                           :: odeReset                     =.true.
     
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -181,20 +181,18 @@ contains
           call self%growthFactor%destroy()
           deallocate(self%growthFactor)
        end if
+       ! Compute the exponent of the growth factor during the matter-dominated phase.
+       exponent=(sqrt(1.0d0+24.0d0*(self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter())-1.0d0)/6.0d0
        ! Create table.
        allocate(table1DLogarithmicLinear :: self%growthFactor)
        select type (growthFactor => self%growthFactor)
        type is (table1DLogarithmicLinear)
           call growthFactor%create(self%tableTimeMinimum,self%tableTimeMaximum,growthTableNumberPoints)
-          ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase.
+          ! Solve ODE to get corresponding expansion factors. Initialize with solution for matter dominated phase. We choose an
+          ! initial growth factor of 1 (this is arbitrary as by definition the growth is linear so we can rescale to any
+          ! value). Perturbations in the matter dominated phase grow as δ ∝ t^p, so the initial growth rate is dδ/dt = p δ/t.
           call growthFactor%populate(1.0d0,1)
-          growthFactorDerivative=abs(                                                             &
-               &                     self %cosmologyFunctions_%expansionRate  (                   &
-               &                      self%cosmologyFunctions_%expansionFactor (                  &
-               &                                                                growthFactor%x(1) &
-               &                                                               )                  &
-               &                                                              )                   &
-               &                    )
+          growthFactorDerivative=exponent/growthFactor%x(1)          
           do i=2,growthTableNumberPoints
              timeNow                    =growthFactor          %x(i-1)
              growthFactorODEVariables(1)=growthFactor          %y(i-1)
@@ -221,16 +219,15 @@ contains
           linearGrowthFactorPresent=growthFactor%interpolate(timePresent)
           call growthFactor%populate(reshape(growthFactor%ys(),[growthTableNumberPoints])/linearGrowthFactorPresent)
           ! Compute relative normalization factor such that growth factor behaves as expansion factor at early times.
-          exponent=(sqrt(1.0d0+24.0d0*(self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon())/self%cosmologyParameters_%OmegaMatter())-1.0d0)/6.0d0
           self%normalizationMatterDominated=+(                                                                &
                &                              +9.0d0                                                          &
                &                              *    self%cosmologyParameters_%OmegaMatter   (               )  &
                &                              /4.0d0                                                          &
-               &                             )**(exponent/2.0d0)                                                 &
+               &                             )**(exponent/2.0d0)                                              &
                &                            *(                                                                &
                &                              +abs(self%cosmologyParameters_%HubbleConstant(hubbleUnitsTime)) &
                &                              *    growthFactor             %x             (              1)  &
-               &                             )**exponent                                                 &
+               &                             )**exponent                                                      &
                &                            /      growthFactor             %y             (              1)     
           self%tableInitialized=.true.
        end select
@@ -252,13 +249,13 @@ contains
            &             *    self%cosmologyFunctions_%expansionRate     (                expansionFactor)**2 &
            &             *    self%cosmologyFunctions_%omegaMatterEpochal(expansionFactor=expansionFactor)    &
            &             *    values                                     (                              1)    &
-           &*(&
-           & +(&
-           &+self%cosmologyParameters_%OmegaMatter()&
-           &-self%cosmologyParameters_%OmegaBaryon()&
-           &)&
-           &/self%cosmologyParameters_%OmegaMatter()&
-           &)&
+           &             *(                                                                                   &
+           &              +(                                                                                  &
+           &                + self%cosmologyParameters_%OmegaMatter      (                               )    &
+           &                - self%cosmologyParameters_%OmegaBaryon      (                               )    &
+           &             )                                                                                    &
+           &             /    self%cosmologyParameters_%OmegaMatter      (                               )    &
+           &             )                                                                                    &
            &             -    2.0d0                                                                           &
            &             *abs(self%cosmologyFunctions_%expansionRate     (                expansionFactor))   &
            &             *    values                                     (                              2)
@@ -270,12 +267,12 @@ contains
   double precision function nonClusteringBaryonsValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
     !% Return the linear growth factor at the given epoch.
     implicit none
-    class           (linearGrowthNonClusteringBaryons     ), intent(inout)           :: self
-    double precision                         , intent(in   ), optional :: time               , expansionFactor
-    logical                                  , intent(in   ), optional :: collapsing
-    integer                                  , intent(in   ), optional :: normalize          , component
-    double precision                         , intent(in   ), optional :: wavenumber
-    double precision                                                   :: time_
+    class           (linearGrowthNonClusteringBaryons), intent(inout)           :: self
+    double precision                                  , intent(in   ), optional :: time      , expansionFactor
+    logical                                           , intent(in   ), optional :: collapsing
+    integer                                           , intent(in   ), optional :: normalize , component
+    double precision                                  , intent(in   ), optional :: wavenumber
+    double precision                                                            :: time_
     !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
     !GCC$ attributes unused :: component, wavenumber
     
@@ -297,12 +294,12 @@ contains
     !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
     use Galacticus_Error
     implicit none
-    class           (linearGrowthNonClusteringBaryons     ), intent(inout)           :: self
-    double precision                         , intent(in   ), optional :: time               , expansionFactor
-    logical                                  , intent(in   ), optional :: collapsing
-    integer                                  , intent(in   ), optional :: component 
-    double precision                         , intent(in   ), optional :: wavenumber 
-    double precision                                                   :: time_              , expansionFactor_
+    class           (linearGrowthNonClusteringBaryons), intent(inout)           :: self
+    double precision                                  , intent(in   ), optional :: time      , expansionFactor
+    logical                                           , intent(in   ), optional :: collapsing
+    integer                                           , intent(in   ), optional :: component 
+    double precision                                  , intent(in   ), optional :: wavenumber
+    double precision                                                            :: time_     , expansionFactor_
     !GCC$ attributes unused :: component, wavenumber
     
     ! Determine cosmological time.
@@ -311,8 +308,8 @@ contains
     call self%retabulate(time_)
     ! Interpolate to get the expansion factor.
     nonClusteringBaryonsLogarithmicDerivativeExpansionFactor=+self%growthFactor       %interpolateGradient(time_           ) &
-         &                                     /self%growthFactor       %interpolate        (time_           ) &
-         &                                     /self%cosmologyFunctions_%expansionRate      (expansionFactor_)
+         &                                                   /self%growthFactor       %interpolate        (time_           ) &
+         &                                                   /self%cosmologyFunctions_%expansionRate      (expansionFactor_)
     return
   end function nonClusteringBaryonsLogarithmicDerivativeExpansionFactor
 
