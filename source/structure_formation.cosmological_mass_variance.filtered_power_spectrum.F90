@@ -57,6 +57,7 @@
   use Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferred, powerSpectrumPrimordialTransferredClass
   use Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunction       , powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
   use Linear_Growth                       , only : linearGrowth                      , linearGrowthClass
+  use File_Utilities                      , only : lockDescriptor
 
   !# <stateStorable class="uniqueTable"/>
   
@@ -84,9 +85,10 @@
           &                                                                                  timeMinimumLogarithmic                       , timeLogarithmicDeltaInverse
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
+     type            (varying_string                         )                            :: fileName
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
-     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_
+     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_     
    contains
      !@ <objectMethods>
      !@   <object>cosmologicalMassVarianceFilteredPower</object>
@@ -102,6 +104,22 @@
      !@     <arguments>\doublezero\ time\argin, \intzero\ i\argout, \doublezero\ h\argout</arguments>
      !@     <description>Compute the interpolating factors in time.</description>
      !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fileWrite</method>
+     !@     <type>void</type>
+     !@     <description>Write the tabulated mass variance to file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>fileWrite</method>
+     !@     <type>void</type>
+     !@     <description>Read the tabulated mass variance from file.</description>
+     !@   </objectMethod>
+     !@   <objectMethod>
+     !@     <method>remakeTable</method>
+     !@     <type>\logicalzero</type>
+     !@     <description>Return true if the table must be remade.</description>
+     !@     <arguments>\doublezero\ [mass]\argin, \doublezero\ [time]\argin</arguments>
+     !@   </objectMethod>
      !@ </objectMethods>
      final     ::                                        filteredPowerDestructor
      procedure :: sigma8                              => filteredPowerSigma8
@@ -114,6 +132,9 @@
      procedure :: retabulate                          => filteredPowerRetabulate
      procedure :: interpolantsTime                    => filteredPowerInterpolantsTime
      procedure :: growthIsMassDependent               => filteredPowerGrowthIsMassDependent
+     procedure :: fileWrite                           => filteredPowerFileWrite
+     procedure :: fileRead                            => filteredPowerFileRead
+     procedure :: remakeTable                         => filteredPowerRemakeTable
   end type cosmologicalMassVarianceFilteredPower
 
   interface cosmologicalMassVarianceFilteredPower
@@ -123,12 +144,16 @@
   end interface cosmologicalMassVarianceFilteredPower
 
   ! Number of points per decade to use in tabulation of σ(M).
-  integer         , parameter :: filteredPowerTablePointsPerDecade=10, filteredPowerTimePointsPerDecade=100
+  integer                         , parameter :: filteredPowerTablePointsPerDecade=10     , filteredPowerTimePointsPerDecade=100
 
   ! Module-scope time used in integrals.
-  double precision            :: filteredPowerTime
+  double precision                            :: filteredPowerTime
   !$omp threadprivate(filteredPowerTime)
   
+  ! Lock used for file access.
+  type            (lockDescriptor)            :: filteredPowerFileLock
+  logical                                     :: filteredPowerFileLockInitialized =.false.
+
 contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
@@ -199,6 +224,8 @@ contains
 
   function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
     !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    use Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
+    use File_Utilities  , only : Directory_Make, File_Path          , File_Lock_Initialize
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                        :: self
     double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat, &
@@ -220,6 +247,22 @@ contains
     self%timeMinimum           =self%cosmologyFunctions_                %cosmicTime                 (0.1d0)
     self%timeMaximum           =self%cosmologyFunctions_                %cosmicTime                 (1.0d0)
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent(     )
+    self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
+         &                      'largeScaleStructure/'                           // &
+         &                      self%objectType      (                          )// &
+         &                      '_'                                              // &
+         &                      self%hashedDescriptor(includeSourceDigest=.true.)// &
+         &                      '.hdf5'
+    call Directory_Make(File_Path(self%fileName))
+    ! Initialize file lock.    
+    if (.not.filteredPowerFileLockInitialized) then
+       !$omp critical(filteredPowerFileLockInitialize)
+       if (.not.filteredPowerFileLockInitialized) then
+          call File_Lock_Initialize(filteredPowerFileLock)
+          filteredPowerFileLockInitialized=.true.
+       end if
+       !$omp end critical(filteredPowerFileLockInitialize)
+    end if
     return
   end function filteredPowerConstructorInternal
 
@@ -457,6 +500,7 @@ contains
     use Numerical_Constants_Math
     use Galacticus_Error
     use Numerical_Ranges        , only : Make_Range, rangeTypeLogarithmic
+    use File_Utilities          , only : File_Lock , File_Unlock
     implicit none
     class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)               :: self
     double precision                                         , intent(in   ), optional     :: mass                      , time
@@ -468,33 +512,16 @@ contains
     double precision                                                                       :: sigma                     , smoothingMass          , &
          &                                                                                    massMinimum
     logical                                                  , allocatable  , dimension(:) :: rootVarianceIsUnique
-    logical                                                                                :: remakeTable
     type            (varying_string                         )                              :: message
     character       (len=12                                 )                              :: label
 
-    ! Check if we need to recompute our table.
-    if (self%initialized) then
-       remakeTable=.false.
-       if (present(mass)) then
-          remakeTable=(                         &
-               &        mass < self%massMinimum &
-               &       .or.                     &
-               &        mass > self%massMaximum &
-               &      )
-       end if
-       if (present(time).and.self%growthIsMassDependent_) then
-          remakeTable=(                         &
-               &        remakeTable             &
-               &       .or.                     &
-               &        time < self%timeMinimum &
-               &       .or.                     &
-               &        time > self%timeMaximum &
-               &      )
-       end if
-    else
-       remakeTable=.true.
+    if (self%remakeTable(mass,time)) then
+       call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.true.)
+       call self%fileRead()
+       call File_Unlock(filteredPowerFileLock)
     end if
-    if (remakeTable) then
+    if (self%remakeTable(mass,time)) then
+       call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.false.)
        ! Compute the mass at which the mass variance is normalized.
        smoothingMass=+(                                                               &
             &          +4.0d0                                                         &
@@ -613,6 +640,9 @@ contains
        end do
        ! Table is now initialized.
        self%initialized=.true.
+       ! Store file.
+       call self%fileWrite()
+       call File_Unlock(filteredPowerFileLock)
     end if
     return
     
@@ -740,3 +770,143 @@ contains
     filteredPowerGrowthIsMassDependent=self%growthIsMassDependent_
     return
   end function filteredPowerGrowthIsMassDependent
+
+  subroutine filteredPowerFileRead(self)
+    !% Read tabulated data on mass variance from file.
+    use IO_HDF5       , only : hdf5Object , hdf5Access
+    use File_Utilities, only : File_Exists
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
+    double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
+    double precision                                       , dimension(:,:), allocatable :: rootVarianceTmp, rootVarianceUniqueTmp
+    integer                                                , dimension(:  ), allocatable :: uniqueSizeTmp
+    integer                                                , dimension(:,:), allocatable :: indexTmp
+    type            (hdf5Object                           )                              :: dataFile
+    integer                                                                              :: i
+
+    ! Return immediately if the file does not exist.
+    if (.not.File_Exists(char(self%fileName))) return
+    !$ call hdf5Access%set()
+    call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.)
+    call dataFile%readDataset  ('times'                      ,     timesTmp                           )
+    call dataFile%readDataset  ('mass'                       ,     massTmp                            )
+    call dataFile%readDataset  ('rootVariance'               ,     rootVarianceTmp                    )
+    call dataFile%readDataset  ('rootVarianceUnique'         ,     rootVarianceUniqueTmp              )
+    call dataFile%readDataset  ('indexUnique'                ,     indexTmp                           )
+    call dataFile%readDataset  ('uniqueSize'                 ,     uniqueSizeTmp                      )
+    call dataFile%readAttribute('sigmaNormalization'         ,self%sigmaNormalization                 )
+    call dataFile%readAttribute('massMinimum'                ,self%massMinimum                        )
+    call dataFile%readAttribute('massMaximum'                ,self%massMaximum                        )
+    call dataFile%readAttribute('timeMinimum'                ,self%timeMinimum                        )
+    call dataFile%readAttribute('timeMaximum'                ,self%timeMaximum                        )
+    call dataFile%readAttribute('timeMinimumLogarithmic'     ,self%timeMinimumLogarithmic             )
+    call dataFile%readAttribute('timeLogarithmicDeltaInverse',self%timeLogarithmicDeltaInverse        )
+    call dataFile%close        (                                                                      )
+    !$ call hdf5Access%unset()
+    if (allocated(self%times                  )) deallocate(self%times                  )
+    if (allocated(self%rootVarianceTable      )) deallocate(self%rootVarianceTable      )
+    if (allocated(self%rootVarianceUniqueTable)) deallocate(self%rootVarianceUniqueTable)
+    allocate(self%times                  (size(timesTmp)))
+    allocate(self%rootVarianceTable      (size(timesTmp)))
+    allocate(self%rootVarianceUniqueTable(size(timesTmp)))
+    self%times=timesTmp
+    do i=1,size(self%times)
+       allocate(self%rootVarianceUniqueTable(i)%rootVariance(uniqueSizeTmp(i)))
+       allocate(self%rootVarianceUniqueTable(i)%index       (uniqueSizeTmp(i)))
+       call self%rootVarianceTable(i)%create  (self%massMinimum,self%massMaximum,size(massTmp))
+       call self%rootVarianceTable(i)%populate(rootVarianceTmp(:,i))
+       self%rootVarianceUniqueTable(i)%rootVariance=rootVarianceUniqueTmp(1:uniqueSizeTmp(i),i)
+       self%rootVarianceUniqueTable(i)%index       =indexTmp             (1:uniqueSizeTmp(i),i)
+    end do
+    deallocate(rootVarianceTmp      )
+    deallocate(rootVarianceUniqueTmp)
+    deallocate(indexTmp             )
+    deallocate(massTmp              )
+    deallocate(timesTmp             )
+    deallocate(uniqueSizeTmp        )
+    self%initialized=.true.
+    return
+  end subroutine filteredPowerFileRead
+  
+  subroutine filteredPowerFileWrite(self)
+    !% Write tabulated data on mass variance to file.
+    use HDF5   , only : hsize_t
+    use IO_HDF5, only : hdf5Object, hdf5Access
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
+    double precision                                       , dimension(:  ), allocatable :: massTmp
+    double precision                                       , dimension(:,:), allocatable :: rootVarianceTmp, rootVarianceUniqueTmp
+    integer                                                , dimension(:  ), allocatable :: uniqueSizeTmp
+    integer                                                , dimension(:,:), allocatable :: indexTmp
+    type            (hdf5Object                           )                              :: dataFile
+    integer                                                                              :: i
+
+    ! Prepare data.
+    allocate(massTmp              (self%rootVarianceTable(1)%size()                 ))
+    allocate(rootVarianceTmp      (self%rootVarianceTable(1)%size(),size(self%times)))
+    allocate(rootVarianceUniqueTmp(self%rootVarianceTable(1)%size(),size(self%times)))
+    allocate(indexTmp             (self%rootVarianceTable(1)%size(),size(self%times)))
+    allocate(uniqueSizeTmp        (                                 size(self%times)))
+    rootVarianceUniqueTmp   ( :                , : )=     0.0d0
+    indexTmp                ( :                , : )=     0
+    massTmp                 ( :                    )=     self%rootVarianceTable      (1)%xs          ()
+    do i=1,size(self%times)
+       rootVarianceTmp      ( :                ,i:i)=     self%rootVarianceTable      (i)%ys          ()
+       uniqueSizeTmp        (                   i  )=size(self%rootVarianceUniqueTable(i)%index         )
+       rootVarianceUniqueTmp(1:uniqueSizeTmp(i),i  )=     self%rootVarianceUniqueTable(i)%rootVariance
+       indexTmp             (1:uniqueSizeTmp(i),i  )=     self%rootVarianceUniqueTable(i)%index
+    end do
+    ! Open the data file.
+    !$ call hdf5Access%set()
+    call dataFile%openFile      (char(self%fileName)             ,overWrite                    =.true.,chunkSize=100_hsize_t,compressionLevel=9)
+    call dataFile%writeDataset  (self%times                      ,'times'                                                                      )
+    call dataFile%writeDataset  (     massTmp                    ,'mass'                                                                       )
+    call dataFile%writeDataset  (     rootVarianceTmp            ,'rootVariance'                                                               )
+    call dataFile%writeDataset  (     rootVarianceUniqueTmp      ,'rootVarianceUnique'                                                         )
+    call dataFile%writeDataset  (     indexTmp                   ,'indexUnique'                                                                )
+    call dataFile%writeDataset  (     uniqueSizeTmp              ,'uniqueSize'                                                                 )
+    call dataFile%writeAttribute(self%sigmaNormalization         ,'sigmaNormalization'                                                         )
+    call dataFile%writeAttribute(self%massMinimum                ,'massMinimum'                                                                )
+    call dataFile%writeAttribute(self%massMaximum                ,'massMaximum'                                                                )
+    call dataFile%writeAttribute(self%timeMinimum                ,'timeMinimum'                                                                )
+    call dataFile%writeAttribute(self%timeMaximum                ,'timeMaximum'                                                                )
+    call dataFile%writeAttribute(self%timeMinimumLogarithmic     ,'timeMinimumLogarithmic'                                                     )
+    call dataFile%writeAttribute(self%timeLogarithmicDeltaInverse,'timeLogarithmicDeltaInverse'                                                )
+    call dataFile%close         (                                                                                                              )
+    !$ call hdf5Access%unset()
+    deallocate(rootVarianceTmp      )
+    deallocate(rootVarianceUniqueTmp)
+    deallocate(indexTmp             )
+    deallocate(massTmp              )
+    deallocate(uniqueSizeTmp        )
+    return
+  end subroutine filteredPowerFileWrite
+  
+  logical function filteredPowerRemakeTable(self,mass,time)
+    !% Determine if the table should be remade.
+    implicit none
+    class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)           :: self
+    double precision                                         , intent(in   ), optional :: mass, time
+    if (self%initialized) then
+       filteredPowerRemakeTable=.false.
+       if (present(mass)) then
+          filteredPowerRemakeTable=(                          &
+               &                     mass < self%massMinimum  &
+               &                    .or.                      &
+               &                     mass > self%massMaximum  &
+               &                   )
+       end if
+       if (present(time).and.self%growthIsMassDependent_) then
+          filteredPowerRemakeTable=(                          &
+               &                     filteredPowerRemakeTable &
+               &                    .or.                      &
+               &                     time < self%timeMinimum  &
+               &                    .or.                      &
+               &                     time > self%timeMaximum  &
+               &                   )
+       end if
+    else
+       filteredPowerRemakeTable=.true.
+    end if
+    return
+  end function filteredPowerRemakeTable
