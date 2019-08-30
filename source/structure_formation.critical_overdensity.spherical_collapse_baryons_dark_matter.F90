@@ -173,8 +173,8 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_BDM_Critical_Overdensity_Tabulate(time,.false.,self%overdensityCriticalUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
-       call Spherical_Collapse_BDM_Critical_Overdensity_Tabulate(time,.true. ,self%overdensityCriticalClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call Spherical_Collapse_BDM_Critical_Overdensity_Tabulate(time,.false.,self%tableStore,self%overdensityCriticalUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call Spherical_Collapse_BDM_Critical_Overdensity_Tabulate(time,.true. ,self%tableStore,self%overdensityCriticalClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
        self%tableInitialized           =.true.
        self%tableClusteredTimeMinimum  =self%overdensityCriticalClustered  %x(+1)
        self%tableClusteredTimeMaximum  =self%overdensityCriticalClustered  %x(-1)

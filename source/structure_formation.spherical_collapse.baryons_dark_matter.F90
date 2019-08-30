@@ -34,10 +34,9 @@ module Spherical_Collapse_BDM
   ! Variables used in root finding.
   double precision                                         :: OmegaDE                              , OmegaM                  , &
        &                                                      epsilonPerturbationShared            , hubbleParameterInvGyr   , &
-       &                                                      perturbationRadiusInitial            , tNow                    , &
-       &                                                      OmegaB
+       &                                                      OmegaB                               , tNow
   logical                                                  :: baryonsCluster_
-  !$omp threadprivate(OmegaDE,OmegaM,OmegaB,hubbleParameterInvGyr,tNow,epsilonPerturbationShared,perturbationRadiusInitial,baryonsCluster_)
+  !$omp threadprivate(OmegaDE,OmegaM,OmegaB,hubbleParameterInvGyr,tNow,epsilonPerturbationShared,baryonsCluster_)
   
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
   double precision                         , parameter     :: expansionFactorInitialFraction=1.0d-6
@@ -60,53 +59,122 @@ module Spherical_Collapse_BDM
   !#  <entry label="turnaround"   />
   !#  <entry label="virialization"/>
   !# </enumeration>
-
+  
 contains
   
-  subroutine Spherical_Collapse_BDM_Critical_Overdensity_Tabulate(time,baryonsCluster,deltaCritTable,cosmologyParameters_,cosmologyFunctions_)
+  subroutine Spherical_Collapse_BDM_Critical_Overdensity_Tabulate(time,baryonsCluster,tableStore,deltaCritTable,cosmologyParameters_,cosmologyFunctions_)
     !% Tabulate the critical overdensity for collapse for the spherical collapse model.
     use Tables              , only : table1D
     use Cosmology_Parameters, only : cosmologyParametersClass
+    use ISO_Varying_String  , only : varying_string          , operator(//)
+    use Galacticus_Error    , only : errorStatusSuccess
+    use Galacticus_Paths    , only : galacticusPath          , pathTypeDataDynamic
     implicit none
     double precision                                       , intent(in   ) :: time
-    logical                                                , intent(in   ) :: baryonsCluster
+    logical                                                , intent(in   ) :: baryonsCluster      , tableStore
     class           (table1D                 ), allocatable, intent(inout) :: deltaCritTable
-    class           (cosmologyParametersClass)            , intent(inout) :: cosmologyParameters_    
+    class           (cosmologyParametersClass)             , intent(inout) :: cosmologyParameters_    
     class           (cosmologyFunctionsClass )             , intent(inout) :: cosmologyFunctions_    
+    type            (varying_string          )                             :: fileName
+    integer                                                                :: status
+    character       (len=32                  )                             :: label
 
-    call Make_Table(time,baryonsCluster,deltaCritTable,calculationDeltaCrit,cosmologyParameters_,cosmologyFunctions_)
+    if (baryonsCluster) then
+       label="baryonsClustered"
+    else
+       label="baryonsUnclustered"
+    end if
+    fileName=galacticusPath(pathTypeDataDynamic)                                         // &
+         &   'largeScaleStructure/sphericalCollapseBaryonsDarkMatterCriticalOverdensity_'// &
+         &   trim(label)                                                                 // &
+         &   '_'                                                                         // &
+         &   cosmologyFunctions_ %hashedDescriptor(includeSourceDigest=.true.)           // &
+         &   '_'                                                                         // &
+         &   cosmologyParameters_%hashedDescriptor(includeSourceDigest=.true.)           // &
+         &   '.hdf5'
+    call    Restore_Table(time               ,deltaCritTable,fileName            ,tableStore          ,status             )
+    if (status /= errorStatusSuccess) then       
+       call Make_Table   (time,baryonsCluster,deltaCritTable,calculationDeltaCrit,cosmologyParameters_,cosmologyFunctions_)
+       call Store_Table  (                    deltaCritTable,fileName            ,tableStore                              )
+    end if
     return
   end subroutine Spherical_Collapse_BDM_Critical_Overdensity_Tabulate
 
-  subroutine Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate(time,baryonsCluster,energyFixedAt,deltaVirialTable,cosmologyParameters_,cosmologyFunctions_)
+  subroutine Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate(time,baryonsCluster,energyFixedAt,tableStore,deltaVirialTable,cosmologyParameters_,cosmologyFunctions_)
     !% Tabulate the virial density contrast for the spherical collapse model.
     use Tables              , only : table1D
     use Cosmology_Parameters, only : cosmologyParametersClass
+    use ISO_Varying_String  , only : varying_string          , operator(//)
+    use Galacticus_Error    , only : errorStatusSuccess
+    use Galacticus_Paths    , only : galacticusPath          , pathTypeDataDynamic
     implicit none
     double precision                                       , intent(in   ) :: time
-    logical                                                , intent(in   ) :: baryonsCluster
+    logical                                                , intent(in   ) :: baryonsCluster      , tableStore
     integer                                                , intent(in   ) :: energyFixedAt
     class           (table1D                 ), allocatable, intent(inout) :: deltaVirialTable
     class           (cosmologyParametersClass)             , intent(inout) :: cosmologyParameters_    
     class           (cosmologyFunctionsClass )             , intent(inout) :: cosmologyFunctions_    
-
-    call Make_Table(time,baryonsCluster,deltaVirialTable,calculationDeltaVirial,cosmologyParameters_,cosmologyFunctions_,energyFixedAt=energyFixedAt)
+    type            (varying_string          )                             :: fileName
+    integer                                                                :: status
+    character       (len=32                  )                             :: label
+    
+    if (baryonsCluster) then
+       label="baryonsClustered"
+    else
+       label="baryonsUnclustered"
+    end if
+    fileName=galacticusPath(pathTypeDataDynamic)                                     // &
+         &   'largeScaleStructure/sphericalCollapseBaryonsDarkMatterDensityContrast_'// &
+         &   trim(label)                                                             // &
+         &   '_'                                                                     // &
+         &   cosmologyFunctions_ %hashedDescriptor(includeSourceDigest=.true.)       // &
+         &   '_'                                                                     // &
+         &   cosmologyParameters_%hashedDescriptor(includeSourceDigest=.true.)       // &
+         &   '.hdf5'
+    call    Restore_Table(time               ,deltaVirialTable,fileName              ,tableStore          ,status                                         )
+    if (status /= errorStatusSuccess) then       
+       call Make_Table   (time,baryonsCluster,deltaVirialTable,calculationDeltaVirial,cosmologyParameters_,cosmologyFunctions_,energyFixedAt=energyFixedAt)
+       call Store_Table  (                    deltaVirialTable,fileName              ,tableStore                                                          )
+    end if
     return
   end subroutine Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate
 
-  subroutine Spherical_Collapse_BDM_Turnaround_Radius_Tabulate(time,baryonsCluster,energyFixedAt,turnaroundTable,cosmologyParameters_,cosmologyFunctions_)
+  subroutine Spherical_Collapse_BDM_Turnaround_Radius_Tabulate(time,baryonsCluster,energyFixedAt,tableStore,turnaroundTable,cosmologyParameters_,cosmologyFunctions_)
     !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
     use Tables              , only : table1D
     use Cosmology_Parameters, only : cosmologyParametersClass
+    use ISO_Varying_String  , only : varying_string          , operator(//)
+    use Galacticus_Error    , only : errorStatusSuccess
+    use Galacticus_Paths    , only : galacticusPath          , pathTypeDataDynamic
     implicit none
     double precision                                       , intent(in   ) :: time
-    logical                                                , intent(in   ) :: baryonsCluster
+    logical                                                , intent(in   ) :: baryonsCluster      , tableStore
     integer                                                , intent(in   ) :: energyFixedAt
     class           (table1D                 ), allocatable, intent(inout) :: turnaroundTable
     class           (cosmologyParametersClass)             , intent(inout) :: cosmologyParameters_    
     class           (cosmologyFunctionsClass )             , intent(inout) :: cosmologyFunctions_    
+    type            (varying_string          )                             :: fileName
+    integer                                                                :: status
+    character       (len=32                  )                             :: label
 
-    call Make_Table(time,baryonsCluster,turnaroundTable,calculationTurnaround,cosmologyParameters_,cosmologyFunctions_,energyFixedAt=energyFixedAt)
+    if (baryonsCluster) then
+       label="baryonsClustered"
+    else
+       label="baryonsUnclustered"
+    end if
+    fileName=galacticusPath(pathTypeDataDynamic)                                         // &
+         &   'largeScaleStructure/sphericalCollapseBaryonsDarkMatterCriticalOverdensity_'// &
+         &   trim(label)                                                                 // &
+         &   '_'                                                                         // &
+         &   cosmologyFunctions_ %hashedDescriptor(includeSourceDigest=.true.)           // &
+         &   '_'                                                                         // &
+         &   cosmologyParameters_%hashedDescriptor(includeSourceDigest=.true.)           // &
+         &   '.hdf5'
+    call    Restore_Table(time               ,turnaroundTable,fileName            ,tableStore           ,status                                         )
+    if (status /= errorStatusSuccess) then       
+       call Make_Table   (time,baryonsCluster,turnaroundTable,calculationTurnaround,cosmologyParameters_,cosmologyFunctions_,energyFixedAt=energyFixedAt)
+       call Store_Table  (                    turnaroundTable,fileName            ,tableStore                                                           )
+    end if
     return
   end subroutine Spherical_Collapse_BDM_Turnaround_Radius_Tabulate
 
@@ -129,7 +197,7 @@ contains
     class           (cosmologyFunctionsClass )              , intent(inout) :: cosmologyFunctions_    
     integer                                   , optional    , intent(in   ) :: energyFixedAt
     class           (linearGrowthClass       ), pointer                     :: linearGrowth_
-    double precision                          , parameter                   :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-9
+    double precision                          , parameter                   :: toleranceAbsolute              =0.0d0, toleranceRelative              =1.0d-12
     double precision                          , dimension(2)                :: timeRange
     type            (rootFinder              ), save                        :: finder                               , maximumExpansionFinder
     !$omp threadprivate(finder,maximumExpansionFinder)
@@ -148,7 +216,7 @@ contains
          &                                                                     x
     type            (varying_string          )                              :: message
     character       (len=13                  )                              :: label
-
+    
     ! Validate input.
     select case (calculationType)
      case (calculationDeltaVirial,calculationTurnaround)
@@ -219,12 +287,11 @@ contains
                &                         )
           ! Get the current expansion factor.
           aExpansionNow=cosmologyFunctions__%expansionFactor(deltaTable%x(iTime))
-          ! Initial guess for the range of the initial perturbation amplitude. This must be positive in order for the perturbation
-          ! to collapse - this sets the lower limit. Since we expect a collapsing perturbation to have linear theory amplitude of
-          ! order unity at the time of collapse, and since linear perturbations grow proportional to the expansion factor in an
-          ! Einstein-de Sitter universe with no baryons, we use an initial guess for the upper limit which is a multiple of our
-          ! starting expansion factor.
-          epsilonPerturbationMinimum=0.0d+0
+          ! Initial guess for the range of the initial perturbation amplitude. Since we expect a collapsing perturbation to have
+          ! linear theory amplitude of order unity at the time of collapse, and since linear perturbations grow proportional to
+          ! the expansion factor in an Einstein-de Sitter universe with no baryons, we use an initial guess for the lower and
+          ! upper limits which are a multiple of our starting expansion factor.
+          epsilonPerturbationMinimum=1.0d-1*expansionFactorInitialFraction
           epsilonPerturbationMaximum=1.0d+1*expansionFactorInitialFraction
           ! Evaluate cosmological parameters at the present time.
           OmegaM               =+cosmologyFunctions__%omegaMatterEpochal    (expansionFactor=aExpansionNow)
@@ -345,9 +412,9 @@ contains
                      &                   iTime                                 &
                      &                  )
              case (calculationTurnaround)
-                call deltaTable%populate(                                           &
-                     &                   1.0d0/ dble(x)                           , &
-                     &                   iTime                                      &
+                call deltaTable%populate(                                      &
+                     &                   1.0d0/ dble(x)                      , &
+                     &                   iTime                                 &
                      &                  )
              end select
           end select
@@ -357,8 +424,8 @@ contains
        !$omp end do
        deallocate(cosmologyFunctions__)
        !$omp end parallel
-       call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
-       call Galacticus_Display_Unindent('done',verbosity=verbosityWorking)
+       call Galacticus_Display_Counter_Clear(       verbosity=verbosityWorking)
+       call Galacticus_Display_Unindent     ('done',verbosity=verbosityWorking)
     end select
     return
   end subroutine Make_Table
@@ -390,18 +457,18 @@ contains
     use FODEIV2
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    double precision                                            , intent(in   ) :: perturbationOverdensityInitial      , time                                    , &
+    double precision                                            , intent(in   ) :: perturbationOverdensityInitial      , time                                           , &
          &                                                                         tNow
     double precision                    , optional              , intent(  out) :: perturbationExpansionRate           , perturbationRadius
     integer                             , parameter                             :: nProperties                   =2
     double precision                    , dimension(nProperties)                :: propertyValues
-    double precision                    , parameter                             :: odeToleranceAbsolute          =0.0d0, odeToleranceRelative            =1.0d-12
+    double precision                    , parameter                             :: odeToleranceAbsolute          =0.0d0, odeToleranceRelative                   =1.0d-12
     type            (fodeiv2_system    )                                        :: ode2System
     type            (fodeiv2_driver    )                                        :: ode2Driver
     logical                                                                     :: odeReset
-    double precision                                                            :: expansionFactorInitial              , perturbationExpansionRateInitial        , &
-         &                                                                         timeInitial                         , perturbationGrowthRate                  , &
-         &                                                                         exponent
+    double precision                                                            :: expansionFactorInitial              , perturbationDifferenceGrowthRateInitial        , &
+         &                                                                         timeInitial                         , exponent                                       , &
+         &                                                                         perturbationRadiusDifferenceInitial
     integer                                                                     :: odeStatus
 
     ! Validate the perturbation overdensity.
@@ -414,18 +481,39 @@ contains
     ! Determine the initial growth rate of the overdensity assuming the matter-dominated phase growth factor is proportional to the expansion factor.
     if (baryonsCluster_) then
        ! Baryons are assumed to cluster, so the usual matter dominated solution of D(a)=a applies.
-       perturbationGrowthRate=perturbationOverdensityInitial*hubbleParameterInvGyr*sqrt(OmegaM/expansionFactorInitial)
+       exponent=1.0d0
     else
        ! Baryons do not cluster, the growth factor is D(a)=a^{3p/2} with p=[sqrt(1+24fₓ)-1]/6
        exponent=0.25d0*(sqrt(1.0d0+24.0d0*(OmegaM-OmegaB)/OmegaM)-1.0d0)
-       perturbationGrowthRate=perturbationOverdensityInitial*exponent*hubbleParameterInvGyr*sqrt(OmegaM/expansionFactorInitial)
     end if
-    ! Find the initial radius of the perturbation.
-    perturbationRadiusInitial=expansionFactorInitial*(1.0d0-perturbationOverdensityInitial/3.0d0)
+    ! We solve the equations for the evolution of y(t) = a_p(t) - a(t) - where a_p(t) is the radius of our perturbation, and a(t)
+    ! is the expansion factor. Using y(t) as our variable allows us to maintain precision at early times when y(t) is very small -
+    ! if we instead solve directly for a_p(t) numerical issues prevent a numerically robust solution from being obtained.
+    !! Find the initial radius parameter, y(t) of the perturbation.
+    perturbationRadiusDifferenceInitial    =+      expansionFactorInitial                                                &
+         &                                  *(                                                                           &
+         &                                    -( 1.0d0/  3.0d0)                       *perturbationOverdensityInitial    &
+         &                                    +( 2.0d0/  9.0d0)                       *perturbationOverdensityInitial**2 &
+         &                                    -(14.0d0/ 81.0d0)                       *perturbationOverdensityInitial**3 &
+         &                                    +(35.0d0/243.0d0)                       *perturbationOverdensityInitial**4 &
+         &                                    -(91.0d0/729.0d0)                       *perturbationOverdensityInitial**5 &
+         &                                   )
     ! Find the initial growth rate of the perturbation radius.
-    perturbationExpansionRateInitial=perturbationRadiusInitial*hubbleParameterInvGyr*sqrt(OmegaM/expansionFactorInitial**3)*(1.0d0-perturbationOverdensityInitial/3.0d0/(1.0d0+perturbationOverdensityInitial))
+    perturbationDifferenceGrowthRateInitial=+      hubbleParameterInvGyr                                                 &
+         &                                  *sqrt(                                                                       &
+         &                                        +OmegaM                                                                &
+         &                                        /expansionFactorInitial**3                                             &
+         &                                       )                                                                       &
+         &                                  *      expansionFactorInitial                                                &
+         &                                  *(                                                                           &
+         &                                    -( 1.0d0/  3.0d0)*(1.0d0+      exponent)*perturbationOverdensityInitial    &
+         &                                    +( 2.0d0/  9.0d0)*(1.0d0+2.0d0*exponent)*perturbationOverdensityInitial**2 &
+         &                                    -(14.0d0/ 81.0d0)*(1.0d0+3.0d0*exponent)*perturbationOverdensityInitial**3 &
+         &                                    +(35.0d0/243.0d0)*(1.0d0+4.0d0*exponent)*perturbationOverdensityInitial**4 &
+         &                                    -(91.0d0/729.0d0)*(1.0d0+5.0d0*exponent)*perturbationOverdensityInitial**5 &
+         &                                   )
     ! Set initial conditions.
-    propertyValues=[perturbationRadiusInitial,perturbationExpansionRateInitial]
+    propertyValues=[perturbationRadiusDifferenceInitial,perturbationDifferenceGrowthRateInitial]
     ! Evolve if the requested time is after the initial time.
     if (time > timeInitial) then
        ! Solve the ODE to find the perturbation radius at the present day.
@@ -443,15 +531,21 @@ contains
             &            reset    =odeReset            , &
             &            odeStatus=odeStatus             &
             &           )
-       call ODEIV2_Solver_Free(ode2Driver,ode2System)
+       call ODEIV2_Solver_Free(ode2Driver,ode2System)         
        ! If the ODE solver did not succeed, it is because the perturbation collapsed to zero radius (causing a divergence). This
        ! means it collapsed prior to the current time. We extrapolate to negative radius (using the velocity at the final step) to
        ! permit our root finder to locate the point at which collapse occurs at the current time.
        if (odeStatus /= FGSL_Success) propertyValues(1)=propertyValues(1)+propertyValues(2)*(time-timeInitial)
     end if
-    ! Return the computed quantities.
-    if (present(perturbationRadius       )) perturbationRadius       =propertyValues(1)
-    if (present(perturbationExpansionRate)) perturbationExpansionRate=propertyValues(2)
+    ! Return the radius and/or expansion rate of the perturbation. Note that here we add back the expansion factor (or its growth
+    ! rate) since we've solved the the radius and expansion rate of the perturbation relative to the epansion factor.
+    if (present(perturbationRadius       )) perturbationRadius       =+propertyValues                                                         (   1)  &
+         &                                                            +                                   cosmologyFunctions__%expansionFactor(time)  &
+         &                                                            /                                   cosmologyFunctions__%expansionFactor(tNow)
+    if (present(perturbationExpansionRate)) perturbationExpansionRate=+propertyValues                                                         (   2)  &
+         &                                                            +cosmologyFunctions__%expansionRate(cosmologyFunctions__%expansionFactor(time)) &
+         &                                                            *                                   cosmologyFunctions__%expansionFactor(time)  &
+         &                                                            /                                   cosmologyFunctions__%expansionFactor(tNow)
     return
   end subroutine Perturbation_Dynamics_Solver
 
@@ -463,22 +557,109 @@ contains
     double precision, intent(  out), dimension(:) :: dydt
     double precision                              :: expansionFactor
 
-    if (y(1) <= 0.0d0) then
+    expansionFactor  =+cosmologyFunctions__%expansionFactor(time) &
+         &            /cosmologyFunctions__%expansionFactor(tNow)
+    if (y(1) <= -expansionFactor) then
        dydt(1:2)=0.0d0
     else
-       expansionFactor  =+cosmologyFunctions__%expansionFactor(time) &
-            &            /cosmologyFunctions__%expansionFactor(tNow)
-       dydt          (1)=+y(2)
-       dydt          (2)=-0.5d0*y(1)*(hubbleParameterInvGyr**2)                                                                                                                             &
-            &            *(                                                                                                                                                                 &
-            &               +(OmegaM-OmegaB)                                                                        /y              (1)**3                                                  &
-            &               +        OmegaB                                                                         /expansionFactor   **3                                                  &
-            &               + OmegaDE       *(3.0d0*cosmologyFunctions__%equationOfStateDarkEnergy(time=time)+1.0d0)*expansionFactor   **cosmologyFunctions__%exponentDarkEnergy(time=time) &
-            &              )
+       dydt(1)=+  y(2)
+       dydt(2)=-0.5d0                                                                                                                                                                                          &
+            &  *hubbleParameterInvGyr**2                                                                                                                                                                       &
+            &  *(                                                                                                                                                                                              &
+            &    +y(1)                                                                                                                                                                                         &
+            &    *(                                                                                                                                                                                            &
+            &       +(OmegaM-OmegaB)                                                                        *(y(1)+expansionFactor)**(-3)                                                                      &
+            &       +        OmegaB                                                                         *                              expansionFactor**(-3)                                               &
+            &       + OmegaDE       *(3.0d0*cosmologyFunctions__%equationOfStateDarkEnergy(time=time)+1.0d0)*                              expansionFactor**cosmologyFunctions__%exponentDarkEnergy(time=time) &
+            &      )                                                                                                                                                                                           &
+            &    +expansionFactor                                                                                                                                                                              &
+            &    *(                                                                                                                                                                                            &
+            &       +(OmegaM-OmegaB)                                                                        *((y(1)+expansionFactor)**(-3)-expansionFactor**(-3))                                              &
+            &      )                                                                                                                                                                                           &
+            &   )
     end if
     ! Return success.
     perturbationODEs=FGSL_Success
     return
   end function perturbationODEs
+
+  subroutine Restore_Table(time,restoredTable,fileName,tableStore,status)
+    !% Attempt to restore a table from file.
+    use Galacticus_Error  , only : errorStatusSuccess, errorStatusFail
+    use IO_HDF5           , only : hdf5Object        , hdf5Access
+    use File_Utilities    , only : File_Exists       , lockDescriptor          , File_Lock_Initialize, File_Lock, &
+         &                         File_Unlock
+    use Tables            , only : table1D           , table1DLogarithmicLinear
+    use ISO_Varying_String, only : varying_string    , char    
+    implicit none
+    double precision                                      , intent(in   ) :: time
+    class           (table1D                ), allocatable, intent(inout) :: restoredTable
+    type            (varying_string         )             , intent(in   ) :: fileName
+    logical                                               , intent(in   ) :: tableStore
+    integer                                               , intent(  out) :: status
+    type            (hdf5Object             )                             :: file
+    double precision                         , allocatable, dimension(:)  :: timeTable    , valueTable
+    type            (lockDescriptor         )                             :: fileLock
+
+    status=errorStatusFail
+    if (.not.tableStore) return
+    if (.not.File_Exists(fileName)) return
+    call File_Lock_Initialize(               fileLock                    )
+    call File_Lock           (char(fileName),fileLock,lockIsShared=.true.)
+    !$ call hdf5Access%set()
+    call file%openFile(char(fileName))
+    call file%readDataset('time',timeTable)
+    if     (                                    &
+         &   timeTable(1              ) <= time &
+         &  .and.                               &
+         &   timeTable(size(timeTable)) >= time &
+         & ) then
+       call file%readDataset('value',valueTable)
+       ! Deallocate table if currently allocated.
+       if (allocated(restoredTable)) then
+          call restoredTable%destroy()
+          deallocate(restoredTable)
+       end if
+       allocate(table1DLogarithmicLinear :: restoredTable)
+       select type (restoredTable)
+       type is (table1DLogarithmicLinear)
+          call restoredTable%create  (timeTable (1),timeTable(size(timeTable)),size(timeTable))
+          call restoredTable%populate(valueTable                                              )
+       end select
+       status=errorStatusSuccess
+    end if
+    call file%close()
+    !$ call hdf5Access%unset()
+    call File_Unlock(fileLock)
+    return
+  end subroutine Restore_Table
+
+  subroutine Store_Table(storeTable,fileName,tableStore)
+    !% Attempt to restore a table from file.
+    use IO_HDF5           , only : hdf5Object    , hdf5Access
+    use Tables            , only : table1D
+    use ISO_Varying_String, only : varying_string, char    
+    use File_Utilities    , only : lockDescriptor, File_Lock_Initialize, File_Lock, File_Unlock, &
+         &                         File_Path     , Directory_Make
+    implicit none
+    class(table1D                ), intent(in   ) :: storeTable
+    type (varying_string         ), intent(in   ) :: fileName
+    logical                       , intent(in   ) :: tableStore
+    type (hdf5Object             )                :: file
+    type (lockDescriptor         )                :: fileLock
+
+    if (.not.tableStore) return
+    call Directory_Make      (char(File_Path(char(fileName))))
+    call File_Lock_Initialize(               fileLock                     )
+    call File_Lock           (char(fileName),fileLock,lockIsShared=.false.)
+    !$ call hdf5Access%set()
+    call file%openFile    (char   (fileName                           )        ,overWrite=.true.,readOnly=.false.)
+    call file%writeDataset(        storeTable%xs()                     ,'time'                                   )
+    call file%writeDataset(reshape(storeTable%ys(),[storeTable%size()]),'value'                                  )
+    call file%close       (                                                                                      )
+    !$ call hdf5Access%unset()
+    call File_Unlock(fileLock)
+    return
+  end subroutine Store_Table
 
 end module Spherical_Collapse_BDM

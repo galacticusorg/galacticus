@@ -169,8 +169,8 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate(time,.false.,self%energyFixedAt,self%deltaVirialUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
-       call Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate(time,.true. ,self%energyFixedAt,self%deltaVirialClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate(time,.false.,self%energyFixedAt,self%tableStore,self%deltaVirialUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call Spherical_Collapse_BDM_Virial_Density_Contrast_Tabulate(time,.true. ,self%energyFixedAt,self%tableStore,self%deltaVirialClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
        self%tableInitialized=.true.
        self%tableClusteredTimeMinimum  =self%deltaVirialClustered  %x(+1)
        self%tableClusteredTimeMaximum  =self%deltaVirialClustered  %x(-1)
@@ -248,8 +248,8 @@ contains
        remakeTable=.true.
     end if
     if (remakeTable) then
-       call Spherical_Collapse_BDM_Turnaround_Radius_Tabulate(time,.false.,self%energyFixedAt,self%turnaroundUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
-       call Spherical_Collapse_BDM_Turnaround_Radius_Tabulate(time,.true. ,self%energyFixedAt,self%turnaroundClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call Spherical_Collapse_BDM_Turnaround_Radius_Tabulate(time,.false.,self%energyFixedAt,self%tableStore,self%turnaroundUnclustered,self%cosmologyParameters_,self%cosmologyFunctions_)
+       call Spherical_Collapse_BDM_Turnaround_Radius_Tabulate(time,.true. ,self%energyFixedAt,self%tableStore,self%turnaroundClustered  ,self%cosmologyParameters_,self%cosmologyFunctions_)
        self%turnaroundInitialized=.true.
        self%turnaroundClusteredTimeMinimum  =self%turnaroundClustered  %x(+1)
        self%turnaroundClusteredTimeMaximum  =self%turnaroundClustered  %x(-1)
