@@ -502,18 +502,18 @@ contains
     use Numerical_Ranges        , only : Make_Range, rangeTypeLogarithmic
     use File_Utilities          , only : File_Lock , File_Unlock
     implicit none
-    class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)               :: self
-    double precision                                         , intent(in   ), optional     :: mass                      , time
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
+    double precision                                       , intent(in   ), optional     :: mass                      , time
     ! Radius for σ(M) normalization in Mpc/h.
-    double precision                                         , parameter                   :: radiusNormalization =8.0d0
-    integer                                                                                :: i                         , rootVarianceTableCount , &
-         &                                                                                    j                         , rootVarianceUniqueCount, &
-         &                                                                                    rootVarianceTimeCount     , k
-    double precision                                                                       :: sigma                     , smoothingMass          , &
-         &                                                                                    massMinimum
-    logical                                                  , allocatable  , dimension(:) :: rootVarianceIsUnique
-    type            (varying_string                         )                              :: message
-    character       (len=12                                 )                              :: label
+    double precision                                       , parameter                   :: radiusNormalization =8.0d0
+    integer                                                                              :: i                         , rootVarianceTableCount , &
+         &                                                                                  j                         , rootVarianceUniqueCount, &
+         &                                                                                  rootVarianceTimeCount     , k
+    double precision                                                                     :: sigma                     , smoothingMass          , &
+         &                                                                                  massMinimum
+    logical                                                , allocatable  , dimension(:) :: rootVarianceIsUnique
+    type            (varying_string                       )                              :: message
+    character       (len=12                               )                              :: label
 
     if (self%remakeTable(mass,time)) then
        call File_Lock(char(self%fileName),filteredPowerFileLock,lockIsShared=.true.)
