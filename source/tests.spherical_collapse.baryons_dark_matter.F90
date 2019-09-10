@@ -91,18 +91,18 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
      darkMatterParticleCDM_                             =darkMatterParticleCDM                             (                                                                                        &
           &                                                                                                )
      cosmologyParametersDMO_                            =cosmologyParametersSimple                         (                                                                                        &
-          &                                                                                                 OmegaMatter                        = 0.30d0                                           , &
-          &                                                                                                 OmegaBaryon                        = 0.30d0*fractionBaryons                           , &
-          &                                                                                                 OmegaDarkEnergy                    = 0.70d0                                           , &
-          &                                                                                                 temperatureCMB                     = 2.78d0                                           , &
-          &                                                                                                 HubbleConstant                     =70.00d0                                             &
+          &                                                                                                 OmegaMatter                        = 0.2750d0                                         , &
+          &                                                                                                 OmegaBaryon                        = 0.2750d0*fractionBaryons                         , &
+          &                                                                                                 OmegaDarkEnergy                    = 0.7250d0                                         , &
+          &                                                                                                 temperatureCMB                     = 2.7800d0                                         , &
+          &                                                                                                 HubbleConstant                     =70.2000d0                                           &
           &                                                                                                )
      cosmologyParametersBaryons_                        =cosmologyParametersSimple                         (                                                                                        &
-          &                                                                                                 OmegaMatter                        = 0.30d0                                           , &
-          &                                                                                                 OmegaBaryon                        = 0.05d0                                           , &
-          &                                                                                                 OmegaDarkEnergy                    = 0.70d0                                           , &
-          &                                                                                                 temperatureCMB                     = 2.78d0                                           , &
-          &                                                                                                 HubbleConstant                     =70.00d0                                             &
+          &                                                                                                 OmegaMatter                        = 0.2750d0                                         , &
+          &                                                                                                 OmegaBaryon                        = 0.0458d0                                         , &
+          &                                                                                                 OmegaDarkEnergy                    = 0.7250d0                                         , &
+          &                                                                                                 temperatureCMB                     = 2.7800d0                                         , &
+          &                                                                                                 HubbleConstant                     =70.2000d0                                           &
           &                                                                                                )
      cosmologyFunctionsMatterLambda_                    =cosmologyFunctionsMatterLambda                    (                                                                                        &
           &                                                                                                 cosmologyParametersBaryons_                                                             &
