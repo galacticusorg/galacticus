@@ -36,7 +36,10 @@
      procedure :: densityContrastDefinition       => fixedDensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => fixedVelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => fixedVelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => fixedAngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => fixedAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => fixedVelocityTotalRootMeanSquared
+     procedure :: energyMean                      => fixedEnergyMean
   end type virialOrbitFixed
   
   interface virialOrbitFixed
@@ -208,6 +211,44 @@ contains
     return
   end function fixedVelocityTangentialVectorMean
 
+  double precision function fixedAngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitFixed  ), intent(inout) :: self
+    type            (treeNode          ), intent(inout) :: node        , host
+    class           (nodeComponentBasic), pointer       :: basic       , hostBasic
+    double precision                                    :: massHost    , radiusHost, &
+         &                                                 velocityHost
+
+    basic                             =>  node%basic()
+    hostBasic                         =>  host%basic()
+    massHost                          =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    fixedAngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
+         &                               *radiusHost                                      &
+         &                               /(                                               & ! Account for reduced mass.
+         &                                 +1.0d0                                         &
+         &                                 +basic    %mass()                              &
+         &                                 /hostBasic%mass()                              &
+         &                                )
+    return
+  end function fixedAngularMomentumMagnitudeMean
+
+  function fixedAngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector angular momentum.
+    use Galacticus_Error
+    implicit none
+    double precision                  , dimension(3)  :: fixedAngularMomentumVectorMean
+    class           (virialOrbitFixed), intent(inout) :: self
+    type            (treeNode        ), intent(inout) :: node                               , host
+    !GCC$ attributes unused :: self, node, host
+
+    fixedAngularMomentumVectorMean=0.0d0
+    call Galacticus_Error_Report('vector angular momentum is not defined for this class'//{introspection:location})
+    return
+  end function fixedAngularMomentumVectorMean
+
   double precision function fixedVelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared of the total velocity.
     use Galacticus_Nodes                    , only : nodeComponentBasic
@@ -229,3 +270,31 @@ contains
          &                                *           velocityHost
     return
   end function fixedVelocityTotalRootMeanSquared
+
+  double precision function fixedEnergyMean(self,node,host)
+    !% Return the mean energy of the orbits.
+    use Galacticus_Nodes                    , only : nodeComponentBasic
+    use Numerical_Constants_Physical        , only : gravitationalConstantGalacticus
+    use Dark_Matter_Profile_Mass_Definitions
+    implicit none
+    class           (virialOrbitFixed  ), intent(inout) :: self
+    type            (treeNode          ), intent(inout) :: node        , host
+    class           (nodeComponentBasic), pointer       :: basic       , hostBasic
+    double precision                                    :: massHost    , radiusHost, &
+         &                                                 velocityHost
+
+    basic           =>  node%basic()
+    hostBasic       =>  host%basic()
+    massHost        =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    fixedEnergyMean =  +0.5d0                                           &
+         &             *self%velocityTotalRootMeanSquared(node,host)**2 &
+         &             /(                                               & ! Account for reduced mass.
+         &               +1.0d0                                         &
+         &               +basic    %mass()                              &
+         &               /hostBasic%mass()                              &
+         &              )                                               & 
+         &             -gravitationalConstantGalacticus                 &
+         &             *massHost                                        &
+         &             /radiusHost
+    return
+  end function fixedEnergyMean

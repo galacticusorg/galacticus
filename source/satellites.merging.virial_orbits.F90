@@ -56,8 +56,26 @@ module Virial_Orbits
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
   !#  </method>
+  !#  <method name="angularMomentumMagnitudeMean" >
+  !#   <description>Returns the mean of the magnitude of the angular momentum averaged over all orbits.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
+  !#  </method>
+  !#  <method name="angularMomentumVectorMean" >
+  !#   <description>Returns the mean vector of the angular momentum averaged over all orbits.</description>
+  !#   <type>double precision, dimension(3)</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
+  !#  </method>
   !#  <method name="velocityTotalRootMeanSquared" >
   !#   <description>Returns the square root of the mean of the squared total velocity averaged over all orbits.</description>
+  !#   <type>double precision</type>
+  !#   <pass>yes</pass>
+  !#   <argument>type(treeNode), intent(inout) :: node, host</argument>
+  !#  </method>
+  !#  <method name="energyMean" >
+  !#   <description>Returns the square root of the mean of the energy averaged over all orbits.</description>
   !#   <type>double precision</type>
   !#   <pass>yes</pass>
   !#   <argument>type(treeNode), intent(inout) :: node, host</argument>

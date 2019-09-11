@@ -34,7 +34,10 @@
      procedure :: densityContrastDefinition       => isotropicDensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => isotropicVelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => isotropicVelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => isotropicAngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => isotropicAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => isotropicVelocityTotalRootMeanSquared
+     procedure :: energyMean                      => isotropicEnergyMean
   end type virialOrbitIsotropic
   
   interface virialOrbitIsotropic
@@ -131,6 +134,30 @@ contains
     return
   end function isotropicVelocityTangentialVectorMean
 
+  double precision function isotropicAngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    implicit none
+    class(virialOrbitIsotropic), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node, host
+
+    isotropicAngularMomentumMagnitudeMean=self%virialOrbit_%angularMomentumMagnitudeMean(node,host)
+    return
+  end function isotropicAngularMomentumMagnitudeMean
+
+  function isotropicAngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector tangential velocity.
+    use Galacticus_Error
+    implicit none
+    double precision                      , dimension(3)  :: isotropicAngularMomentumVectorMean
+    class           (virialOrbitIsotropic), intent(inout) :: self
+    type            (treeNode            ), intent(inout) :: node                              , host
+    !GCC$ attributes unused :: self, node, host
+
+    ! Since the tangntial velocity is assumed to be isotropically distributed the mean of the vector angular momentum is zero.
+    isotropicAngularMomentumVectorMean=0.0d0
+    return
+  end function isotropicAngularMomentumVectorMean
+
   double precision function isotropicVelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared of the total velocity.
     implicit none
@@ -140,3 +167,13 @@ contains
     isotropicVelocityTotalRootMeanSquared=self%virialOrbit_%velocityTotalRootMeanSquared(node,host)
     return
   end function isotropicVelocityTotalRootMeanSquared
+
+  double precision function isotropicEnergyMean(self,node,host)
+    !% Return the mean of the total energy.
+    implicit none
+    class(virialOrbitIsotropic), intent(inout) :: self
+    type (treeNode            ), intent(inout) :: node, host
+    
+    isotropicEnergyMean=self%virialOrbit_%energyMean(node,host)
+    return
+  end function isotropicEnergyMean

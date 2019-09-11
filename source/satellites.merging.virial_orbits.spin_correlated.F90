@@ -34,7 +34,10 @@
      procedure :: densityContrastDefinition       => spinCorrelatedDensityContrastDefinition
      procedure :: velocityTangentialMagnitudeMean => spinCorrelatedVelocityTangentialMagnitudeMean
      procedure :: velocityTangentialVectorMean    => spinCorrelatedVelocityTangentialVectorMean
+     procedure :: angularMomentumMagnitudeMean    => spinCorrelatedAngularMomentumMagnitudeMean
+     procedure :: angularMomentumVectorMean       => spinCorrelatedAngularMomentumVectorMean
      procedure :: velocityTotalRootMeanSquared    => spinCorrelatedVelocityTotalRootMeanSquared
+     procedure :: energyMean                      => spinCorrelatedEnergyMean
   end type virialOrbitSpinCorrelated
   
   interface virialOrbitSpinCorrelated
@@ -186,6 +189,33 @@ contains
     return
   end function spinCorrelatedVelocityTangentialVectorMean
 
+  double precision function spinCorrelatedAngularMomentumMagnitudeMean(self,node,host)
+    !% Return the mean magnitude of the angular momentum.
+    implicit none
+    class(virialOrbitSpinCorrelated), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node, host
+
+    spinCorrelatedAngularMomentumMagnitudeMean=self%virialOrbit_%angularMomentumMagnitudeMean(node,host)
+    return
+  end function spinCorrelatedAngularMomentumMagnitudeMean
+
+  function spinCorrelatedAngularMomentumVectorMean(self,node,host)
+    !% Return the mean of the vector angular momentum.
+    use Galacticus_Nodes, only : nodeComponentSpin
+    implicit none
+    double precision                           , dimension(3)  :: spinCorrelatedAngularMomentumVectorMean
+    class           (virialOrbitSpinCorrelated), intent(inout) :: self
+    type            (treeNode                 ), intent(inout) :: node                                       , host
+    class           (nodeComponentSpin        ), pointer       :: spinHost
+
+    spinHost                                =>  host    %spin                        (         )
+    spinCorrelatedAngularMomentumVectorMean =  +self    %alpha                                   &
+         &                                     *self    %angularMomentumMagnitudeMean(node,host) &
+         &                                     *spinHost%spinVector                  (         ) &
+         &                                     /3.0d0
+    return
+  end function spinCorrelatedAngularMomentumVectorMean
+
   double precision function spinCorrelatedVelocityTotalRootMeanSquared(self,node,host)
     !% Return the root mean squared of the total velocity.
     implicit none
@@ -195,3 +225,13 @@ contains
     spinCorrelatedVelocityTotalRootMeanSquared=self%virialOrbit_%velocityTotalRootMeanSquared(node,host)
     return
   end function spinCorrelatedVelocityTotalRootMeanSquared
+
+  double precision function spinCorrelatedEnergyMean(self,node,host)
+    !% Return the mean of the total energy.
+    implicit none
+    class(virialOrbitSpinCorrelated), intent(inout) :: self
+    type (treeNode                 ), intent(inout) :: node, host
+    
+    spinCorrelatedEnergyMean=self%virialOrbit_%energyMean(node,host)
+    return
+  end function spinCorrelatedEnergyMean
